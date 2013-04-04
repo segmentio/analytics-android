@@ -4,37 +4,36 @@ import java.util.Date;
 
 public class Alias extends BasePayload {
 	
-	@SuppressWarnings("unused")
-	private String action = "alias";
-
-	private String from;
-	private String to;
+	private final static String FROM_KEY = "from";
+	private final static String TO_KEY = "from";
 
 	public Alias(String from,
 				 String to, 
 				 Date timestamp,
 				 Context context) {
-
+		
 		super(null, timestamp, context);
 
-		this.from = from;
-		this.to = to;
+		this.put("action", "alias");
+		
+		setFrom(from);
+		setTo(to);
 	}
 
 	public String getFrom() {
-		return from;
+		return this.optString(FROM_KEY, null);
 	}
 	
 	public void setFrom(String from) {
-		this.from = from;
+		this.put(FROM_KEY, from);
 	}
 	
 	public String getTo() {
-		return to;
+		return this.optString(TO_KEY, null);
 	}
 	
 	public void setTo(String to) {
-		this.to = to;
+		this.put(TO_KEY, to);
 	}
 
 }

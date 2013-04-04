@@ -1,7 +1,7 @@
 package io.segment.android.models;
 
 
-public class Context extends EasyJsonObject {
+public class Context extends EasyJSONObject {
 
 	private static final String IP_KEY = "ip";
 	private static final String LIBRARY_KEY = "library";

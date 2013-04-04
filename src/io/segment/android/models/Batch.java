@@ -2,43 +2,41 @@ package io.segment.android.models;
 
 import java.util.List;
 
-public class Batch {
+import org.json.JSONArray;
 
-	private String secret;
-	private List<BasePayload> batch;
+public class Batch extends EasyJSONObject {
+
+	private final static String SECRET_KEY = "secret";
+	private final static String BATCH_KEY = "batch";
+	private final static String CONTEXT_KEY = "context";
 	
-	/**
-	 * Additional context set for every object in this batch
-	 */
-	private Context context;
-
 	public Batch(String secret, List<BasePayload> batch) {
-		this.secret = secret;
-		this.batch = batch;
-	}
-
-	public void setContext(Context context) {
-		this.context = context;
+		setSecret(secret);
+		setBatch(batch);
 	}
 	
 	public Context getContext() {
-		return context;
+		return this.<Context>getObject(CONTEXT_KEY);
+	}
+
+	public void setContext(Context context) {
+		this.put(CONTEXT_KEY, context);
 	}
 	
 	public String getSecret() {
-		return secret;
+		return this.optString(SECRET_KEY, null);
 	}
 
 	public void setSecret(String secret) {
-		this.secret = secret;
+		this.put(SECRET_KEY, secret);
 	}
 
 	public List<BasePayload> getBatch() {
-		return batch;
+		return this.<BasePayload>getArray(BATCH_KEY);
 	}
 
 	public void setBatch(List<BasePayload> batch) {
-		this.batch = batch;
+		this.put(BATCH_KEY, new JSONArray(batch));
 	}
 
 }

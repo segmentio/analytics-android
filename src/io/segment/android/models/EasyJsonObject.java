@@ -1,19 +1,29 @@
 package io.segment.android.models;
 
+import io.segment.android.utils.ISO8601;
+
+import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.util.Log;
 
-public class EasyJsonObject extends JSONObject {
+public class EasyJSONObject extends JSONObject {
 
-	private static final String TAG = EasyJsonObject.class.getName();
+	private static final String TAG = EasyJSONObject.class.getName();
 	
-	public EasyJsonObject() {
+	public EasyJSONObject() {
 		super();
 	}
 	
-	public EasyJsonObject(Object... kvs) {
+	public EasyJSONObject(Object... kvs) {
 		super();
 
 		if (kvs != null) {
@@ -33,6 +43,21 @@ public class EasyJsonObject extends JSONObject {
 	}
 
 
+	//
+	// Put Handlers
+	//
+	
+	public void put(String key, Date value) {
+		if (value == null) {
+			this.remove(key);
+		} else {
+	        Calendar calendar = GregorianCalendar.getInstance();
+	        calendar.setTime(value);
+			String timestampStr = ISO8601.fromCalendar(calendar);
+			this.put(key, timestampStr);
+		}
+	}
+	
 	public JSONObject put(String key, int value) {
 		return this.put(key, value);
 	}
@@ -45,7 +70,53 @@ public class EasyJsonObject extends JSONObject {
 		return this.put(key, value);
 	}
 	
-	@Override
+	//
+	// Get Handlers
+	//
+	
+	public Date getDate(String key) {
+		String timestampStr = this.optString(key, null);
+		if (timestampStr != null) {
+			try {
+				Calendar cal = ISO8601.toCalendar(timestampStr);
+				if (cal != null) {
+					return cal.getTime();
+				}
+			} catch (ParseException e) {
+				Log.w(TAG, "Failed to parse timestamp string into ISO 8601 format: " + 
+						Log.getStackTraceString(e));
+			}	
+		}
+		
+		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T> List<T> getArray(String key) {
+		try {
+			JSONArray array = this.getJSONArray(key);
+			List<T> list = new LinkedList<T>();
+			for (int i = 0; i < array.length(); i += 1) {
+				Object obj = array.get(i);
+				list.add((T) obj);
+			}
+			return list;
+		} catch (JSONException e) {
+			return null;
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T> T getObject(String key) {
+		try {
+			JSONObject obj = this.getJSONObject(key);
+			return (T) obj;
+		} catch (JSONException e) {
+			return null;
+		}
+	}
+	
+
 	public Object get(String key) {
 		try {
 			return super.get(key);

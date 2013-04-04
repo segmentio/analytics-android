@@ -1,6 +1,6 @@
 package io.segment.android.models;
 
-public class Providers extends EasyJsonObject {
+public class Providers extends EasyJSONObject {
 
 	/**
 	 * Sets all providers as enabled or disabled for default. Useful for turning
