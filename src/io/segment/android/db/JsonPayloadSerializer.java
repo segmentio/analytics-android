@@ -29,12 +29,12 @@ public class JsonPayloadSerializer implements IPayloadSerializer {
 			
 			String action = obj.getString("action");
 			
-			if (action == "identify") {
-				return (Identify) obj;
-			} else if (action == "track") {
-				return (Track) obj;
-			} else if (action == "alias") {
-				return (Alias) obj;
+			if (action.equals(Identify.ACTION)) {
+				return new Identify(obj);
+			} else if (action.equals(Track.ACTION)) {
+				return new Track(obj);
+			} else if (action.equals(Alias.ACTION)) {
+				return new Alias(obj);
 			} else {
 				
 			}

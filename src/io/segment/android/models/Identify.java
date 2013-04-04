@@ -1,27 +1,36 @@
 package io.segment.android.models;
 
-import java.util.Date;
+import java.util.Calendar;
+
+import org.json.JSONObject;
 
 public class Identify extends BasePayload {
 
-	@SuppressWarnings("unused")
-	private String action = "identify";
+	public final static String ACTION = "identify";
+	
+	private final static String TRAITS_KEY = "traits";
 
-	private Traits traits;
-
-	public Identify(String userId, Traits traits, Date timestamp,
+	public Identify (JSONObject obj) {
+		super(obj);
+	}
+	
+	public Identify(String userId, Traits traits, Calendar timestamp,
 			Context context) {
 
 		super(userId, timestamp, context);
 
-		this.traits = traits;
+		put("action", ACTION);
+		
+		setTraits(traits);
 	}
 
 	public Traits getTraits() {
-		return traits;
+		JSONObject object = getObject(TRAITS_KEY);
+		if (object == null) return null;
+		else return new Traits(object);
 	}
 
 	public void setTraits(Traits traits) {
-		this.traits = traits;
+		this.put(TRAITS_KEY, traits);
 	}
 }

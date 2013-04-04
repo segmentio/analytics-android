@@ -1,6 +1,8 @@
 package io.segment.android.models;
 
-import java.util.Date;
+import java.util.Calendar;
+
+import org.json.JSONObject;
 
 public class BasePayload extends EasyJSONObject {
 	
@@ -8,9 +10,12 @@ public class BasePayload extends EasyJSONObject {
 	private final static String TIMESTAMP_KEY = "timestamp";
 	private final static String CONTEXT_KEY = "context";
 	
+	public BasePayload (JSONObject obj) {
+		super(obj);
+	}
 	
 	public BasePayload(String userId, 
-					   Date timestamp, 
+					   Calendar timestamp, 
 					   Context context) {
 
 		setUserId(userId);
@@ -26,16 +31,18 @@ public class BasePayload extends EasyJSONObject {
 		this.put(USER_ID_KEY, userId);
 	}
 
-	public Date getTimestamp() {
-		return getDate(TIMESTAMP_KEY);
+	public Calendar getTimestamp() {
+		return getCalendar(TIMESTAMP_KEY);
 	}
 
-	public void setTimestamp(Date timestamp) {
+	public void setTimestamp(Calendar timestamp) {
 		super.put(TIMESTAMP_KEY, timestamp);
 	}
 
 	public Context getContext() {
-		return this.<Context>getObject(CONTEXT_KEY);
+		JSONObject object = getObject(CONTEXT_KEY);
+		if (object == null) return null;
+		else return new Context(object);
 	}
 
 	public void setContext(Context context) {

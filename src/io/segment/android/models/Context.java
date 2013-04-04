@@ -37,7 +37,7 @@ public class Context extends EasyJSONObject {
 	
 	@Override
 	public Context put(String key, Object value) {
-		super.put(key, value);
+		super.putObject(key, value);
 		return this;
 	}
 }

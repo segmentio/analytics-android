@@ -3,6 +3,7 @@ package io.segment.android.models;
 import java.util.List;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class Batch extends EasyJSONObject {
 
@@ -16,7 +17,9 @@ public class Batch extends EasyJSONObject {
 	}
 	
 	public Context getContext() {
-		return this.<Context>getObject(CONTEXT_KEY);
+		JSONObject object = getObject(CONTEXT_KEY);
+		if (object == null) return null;
+		else return new Context(object);
 	}
 
 	public void setContext(Context context) {

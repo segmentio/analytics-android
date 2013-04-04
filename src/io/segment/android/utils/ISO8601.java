@@ -1,5 +1,6 @@
 package io.segment.android.utils;
 
+import android.annotation.SuppressLint;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -12,9 +13,11 @@ import java.util.GregorianCalendar;
  * Helper class for handling ISO 8601 strings of the following format:
  * "2008-03-01T13:00:00+01:00". It also supports parsing the "Z" timezone.
  */
+@SuppressLint("SimpleDateFormat")
 public final class ISO8601 {
     /** Transform Calendar to ISO 8601 string. */
-    public static String fromCalendar(final Calendar calendar) {
+    
+	public static String fromCalendar(final Calendar calendar) {
         Date date = calendar.getTime();
         String formatted = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
             .format(date);

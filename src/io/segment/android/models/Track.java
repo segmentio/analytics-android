@@ -1,41 +1,49 @@
 package io.segment.android.models;
 
-import java.util.Date;
+import java.util.Calendar;
+
+import org.json.JSONObject;
 
 public class Track extends BasePayload {
 	
-	@SuppressWarnings("unused")
-	private String action = "track";
-
-	private String event;
-	private EventProperties properties;
-
+	public final static String ACTION = "track";
+	
+	private static final String EVENT_KEY = "event";
+	private static final String PROPERTIES_KEY = "properties";
+	
+	public Track (JSONObject obj) {
+		super(obj);
+	}
+	
 	public Track(String userId, 
 				 String event, 
 				 EventProperties properties, 
-				 Date timestamp,
+				 Calendar timestamp,
 				 Context context) {
 
 		super(userId, timestamp, context);
 
-		this.event = event;
-		this.properties = properties;
+		put("action", ACTION);
+		
+		setEvent(event);
+		setProperties(properties);
 	}
 
 	public String getEvent() {
-		return event;
+		return this.optString(EVENT_KEY, null);
 	}
 
 	public void setEvent(String event) {
-		this.event = event;
+		this.put(EVENT_KEY, event);
 	}
 
 	public EventProperties getProperties() {
-		return properties;
+		JSONObject object = getObject(PROPERTIES_KEY);
+		if (object == null) return null;
+		else return new EventProperties(object);
 	}
 
 	public void setProperties(EventProperties properties) {
-		this.properties = properties;
+		this.put(PROPERTIES_KEY, properties);
 	}
-
 }

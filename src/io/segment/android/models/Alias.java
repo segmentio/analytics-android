@@ -1,20 +1,28 @@
 package io.segment.android.models;
 
-import java.util.Date;
+import java.util.Calendar;
+
+import org.json.JSONObject;
 
 public class Alias extends BasePayload {
 	
+	public final static String ACTION = "alias";
+	
 	private final static String FROM_KEY = "from";
-	private final static String TO_KEY = "from";
-
+	private final static String TO_KEY = "to";
+	
+	public Alias (JSONObject obj) {
+		super(obj);
+	}
+	
 	public Alias(String from,
 				 String to, 
-				 Date timestamp,
+				 Calendar timestamp,
 				 Context context) {
 		
 		super(null, timestamp, context);
 
-		this.put("action", "alias");
+		put("action", ACTION);
 		
 		setFrom(from);
 		setTo(to);
