@@ -25,6 +25,7 @@ public class EasyJSONObject extends JSONObject {
 	public EasyJSONObject(JSONObject obj) {
 		super();
 		
+		@SuppressWarnings("unchecked")
 		Iterator<String> keys = obj.keys();
 		while (keys.hasNext()) {
 			String key = keys.next();
@@ -144,7 +145,6 @@ public class EasyJSONObject extends JSONObject {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	public JSONObject getObject(String key) {
 		try {
 			return this.getJSONObject(key);
@@ -227,7 +227,8 @@ public class EasyJSONObject extends JSONObject {
 	public static boolean equals (JSONObject one, JSONObject two) {
 		if (one == null || two == null) return one == two;
 		if (one.length() != two.length()) return false;
-		
+
+		@SuppressWarnings("unchecked")
 		Iterator<String> iterator = one.keys();
 		while (iterator.hasNext()) {
 			String key = iterator.next();

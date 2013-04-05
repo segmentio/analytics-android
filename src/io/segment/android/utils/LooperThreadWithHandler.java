@@ -4,9 +4,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-public class SingletonHandlerThread extends Thread {
+public class LooperThreadWithHandler extends Thread implements IThreadedLayer {
 
-	private static final String TAG = SingletonHandlerThread.class.getName();
+	private static final String TAG = LooperThreadWithHandler.class.getName();
 		
 	private Handler handler;
 
@@ -40,6 +40,7 @@ public class SingletonHandlerThread extends Thread {
 		waitForReady();
 		return handler;
 	}
+	
 	
 	/**
 	 * Quits the current looping thread

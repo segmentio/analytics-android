@@ -18,6 +18,7 @@ public class BasePayload extends EasyJSONObject {
 					   Calendar timestamp, 
 					   Context context) {
 
+		
 		setUserId(userId);
 		setTimestamp(timestamp);
 		setContext(context);

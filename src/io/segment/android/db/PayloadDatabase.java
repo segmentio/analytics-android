@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -22,26 +23,22 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 
 	private static final String TAG = SQLiteOpenHelper.class.getName();
 	
-	/**
-	 * Singleton
-	 */
+	//
+	// Singleton
+	//
+	
 	private static PayloadDatabase instance;
 	
-	/**
-	 * Singleton getter
-	 * @param context
-	 * @return
-	 */
-	static PayloadDatabase getInstance(Context context) {
+	public static PayloadDatabase getInstance(Context context) {
 		if (instance == null) {
 			instance = new PayloadDatabase(context);
 		}
-
+		
 		return instance;
 	}
 	
 	//
-	// Instance
+	// Instance 
 	//
 	
 	/**
@@ -51,12 +48,12 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 	 */
 	private AtomicLong count;
 	private IPayloadSerializer serializer = new JsonPayloadSerializer();
-
+	
 	private PayloadDatabase(Context context) {
 		super(context, Constants.Database.NAME, null,
 				Constants.Database.VERSION);
 		
-		count = new AtomicLong();
+		this.count = new AtomicLong();
 	}
 
 	@Override
@@ -90,7 +87,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 	 * Counts the size of the current database and sets the cached counter
 	 */
 	private void countSize() {
-		count.set(getNumberRows());
+		count.set(countRows());
 	}
 	
 	@Override
@@ -102,7 +99,9 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 	 * Adds a payload to the database
 	 * @param payload 
 	 */
-	void addPayload(BasePayload payload) {
+	public boolean addPayload(BasePayload payload) {
+		
+		boolean success = false;
 		
 		String json = serializer.serialize(payload);
 		
@@ -124,6 +123,8 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 				
 				if (result == -1) {
 					Log.w(TAG, "Database insert failed. Result: " + result);
+				} else {
+					success = true;
 				}
 				
 			} catch (SQLiteException e) {
@@ -136,14 +137,15 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 					db.close();
 			}
 			
+			return success;
 		}
 	}
 
 	/**
-	 * Fetchs the total amount of rows in the database
+	 * Fetches the total amount of rows in the database
 	 * @return
 	 */
-	long getNumberRows() {
+	private long countRows() {
 		
 		String sql = String.format("SELECT COUNT(*) FROM %s", 
 				Constants.Database.PayloadTable.NAME);
@@ -155,13 +157,22 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 		
 		return numberRows;
 	}
+	
+	/**
+	 * Fetches the total amount of rows in the database without
+	 * an actual database query, using a cached counter.
+	 * @return
+	 */
+	public long getRowCount() {
+		return count.get();
+	}
 
 	/**
 	 * Get the next (limit) events from the database
 	 * @param limit
 	 * @return
 	 */
-	List<Pair<Long, BasePayload>> getEvents(int limit) {
+	public List<Pair<Long, BasePayload>> getEvents(int limit) {
 
 		List<Pair<Long, BasePayload>> result = 
 				new LinkedList<Pair<Long, BasePayload>>();
@@ -209,17 +220,24 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 
 	/**
 	 * Remove these events from the database
+	 * @param minId
 	 * @param maxId
 	 */
-	void removeEvents(long maxId) {
+	@SuppressLint("DefaultLocale")
+	public int removeEvents(long minId, long maxId) {
 		
 		SQLiteDatabase db = null;
 
-		String filter = Constants.Database.PayloadTable.Fields.Id.NAME + " <= " + maxId;
+		String ID_FIELD_NAME = Constants.Database.PayloadTable.Fields.Id.NAME;
+		
+		String filter = String.format("%s >= %d AND %s <= %d",  
+				ID_FIELD_NAME, minId, ID_FIELD_NAME, maxId);
 				
+		int deleted = -1;
+		
 		try {
 			db = getWritableDatabase();
-			db.delete(Constants.Database.PayloadTable.NAME, filter, null);
+			deleted = db.delete(Constants.Database.PayloadTable.NAME, filter, null);
 			
 		} catch (SQLiteException e) {
 
@@ -229,6 +247,8 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 		} finally {
 			if (db != null) db.close();
 		}
+		
+		return deleted;
 	}
 	
 }

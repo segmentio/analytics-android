@@ -4,6 +4,11 @@ public class Constants {
 
 	public static final String PACKAGE_NAME = Constants.class.getPackage().getName();
 	
+	/**
+	 * The maximum amount of events to flush at a time
+	 */
+	public static final int MAX_FLUSH = 20;
+	
 	public static class Database {
 
 		public static final int VERSION = 1;
@@ -44,5 +49,13 @@ public class Constants {
 		}
 	}
 	
+	public class Permission {
+
+		public static final String GET_ACCOUNTS = "android.permission.GET_ACCOUNTS";
+		public static final String READ_PHONE_STATE = "android.permission.READ_PHONE_STATE";
+		public static final String FINE_LOCATION = "android.permission.ACCESS_FINE_LOCATION";
+		public static final String COARSE_LOCATION = "android.permission.ACCESS_COARSE_LOCATION";
+		
+	}
 	
 }
