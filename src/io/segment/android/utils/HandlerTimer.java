@@ -32,10 +32,12 @@ public class HandlerTimer extends LooperThreadWithHandler {
 
 			@Override
 			public void run() {
-				clock.run();
+
+				if (active) {
+					clock.run();
 				
-				if (active)
 					scheduleTick();
+				}
 			}
 			
 		}, frequencyMs);

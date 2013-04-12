@@ -45,8 +45,12 @@ public class Constants {
 				}
 				
 			}
-			
 		}
+	}
+	
+	public class SharedPreferences {
+		public static final String SESSION_ID_KEY = "session.id";
+		public static final String USER_ID_KEY = "user.id";
 	}
 	
 	public class Permission {

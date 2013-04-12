@@ -1,5 +1,6 @@
 package io.segment.android.db;
 
+import io.segment.android.Analytics;
 import io.segment.android.Constants;
 import io.segment.android.models.BasePayload;
 
@@ -47,6 +48,8 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 	 * our database is full and we shouldn't add anymore
 	 */
 	private AtomicLong count;
+	private boolean initialCount;
+	
 	private IPayloadSerializer serializer = new JsonPayloadSerializer();
 	
 	private PayloadDatabase(Context context) {
@@ -55,7 +58,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 		
 		this.count = new AtomicLong();
 	}
-
+	
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		
@@ -73,21 +76,24 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 			Log.e(TAG, "Failed to create Segment.io SQL lite database: " + 
 						Log.getStackTraceString(e));
 		}
-		
-		countSize();
 	}
 	
 	@Override
 	public void onOpen(SQLiteDatabase db) {
 		super.onOpen(db);
-		countSize();
 	}
 
 	/**
 	 * Counts the size of the current database and sets the cached counter
+	 * 
+	 * This shouldn't be called onOpen() or onCreate() because it will cause
+	 * a recursive database get.
 	 */
-	private void countSize() {
-		count.set(countRows());
+	private void ensureCount() {
+		if (!initialCount) {
+			count.set(countRows());
+			initialCount = true;
+		}
 	}
 	
 	@Override
@@ -101,11 +107,27 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 	 */
 	public boolean addPayload(BasePayload payload) {
 		
+		ensureCount();
+		
+		long rowCount = getRowCount();
+		if (rowCount >= Analytics.getOptions().getMaxQueueSize()) {
+			Log.w(TAG, "Cant add action, the database is larger than max queue size.");
+			return false;
+		}
+		
 		boolean success = false;
+		
+		long start = System.currentTimeMillis();
 		
 		String json = serializer.serialize(payload);
 		
+		long serializationDuration = System.currentTimeMillis() - start;
+		
+		start = System.currentTimeMillis();
+		
 		synchronized (this) {
+			
+			long lockDuration = System.currentTimeMillis() - start;
 			
 			SQLiteDatabase db = null;
 			
@@ -125,6 +147,8 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 					Log.w(TAG, "Database insert failed. Result: " + result);
 				} else {
 					success = true;
+					// increase the row count
+					count.addAndGet(1);
 				}
 				
 			} catch (SQLiteException e) {
@@ -132,10 +156,11 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 				Log.e(TAG, "Failed to open or write to Segment.io payload db: " + 
 						Log.getStackTraceString(e));
 				
-			} finally {
-				if (db != null)
-					db.close();
 			}
+			
+			long insertDuration = System.currentTimeMillis() - start;
+			
+			Log.e(TAG, "Serialization : "  + serializationDuration + " , lock : " + lockDuration + " , insert : " + insertDuration);
 			
 			return success;
 		}
@@ -153,7 +178,6 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 		SQLiteDatabase db = getWritableDatabase();
 		SQLiteStatement statement = db.compileStatement(sql);
 		long numberRows = statement.simpleQueryForLong();
-		db.close();
 		
 		return numberRows;
 	}
@@ -164,6 +188,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 	 * @return
 	 */
 	public long getRowCount() {
+		if (!initialCount) ensureCount();
 		return count.get();
 	}
 
@@ -211,7 +236,6 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 					Log.getStackTraceString(e));
 			
 		} finally {
-			if (db != null) db.close();
 			if (cursor != null) cursor.close();
 		}
 	
@@ -225,6 +249,8 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 	 */
 	@SuppressLint("DefaultLocale")
 	public int removeEvents(long minId, long maxId) {
+
+		ensureCount();
 		
 		SQLiteDatabase db = null;
 
@@ -239,13 +265,14 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 			db = getWritableDatabase();
 			deleted = db.delete(Constants.Database.PayloadTable.NAME, filter, null);
 			
+			// decrement the row counter
+			count.addAndGet(-deleted);
+			
 		} catch (SQLiteException e) {
 
 			Log.e(TAG, "Failed to remove items from the Segment.io payload db: " + 
 					Log.getStackTraceString(e));
 			
-		} finally {
-			if (db != null) db.close();
 		}
 		
 		return deleted;

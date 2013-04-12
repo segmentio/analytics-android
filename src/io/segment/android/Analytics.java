@@ -1,5 +1,7 @@
 package io.segment.android;
 
+import io.segment.android.cache.SessionIdCache;
+import io.segment.android.cache.SimpleStringCache;
 import io.segment.android.db.IPayloadDatabaseLayer;
 import io.segment.android.db.IPayloadDatabaseLayer.EnqueueCallback;
 import io.segment.android.db.PayloadDatabase;
@@ -8,6 +10,7 @@ import io.segment.android.flush.FlushThread;
 import io.segment.android.flush.FlushThread.BatchFactory;
 import io.segment.android.flush.IFlushLayer;
 import io.segment.android.flush.IFlushLayer.FlushCallback;
+import io.segment.android.info.InfoManager;
 import io.segment.android.models.Alias;
 import io.segment.android.models.BasePayload;
 import io.segment.android.models.Batch;
@@ -18,28 +21,38 @@ import io.segment.android.models.Track;
 import io.segment.android.models.Traits;
 import io.segment.android.request.BasicRequester;
 import io.segment.android.request.IRequester;
+import io.segment.android.stats.Statistics;
 import io.segment.android.utils.HandlerTimer;
 
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 public class Analytics {
 
 	private static final String TAG = Analytics.class.getName(); 
 	
+	private static Statistics statistics;
+	
 	private static String secret;
 	private static Options options;
+	
+	private static InfoManager infoManager;
 	
 	private static HandlerTimer flushTimer;
 	private static PayloadDatabase database;
 	private static IPayloadDatabaseLayer databaseLayer;
 	private static IFlushLayer flushLayer;
 	
-	private static boolean initialized;
+	private static Context globalContext;
 	
+	private static boolean initialized;
+
+	private static SimpleStringCache sessionIdCache;
+	private static SimpleStringCache userIdCache;
 
 	/**
 	 * Initializes the Segment.io Android client.
@@ -103,12 +116,22 @@ public class Analytics {
 
 		if (initialized) return;
 		
+		Analytics.statistics = new Statistics();
+		
 		Analytics.secret = secret;
 		Analytics.options = options;
 
-	
 		// create the database using the activity context
 		database = PayloadDatabase.getInstance(context);
+
+		// knows how to create global context about this android device
+		infoManager = new InfoManager();
+		
+		sessionIdCache = new SessionIdCache(context);
+		userIdCache = new SimpleStringCache(context, Constants.SharedPreferences.USER_ID_KEY);
+		
+		// add a global context
+		globalContext = new Context(infoManager.build(context));
 		
 		IRequester requester = new BasicRequester();
 		
@@ -140,7 +163,8 @@ public class Analytics {
 			
 			Batch batch = new Batch(secret, payloads); 
 					
-			// TODO: add global batch settings from system information
+			// add global batch settings from system information
+			batch.setContext(globalContext);
 			
 			return batch;
 		}
@@ -171,6 +195,20 @@ public class Analytics {
 	 * Identifying a user ties all of their actions to an id, and associates
 	 * user traits to that id.
 	 * 
+	 * @param traits
+	 *            a dictionary with keys like email, name, subscriptionPlan or
+	 *            age. You only need to record a trait once, no need to send it
+	 *            again.
+	 */
+	public static void identify(Traits traits) {
+
+		identify(null, traits, null, null);
+	}
+	
+	/**
+	 * Identifying a user ties all of their actions to an id, and associates
+	 * user traits to that id.
+	 * 
 	 * @param userId
 	 *            the user's id after they are logged in. It's the same id as
 	 *            which you would recognize a signed-in user in your system.
@@ -185,6 +223,25 @@ public class Analytics {
 		identify(userId, traits, null, null);
 	}
 
+
+	/**
+	 * Identifying a user ties all of their actions to an id, and associates
+	 * user traits to that id.
+	 * 
+	 * @param traits
+	 *            a dictionary with keys like subscriptionPlan or age. You only
+	 *            need to record a trait once, no need to send it again.
+	 * 
+	 * @param context
+	 *            an object that describes anything that doesn't fit into this
+	 *            event's properties (such as the user's IP)
+	 * 
+	 */
+	public static void identify(Traits traits, Context context) {
+
+		identify(null, traits, null, context);
+	}
+	
 	/**
 	 * Identifying a user ties all of their actions to an id, and associates
 	 * user traits to that id.
@@ -207,6 +264,28 @@ public class Analytics {
 		identify(userId, traits, null, context);
 	}
 
+
+	/**
+	 * Identifying a user ties all of their actions to an id, and associates
+	 * user traits to that id.
+	 * 
+	 * @param traits
+	 *            a dictionary with keys like subscriptionPlan or age. You only
+	 *            need to record a trait once, no need to send it again.
+	 * 
+	 * @param timestamp
+	 *            a {@link Calendar} representing when the identify took place.
+	 *            If the identify just happened, leave it blank and we'll use
+	 *            the server's time. If you are importing data from the past,
+	 *            make sure you provide this argument.
+	 * 
+	 */
+	public static void identify(Traits traits, Calendar timestamp) {
+
+		identify(null, traits, timestamp, null);
+	}
+
+	
 	/**
 	 * Identifying a user ties all of their actions to an id, and associates
 	 * user traits to that id.
@@ -235,6 +314,30 @@ public class Analytics {
 	 * Identifying a user ties all of their actions to an id, and associates
 	 * user traits to that id.
 	 * 
+	 * @param traits
+	 *            a dictionary with keys like subscriptionPlan or age. You only
+	 *            need to record a trait once, no need to send it again.
+	 * 
+	 * @param timestamp
+	 *            a {@link Calendar} representing when the identify took place.
+	 *            If the identify just happened, leave it blank and we'll use
+	 *            the server's time. If you are importing data from the past,
+	 *            make sure you provide this argument.
+	 * 
+	 * @param context
+	 *            an object that describes anything that doesn't fit into this
+	 *            event's properties (such as the user's IP)
+	 */
+	public static void identify(Traits traits, Calendar timestamp,
+			Context context) {
+		
+		identify(null, traits, timestamp, context);
+	}
+	
+	/**
+	 * Identifying a user ties all of their actions to an id, and associates
+	 * user traits to that id.
+	 * 
 	 * @param userId
 	 *            the user's id after they are logged in. It's the same id as
 	 *            which you would recognize a signed-in user in your system.
@@ -256,6 +359,8 @@ public class Analytics {
 	public static void identify(String userId, Traits traits, Calendar timestamp,
 			Context context) {
 
+		checkInitialized();
+		
 		if (userId == null || userId.length() == 0) {
 			throw new IllegalArgumentException("analytics-android #identify must be initialized with a valid user id.");
 		}
@@ -265,6 +370,8 @@ public class Analytics {
 		if (traits == null)
 			traits = new Traits();
 
+		userId = getOrSetUserId(userId);
+		
 		Identify identify = new Identify(userId, traits, timestamp, context);
 
 		enqueue(identify);
@@ -292,6 +399,21 @@ public class Analytics {
 		track(userId, event, null, null, null);
 	}
 
+	
+	/**
+	 * Whenever a user triggers an event, you’ll want to track it.
+	 * 
+	 * @param event
+	 *            describes what this user just did. It's a human readable
+	 *            description like "Played a Song", "Printed a Report" or
+	 *            "Updated Status".
+	 * 
+	 */
+	public static void track(String event) {
+
+		track(null, event, null, null, null);
+	}
+
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
 	 * 
@@ -313,6 +435,26 @@ public class Analytics {
 	public static void track(String userId, String event, EventProperties properties) {
 
 		track(userId, event, properties, null, null);
+	}
+	
+
+	/**
+	 * Whenever a user triggers an event, you’ll want to track it.
+	 * 
+	 * @param event
+	 *            describes what this user just did. It's a human readable
+	 *            description like "Played a Song", "Printed a Report" or
+	 *            "Updated Status".
+	 * 
+	 * @param properties
+	 *            a dictionary with items that describe the event in more
+	 *            detail. This argument is optional, but highly
+	 *            recommended—you’ll find these properties extremely useful
+	 *            later.
+	 */
+	public static void track(String event, EventProperties properties) {
+
+		track(null, event, properties, null, null);
 	}
 
 	/**
@@ -344,6 +486,34 @@ public class Analytics {
 			Calendar timestamp) {
 
 		track(userId, event, properties, timestamp, null);
+	}
+	
+
+	/**
+	 * Whenever a user triggers an event, you’ll want to track it.
+	 * 
+	 * @param event
+	 *            describes what this user just did. It's a human readable
+	 *            description like "Played a Song", "Printed a Report" or
+	 *            "Updated Status".
+	 * 
+	 * @param properties
+	 *            a dictionary with items that describe the event in more
+	 *            detail. This argument is optional, but highly
+	 *            recommended—you’ll find these properties extremely useful
+	 *            later.
+	 * 
+	 * @param timestamp
+	 *            a {@link DateTime} object representing when the track took
+	 *            place. If the event just happened, leave it blank and we'll
+	 *            use the server's time. If you are importing data from the
+	 *            past, make sure you provide this argument.
+	 * 
+	 */
+	public static void track(String event, EventProperties properties,
+			Calendar timestamp) {
+
+		track(null, event, properties, timestamp, null);
 	}
 
 	/**
@@ -378,6 +548,31 @@ public class Analytics {
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
 	 * 
+	 * @param event
+	 *            describes what this user just did. It's a human readable
+	 *            description like "Played a Song", "Printed a Report" or
+	 *            "Updated Status".
+	 * 
+	 * @param properties
+	 *            a dictionary with items that describe the event in more
+	 *            detail. This argument is optional, but highly
+	 *            recommended—you’ll find these properties extremely useful
+	 *            later.
+	 * 
+	 * @param context
+	 *            an object that describes anything that doesn't fit into this
+	 *            event's properties (such as the user's IP)
+	 * 
+	 */
+	public static void track(String event, EventProperties properties,
+			 Context context) {
+
+		track(null, event, properties, null, context);
+	}
+	
+	/**
+	 * Whenever a user triggers an event, you’ll want to track it.
+	 * 
 	 * @param userId
 	 *            the user's id after they are logged in. It's the same id as
 	 *            which you would recognize a signed-in user in your system.
@@ -406,6 +601,8 @@ public class Analytics {
 	 */
 	public static void track(String userId, String event, EventProperties properties,
 			Calendar timestamp, Context context) {
+		
+		checkInitialized();
 
 		if (userId == null || userId.length() == 0) {
 			throw new IllegalArgumentException("analytics-android #track must be initialized with a valid user id.");
@@ -420,6 +617,8 @@ public class Analytics {
 		if (properties == null)
 			properties = new EventProperties();
 
+		userId = getOrSetUserId(userId);
+		
 		Track track = new Track(userId, event, properties, timestamp, context);
 
 		enqueue(track);
@@ -510,6 +709,8 @@ public class Analytics {
 	 */
 	public static void alias(String from, String to, Calendar timestamp, Context context) {
 		
+		checkInitialized();
+		
 		if (from == null || from.length() == 0) {
 			throw new IllegalArgumentException("analytics-android #alias must be initialized with a valid from id.");
 		}
@@ -526,10 +727,28 @@ public class Analytics {
 		enqueue(alias);
 	}
 
+	
 	//
 	// Internal
 	//
 
+	/**
+	 * Gets or sets the current userId. If the provided userId
+	 * is null, then we'll send the sessionId. If the userId
+	 * is not null, then it will be set in the userId cache and will
+	 * be returned.
+	 * @param userId
+	 * @return
+	 */
+	private static String getOrSetUserId(String userId) {
+		if (TextUtils.isEmpty(userId)) {
+			// we have no user Id, let's use the sessionId
+			return sessionIdCache.get();
+		} else {
+			userIdCache.set(userId);
+			return userId;
+		}
+	}
 	
 	private static void enqueue(final BasePayload payload) {
 		
@@ -545,6 +764,11 @@ public class Analytics {
 		});
 	}
 	
+	private static void checkInitialized() {
+		if (!initialized)
+			throw new IllegalStateException("Please call Analytics.initialize before using the library.");
+	}
+	
 	//
 	// Actions
 	//
@@ -553,6 +777,7 @@ public class Analytics {
 	 * Blocks until the queue is flushed
 	 */
 	public static void flush(boolean async) {
+		checkInitialized();
 		
 		final CountDownLatch latch = new CountDownLatch(1);
 		
@@ -578,6 +803,7 @@ public class Analytics {
 	 * Stops the the database and flush thread
 	 */
 	public static  void close() {
+		checkInitialized();
 		// stops the looper on the timer, flush, and database thread
 		flushTimer.quit();
 		flushLayer.quit();
@@ -591,7 +817,13 @@ public class Analytics {
 	// Getters and Setters
 	//
 
+	public static String getSessionId() {
+		checkInitialized();
+		return sessionIdCache.get();
+	}
+	
 	public static String getSecret() {
+		checkInitialized();
 		return secret;
 	}
 
@@ -600,12 +832,12 @@ public class Analytics {
 	}
 
 	public static Options getOptions() {
+		checkInitialized();
 		return options;
 	}
 
-	/*
 	public static Statistics getStatistics() {
-		return operation.statistics;
+		checkInitialized();
+		return statistics;
 	}
-	*/
 }

@@ -49,8 +49,8 @@ public class Location implements Info<JSONObject> {
 		EasyJSONObject object = new EasyJSONObject();
 		
 		if (bestLocation != null) {
-			object.put("lat", bestLocation.getLatitude());
-			object.put("lon", bestLocation.getLongitude());
+			object.put("latitude", bestLocation.getLatitude());
+			object.put("longitude", bestLocation.getLongitude());
 			
 			// you could figure out who your fastest user is. who doesnt want that?
 			object.put("speed", bestLocation.getSpeed());
