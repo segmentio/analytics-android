@@ -764,16 +764,27 @@ public class Analytics {
 	 * @return
 	 */
 	private static String getOrSetUserId(String userId) {
+		
 		if (TextUtils.isEmpty(userId)) {
-			// we have no user Id, let's use the sessionId
-			return sessionIdCache.get();
+			// no user id provided, lets try to see if we have it saved
+			userId = userIdCache.get();
+			if (TextUtils.isEmpty(userId))
+				// we have no user Id, let's use the sessionId
+				userId = sessionIdCache.get();
 		} else {
+			// we were passed a user Id so let's save it
 			userIdCache.set(userId);
-			return userId;
 		}
+		
+		return userId;
 	}
 	
-	private static void enqueue(final BasePayload payload) {
+	/**
+	 * Enqueues an {@link Identify}, {@link Track}, {@link Alias},
+	 * or any action of type {@link BasePayload}
+	 * @param payload
+	 */
+	public static void enqueue(final BasePayload payload) {
 		
 		statistics.updateInsertAttempts(1);
 		
@@ -818,12 +829,15 @@ public class Analytics {
 		flushLayer.flush(new FlushCallback() {
 
 			@Override
-			public void onFullyFlushed() {
+			public void onFlushCompleted(boolean success) {
 				latch.countDown();
 				
-				long duration = System.currentTimeMillis() - start;
-				statistics.updateFlushTime(duration);
+				if (success) {
+					long duration = System.currentTimeMillis() - start;
+					statistics.updateFlushTime(duration);
+				}
 			}
+
 		});
 
 		
@@ -854,11 +868,35 @@ public class Analytics {
 	// Getters and Setters
 	//
 
+	/**
+	 * Gets the unique session ID generated for this user
+	 * until a userId is provided.
+	 * 
+	 * Use this ID as the "from" ID to alias your new
+	 * userId if the user was just created.
+	 * 
+	 * @return
+	 */
 	public static String getSessionId() {
 		checkInitialized();
 		return sessionIdCache.get();
 	}
 	
+	/**
+	 * Gets the userId thats currently saved for this
+	 * application. If none has been entered yet,
+	 * this will return null.
+	 * @return
+	 */
+	public static String getUserId() {
+		checkInitialized();
+		return userIdCache.get();
+	}
+	
+	/**
+	 * Gets the current Segment.io API secret
+	 * @return
+	 */
 	public static String getSecret() {
 		checkInitialized();
 		return secret;
@@ -868,11 +906,19 @@ public class Analytics {
 		Analytics.secret = secret;
 	}
 
+	/**
+	 * Gets the Segment.io client options
+	 * @return
+	 */
 	public static Options getOptions() {
 		checkInitialized();
 		return options;
 	}
 
+	/**
+	 * Gets the client statistics
+	 * @return
+	 */
 	public static AnalyticsStatistics getStatistics() {
 		checkInitialized();
 		return statistics;

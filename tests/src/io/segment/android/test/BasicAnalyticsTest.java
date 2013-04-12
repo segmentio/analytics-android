@@ -15,18 +15,20 @@ import org.junit.Test;
 
 import android.util.Log;
 
-public class AnalyticsTest extends BaseTest {
+public class BasicAnalyticsTest extends BaseTest {
 
 	
-	private static String userId;
+	private static String userId = "android_user_" + (new Random()).nextInt(999999);
+
+	private static int identifyAttempts = 0;
+	private static int trackAttempts = 0;
+	private static int aliasAttempts = 0;
 	private static int insertAttempts = 0;
 	private static int flushAttempts = 0;
 	
 	@Override
 	protected void setUp() {
 		super.setUp();
-		
-		userId = "android_user_" + (new Random()).nextInt(999999);
 		
 		Log.w("AnalyticsTest", "Analytics Test using userId: " + userId);
 	}
@@ -62,8 +64,9 @@ public class AnalyticsTest extends BaseTest {
 		AnalyticsStatistics statistics = Analytics.getStatistics();
 		
 		insertAttempts += expected;
+		identifyAttempts += expected;
 		
-		Assert.assertEquals(expected, statistics.getIdentifies().getCount());
+		Assert.assertEquals(identifyAttempts, statistics.getIdentifies().getCount());
 		Assert.assertEquals(insertAttempts, statistics.getInsertAttempts().getCount());
 		
 		Analytics.flush(false);
@@ -98,10 +101,11 @@ public class AnalyticsTest extends BaseTest {
 		)));
 		
 		insertAttempts += expected;
+		trackAttempts += expected;
 		
 		AnalyticsStatistics statistics = Analytics.getStatistics();
 		
-		Assert.assertEquals(expected, statistics.getTracks().getCount());
+		Assert.assertEquals(trackAttempts, statistics.getTracks().getCount());
 		Assert.assertEquals(insertAttempts, statistics.getInsertAttempts().getCount());
 		
 		Analytics.flush(false);
@@ -116,6 +120,40 @@ public class AnalyticsTest extends BaseTest {
 	@Test
 	public void testAlias() {
 		
+		String from = Analytics.getSessionId();
+		String to = "android_user_" + (new Random()).nextInt(999999);
+
+		Log.w("AnalyticsTest", "Aliasing : " + from + " => " + to);
+		
+		int expected = 4;
+		
+		Analytics.track(from, "Anonymous Event");
+		
+		Analytics.alias(from, to);
+		
+		Analytics.identify(to, new Traits(
+				"Crazay", "Duh"
+		));
+		
+		Analytics.track(to, "Identified Event");
+
+		insertAttempts += expected;
+		trackAttempts += 2;
+		aliasAttempts += 1;
+		identifyAttempts += 1;
+		
+		AnalyticsStatistics statistics = Analytics.getStatistics();
+		
+		Assert.assertEquals(aliasAttempts, statistics.getAlias().getCount());
+		Assert.assertEquals(insertAttempts, statistics.getInsertAttempts().getCount());
+		
+		Analytics.flush(false);
+
+		flushAttempts += 1;
+		
+		Assert.assertEquals(flushAttempts, statistics.getFlushAttempts().getCount());
+		
+		Assert.assertEquals(insertAttempts, statistics.getSuccessful().getCount());
 	}
 	
 	

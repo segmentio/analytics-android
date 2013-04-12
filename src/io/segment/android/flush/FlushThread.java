@@ -85,10 +85,16 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 							// we are now executing in the context of the
 							// flushing thread
 							
-							long duration = System.currentTimeMillis() - start;
-							Analytics.getStatistics().updateRequestTime(duration);
-							
-							if (success) {
+							if (!success) {
+								// if we failed at flushing (connectivity issues)
+								// return
+								if (callback != null) callback.onFlushCompleted(false);
+								
+							} else {
+
+								long duration = System.currentTimeMillis() - start;
+								Analytics.getStatistics().updateRequestTime(duration);
+								
 								// if we were successful, we need to 
 								// first delete the old items from the
 								// database, and then continue flushing
@@ -109,6 +115,8 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 											
 											Log.e(TAG, "We failed to remove payload from the database.");
 											
+											if (callback != null) callback.onFlushCompleted(false);
+											
 										} else if (removed == 0) {
 
 											for (int i = 0; i < removed; i += 1)
@@ -116,6 +124,8 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 											
 											Log.e(TAG, "We didn't end up removing anything from the database.");
 										
+											if (callback != null) callback.onFlushCompleted(false);
+											
 										} else {
 											
 											for (int i = 0; i < removed; i += 1)
@@ -134,7 +144,7 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 					
 				} else {
 					// there is nothing to flush, we're done
-					if (callback != null) callback.onFullyFlushed();
+					if (callback != null) callback.onFlushCompleted(true);
 				}
 			}
 			
@@ -174,6 +184,7 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 					Log.w(TAG, "Failed to make request to the server.");
 					
 				} else if (response.getStatusLine().getStatusCode() != 200) {
+					
 					try {
 						// there's been a server error
 						String responseBody = EntityUtils.toString(response.getEntity());

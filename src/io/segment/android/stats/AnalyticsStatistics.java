@@ -20,7 +20,7 @@ public class AnalyticsStatistics extends Statistics {
 	
 	
 	public Statistic getIdentifies() {
-		return get(IDENTIFY_KEY);
+		return ensure(IDENTIFY_KEY);
 	}
 	
 	public void updateIdentifies(double val) {
@@ -29,7 +29,7 @@ public class AnalyticsStatistics extends Statistics {
 	
 
 	public Statistic getTracks() {
-		return get(TRACK_KEY);
+		return ensure(TRACK_KEY);
 	}
 	
 	public void updateTracks(double val) {
@@ -38,7 +38,7 @@ public class AnalyticsStatistics extends Statistics {
 	
 	
 	public Statistic getAlias() {
-		return get(ALiAS_KEY);
+		return ensure(ALiAS_KEY);
 	}
 	
 	public void updateAlias(double val) {
@@ -48,7 +48,7 @@ public class AnalyticsStatistics extends Statistics {
 	
 
 	public Statistic getInsertAttempts() {
-		return get(INSERT_ATTEMPTS_KEY);
+		return ensure(INSERT_ATTEMPTS_KEY);
 	}
 	
 	public void updateInsertAttempts(double val) {
@@ -58,7 +58,7 @@ public class AnalyticsStatistics extends Statistics {
 	
 
 	public Statistic getFlushAttempts() {
-		return get(FLUSHED_ATTEMPTS_KEY);
+		return ensure(FLUSHED_ATTEMPTS_KEY);
 	}
 	
 	public void updateFlushAttempts(double val) {
@@ -68,7 +68,7 @@ public class AnalyticsStatistics extends Statistics {
 	
 
 	public Statistic getInsertTime() {
-		return get(INSERT_TIME_KEY);
+		return ensure(INSERT_TIME_KEY);
 	}
 	
 	public void updateInsertTime(double val) {
@@ -77,7 +77,7 @@ public class AnalyticsStatistics extends Statistics {
 	
 
 	public Statistic getFlushTime() {
-		return get(FLUSH_TIME_KEY);
+		return ensure(FLUSH_TIME_KEY);
 	}
 	
 	public void updateFlushTime(double val) {
@@ -86,7 +86,7 @@ public class AnalyticsStatistics extends Statistics {
 	
 
 	public Statistic getRequestTime() {
-		return get(REQUEST_TIME_KEY);
+		return ensure(REQUEST_TIME_KEY);
 	}
 	
 	public void updateRequestTime(double val) {
@@ -95,7 +95,7 @@ public class AnalyticsStatistics extends Statistics {
 	
 
 	public Statistic getSuccessful() {
-		return get(SUCCESSFUL_KEY);
+		return ensure(SUCCESSFUL_KEY);
 	}
 	
 	public void updateSuccessful(double val) {
@@ -105,7 +105,7 @@ public class AnalyticsStatistics extends Statistics {
 
 
 	public Statistic getFailed() {
-		return get(FAILED_KEY);
+		return ensure(FAILED_KEY);
 	}
 	
 	public void updateFailed(double val) {
