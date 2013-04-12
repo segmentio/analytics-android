@@ -117,18 +117,10 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 		
 		boolean success = false;
 		
-		long start = System.currentTimeMillis();
-		
 		String json = serializer.serialize(payload);
 		
-		long serializationDuration = System.currentTimeMillis() - start;
-		
-		start = System.currentTimeMillis();
-		
 		synchronized (this) {
-			
-			long lockDuration = System.currentTimeMillis() - start;
-			
+						
 			SQLiteDatabase db = null;
 			
 			try {
@@ -157,11 +149,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 						Log.getStackTraceString(e));
 				
 			}
-			
-			long insertDuration = System.currentTimeMillis() - start;
-			
-			Log.e(TAG, "Serialization : "  + serializationDuration + " , lock : " + lockDuration + " , insert : " + insertDuration);
-			
+				
 			return success;
 		}
 	}

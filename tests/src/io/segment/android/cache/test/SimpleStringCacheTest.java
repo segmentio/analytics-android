@@ -1,5 +1,6 @@
-package io.segment.android.cache;
+package io.segment.android.cache.test;
 
+import io.segment.android.cache.SimpleStringCache;
 import junit.framework.Assert;
 
 import org.junit.BeforeClass;

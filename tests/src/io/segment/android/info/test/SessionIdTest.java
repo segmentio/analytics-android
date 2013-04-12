@@ -1,5 +1,7 @@
-package io.segment.android.info;
+package io.segment.android.info.test;
 
+import io.segment.android.info.Info;
+import io.segment.android.info.SessionId;
 import junit.framework.Assert;
 
 import org.junit.Test;

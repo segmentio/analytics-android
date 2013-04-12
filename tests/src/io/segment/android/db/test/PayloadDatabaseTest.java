@@ -1,5 +1,6 @@
-package io.segment.android.db;
+package io.segment.android.db.test;
 
+import io.segment.android.db.PayloadDatabase;
 import io.segment.android.models.BasePayload;
 import io.segment.android.models.EasyJSONObject;
 import io.segment.android.test.BaseTest;

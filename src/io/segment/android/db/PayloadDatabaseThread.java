@@ -54,12 +54,18 @@ public class PayloadDatabaseThread extends LooperThreadWithHandler
 				
 				List<Pair<Long, BasePayload>> pairs = database.getEvents(Constants.MAX_FLUSH);
 				
-				List<BasePayload> payloads = new LinkedList<BasePayload>();
-				long minId = pairs.get(0).first;
-				long maxId = pairs.get(pairs.size() - 1).first;
+				long minId = 0;
+				long maxId = 0;
 				
-				for (Pair<Long, BasePayload> pair : pairs) {
-					payloads.add(pair.second);
+				List<BasePayload> payloads = new LinkedList<BasePayload>();
+				
+				if (pairs.size() > 0) {
+					minId = pairs.get(0).first;
+					maxId = pairs.get(pairs.size() - 1).first;
+					
+					for (Pair<Long, BasePayload> pair : pairs) {
+						payloads.add(pair.second);
+					}
 				}
 				
 				if (callback != null)

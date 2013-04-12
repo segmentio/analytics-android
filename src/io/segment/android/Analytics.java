@@ -21,7 +21,7 @@ import io.segment.android.models.Track;
 import io.segment.android.models.Traits;
 import io.segment.android.request.BasicRequester;
 import io.segment.android.request.IRequester;
-import io.segment.android.stats.Statistics;
+import io.segment.android.stats.AnalyticsStatistics;
 import io.segment.android.utils.HandlerTimer;
 
 import java.util.Calendar;
@@ -35,7 +35,7 @@ public class Analytics {
 
 	private static final String TAG = Analytics.class.getName(); 
 	
-	private static Statistics statistics;
+	private static AnalyticsStatistics statistics;
 	
 	private static String secret;
 	private static Options options;
@@ -116,7 +116,7 @@ public class Analytics {
 
 		if (initialized) return;
 		
-		Analytics.statistics = new Statistics();
+		Analytics.statistics = new AnalyticsStatistics();
 		
 		Analytics.secret = secret;
 		Analytics.options = options;
@@ -191,6 +191,23 @@ public class Analytics {
 	// Identify
 	//
 
+
+
+	/**
+	 * Identifying a user ties all of their actions to an id, and associates
+	 * user traits to that id.
+	 * 
+	 * @param userId
+	 *            the user's id after they are logged in. It's the same id as
+	 *            which you would recognize a signed-in user in your system.
+	 * 
+	 */
+	public static void identify(String userId) {
+
+		identify(userId, null, null, null);
+	}
+	
+	
 	/**
 	 * Identifying a user ties all of their actions to an id, and associates
 	 * user traits to that id.
@@ -360,6 +377,8 @@ public class Analytics {
 			Context context) {
 
 		checkInitialized();
+
+		userId = getOrSetUserId(userId);
 		
 		if (userId == null || userId.length() == 0) {
 			throw new IllegalArgumentException("analytics-android #identify must be initialized with a valid user id.");
@@ -370,17 +389,31 @@ public class Analytics {
 		if (traits == null)
 			traits = new Traits();
 
-		userId = getOrSetUserId(userId);
-		
 		Identify identify = new Identify(userId, traits, timestamp, context);
 
 		enqueue(identify);
+		
+		statistics.updateIdentifies(1);
 	}
 
 	//
 	// Track
 	//
 
+	/**
+	 * Whenever a user triggers an event, you’ll want to track it.
+	 * 
+	 * @param event
+	 *            describes what this user just did. It's a human readable
+	 *            description like "Played a Song", "Printed a Report" or
+	 *            "Updated Status".
+	 * 
+	 */
+	public static void track(String event) {
+
+		track(null, event, null, null, null);
+	}
+	
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
 	 * 
@@ -397,21 +430,6 @@ public class Analytics {
 	public static void track(String userId, String event) {
 
 		track(userId, event, null, null, null);
-	}
-
-	
-	/**
-	 * Whenever a user triggers an event, you’ll want to track it.
-	 * 
-	 * @param event
-	 *            describes what this user just did. It's a human readable
-	 *            description like "Played a Song", "Printed a Report" or
-	 *            "Updated Status".
-	 * 
-	 */
-	public static void track(String event) {
-
-		track(null, event, null, null, null);
 	}
 
 	/**
@@ -604,6 +622,8 @@ public class Analytics {
 		
 		checkInitialized();
 
+		userId = getOrSetUserId(userId);
+		
 		if (userId == null || userId.length() == 0) {
 			throw new IllegalArgumentException("analytics-android #track must be initialized with a valid user id.");
 		}
@@ -617,11 +637,12 @@ public class Analytics {
 		if (properties == null)
 			properties = new EventProperties();
 
-		userId = getOrSetUserId(userId);
 		
 		Track track = new Track(userId, event, properties, timestamp, context);
 
 		enqueue(track);
+		
+		statistics.updateTracks(1);
 	}
 
 	
@@ -725,6 +746,8 @@ public class Analytics {
 		Alias alias = new Alias(from, to, timestamp, context);
 
 		enqueue(alias);
+		
+		statistics.updateAlias(1);
 	}
 
 	
@@ -752,10 +775,17 @@ public class Analytics {
 	
 	private static void enqueue(final BasePayload payload) {
 		
+		statistics.updateInsertAttempts(1);
+		
+		final long start = System.currentTimeMillis(); 
+		
 		databaseLayer.enqueue(payload, new EnqueueCallback() {
 			
 			@Override
 			public void onEnqueue(boolean success, long rowCount) {
+				
+				long duration = System.currentTimeMillis() - start;
+				statistics.updateInsertTime(duration);
 				
 				if (rowCount >= options.getFlushAt()) {
 					Analytics.flush(true);
@@ -779,6 +809,10 @@ public class Analytics {
 	public static void flush(boolean async) {
 		checkInitialized();
 		
+		statistics.updateFlushAttempts(1);
+		
+		final long start = System.currentTimeMillis(); 
+		
 		final CountDownLatch latch = new CountDownLatch(1);
 		
 		flushLayer.flush(new FlushCallback() {
@@ -786,6 +820,9 @@ public class Analytics {
 			@Override
 			public void onFullyFlushed() {
 				latch.countDown();
+				
+				long duration = System.currentTimeMillis() - start;
+				statistics.updateFlushTime(duration);
 			}
 		});
 
@@ -836,7 +873,7 @@ public class Analytics {
 		return options;
 	}
 
-	public static Statistics getStatistics() {
+	public static AnalyticsStatistics getStatistics() {
 		checkInitialized();
 		return statistics;
 	}

@@ -1,4 +1,6 @@
-package io.segment.android.info;
+package io.segment.android.info.test;
+
+import io.segment.android.info.InfoManager;
 
 import org.json.JSONObject;
 import org.junit.Assert;

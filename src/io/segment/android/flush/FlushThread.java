@@ -1,11 +1,13 @@
 package io.segment.android.flush;
 
+import io.segment.android.Analytics;
 import io.segment.android.db.IPayloadDatabaseLayer;
 import io.segment.android.db.IPayloadDatabaseLayer.PayloadCallback;
 import io.segment.android.db.IPayloadDatabaseLayer.RemoveCallback;
 import io.segment.android.models.BasePayload;
 import io.segment.android.models.Batch;
 import io.segment.android.request.IRequester;
+import io.segment.android.stats.AnalyticsStatistics;
 import io.segment.android.utils.LooperThreadWithHandler;
 
 import java.io.IOException;
@@ -61,7 +63,7 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 			public void onPayload(
 					final long minId, 
 					final long maxId,
-					List<BasePayload> payloads) {
+					final List<BasePayload> payloads) {
 				
 				// we are currently executing on the database
 				// thread so we're still technically locking the 
@@ -69,6 +71,8 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 				
 				if (payloads.size() > 0) {
 					// we have things to flush
+				
+					final long start = System.currentTimeMillis();
 					
 					// let's create the batch frame that we're gonna flush
 					Batch batch = batchFactory.create(payloads);
@@ -80,6 +84,9 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 						public void onRequestCompleted(boolean success) {
 							// we are now executing in the context of the
 							// flushing thread
+							
+							long duration = System.currentTimeMillis() - start;
+							Analytics.getStatistics().updateRequestTime(duration);
 							
 							if (success) {
 								// if we were successful, we need to 
@@ -93,15 +100,26 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 										// we are again executing in the context of the database
 										// thread
 										
+										AnalyticsStatistics statistics = Analytics.getStatistics();
+										
 										if (removed == -1) {
+
+											for (int i = 0; i < removed; i += 1)
+												statistics.updateFailed(1);
 											
 											Log.e(TAG, "We failed to remove payload from the database.");
 											
 										} else if (removed == 0) {
+
+											for (int i = 0; i < removed; i += 1)
+												statistics.updateFailed(1);
 											
 											Log.e(TAG, "We didn't end up removing anything from the database.");
 										
 										} else {
+											
+											for (int i = 0; i < removed; i += 1)
+												statistics.updateSuccessful(1);
 											
 											// now we can initiate another flush to make
 											// sure that there's nothing left 
