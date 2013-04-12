@@ -1,5 +1,7 @@
 package io.segment.android;
 
+import android.text.TextUtils;
+
 /**
  * Segment.io client options
  * 
@@ -57,11 +59,11 @@ public class Options {
 			int flushAfter, 
 			int maxQueueSize) {
 
-		this.debug = debug;
-		this.host = host;
-		this.flushAt = flushAt;
-		this.flushAfter = flushAfter;
-		this.maxQueueSize = maxQueueSize;
+		setDebug(debug);
+		setHost(host);
+		setFlushAt(flushAt);
+		setFlushAfter(flushAfter);
+		setMaxQueueSize(maxQueueSize);
 	}
 
 	public boolean isDebug() {
@@ -92,6 +94,10 @@ public class Options {
 	 * @param flushAt
 	 */
 	public Options setFlushAt(int flushAt) {
+		
+		if (flushAt <= 0) 
+			throw new IllegalArgumentException("Analytics Options #flushAt must be greater than 0.");
+		
 		this.flushAt = flushAt;
 		return this;
 	}
@@ -103,6 +109,10 @@ public class Options {
 	 * @param flushAfter
 	 */
 	public Options setFlushAfter(int flushAfter) {
+
+		if (flushAfter <= 50) 
+			throw new IllegalArgumentException("Analytics Options #flushAfter must be greater than 50.");
+		
 		this.flushAfter = flushAfter;
 		return this;
 	}
@@ -115,6 +125,10 @@ public class Options {
 	 * @param maxQueueSize
 	 */
 	public Options setMaxQueueSize(int maxQueueSize) {
+		
+		if (flushAfter <= 0) 
+			throw new IllegalArgumentException("Analytics Options #flushAfter must be greater than 0.");
+		
 		this.maxQueueSize = maxQueueSize;
 		return this;
 	}
@@ -125,6 +139,10 @@ public class Options {
 	 * @param host
 	 */
 	public Options setHost(String host) {
+		
+		if (TextUtils.isEmpty(host)) 
+			throw new IllegalArgumentException("Analytics Options #host must be non-null or empty.");
+		
 		this.host = host;
 		return this;
 	}

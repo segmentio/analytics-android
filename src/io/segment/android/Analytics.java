@@ -28,6 +28,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import android.app.Service;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -55,7 +56,8 @@ public class Analytics {
 	private static SimpleStringCache userIdCache;
 
 	/**
-	 * Initializes the Segment.io Android client.
+	 * Initializes the Segment.io Android client, and tells the client that this 
+	 * activity has been started. 
 	 * 
 	 * The client is an HTTP wrapper over the Segment.io REST API. It will allow
 	 * you to conveniently consume the API without making any HTTP requests
@@ -66,7 +68,126 @@ public class Analytics {
 	 * your requests on a separate resource-constrained thread pool.
 	 * 
 	 * @param context
-	 *            Your Android application's context passed into your activities.
+	 *            Your Android android.content.Content (like your activity).
+	 * 
+	 */
+	public static void activityStart (android.content.Context context) {
+		Analytics.initialize(context);
+	}
+	
+	/**
+	 * Initializes the Segment.io Android client, and tells the client that this 
+	 * activity has been started. 
+	 * 
+	 * The client is an HTTP wrapper over the Segment.io REST API. It will allow
+	 * you to conveniently consume the API without making any HTTP requests
+	 * yourself.
+	 * 
+	 * This client is also designed to be thread-safe and to not block each of
+	 * your calls to make a HTTP request. It uses batching to efficiently send
+	 * your requests on a separate resource-constrained thread pool.
+	 * 
+	 * @param context
+	 *            Your Android android.content.Content (like your activity).
+	 * 
+	 * @param secret
+	 *            Your segment.io secret. You can get one of these by
+	 *            registering for a project at https://segment.io
+	 * 
+	 * 
+	 */
+	public static void activityStart (android.content.Context context, String secret) {
+		Analytics.initialize(context, secret);
+	}
+	
+	/**
+	 * Initializes the Segment.io Android client, and tells the client that this 
+	 * activity has been started. 
+	 * 
+	 * The client is an HTTP wrapper over the Segment.io REST API. It will allow
+	 * you to conveniently consume the API without making any HTTP requests
+	 * yourself.
+	 * 
+	 * This client is also designed to be thread-safe and to not block each of
+	 * your calls to make a HTTP request. It uses batching to efficiently send
+	 * your requests on a separate resource-constrained thread pool.
+	 * 
+	 * @param context
+	 *            Your Android android.content.Content (like your activity).
+	 * 
+	 * @param secret
+	 *            Your segment.io secret. You can get one of these by
+	 *            registering for a project at https://segment.io
+	 * 
+	 * @param options
+	 *            Options to configure the behavior of the Segment.io client
+	 * 
+	 * 
+	 */
+	public static void activityStart (android.content.Context context, String secret, Options options) {
+		Analytics.initialize(context, secret, options);
+	}
+	
+	/**
+	 * Called when the activity has been stopped
+	 * @param context
+	 */
+	public static void activityEnd (android.content.Context context) {
+		Analytics.initialize(context);
+	}
+	
+
+	/**
+	 * Initializes the Segment.io Android client.
+	 * 
+	 * You don't need to call this if you've called {@link Analytics}.activityStart from
+	 * your Android activity.
+	 * 
+	 * You can use this method from a non-activity, such as a {@link Service}.
+	 * 
+	 * The client is an HTTP wrapper over the Segment.io REST API. It will allow
+	 * you to conveniently consume the API without making any HTTP requests
+	 * yourself.
+	 * 
+	 * This client is also designed to be thread-safe and to not block each of
+	 * your calls to make a HTTP request. It uses batching to efficiently send
+	 * your requests on a separate resource-constrained thread pool.
+	 * 
+	 * @param context
+	 *            Your Android android.content.Content (like your activity).
+	 *
+	 * 
+	 */
+	public static void initialize(android.content.Context context) {
+
+		if (initialized) return;
+
+		// read both secret and options from analytics.xml
+		String secret = Configuration.getSecret(context);
+		Options options = Configuration.getOptions(context);
+		
+		initialize(context, secret,options);
+	}
+
+	
+	/**
+	 * Initializes the Segment.io Android client.
+	 * 
+	 * You don't need to call this if you've called {@link Analytics}.activityStart from
+	 * your Android activity.
+	 * 
+	 * You can use this method from a non-activity, such as a {@link Service}.
+	 * 
+	 * The client is an HTTP wrapper over the Segment.io REST API. It will allow
+	 * you to conveniently consume the API without making any HTTP requests
+	 * yourself.
+	 * 
+	 * This client is also designed to be thread-safe and to not block each of
+	 * your calls to make a HTTP request. It uses batching to efficiently send
+	 * your requests on a separate resource-constrained thread pool.
+	 * 
+	 * @param context
+	 *            Your Android android.content.Content (like your activity).
 	 * 
 	 * @param secret
 	 *            Your segment.io secret. You can get one of these by
@@ -75,11 +196,21 @@ public class Analytics {
 	 */
 	public static void initialize(android.content.Context context, String secret) {
 
-		initialize(context, secret, new Options());
+		if (initialized) return;
+
+		// read options from analytics.xml
+		Options options = Configuration.getOptions(context);
+		
+		initialize(context, secret, options);
 	}
 
 	/**
 	 * Initializes the Segment.io Android client.
+	 * 
+	 * You don't need to call this if you've called {@link Analytics}.activityStart from
+	 * your Android activity.
+	 * 
+	 * You can use this method from a non-activity, such as a {@link Service}.
 	 * 
 	 * The client is an HTTP wrapper over the Segment.io REST API. It will allow
 	 * you to conveniently consume the API without making any HTTP requests
@@ -90,7 +221,7 @@ public class Analytics {
 	 * your requests on a separate resource-constrained thread pool.
 	 * 
 	 * @param context
-	 *            Your Android application's context passed into your activities.
+	 *            Your Android android.content.Content (like your activity).
 	 * 
 	 * @param secret
 	 *            Your segment.io secret. You can get one of these by
