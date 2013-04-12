@@ -1,4 +1,4 @@
-package io.segment.android.request.test;
+package io.segment.android.test;
 
 import io.segment.android.models.Alias;
 import io.segment.android.models.BasePayload;

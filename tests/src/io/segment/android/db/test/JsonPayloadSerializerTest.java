@@ -2,7 +2,7 @@ package io.segment.android.db.test;
 
 import io.segment.android.db.JsonPayloadSerializer;
 import io.segment.android.models.BasePayload;
-import io.segment.android.request.test.TestCases;
+import io.segment.android.test.TestCases;
 import junit.framework.Assert;
 
 import org.junit.Test;

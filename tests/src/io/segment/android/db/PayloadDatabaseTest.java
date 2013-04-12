@@ -2,8 +2,8 @@ package io.segment.android.db;
 
 import io.segment.android.models.BasePayload;
 import io.segment.android.models.EasyJSONObject;
-import io.segment.android.request.test.TestCases;
 import io.segment.android.test.BaseTest;
+import io.segment.android.test.TestCases;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -11,7 +11,6 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import android.util.Log;
 import android.util.Pair;
 
 public class PayloadDatabaseTest extends BaseTest {

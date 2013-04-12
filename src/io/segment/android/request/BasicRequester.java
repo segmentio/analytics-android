@@ -29,6 +29,7 @@ public class BasicRequester implements IRequester {
 		
 		HttpClient httpclient = new DefaultHttpClient(); 
 		HttpPost post = new HttpPost(url);
+		post.setHeader("Content-Type", "application/json");
 
 		try {
 		      StringEntity se = new StringEntity(json);  
