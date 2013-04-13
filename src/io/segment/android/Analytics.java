@@ -1014,6 +1014,15 @@ public class Analytics {
 	}
 	
 	/**
+	 * Allows you to set your own sessionId. Used mostly for testing.
+	 * @param sessionId
+	 */
+	public static void setSessionId(String sessionId) {
+		checkInitialized();
+		sessionIdCache.set(sessionId);
+	}
+	
+	/**
 	 * Gets the userId thats currently saved for this
 	 * application. If none has been entered yet,
 	 * this will return null.
