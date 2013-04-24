@@ -19,6 +19,7 @@ public class InfoManager {
 	public InfoManager() {
 		managers = new LinkedList<Info<?>>();
 
+		managers.add(new Build());
 		managers.add(new Device());
 		managers.add(new Display());
 		managers.add(new Locale());

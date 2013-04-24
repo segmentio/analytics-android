@@ -1,5 +1,7 @@
 package io.segment.android.models;
 
+import org.json.JSONObject;
+
 
 public class Context extends EasyJSONObject {
 
@@ -9,6 +11,11 @@ public class Context extends EasyJSONObject {
 
 	public Context() {
 		super();
+		addLibraryContext();
+	}
+
+	public Context(JSONObject obj) {
+		super(obj);
 		addLibraryContext();
 	}
 
