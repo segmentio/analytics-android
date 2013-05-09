@@ -1,0 +1,14 @@
+#Fat Jar Configuration File
+#Wed May 08 14:29:47 PDT 2013
+onejar.license.required=false
+manifest.classpath=
+manifest.removesigners=true
+onejar.checkbox=false
+jarname=releases/analytics-android-0.2.0.jar
+manifest.mergeall=true
+manifest.mainclass=
+manifest.file=<createnew>
+jarname.isextern=false
+onejar.expand=
+excludes=
+includes=

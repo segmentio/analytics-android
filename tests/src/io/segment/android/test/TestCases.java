@@ -49,7 +49,7 @@ public class TestCases {
 				calendar,
 				new Context().setIp("192.168.1.1"));
 		
-		track = new Track("ilya@segment.io", "Played a Song", 
+		track = new Track("ilya@segment.io", "Played a Song on Android", 
 				new EventProperties(
 						"name", "Achilles",
 						"revenue", 39.95,

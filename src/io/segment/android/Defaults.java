@@ -21,7 +21,14 @@ public class Defaults {
 		this.put("import",   "/v1/import");
 	}};
 	
+	public static String getSettingsEndpoint(String secret) {
+		return "/project/" + secret + "/settings";
+	}
+	
 	public static final int MAX_QUEUE_SIZE = 10000;
+	
+	// cache the settings for 1 hour before reloading
+	public static final int SETTINGS_CACHE_EXPIRY = 1000 * 60 * 60;
 
 
 }

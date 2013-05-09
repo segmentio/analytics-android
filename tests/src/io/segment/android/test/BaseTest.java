@@ -21,6 +21,8 @@ public class BaseTest extends AndroidTestCase {
 		// name (prefixes default names with a given prefix).
 		context = new RenamingDelegatingContext(getContext(), "test_");
 		
+		if (Analytics.isInitialized()) Analytics.close();
+		
 		Analytics.initialize(context, "testsecret");
 	}
 	

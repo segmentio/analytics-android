@@ -1,12 +1,11 @@
 package io.segment.android.utils;
 
+import io.segment.android.Logger;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
 public class LooperThreadWithHandler extends Thread implements IThreadedLayer {
-
-	private static final String TAG = LooperThreadWithHandler.class.getName();
 		
 	private Handler handler;
 
@@ -16,7 +15,7 @@ public class LooperThreadWithHandler extends Thread implements IThreadedLayer {
 				try {
 					wait();
 				} catch (InterruptedException e) {
-					Log.e(TAG, "Failed while waiting for singleton thread ready. " + 
+					Logger.e("Failed while waiting for singleton thread ready. " + 
 							Log.getStackTraceString(e));
 				}
 			}

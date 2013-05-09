@@ -1,6 +1,7 @@
 package io.segment.android;
 
 import io.segment.android.cache.SessionIdCache;
+import io.segment.android.cache.SettingsCache;
 import io.segment.android.cache.SimpleStringCache;
 import io.segment.android.db.IPayloadDatabaseLayer;
 import io.segment.android.db.IPayloadDatabaseLayer.EnqueueCallback;
@@ -15,10 +16,13 @@ import io.segment.android.models.Alias;
 import io.segment.android.models.BasePayload;
 import io.segment.android.models.Batch;
 import io.segment.android.models.Context;
+import io.segment.android.models.EasyJSONObject;
 import io.segment.android.models.EventProperties;
 import io.segment.android.models.Identify;
 import io.segment.android.models.Track;
 import io.segment.android.models.Traits;
+import io.segment.android.provider.Provider;
+import io.segment.android.provider.ProviderManager;
 import io.segment.android.request.BasicRequester;
 import io.segment.android.request.IRequester;
 import io.segment.android.stats.AnalyticsStatistics;
@@ -28,13 +32,11 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import android.app.Activity;
 import android.app.Service;
 import android.text.TextUtils;
-import android.util.Log;
 
 public class Analytics {
-
-	private static final String TAG = Analytics.class.getName(); 
 	
 	private static AnalyticsStatistics statistics;
 	
@@ -43,7 +45,9 @@ public class Analytics {
 	
 	private static InfoManager infoManager;
 	
+	private static ProviderManager providerManager;
 	private static HandlerTimer flushTimer;
+	private static HandlerTimer refreshSettingsTimer;
 	private static PayloadDatabase database;
 	private static IPayloadDatabaseLayer databaseLayer;
 	private static IFlushLayer flushLayer;
@@ -54,10 +58,12 @@ public class Analytics {
 
 	private static SimpleStringCache sessionIdCache;
 	private static SimpleStringCache userIdCache;
+	private static SettingsCache settingsCache;
+
 
 	/**
 	 * Initializes the Segment.io Android client, and tells the client that this 
-	 * activity has been started. 
+	 * activity has been created. 
 	 * 
 	 * The client is an HTTP wrapper over the Segment.io REST API. It will allow
 	 * you to conveniently consume the API without making any HTTP requests
@@ -67,17 +73,18 @@ public class Analytics {
 	 * your calls to make a HTTP request. It uses batching to efficiently send
 	 * your requests on a separate resource-constrained thread pool.
 	 * 
-	 * @param context
-	 *            Your Android android.content.Content (like your activity).
+	 * @param activity
+	 *            Your Android Activity
 	 * 
 	 */
-	public static void activityStart (android.content.Context context) {
+	public static void onCreate (android.content.Context context) {
 		Analytics.initialize(context);
+		providerManager.onCreate(context);
 	}
 	
 	/**
 	 * Initializes the Segment.io Android client, and tells the client that this 
-	 * activity has been started. 
+	 * activity has been created. 
 	 * 
 	 * The client is an HTTP wrapper over the Segment.io REST API. It will allow
 	 * you to conveniently consume the API without making any HTTP requests
@@ -87,8 +94,8 @@ public class Analytics {
 	 * your calls to make a HTTP request. It uses batching to efficiently send
 	 * your requests on a separate resource-constrained thread pool.
 	 * 
-	 * @param context
-	 *            Your Android android.content.Content (like your activity).
+	 * @param activity
+	 *            Your Android Activity
 	 * 
 	 * @param secret
 	 *            Your segment.io secret. You can get one of these by
@@ -96,13 +103,14 @@ public class Analytics {
 	 * 
 	 * 
 	 */
-	public static void activityStart (android.content.Context context, String secret) {
+	public static void onCreate (android.content.Context context, String secret) {
 		Analytics.initialize(context, secret);
+		providerManager.onCreate(context);
 	}
 	
 	/**
 	 * Initializes the Segment.io Android client, and tells the client that this 
-	 * activity has been started. 
+	 * activity has been created. 
 	 * 
 	 * The client is an HTTP wrapper over the Segment.io REST API. It will allow
 	 * you to conveniently consume the API without making any HTTP requests
@@ -112,8 +120,8 @@ public class Analytics {
 	 * your calls to make a HTTP request. It uses batching to efficiently send
 	 * your requests on a separate resource-constrained thread pool.
 	 * 
-	 * @param context
-	 *            Your Android android.content.Content (like your activity).
+	 * @param activity
+	 *            Your Android Activity
 	 * 
 	 * @param secret
 	 *            Your segment.io secret. You can get one of these by
@@ -124,16 +132,95 @@ public class Analytics {
 	 * 
 	 * 
 	 */
-	public static void activityStart (android.content.Context context, String secret, Options options) {
+	public static void onCreate (android.content.Context context, String secret, Options options) {
 		Analytics.initialize(context, secret, options);
+		providerManager.onCreate(context);
+	}
+	
+	/**
+	 * Initializes the Segment.io Android client, and tells the client that this 
+	 * activity has been started. 
+	 * 
+	 * The client is an HTTP wrapper over the Segment.io REST API. It will allow
+	 * you to conveniently consume the API without making any HTTP requests
+	 * yourself.
+	 * 
+	 * This client is also designed to be thread-safe and to not block each of
+	 * your calls to make a HTTP request. It uses batching to efficiently send
+	 * your requests on a separate resource-constrained thread pool.
+	 * 
+	 * @param activity
+	 *            Your Android Activity
+	 * 
+	 */
+	public static void activityStart (Activity activity) {
+		Analytics.initialize(activity);
+		providerManager.onActivityStart(activity);
+	}
+	
+	/**
+	 * Initializes the Segment.io Android client, and tells the client that this 
+	 * activity has been started. 
+	 * 
+	 * The client is an HTTP wrapper over the Segment.io REST API. It will allow
+	 * you to conveniently consume the API without making any HTTP requests
+	 * yourself.
+	 * 
+	 * This client is also designed to be thread-safe and to not block each of
+	 * your calls to make a HTTP request. It uses batching to efficiently send
+	 * your requests on a separate resource-constrained thread pool.
+	 * 
+	 * @param activity
+	 *            Your Android Activity
+	 * 
+	 * @param secret
+	 *            Your segment.io secret. You can get one of these by
+	 *            registering for a project at https://segment.io
+	 * 
+	 * 
+	 */
+	public static void activityStart (Activity activity, String secret) {
+		Analytics.initialize(activity, secret);
+		providerManager.onActivityStart(activity);
+	}
+	
+	/**
+	 * Initializes the Segment.io Android client, and tells the client that this 
+	 * activity has been started. 
+	 * 
+	 * The client is an HTTP wrapper over the Segment.io REST API. It will allow
+	 * you to conveniently consume the API without making any HTTP requests
+	 * yourself.
+	 * 
+	 * This client is also designed to be thread-safe and to not block each of
+	 * your calls to make a HTTP request. It uses batching to efficiently send
+	 * your requests on a separate resource-constrained thread pool.
+	 * 
+	 * @param activity
+	 *            Your Android Activity
+	 * 
+	 * @param secret
+	 *            Your segment.io secret. You can get one of these by
+	 *            registering for a project at https://segment.io
+	 * 
+	 * @param options
+	 *            Options to configure the behavior of the Segment.io client
+	 * 
+	 * 
+	 */
+	public static void activityStart (Activity activity, String secret, Options options) {
+		Analytics.initialize(activity, secret, options);
+		providerManager.onActivityStart(activity);
 	}
 	
 	/**
 	 * Called when the activity has been stopped
-	 * @param context
+	 * @param activity
+	 *            Your Android Activity
 	 */
-	public static void activityEnd (android.content.Context context) {
-		Analytics.initialize(context);
+	public static void activityStop (Activity activity) {
+		Analytics.initialize(activity);
+		providerManager.onActivityStop(activity);
 	}
 	
 
@@ -153,8 +240,8 @@ public class Analytics {
 	 * your calls to make a HTTP request. It uses batching to efficiently send
 	 * your requests on a separate resource-constrained thread pool.
 	 * 
-	 * @param context
-	 *            Your Android android.content.Content (like your activity).
+	 * @param activity
+	 *            Your Android Activity
 	 *
 	 * 
 	 */
@@ -233,7 +320,7 @@ public class Analytics {
 	 * 
 	 */
 	public static void initialize(android.content.Context context, String secret, Options options) {
-
+		
 		String errorPrefix = "analytics-android client must be initialized with a valid ";
 
 		if (context == null)
@@ -251,6 +338,9 @@ public class Analytics {
 		
 		Analytics.secret = secret;
 		Analytics.options = options;
+		
+		// set logging based on the debug mode
+		Logger.setLog(options.isDebug());
 
 		// create the database using the activity context
 		database = PayloadDatabase.getInstance(context);
@@ -274,12 +364,35 @@ public class Analytics {
 		Analytics.flushLayer = new FlushThread(requester, 
 											  batchFactory,
 											  Analytics.databaseLayer);
-		Analytics.flushLayer.start();
 		
-		Analytics.flushTimer = new HandlerTimer(options.getFlushAfter(), flushClock);
-		Analytics.flushTimer.start();
+		Analytics.flushTimer = new HandlerTimer(
+				options.getFlushAfter(), flushClock);
+		
+		Analytics.refreshSettingsTimer = new HandlerTimer(
+				options.getSettingsCacheExpiry() + 1000, refreshSettingsClock);
+		
+		settingsCache = new SettingsCache(context, requester, options.getSettingsCacheExpiry());
+		
+		providerManager = new ProviderManager(settingsCache);
+		// immediately attempt to refresh the providers with
+		// new settings
+		providerManager.refresh();
+		
+		// important: disable Segment.io server-side processing of
+		// the bundled providers that we'll evaluate on the mobile
+		// device
+		EasyJSONObject providerContext = new EasyJSONObject();
+		for (Provider provider : providerManager.getProviders()) {
+			providerContext.put(provider.getKey(), false);
+		}
+		globalContext.put("providers", providerContext);
 		
 		initialized = true;
+		
+		// start the other threads
+		Analytics.flushTimer.start();
+		Analytics.refreshSettingsTimer.start();
+		Analytics.flushLayer.start();
 	}
 	
 	/**
@@ -305,12 +418,20 @@ public class Analytics {
 	 * Flushes on a clock timer
 	 */
 	private static Runnable flushClock = new Runnable() {
-
 		@Override
 		public void run() {
 			Analytics.flush(true);
 		}
-		
+	};
+	
+	/**
+	 * Refreshes the Segment.io integration settings from the server
+	 */
+	private static Runnable refreshSettingsClock = new Runnable() {
+		@Override
+		public void run() {
+			providerManager.refresh();
+		}
 	};
 
 	
@@ -523,6 +644,8 @@ public class Analytics {
 		Identify identify = new Identify(userId, traits, timestamp, context);
 
 		enqueue(identify);
+		
+		providerManager.identify(identify);
 		
 		statistics.updateIdentifies(1);
 	}
@@ -773,6 +896,8 @@ public class Analytics {
 
 		enqueue(track);
 		
+		providerManager.track(track);
+		
 		statistics.updateTracks(1);
 	}
 
@@ -878,6 +1003,8 @@ public class Analytics {
 
 		enqueue(alias);
 		
+		providerManager.alias(alias);
+		
 		statistics.updateAlias(1);
 	}
 
@@ -971,28 +1098,45 @@ public class Analytics {
 
 		});
 
+		// flush all the providers as well
+		providerManager.flush();
 		
 		if (!async) {
 			try {
 				latch.await();
 			} catch (InterruptedException e) {
-				Log.e(TAG, "Interrupted while waiting for a blocking flush.");
+				Logger.e("Interrupted while waiting for a blocking flush.");
 			}
 		}
 	}
 
 	/**
-	 * Stops the the database and flush thread
+	 * Resets the userId
+	 */
+	public void reset() {
+		if (initialized) {
+			userIdCache.reset();
+		}
+	}
+	
+	/**
+	 * Stops the analytics client threads, and resets the client
 	 */
 	public static  void close() {
 		checkInitialized();
 		// stops the looper on the timer, flush, and database thread
 		flushTimer.quit();
+		refreshSettingsTimer.quit();
 		flushLayer.quit();
 		databaseLayer.quit();
 
 		// closes the database
 		database.close();
+		
+		options = null;
+		secret = null;
+		
+		initialized = false;
 	}
 
 	//
@@ -1029,8 +1173,16 @@ public class Analytics {
 	 * @return
 	 */
 	public static String getUserId() {
-		checkInitialized();
+		 checkInitialized();
 		return userIdCache.get();
+	}
+	
+	/**
+	 * Returns whether the client is initialized
+	 * @return
+	 */
+	public static boolean isInitialized() {
+		return initialized;
 	}
 	
 	/**
@@ -1038,7 +1190,7 @@ public class Analytics {
 	 * @return
 	 */
 	public static String getSecret() {
-		checkInitialized();
+		if (secret == null) checkInitialized();
 		return secret;
 	}
 
@@ -1046,12 +1198,16 @@ public class Analytics {
 		Analytics.secret = secret;
 	}
 
+	public static ProviderManager getProviderManager() {
+		return providerManager;
+	}
+	
 	/**
 	 * Gets the Segment.io client options
 	 * @return
 	 */
 	public static Options getOptions() {
-		checkInitialized();
+		if (options == null) checkInitialized();
 		return options;
 	}
 
@@ -1060,7 +1216,7 @@ public class Analytics {
 	 * @return
 	 */
 	public static AnalyticsStatistics getStatistics() {
-		checkInitialized();
+		if (statistics == null) checkInitialized();
 		return statistics;
 	}
 }

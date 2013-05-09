@@ -5,6 +5,11 @@ public class Constants {
 	public static final String PACKAGE_NAME = Constants.class.getPackage().getName();
 	
 	/**
+	 * Logging tag
+	 */
+	public static final String TAG = "analytics";
+	
+	/**
 	 * The maximum amount of events to flush at a time
 	 */
 	public static final int MAX_FLUSH = 20;
@@ -59,6 +64,7 @@ public class Constants {
 		public static final String READ_PHONE_STATE = "android.permission.READ_PHONE_STATE";
 		public static final String FINE_LOCATION = "android.permission.ACCESS_FINE_LOCATION";
 		public static final String COARSE_LOCATION = "android.permission.ACCESS_COARSE_LOCATION";
+		public static final String INTERNET = "android.permission.INTERNET";
 		
 	}
 	

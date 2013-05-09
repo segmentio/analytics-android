@@ -1,11 +1,12 @@
 package io.segment.android.utils;
 
-import android.annotation.SuppressLint;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+
+import android.annotation.SuppressLint;
 
 /**
  * Android answer: http://stackoverflow.com/questions/2201925/converting-iso8601-compliant-string-to-java-util-date

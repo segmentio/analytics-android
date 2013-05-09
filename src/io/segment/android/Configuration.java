@@ -16,6 +16,8 @@ public class Configuration {
 	private static final String FLUSH_AT_KEY = "analytics_flush_at";
 	private static final String FLUSH_AFTER_KEY = "analytics_flush_after";
 	private static final String MAX_QUEUE_SIZE_KEY = "analytics_max_queue_size";
+	private static final String SETTINGS_CACHE_EXPIRY_KEY = "analytics_settings_cache_expiry";
+
 	
 	public static String getSecret(Context context) {
 		return getString(context, SECRET_KEY);
@@ -38,6 +40,9 @@ public class Configuration {
 		
 		Integer maxQueueSize = getInteger(context, MAX_QUEUE_SIZE_KEY);
 		if (maxQueueSize != null) options.setMaxQueueSize(maxQueueSize);
+		
+		Integer settingsCacheExpiry = getInteger(context, SETTINGS_CACHE_EXPIRY_KEY);
+		if (settingsCacheExpiry != null) options.setSettingsCacheExpiry(settingsCacheExpiry);
 		
 		return options;
 	}

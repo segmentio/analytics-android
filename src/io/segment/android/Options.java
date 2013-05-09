@@ -34,6 +34,12 @@ public class Options {
 	private int maxQueueSize;
 
 	/**
+	 * Reload the provider settings from the Segment.io after this
+	 * amount of time
+	 */
+	private int settingsCacheExpiry;
+	
+	/**
 	 * Creates a default options
 	 */
 	public Options() {
@@ -41,7 +47,8 @@ public class Options {
 			 Defaults.HOST, 
 			 Defaults.FLUSH_AT, 
 			 Defaults.FLUSH_AFTER,
-			 Defaults.MAX_QUEUE_SIZE);
+			 Defaults.MAX_QUEUE_SIZE,
+			 Defaults.SETTINGS_CACHE_EXPIRY);
 	}
 
 	/**
@@ -57,13 +64,15 @@ public class Options {
 			String host, 
 			int flushAt, 
 			int flushAfter, 
-			int maxQueueSize) {
+			int maxQueueSize,
+			int settingsCacheExpiry) {
 
 		setDebug(debug);
 		setHost(host);
 		setFlushAt(flushAt);
 		setFlushAfter(flushAfter);
 		setMaxQueueSize(maxQueueSize);
+		setSettingsCacheExpiry(settingsCacheExpiry);
 	}
 
 	public boolean isDebug() {
@@ -85,7 +94,10 @@ public class Options {
 	public int getMaxQueueSize() {
 		return maxQueueSize;
 	}
-
+	
+	public int getSettingsCacheExpiry() {
+		return settingsCacheExpiry;
+	}
 
 	/**
 	 * Sets the amount of messages that need to be in the queue before it is
@@ -147,8 +159,26 @@ public class Options {
 		return this;
 	}
 
+
 	/**
-	 * Sets whether debug logging is enabled
+	 * Sets the amount of time the Segment.io integration settings
+	 * are cached before being reloaded. This time in milliseconds
+	 * represents the maximum amount of time your settings for a provider
+	 * won't reload.
+	 * 
+	 * @param milliseconds Settings cache time
+	 */
+	public Options setSettingsCacheExpiry(int milliseconds) {
+		
+		if (milliseconds < 1000 || milliseconds > 999999999)
+			throw new IllegalArgumentException("Analytics Options #settingsCacheExpiry must be between 1000 and 999999999.");
+
+		this.settingsCacheExpiry = milliseconds;
+		return this;
+	}
+	
+	/**
+	 * Sets whether debug logging to LogCat is enabled
 	 * @param debug True to enable debug logging
 	 */
 	public Options setDebug(boolean debug) {

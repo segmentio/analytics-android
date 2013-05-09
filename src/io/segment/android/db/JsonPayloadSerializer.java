@@ -1,5 +1,6 @@
 package io.segment.android.db;
 
+import io.segment.android.Logger;
 import io.segment.android.models.Alias;
 import io.segment.android.models.BasePayload;
 import io.segment.android.models.Identify;
@@ -11,8 +12,6 @@ import org.json.JSONObject;
 import android.util.Log;
 
 public class JsonPayloadSerializer implements IPayloadSerializer {
-
-	private static final String TAG = JsonPayloadSerializer.class.getName();
 	
 	@Override
 	public String serialize(BasePayload payload) {
@@ -39,7 +38,7 @@ public class JsonPayloadSerializer implements IPayloadSerializer {
 				
 			}
 		} catch (JSONException e) {
-			Log.e(TAG, "Failed to convert json to base payload: " + 
+			Logger.e("Failed to convert json to base payload: " + 
 					Log.getStackTraceString(e));
 		}
 		

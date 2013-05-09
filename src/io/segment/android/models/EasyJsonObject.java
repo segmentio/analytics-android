@@ -1,22 +1,24 @@
 package io.segment.android.models;
 
+import io.segment.android.Logger;
 import io.segment.android.utils.ISO8601;
 
 import java.text.ParseException;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 public class EasyJSONObject extends JSONObject {
-
-	private static final String TAG = EasyJSONObject.class.getName();
 	
 	public EasyJSONObject() {
 		super();
@@ -25,17 +27,19 @@ public class EasyJSONObject extends JSONObject {
 	public EasyJSONObject(JSONObject obj) {
 		super();
 		
-		@SuppressWarnings("unchecked")
-		Iterator<String> keys = obj.keys();
-		while (keys.hasNext()) {
-			String key = keys.next();
-			Object val;
-			try {
-				val = obj.get(key);
-				this.putObject(key, val);
-			} catch (JSONException e) {
-				Log.w(TAG, "JSON object had an invalid value during merge. " + 
-					Log.getStackTraceString(e));	
+		if (obj != null) {
+			@SuppressWarnings("unchecked")
+			Iterator<String> keys = obj.keys();
+			while (keys.hasNext()) {
+				String key = keys.next();
+				Object val;
+				try {
+					val = obj.get(key);
+					this.putObject(key, val);
+				} catch (JSONException e) {
+					Logger.w("JSON object had an invalid value during merge. " + 
+						Log.getStackTraceString(e));	
+				}
 			}
 		}
 	}
@@ -45,7 +49,7 @@ public class EasyJSONObject extends JSONObject {
 
 		if (kvs != null) {
 			if (kvs.length % 2 != 0) {
-				Log.w(TAG, "Segment.io objects must be initialized with an " + 
+				Logger.w("Segment.io objects must be initialized with an " + 
 						"even number of arguments, like so: [Key, Value, Key, Value]");	
 			} else {
 				if (kvs.length > 1) {
@@ -105,7 +109,7 @@ public class EasyJSONObject extends JSONObject {
 		try {
 			return super.put(key, value);
 		} catch (JSONException e) {
-			Log.e(TAG, "Failed to add json key => value" + 
+			Logger.e("Failed to add json key => value" + 
 					String.format("[%s => %s] : ", key, value) + 
 					Log.getStackTraceString(e));
 		}
@@ -122,7 +126,7 @@ public class EasyJSONObject extends JSONObject {
 			try {
 				return ISO8601.toCalendar(timestampStr);
 			} catch (ParseException e) {
-				Log.w(TAG, "Failed to parse timestamp string into ISO 8601 format: " + 
+				Logger.w("Failed to parse timestamp string into ISO 8601 format: " + 
 						Log.getStackTraceString(e));
 			}	
 		}
@@ -153,16 +157,75 @@ public class EasyJSONObject extends JSONObject {
 		}
 	}
 	
-
+	public String getString(String key) {
+		try {
+			return super.getString(key);
+		} catch (JSONException e) {
+			return null;
+		}
+	}
+	
+	public String getString(String key, String defaultString) {
+		try {
+			String str = super.getString(key);
+			if (TextUtils.isEmpty(str)) return defaultString; 
+			else return str;
+		} catch (JSONException e) {
+			return defaultString;
+		}
+	}
+	
+	public Boolean getBoolean(String key, Boolean defaultBoolean) {
+		try {
+			return super.getBoolean(key);
+		} catch (JSONException e) {
+			return defaultBoolean;
+		}
+	}
+	
+	public Integer getInt(String key, Integer defaultInteger) {
+		try {
+			return super.getInt(key);
+		} catch (JSONException e) {
+			return defaultInteger;
+		}
+	}
+	
+	public Double getDouble(String key, Double defaultDouble) {
+		try {
+			return super.getDouble(key);
+		} catch (JSONException e) {
+			return defaultDouble;
+		}
+	}
+	
 	public Object get(String key) {
 		try {
 			return super.get(key);
 		} catch (JSONException e) {
-			Log.e(TAG, "Failed to read json key. " + 
-					String.format("[%s] : ", key) + 
-					Log.getStackTraceString(e));
+			Logger.e("Failed to read json key. " + 
+					String.format("[%s] : ", key));
 		}
 		return null;
+	}
+	
+	//
+	// Utils
+	//
+	
+	public Map<String, String> toStringMap() {
+		Map<String, String> map = new HashMap<String, String>();
+	
+		@SuppressWarnings("unchecked")
+		Iterator<String> it = this.keys();
+		while (it.hasNext()) {
+			String key = it.next();
+			String value = "" + this.get(key);
+			if (value != null) 
+				map.put(key, value.substring(0, 255));
+		}
+		
+		return map;
 	}
 	
 	@Override
@@ -203,6 +266,7 @@ public class EasyJSONObject extends JSONObject {
 		
 		return true;
 	}
+	
 	
 	
 	public static boolean equals (JSONArray one, JSONArray two) {

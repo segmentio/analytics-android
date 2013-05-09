@@ -9,7 +9,7 @@
   <string name="analytics_host">https://api.segment.io</string>
   
   <!--The maximum amount of analytics events to queue before dropping to conserve memory-->
-  <integer name="analytics_max_queue_size">8000</integer>
+  <integer name="analytics_max_queue_size">10000</integer>
   
   <!--The maximum amount of analytics events to queue before dropping to conserve memory-->
   <string name="analytics_debug">true</string>
@@ -19,5 +19,8 @@
   
   <!--Flush on a timer after this many milliseconds-->
   <integer name="analytics_flush_after">10000</integer>
+  
+  <!--Refresh the Segment.io integration settings after this many milliseconds -->
+  <integer name="analytics_settings_cache_expiry">3600000</integer>
   
 </resources>

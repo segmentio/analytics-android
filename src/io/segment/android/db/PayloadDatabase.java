@@ -2,6 +2,7 @@ package io.segment.android.db;
 
 import io.segment.android.Analytics;
 import io.segment.android.Constants;
+import io.segment.android.Logger;
 import io.segment.android.models.BasePayload;
 
 import java.util.LinkedList;
@@ -21,8 +22,6 @@ import android.util.Log;
 import android.util.Pair;
 
 public class PayloadDatabase extends SQLiteOpenHelper {
-
-	private static final String TAG = SQLiteOpenHelper.class.getName();
 	
 	//
 	// Singleton
@@ -73,7 +72,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 		try {
 			db.execSQL(sql);
 		} catch (SQLException e) {
-			Log.e(TAG, "Failed to create Segment.io SQL lite database: " + 
+			Logger.e("Failed to create Segment.io SQL lite database: " + 
 						Log.getStackTraceString(e));
 		}
 	}
@@ -111,7 +110,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 		
 		long rowCount = getRowCount();
 		if (rowCount >= Analytics.getOptions().getMaxQueueSize()) {
-			Log.w(TAG, "Cant add action, the database is larger than max queue size.");
+			Logger.w("Cant add action, the database is larger than max queue size.");
 			return false;
 		}
 		
@@ -136,7 +135,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 						contentValues);
 				
 				if (result == -1) {
-					Log.w(TAG, "Database insert failed. Result: " + result);
+					Logger.w("Database insert failed. Result: " + result);
 				} else {
 					success = true;
 					// increase the row count
@@ -145,7 +144,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 				
 			} catch (SQLiteException e) {
 				
-				Log.e(TAG, "Failed to open or write to Segment.io payload db: " + 
+				Logger.e("Failed to open or write to Segment.io payload db: " + 
 						Log.getStackTraceString(e));
 				
 			}
@@ -220,7 +219,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 			}
 		} catch (SQLiteException e) {
 
-			Log.e(TAG, "Failed to open or read from the Segment.io payload db: " + 
+			Logger.e("Failed to open or read from the Segment.io payload db: " + 
 					Log.getStackTraceString(e));
 			
 		} finally {
@@ -258,7 +257,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 			
 		} catch (SQLiteException e) {
 
-			Log.e(TAG, "Failed to remove items from the Segment.io payload db: " + 
+			Logger.e("Failed to remove items from the Segment.io payload db: " + 
 					Log.getStackTraceString(e));
 			
 		}

@@ -1,6 +1,7 @@
 package io.segment.android.flush;
 
 import io.segment.android.Analytics;
+import io.segment.android.Logger;
 import io.segment.android.db.IPayloadDatabaseLayer;
 import io.segment.android.db.IPayloadDatabaseLayer.PayloadCallback;
 import io.segment.android.db.IPayloadDatabaseLayer.RemoveCallback;
@@ -25,9 +26,7 @@ import android.util.Log;
  *
  */
 public class FlushThread extends LooperThreadWithHandler implements IFlushLayer {
-	
-	private static final String TAG = FlushThread.class.getName();
-	
+		
 	/**
 	 * A factory to create a batch around a list of payload actions
 	 */
@@ -40,8 +39,8 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 	private BatchFactory batchFactory;
 
 	public FlushThread(IRequester requester, 
-						BatchFactory batchFactory, 
-						IPayloadDatabaseLayer databaseLayer) {
+					   BatchFactory batchFactory, 
+					   IPayloadDatabaseLayer databaseLayer) {
 		
 		this.requester = requester;
 		this.batchFactory = batchFactory;
@@ -71,7 +70,7 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 				
 				if (payloads.size() > 0) {
 					// we have things to flush
-				
+					
 					final long start = System.currentTimeMillis();
 					
 					// let's create the batch frame that we're gonna flush
@@ -113,7 +112,7 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 											for (int i = 0; i < removed; i += 1)
 												statistics.updateFailed(1);
 											
-											Log.e(TAG, "We failed to remove payload from the database.");
+											Logger.e("We failed to remove payload from the database.");
 											
 											if (callback != null) callback.onFlushCompleted(false);
 											
@@ -122,7 +121,7 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 											for (int i = 0; i < removed; i += 1)
 												statistics.updateFailed(1);
 											
-											Log.e(TAG, "We didn't end up removing anything from the database.");
+											Logger.e("We didn't end up removing anything from the database.");
 										
 											if (callback != null) callback.onFlushCompleted(false);
 											
@@ -181,7 +180,7 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 				
 				if (response == null) {
 					// there's been an error
-					Log.w(TAG, "Failed to make request to the server.");
+					Logger.w("Failed to make request to the server.");
 					
 				} else if (response.getStatusLine().getStatusCode() != 200) {
 					
@@ -189,19 +188,19 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 						// there's been a server error
 						String responseBody = EntityUtils.toString(response.getEntity());
 						
-						Log.e(TAG, "Received a failed response from the server." + responseBody);
+						Logger.e("Received a failed response from the server." + responseBody);
 						
 					} catch (ParseException e) {
-						Log.w(TAG, "Failed to parse the response from the server." + 
+						Logger.w("Failed to parse the response from the server." + 
 								Log.getStackTraceString(e));
 					} catch (IOException e) {
-						Log.w(TAG, "Failed to read the response from the server." + 
+						Logger.w("Failed to read the response from the server." + 
 								Log.getStackTraceString(e));
 					}
 				
 				} else {
 					
-					Log.d(TAG, "Successfully sent a batch to the server");
+					Logger.d("Successfully sent a batch to the server");
 					
 					success = true;
 				}

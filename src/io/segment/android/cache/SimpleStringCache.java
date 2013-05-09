@@ -61,4 +61,11 @@ public class SimpleStringCache {
 		   		   .commit();
 	}
 	
+	/**
+	 * Removes the cache key and resets the cache
+	 */
+	public void reset() {
+		preferences.edit().remove(cacheKey).commit();
+	}
+	
 }

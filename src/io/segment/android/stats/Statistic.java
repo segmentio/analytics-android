@@ -1,8 +1,9 @@
 package io.segment.android.stats;
 
-import android.annotation.SuppressLint;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import android.annotation.SuppressLint;
 
 /**
  * A thread-safe and lock free value counter

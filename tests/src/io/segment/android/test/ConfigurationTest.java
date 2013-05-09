@@ -44,6 +44,7 @@ public class ConfigurationTest extends ActivityTestCase {
 		Assert.assertEquals(resources.getInteger(R.integer.analytics_flush_after), options.getFlushAfter());
 		Assert.assertEquals(resources.getInteger(R.integer.analytics_flush_at), options.getFlushAt());
 		Assert.assertEquals(resources.getInteger(R.integer.analytics_max_queue_size), options.getMaxQueueSize());
+		Assert.assertEquals(resources.getInteger(R.integer.analytics_settings_cache_expiry), options.getSettingsCacheExpiry());
 
 		Assert.assertEquals(resources.getString(R.string.analytics_host), options.getHost());
 		Assert.assertEquals(Boolean.parseBoolean(resources.getString(R.string.analytics_debug)), options.isDebug());

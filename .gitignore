@@ -25,3 +25,4 @@ local.properties
 .settings
 
 *.prefs
+.DS_STORE
