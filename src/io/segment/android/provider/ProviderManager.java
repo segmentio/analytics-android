@@ -4,6 +4,7 @@ import io.segment.android.Constants;
 import io.segment.android.cache.SettingsCache;
 import io.segment.android.errors.InvalidSettingsException;
 import io.segment.android.models.Alias;
+import io.segment.android.models.BasePayload;
 import io.segment.android.models.EasyJSONObject;
 import io.segment.android.models.Identify;
 import io.segment.android.models.Track;
@@ -15,6 +16,7 @@ import io.segment.android.providers.FlurryProvider;
 import io.segment.android.providers.GoogleAnalyticsProvider;
 import io.segment.android.providers.LocalyticsProvider;
 import io.segment.android.providers.MixpanelProvider;
+import io.segment.android.stats.Stopwatch;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -133,86 +135,157 @@ public class ProviderManager implements IProvider {
 		return providers;
 	}
 
-	@Override
-	public void onCreate(Context context) {
+	/**
+	 * A provider operation function
+	 */
+	private interface ProviderOperation {
+		public void run(Provider provider);
+	}
+	
+	/**
+	 * Run an operation on all the providers
+	 * @param name Name of the operation
+	 * @param minimumState The minimum state that the provider has to be in before running the operation
+	 * @param operation The actual operation to run on the provider
+	 */
+	private void runOperation(String name, ProviderState minimumState, ProviderOperation operation) {
 		
+		// time the operation
+		Stopwatch createOp = new Stopwatch("[All Providers] " + name);
+
+		// make sure that the provider manager has settings from the server first
 		if (ensureInitialized()) {
+			
 			for (Provider provider : this.providers) {
-				if (provider.getState().ge(ProviderState.INITIALIZED)) {
-					provider.onCreate(context);
+				// if the provider is at least in the minimum state 
+				if (provider.getState().ge(minimumState)) {
+					
+					// time this provider's operation
+					Stopwatch providerOp = new Stopwatch("[" + provider.getKey() + "] " + name);
+					
+					operation.run(provider);
+					
+					providerOp.end();
 				}
 			}
 		}
-	}
-
-	@Override
-	public void onActivityStart(Activity activity) {
 		
-		if (ensureInitialized()) {
-			for (Provider provider : this.providers) {
-				if (provider.getState().ge(ProviderState.INITIALIZED)) {
-					provider.onActivityStart(activity);
-				}
-			}
-		}
+		createOp.end();
 	}
-
+	
 	@Override
-	public void onActivityStop(Activity activity) {
+	public void onCreate(final Context context) {
 		
-		if (ensureInitialized()) {
-			for (Provider provider : this.providers) {
-				if (provider.getState().ge(ProviderState.INITIALIZED)) {
-					provider.onActivityStop(activity);
-				}
+		runOperation("onCreate", ProviderState.INITIALIZED, new ProviderOperation () {
+			
+			@Override
+			public void run(Provider provider) {
+				provider.onCreate(context);
 			}
-		}
+		});
 	}
 
 	@Override
-	public void identify(Identify identify) {
+	public void onActivityStart(final Activity activity) {
+		
+		runOperation("onActivityStart", ProviderState.INITIALIZED, new ProviderOperation () {
+			
+			@Override
+			public void run(Provider provider) {
+				provider.onActivityStart(activity);
+			}
+		});
+	}
 
-		if (ensureInitialized()) {
-			for (Provider provider : this.providers) {
-				if (provider.getState().ge(ProviderState.READY)) {
+	@Override
+	public void onActivityStop(final Activity activity) {
+		
+		runOperation("onActivityStop", ProviderState.INITIALIZED, new ProviderOperation () {
+			
+			@Override
+			public void run(Provider provider) {
+				provider.onActivityStop(activity);
+			}
+		});
+	}
+
+	/**
+	 * Determines if the provider is enabled for this action
+	 * @param provider Provider
+	 * @param action The action being processed
+	 * @return
+	 */
+	private boolean isProviderEnabled(Provider provider, BasePayload action) {
+		
+		boolean enabled = true;
+		
+		io.segment.android.models.Context context = action.getContext();
+		if (context != null && context.has("providers")) {
+			EasyJSONObject providers = new EasyJSONObject(context.getObject("providers"));
+
+			String key = provider.getKey();
+			
+			if (providers.has("all")) enabled = providers.getBoolean("all", true);
+			if (providers.has("All")) enabled = providers.getBoolean("All", true);
+	
+			if (providers.has(key)) enabled = providers.getBoolean(key, true);
+		}
+		
+		return enabled;
+	}
+	
+	
+	@Override
+	public void identify(final Identify identify) {
+		
+		runOperation("Identify", ProviderState.READY, new ProviderOperation () {
+			
+			@Override
+			public void run(Provider provider) {
+				
+				if (isProviderEnabled(provider, identify))
 					provider.identify(identify);
-				}
 			}
-		}
+		});
 	}
 
 	@Override
-	public void track(Track track) {
-		
-		if (ensureInitialized()) {
-			for (Provider provider : this.providers) {
-				if (provider.getState().ge(ProviderState.READY)) {
+	public void track(final Track track) {
+
+		runOperation("Track", ProviderState.READY, new ProviderOperation () {
+			
+			@Override
+			public void run(Provider provider) {
+				
+				if (isProviderEnabled(provider, track))
 					provider.track(track);
-				}
 			}
-		}
+		});
 	}
 
 	@Override
-	public void alias(Alias alias) {
-		
-		if (ensureInitialized()) {
-			for (Provider provider : this.providers) {
-				if (provider.getState().ge(ProviderState.READY)) {
+	public void alias(final Alias alias) {
+
+		runOperation("Alias", ProviderState.READY, new ProviderOperation () {
+			
+			@Override
+			public void run(Provider provider) {
+				
+				if (isProviderEnabled(provider, alias))
 					provider.alias(alias);
-				}
 			}
-		}
+		});
 	}
 	
 	public void flush() {
-		
-		if (ensureInitialized()) {
-			for (Provider provider : this.providers) {
-				if (provider.getState().ge(ProviderState.READY)) {
-					provider.flush();
-				}
+
+		runOperation("Flush", ProviderState.READY, new ProviderOperation () {
+			
+			@Override
+			public void run(Provider provider) {
+				
+				provider.flush();
 			}
-		}
+		});
 	}
 }

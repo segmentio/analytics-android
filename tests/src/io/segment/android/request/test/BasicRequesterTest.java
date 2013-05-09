@@ -41,7 +41,7 @@ public class BasicRequesterTest extends BaseTest {
 		String[] keys = {
 			"Customer.io", "HubSpot", "KISSmetrics", "Olark", "Keen IO", "Segment.io",
 			"Klaviyo", "Salesforce", "Librato", "Intercom", "Mixpanel", "Woopra",
-			"HelpScount", "Pardot", "Marketo", "Google Analytics", "Chartbeat", "Vero"
+			"HelpScout", "Pardot", "Marketo", "Google Analytics", "Chartbeat", "Vero"
 		};
 		
 		for (String key : keys) {

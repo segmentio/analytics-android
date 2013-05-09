@@ -31,6 +31,7 @@ public class ConfigurationTest extends ActivityTestCase {
 	@Test
 	public void testInitialization() {
 	    Context context = getInstrumentation().getContext();
+	    if (Analytics.isInitialized()) Analytics.close();
 		Analytics.initialize(context);
 		Options options = Analytics.getOptions();
 		testOptions(context, options);

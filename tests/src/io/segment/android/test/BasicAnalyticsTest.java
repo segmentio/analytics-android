@@ -20,11 +20,6 @@ public class BasicAnalyticsTest extends BaseTest {
 	
 	private static String userId = "android_user_" + (new Random()).nextInt(999999);
 
-	private static int identifyAttempts = 0;
-	private static int trackAttempts = 0;
-	private static int aliasAttempts = 0;
-	private static int insertAttempts = 0;
-	private static int flushAttempts = 0;
 	
 	@Override
 	protected void setUp() {
@@ -35,9 +30,14 @@ public class BasicAnalyticsTest extends BaseTest {
 	
 	@Test
 	public void testIdentify() {
+
+		AnalyticsStatistics statistics = Analytics.getStatistics();
 		
-		int expected = 5;
-		
+		int insertAttempts = statistics.getInsertAttempts().getCount();
+		int identifyAttempts = statistics.getIdentifies().getCount();
+		int flushAttempts =  statistics.getFlushAttempts().getCount();
+		int successful = statistics.getSuccessful().getCount();
+
 		Traits traits = new Traits(
 			"username", userId,
 			"baller", true
@@ -61,27 +61,25 @@ public class BasicAnalyticsTest extends BaseTest {
 					"KISSMetrics", true
 		)));
 		
-		AnalyticsStatistics statistics = Analytics.getStatistics();
-		
-		insertAttempts += expected;
-		identifyAttempts += expected;
-		
-		Assert.assertEquals(identifyAttempts, statistics.getIdentifies().getCount());
-		Assert.assertEquals(insertAttempts, statistics.getInsertAttempts().getCount());
+		Assert.assertEquals(identifyAttempts + 5, statistics.getIdentifies().getCount());
+		Assert.assertEquals(insertAttempts + 5, statistics.getInsertAttempts().getCount());
 		
 		Analytics.flush(false);
 		
-		flushAttempts += 1;
+		Assert.assertEquals(flushAttempts + 1, statistics.getFlushAttempts().getCount());
 		
-		Assert.assertEquals(flushAttempts, statistics.getFlushAttempts().getCount());
-		
-		Assert.assertEquals(insertAttempts, statistics.getSuccessful().getCount());
+		Assert.assertEquals(successful + 5, statistics.getSuccessful().getCount());
 	}
 	
 	@Test
 	public void testTrack() {
 
-		int expected = 5;
+		AnalyticsStatistics statistics = Analytics.getStatistics();
+		
+		int insertAttempts = statistics.getInsertAttempts().getCount();
+		int trackAttempts = statistics.getTracks().getCount();
+		int flushAttempts =  statistics.getFlushAttempts().getCount();
+		int successful = statistics.getSuccessful().getCount();
 		
 		Analytics.track("Android: UserId Saved Action");
 		
@@ -100,32 +98,30 @@ public class BasicAnalyticsTest extends BaseTest {
 					"KISSMetrics", true
 		)));
 		
-		insertAttempts += expected;
-		trackAttempts += expected;
-		
-		AnalyticsStatistics statistics = Analytics.getStatistics();
-		
-		Assert.assertEquals(trackAttempts, statistics.getTracks().getCount());
-		Assert.assertEquals(insertAttempts, statistics.getInsertAttempts().getCount());
+		Assert.assertEquals(trackAttempts + 5, statistics.getTracks().getCount());
+		Assert.assertEquals(insertAttempts + 5, statistics.getInsertAttempts().getCount());
 		
 		Analytics.flush(false);
-
-		flushAttempts += 1;
 		
-		Assert.assertEquals(flushAttempts, statistics.getFlushAttempts().getCount());
+		Assert.assertEquals(flushAttempts + 1, statistics.getFlushAttempts().getCount());
 		
-		Assert.assertEquals(insertAttempts, statistics.getSuccessful().getCount());
+		Assert.assertEquals(successful + 5, statistics.getSuccessful().getCount());
 	}
 	
 	@Test
 	public void testAlias() {
+
+		AnalyticsStatistics statistics = Analytics.getStatistics();
+		
+		int insertAttempts = statistics.getInsertAttempts().getCount();
+		int aliasAttempts = statistics.getAlias().getCount();
+		int flushAttempts =  statistics.getFlushAttempts().getCount();
+		int successful = statistics.getSuccessful().getCount();
 		
 		String from = Analytics.getSessionId();
 		String to = "android_user_" + (new Random()).nextInt(999999);
 
 		Log.w("AnalyticsTest", "Aliasing : " + from + " => " + to);
-		
-		int expected = 4;
 		
 		Analytics.track(from, "Anonymous Event");
 		
@@ -136,24 +132,15 @@ public class BasicAnalyticsTest extends BaseTest {
 		));
 		
 		Analytics.track(to, "Identified Event");
-
-		insertAttempts += expected;
-		trackAttempts += 2;
-		aliasAttempts += 1;
-		identifyAttempts += 1;
 		
-		AnalyticsStatistics statistics = Analytics.getStatistics();
-		
-		Assert.assertEquals(aliasAttempts, statistics.getAlias().getCount());
-		Assert.assertEquals(insertAttempts, statistics.getInsertAttempts().getCount());
+		Assert.assertEquals(aliasAttempts + 1, statistics.getAlias().getCount());
+		Assert.assertEquals(insertAttempts + 4, statistics.getInsertAttempts().getCount());
 		
 		Analytics.flush(false);
-
-		flushAttempts += 1;
 		
-		Assert.assertEquals(flushAttempts, statistics.getFlushAttempts().getCount());
+		Assert.assertEquals(flushAttempts + 1, statistics.getFlushAttempts().getCount());
 		
-		Assert.assertEquals(insertAttempts, statistics.getSuccessful().getCount());
+		Assert.assertEquals(successful + 4, statistics.getSuccessful().getCount());
 	}
 	
 	
