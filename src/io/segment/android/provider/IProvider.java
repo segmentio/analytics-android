@@ -44,6 +44,12 @@ public interface IProvider {
 	 */
 	public void alias(Alias alias);
 	
+
+	/**
+	 * Resets the identified user in the library. Can be used
+	 * when the user logs out.
+	 */
+	public void reset();
 	
 	/**
 	 * If possible, will flush all the messages from this provider 

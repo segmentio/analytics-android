@@ -60,9 +60,7 @@ public abstract class Provider implements IProvider {
 			// if the provider is disabled, it can be re-enabled
 			ProviderState.DISABLED,
 			// if the provider is already enabled, this is a no-op
-			ProviderState.ENABLED,
-			// if the provider is already "ready for data", this is a no-op
-			ProviderState.READY
+			ProviderState.ENABLED
 		});
 	}
 

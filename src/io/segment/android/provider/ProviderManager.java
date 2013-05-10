@@ -16,6 +16,7 @@ import io.segment.android.providers.FlurryProvider;
 import io.segment.android.providers.GoogleAnalyticsProvider;
 import io.segment.android.providers.LocalyticsProvider;
 import io.segment.android.providers.MixpanelProvider;
+import io.segment.android.providers.OmnitureProvider;
 import io.segment.android.stats.Stopwatch;
 
 import java.util.LinkedList;
@@ -50,6 +51,7 @@ public class ProviderManager implements IProvider {
 		this.addProvider(new GoogleAnalyticsProvider());
 		this.addProvider(new LocalyticsProvider());
 		this.addProvider(new MixpanelProvider());
+		this.addProvider(new OmnitureProvider());
 	}
 	
 	/**
@@ -273,6 +275,18 @@ public class ProviderManager implements IProvider {
 				
 				if (isProviderEnabled(provider, alias))
 					provider.alias(alias);
+			}
+		});
+	}
+
+	public void reset() {
+
+		runOperation("Reset", ProviderState.READY, new ProviderOperation () {
+			
+			@Override
+			public void run(Provider provider) {
+				
+				provider.reset();
 			}
 		});
 	}

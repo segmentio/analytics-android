@@ -18,30 +18,38 @@ public class HandlerTimer extends LooperThreadWithHandler {
 		super.start();
 		
 		active = true;
-		
 		scheduleTick();
 	}
 	
+	public void scheduleNow() {
+		scheduleTick(0);
+	}
+	
 	private void scheduleTick() {
-		
+		scheduleTick(frequencyMs);
+	}
+	
+	private void scheduleTick(int frequencyMs) {
+
 		if (!active) return;
 		
 		Handler handler = handler();
 		
-		handler.postDelayed(new Runnable() {
-
-			@Override
-			public void run() {
-
-				if (active) {
-					clock.run();
-				
-					scheduleTick();
-				}
-			}
-			
-		}, frequencyMs);
+		handler.postDelayed(tick, frequencyMs);
 	}
+	
+	private Runnable tick = new Runnable() {
+
+		@Override
+		public void run() {
+
+			if (active) {
+				clock.run();
+			
+				scheduleTick();
+			}
+		}
+	};
 	
 	@Override
 	public void quit() {

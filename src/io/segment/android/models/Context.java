@@ -47,4 +47,24 @@ public class Context extends EasyJSONObject {
 		super.putObject(key, value);
 		return this;
 	}
+	
+	/**
+	 * Returns whether the context.provider[key] === true
+	 * Used for business integrations like Omniture where
+	 * you don't want to send any track to the server, but
+	 * only specifically ones that were selected.
+	 * @param providerKey Provider Key
+	 */
+	public boolean isProviderStrictlyEnabled(String providerKey) {
+		boolean enabled = false;
+		
+		if (this.has(PROVIDERS_KEY)) {
+			EasyJSONObject object = new EasyJSONObject(this.getObject(PROVIDERS_KEY));
+			if (object.has(providerKey)) {
+				enabled = object.getBoolean(providerKey, false);
+			}
+		}
+		
+		return enabled;
+	}
 }

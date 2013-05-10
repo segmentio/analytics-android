@@ -374,9 +374,7 @@ public class Analytics {
 		settingsCache = new SettingsCache(context, requester, options.getSettingsCacheExpiry());
 		
 		providerManager = new ProviderManager(settingsCache);
-		// immediately attempt to refresh the providers with
-		// new settings
-		providerManager.refresh();
+		
 		
 		// important: disable Segment.io server-side processing of
 		// the bundled providers that we'll evaluate on the mobile
@@ -393,6 +391,9 @@ public class Analytics {
 		Analytics.flushTimer.start();
 		Analytics.refreshSettingsTimer.start();
 		Analytics.flushLayer.start();
+		
+		// tell the server to look for settings right now
+		Analytics.refreshSettingsTimer.scheduleNow();
 	}
 	
 	/**
@@ -1111,11 +1112,24 @@ public class Analytics {
 	}
 
 	/**
-	 * Resets the userId
+	 * Resets the cached userId. Should be used when the user logs out.
 	 */
 	public void reset() {
 		if (initialized) {
 			userIdCache.reset();
+			
+			// reset all the providers
+			providerManager.reset();
+		}
+	}
+	
+	/**
+	 * Triggers a download of Segment.io integration settings
+	 * from the server, and update of all the bundled providers.
+	 */
+	public void refreshSettings() {
+		if (initialized) {
+			providerManager.refresh();
 		}
 	}
 	

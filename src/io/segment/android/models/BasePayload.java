@@ -18,6 +18,10 @@ public class BasePayload extends EasyJSONObject {
 					   Calendar timestamp, 
 					   Context context) {
 
+		// we want to time stamp the events in case they get 
+		// batched in the future
+		if (timestamp == null) timestamp = Calendar.getInstance();
+		if (context == null) context = new Context();
 		
 		setUserId(userId);
 		setTimestamp(timestamp);

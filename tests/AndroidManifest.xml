@@ -21,6 +21,7 @@
     	
     <!--  Google Analytics : https://developers.google.com/analytics/devguides/collection/android/v2/#manifest -->
     <!--  For Count.ly -->
+    <!--  For Omniture -->
     <!--  For BugSnag -->
     <!--  For Flurry : http://support.flurry.com/index.php?title=Analytics/GettingStarted/TechnicalQuickStart/Android -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>

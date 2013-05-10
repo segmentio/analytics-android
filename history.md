@@ -1,3 +1,10 @@
+0.2.1 / 2013-05-10
+=================
+* Fixed synchronous settings download at initialize
+* Fixing Mixpanel provider to not identify on track
+* Adding Mixpanel alias'd user test
+* Added Omniture
+
 0.2.0 / 2013-05-08
 =================
 * Adding ability to request integration settings from Segment.io

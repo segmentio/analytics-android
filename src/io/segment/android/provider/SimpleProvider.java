@@ -37,6 +37,10 @@ public abstract class SimpleProvider extends Provider {
 		// do nothing
 	}
 
+	@Override
+	public void reset() {
+		// do nothing
+	}
 
 	@Override
 	public void flush() {

@@ -122,8 +122,8 @@ public class FlurryProvider extends SimpleProvider {
 			while (it.hasNext()) {
 				String key = it.next();
 				String value = "" + properties.get(key);
-				if (value != null) 
-					map.put(key, value.substring(0, 255));
+				if (value.length() > 255) value = value.substring(0, 255);
+				map.put(key, value);
 			}
 		}
 		

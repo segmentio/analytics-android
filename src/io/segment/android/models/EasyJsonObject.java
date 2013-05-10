@@ -6,6 +6,7 @@ import io.segment.android.utils.ISO8601;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -221,12 +222,13 @@ public class EasyJSONObject extends JSONObject {
 		while (it.hasNext()) {
 			String key = it.next();
 			String value = "" + this.get(key);
-			if (value != null) 
-				map.put(key, value.substring(0, 255));
+			if (value.length() > 255) value = value.substring(0, 255);
+			map.put(key, value);
 		}
 		
 		return map;
 	}
+
 	
 	@Override
 	public boolean equals(Object o) {
