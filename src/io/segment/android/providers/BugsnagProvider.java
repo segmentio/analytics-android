@@ -20,12 +20,12 @@ public class BugsnagProvider extends SimpleProvider {
 
 		private static final String API_KEY = "apiKey";
 		
-		private static final String USE_SSL = "useSsl";
+		private static final String USE_SSL = "useSSL";
 	}
 
 	@Override
 	public String getKey() {
-		return "Bugsnag";
+		return "bugsnag";
 	}
 
 	@Override
