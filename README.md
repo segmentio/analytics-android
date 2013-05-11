@@ -5,8 +5,11 @@ analytics-android is an Android client for [Segment.io](https://segment.io)
 
 ## Documentation
 
-You can find documentation at [https://segment.io/libraries/android](https://segment.io/libraries/android).
+You can find usage documentation at [https://segment.io/libraries/android](https://segment.io/libraries/android).
 
+## Contributing / Adding Providers
+
+Check out how to contribute to the library, or add providers here: [https://segment.io/libraries/android#contributing](https://segment.io/libraries/android#contributing).
 
 ## License
 
