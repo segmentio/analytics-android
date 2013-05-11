@@ -21,7 +21,7 @@ public class OmnitureProvider extends SimpleProvider {
 	private static class SettingKey { 
 		
 		private static final String REPORT_SUITE_ID = "reportSuiteId";
-		private static final String TRACKING_SERVER = "trackingServer";
+		private static final String TRACKING_SERVER = "trackingServerUrl";
 	}
 
 	@Override
