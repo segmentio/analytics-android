@@ -28,7 +28,7 @@ public class GoogleAnalyticsProvider extends SimpleProvider {
 		private static final String SAMPLING_FREQUENCY = "sampleFrequency";
 		private static final String ANONYMIZE_IP_TRACKING = "anonymizeIp";
 		private static final String REPORT_UNCAUGHT_EXCEPTIONS = "reportUncaughtExceptions";
-		private static final String MOBILE_HTTPS = "mobileHttps";
+		private static final String USE_HTTPS = "useHttps";
 	}
 
 	private Tracker tracker;
@@ -67,7 +67,7 @@ public class GoogleAnalyticsProvider extends SimpleProvider {
 		// in your application. false by default.
 		boolean reportUncaughtExceptions = settings.getBoolean(SettingKey.REPORT_UNCAUGHT_EXCEPTIONS, false);
 		// Log to the server using https
-		boolean mobileHttps = settings.getBoolean(SettingKey.MOBILE_HTTPS, false);
+		boolean useHttps = settings.getBoolean(SettingKey.USE_HTTPS, false);
 		
 		GoogleAnalytics gaInstance = GoogleAnalytics.getInstance(context);
 		
@@ -78,7 +78,7 @@ public class GoogleAnalyticsProvider extends SimpleProvider {
 		tracker = gaInstance.getTracker(trackingId);
 		tracker.setSampleRate(sampleFrequency);
 		tracker.setAnonymizeIp(anonymizeIp);
-		tracker.setUseSecure(mobileHttps);
+		tracker.setUseSecure(useHttps);
 		
 		if (reportUncaughtExceptions) enableAutomaticExceptionTracking(tracker, context);
 		
