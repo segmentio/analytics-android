@@ -451,6 +451,9 @@ public class Analytics {
 	 * Identifying a user ties all of their actions to an id, and associates
 	 * user traits to that id.
 	 * 
+	 * The library will cache the userId, so that future calls to identify(...) and
+	 * track(..) don't need to repeat the userId. 
+	 * 
 	 * @param userId
 	 *            the user's id after they are logged in. It's the same id as
 	 *            which you would recognize a signed-in user in your system.
@@ -465,6 +468,10 @@ public class Analytics {
 	/**
 	 * Identifying a user ties all of their actions to an id, and associates
 	 * user traits to that id.
+	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
 	 * 
 	 * @param traits
 	 *            a dictionary with keys like email, name, subscriptionPlan or
@@ -498,6 +505,10 @@ public class Analytics {
 	/**
 	 * Identifying a user ties all of their actions to an id, and associates
 	 * user traits to that id.
+	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
 	 * 
 	 * @param traits
 	 *            a dictionary with keys like subscriptionPlan or age. You only
@@ -539,6 +550,10 @@ public class Analytics {
 	/**
 	 * Identifying a user ties all of their actions to an id, and associates
 	 * user traits to that id.
+	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
 	 * 
 	 * @param traits
 	 *            a dictionary with keys like subscriptionPlan or age. You only
@@ -584,6 +599,10 @@ public class Analytics {
 	/**
 	 * Identifying a user ties all of their actions to an id, and associates
 	 * user traits to that id.
+	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
 	 * 
 	 * @param traits
 	 *            a dictionary with keys like subscriptionPlan or age. You only
@@ -659,6 +678,10 @@ public class Analytics {
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
 	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
+	 * 
 	 * @param event
 	 *            describes what this user just did. It's a human readable
 	 *            description like "Played a Song", "Printed a Report" or
@@ -672,6 +695,9 @@ public class Analytics {
 	
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
+	 * 
+	 * The library will cache the userId, so that future calls to identify(...) and
+	 * track(..) don't need to repeat the userId. 
 	 * 
 	 * @param userId
 	 *            the user's id after they are logged in. It's the same id as
@@ -690,6 +716,9 @@ public class Analytics {
 
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
+	 * 
+	 * The library will cache the userId, so that future calls to identify(...) and
+	 * track(..) don't need to repeat the userId. 
 	 * 
 	 * @param userId
 	 *            the user's id after they are logged in. It's the same id as
@@ -715,6 +744,10 @@ public class Analytics {
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
 	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
+	 * 
 	 * @param event
 	 *            describes what this user just did. It's a human readable
 	 *            description like "Played a Song", "Printed a Report" or
@@ -733,6 +766,9 @@ public class Analytics {
 
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
+	 * 
+	 * The library will cache the userId, so that future calls to identify(...) and
+	 * track(..) don't need to repeat the userId. 
 	 * 
 	 * @param userId
 	 *            the user's id after they are logged in. It's the same id as
@@ -766,6 +802,10 @@ public class Analytics {
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
 	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
+	 * 
 	 * @param event
 	 *            describes what this user just did. It's a human readable
 	 *            description like "Played a Song", "Printed a Report" or
@@ -792,6 +832,9 @@ public class Analytics {
 
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
+	 * 
+	 * The library will cache the userId, so that future calls to identify(...) and
+	 * track(..) don't need to repeat the userId. 
 	 * 
 	 * @param userId
 	 *            the user's id after they are logged in. It's the same id as
@@ -822,6 +865,10 @@ public class Analytics {
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
 	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
+	 * 
 	 * @param event
 	 *            describes what this user just did. It's a human readable
 	 *            description like "Played a Song", "Printed a Report" or
@@ -846,6 +893,9 @@ public class Analytics {
 	
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
+	 * 
+	 * The library will cache the userId, so that future calls to identify(...) and
+	 * track(..) don't need to repeat the userId. 
 	 * 
 	 * @param userId
 	 *            the user's id after they are logged in. It's the same id as
@@ -914,6 +964,10 @@ public class Analytics {
 	 * 
 	 * 	Analytics.screen("Login Page");
 	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
+	 * 
 	 * @param screen
 	 *            describes the screen name of the activity that the user just
 	 *            opened. We don't recommend to name each screen dynamically. For 
@@ -931,6 +985,10 @@ public class Analytics {
 	 * Example:
 	 * 
 	 * 	Analytics.screen("Login Page");
+	 *
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
 	 * 
 	 * @param screen
 	 *            describes the screen name of the activity that the user just
@@ -956,6 +1014,10 @@ public class Analytics {
 	 * Example:
 	 * 
 	 * 	Analytics.screen("Login Page");
+	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
 	 * 
 	 * @param screen
 	 *            describes the screen name of the activity that the user just
@@ -987,6 +1049,10 @@ public class Analytics {
 	 * Example:
 	 * 
 	 * 	Analytics.screen("Login Page");
+	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
 	 * 
 	 * @param screen
 	 *            describes the screen name of the activity that the user just

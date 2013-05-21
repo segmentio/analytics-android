@@ -9,8 +9,11 @@ import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 import io.segment.android.models.Traits;
 import io.segment.android.provider.SimpleProvider;
+import io.segment.android.utils.Parameters;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import android.content.Context;
 import android.text.TextUtils;
@@ -58,26 +61,39 @@ public class MixpanelProvider extends SimpleProvider {
 		ready();
 	}
 	
+	@SuppressWarnings("serial")
+	private static final Map<String, String> traitsMapping = new HashMap<String, String>() {
+	{
+		this.put("created",   "$created");
+		this.put("email",     "$email");
+		this.put("firstName", "$first_name");
+		this.put("lastName",  "$last_name");
+		this.put("lastSeen",  "$last_seen");
+		this.put("name",      "$name");
+		this.put( "username", "$username");
+	}};
+	
 	@Override
 	public void identify(Identify identify) {
 		String userId = identify.getUserId();
 		Traits traits = identify.getTraits();
 		
+		EasyJSONObject mappedTraits = Parameters.move(traits, traitsMapping);
+		
 		mixpanel.identify(userId);
 		
 		if (traits != null)
-			mixpanel.registerSuperProperties(traits);
+			mixpanel.registerSuperProperties(mappedTraits);
 		
 		if (isMixpanelPeopleEnabled()) {
 			MixpanelAPI.People people = mixpanel.getPeople();
 			people.identify(userId);
-			if (traits != null) {
-				@SuppressWarnings("unchecked")
-				Iterator<String> it = traits.keys();
-				while (it.hasNext()) {
-					String key = it.next();
-					people.set(key, traits.get(key));
-				}
+			
+			@SuppressWarnings("unchecked")
+			Iterator<String> it = mappedTraits.keys();
+			while (it.hasNext()) {
+				String key = it.next();
+				people.set(key, mappedTraits.get(key));
 			}
 		}
 	}

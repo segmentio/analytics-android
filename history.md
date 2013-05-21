@@ -1,4 +1,8 @@
-0.2.2 / 2013-05-10
+0.2.3 / 2013-05-21
+=================
+* Adding parameter mapping to Mixpanel
+
+0.2.2 / 2013-05-20
 =================
 * Added screen method to public API
 * Added screen implementation for GA, Omniture, Localytics, Flurry, Mixpanel, Amplitude and Countly
