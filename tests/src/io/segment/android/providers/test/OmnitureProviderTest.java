@@ -16,7 +16,7 @@ public class OmnitureProviderTest extends BaseProviderTest {
 	public EasyJSONObject getSettings() {
 		EasyJSONObject settings = new EasyJSONObject();
 		settings.put("reportSuiteId", "xxxxxxxxx");
-		settings.put("trackingServer", "http://api.omniture.com");
+		settings.put("trackingServerUrl", "http://api.omniture.com");
 		return settings;
 	}
 

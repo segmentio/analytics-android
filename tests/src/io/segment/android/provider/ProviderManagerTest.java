@@ -7,9 +7,9 @@ import io.segment.android.models.Alias;
 import io.segment.android.models.EasyJSONObject;
 import io.segment.android.models.EventProperties;
 import io.segment.android.models.Identify;
+import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 import io.segment.android.models.Traits;
-import io.segment.android.provider.ProviderManager;
 import io.segment.android.request.BasicRequester;
 import io.segment.android.request.IRequester;
 import io.segment.android.test.BaseTest;
@@ -78,6 +78,7 @@ public class ProviderManagerTest extends BaseTest {
 		
 		final AtomicInteger identifies = new AtomicInteger();
 		final AtomicInteger tracks = new AtomicInteger();
+		final AtomicInteger screens = new AtomicInteger();
 		final AtomicInteger aliases = new AtomicInteger();
 		
 		Provider provider = new SimpleProvider() {
@@ -86,6 +87,7 @@ public class ProviderManagerTest extends BaseTest {
 			@Override public void validate(EasyJSONObject settings) throws InvalidSettingsException {}
 			@Override public void identify(Identify identify) { identifies.addAndGet(1); }
 			@Override public void track(Track track) { tracks.addAndGet(1); }
+			@Override public void screen(Screen screen) { screens.addAndGet(1); }
 			@Override public void alias(Alias alias) { aliases.addAndGet(1); }
 		};
 		
@@ -107,6 +109,9 @@ public class ProviderManagerTest extends BaseTest {
 		
 		providerManager.track(TestCases.track);
 		Assert.assertEquals(1, tracks.get());
+
+		providerManager.screen(TestCases.screen);
+		Assert.assertEquals(1, screens.get());
 		
 		providerManager.alias(TestCases.alias);
 		Assert.assertEquals(1, aliases.get());

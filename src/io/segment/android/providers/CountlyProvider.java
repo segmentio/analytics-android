@@ -3,6 +3,7 @@ package io.segment.android.providers;
 import io.segment.android.errors.InvalidSettingsException;
 import io.segment.android.models.EasyJSONObject;
 import io.segment.android.models.EventProperties;
+import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 import io.segment.android.provider.SimpleProvider;
 
@@ -62,6 +63,11 @@ public class CountlyProvider extends SimpleProvider {
 		Countly.sharedInstance().onStop();
 	}
 
+	@Override
+	public void screen(Screen screen) {
+		// track a "Viewed SCREEN" event
+		track(screen);
+	}
 	
 	@Override
 	public void track(Track track) {

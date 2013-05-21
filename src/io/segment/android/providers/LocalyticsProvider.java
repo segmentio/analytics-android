@@ -4,6 +4,7 @@ import io.segment.android.errors.InvalidSettingsException;
 import io.segment.android.models.EasyJSONObject;
 import io.segment.android.models.EventProperties;
 import io.segment.android.models.Identify;
+import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 import io.segment.android.models.Traits;
 import io.segment.android.provider.SimpleProvider;
@@ -92,6 +93,12 @@ public class LocalyticsProvider extends SimpleProvider {
 				this.localyticsSession.setCustomerData(key, value);
 			}
 		}
+	}
+	
+	@Override
+	public void screen(Screen screen) {
+		String screenName = screen.getScreen();
+		this.localyticsSession.tagScreen(screenName);
 	}
 	
 	@Override

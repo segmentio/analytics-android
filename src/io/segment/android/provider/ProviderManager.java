@@ -7,6 +7,7 @@ import io.segment.android.models.Alias;
 import io.segment.android.models.BasePayload;
 import io.segment.android.models.EasyJSONObject;
 import io.segment.android.models.Identify;
+import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 import io.segment.android.providers.AmplitudeProvider;
 import io.segment.android.providers.BugsnagProvider;
@@ -21,6 +22,8 @@ import io.segment.android.stats.Stopwatch;
 
 import java.util.LinkedList;
 import java.util.List;
+
+import org.json.JSONException;
 
 import android.app.Activity;
 import android.content.Context;
@@ -137,6 +140,14 @@ public class ProviderManager implements IProvider {
 		return providers;
 	}
 
+	public SettingsCache getSettingsCache() {
+		return settingsCache;
+	}
+	
+	public void setSettingsCache(SettingsCache settingsCache) {
+		this.settingsCache = settingsCache;
+	}
+	
 	/**
 	 * A provider operation function
 	 */
@@ -264,6 +275,20 @@ public class ProviderManager implements IProvider {
 			}
 		});
 	}
+	
+	@Override
+	public void screen(final Screen screen) {
+
+		runOperation("Screen", ProviderState.READY, new ProviderOperation () {
+			
+			@Override
+			public void run(Provider provider) {
+				
+				if (isProviderEnabled(provider, screen))
+					provider.screen(screen);
+			}
+		});
+	}
 
 	@Override
 	public void alias(final Alias alias) {
@@ -302,4 +327,5 @@ public class ProviderManager implements IProvider {
 			}
 		});
 	}
+
 }

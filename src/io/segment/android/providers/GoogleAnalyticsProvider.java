@@ -3,6 +3,7 @@ package io.segment.android.providers;
 import io.segment.android.errors.InvalidSettingsException;
 import io.segment.android.models.EasyJSONObject;
 import io.segment.android.models.EventProperties;
+import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 import io.segment.android.provider.SimpleProvider;
 
@@ -109,6 +110,12 @@ public class GoogleAnalyticsProvider extends SimpleProvider {
 	@Override
 	public void onActivityStop(Activity activity) {
 		EasyTracker.getInstance().activityStop(activity);
+	}
+	
+	@Override
+	public void screen(Screen screen) {
+		String screenName = screen.getScreen();
+		tracker.sendView(screenName);
 	}
 	
 	@Override

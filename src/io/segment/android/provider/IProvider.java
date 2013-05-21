@@ -2,6 +2,7 @@ package io.segment.android.provider;
 
 import io.segment.android.models.Alias;
 import io.segment.android.models.Identify;
+import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 import android.app.Activity;
 import android.content.Context;
@@ -44,6 +45,11 @@ public interface IProvider {
 	 */
 	public void alias(Alias alias);
 	
+	/**
+	 * Called when a user opens up a new screen
+	 * @param screen Screen action
+	 */
+	public void screen(Screen screen);
 
 	/**
 	 * Resets the identified user in the library. Can be used

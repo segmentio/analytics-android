@@ -1,3 +1,8 @@
+0.2.2 / 2013-05-10
+=================
+* Added screen method to public API
+* Added screen implementation for GA, Omniture, Localytics, Flurry, Mixpanel, Amplitude and Countly
+
 0.2.1 / 2013-05-10
 =================
 * Fixed synchronous settings download at initialize

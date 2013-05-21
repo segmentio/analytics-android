@@ -77,6 +77,14 @@ public abstract class BaseProviderTest
 
 		provider.track(TestCases.track);
 	}
+	
+
+	@Test
+	public void testScreen() {
+		reachReadyState();
+
+		provider.screen(TestCases.screen);
+	}
 
 	@Test
 	public void testAlias() {

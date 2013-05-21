@@ -6,7 +6,6 @@ import io.segment.android.utils.ISO8601;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;

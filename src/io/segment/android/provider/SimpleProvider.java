@@ -2,6 +2,7 @@ package io.segment.android.provider;
 
 import io.segment.android.models.Alias;
 import io.segment.android.models.Identify;
+import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 import android.app.Activity;
 
@@ -30,6 +31,11 @@ public abstract class SimpleProvider extends Provider {
 	@Override
 	public void track(Track track) {
 		// do nothing
+	}
+	
+	@Override
+	public void screen(Screen screen) {
+		// do nothing	
 	}
 
 	@Override

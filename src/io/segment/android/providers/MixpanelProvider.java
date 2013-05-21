@@ -5,6 +5,7 @@ import io.segment.android.models.Alias;
 import io.segment.android.models.EasyJSONObject;
 import io.segment.android.models.EventProperties;
 import io.segment.android.models.Identify;
+import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 import io.segment.android.models.Traits;
 import io.segment.android.provider.SimpleProvider;
@@ -79,6 +80,12 @@ public class MixpanelProvider extends SimpleProvider {
 				}
 			}
 		}
+	}
+	
+	@Override
+	public void screen(Screen screen) {
+		// track a "Viewed SCREEN" event
+		track(screen);
 	}
 	
 	@Override

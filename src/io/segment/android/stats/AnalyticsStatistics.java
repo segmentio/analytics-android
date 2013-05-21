@@ -6,6 +6,7 @@ public class AnalyticsStatistics extends Statistics {
 	
 	private static String IDENTIFY_KEY = "Identify";
 	private static String TRACK_KEY = "Track";
+	private static String SCREEN_KEY = "Screen";
 	private static String ALiAS_KEY = "Alias";
 	
 	private static String INSERT_ATTEMPTS_KEY = "Insert Attempts";
@@ -35,7 +36,15 @@ public class AnalyticsStatistics extends Statistics {
 	public void updateTracks(double val) {
 		update(TRACK_KEY, val);
 	}
+
+
+	public Statistic getScreens() {
+		return ensure(SCREEN_KEY);
+	}
 	
+	public void updateScreens(double val) {
+		update(SCREEN_KEY, val);
+	}
 	
 	public Statistic getAlias() {
 		return ensure(ALiAS_KEY);
@@ -111,4 +120,5 @@ public class AnalyticsStatistics extends Statistics {
 	public void updateFailed(double val) {
 		update(FAILED_KEY, val);
 	}
+
 }

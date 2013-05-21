@@ -4,6 +4,7 @@ import io.segment.android.Logger;
 import io.segment.android.errors.InvalidSettingsException;
 import io.segment.android.models.EasyJSONObject;
 import io.segment.android.models.EventProperties;
+import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 import io.segment.android.provider.SimpleProvider;
 
@@ -67,6 +68,12 @@ public class OmnitureProvider extends SimpleProvider {
 	public void onActivityStop(Activity activity) {
 		ADMS_Measurement measurement = ADMS_Measurement.sharedInstance();
 		measurement.stopActivity();
+	}
+	
+	@Override
+	public void screen(Screen screen) {
+		// track a "Viewed SCREEN" event
+		track(screen);
 	}
 	
 	@Override

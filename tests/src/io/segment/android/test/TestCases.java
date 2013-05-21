@@ -8,6 +8,7 @@ import io.segment.android.models.EasyJSONObject;
 import io.segment.android.models.EventProperties;
 import io.segment.android.models.Identify;
 import io.segment.android.models.Providers;
+import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 import io.segment.android.models.Traits;
 
@@ -24,6 +25,7 @@ public class TestCases {
 	
 	public static Identify identify;
 	public static Track track;
+	public static Screen screen;
 	public static Alias alias;
 	
 	public static Batch batch;
@@ -54,6 +56,19 @@ public class TestCases {
 						"name", "Achilles",
 						"revenue", 39.95,
 						"shippingMethod", "2-day"),
+						calendar, 
+						new Context()
+							.setIp("192.168.1.1")
+							.setProviders(new Providers()
+								.setDefault(true)
+								.setEnabled("Mixpanel", false)
+								.setEnabled("KISSMetrics", true)
+								.setEnabled("Google Analytics", true)));
+		
+		screen = new Screen("ilya@segment.io", "Login Page", 
+				new EventProperties(
+						"logged-in", true,
+						"type", "teacher"),
 						calendar, 
 						new Context()
 							.setIp("192.168.1.1")

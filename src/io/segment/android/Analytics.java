@@ -19,6 +19,7 @@ import io.segment.android.models.Context;
 import io.segment.android.models.EasyJSONObject;
 import io.segment.android.models.EventProperties;
 import io.segment.android.models.Identify;
+import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 import io.segment.android.models.Traits;
 import io.segment.android.provider.Provider;
@@ -902,6 +903,142 @@ public class Analytics {
 		statistics.updateTracks(1);
 	}
 
+	//
+	// Screen
+	//
+	
+
+	/**
+	 * Whenever a user opens a new screen (or activity), track its screen view.
+	 * Example:
+	 * 
+	 * 	Analytics.screen("Login Page");
+	 * 
+	 * @param screen
+	 *            describes the screen name of the activity that the user just
+	 *            opened. We don't recommend to name each screen dynamically. For 
+	 *            example, if a screen shows a new article, you should call it
+	 *            "News Screen" instead of the name of the news article.
+	 * 
+	 */
+	public static void screen(String screen) {
+		
+		screen(screen, null, null, null);
+	}
+	
+	/**
+	 * Whenever a user opens a new screen (or activity), track its screen view.
+	 * Example:
+	 * 
+	 * 	Analytics.screen("Login Page");
+	 * 
+	 * @param screen
+	 *            describes the screen name of the activity that the user just
+	 *            opened. We don't recommend to name each screen dynamically. For 
+	 *            example, if a screen shows a new article, you should call it
+	 *            "News Screen" instead of the name of the news article.
+	 * 
+	 * @param properties
+	 *            a dictionary with items that describe the screen in more
+	 *            detail. This argument is optional, but highly
+	 *            recommended—you’ll find these properties extremely useful
+	 *            later.
+	 * 
+	 */
+	public static void screen(String screen, EventProperties properties) {
+		
+		screen(screen, properties, null, null);
+	}
+	
+	
+	/**
+	 * Whenever a user opens a new screen (or activity), track its screen view.
+	 * Example:
+	 * 
+	 * 	Analytics.screen("Login Page");
+	 * 
+	 * @param screen
+	 *            describes the screen name of the activity that the user just
+	 *            opened. We don't recommend to name each screen dynamically. For 
+	 *            example, if a screen shows a new article, you should call it
+	 *            "News Screen" instead of the name of the news article.
+	 * 
+	 * @param properties
+	 *            a dictionary with items that describe the screen in more
+	 *            detail. This argument is optional, but highly
+	 *            recommended—you’ll find these properties extremely useful
+	 *            later.
+	 * 
+	 * @param timestamp
+	 *            a {@link Calendar} object representing when the track took
+	 *            place. If the event just happened, leave it blank and we'll
+	 *            use the server's time. If you are importing data from the
+	 *            past, make sure you provide this argument.
+	 * 
+	 */
+	public static void screen(String screen, EventProperties properties,
+							  Calendar timestamp) {
+		
+		screen(screen, properties, timestamp, null);
+	}
+	
+	/**
+	 * Whenever a user opens a new screen (or activity), track its screen view.
+	 * Example:
+	 * 
+	 * 	Analytics.screen("Login Page");
+	 * 
+	 * @param screen
+	 *            describes the screen name of the activity that the user just
+	 *            opened. We don't recommend to name each screen dynamically. For 
+	 *            example, if a screen shows a new article, you should call it
+	 *            "News Screen" instead of the name of the news article.
+	 * 
+	 * @param properties
+	 *            a dictionary with items that describe the screen in more
+	 *            detail. This argument is optional, but highly
+	 *            recommended—you’ll find these properties extremely useful
+	 *            later.
+	 * 
+	 * @param timestamp
+	 *            a {@link Calendar} object representing when the track took
+	 *            place. If the event just happened, leave it blank and we'll
+	 *            use the server's time. If you are importing data from the
+	 *            past, make sure you provide this argument.
+	 * 
+	 * @param context
+	 *            an object that describes anything that doesn't fit into this
+	 *            event's properties (such as the user's IP)
+	 * 
+	 */
+	public static void screen(String screen, EventProperties properties,
+							  Calendar timestamp, Context context) {
+		
+		checkInitialized();
+
+		String userId = getOrSetUserId(null);
+		
+		if (userId == null || userId.length() == 0) {
+			throw new IllegalArgumentException("analytics-android #track must be initialized with a valid user id.");
+		}
+		
+		if (screen == null || screen.length() == 0) {
+			throw new IllegalArgumentException("analytics-android #screen must be initialized with a valid screen name.");
+		}
+		
+		if (context == null)
+			context = new Context();
+		if (properties == null)
+			properties = new EventProperties();
+
+		
+		Screen screenAction = new Screen(userId, screen, properties, timestamp, context);
+		
+		// just call internally into the provider manager
+		providerManager.screen(screenAction);
+		
+		statistics.updateScreens(1);
+	}
 	
 	//
 	// Alias
