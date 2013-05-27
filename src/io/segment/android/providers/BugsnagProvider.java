@@ -25,7 +25,7 @@ public class BugsnagProvider extends SimpleProvider {
 
 	@Override
 	public String getKey() {
-		return "bugsnag";
+		return "Bugsnag";
 	}
 
 	@Override
