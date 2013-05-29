@@ -1,3 +1,7 @@
+0.3.0 / 2013-05-29
+=================
+* Adding SQL Db fix to avoid locking issue on count
+
 0.2.3 / 2013-05-21
 =================
 * Adding parameter mapping to Mixpanel

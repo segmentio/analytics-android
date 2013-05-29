@@ -61,8 +61,8 @@ public class PayloadDatabaseTest extends BaseTest {
 	@Test
 	public void testPerformance() {
 		
-		int msPerInsert = 30;
-		int added = 125;
+		int msPerInsert = 150;
+		int added = 100;
 		
 		List<BasePayload> payloads = new LinkedList<BasePayload>();
 		
@@ -76,7 +76,7 @@ public class PayloadDatabaseTest extends BaseTest {
 		}
 		
 		long duration = System.currentTimeMillis() - start;
-		
+				
 		Assert.assertTrue(duration < msPerInsert * added);
 
 		// check that our row counter is correct

@@ -97,7 +97,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 	
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		// do nothing here
+		// do nothing here for now
 	}
 
 	/**
@@ -147,6 +147,8 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 				Logger.e("Failed to open or write to Segment.io payload db: " + 
 						Log.getStackTraceString(e));
 				
+			} finally {
+				if (db != null) db.close();
 			}
 				
 			return success;
@@ -162,9 +164,24 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 		String sql = String.format("SELECT COUNT(*) FROM %s", 
 				Constants.Database.PayloadTable.NAME);
 		
-		SQLiteDatabase db = getWritableDatabase();
-		SQLiteStatement statement = db.compileStatement(sql);
-		long numberRows = statement.simpleQueryForLong();
+		long numberRows = 0;	
+			
+		SQLiteDatabase db = null;
+		
+		synchronized(this) {
+				
+			try {
+				db = getWritableDatabase();
+				SQLiteStatement statement = db.compileStatement(sql);
+				numberRows = statement.simpleQueryForLong();
+				
+			} catch (SQLiteException e) {
+				Logger.e("Failed to ensure row count in the Segment.io payload db: " + 
+						Log.getStackTraceString(e));
+			} finally {
+				if (db != null) db.close();
+			}
+		}
 		
 		return numberRows;
 	}
@@ -192,38 +209,43 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 		SQLiteDatabase db = null;
 		Cursor cursor = null;
 		
-		try {
+		synchronized (this) {
 		
-			db = getWritableDatabase();
+			try {
 			
-			String table = Constants.Database.PayloadTable.NAME;
-			String[] columns = Constants.Database.PayloadTable.FIELD_NAMES;
-			String selection = null;
-			String selectionArgs[] = null;
-			String groupBy = null;
-			String having = null;
-			String orderBy = Constants.Database.PayloadTable.Fields.Id.NAME + " ASC";
-			String limitBy = "" + limit;
-			
-			cursor = db.query(table, columns, selection, selectionArgs, 
-					groupBy, having, orderBy, limitBy);
-		
-			while (cursor.moveToNext()) {
-				long id = cursor.getLong(0);
-				String json = cursor.getString(1);
-	
-				BasePayload payload = serializer.deseralize(json);
+				db = getWritableDatabase();
 				
-				if (payload != null) 
-					result.add(new Pair<Long, BasePayload>(id, payload));
-			}
-		} catch (SQLiteException e) {
-
-			Logger.e("Failed to open or read from the Segment.io payload db: " + 
-					Log.getStackTraceString(e));
+				String table = Constants.Database.PayloadTable.NAME;
+				String[] columns = Constants.Database.PayloadTable.FIELD_NAMES;
+				String selection = null;
+				String selectionArgs[] = null;
+				String groupBy = null;
+				String having = null;
+				String orderBy = Constants.Database.PayloadTable.Fields.Id.NAME + " ASC";
+				String limitBy = "" + limit;
+				
+				cursor = db.query(table, columns, selection, selectionArgs, 
+						groupBy, having, orderBy, limitBy);
 			
-		} finally {
-			if (cursor != null) cursor.close();
+				while (cursor.moveToNext()) {
+					long id = cursor.getLong(0);
+					String json = cursor.getString(1);
+		
+					BasePayload payload = serializer.deseralize(json);
+					
+					if (payload != null) 
+						result.add(new Pair<Long, BasePayload>(id, payload));
+				}
+				
+			} catch (SQLiteException e) {
+	
+				Logger.e("Failed to open or read from the Segment.io payload db: " + 
+						Log.getStackTraceString(e));
+				
+			} finally {
+				if (cursor != null) cursor.close();
+				if (db != null) db.close();
+			}
 		}
 	
 		return result;
@@ -248,18 +270,23 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 				
 		int deleted = -1;
 		
-		try {
-			db = getWritableDatabase();
-			deleted = db.delete(Constants.Database.PayloadTable.NAME, filter, null);
+		synchronized (this) {
 			
-			// decrement the row counter
-			count.addAndGet(-deleted);
-			
-		} catch (SQLiteException e) {
-
-			Logger.e("Failed to remove items from the Segment.io payload db: " + 
-					Log.getStackTraceString(e));
-			
+			try {
+				db = getWritableDatabase();
+				deleted = db.delete(Constants.Database.PayloadTable.NAME, filter, null);
+				
+				// decrement the row counter
+				count.addAndGet(-deleted);
+				
+			} catch (SQLiteException e) {
+	
+				Logger.e("Failed to remove items from the Segment.io payload db: " + 
+						Log.getStackTraceString(e));
+				
+			} finally {
+				if (db != null) db.close();
+			}
 		}
 		
 		return deleted;
