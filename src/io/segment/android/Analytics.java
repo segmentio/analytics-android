@@ -678,9 +678,8 @@ public class Analytics {
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
 	 * 
-	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
-	 * If identify(userId) or track(userId) was never called, a randomly generated session 
-	 * id will be used. Otherwise, the most recent cached userId is used.  
+	 * Track will use an automatically generated userId unless one has been
+	 * provided by identify(..).
 	 * 
 	 * @param event
 	 *            describes what this user just did. It's a human readable
@@ -690,63 +689,15 @@ public class Analytics {
 	 */
 	public static void track(String event) {
 
-		track(null, event, null, null, null);
-	}
-	
-	/**
-	 * Whenever a user triggers an event, you’ll want to track it.
-	 * 
-	 * The library will cache the userId, so that future calls to identify(...) and
-	 * track(..) don't need to repeat the userId. 
-	 * 
-	 * @param userId
-	 *            the user's id after they are logged in. It's the same id as
-	 *            which you would recognize a signed-in user in your system.
-	 * 
-	 * @param event
-	 *            describes what this user just did. It's a human readable
-	 *            description like "Played a Song", "Printed a Report" or
-	 *            "Updated Status".
-	 * 
-	 */
-	public static void track(String userId, String event) {
-
-		track(userId, event, null, null, null);
-	}
-
-	/**
-	 * Whenever a user triggers an event, you’ll want to track it.
-	 * 
-	 * The library will cache the userId, so that future calls to identify(...) and
-	 * track(..) don't need to repeat the userId. 
-	 * 
-	 * @param userId
-	 *            the user's id after they are logged in. It's the same id as
-	 *            which you would recognize a signed-in user in your system.
-	 * 
-	 * @param event
-	 *            describes what this user just did. It's a human readable
-	 *            description like "Played a Song", "Printed a Report" or
-	 *            "Updated Status".
-	 * 
-	 * @param properties
-	 *            a dictionary with items that describe the event in more
-	 *            detail. This argument is optional, but highly
-	 *            recommended—you’ll find these properties extremely useful
-	 *            later.
-	 */
-	public static void track(String userId, String event, EventProperties properties) {
-
-		track(userId, event, properties, null, null);
+		track(event, null, null, null);
 	}
 	
 
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
 	 * 
-	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
-	 * If identify(userId) or track(userId) was never called, a randomly generated session 
-	 * id will be used. Otherwise, the most recent cached userId is used.  
+	 * Track will use an automatically generated userId unless one has been
+	 * provided by identify(..).
 	 * 
 	 * @param event
 	 *            describes what this user just did. It's a human readable
@@ -761,50 +712,15 @@ public class Analytics {
 	 */
 	public static void track(String event, EventProperties properties) {
 
-		track(null, event, properties, null, null);
-	}
-
-	/**
-	 * Whenever a user triggers an event, you’ll want to track it.
-	 * 
-	 * The library will cache the userId, so that future calls to identify(...) and
-	 * track(..) don't need to repeat the userId. 
-	 * 
-	 * @param userId
-	 *            the user's id after they are logged in. It's the same id as
-	 *            which you would recognize a signed-in user in your system.
-	 * 
-	 * @param event
-	 *            describes what this user just did. It's a human readable
-	 *            description like "Played a Song", "Printed a Report" or
-	 *            "Updated Status".
-	 * 
-	 * @param properties
-	 *            a dictionary with items that describe the event in more
-	 *            detail. This argument is optional, but highly
-	 *            recommended—you’ll find these properties extremely useful
-	 *            later.
-	 * 
-	 * @param timestamp
-	 *            a {@link DateTime} object representing when the track took
-	 *            place. If the event just happened, leave it blank and we'll
-	 *            use the server's time. If you are importing data from the
-	 *            past, make sure you provide this argument.
-	 * 
-	 */
-	public static void track(String userId, String event, EventProperties properties,
-			Calendar timestamp) {
-
-		track(userId, event, properties, timestamp, null);
+		track(event, properties, null, null);
 	}
 	
 
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
 	 * 
-	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
-	 * If identify(userId) or track(userId) was never called, a randomly generated session 
-	 * id will be used. Otherwise, the most recent cached userId is used.  
+	 * Track will use an automatically generated userId unless one has been
+	 * provided by identify(..).
 	 * 
 	 * @param event
 	 *            describes what this user just did. It's a human readable
@@ -827,47 +743,15 @@ public class Analytics {
 	public static void track(String event, EventProperties properties,
 			Calendar timestamp) {
 
-		track(null, event, properties, timestamp, null);
+		track(event, properties, timestamp, null);
 	}
+
 
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
 	 * 
-	 * The library will cache the userId, so that future calls to identify(...) and
-	 * track(..) don't need to repeat the userId. 
-	 * 
-	 * @param userId
-	 *            the user's id after they are logged in. It's the same id as
-	 *            which you would recognize a signed-in user in your system.
-	 * 
-	 * @param event
-	 *            describes what this user just did. It's a human readable
-	 *            description like "Played a Song", "Printed a Report" or
-	 *            "Updated Status".
-	 * 
-	 * @param properties
-	 *            a dictionary with items that describe the event in more
-	 *            detail. This argument is optional, but highly
-	 *            recommended—you’ll find these properties extremely useful
-	 *            later.
-	 * 
-	 * @param context
-	 *            an object that describes anything that doesn't fit into this
-	 *            event's properties (such as the user's IP)
-	 * 
-	 */
-	public static void track(String userId, String event, EventProperties properties,
-			 Context context) {
-
-		track(userId, event, properties, null, context);
-	}
-
-	/**
-	 * Whenever a user triggers an event, you’ll want to track it.
-	 * 
-	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
-	 * If identify(userId) or track(userId) was never called, a randomly generated session 
-	 * id will be used. Otherwise, the most recent cached userId is used.  
+	 * Track will use an automatically generated userId unless one has been
+	 * provided by identify(..).
 	 * 
 	 * @param event
 	 *            describes what this user just did. It's a human readable
@@ -888,18 +772,14 @@ public class Analytics {
 	public static void track(String event, EventProperties properties,
 			 Context context) {
 
-		track(null, event, properties, null, context);
+		track(event, properties, null, context);
 	}
 	
 	/**
 	 * Whenever a user triggers an event, you’ll want to track it.
 	 * 
-	 * The library will cache the userId, so that future calls to identify(...) and
-	 * track(..) don't need to repeat the userId. 
-	 * 
-	 * @param userId
-	 *            the user's id after they are logged in. It's the same id as
-	 *            which you would recognize a signed-in user in your system.
+	 * Track will use an automatically generated userId unless one has been
+	 * provided by identify(..).
 	 * 
 	 * @param event
 	 *            describes what this user just did. It's a human readable
@@ -923,12 +803,13 @@ public class Analytics {
 	 *            event's properties (such as the user's IP)
 	 * 
 	 */
-	public static void track(String userId, String event, EventProperties properties,
+	public static void track(String event, EventProperties properties,
 			Calendar timestamp, Context context) {
 		
 		checkInitialized();
-
-		userId = getOrSetUserId(userId);
+		
+		// get the user ID from the cache
+		String userId = getOrSetUserId(null);
 		
 		if (userId == null || userId.length() == 0) {
 			throw new IllegalArgumentException("analytics-android #track must be initialized with a valid user id.");

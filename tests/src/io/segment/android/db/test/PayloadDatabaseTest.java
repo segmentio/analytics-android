@@ -62,7 +62,7 @@ public class PayloadDatabaseTest extends BaseTest {
 	public void testPerformance() {
 		
 		int msPerInsert = 150;
-		int added = 100;
+		int added = 125;
 		
 		List<BasePayload> payloads = new LinkedList<BasePayload>();
 		

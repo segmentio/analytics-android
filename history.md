@@ -1,5 +1,6 @@
 0.3.0 / 2013-05-29
 =================
+* Removing the track(userId, ..) overrides such that only identify needs to provide a userId
 * Adding SQL Db fix to avoid locking issue on count
 
 0.2.3 / 2013-05-21

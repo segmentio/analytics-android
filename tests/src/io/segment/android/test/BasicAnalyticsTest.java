@@ -83,7 +83,7 @@ public class BasicAnalyticsTest extends BaseTest {
 		
 		Analytics.track("Android: UserId Saved Action");
 		
-		Analytics.track(userId, "Android: UserId Not Saved Action");
+		Analytics.track("Android: UserId Not Saved Action");
 		
 		Analytics.track("Android: First Event Properties Event", new EventProperties(
 			"Mickey Mouse", 4,
@@ -92,7 +92,7 @@ public class BasicAnalyticsTest extends BaseTest {
 		
 		Analytics.track("Android: With Calendar", new EventProperties(),  TestCases.calendar);
 		
-		Analytics.track(userId, "Android: With Context", new EventProperties(),  TestCases.calendar, new Context(
+		Analytics.track("Android: With Context", new EventProperties(),  TestCases.calendar, new Context(
 			"providers", new EasyJSONObject(
 					"Mixpanel", true,
 					"KISSMetrics", true
@@ -121,9 +121,11 @@ public class BasicAnalyticsTest extends BaseTest {
 		String from = Analytics.getSessionId();
 		String to = "android_user_" + (new Random()).nextInt(999999);
 
+		Analytics.setSessionId(from);
+		
 		Log.w("AnalyticsTest", "Aliasing : " + from + " => " + to);
 		
-		Analytics.track(from, "Anonymous Event");
+		Analytics.track("Anonymous Event");
 		
 		Analytics.alias(from, to);
 		
@@ -131,7 +133,7 @@ public class BasicAnalyticsTest extends BaseTest {
 				"Crazay", "Duh"
 		));
 		
-		Analytics.track(to, "Identified Event");
+		Analytics.track("Identified Event");
 		
 		Assert.assertEquals(aliasAttempts + 1, statistics.getAlias().getCount());
 		Assert.assertEquals(insertAttempts + 4, statistics.getInsertAttempts().getCount());
