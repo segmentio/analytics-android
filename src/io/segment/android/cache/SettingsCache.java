@@ -81,22 +81,27 @@ public class SettingsCache extends SimpleStringCache {
 			// to make sure its recent
 			Calendar rightNow = Calendar.getInstance();
 			Calendar lastUpdated = container.getCalendar(LAST_UPDATED_KEY);
-			long timeCached = rightNow.getTimeInMillis() - lastUpdated.getTimeInMillis();
-			if (timeCached > cacheForMs) {
-				Logger.d("Segment.io settings cache expired, loading new settings ...");
-				// it's been cached too long, we need to refresh
-				String newSettings = load();
-				if (newSettings != null) {
-					// we successfully loaded the new settings
-					set(newSettings);
-					Logger.d("Segment.io settings cache successfully renewed.");
-					return newSettings;
-				} else {
-					Logger.w("Segment.io settings cache not renewed.");
+			if (lastUpdated != null) {
+				long timeCached = rightNow.getTimeInMillis() - lastUpdated.getTimeInMillis();
+				if (timeCached > cacheForMs) {
+					Logger.d("Segment.io settings cache expired, loading new settings ...");
+					// it's been cached too long, we need to refresh
+					String newSettings = load();
+					if (newSettings != null) {
+						// we successfully loaded the new settings
+						set(newSettings);
+						Logger.d("Segment.io settings cache successfully renewed.");
+						return newSettings;
+					} else {
+						Logger.w("Segment.io settings cache not renewed.");
+					}
 				}
+				
+				return container.toString();
+			} else {
+				Logger.w("Container exists, but without last updated key. JSON: " + 
+						container.toString());
 			}
-			
-			return container.toString();
 		}
 		
 		return null;

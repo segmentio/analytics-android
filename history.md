@@ -1,3 +1,7 @@
+0.3.1 / 2013-05-30
+=================
+* Fix NullPointerException in SettingsCache
+
 0.3.0 / 2013-05-29
 =================
 * Removing the track(userId, ..) overrides such that only identify needs to provide a userId
