@@ -1,3 +1,7 @@
+0.3.2 / 2013-07-17
+=================
+* Started sending entity as bytes in BasicRequester to fix UTF8 issues
+
 0.3.1 / 2013-05-30
 =================
 * Fix NullPointerException in SettingsCache

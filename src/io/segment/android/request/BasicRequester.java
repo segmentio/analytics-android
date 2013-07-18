@@ -11,7 +11,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
@@ -35,7 +35,7 @@ public class BasicRequester implements IRequester {
 		post.setHeader("Content-Type", "application/json");
 
 		try {
-		      StringEntity se = new StringEntity(json);  
+		      ByteArrayEntity se = new ByteArrayEntity(json.getBytes());  
 		      se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
 		      post.setEntity(se);
 		      
