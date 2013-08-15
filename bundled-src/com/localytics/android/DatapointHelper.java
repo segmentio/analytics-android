@@ -1,6 +1,6 @@
 //@formatter:off
 /**
- * DatapointHelper.java Copyright (C) 2012 Char Software Inc., DBA Localytics. This code is provided under the Localytics Modified
+ * DatapointHelper.java Copyright (C) 2013 Char Software Inc., DBA Localytics. This code is provided under the Localytics Modified
  * BSD License. A copy of this license has been distributed in a file called LICENSE with this source code. Please visit
  * www.localytics.com for more information.
  */
@@ -8,19 +8,10 @@
 
 package com.localytics.android;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
 import android.Manifest.permission;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
@@ -31,6 +22,16 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Provides a number of static functions to aid in the collection and formatting of datapoints.
@@ -498,6 +499,26 @@ import android.util.Log;
              */
             throw new RuntimeException(e);
         }
+    }
+    
+    public static String getLocalyticsAppKeyOrNull(final Context context)
+    {
+    	String appKey = null;
+    	
+        try
+        {
+        	ApplicationInfo applicationInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+			appKey = (String)applicationInfo.metaData.get(Constants.LOCALYTICS_METADATA_APP_KEY);
+		}
+        catch (final PackageManager.NameNotFoundException e)
+        {
+            /*
+             * This should never occur--our own package must exist for this code to be running
+             */
+            throw new RuntimeException(e);
+        }
+        
+        return appKey;
     }
 
     /**

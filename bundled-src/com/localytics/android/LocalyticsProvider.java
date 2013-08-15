@@ -1,21 +1,12 @@
 // @formatter:off
 /*
- * LocalyticsProvider.java Copyright (C) 2012 Char Software Inc., DBA Localytics. This code is provided under the Localytics
+ * LocalyticsProvider.java Copyright (C) 2013 Char Software Inc., DBA Localytics. This code is provided under the Localytics
  * Modified BSD License. A copy of this license has been distributed in a file called LICENSE with this source code. Please visit
  * www.localytics.com for more information.
  */
 // @formatter:on
 
 package com.localytics.android;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -26,6 +17,16 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.provider.BaseColumns;
 import android.util.Log;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.UUID;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Implements the storage mechanism for the Localytics library. The interface and implementation are similar to a ContentProvider
@@ -56,11 +57,14 @@ import android.util.Log;
      * <li>3: No format changes--just deleting bad data stranded in the database</li>
      * <li>4: Add {@link SessionsDbColumns#LOCALYTICS_INSTALLATION_ID}</li>
      * <li>5: Add {@link SessionsDbColumns#DEVICE_WIFI_MAC_HASH}</li>
-     * <li>5: Change attributes to have a package name prefix to allow for Localytics internal attributes</li>
-     * <li>6: Add info table</li>
+     * <li>6: Change attributes to have a package name prefix to allow for Localytics internal attributes</li>
+     * <li>7: Add info table</li>
+     * <li>8: Create identifiers table and add primary key to info table</li>
+     * <li>9: Add {@link EventsDbColumns#CLV_INCREASE}</li>
+     * <li>10: Add {@link InfoDbColumns#PLAY_ATTRIBUTION}</li>
      * </ol>
      */
-    private static final int DATABASE_VERSION = 8;
+    private static final int DATABASE_VERSION = 10;
 
     /**
      * Singleton instance of the {@link LocalyticsProvider}. Lazily initialized via {@link #getInstance(Context, String)}.
@@ -537,8 +541,8 @@ import android.util.Log;
             db.execSQL(String.format("CREATE TABLE %s (%s INTEGER PRIMARY KEY AUTOINCREMENT, %s INTEGER REFERENCES %s(%s) NOT NULL, %s TEXT UNIQUE NOT NULL, %s INTEGER NOT NULL CHECK (%s >= 0), %s TEXT NOT NULL, %s TEXT NOT NULL, %s TEXT NOT NULL, %s INTEGER NOT NULL, %s TEXT NOT NULL, %s TEXT NOT NULL, %s TEXT NOT NULL, %s TEXT NOT NULL, %s TEXT, %s TEXT, %s TEXT, %s TEXT, %s TEXT NOT NULL, %s TEXT NOT NULL, %s TEXT, %s TEXT, %s TEXT, %s TEXT, %s TEXT, %s TEXT);", SessionsDbColumns.TABLE_NAME, SessionsDbColumns._ID, SessionsDbColumns.API_KEY_REF, ApiKeysDbColumns.TABLE_NAME, ApiKeysDbColumns._ID, SessionsDbColumns.UUID, SessionsDbColumns.SESSION_START_WALL_TIME, SessionsDbColumns.SESSION_START_WALL_TIME, SessionsDbColumns.LOCALYTICS_LIBRARY_VERSION, SessionsDbColumns.LOCALYTICS_INSTALLATION_ID, SessionsDbColumns.APP_VERSION, SessionsDbColumns.ANDROID_VERSION, SessionsDbColumns.ANDROID_SDK, SessionsDbColumns.DEVICE_MODEL, SessionsDbColumns.DEVICE_MANUFACTURER, SessionsDbColumns.DEVICE_ANDROID_ID_HASH, SessionsDbColumns.DEVICE_TELEPHONY_ID, SessionsDbColumns.DEVICE_TELEPHONY_ID_HASH, SessionsDbColumns.DEVICE_SERIAL_NUMBER_HASH, SessionsDbColumns.DEVICE_WIFI_MAC_HASH, SessionsDbColumns.LOCALE_LANGUAGE, SessionsDbColumns.LOCALE_COUNTRY, SessionsDbColumns.NETWORK_CARRIER, SessionsDbColumns.NETWORK_COUNTRY, SessionsDbColumns.NETWORK_TYPE, SessionsDbColumns.DEVICE_COUNTRY, SessionsDbColumns.LATITUDE, SessionsDbColumns.LONGITUDE)); //$NON-NLS-1$
 
             // events table
-            db.execSQL(String.format("CREATE TABLE %s (%s INTEGER PRIMARY KEY AUTOINCREMENT, %s INTEGER REFERENCES %s(%s) NOT NULL, %s TEXT UNIQUE NOT NULL, %s TEXT NOT NULL, %s INTEGER NOT NULL CHECK (%s >= 0), %s INTEGER NOT NULL CHECK (%s >= 0));", EventsDbColumns.TABLE_NAME, EventsDbColumns._ID, EventsDbColumns.SESSION_KEY_REF, SessionsDbColumns.TABLE_NAME, SessionsDbColumns._ID, EventsDbColumns.UUID, EventsDbColumns.EVENT_NAME, EventsDbColumns.REAL_TIME, EventsDbColumns.REAL_TIME, EventsDbColumns.WALL_TIME, EventsDbColumns.WALL_TIME)); //$NON-NLS-1$
-
+            db.execSQL(String.format("CREATE TABLE %s (%s INTEGER PRIMARY KEY AUTOINCREMENT, %s INTEGER REFERENCES %s(%s) NOT NULL, %s TEXT UNIQUE NOT NULL, %s TEXT NOT NULL, %s INTEGER NOT NULL CHECK (%s >= 0), %s INTEGER NOT NULL CHECK (%s >= 0), %s INTEGER NOT NULL DEFAULT 0);", EventsDbColumns.TABLE_NAME, EventsDbColumns._ID, EventsDbColumns.SESSION_KEY_REF, SessionsDbColumns.TABLE_NAME, SessionsDbColumns._ID, EventsDbColumns.UUID, EventsDbColumns.EVENT_NAME, EventsDbColumns.REAL_TIME, EventsDbColumns.REAL_TIME, EventsDbColumns.WALL_TIME, EventsDbColumns.WALL_TIME, EventsDbColumns.CLV_INCREASE)); //$NON-NLS-1$
+            
             // event_history table
             /*
              * Note: the events history should be using foreign key constrains on the upload blobs table, but that is currently
@@ -557,7 +561,7 @@ import android.util.Log;
             db.execSQL(String.format("CREATE TABLE %s (%s INTEGER PRIMARY KEY AUTOINCREMENT, %s INTEGER REFERENCES %s(%s) NOT NULL, %s INTEGER REFERENCES %s(%s) NOT NULL);", UploadBlobEventsDbColumns.TABLE_NAME, UploadBlobEventsDbColumns._ID, UploadBlobEventsDbColumns.UPLOAD_BLOBS_KEY_REF, UploadBlobsDbColumns.TABLE_NAME, UploadBlobsDbColumns._ID, UploadBlobEventsDbColumns.EVENTS_KEY_REF, EventsDbColumns.TABLE_NAME, EventsDbColumns._ID)); //$NON-NLS-1$
         
             // info table
-            db.execSQL(String.format("CREATE TABLE %s (%s INTEGER PRIMARY KEY AUTOINCREMENT, %s TEXT, %s INTEGER);", InfoDbColumns.TABLE_NAME, InfoDbColumns._ID, InfoDbColumns.FB_ATTRIBUTION, InfoDbColumns.FIRST_RUN));
+            db.execSQL(String.format("CREATE TABLE %s (%s INTEGER PRIMARY KEY AUTOINCREMENT, %s TEXT, %s TEXT, %s INTEGER);", InfoDbColumns.TABLE_NAME, InfoDbColumns._ID, InfoDbColumns.FB_ATTRIBUTION, InfoDbColumns.PLAY_ATTRIBUTION, InfoDbColumns.FIRST_RUN));
             final ContentValues values = new ContentValues();
             values.put(InfoDbColumns.FB_ATTRIBUTION, DatapointHelper.getFBAttribution(mContext));
             values.put(InfoDbColumns.FIRST_RUN, Boolean.TRUE);
@@ -679,10 +683,19 @@ import android.util.Log;
             if (oldVersion < 8)
             {
                 // identifiers table
-            	db.execSQL(String.format("CREATE TABLE %s (%s INTEGER PRIMARY KEY AUTOINCREMENT, %s TEXT UNIQUE NOT NULL, %s TEXT NOT NULL);", IdentifiersDbColumns.TABLE_NAME, IdentifiersDbColumns._ID, IdentifiersDbColumns.KEY, IdentifiersDbColumns.VALUE));	
-         
-            	// add primary key for information table
-            	db.execSQL(String.format("ALTER TABLE %s ADD COLUMN %s INTEGER PRIMARY KEY AUTOINCREMENT;", InfoDbColumns.TABLE_NAME, InfoDbColumns._ID)); //$NON-NLS-1$
+            	db.execSQL(String.format("CREATE TABLE %s (%s INTEGER PRIMARY KEY AUTOINCREMENT, %s TEXT UNIQUE NOT NULL, %s TEXT NOT NULL);", IdentifiersDbColumns.TABLE_NAME, IdentifiersDbColumns._ID, IdentifiersDbColumns.KEY, IdentifiersDbColumns.VALUE));	         
+            }
+            
+            if (oldVersion < 9)
+            {            	
+            	// add clv_increase column to events table
+                db.execSQL(String.format("ALTER TABLE %s ADD COLUMN %s INTEGER NOT NULL DEFAULT 0;", EventsDbColumns.TABLE_NAME, EventsDbColumns.CLV_INCREASE)); //$NON-NLS-1$
+            }
+            
+            if (oldVersion < 10)
+            {
+            	// add play_attribution to info table
+            	db.execSQL(String.format("ALTER TABLE %s ADD COLUMN %s TEXT;", InfoDbColumns.TABLE_NAME, InfoDbColumns.PLAY_ATTRIBUTION)); //$NON-NLS-1$
             }
         }
         // @Override
@@ -790,6 +803,14 @@ import android.util.Log;
          * <p>
          */
         public static final String FB_ATTRIBUTION = "fb_attribution"; //$NON-NLS-1$
+        
+        /**
+         * TYPE: {@code String}
+         * <p>
+         * The Google Play referrer string at install-time. May be null if unavailable or already uploaded.
+         * <p>
+         */
+        public static final String PLAY_ATTRIBUTION = "play_attribution"; //$NON-NLS-1$
     }
     
     /**
@@ -975,6 +996,12 @@ import android.util.Log;
          */
         public static final String WALL_TIME = "wall_time"; //$NON-NLS-1$
 
+        /**
+         * TYPE: {@code long}
+         * <p>
+         * A long representing the customer value increase
+         */
+        public static final String CLV_INCREASE = "clv_increase"; //$NON-NLS-1$
     }
 
     /**

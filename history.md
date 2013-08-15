@@ -1,3 +1,14 @@
+0.3.2 / 2013-08-15
+=================
+* Updated Count.ly bundled SDK
+* Updated Localytics bundled SDK
+* Updated Amplitude bundled SDK
+* Updated bugsnag bundled SDK
+* Updated Crittercism bundled SDK
+* Updated Flurry bundled SDK
+* Updated Google Analytics bundled SDK
+* Updated Mixpanel bundled SDK
+
 0.3.2 / 2013-07-17
 =================
 * Started sending entity as bytes in BasicRequester to fix UTF8 issues

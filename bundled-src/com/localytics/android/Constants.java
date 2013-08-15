@@ -28,9 +28,11 @@ import android.text.format.DateUtils;
      * 1.6: Fixed network type reporting.  Added reporting of app signature, device SDK level, device manufacturer, serial number.
      * 2.0: New upload format.
  	 * 2.5: Improvements in detecting time skew and Facebook attribution ability.
+ 	 * 2.6: Customer lifetime value support
+ 	 * 2.7: Google Play attribution and support for app keys in AndroidManifest.xml
      */
     //@formatter:on
-    public static final String LOCALYTICS_CLIENT_LIBRARY_VERSION = "android_2.5"; //$NON-NLS-1$
+    public static final String LOCALYTICS_CLIENT_LIBRARY_VERSION = "android_2.7"; //$NON-NLS-1$
 
     /**
      * The package name of the Localytics library.
@@ -43,6 +45,11 @@ import android.text.format.DateUtils;
      */
     public static final String LOCALYTICS_PACKAGE_NAME = "com.localytics.android"; //$NON-NLS-1$
 
+    /**
+     * Name of the metadata property in the manifest that represents the app key
+     */
+    public static final String LOCALYTICS_METADATA_APP_KEY = "LOCALYTICS_APP_KEY"; //$NON-NLS-1$
+    
     /**
      * Maximum number of sessions to store on disk.
      */

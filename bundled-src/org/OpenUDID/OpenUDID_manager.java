@@ -193,4 +193,3 @@ public class OpenUDID_manager implements ServiceConnection{
 		 }
 	}
 }
-

@@ -1,6 +1,6 @@
 // @formatter:off
 /*
- * JsonObjects.java Copyright (C) 2012 Char Software Inc., DBA Localytics. This code is provided under the Localytics
+ * JsonObjects.java Copyright (C) 2013 Char Software Inc., DBA Localytics. This code is provided under the Localytics
  * Modified BSD License. A copy of this license has been distributed in a file called LICENSE with this source code. Please visit
  * www.localytics.com for more information.
  */
@@ -8,9 +8,9 @@
 
 package com.localytics.android;
 
-import org.json.JSONArray;
-
 import android.Manifest.permission;
+
+import org.json.JSONArray;
 
 import com.localytics.android.LocalyticsProvider.ApiKeysDbColumns;
 
@@ -252,6 +252,20 @@ import com.localytics.android.LocalyticsProvider.ApiKeysDbColumns;
              */
             public static final String KEY_NETWORK_COUNTRY = "nc"; //$NON-NLS-1$
 
+            /**
+             * Type: {@code String}
+             * <p>
+             * Google Play attribution referrer string
+             */
+            public static final String KEY_GOOGLE_PLAY_ATTRIBUTION = "aurl"; //$NON-NLS-1$
+            
+            /**
+             * Type: {@code String}
+             * <p>
+             * Facebook attribution referrer cookie
+             */
+            public static final String KEY_FB_COOKIE = "fbat"; //$NON-NLS-1$
+            
             /**
              * @see #KEY_LOCALYTICS_DATA_TYPE
              */
@@ -564,6 +578,13 @@ import com.localytics.android.LocalyticsProvider.ApiKeysDbColumns;
          * Optional fourth custom dimension. Can only exist if there is a third custom dimension.
          */
         public static final String KEY_CUSTOM_DIMENSION_4 = "c3"; //$NON-NLS-1$
+        
+        /**
+         * Type: {@code long}
+         * <p>
+         * Optional customer value increase
+         */
+        public static final String KEY_CUSTOMER_VALUE_INCREASE = "v"; //$NON-NLS-1$
     }
 
     /**
