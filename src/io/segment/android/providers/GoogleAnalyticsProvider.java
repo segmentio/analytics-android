@@ -15,8 +15,10 @@ import android.text.TextUtils;
 
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.ExceptionReporter;
+import com.google.analytics.tracking.android.Fields;
 import com.google.analytics.tracking.android.GAServiceManager;
 import com.google.analytics.tracking.android.GoogleAnalytics;
+import com.google.analytics.tracking.android.MapBuilder;
 import com.google.analytics.tracking.android.Tracker;
 
 public class GoogleAnalyticsProvider extends SimpleProvider {
@@ -72,14 +74,17 @@ public class GoogleAnalyticsProvider extends SimpleProvider {
 		
 		GoogleAnalytics gaInstance = GoogleAnalytics.getInstance(context);
 		
-		GAServiceManager.getInstance().setDispatchPeriod(dispatchPeriod);
+		GAServiceManager.getInstance().setLocalDispatchPeriod(dispatchPeriod);
 		
-		gaInstance.setDebug(true);
+//		gaInstance.setDebug(true);
 		
 		tracker = gaInstance.getTracker(trackingId);
-		tracker.setSampleRate(sampleFrequency);
-		tracker.setAnonymizeIp(anonymizeIp);
-		tracker.setUseSecure(useHttps);
+		tracker.set(Fields.SAMPLE_RATE, Double.toString(sampleFrequency));
+		tracker.set(Fields.ANONYMIZE_IP, Boolean.toString(anonymizeIp));
+		
+//		tracker.setSampleRate(sampleFrequency);
+//		tracker.setAnonymizeIp(anonymizeIp);
+//		tracker.setUseSecure(useHttps);
 		
 		if (reportUncaughtExceptions) enableAutomaticExceptionTracking(tracker, context);
 		
@@ -104,18 +109,23 @@ public class GoogleAnalyticsProvider extends SimpleProvider {
 	
 	@Override
 	public void onActivityStart(Activity activity) {
-		EasyTracker.getInstance().activityStart(activity);
+		EasyTracker.getInstance(activity).activityStart(activity);
 	}
 	
 	@Override
 	public void onActivityStop(Activity activity) {
-		EasyTracker.getInstance().activityStop(activity);
+		EasyTracker.getInstance(activity).activityStop(activity);
 	}
 	
 	@Override
 	public void screen(Screen screen) {
 		String screenName = screen.getScreen();
-		tracker.sendView(screenName);
+		
+		tracker.set(Fields.SCREEN_NAME, screenName);
+		tracker.send(MapBuilder
+		  .createAppView()
+		  .build()
+		);
 	}
 	
 	@Override
@@ -127,12 +137,15 @@ public class GoogleAnalyticsProvider extends SimpleProvider {
 		String label = properties.getString("label", null);
 		int value = properties.getInt("value", 0);
 		
-		tracker.sendEvent(category, action, label, (long)value);
+		tracker.send(MapBuilder
+	      .createEvent(category, action, label, (long) value)
+	      .build()
+	    );
 	}
 	
 	@Override
 	public void flush() {
-		GAServiceManager.getInstance().dispatch();
+		GAServiceManager.getInstance().dispatchLocalHits();
 	}
 
 }
