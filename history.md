@@ -1,3 +1,7 @@
+0.3.3 / 2013-11-11
+=================
+* `analytics.reset` is now static
+
 0.3.2 / 2013-08-15
 =================
 * Updated Count.ly bundled SDK

@@ -39,6 +39,8 @@ import android.text.TextUtils;
 
 public class Analytics {
 	
+	public static final String VERSION = "0.3.3";
+	
 	private static AnalyticsStatistics statistics;
 	
 	private static String secret;
@@ -1198,7 +1200,7 @@ public class Analytics {
 	/**
 	 * Resets the cached userId. Should be used when the user logs out.
 	 */
-	public void reset() {
+	public static void reset() {
 		if (initialized) {
 			userIdCache.reset();
 			
@@ -1211,7 +1213,7 @@ public class Analytics {
 	 * Triggers a download of Segment.io integration settings
 	 * from the server, and update of all the bundled providers.
 	 */
-	public void refreshSettings() {
+	public static void refreshSettings() {
 		if (initialized) {
 			providerManager.refresh();
 		}
@@ -1220,7 +1222,7 @@ public class Analytics {
 	/**
 	 * Stops the analytics client threads, and resets the client
 	 */
-	public static  void close() {
+	public static void close() {
 		checkInitialized();
 		// stops the looper on the timer, flush, and database thread
 		flushTimer.quit();
