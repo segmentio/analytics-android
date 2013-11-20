@@ -1,3 +1,7 @@
+0.4.0 / 2013-11-20
+=================
+* Location info now only read from network
+
 0.3.3 / 2013-11-11
 =================
 * `analytics.reset` is now static
