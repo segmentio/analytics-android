@@ -58,6 +58,12 @@ public interface IProvider {
 	public void reset();
 	
 	/**
+	 * Opt out of analytics.
+	 * @param optedOut TODO
+	 */
+	public void toggleOptOut(boolean optedOut);
+	
+	/**
 	 * If possible, will flush all the messages from this provider 
 	 * to their respective server endpoints.
 	 */

@@ -65,6 +65,7 @@ public class Constants {
 		public static final String FINE_LOCATION = "android.permission.ACCESS_FINE_LOCATION";
 		public static final String COARSE_LOCATION = "android.permission.ACCESS_COARSE_LOCATION";
 		public static final String INTERNET = "android.permission.INTERNET";
+		public static final String ACCESS_NETWORK_STATE = "android.permission.ACCESS_NETWORK_STATE";
 		
 	}
 	

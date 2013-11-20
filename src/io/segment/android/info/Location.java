@@ -26,19 +26,22 @@ public class Location implements Info<JSONObject> {
 		Criteria crit = new Criteria();
 		crit.setPowerRequirement(Criteria.POWER_LOW);
 		crit.setAccuracy(Criteria.ACCURACY_COARSE);
-		String provider = locationManager.getBestProvider(crit, false);
+		String provider = locationManager.getBestProvider(crit, true);
 		
-		android.location.Location location = locationManager
-				.getLastKnownLocation(provider);
-
 		EasyJSONObject object = new EasyJSONObject();
-		
-		if (location != null) {
-			object.put("latitude", location.getLatitude());
-			object.put("longitude", location.getLongitude());
+
+		if (provider != null) {
+			android.location.Location location = locationManager
+					.getLastKnownLocation(provider);
+	
 			
-			// you could figure out who your fastest user is. who doesnt want that?
-			object.put("speed", location.getSpeed());
+			if (location != null) {
+				object.put("latitude", location.getLatitude());
+				object.put("longitude", location.getLongitude());
+				
+				// you could figure out who your fastest user is. who doesnt want that?
+				object.put("speed", location.getSpeed());
+			}
 		}
 
 		return object;

@@ -18,12 +18,12 @@ import io.segment.android.providers.GoogleAnalyticsProvider;
 import io.segment.android.providers.LocalyticsProvider;
 import io.segment.android.providers.MixpanelProvider;
 import io.segment.android.providers.OmnitureProvider;
+import io.segment.android.providers.QuantcastProvider;
+import io.segment.android.providers.TapstreamProvider;
 import io.segment.android.stats.Stopwatch;
 
 import java.util.LinkedList;
 import java.util.List;
-
-import org.json.JSONException;
 
 import android.app.Activity;
 import android.content.Context;
@@ -55,6 +55,8 @@ public class ProviderManager implements IProvider {
 		this.addProvider(new LocalyticsProvider());
 		this.addProvider(new MixpanelProvider());
 		this.addProvider(new OmnitureProvider());
+		this.addProvider(new QuantcastProvider());
+		this.addProvider(new TapstreamProvider());
 	}
 	
 	/**
@@ -186,8 +188,26 @@ public class ProviderManager implements IProvider {
 		createOp.end();
 	}
 	
+
+	public void toggleOptOut(final boolean optedOut) {
+		runOperation("optOut", ProviderState.INITIALIZED, new ProviderOperation () {
+			
+			@Override
+			public void run(Provider provider) {
+				provider.toggleOptOut(optedOut);
+			}
+		});
+	}
+	
+	public void checkPermissions (Context context) {
+		for (Provider provider : this.providers) {
+			provider.checkPermission(context);
+		}
+	}
+	
 	@Override
 	public void onCreate(final Context context) {
+		checkPermissions(context);
 		
 		runOperation("onCreate", ProviderState.INITIALIZED, new ProviderOperation () {
 			

@@ -1,5 +1,6 @@
 package io.segment.android.providers;
 
+import io.segment.android.Logger;
 import io.segment.android.errors.InvalidSettingsException;
 import io.segment.android.models.EasyJSONObject;
 import io.segment.android.models.EventProperties;
@@ -15,8 +16,11 @@ import android.text.TextUtils;
 
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.ExceptionReporter;
+import com.google.analytics.tracking.android.Fields;
 import com.google.analytics.tracking.android.GAServiceManager;
 import com.google.analytics.tracking.android.GoogleAnalytics;
+import com.google.analytics.tracking.android.Logger.LogLevel;
+import com.google.analytics.tracking.android.MapBuilder;
 import com.google.analytics.tracking.android.Tracker;
 
 public class GoogleAnalyticsProvider extends SimpleProvider {
@@ -25,7 +29,6 @@ public class GoogleAnalyticsProvider extends SimpleProvider {
 		
 		private static final String TRACKING_ID = "mobileTrackingId";
 		
-		private static final String DISPATCH_PERIOD = "dispatchPeriod";
 		private static final String SAMPLING_FREQUENCY = "sampleFrequency";
 		private static final String ANONYMIZE_IP_TRACKING = "anonymizeIp";
 		private static final String REPORT_UNCAUGHT_EXCEPTIONS = "reportUncaughtExceptions";
@@ -33,6 +36,7 @@ public class GoogleAnalyticsProvider extends SimpleProvider {
 	}
 
 	private Tracker tracker;
+	private boolean optedOut;
 	
 	@Override
 	public String getKey() {
@@ -56,8 +60,6 @@ public class GoogleAnalyticsProvider extends SimpleProvider {
 		// The Google Analytics tracking ID to which to send your data. Dashes in the ID must be unencoded. 
 		// You can disable your tracking by not providing this value.
 		String trackingId = settings.getString(SettingKey.TRACKING_ID);
-		// The dispatch period in seconds. Defaults to 30 minutes.
-		int dispatchPeriod = settings.getInt(SettingKey.DISPATCH_PERIOD, 30);
 		// The sample rate to use. Default is 100.0. It can be any value between 0.0 and 100.0
 		Double sampleFrequency = settings.getDouble(SettingKey.SAMPLING_FREQUENCY, Double.valueOf(100));
 		// Tells Google Analytics to anonymize the information sent by the tracker objects by 
@@ -72,14 +74,12 @@ public class GoogleAnalyticsProvider extends SimpleProvider {
 		
 		GoogleAnalytics gaInstance = GoogleAnalytics.getInstance(context);
 		
-		GAServiceManager.getInstance().setDispatchPeriod(dispatchPeriod);
-		
-		gaInstance.setDebug(true);
+		if(Logger.isLogging()) gaInstance.getLogger().setLogLevel(LogLevel.VERBOSE);
 		
 		tracker = gaInstance.getTracker(trackingId);
-		tracker.setSampleRate(sampleFrequency);
-		tracker.setAnonymizeIp(anonymizeIp);
-		tracker.setUseSecure(useHttps);
+		tracker.set(Fields.SAMPLE_RATE, "" + sampleFrequency);
+		tracker.set(Fields.ANONYMIZE_IP, "" + anonymizeIp);
+		tracker.set(Fields.USE_SECURE, "" + useHttps);
 		
 		if (reportUncaughtExceptions) enableAutomaticExceptionTracking(tracker, context);
 		
@@ -97,6 +97,10 @@ public class GoogleAnalyticsProvider extends SimpleProvider {
 		Thread.setDefaultUncaughtExceptionHandler(myHandler);
 	}
 	
+	private void applyOptOut(Activity activity) {
+		GoogleAnalytics.getInstance(activity).setAppOptOut(optedOut);
+	}
+	
 	@Override
 	public void onCreate(Context context) {
 		initialize(context);
@@ -104,18 +108,23 @@ public class GoogleAnalyticsProvider extends SimpleProvider {
 	
 	@Override
 	public void onActivityStart(Activity activity) {
-		EasyTracker.getInstance().activityStart(activity);
+		applyOptOut(activity);
+		EasyTracker.getInstance(activity).activityStart(activity);
 	}
 	
 	@Override
 	public void onActivityStop(Activity activity) {
-		EasyTracker.getInstance().activityStop(activity);
+		applyOptOut(activity);
+		EasyTracker.getInstance(activity).activityStop(activity);
 	}
 	
 	@Override
 	public void screen(Screen screen) {
 		String screenName = screen.getScreen();
-		tracker.sendView(screenName);
+		tracker.send(MapBuilder
+		  .createAppView()
+		  .set(Fields.SCREEN_NAME, screenName)
+		  .build());
 	}
 	
 	@Override
@@ -125,14 +134,16 @@ public class GoogleAnalyticsProvider extends SimpleProvider {
 		String category = properties.getString("category", "All");
 		String action = track.getEvent();
 		String label = properties.getString("label", null);
-		int value = properties.getInt("value", 0);
+		Integer value = properties.getInt("value", 0);
 		
-		tracker.sendEvent(category, action, label, (long)value);
+		tracker.send(MapBuilder
+			    .createEvent(category, action, label, value.longValue())
+			    .build());
 	}
 	
 	@Override
-	public void flush() {
-		GAServiceManager.getInstance().dispatch();
+	public void toggleOptOut(boolean optedOut) {
+		this.optedOut = optedOut;
 	}
 
 }

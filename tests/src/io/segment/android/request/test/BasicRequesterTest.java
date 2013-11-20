@@ -1,5 +1,6 @@
 package io.segment.android.request.test;
 
+import io.segment.android.Logger;
 import io.segment.android.models.BasePayload;
 import io.segment.android.models.Batch;
 import io.segment.android.models.Context;
@@ -74,6 +75,7 @@ public class BasicRequesterTest extends BaseTest {
 		};
 		
 		for (String key : keys) {
+			if (settings.getObject(key) == null) Logger.e(key + " is not in settings!");
 			Assert.assertNotNull(settings.getObject(key));
 		}
 	}

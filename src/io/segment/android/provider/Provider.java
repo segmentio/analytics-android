@@ -3,11 +3,14 @@ package io.segment.android.provider;
 import io.segment.android.Logger;
 import io.segment.android.errors.InvalidSettingsException;
 import io.segment.android.models.EasyJSONObject;
+import io.segment.android.utils.AndroidUtils;
+import android.content.Context;
 
 public abstract class Provider implements IProvider {
 		
 	private EasyJSONObject settings;
 	private ProviderState state = ProviderState.NOT_INITIALIZED;
+	protected boolean hasPermission = true;
 
 	/**
 	 * Resets the base provider to a state of NOT_INITIALIZED, and resets the settings
@@ -48,6 +51,33 @@ public abstract class Provider implements IProvider {
 			throw e;
 		}
 	}
+	
+	/**
+	 * Checks whether this provider has permission in this applicatio
+	 * @param context
+	 * @return
+	 */
+	public boolean checkPermission(Context context) {
+		String[] permissions = getRequiredPermissions();
+		for (String permission : permissions) {
+			if (!AndroidUtils.permissionGranted(context, permission)) {
+				Logger.w(String.format("Provider %s requires permission %s but its not granted.", getKey(), permission));
+				changeState(ProviderState.INVALID, new ProviderState[] {
+					ProviderState.NOT_INITIALIZED,
+					ProviderState.INITIALIZED
+				});
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	/**
+	 * Returns the required permissions for this provider to run.
+	 * @return
+	 */
+	
+	public abstract String[] getRequiredPermissions ();
 	
 	/**
 	 * Enable this provider if its initialized or disabled.
@@ -145,6 +175,5 @@ public abstract class Provider implements IProvider {
 	 * @throws InvalidSettingsException An exception that says a field setting is invalid
 	 */
 	public abstract void validate(EasyJSONObject settings) throws InvalidSettingsException;
-
 	
 }

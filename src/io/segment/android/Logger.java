@@ -15,7 +15,13 @@ public class Logger {
 		Logger.log = log;
 	}
 	
-
+	/**
+	 * Get whether this logger logs (true to log)
+	 */
+	public static boolean isLogging() {
+		return Logger.log;
+	}
+	
 	public static void v(String msg) {
 		if (log) Log.v(TAG, msg);
 	}

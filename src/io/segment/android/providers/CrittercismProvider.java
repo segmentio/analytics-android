@@ -7,14 +7,11 @@ import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 import io.segment.android.models.Traits;
 import io.segment.android.provider.SimpleProvider;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.Context;
 import android.text.TextUtils;
 
 import com.crittercism.app.Crittercism;
+import com.crittercism.app.CrittercismConfig;
 
 public class CrittercismProvider extends SimpleProvider {
 
@@ -48,25 +45,15 @@ public class CrittercismProvider extends SimpleProvider {
 		String appId = settings.getString(SettingKey.APP_ID);
 		
 		// docs: https://app.crittercism.com/developers/docs-optional-android
-		
-		JSONObject crittercismConfig = new JSONObject();
-		try
-		{
-			// send app load data with Crittercism.sendAppLoadData()
-			crittercismConfig.put("delaySendingAppLoad", 
-					settings.getBoolean(SettingKey.DELAY_SENDING_APP_LOAD, false));
-		    
-			// necessary for collecting logcat data on Android Jelly Bean devices.
-		    crittercismConfig.put("shouldCollectLogcat", 
-		    		settings.getBoolean(SettingKey.SHOULD_INCLUDE_LOGCAT, false)); 
-		    
-		    // include version code in version name.
-		    crittercismConfig.put("includeVersionCode", 
-		    		settings.getBoolean(SettingKey.INCLUDE_VERSION_CODE, false));
-		}
-		catch (JSONException je){}
-		
-		Crittercism.init(context, appId, crittercismConfig);
+		CrittercismConfig config = new CrittercismConfig();
+		// send app load data with Crittercism.sendAppLoadData()
+		config.setDelaySendingAppLoad(settings.getBoolean(SettingKey.DELAY_SENDING_APP_LOAD, false));
+		// necessary for collecting logcat data on Android Jelly Bean devices.
+		config.setLogcatReportingEnabled(settings.getBoolean(SettingKey.SHOULD_INCLUDE_LOGCAT, false)); 
+	    // include version code in version name.
+	    config.setVersionCodeToBeIncludedInVersionString(settings.getBoolean(SettingKey.INCLUDE_VERSION_CODE, false));
+
+		Crittercism.initialize(context, appId, config);
 		
 		ready();
 	}

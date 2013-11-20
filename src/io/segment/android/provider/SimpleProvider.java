@@ -14,6 +14,11 @@ import android.app.Activity;
 public abstract class SimpleProvider extends Provider {
 	
 	@Override
+	public String[] getRequiredPermissions() {
+		return new String[0];
+	}
+	
+	@Override
 	public void onActivityStart(Activity activity) {
 		// do nothing	
 	}
@@ -43,6 +48,11 @@ public abstract class SimpleProvider extends Provider {
 		// do nothing
 	}
 
+	@Override
+	public void toggleOptOut(boolean optedOut) {
+		// do nothing
+	}
+	
 	@Override
 	public void reset() {
 		// do nothing

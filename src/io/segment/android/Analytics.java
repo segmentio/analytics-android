@@ -58,6 +58,7 @@ public class Analytics {
 	private static Context globalContext;
 	
 	private static boolean initialized;
+	private static boolean optedOut;
 
 	private static SimpleStringCache sessionIdCache;
 	private static SimpleStringCache userIdCache;
@@ -213,6 +214,7 @@ public class Analytics {
 	 */
 	public static void activityStart (Activity activity, String secret, Options options) {
 		Analytics.initialize(activity, secret, options);
+		if (optedOut) return;
 		providerManager.onActivityStart(activity);
 	}
 	
@@ -223,6 +225,7 @@ public class Analytics {
 	 */
 	public static void activityStop (Activity activity) {
 		Analytics.initialize(activity);
+		if (optedOut) return;
 		providerManager.onActivityStop(activity);
 	}
 	
@@ -650,8 +653,9 @@ public class Analytics {
 	 */
 	public static void identify(String userId, Traits traits, Calendar timestamp,
 			Context context) {
-
+		
 		checkInitialized();
+		if (optedOut) return;
 
 		userId = getOrSetUserId(userId);
 		
@@ -672,7 +676,7 @@ public class Analytics {
 		
 		statistics.updateIdentifies(1);
 	}
-
+	
 	//
 	// Track
 	//
@@ -809,6 +813,7 @@ public class Analytics {
 			Calendar timestamp, Context context) {
 		
 		checkInitialized();
+		if (optedOut) return;
 		
 		// get the user ID from the cache
 		String userId = getOrSetUserId(null);
@@ -963,7 +968,9 @@ public class Analytics {
 	public static void screen(String screen, EventProperties properties,
 							  Calendar timestamp, Context context) {
 		
+		
 		checkInitialized();
+		if (optedOut) return;
 
 		String userId = getOrSetUserId(null);
 		
@@ -1074,6 +1081,7 @@ public class Analytics {
 	public static void alias(String from, String to, Calendar timestamp, Context context) {
 		
 		checkInitialized();
+		if (optedOut) return;
 		
 		if (from == null || from.length() == 0) {
 			throw new IllegalArgumentException("analytics-android #alias must be initialized with a valid from id.");
@@ -1154,10 +1162,37 @@ public class Analytics {
 		if (!initialized)
 			throw new IllegalStateException("Please call Analytics.initialize before using the library.");
 	}
+
+
+	//
+	// Opt out
+	//
+	
+	/**
+	 * Turns on opt out, opting out of any analytics sent from this point forward.
+	 * 
+	 * 
+	 */
+	public static void optOut() {
+		optOut(true);
+	}
+	
+	/**
+	 * Toggle opt out
+	 * 
+	 * @param optOut
+	 *            true to stop sending any more analytics.
+	 */
+	public static void optOut(boolean optOut) {
+		boolean toggled = Analytics.optedOut != optOut;
+		Analytics.optedOut = optOut;
+		if (toggled) providerManager.toggleOptOut(optOut);
+	}
 	
 	//
 	// Actions
 	//
+	
 	
 	/**
 	 * Blocks until the queue is flushed

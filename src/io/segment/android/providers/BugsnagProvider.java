@@ -64,7 +64,10 @@ public class BugsnagProvider extends SimpleProvider {
 		String userId = identify.getUserId();
 		Traits traits = identify.getTraits();
 		
-		Bugsnag.setUserId(userId);
+		String email = traits.getString("email", "user@gmail.com");
+		String name = traits.getString("name", "User Name");
+		
+		Bugsnag.setUser(userId, email, name);
 		
 		if (traits != null) {
 			@SuppressWarnings("unchecked")
