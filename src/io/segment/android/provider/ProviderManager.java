@@ -130,7 +130,7 @@ public class ProviderManager implements IProvider {
 			Log.i(TAG, "Initialized the Segment.io provider manager.");
 			
 		} else {
-			Log.w(TAG, "Failed to initialize Segment.io provider manager.");
+			Log.i(TAG, "Async settings aren't fetched yet, waiting ..");
 		}
 	}
 	

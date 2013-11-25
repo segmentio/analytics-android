@@ -1,7 +1,9 @@
 package io.segment.android;
 
+import io.segment.android.cache.ISettingsLayer;
 import io.segment.android.cache.SessionIdCache;
 import io.segment.android.cache.SettingsCache;
+import io.segment.android.cache.SettingsThread;
 import io.segment.android.cache.SimpleStringCache;
 import io.segment.android.db.IPayloadDatabaseLayer;
 import io.segment.android.db.IPayloadDatabaseLayer.EnqueueCallback;
@@ -39,7 +41,7 @@ import android.text.TextUtils;
 
 public class Analytics {
 	
-	public static final String VERSION = "0.4.0";
+	public static final String VERSION = "0.4.1";
 	
 	private static AnalyticsStatistics statistics;
 	
@@ -54,6 +56,7 @@ public class Analytics {
 	private static PayloadDatabase database;
 	private static IPayloadDatabaseLayer databaseLayer;
 	private static IFlushLayer flushLayer;
+	private static ISettingsLayer settingsLayer;
 	
 	private static Context globalContext;
 	
@@ -377,10 +380,12 @@ public class Analytics {
 		Analytics.refreshSettingsTimer = new HandlerTimer(
 				options.getSettingsCacheExpiry() + 1000, refreshSettingsClock);
 		
-		settingsCache = new SettingsCache(context, requester, options.getSettingsCacheExpiry());
+		Analytics.settingsLayer = new SettingsThread(requester);
+		
+		settingsCache = new SettingsCache(context, settingsLayer, options.getSettingsCacheExpiry());
 		
 		providerManager = new ProviderManager(settingsCache);
-		
+	
 		
 		// important: disable Segment.io server-side processing of
 		// the bundled providers that we'll evaluate on the mobile
@@ -397,6 +402,7 @@ public class Analytics {
 		Analytics.flushTimer.start();
 		Analytics.refreshSettingsTimer.start();
 		Analytics.flushLayer.start();
+		Analytics.settingsLayer.start();
 		
 		// tell the server to look for settings right now
 		Analytics.refreshSettingsTimer.scheduleNow();
@@ -1264,6 +1270,7 @@ public class Analytics {
 		refreshSettingsTimer.quit();
 		flushLayer.quit();
 		databaseLayer.quit();
+		settingsLayer.quit();
 
 		// closes the database
 		database.close();

@@ -29,7 +29,6 @@ public class PayloadDatabaseThread extends LooperThreadWithHandler
 						final EnqueueCallback callback) {
 		
 		Handler handler = handler();
-		
 		handler.post(new Runnable() {
 
 			@Override
@@ -39,14 +38,12 @@ public class PayloadDatabaseThread extends LooperThreadWithHandler
 				
 				if (callback != null) callback.onEnqueue(success, rowCount);
 			}
-			
 		});
 	}
 	
 	public void nextPayload(final PayloadCallback callback) {
 		
 		Handler handler = handler();
-		
 		handler.post(new Runnable() {
 
 			@Override
@@ -79,7 +76,6 @@ public class PayloadDatabaseThread extends LooperThreadWithHandler
 							   final RemoveCallback callback) {
 		
 		Handler handler = handler();
-		
 		handler.post(new Runnable() {
 
 			@Override

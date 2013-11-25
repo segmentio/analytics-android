@@ -1,3 +1,8 @@
+
+0.4.1 / November 25, 2013
+=================
+* Settings fetching moved to its own thread
+
 0.4.0 / November 20, 2013
 =================
 * Location info now only read from network

@@ -1,8 +1,8 @@
 package io.segment.android.cache;
 
 import io.segment.android.Logger;
+import io.segment.android.cache.ISettingsLayer.SettingsCallback;
 import io.segment.android.models.EasyJSONObject;
-import io.segment.android.request.IRequester;
 
 import java.util.Calendar;
 
@@ -19,39 +19,42 @@ public class SettingsCache extends SimpleStringCache {
 	private static final String LAST_UPDATED_KEY = "lastUpdated";
 	
 	private int reloads;
-	private IRequester requester;
+	private ISettingsLayer layer;
 	private int cacheForMs;
 	
-	public SettingsCache(Context context, IRequester requester, int cachedMs) {
+	public SettingsCache(Context context, ISettingsLayer layer, int cachedMs) {
 		super(context, CACHE_KEY);
-		
-		this.requester = requester;
+		this.layer = layer;
 		this.cacheForMs = cachedMs;
 	}
 
 	@Override
 	public String load() {
 		Logger.d("Requesting Segment.io settings ..");
+		layer.fetch(new SettingsCallback () {
+			@Override
+			public void onSettingsLoaded(boolean success, EasyJSONObject settings) {
+				if (settings == null) {
+					Logger.w("Failed to fetch new Segment.io settings.");
+				} else {
+					// wrap the settings in a container object containing when
+					// it was last updated
+					EasyJSONObject container = new EasyJSONObject();
+					
+					Calendar rightNow = Calendar.getInstance();
+					container.put(LAST_UPDATED_KEY, rightNow);
+					container.put(SETTINGS_KEY, settings);
+					
+					reloads += 1;
+					
+					Logger.d("Successfully fetched new Segment.io settings.");
+					
+					set(container.toString());
+				}
+			}
+		});
 		
-		EasyJSONObject settings = requester.fetchSettings();
-		if (settings == null) {
-			Logger.w("Failed to fetch new Segment.io settings.");
-			return null;
-		} else {
-			// wrap the settings in a container object containing when
-			// it was last updated
-			EasyJSONObject container = new EasyJSONObject();
-			
-			Calendar rightNow = Calendar.getInstance();
-			container.put(LAST_UPDATED_KEY, rightNow);
-			container.put(SETTINGS_KEY, settings);
-			
-			reloads += 1;
-			
-			Logger.d("Successfully fetched new Segment.io settings.");
-			
-			return container.toString();
-		}
+		return null;
 	}
 	
 	
@@ -86,15 +89,7 @@ public class SettingsCache extends SimpleStringCache {
 				if (timeCached > cacheForMs) {
 					Logger.d("Segment.io settings cache expired, loading new settings ...");
 					// it's been cached too long, we need to refresh
-					String newSettings = load();
-					if (newSettings != null) {
-						// we successfully loaded the new settings
-						set(newSettings);
-						Logger.d("Segment.io settings cache successfully renewed.");
-						return newSettings;
-					} else {
-						Logger.w("Segment.io settings cache not renewed.");
-					}
+					load();
 				}
 				
 				return container.toString();

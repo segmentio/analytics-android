@@ -1,6 +1,7 @@
 package io.segment.android.cache.test;
 
 import io.segment.android.cache.SettingsCache;
+import io.segment.android.cache.SettingsThread;
 import io.segment.android.request.BasicRequester;
 import io.segment.android.request.IRequester;
 import io.segment.android.test.BaseTest;
@@ -24,7 +25,9 @@ public class SettingsCacheTest extends BaseTest {
 		Context context = this.getContext();
 		requester = new BasicRequester();
 		cacheForMs = 1000;
-		cache = new SettingsCache(context, requester, cacheForMs);
+		SettingsThread thread = new SettingsThread(requester);
+		thread.start();
+		cache = new SettingsCache(context, thread, cacheForMs);
 		// resets the cache by removing the settings
 		cache.reset();
 	}

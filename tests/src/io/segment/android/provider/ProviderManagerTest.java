@@ -1,7 +1,9 @@
 package io.segment.android.provider;
 
 import io.segment.android.Defaults;
+import io.segment.android.cache.ISettingsLayer;
 import io.segment.android.cache.SettingsCache;
+import io.segment.android.cache.SettingsThread;
 import io.segment.android.errors.InvalidSettingsException;
 import io.segment.android.models.Alias;
 import io.segment.android.models.EasyJSONObject;
@@ -30,6 +32,7 @@ public class ProviderManagerTest extends BaseTest {
 
 	private Context context;
 	private IRequester requester;
+	private ISettingsLayer layer;
 	
 	@Override
 	protected void setUp() {
@@ -37,12 +40,13 @@ public class ProviderManagerTest extends BaseTest {
 		
 		context = this.getContext();
 		requester = new BasicRequester();
+		layer = new SettingsThread(requester);
 	}
 	
 	@Test
 	public void testInitialization() {
 
-		SettingsCache settingsCache = new SettingsCache(context, requester, Defaults.SETTINGS_CACHE_EXPIRY);
+		SettingsCache settingsCache = new SettingsCache(context, layer, Defaults.SETTINGS_CACHE_EXPIRY);
 		ProviderManager providerManager = new ProviderManager(settingsCache);
 		
 		Assert.assertFalse(providerManager.isInitialized());
@@ -58,10 +62,11 @@ public class ProviderManagerTest extends BaseTest {
 		final String key = "Some Provider";
 
 		// create a settings cache that will insert fake provider settings for this key 
-		SettingsCache settingsCache = new SettingsCache(context, requester, Defaults.SETTINGS_CACHE_EXPIRY) {
+		SettingsCache settingsCache = new SettingsCache(context, layer, Defaults.SETTINGS_CACHE_EXPIRY) {
 			@Override
 			public EasyJSONObject getSettings() {
-				EasyJSONObject settings = super.getSettings();
+				// get them directly from the server with blocking
+				EasyJSONObject settings = requester.fetchSettings();
 				if (settings != null)
 					settings.putObject(key, new JSONObject());
 				return settings;
