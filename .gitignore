@@ -26,3 +26,5 @@ local.properties
 
 *.prefs
 .DS_STORE
+.DS_Store
+

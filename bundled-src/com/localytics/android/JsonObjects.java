@@ -118,6 +118,16 @@ import com.localytics.android.LocalyticsProvider.ApiKeysDbColumns;
             public static final String KEY_DEVICE_ANDROID_ID_HASH = "du"; //$NON-NLS-1$
 
             /**
+             * Key which maps to the device's initial {@link android.provider.Settings.Secure#ANDROID_ID}.
+             */
+            public static final String KEY_DEVICE_ANDROID_ID = "aid"; //$NON-NLS-1$
+
+            /**
+             * Key which maps to the device's current {@link android.provider.Settings.Secure#ANDROID_ID}.
+             */
+            public static final String KEY_CURRENT_ANDROID_ID = "caid"; //$NON-NLS-1$     
+            
+            /**
              * Type: {@code String}
              * <p>
              */
@@ -147,11 +157,19 @@ import com.localytics.android.LocalyticsProvider.ApiKeysDbColumns;
             /**
              * Type: {@code String}
              * <p>
-             * Telephony ID of the device, if the device has telephony and the app has {@link permission#READ_PHONE_STATE}.
+             * Initial telephony ID of the device, if the device has telephony and the app has {@link permission#READ_PHONE_STATE}.
              * Otherwise null.
              */
             public static final String KEY_DEVICE_TELEPHONY_ID = "tdid"; //$NON-NLS-1$
 
+            /**
+             * Type: {@code String}
+             * <p>
+             * Current telephony ID of the device, if the device has telephony and the app has {@link permission#READ_PHONE_STATE}.
+             * Otherwise null.
+             */
+            public static final String KEY_CURRENT_TELEPHONY_ID = "ctdid"; //$NON-NLS-1$            
+            
             /**
              * Type: {@code String}
              * <p>
@@ -267,6 +285,20 @@ import com.localytics.android.LocalyticsProvider.ApiKeysDbColumns;
             public static final String KEY_FB_COOKIE = "fbat"; //$NON-NLS-1$
             
             /**
+             * Type: {@code String}
+             * <p>
+             * GCM registration id
+             */
+            public static final String KEY_PUSH_ID = "push"; //$NON-NLS-1$
+
+            /**
+             * Type: {@code String}
+             * <p>
+             * Package name
+             */
+            public static final String KEY_PACKAGE_NAME = "pkg"; //$NON-NLS-1$            
+            
+            /**
              * @see #KEY_LOCALYTICS_DATA_TYPE
              */
             @SuppressWarnings("hiding")
@@ -378,6 +410,48 @@ import com.localytics.android.LocalyticsProvider.ApiKeysDbColumns;
          * Optional fourth custom dimension. Can only exist if there is a third custom dimension.
          */
         public static final String KEY_CUSTOM_DIMENSION_4 = "c3"; //$NON-NLS-1$
+        
+        /**
+         * Type: {@code String}
+         * <p>
+         * Optional fifth custom dimension. Can only exist if there is a fourth custom dimension.
+         */
+        public static final String KEY_CUSTOM_DIMENSION_5 = "c4"; //$NON-NLS-1$
+
+        /**
+         * Type: {@code String}
+         * <p>
+         * Optional sixth custom dimension. Can only exist if there is a fifth custom dimension.
+         */
+        public static final String KEY_CUSTOM_DIMENSION_6 = "c5"; //$NON-NLS-1$
+
+        /**
+         * Type: {@code String}
+         * <p>
+         * Optional seventh custom dimension. Can only exist if there is a sixth custom dimension.
+         */
+        public static final String KEY_CUSTOM_DIMENSION_7 = "c6"; //$NON-NLS-1$
+
+        /**
+         * Type: {@code String}
+         * <p>
+         * Optional eighth custom dimension. Can only exist if there is a seventh custom dimension.
+         */
+        public static final String KEY_CUSTOM_DIMENSION_8 = "c7"; //$NON-NLS-1$
+
+        /**
+         * Type: {@code String}
+         * <p>
+         * Optional ninth custom dimension. Can only exist if there is a eighth custom dimension.
+         */
+        public static final String KEY_CUSTOM_DIMENSION_9 = "c8"; //$NON-NLS-1$
+
+        /**
+         * Type: {@code String}
+         * <p>
+         * Optional tenth custom dimension. Can only exist if there is a ninth custom dimension.
+         */
+        public static final String KEY_CUSTOM_DIMENSION_10 = "c9"; //$NON-NLS-1$
     }
 
     /**
@@ -585,6 +659,20 @@ import com.localytics.android.LocalyticsProvider.ApiKeysDbColumns;
          * Optional customer value increase
          */
         public static final String KEY_CUSTOMER_VALUE_INCREASE = "v"; //$NON-NLS-1$
+        
+        /**
+         * Type: {@code Double}
+         * <p>
+         * Optional latitude value
+         */
+        public static final String KEY_LATITUDE = "lat";
+        
+        /**
+         * Type: {@code Double}
+         * <p>
+         * Optional longitude value
+         */
+        public static final String KEY_LONGITUDE = "lng";
     }
 
     /**

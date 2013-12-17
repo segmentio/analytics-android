@@ -1,3 +1,6 @@
+0.4.2 / December 17, 2013
+=================
+* Updated Localytics bundled SDK
 
 0.4.1 / November 25, 2013
 =================

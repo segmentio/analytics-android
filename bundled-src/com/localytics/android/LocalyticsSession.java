@@ -9,12 +9,15 @@
 package com.localytics.android;
 
 import android.Manifest.permission;
+import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.CursorJoiner;
+import android.location.Location;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Handler;
@@ -118,7 +121,7 @@ import com.localytics.android.LocalyticsProvider.UploadBlobsDbColumns;
  *
  * @version 2.0
  */
-public final class LocalyticsSession
+public class LocalyticsSession
 {
     /*
      * DESIGN NOTES
@@ -181,7 +184,22 @@ public final class LocalyticsSession
      * Flow event
      */
     /* package */static final String FLOW_EVENT = String.format(EVENT_FORMAT, Constants.LOCALYTICS_PACKAGE_NAME, "flow"); //$NON-NLS-1$
+    
+    /**
+     * Push Opened event
+     */
+    /* package */static final String PUSH_OPENED_EVENT = "Localytics Push Opened"; //$NON-NLS-1$    
 
+    /**
+     * Campaign ID attribute
+     */
+    /* package */static final String CAMPAIGN_ID_ATTRIBUTE = "Campaign ID"; //$NON-NLS-1$    
+
+    /**
+     * Creative ID attribute
+     */
+    /* package */static final String CREATIVE_ID_ATTRIBUTE = "Creative ID"; //$NON-NLS-1$    
+    
     /**
      * Background thread used for all Localytics session processing. This thread is shared across all instances of
      * LocalyticsSession within a process.
@@ -247,6 +265,11 @@ public final class LocalyticsSession
      */
     private final Context mContext;
     
+    /**
+     * The most recent location. If non-null it will be included in sessions and events
+     */
+    private static Location lastLocation = null;
+
     /**
      * Keeps track of which Localytics clients are currently uploading, in order to allow only one upload for a given key at a
      * time.
@@ -800,6 +823,69 @@ public final class LocalyticsSession
     	mSessionHandler.sendMessage(mSessionHandler.obtainMessage(SessionHandler.MESSAGE_SET_IDENTIFIER, new Pair<String, String>(key, value)));
     }
 
+    public void registerPush(final String senderId)
+    {
+    	if (DatapointHelper.getApiLevel() < 8)
+    	{
+    		if (Constants.IS_LOGGABLE)
+    		{
+    			Log.w(Constants.LOG_TAG, "GCM requires API level 8 or higher"); //$NON-NLS-1$
+    		}
+    	}
+
+    	mSessionHandler.sendMessage(mSessionHandler.obtainMessage(SessionHandler.MESSAGE_REGISTER_PUSH, senderId));
+    }
+
+    public void handlePushReceived(final Intent intent)
+    {
+    	handlePushReceived(intent, null);
+    }    
+    
+    public void handlePushReceived(final Intent intent, final List<String> customDimensions)
+    {
+        if (intent == null || intent.getExtras() == null) return;
+        
+        // Tag an event indicating the push was opened
+        String llString = intent.getExtras().getString("ll");        
+        if (llString != null)
+        {
+        	try 
+        	{
+        		JSONObject llObject = new JSONObject(llString);
+        		String campaignId = llObject.getString("ca");
+        		String creativeId = llObject.getString("cr");
+        		
+        		if (campaignId != null && creativeId != null)
+        		{
+        			HashMap<String, String> attributes = new HashMap<String, String>();
+        			attributes.put(CAMPAIGN_ID_ATTRIBUTE, campaignId);
+        			attributes.put(CREATIVE_ID_ATTRIBUTE, creativeId);
+        			tagEvent(PUSH_OPENED_EVENT, attributes, customDimensions);
+        		}
+        		
+        		// Remove the extra so we don't tag the same event a second time
+        		intent.removeExtra("ll");
+        	}
+        	catch (JSONException e)
+        	{
+        		if (Constants.IS_LOGGABLE)
+        		{
+        			Log.w(Constants.LOG_TAG, "Failed to get campaign id or creatve id from payload"); //$NON-NLS-1$
+        		}
+        	}
+        }        
+    }
+
+    public void setPushRegistrationId(final String pushRegId)
+    {
+    	mSessionHandler.sendMessage(mSessionHandler.obtainMessage(SessionHandler.MESSAGE_SET_PUSH_REGID, pushRegId));
+    }
+    
+    public void setLocation(Location location)
+    {
+    	LocalyticsSession.lastLocation = location;
+    }
+    
     /**
      * Initiates an upload of any Localytics data for this session's API key. This should be done early in the process life in
      * order to guarantee as much time as possible for slow connections to complete. It is necessary to do this even if the user
@@ -965,6 +1051,30 @@ public final class LocalyticsSession
                 {
                     attributes.put(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_4, element);
                 }
+                else if (4 == index)
+                {
+                    attributes.put(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_5, element);
+                }
+                else if (5 == index)
+                {
+                    attributes.put(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_6, element);
+                }
+                else if (6 == index)
+                {
+                    attributes.put(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_7, element);
+                }
+                else if (7 == index)
+                {
+                    attributes.put(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_8, element);
+                }
+                else if (8 == index)
+                {
+                    attributes.put(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_9, element);
+                }
+                else if (9 == index)
+                {
+                    attributes.put(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_10, element);
+                }
 
                 index++;
             }
@@ -1041,6 +1151,20 @@ public final class LocalyticsSession
          */
         public static final int MESSAGE_SET_IDENTIFIER = 8;
 
+        /**
+         * Handler message to register with GCM
+         * <p>
+         * {@link Message#obj} is a string representing the sender id.
+         */
+        public static final int MESSAGE_REGISTER_PUSH = 9;
+
+        /**
+         * Handler message to set the GCM registration id
+         * <p>
+         * {@link Message#obj} is a string representing the push registration id.
+         */
+        public static final int MESSAGE_SET_PUSH_REGID = 10;
+        
         /**
          * Sort order for the upload blobs.
          * <p>
@@ -1228,7 +1352,13 @@ public final class LocalyticsSession
                                     else if (attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_1)
                                             || attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_2)
                                             || attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_3)
-                                            || attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_4))
+                                            || attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_4)
+                                            || attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_5)
+                                            || attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_6)
+                                            || attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_7)
+                                            || attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_8)
+                                            || attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_9)
+                                            || attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_10))
                                     {
                                         openCloseAttributes = new TreeMap<String, String>();
                                         if (attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_1))
@@ -1246,6 +1376,30 @@ public final class LocalyticsSession
                                         if (attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_4))
                                         {
                                             openCloseAttributes.put(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_4, attributes.get(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_4));
+                                        }
+                                        if (attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_5))
+                                        {
+                                            openCloseAttributes.put(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_5, attributes.get(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_5));
+                                        }
+                                        if (attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_6))
+                                        {
+                                            openCloseAttributes.put(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_6, attributes.get(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_6));
+                                        }
+                                        if (attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_7))
+                                        {
+                                            openCloseAttributes.put(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_7, attributes.get(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_7));
+                                        }
+                                        if (attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_8))
+                                        {
+                                            openCloseAttributes.put(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_8, attributes.get(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_8));
+                                        }
+                                        if (attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_9))
+                                        {
+                                            openCloseAttributes.put(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_9, attributes.get(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_9));
+                                        }
+                                        if (attributes.containsKey(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_10))
+                                        {
+                                            openCloseAttributes.put(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_10, attributes.get(AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_10));
                                         }
                                     }
                                     else
@@ -1303,6 +1457,78 @@ public final class LocalyticsSession
 
                         break;
                     }
+                    case MESSAGE_REGISTER_PUSH:
+                    {
+                        if (Constants.IS_LOGGABLE)
+                        {
+                            Log.d(Constants.LOG_TAG, "Handler received MESSAGE_REGISTER_PUSH"); //$NON-NLS-1$
+                        }
+
+                        @SuppressWarnings("unchecked")
+                        final String senderId = (String) msg.obj;
+                        
+                        mProvider.runBatchTransaction(new Runnable()
+                        {
+                        	public void run()
+                        	{
+		                        Cursor cursor = null;
+		                        
+		                        String pushRegId = null;
+		                        String pushRegVersion = null;
+		                        try
+		                        {
+		                            cursor = mProvider.query(InfoDbColumns.TABLE_NAME, null, null, null, null); //$NON-NLS-1$
+		
+		                            if (cursor.moveToFirst())
+		                            {           
+		                            	pushRegVersion = cursor.getString(cursor.getColumnIndexOrThrow(InfoDbColumns.REGISTRATION_VERSION));
+		                            	pushRegId = cursor.getString(cursor.getColumnIndexOrThrow(InfoDbColumns.REGISTRATION_ID));
+		                            }
+		                        }
+		                        finally
+		                        {
+		                            if (null != cursor)
+		                            {
+		                                cursor.close();
+		                                cursor = null;
+		                            }
+		                        }
+		                        
+		                        final String appVersion = DatapointHelper.getAppVersion(mContext);
+		                        		                        
+		                        // Only register if we don't have a registration id or if the app version has changed
+		                        if (pushRegId == null || TextUtils.isEmpty(pushRegId) || !appVersion.equals(pushRegVersion))
+		                        {
+			                        Intent registrationIntent = new Intent("com.google.android.c2dm.intent.REGISTER");
+			                        registrationIntent.putExtra("app", PendingIntent.getBroadcast(mContext, 0, new Intent(), 0));
+			                        registrationIntent.putExtra("sender", senderId);
+			                        mContext.startService(registrationIntent);
+		                        }
+                        	}
+                        });
+                        
+                        break;
+                    }                                        
+                    case MESSAGE_SET_PUSH_REGID:
+                    {
+                        if (Constants.IS_LOGGABLE)
+                        {
+                            Log.d(Constants.LOG_TAG, "Handler received MESSAGE_SET_PUSH_REGID"); //$NON-NLS-1$
+                        }
+
+                        @SuppressWarnings("unchecked")
+                        final String pushRegId = (String) msg.obj;
+                        
+                        mProvider.runBatchTransaction(new Runnable()
+                        {
+                            public void run()
+                            {
+                                SessionHandler.this.setPushRegistrationId(pushRegId);
+                            }
+                        });
+
+                        break;
+                    }     
                     case MESSAGE_UPLOAD:
                     {
                         if (Constants.IS_LOGGABLE)
@@ -1463,7 +1689,7 @@ public final class LocalyticsSession
          * @param isOptingOut true if the user is opting out. False if the user is opting back in.
          * @see #MESSAGE_OPT_OUT
          */
-        /* package */void optOut(final boolean isOptingOut)
+		/* package */void optOut(final boolean isOptingOut)
         {
             if (Constants.IS_LOGGABLE)
             {
@@ -1663,15 +1889,15 @@ public final class LocalyticsSession
          */
         /* package */void open(final boolean ignoreLimits, final Map<String, String> attributes)
         {
-            // if (null != getOpenSessionId(mProvider))
-            // {
-            // if (Constants.IS_LOGGABLE)
-            // {
-            //                    Log.w(Constants.LOG_TAG, "Session was already open"); //$NON-NLS-1$
-            // }
-            //
-            // return;
-            // }
+        	if (null != getOpenSessionId(mProvider))
+        	{
+        		if (Constants.IS_LOGGABLE)
+        		{
+        			Log.w(Constants.LOG_TAG, "Session was already open"); //$NON-NLS-1$
+        		}
+
+        		return;
+        	}
 
             if (isOptedOut(mProvider, mApiKey))
             {
@@ -1915,12 +2141,13 @@ public final class LocalyticsSession
             }
 
             values.put(SessionsDbColumns.DEVICE_ANDROID_ID_HASH, deviceId);
+            values.put(SessionsDbColumns.DEVICE_ANDROID_ID, DatapointHelper.getAndroidIdOrNull(mContext));
             values.put(SessionsDbColumns.DEVICE_COUNTRY, telephonyManager.getSimCountryIso());
             values.put(SessionsDbColumns.DEVICE_MANUFACTURER, DatapointHelper.getManufacturer());
             values.put(SessionsDbColumns.DEVICE_MODEL, Build.MODEL);
             values.put(SessionsDbColumns.DEVICE_SERIAL_NUMBER_HASH, DatapointHelper.getSerialNumberHashOrNull());
             values.put(SessionsDbColumns.DEVICE_TELEPHONY_ID, DatapointHelper.getTelephonyDeviceIdOrNull(mContext));
-            values.put(SessionsDbColumns.DEVICE_TELEPHONY_ID_HASH, DatapointHelper.getTelephonyDeviceIdHashOrNull(mContext));
+            values.putNull(SessionsDbColumns.DEVICE_TELEPHONY_ID_HASH);
             values.put(SessionsDbColumns.DEVICE_WIFI_MAC_HASH, DatapointHelper.getWifiMacHashOrNull(mContext));
             values.put(SessionsDbColumns.LOCALE_COUNTRY, Locale.getDefault().getCountry());
             values.put(SessionsDbColumns.LOCALE_LANGUAGE, Locale.getDefault().getLanguage());
@@ -2219,6 +2446,12 @@ public final class LocalyticsSession
                 	values.put(EventsDbColumns.CLV_INCREASE, 0);
                 }
                 
+                if (lastLocation != null)
+                {
+                	values.put(EventsDbColumns.LAT_NAME, lastLocation.getLatitude());
+                	values.put(EventsDbColumns.LNG_NAME, lastLocation.getLongitude());
+                }
+                
                 /*
                  * Special case for open event: keep the start time in sync with the start time put into the sessions table.
                  */
@@ -2457,6 +2690,14 @@ public final class LocalyticsSession
             }
         }
 
+        /* package */void setPushRegistrationId(final String pushRegId)
+        {
+            final ContentValues values = new ContentValues();
+            values.put(InfoDbColumns.REGISTRATION_ID, pushRegId == null ? "" : pushRegId);
+            values.put(InfoDbColumns.REGISTRATION_VERSION, DatapointHelper.getAppVersion(mContext));
+            mProvider.update(InfoDbColumns.TABLE_NAME, values, null, null);
+        }
+        
         /**
          * Projection for {@link #conditionallyAddFlowEvent()}.
          */
@@ -2785,9 +3026,14 @@ public final class LocalyticsSession
         private static final String UPLOAD_CALLBACK_THREAD_NAME = "upload_callback"; //$NON-NLS-1$
 
         /**
-         * Localytics upload URL, as a format string that contains a format for the API key.
+         * Localytics upload URL for HTTP, as a format string that contains a format for the API key.
          */
-        private final static String ANALYTICS_URL = "http://analytics.localytics.com/api/v2/applications/%s/uploads"; //$NON-NLS-1$
+        private final static String ANALYTICS_URL_HTTP = "http://analytics.localytics.com/api/v2/applications/%s/uploads"; //$NON-NLS-1$
+
+        /**
+         * Localytics upload URL for HTTPS
+         */
+        private final static String ANALYTICS_URL_HTTPS = "https://analytics.localytics.com/api/v2/uploads"; //$NON-NLS-1$        
         
         /**
          * Handler message to upload all data collected so far
@@ -2887,7 +3133,14 @@ public final class LocalyticsSession
                                     builder.append('\n');
                                 }
                                 
-                                if (uploadSessions(String.format(ANALYTICS_URL, mApiKey), builder.toString(), mInstallId))
+                                String apiKey = mApiKey;
+                                String rollupKey = DatapointHelper.getLocalyticsRollupKeyOrNull(mContext);          
+                                if (rollupKey != null && !TextUtils.isEmpty(rollupKey))
+                                {
+                                	apiKey = rollupKey;
+                                }
+                                                                                                                     
+                                if (uploadSessions(Constants.USE_HTTPS ? ANALYTICS_URL_HTTPS : String.format(ANALYTICS_URL_HTTP, apiKey), builder.toString(), mInstallId, apiKey))
                                 {
                                     mProvider.runBatchTransaction(new Runnable()
                                     {
@@ -2954,7 +3207,7 @@ public final class LocalyticsSession
          * @param body upload body as a string. This should be a plain old string. Cannot be null.
          * @return True on success, false on failure.
          */
-		/* package */static boolean uploadSessions(final String url, final String body, final String installId)
+		/* package */static boolean uploadSessions(final String url, final String body, final String installId, final String apiKey)
         {
             if (Constants.IS_PARAMETER_CHECKING_ENABLED)
             {
@@ -2996,7 +3249,15 @@ public final class LocalyticsSession
                         gos = new GZIPOutputStream(baos);
                         gos.write(originalBytes);
                         gos.finish();
-                        gos.flush();
+                        
+                        /*
+                         * KitKat throws an exception when you call flush
+                         * https://code.google.com/p/android/issues/detail?id=62589
+                         */
+                        if (DatapointHelper.getApiLevel() < 19)
+                        {
+                        	gos.flush();
+                        }
 
                         data = baos.toByteArray();
                     }
@@ -3045,10 +3306,12 @@ public final class LocalyticsSession
 
                     connection.setDoOutput(true); // sets POST method implicitly
                     connection.setRequestProperty("Content-Type", "application/x-gzip"); //$NON-NLS-1$//$NON-NLS-2$
+                    connection.setRequestProperty("Content-Encoding", "gzip"); //$NON-NLS-1$//$NON-NLS-2$
                     connection.setRequestProperty("x-upload-time",
                                                   Long.toString(Math.round((double) System.currentTimeMillis()
                                                                            / DateUtils.SECOND_IN_MILLIS))); //$NON-NLS-1$//$NON-NLS-2$
                     connection.setRequestProperty("x-install-id", installId); //$NON-NLS-1$
+                    connection.setRequestProperty("x-app-id", apiKey); //$NON-NLS-1$
                     connection.setRequestProperty("x-client-version", Constants.LOCALYTICS_CLIENT_LIBRARY_VERSION); //$NON-NLS-1$
                     connection.setFixedLengthStreamingMode(data.length);
 
@@ -3121,10 +3384,12 @@ public final class LocalyticsSession
                 final DefaultHttpClient client = new DefaultHttpClient();
                 final HttpPost method = new HttpPost(url);
                 method.addHeader("Content-Type", "application/x-gzip"); //$NON-NLS-1$ //$NON-NLS-2$
+                method.addHeader("Content-Encoding", "gzip"); //$NON-NLS-1$//$NON-NLS-2$
                 method.addHeader("x-upload-time",
                                  Long.toString(Math.round((double) System.currentTimeMillis()
                                                           / DateUtils.SECOND_IN_MILLIS))); //$NON-NLS-1$//$NON-NLS-2$
                 method.addHeader("x-install-id", installId); //$NON-NLS-1$
+                method.addHeader("x-app-id", apiKey); //$NON-NLS-1$
                 method.addHeader("x-client-version", Constants.LOCALYTICS_CLIENT_LIBRARY_VERSION); //$NON-NLS-1$
                 
                 GZIPOutputStream gos = null;
@@ -3240,7 +3505,11 @@ public final class LocalyticsSession
                         }
                         
                         result.add(blobHeader);
-                        Log.w(Constants.LOG_TAG, result.toString());
+                        
+                        if (Constants.IS_LOGGABLE)
+                        {
+                        	Log.w(Constants.LOG_TAG, result.toString());
+                        }
 
                         Cursor blobEvents = null;
                         try
@@ -3448,6 +3717,8 @@ public final class LocalyticsSession
                 if (cursor.moveToFirst())
                 {
                     final JSONObject result = new JSONObject();
+                    
+                    // Sessions table
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_CLIENT_APP_VERSION, cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.APP_VERSION)));
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_DATA_CONNECTION, cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.NETWORK_TYPE)));
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_DEVICE_ANDROID_ID_HASH, cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_ANDROID_ID_HASH)));
@@ -3459,21 +3730,15 @@ public final class LocalyticsSession
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_DEVICE_SERIAL_HASH, cursor.isNull(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_SERIAL_NUMBER_HASH)) ? JSONObject.NULL
                             : cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_SERIAL_NUMBER_HASH)));
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_DEVICE_SDK_LEVEL, cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.ANDROID_SDK)));
-                    if (Constants.IS_DEVICE_IDENTIFIER_UPLOADED)
-                    {
-                        result.put(JsonObjects.BlobHeader.Attributes.KEY_DEVICE_TELEPHONY_ID, cursor.isNull(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_TELEPHONY_ID)) ? JSONObject.NULL
-                                : cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_TELEPHONY_ID)));
-                    }
-                    else
-                    {
-                        result.put(JsonObjects.BlobHeader.Attributes.KEY_DEVICE_TELEPHONY_ID_HASH, cursor.isNull(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_TELEPHONY_ID_HASH)) ? JSONObject.NULL
-                                : cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_TELEPHONY_ID_HASH)));
-                    }
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_DEVICE_WIFI_MAC_HASH, cursor.isNull(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_WIFI_MAC_HASH)) ? JSONObject.NULL
                             : cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_WIFI_MAC_HASH)));
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_LOCALYTICS_API_KEY, apiKey);
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_LOCALYTICS_CLIENT_LIBRARY_VERSION, cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.LOCALYTICS_LIBRARY_VERSION)));
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_LOCALYTICS_DATA_TYPE, JsonObjects.BlobHeader.Attributes.VALUE_DATA_TYPE);
+                    result.put(JsonObjects.BlobHeader.Attributes.KEY_CURRENT_TELEPHONY_ID, cursor.isNull(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_TELEPHONY_ID)) ? JSONObject.NULL
+                            : cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_TELEPHONY_ID)));                    
+                    result.put(JsonObjects.BlobHeader.Attributes.KEY_CURRENT_ANDROID_ID, cursor.isNull(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_ANDROID_ID)) ? JSONObject.NULL
+                            : cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_ANDROID_ID)));
 
                     // This would only be null after an upgrade from an earlier version of the Localytics library
                     final String installationID = cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.LOCALYTICS_INSTALLATION_ID));
@@ -3485,8 +3750,8 @@ public final class LocalyticsSession
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_LOCALE_LANGUAGE, cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.LOCALE_LANGUAGE)));
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_NETWORK_CARRIER, cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.NETWORK_CARRIER)));
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_NETWORK_COUNTRY, cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.NETWORK_COUNTRY)));
-             
-                    
+                                                    
+                    // Info table
                     String fbAttribution = getStringFromAppInfo(provider, InfoDbColumns.FB_ATTRIBUTION);
                     if (null != fbAttribution)
                     {
@@ -3497,6 +3762,30 @@ public final class LocalyticsSession
                     if (null != playAttribution)
                     {
                     	result.put(JsonObjects.BlobHeader.Attributes.KEY_GOOGLE_PLAY_ATTRIBUTION, playAttribution);
+                    }
+                    
+                    String registrationId = getStringFromAppInfo(provider, InfoDbColumns.REGISTRATION_ID);
+                    if (null != registrationId)
+                    {
+                    	result.put(JsonObjects.BlobHeader.Attributes.KEY_PUSH_ID, registrationId);
+                    }
+
+                    String firstAndroidId = getStringFromAppInfo(provider, InfoDbColumns.FIRST_ANDROID_ID);
+                    if (null != firstAndroidId)
+                    {
+                    	result.put(JsonObjects.BlobHeader.Attributes.KEY_DEVICE_ANDROID_ID, firstAndroidId);
+                    }
+
+                    String firstTelephonyId = getStringFromAppInfo(provider, InfoDbColumns.FIRST_TELEPHONY_ID);
+                    if (null != firstTelephonyId)
+                    {
+                    	result.put(JsonObjects.BlobHeader.Attributes.KEY_DEVICE_TELEPHONY_ID, firstTelephonyId);
+                    }                    
+                    
+                    String packageName = getStringFromAppInfo(provider, InfoDbColumns.PACKAGE_NAME);
+                    if (null != packageName)
+                    {
+                    	result.put(JsonObjects.BlobHeader.Attributes.KEY_PACKAGE_NAME, packageName);
                     }
                     
                     return result;
@@ -3540,7 +3829,6 @@ public final class LocalyticsSession
                 	}
                 	
                 	result.put(cursor.getString(cursor.getColumnIndexOrThrow(IdentifiersDbColumns.KEY)), cursor.getString(cursor.getColumnIndexOrThrow(IdentifiersDbColumns.VALUE)));
-                	Log.w(Constants.LOG_TAG, "identifier found"); //$NON-NLS-1$
                 }
                 
                 return result;
@@ -3602,6 +3890,22 @@ public final class LocalyticsSession
                         result.put(JsonObjects.SessionOpen.KEY_COUNT, sessionId);
 
                         /*
+                         * Append lat/lng if it is available
+                         */
+                        if (false == cursor.isNull(cursor.getColumnIndexOrThrow(EventsDbColumns.LAT_NAME)) &&
+                            false == cursor.isNull(cursor.getColumnIndexOrThrow(EventsDbColumns.LNG_NAME)))
+                        {
+                        	double lat = cursor.getDouble(cursor.getColumnIndexOrThrow(EventsDbColumns.LAT_NAME));
+                        	double lng = cursor.getDouble(cursor.getColumnIndexOrThrow(EventsDbColumns.LNG_NAME));
+                        	
+                        	if (lat != 0 && lng != 0)
+                        	{
+                        		result.put(JsonObjects.SessionEvent.KEY_LATITUDE, lat);
+                        		result.put(JsonObjects.SessionEvent.KEY_LONGITUDE, lng);
+                        	}
+                        }
+                        
+                        /*
                          * Get the custom dimensions from the attributes table
                          */
                         Cursor attributesCursor = null;
@@ -3623,16 +3927,38 @@ public final class LocalyticsSession
                                 else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_2.equals(key))
                                 {
                                     result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_2, value);
-
                                 }
                                 else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_3.equals(key))
                                 {
                                     result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_3, value);
-
                                 }
                                 else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_4.equals(key))
                                 {
                                     result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_4, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_5.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_5, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_6.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_6, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_7.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_7, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_8.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_8, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_9.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_9, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_10.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_10, value);
                                 }
                             }
                         }
@@ -3715,6 +4041,22 @@ public final class LocalyticsSession
                         }
 
                         /*
+                         * Append lat/lng if it is available
+                         */
+                        if (false == cursor.isNull(cursor.getColumnIndexOrThrow(EventsDbColumns.LAT_NAME)) &&
+                            false == cursor.isNull(cursor.getColumnIndexOrThrow(EventsDbColumns.LNG_NAME)))
+                        {
+                        	double lat = cursor.getDouble(cursor.getColumnIndexOrThrow(EventsDbColumns.LAT_NAME));
+                        	double lng = cursor.getDouble(cursor.getColumnIndexOrThrow(EventsDbColumns.LNG_NAME));
+                        	
+                        	if (lat != 0 && lng != 0)
+                        	{
+                        		result.put(JsonObjects.SessionEvent.KEY_LATITUDE, lat);
+                        		result.put(JsonObjects.SessionEvent.KEY_LONGITUDE, lng);
+                        	}
+                        }
+                        
+                        /*
                          * Get the custom dimensions from the attributes table
                          */
                         Cursor attributesCursor = null;
@@ -3736,17 +4078,39 @@ public final class LocalyticsSession
                                 else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_2.equals(key))
                                 {
                                     result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_2, value);
-
                                 }
                                 else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_3.equals(key))
                                 {
                                     result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_3, value);
-
                                 }
                                 else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_4.equals(key))
                                 {
                                     result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_4, value);
                                 }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_5.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_5, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_6.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_6, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_7.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_7, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_8.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_8, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_9.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_9, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_10.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_10, value);
+                                }                                
                             }
                         }
                         finally
@@ -3848,6 +4212,22 @@ public final class LocalyticsSession
                         }
                         
                         /*
+                         * Append lat/lng if it is available
+                         */
+                        if (false == cursor.isNull(cursor.getColumnIndexOrThrow(EventsDbColumns.LAT_NAME)) &&
+                            false == cursor.isNull(cursor.getColumnIndexOrThrow(EventsDbColumns.LNG_NAME)))
+                        {
+                        	double lat = cursor.getDouble(cursor.getColumnIndexOrThrow(EventsDbColumns.LAT_NAME));
+                        	double lng = cursor.getDouble(cursor.getColumnIndexOrThrow(EventsDbColumns.LNG_NAME));
+                        	
+                        	if (lat != 0 && lng != 0)
+                        	{
+                        		result.put(JsonObjects.SessionEvent.KEY_LATITUDE, lat);
+                        		result.put(JsonObjects.SessionEvent.KEY_LONGITUDE, lng);
+                        	}
+                        }
+                        
+                        /*
                          * Get the custom dimensions from the attributes table
                          */
                         Cursor attributesCursor = null;
@@ -3869,16 +4249,38 @@ public final class LocalyticsSession
                                 else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_2.equals(key))
                                 {
                                     result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_2, value);
-
                                 }
                                 else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_3.equals(key))
                                 {
                                     result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_3, value);
-
                                 }
                                 else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_4.equals(key))
                                 {
                                     result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_4, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_5.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_5, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_6.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_6, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_7.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_7, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_8.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_8, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_9.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_9, value);
+                                }
+                                else if (AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_10.equals(key))
+                                {
+                                    result.put(JsonObjects.SessionOpen.KEY_CUSTOM_DIMENSION_10, value);
                                 }
                             }
                         }
@@ -4072,7 +4474,7 @@ public final class LocalyticsSession
             Cursor cursor = null;
             try
             {
-                cursor = provider.query(AttributesDbColumns.TABLE_NAME, null, String.format("%s = ? AND %s != ? AND %s != ? AND %s != ? AND %s != ?", AttributesDbColumns.EVENTS_KEY_REF, AttributesDbColumns.ATTRIBUTE_KEY, AttributesDbColumns.ATTRIBUTE_KEY, AttributesDbColumns.ATTRIBUTE_KEY, AttributesDbColumns.ATTRIBUTE_KEY), new String[] { Long.toString(eventId), AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_1, AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_2, AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_3, AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_4 }, null); //$NON-NLS-1$
+                cursor = provider.query(AttributesDbColumns.TABLE_NAME, null, String.format("%s = ? AND %s != ? AND %s != ? AND %s != ? AND %s != ? AND %s != ? AND %s != ? AND %s != ? AND %s != ? AND %s != ? AND %s != ?", AttributesDbColumns.EVENTS_KEY_REF, AttributesDbColumns.ATTRIBUTE_KEY, AttributesDbColumns.ATTRIBUTE_KEY, AttributesDbColumns.ATTRIBUTE_KEY, AttributesDbColumns.ATTRIBUTE_KEY, AttributesDbColumns.ATTRIBUTE_KEY, AttributesDbColumns.ATTRIBUTE_KEY, AttributesDbColumns.ATTRIBUTE_KEY, AttributesDbColumns.ATTRIBUTE_KEY, AttributesDbColumns.ATTRIBUTE_KEY, AttributesDbColumns.ATTRIBUTE_KEY), new String[] { Long.toString(eventId), AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_1, AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_2, AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_3,  AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_4, AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_5, AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_6, AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_7, AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_8, AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_9, AttributesDbColumns.ATTRIBUTE_CUSTOM_DIMENSION_10 }, null); //$NON-NLS-1$
 
                 if (cursor.getCount() == 0)
                 {

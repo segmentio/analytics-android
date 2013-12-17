@@ -124,6 +124,19 @@ import java.security.NoSuchAlgorithmException;
      */
     public static String getAndroidIdHashOrNull(final Context context)
     {
+    	String androidId = getAndroidIdOrNull(context);
+    	
+    	return (androidId == null) ? null : getSha256_buggy(androidId);
+    }
+    
+    /**
+     * Gets the device's Android ID.
+     *
+     * @param context The context used to access the settings resolver
+     * @return The Android ID. May return null if Android ID is not available.
+     */
+    public static String getAndroidIdOrNull(final Context context)
+    {
         // Make sure a legacy version of the SDK didn't leave behind a device ID.
         // If it did, this ID must be used to keep user counts accurate
         final File fp = new File(context.getFilesDir() + LEGACY_DEVICE_ID_FILE);
@@ -172,7 +185,7 @@ import java.security.NoSuchAlgorithmException;
             return null;
         }
 
-        return getSha256_buggy(androidId);
+        return androidId;
     }
 
     /**
@@ -263,30 +276,6 @@ import java.security.NoSuchAlgorithmException;
         }
 
         return id;
-    }
-
-    /**
-     * Gets a 1-way hashed value of the device's IMEI/MEID ID. This value is encoded using a SHA-256 one way hash and cannot be
-     * used to determine what device this data came from.
-     * <p>
-     * Note: this method will return null if this is a non-telephony device.
-     * <p>
-     * Note: this method will return null if {@link permission#READ_PHONE_STATE} is not available.
-     *
-     * @param context The context used to access the phone state.
-     * @return An 1-way hashed version of the {@link TelephonyManager#getDeviceId()}. Null if an ID or the hashing algorithm is
-     *         not available, or if {@link permission#READ_PHONE_STATE} is not available.
-     */
-    public static String getTelephonyDeviceIdHashOrNull(final Context context)
-    {
-        final String id = getTelephonyDeviceIdOrNull(context);
-
-        if (null == id)
-        {
-            return null;
-        }
-
-        return getSha256_buggy(id);
     }
 
     /**
@@ -508,7 +497,11 @@ import java.security.NoSuchAlgorithmException;
         try
         {
         	ApplicationInfo applicationInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
-			appKey = (String)applicationInfo.metaData.get(Constants.LOCALYTICS_METADATA_APP_KEY);
+			Object metaData = applicationInfo.metaData.get(Constants.LOCALYTICS_METADATA_APP_KEY);
+			if (metaData instanceof String)
+			{
+				appKey = (String)metaData;
+			}
 		}
         catch (final PackageManager.NameNotFoundException e)
         {
@@ -519,6 +512,33 @@ import java.security.NoSuchAlgorithmException;
         }
         
         return appKey;
+    }
+    
+    public static String getLocalyticsRollupKeyOrNull(final Context context)
+    {
+    	String rollupKey = null;
+    	
+        try
+        {
+        	ApplicationInfo applicationInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+        	if (applicationInfo.metaData != null)
+        	{
+        		Object metaData = (String)applicationInfo.metaData.get(Constants.LOCALYTICS_METADATA_ROLLUP_KEY);
+				if (metaData instanceof String)
+				{
+					rollupKey = (String)metaData;
+				}
+        	}
+		}
+        catch (final PackageManager.NameNotFoundException e)
+        {
+            /*
+             * This should never occur--our own package must exist for this code to be running
+             */
+            throw new RuntimeException(e);
+        }
+        
+        return rollupKey;
     }
 
     /**

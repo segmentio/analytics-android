@@ -30,9 +30,17 @@ import android.text.format.DateUtils;
  	 * 2.5: Improvements in detecting time skew and Facebook attribution ability.
  	 * 2.6: Customer lifetime value support
  	 * 2.7: Google Play attribution and support for app keys in AndroidManifest.xml
+ 	 * 2.8: Add support for rollup keys in AndroidManifest.xml
+ 	 * 2.10: Push support
+ 	 * 2.11: Logging fixes and unhashed Android ID 
+ 	 * 2.12: Prevent multiple sessions from being created if open is called multiple times
+ 	 * 2.13: Add support for up to 10 custom dimensions (previously 4) 
+ 	 * 2.14: Expose appKey in ReferralReceiver so it can be set in code via subclassing
+ 	 * 2.15: KitKat GZIP bug workaround, optional HTTPS, setLocation API, and default to 50 attributes
+ 	 * 2.16: Improved handling of missing meta-data in AndroidManifest.xml
      */
     //@formatter:on
-    public static final String LOCALYTICS_CLIENT_LIBRARY_VERSION = "android_2.7"; //$NON-NLS-1$
+    public static final String LOCALYTICS_CLIENT_LIBRARY_VERSION = "android_2.16"; //$NON-NLS-1$
 
     /**
      * The package name of the Localytics library.
@@ -49,6 +57,11 @@ import android.text.format.DateUtils;
      * Name of the metadata property in the manifest that represents the app key
      */
     public static final String LOCALYTICS_METADATA_APP_KEY = "LOCALYTICS_APP_KEY"; //$NON-NLS-1$
+
+    /**
+     * Name of the metadata property in the manifest that represents the rollup key
+     */
+    public static final String LOCALYTICS_METADATA_ROLLUP_KEY = "LOCALYTICS_ROLLUP_KEY"; //$NON-NLS-1$
     
     /**
      * Maximum number of sessions to store on disk.
@@ -58,12 +71,12 @@ import android.text.format.DateUtils;
     /**
      * Maximum number of attributes per event session.
      */
-    public static final int MAX_NUM_ATTRIBUTES = 10;
+    public static final int MAX_NUM_ATTRIBUTES = 50;
 
     /**
      * The maximum number of custom dimensions reported to the server.
      */
-    public static final int MAX_CUSTOM_DIMENSIONS = 4;
+    public static final int MAX_CUSTOM_DIMENSIONS = 10;
 
     /**
      * Maximum characters in an event name or attribute key/value.
@@ -91,6 +104,11 @@ import android.text.format.DateUtils;
      */
     public static final boolean IS_LOGGABLE = false;
 
+    /**
+     * Flag indicating whether to use HTTPS for uploads
+     */
+    public static final boolean USE_HTTPS = false;    
+    
     /**
      * Flag indicating whether runtime method parameter checking is performed.
      */

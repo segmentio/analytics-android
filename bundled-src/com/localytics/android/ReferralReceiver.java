@@ -28,6 +28,8 @@ import android.os.Bundle;
  */
 public class ReferralReceiver extends BroadcastReceiver
 {
+	protected String appKey = null;
+			
     @Override
     public void onReceive(Context context, Intent intent)
     {
@@ -48,10 +50,12 @@ public class ReferralReceiver extends BroadcastReceiver
             return;
         }
         
-        // Get the app key
-    	String appKey = DatapointHelper.getLocalyticsAppKeyOrNull(context);
-		
-		// Return if there's no app key in the manifest
+        // Try to get the app key from the manifest
+        if (appKey == null || appKey.length() == 0) {
+        	appKey = DatapointHelper.getLocalyticsAppKeyOrNull(context);
+        }
+    			
+		// Return if there's still no app key found
 		if (appKey == null || appKey.length() == 0) {
 			return;
 		}
