@@ -1,3 +1,7 @@
+0.4.4 / January 8, 2014
+=================
+* upgrading to Mixpanel 4.0 SDK
+
 0.4.3 / January 8, 2014
 =================
 * Updated initialized state to be `volatile` to prevent two activities initializing the Analytics client simultaneously
