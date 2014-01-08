@@ -17,8 +17,8 @@ public class ConfigurationTest extends ActivityTestCase {
 	public void testSecret() {
 	    Context context = getInstrumentation().getContext();
 		Resources resources = context.getResources();
-		String secret = Configuration.getSecret(context);
-		Assert.assertEquals(resources.getString(R.string.analytics_secret), secret);
+		String writeKey = Configuration.getWriteKey(context);
+		Assert.assertEquals(resources.getString(R.string.analytics_secret), writeKey);
 	}
 	
 	@Test

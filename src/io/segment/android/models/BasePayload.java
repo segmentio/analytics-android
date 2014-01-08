@@ -1,6 +1,7 @@
 package io.segment.android.models;
 
 import java.util.Calendar;
+import java.util.UUID;
 
 import org.json.JSONObject;
 
@@ -8,6 +9,7 @@ public class BasePayload extends EasyJSONObject {
 	
 	private final static String USER_ID_KEY = "userId";
 	private final static String TIMESTAMP_KEY = "timestamp";
+	private final static String REQUEST_ID_KEY = "requestId";
 	private final static String CONTEXT_KEY = "context";
 	
 	public BasePayload (JSONObject obj) {
@@ -26,6 +28,7 @@ public class BasePayload extends EasyJSONObject {
 		setUserId(userId);
 		setTimestamp(timestamp);
 		setContext(context);
+		setRequestId(UUID.randomUUID().toString());
 	}
 
 	public String getUserId() {
@@ -54,4 +57,21 @@ public class BasePayload extends EasyJSONObject {
 		this.put(CONTEXT_KEY, context);
 	}
 
+	public String getRequestId() {
+		return this.optString(REQUEST_ID_KEY, null);
+	}
+
+	public void setRequestId(String requestId) {
+		this.put(REQUEST_ID_KEY, requestId);
+	}
+
+	/**
+	 * Gets a description of this item.
+	 * @return {String}
+	 */
+	public String toDescription() {
+		return "[Item " + this.getRequestId() + "] " + 
+				this.getString("action", "action");
+	}
+	
 }

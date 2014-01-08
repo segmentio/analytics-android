@@ -1,5 +1,7 @@
 package io.segment.android.models;
 
+import io.segment.android.Analytics;
+
 import org.json.JSONObject;
 
 
@@ -7,6 +9,7 @@ public class Context extends EasyJSONObject {
 
 	private static final String IP_KEY = "ip";
 	private static final String LIBRARY_KEY = "library";
+	private static final String LIBRARY_VERSION_KEY = "libraryVersion";
 	private static final String PROVIDERS_KEY = "providers";
 
 	public Context() {
@@ -26,6 +29,7 @@ public class Context extends EasyJSONObject {
 
 	private void addLibraryContext() {
 		this.put(LIBRARY_KEY, "analytics-android");
+		this.put(LIBRARY_VERSION_KEY, Analytics.VERSION);
 	}
 
 	public Context setIp(String ip) {

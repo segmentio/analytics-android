@@ -1,5 +1,6 @@
 package io.segment.android.models;
 
+import java.util.Calendar;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -7,12 +8,13 @@ import org.json.JSONObject;
 
 public class Batch extends EasyJSONObject {
 
-	private final static String SECRET_KEY = "secret";
+	private final static String WRITE_KEY = "writeKey";
 	private final static String BATCH_KEY = "batch";
 	private final static String CONTEXT_KEY = "context";
+	private final static String REQUEST_TIMESTAMP_KEY = "requestTimestamp";
 	
-	public Batch(String secret, List<BasePayload> batch) {
-		setSecret(secret);
+	public Batch(String writeKey, List<BasePayload> batch) {
+		setWriteKey(writeKey);
 		setBatch(batch);
 	}
 	
@@ -26,12 +28,12 @@ public class Batch extends EasyJSONObject {
 		this.put(CONTEXT_KEY, context);
 	}
 	
-	public String getSecret() {
-		return this.optString(SECRET_KEY, null);
+	public String getWriteKey() {
+		return this.optString(WRITE_KEY, null);
 	}
 
-	public void setSecret(String secret) {
-		this.put(SECRET_KEY, secret);
+	public void setWriteKey(String writeKey) {
+		this.put(WRITE_KEY, writeKey);
 	}
 
 	public List<BasePayload> getBatch() {
@@ -42,4 +44,11 @@ public class Batch extends EasyJSONObject {
 		this.put(BATCH_KEY, new JSONArray(batch));
 	}
 
+	public Calendar getRequestTimestamp() {
+		return getCalendar(REQUEST_TIMESTAMP_KEY);
+	}
+
+	public void setRequestTimestamp(Calendar timestamp) {
+		super.put(REQUEST_TIMESTAMP_KEY, timestamp);
+	}
 }

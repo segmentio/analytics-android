@@ -1,3 +1,12 @@
+0.4.3 / January 8, 2014
+=================
+* Updated initialized state to be `volatile` to prevent two activities initializing the Analytics client simultaneously
+* Added `requestId` to payloads
+* Added logging statements on enqueue and sending
+* Rename `secret` to `writeKey`
+* Added `requestTimestamp` to batch
+* Added `libraryVersion`
+
 0.4.2 / December 17, 2013
 =================
 * Updated Localytics bundled SDK

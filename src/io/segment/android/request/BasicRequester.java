@@ -1,5 +1,7 @@
 package io.segment.android.request;
 
+import java.util.Calendar;
+
 import io.segment.android.Analytics;
 import io.segment.android.Defaults;
 import io.segment.android.Logger;
@@ -24,6 +26,7 @@ public class BasicRequester implements IRequester {
 	
 	@Override
 	public HttpResponse send(Batch batch) {
+		batch.setRequestTimestamp(Calendar.getInstance());
 		
 		Options options = Analytics.getOptions();
 		
@@ -54,7 +57,7 @@ public class BasicRequester implements IRequester {
 
 		Options options = Analytics.getOptions();
 		
-		String url = options.getHost() + Defaults.getSettingsEndpoint(Analytics.getSecret());
+		String url = options.getHost() + Defaults.getSettingsEndpoint(Analytics.getWriteKey());
 		
 		HttpClient httpclient = new DefaultHttpClient(); 
 		HttpGet get = new HttpGet(url);

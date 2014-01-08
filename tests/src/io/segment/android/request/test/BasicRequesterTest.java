@@ -52,7 +52,7 @@ public class BasicRequesterTest extends BaseTest {
 		List<BasePayload> items = new LinkedList<BasePayload>();
 		items.add(identify);
 		
-		Batch batch = new Batch(TestCases.batch.getSecret(), items);
+		Batch batch = new Batch(TestCases.batch.getWriteKey(), items);
 		
 		HttpResponse response = requester.send(batch);
 		
@@ -68,11 +68,7 @@ public class BasicRequesterTest extends BaseTest {
 		Assert.assertNotNull(settings);
 		Assert.assertTrue(settings.length() > 0);
 		
-		String[] keys = {
-			"Customer.io", "HubSpot", "KISSmetrics", "Olark", "Keen IO", "Segment.io",
-			"Klaviyo", "Salesforce", "Librato", "Intercom", "Mixpanel", "Woopra",
-			"HelpScout", "Pardot", "Marketo", "Google Analytics", "Chartbeat", "Vero"
-		};
+		String[] keys = {"Segment.io"};
 		
 		for (String key : keys) {
 			if (settings.getObject(key) == null) Logger.e(key + " is not in settings!");

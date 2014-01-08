@@ -84,6 +84,14 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 							// we are now executing in the context of the
 							// flushing thread
 							
+							for (BasePayload payload : payloads) {
+								if (success) {
+									Logger.i("Item " + payload.toDescription() + " successfully sent.");
+								} else {
+									Logger.w("Item " + payload.toDescription() + " failed to be sent.");
+								}
+							}
+							
 							if (!success) {
 								// if we failed at flushing (connectivity issues)
 								// return

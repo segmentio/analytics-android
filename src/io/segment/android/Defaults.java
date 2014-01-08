@@ -21,8 +21,8 @@ public class Defaults {
 		this.put("import",   "/v1/import");
 	}};
 	
-	public static String getSettingsEndpoint(String secret) {
-		return "/project/" + secret + "/settings";
+	public static String getSettingsEndpoint(String writeKey) {
+		return "/project/" + writeKey + "/settings";
 	}
 	
 	public static final int MAX_QUEUE_SIZE = 10000;

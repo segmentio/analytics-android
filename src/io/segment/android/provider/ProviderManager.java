@@ -81,7 +81,7 @@ public class ProviderManager implements IProvider {
 		if (!initialized) refresh();
 		if (!initialized) {
 			// we still haven't gotten any settings
-			Log.w(TAG, "The Segment.io provider manager has not yet been able to receive integration settings.");
+			Log.i(TAG, "Provider manager waiting to be initialized ..");
 		}
 		return initialized;
 	}

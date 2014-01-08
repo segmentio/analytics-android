@@ -41,11 +41,11 @@ import android.text.TextUtils;
 
 public class Analytics {
 	
-	public static final String VERSION = "0.4.2";
+	public static final String VERSION = "0.4.3";
 	
 	private static AnalyticsStatistics statistics;
 	
-	private static String secret;
+	private static String writeKey;
 	private static Options options;
 	
 	private static InfoManager infoManager;
@@ -60,8 +60,8 @@ public class Analytics {
 	
 	private static Context globalContext;
 	
-	private static boolean initialized;
-	private static boolean optedOut;
+	private static volatile boolean initialized;
+	private static volatile boolean optedOut;
 
 	private static SimpleStringCache sessionIdCache;
 	private static SimpleStringCache userIdCache;
@@ -104,14 +104,14 @@ public class Analytics {
 	 * @param activity
 	 *            Your Android Activity
 	 * 
-	 * @param secret
-	 *            Your segment.io secret. You can get one of these by
+	 * @param writeKey
+	 *            Your segment.io writeKey. You can get one of these by
 	 *            registering for a project at https://segment.io
 	 * 
 	 * 
 	 */
-	public static void onCreate (android.content.Context context, String secret) {
-		Analytics.initialize(context, secret);
+	public static void onCreate (android.content.Context context, String writeKey) {
+		Analytics.initialize(context, writeKey);
 		providerManager.onCreate(context);
 	}
 	
@@ -130,8 +130,8 @@ public class Analytics {
 	 * @param activity
 	 *            Your Android Activity
 	 * 
-	 * @param secret
-	 *            Your segment.io secret. You can get one of these by
+	 * @param writeKey
+	 *            Your segment.io writeKey. You can get one of these by
 	 *            registering for a project at https://segment.io
 	 * 
 	 * @param options
@@ -139,8 +139,8 @@ public class Analytics {
 	 * 
 	 * 
 	 */
-	public static void onCreate (android.content.Context context, String secret, Options options) {
-		Analytics.initialize(context, secret, options);
+	public static void onCreate (android.content.Context context, String writeKey, Options options) {
+		Analytics.initialize(context, writeKey, options);
 		providerManager.onCreate(context);
 	}
 	
@@ -180,14 +180,14 @@ public class Analytics {
 	 * @param activity
 	 *            Your Android Activity
 	 * 
-	 * @param secret
-	 *            Your segment.io secret. You can get one of these by
+	 * @param writeKey
+	 *            Your segment.io writeKey. You can get one of these by
 	 *            registering for a project at https://segment.io
 	 * 
 	 * 
 	 */
-	public static void activityStart (Activity activity, String secret) {
-		Analytics.initialize(activity, secret);
+	public static void activityStart (Activity activity, String writeKey) {
+		Analytics.initialize(activity, writeKey);
 		providerManager.onActivityStart(activity);
 	}
 	
@@ -206,8 +206,8 @@ public class Analytics {
 	 * @param activity
 	 *            Your Android Activity
 	 * 
-	 * @param secret
-	 *            Your segment.io secret. You can get one of these by
+	 * @param writeKey
+	 *            Your segment.io writeKey. You can get one of these by
 	 *            registering for a project at https://segment.io
 	 * 
 	 * @param options
@@ -215,8 +215,8 @@ public class Analytics {
 	 * 
 	 * 
 	 */
-	public static void activityStart (Activity activity, String secret, Options options) {
-		Analytics.initialize(activity, secret, options);
+	public static void activityStart (Activity activity, String writeKey, Options options) {
+		Analytics.initialize(activity, writeKey, options);
 		if (optedOut) return;
 		providerManager.onActivityStart(activity);
 	}
@@ -258,11 +258,11 @@ public class Analytics {
 
 		if (initialized) return;
 
-		// read both secret and options from analytics.xml
-		String secret = Configuration.getSecret(context);
+		// read both writeKey and options from analytics.xml
+		String writeKey = Configuration.getWriteKey(context);
 		Options options = Configuration.getOptions(context);
 		
-		initialize(context, secret,options);
+		initialize(context, writeKey, options);
 	}
 
 	
@@ -285,19 +285,19 @@ public class Analytics {
 	 * @param context
 	 *            Your Android android.content.Content (like your activity).
 	 * 
-	 * @param secret
-	 *            Your segment.io secret. You can get one of these by
+	 * @param writeKey
+	 *            Your segment.io writeKey. You can get one of these by
 	 *            registering for a project at https://segment.io
 	 * 
 	 */
-	public static void initialize(android.content.Context context, String secret) {
+	public static void initialize(android.content.Context context, String writeKey) {
 
 		if (initialized) return;
 
 		// read options from analytics.xml
 		Options options = Configuration.getOptions(context);
 		
-		initialize(context, secret, options);
+		initialize(context, writeKey, options);
 	}
 
 	/**
@@ -319,8 +319,8 @@ public class Analytics {
 	 * @param context
 	 *            Your Android android.content.Content (like your activity).
 	 * 
-	 * @param secret
-	 *            Your segment.io secret. You can get one of these by
+	 * @param writeKey
+	 *            Your segment.io writeKey. You can get one of these by
 	 *            registering for a project at https://segment.io
 	 * 
 	 * @param options
@@ -328,15 +328,15 @@ public class Analytics {
 	 * 
 	 * 
 	 */
-	public static void initialize(android.content.Context context, String secret, Options options) {
+	public static void initialize(android.content.Context context, String writeKey, Options options) {
 		
 		String errorPrefix = "analytics-android client must be initialized with a valid ";
 
 		if (context == null)
 			throw new IllegalArgumentException(errorPrefix + "android context."); 
 		
-		if (secret == null || secret.length() == 0)
-			throw new IllegalArgumentException(errorPrefix + "secret.");
+		if (writeKey == null || writeKey.length() == 0)
+			throw new IllegalArgumentException(errorPrefix + "writeKey.");
 
 		if (options == null)
 			throw new IllegalArgumentException(errorPrefix + "options.");
@@ -345,7 +345,7 @@ public class Analytics {
 		
 		Analytics.statistics = new AnalyticsStatistics();
 		
-		Analytics.secret = secret;
+		Analytics.writeKey = writeKey;
 		Analytics.options = options;
 		
 		// set logging based on the debug mode
@@ -418,7 +418,7 @@ public class Analytics {
 		@Override
 		public Batch create(List<BasePayload> payloads) {
 			
-			Batch batch = new Batch(secret, payloads); 
+			Batch batch = new Batch(writeKey, payloads); 
 					
 			// add global batch settings from system information
 			batch.setContext(globalContext);
@@ -1157,6 +1157,12 @@ public class Analytics {
 				long duration = System.currentTimeMillis() - start;
 				statistics.updateInsertTime(duration);
 				
+				if (success) {
+					Logger.i("Item " + payload.toDescription() + " successfully enqueued.");
+				} else {
+					Logger.w("Item " + payload.toDescription() + " failed to be enqueued.");
+				}
+				
 				if (rowCount >= options.getFlushAt()) {
 					Analytics.flush(true);
 				}
@@ -1276,7 +1282,7 @@ public class Analytics {
 		database.close();
 		
 		options = null;
-		secret = null;
+		writeKey = null;
 		
 		initialized = false;
 	}
@@ -1328,16 +1334,16 @@ public class Analytics {
 	}
 	
 	/**
-	 * Gets the current Segment.io API secret
+	 * Gets the current Segment.io API writeKey
 	 * @return
 	 */
-	public static String getSecret() {
-		if (secret == null) checkInitialized();
-		return secret;
+	public static String getWriteKey() {
+		if (writeKey == null) checkInitialized();
+		return writeKey;
 	}
 
-	public static void setSecret(String secret) {
-		Analytics.secret = secret;
+	public static void setWriteKey(String writeKey) {
+		Analytics.writeKey = writeKey;
 	}
 
 	public static ProviderManager getProviderManager() {
@@ -1361,4 +1367,5 @@ public class Analytics {
 		if (statistics == null) checkInitialized();
 		return statistics;
 	}
+
 }
