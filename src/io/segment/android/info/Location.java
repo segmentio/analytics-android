@@ -30,11 +30,16 @@ public class Location implements Info<JSONObject> {
 		
 		EasyJSONObject object = new EasyJSONObject();
 
-		if (provider != null) {
-			android.location.Location location = locationManager
-					.getLastKnownLocation(provider);
-	
-			
+        if (provider != null) {
+            android.location.Location location;
+
+            try {
+                location = locationManager.getLastKnownLocation(provider);
+            } catch (SecurityException ex) {
+                //The application may not have permission to access location
+                location = null;
+            }
+
 			if (location != null) {
 				object.put("latitude", location.getLatitude());
 				object.put("longitude", location.getLongitude());
