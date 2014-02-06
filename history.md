@@ -1,3 +1,7 @@
+0.4.5 / January 8, 2014
+=================
+* downgrading to Mixpanel 3.3.4 SDK due to v4.0.0 being [marked beta post release](https://github.com/mixpanel/mixpanel-android/commit/98e30e414634df80a90650d183a5f7a131a17c74)
+
 0.4.4 / January 8, 2014
 =================
 * upgrading to Mixpanel 4.0 SDK
