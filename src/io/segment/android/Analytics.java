@@ -14,6 +14,8 @@ import io.segment.android.flush.FlushThread.BatchFactory;
 import io.segment.android.flush.IFlushLayer;
 import io.segment.android.flush.IFlushLayer.FlushCallback;
 import io.segment.android.info.InfoManager;
+import io.segment.android.integration.Integration;
+import io.segment.android.integration.IntegrationManager;
 import io.segment.android.models.Alias;
 import io.segment.android.models.BasePayload;
 import io.segment.android.models.Batch;
@@ -24,8 +26,6 @@ import io.segment.android.models.Identify;
 import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 import io.segment.android.models.Traits;
-import io.segment.android.provider.Provider;
-import io.segment.android.provider.ProviderManager;
 import io.segment.android.request.BasicRequester;
 import io.segment.android.request.IRequester;
 import io.segment.android.stats.AnalyticsStatistics;
@@ -50,7 +50,7 @@ public class Analytics {
 	
 	private static InfoManager infoManager;
 	
-	private static ProviderManager providerManager;
+	private static IntegrationManager integrationManager;
 	private static HandlerTimer flushTimer;
 	private static HandlerTimer refreshSettingsTimer;
 	private static PayloadDatabase database;
@@ -86,7 +86,7 @@ public class Analytics {
 	 */
 	public static void onCreate (android.content.Context context) {
 		Analytics.initialize(context);
-		providerManager.onCreate(context);
+		integrationManager.onCreate(context);
 	}
 	
 	/**
@@ -112,7 +112,7 @@ public class Analytics {
 	 */
 	public static void onCreate (android.content.Context context, String writeKey) {
 		Analytics.initialize(context, writeKey);
-		providerManager.onCreate(context);
+		integrationManager.onCreate(context);
 	}
 	
 	/**
@@ -141,7 +141,7 @@ public class Analytics {
 	 */
 	public static void onCreate (android.content.Context context, String writeKey, Options options) {
 		Analytics.initialize(context, writeKey, options);
-		providerManager.onCreate(context);
+		integrationManager.onCreate(context);
 	}
 	
 	/**
@@ -162,7 +162,7 @@ public class Analytics {
 	 */
 	public static void activityStart (Activity activity) {
 		Analytics.initialize(activity);
-		providerManager.onActivityStart(activity);
+		integrationManager.onActivityStart(activity);
 	}
 	
 	/**
@@ -188,7 +188,7 @@ public class Analytics {
 	 */
 	public static void activityStart (Activity activity, String writeKey) {
 		Analytics.initialize(activity, writeKey);
-		providerManager.onActivityStart(activity);
+		integrationManager.onActivityStart(activity);
 	}
 	
 	/**
@@ -218,7 +218,7 @@ public class Analytics {
 	public static void activityStart (Activity activity, String writeKey, Options options) {
 		Analytics.initialize(activity, writeKey, options);
 		if (optedOut) return;
-		providerManager.onActivityStart(activity);
+		integrationManager.onActivityStart(activity);
 	}
 	
 	/**
@@ -229,7 +229,7 @@ public class Analytics {
 	public static void activityStop (Activity activity) {
 		Analytics.initialize(activity);
 		if (optedOut) return;
-		providerManager.onActivityStop(activity);
+		integrationManager.onActivityStop(activity);
 	}
 	
 
@@ -384,14 +384,14 @@ public class Analytics {
 		
 		settingsCache = new SettingsCache(context, settingsLayer, options.getSettingsCacheExpiry());
 		
-		providerManager = new ProviderManager(settingsCache);
+		integrationManager = new IntegrationManager(settingsCache);
 	
 		
 		// important: disable Segment.io server-side processing of
 		// the bundled providers that we'll evaluate on the mobile
 		// device
 		EasyJSONObject providerContext = new EasyJSONObject();
-		for (Provider provider : providerManager.getProviders()) {
+		for (Integration provider : integrationManager.getProviders()) {
 			providerContext.put(provider.getKey(), false);
 		}
 		globalContext.put("providers", providerContext);
@@ -443,7 +443,7 @@ public class Analytics {
 	private static Runnable refreshSettingsClock = new Runnable() {
 		@Override
 		public void run() {
-			providerManager.refresh();
+			integrationManager.refresh();
 		}
 	};
 
@@ -678,7 +678,7 @@ public class Analytics {
 
 		enqueue(identify);
 		
-		providerManager.identify(identify);
+		integrationManager.identify(identify);
 		
 		statistics.updateIdentifies(1);
 	}
@@ -842,7 +842,7 @@ public class Analytics {
 
 		enqueue(track);
 		
-		providerManager.track(track);
+		integrationManager.track(track);
 		
 		statistics.updateTracks(1);
 	}
@@ -997,7 +997,7 @@ public class Analytics {
 		Screen screenAction = new Screen(userId, screen, properties, timestamp, context);
 		
 		// just call internally into the provider manager
-		providerManager.screen(screenAction);
+		integrationManager.screen(screenAction);
 		
 		statistics.updateScreens(1);
 	}
@@ -1104,7 +1104,7 @@ public class Analytics {
 		
 		enqueue(alias);
 		
-		providerManager.alias(alias);
+		integrationManager.alias(alias);
 		
 		statistics.updateAlias(1);
 	}
@@ -1198,7 +1198,7 @@ public class Analytics {
 	public static void optOut(boolean optOut) {
 		boolean toggled = Analytics.optedOut != optOut;
 		Analytics.optedOut = optOut;
-		if (toggled) providerManager.toggleOptOut(optOut);
+		if (toggled) integrationManager.toggleOptOut(optOut);
 	}
 	
 	//
@@ -1233,7 +1233,7 @@ public class Analytics {
 		});
 
 		// flush all the providers as well
-		providerManager.flush();
+		integrationManager.flush();
 		
 		if (!async) {
 			try {
@@ -1252,7 +1252,7 @@ public class Analytics {
 			userIdCache.reset();
 			
 			// reset all the providers
-			providerManager.reset();
+			integrationManager.reset();
 		}
 	}
 	
@@ -1262,7 +1262,7 @@ public class Analytics {
 	 */
 	public static void refreshSettings() {
 		if (initialized) {
-			providerManager.refresh();
+			integrationManager.refresh();
 		}
 	}
 	
@@ -1346,8 +1346,8 @@ public class Analytics {
 		Analytics.writeKey = writeKey;
 	}
 
-	public static ProviderManager getProviderManager() {
-		return providerManager;
+	public static IntegrationManager getProviderManager() {
+		return integrationManager;
 	}
 	
 	/**
