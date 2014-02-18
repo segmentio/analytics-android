@@ -21,6 +21,18 @@ import android.os.Bundle;
 	}
 	
 	@Override
+	protected void onResume() {
+		super.onResume();
+		Analytics.activityResume(this);
+	}
+	
+	@Override
+	protected void onPause() {
+		Analytics.activityPause(this);
+		super.onPause();
+	}
+	
+	@Override
 	protected void onStop() {
 		super.onStop();
 		Analytics.activityStop(this);
@@ -49,6 +61,18 @@ public class TrackedActivity extends Activity {
 	protected void onStart() {
 		super.onStart();
 		Analytics.activityStart(this);
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		Analytics.activityResume(this);
+	}
+	
+	@Override
+	protected void onPause() {
+		Analytics.activityPause(this);
+		super.onPause();
 	}
 	
 	@Override

@@ -1,10 +1,10 @@
 #Fat Jar Configuration File
-#Thu Feb 06 13:15:29 PST 2014
+#Mon Feb 17 16:12:30 PST 2014
 onejar.license.required=false
 manifest.classpath=
 manifest.removesigners=true
 onejar.checkbox=false
-jarname=releases/analytics-android-0.4.5.jar
+jarname=releases/analytics-android-0.5.0.jar
 manifest.mergeall=true
 manifest.mainclass=
 manifest.file=<createnew>

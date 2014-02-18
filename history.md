@@ -1,3 +1,10 @@
+0.5.0 / February 17, 2014
+=================
+* renaming `Provider` to `Integration`
+* pulling in https://github.com/segmentio/analytics-android/pull/16
+* updating `LocalyticsIntegration`
+* adding `activityPause` and `activityResume` to the API
+
 0.4.5 / January 8, 2014
 =================
 * downgrading to Mixpanel 3.3.4 SDK due to v4.0.0 being [marked beta post release](https://github.com/mixpanel/mixpanel-android/commit/98e30e414634df80a90650d183a5f7a131a17c74)
