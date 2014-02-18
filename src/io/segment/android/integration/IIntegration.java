@@ -20,7 +20,19 @@ public interface IIntegration {
 	 * @param context Android application context
 	 */
 	public void onActivityStart(Activity activity);
+	
+	/**
+	 * Called by the Android system when the activity resumes. 
+	 * @param context Android application context
+	 */
+	public void onActivityResume(Activity activity);
 
+	/**
+	 * Called by the Android system when the activity pauses. 
+	 * @param context Android application context
+	 */
+	public void onActivityPause(Activity activity);
+	
 	/**
 	 * Called when the Android system tells the Activity to stop
 	 * @param context The Android application context

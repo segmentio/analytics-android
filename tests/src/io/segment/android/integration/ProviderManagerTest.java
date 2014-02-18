@@ -100,7 +100,7 @@ public class ProviderManagerTest extends BaseTest {
 		};
 		
 		// add a simple adding provider
-		integrationManager.addProvider(provider);
+		integrationManager.addIntegration(provider);
 		
 		// get the settings from the server, which won't include this provider
 		integrationManager.refresh();

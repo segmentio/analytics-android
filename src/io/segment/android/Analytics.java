@@ -220,6 +220,17 @@ public class Analytics {
 		if (optedOut) return;
 		integrationManager.onActivityStart(activity);
 	}
+
+	/**
+	 * Called when the activity has been resumed
+	 * @param activity
+	 *            Your Android Activity
+	 */
+	public static void activityResume (Activity activity) {
+		Analytics.initialize(activity);
+		if (optedOut) return;
+		integrationManager.onActivityResume(activity);
+	}
 	
 	/**
 	 * Called when the activity has been stopped
@@ -230,6 +241,17 @@ public class Analytics {
 		Analytics.initialize(activity);
 		if (optedOut) return;
 		integrationManager.onActivityStop(activity);
+	}
+
+	/**
+	 * Called when the activity has been paused
+	 * @param activity
+	 *            Your Android Activity
+	 */
+	public static void activityPause (Activity activity) {
+		Analytics.initialize(activity);
+		if (optedOut) return;
+		integrationManager.onActivityPause(activity);
 	}
 	
 

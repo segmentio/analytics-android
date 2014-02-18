@@ -68,14 +68,12 @@ public abstract class BaseIntegrationTest
 	@Test
 	public void testIdentifying() {
 		reachReadyState();
-
 		integration.identify(TestCases.identify);
 	}
 
 	@Test
 	public void testTrack() {
 		reachReadyState();
-
 		integration.track(TestCases.track);
 	}
 	
@@ -83,31 +81,46 @@ public abstract class BaseIntegrationTest
 	@Test
 	public void testScreen() {
 		reachReadyState();
-
 		integration.screen(TestCases.screen);
 	}
 
 	@Test
 	public void testAlias() {
 		reachReadyState();
-
 		integration.alias(TestCases.alias);
 	}
 
 	@Test
 	public void testFlushing() {
 		reachReadyState();
-
 		integration.flush();
 	}
 
 	@Test
-	public void testActivityStop() {
-
+	public void testActivityStart() {
 		reachReadyState();
-		
 		Activity activity = getActivity();
-		
+		integration.onActivityStart(activity);
+	}
+	
+	@Test
+	public void testActivityPause() {
+		reachReadyState();
+		Activity activity = getActivity();
+		integration.onActivityPause(activity);
+	}
+	
+	@Test
+	public void testActivityResume() {
+		reachReadyState();
+		Activity activity = getActivity();
+		integration.onActivityResume(activity);
+	}
+	
+	@Test
+	public void testActivityStop() {
+		reachReadyState();
+		Activity activity = getActivity();
 		integration.onActivityStop(activity);
 	}
 

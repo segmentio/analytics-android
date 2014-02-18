@@ -43,9 +43,7 @@ public class LocalyticsIntegration extends SimpleIntegration {
 
 	@Override
 	public void onCreate(Context context) {
-
 		// docs: http://www.localytics.com/docs/android-integration/
-		
 		EasyJSONObject settings = this.getSettings();
 		String appKey = settings.getString(SettingKey.APP_KEY);
 		
@@ -56,19 +54,19 @@ public class LocalyticsIntegration extends SimpleIntegration {
 	    
 	    ready();
 	}
-	
+
 	@Override
-	public void onActivityStart(Activity activity) {
-		// we don't have onResume(), so we'll go with onStart()
+	public void onActivityResume(Activity activity) {
 		if (this.localyticsSession != null)
 			this.localyticsSession.open();
 	}
-	
+
 	@Override
-	public void onActivityStop(Activity activity) {
-		// we don't have onStop(), so we'll go with onStart()
-		if (this.localyticsSession != null)
+	public void onActivityPause(Activity activity) {
+		if (this.localyticsSession != null) {
 			this.localyticsSession.close();
+			this.localyticsSession.upload();
+		}
 	}
 	
 	@Override

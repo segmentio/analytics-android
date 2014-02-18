@@ -35,41 +35,41 @@ public class IntegrationManager implements IIntegration {
 	private static final String TAG = Constants.TAG; 
 	
 	private SettingsCache settingsCache;
-	private List<Integration> providers;
+	private List<Integration> integrations;
 	private boolean initialized;
 	
 	public IntegrationManager(SettingsCache settingsCache) {
 		this.settingsCache = settingsCache;
 		
-		this.providers = new LinkedList<Integration>();
+		this.integrations = new LinkedList<Integration>();
 		
 		/**
 		 * Add New Providers Here
 		 */
-		this.addProvider(new AmplitudeIntegration());
-		this.addProvider(new BugsnagIntegration());
-		this.addProvider(new CountlyIntegration());
-		this.addProvider(new CrittercismIntegration());
-		this.addProvider(new FlurryIntegration());
-		this.addProvider(new GoogleAnalyticsIntegration());
-		this.addProvider(new LocalyticsIntegration());
-		this.addProvider(new MixpanelIntegration());
-		this.addProvider(new OmnitureIntegration());
-		this.addProvider(new QuantcastIntegration());
-		this.addProvider(new TapstreamIntegration());
+		this.addIntegration(new AmplitudeIntegration());
+		this.addIntegration(new BugsnagIntegration());
+		this.addIntegration(new CountlyIntegration());
+		this.addIntegration(new CrittercismIntegration());
+		this.addIntegration(new FlurryIntegration());
+		this.addIntegration(new GoogleAnalyticsIntegration());
+		this.addIntegration(new LocalyticsIntegration());
+		this.addIntegration(new MixpanelIntegration());
+		this.addIntegration(new OmnitureIntegration());
+		this.addIntegration(new QuantcastIntegration());
+		this.addIntegration(new TapstreamIntegration());
 	}
 	
 	/**
 	 * Adds a provider to the analytics manager
 	 * @param provider
 	 */
-	public void addProvider(Integration provider) {
+	public void addIntegration(Integration provider) {
 		if (TextUtils.isEmpty(provider.getKey())) {
 			throw new IllegalArgumentException("Provider #getKey() " + 
 					"must return a non-null non-empty provider key.");
 		}
 		
-		this.providers.add(provider);
+		this.integrations.add(provider);
 	}
 
 	/**
@@ -95,7 +95,7 @@ public class IntegrationManager implements IIntegration {
 		if (allSettings != null) {
 			// we managed to get the settings
 			
-			for (Integration provider : providers) {
+			for (Integration provider : integrations) {
 				// iterate through all of the providers we enabe
 				String providerKey = provider.getKey();
 				if (allSettings.has(providerKey)) {
@@ -139,7 +139,7 @@ public class IntegrationManager implements IIntegration {
 	}
 	
 	public List<Integration> getProviders() {
-		return providers;
+		return integrations;
 	}
 
 	public SettingsCache getSettingsCache() {
@@ -171,7 +171,7 @@ public class IntegrationManager implements IIntegration {
 		// make sure that the provider manager has settings from the server first
 		if (ensureInitialized()) {
 			
-			for (Integration provider : this.providers) {
+			for (Integration provider : this.integrations) {
 				// if the provider is at least in the minimum state 
 				if (provider.getState().ge(minimumState)) {
 					
@@ -200,7 +200,7 @@ public class IntegrationManager implements IIntegration {
 	}
 	
 	public void checkPermissions (Context context) {
-		for (Integration provider : this.providers) {
+		for (Integration provider : this.integrations) {
 			provider.checkPermission(context);
 		}
 	}
@@ -230,6 +230,30 @@ public class IntegrationManager implements IIntegration {
 		});
 	}
 
+	@Override
+	public void onActivityResume(final Activity activity) {
+		
+		runOperation("onActivityResume", IntegrationState.INITIALIZED, new ProviderOperation () {
+			
+			@Override
+			public void run(Integration provider) {
+				provider.onActivityResume(activity);
+			}
+		});
+	}
+
+	@Override
+	public void onActivityPause(final Activity activity) {
+		
+		runOperation("onActivityPause", IntegrationState.INITIALIZED, new ProviderOperation () {
+			
+			@Override
+			public void run(Integration provider) {
+				provider.onActivityPause(activity);
+			}
+		});
+	}
+	
 	@Override
 	public void onActivityStop(final Activity activity) {
 		

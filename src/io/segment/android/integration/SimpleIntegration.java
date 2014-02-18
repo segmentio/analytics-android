@@ -24,6 +24,16 @@ public abstract class SimpleIntegration extends Integration {
 	}
 
 	@Override
+	public void onActivityPause(Activity activity) {
+		// do nothing	
+	}
+	
+	@Override
+	public void onActivityResume(Activity activity) {
+		// do nothing	
+	}
+	
+	@Override
 	public void onActivityStop(Activity activity) {
 		// do nothing
 	}
