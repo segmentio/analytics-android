@@ -1018,6 +1018,8 @@ public class Analytics {
 		
 		Screen screenAction = new Screen(userId, screen, properties, timestamp, context);
 		
+		enqueue(screenAction);
+		
 		// just call internally into the provider manager
 		integrationManager.screen(screenAction);
 		
