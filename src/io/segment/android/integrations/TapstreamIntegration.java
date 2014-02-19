@@ -3,7 +3,7 @@ package io.segment.android.integrations;
 import io.segment.android.errors.InvalidSettingsException;
 import io.segment.android.integration.SimpleIntegration;
 import io.segment.android.models.EasyJSONObject;
-import io.segment.android.models.EventProperties;
+import io.segment.android.models.Props;
 import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 
@@ -69,7 +69,7 @@ public class TapstreamIntegration extends SimpleIntegration {
 		Tapstream.getInstance().fireEvent(makeEvent(name, track.getProperties()));
 	}
 
-	private Event makeEvent(String name, EventProperties properties) {
+	private Event makeEvent(String name, Props properties) {
 		Event e = new Event(name, false);
 		if (properties != null) {
 			Iterator<?> iter = properties.keys();

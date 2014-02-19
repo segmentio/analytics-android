@@ -5,7 +5,7 @@ import io.segment.android.models.BasePayload;
 import io.segment.android.models.Batch;
 import io.segment.android.models.Context;
 import io.segment.android.models.EasyJSONObject;
-import io.segment.android.models.EventProperties;
+import io.segment.android.models.Props;
 import io.segment.android.models.Identify;
 import io.segment.android.models.Providers;
 import io.segment.android.models.Screen;
@@ -52,7 +52,7 @@ public class TestCases {
 				new Context().setIp("192.168.1.1"));
 		
 		track = new Track("ilya@segment.io", "Played a Song on Android", 
-				new EventProperties(
+				new Props(
 						"name", "Achilles",
 						"revenue", 39.95,
 						"shippingMethod", "2-day"),
@@ -66,7 +66,7 @@ public class TestCases {
 								.setEnabled("Google Analytics", true)));
 		
 		screen = new Screen("ilya@segment.io", "Login Page", 
-				new EventProperties(
+				new Props(
 						"logged-in", true,
 						"type", "teacher"),
 						calendar, 

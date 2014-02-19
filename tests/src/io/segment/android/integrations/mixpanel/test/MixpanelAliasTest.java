@@ -7,7 +7,7 @@ import io.segment.android.integration.Integration;
 import io.segment.android.integrations.MixpanelIntegration;
 import io.segment.android.models.Context;
 import io.segment.android.models.EasyJSONObject;
-import io.segment.android.models.EventProperties;
+import io.segment.android.models.Props;
 import io.segment.android.models.Identify;
 import io.segment.android.models.Track;
 import io.segment.android.models.Traits;
@@ -44,7 +44,7 @@ public class MixpanelAliasTest extends BaseIntegrationInitializationActivity {
 		String sessionId = "android_session_id_" + random;
 		String userId = "android_user_id_" + random;
 		
-		EventProperties properties = new EventProperties("revenue", 10.00);
+		Props properties = new Props("revenue", 10.00);
 		Traits traits = new Traits("$first_name", "Ilya " + random);
 		Calendar timestamp = Calendar.getInstance();
 		Context context = new Context();

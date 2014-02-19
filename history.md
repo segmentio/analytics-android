@@ -1,3 +1,8 @@
+0.6.0 / February 19, 2014
+=================
+* renaming `EventProperties` to `Props`
+* deprecating `EventProperties`
+
 0.5.0 / February 17, 2014
 =================
 * renaming `Provider` to `Integration`

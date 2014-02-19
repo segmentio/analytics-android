@@ -10,7 +10,7 @@ import io.segment.android.integration.IntegrationManager;
 import io.segment.android.integration.SimpleIntegration;
 import io.segment.android.models.Alias;
 import io.segment.android.models.EasyJSONObject;
-import io.segment.android.models.EventProperties;
+import io.segment.android.models.Props;
 import io.segment.android.models.Identify;
 import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
@@ -133,7 +133,7 @@ public class ProviderManagerTest extends BaseTest {
 		Calendar timestamp = Calendar.getInstance();
 
 		String event = TestCases.track.getEvent();
-		EventProperties properties = TestCases.track.getProperties();
+		Props properties = TestCases.track.getProperties();
 
 		String from = TestCases.alias.getFrom();
 		String to = TestCases.alias.getTo();

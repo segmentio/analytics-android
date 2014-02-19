@@ -4,7 +4,7 @@ import io.segment.android.Logger;
 import io.segment.android.errors.InvalidSettingsException;
 import io.segment.android.integration.SimpleIntegration;
 import io.segment.android.models.EasyJSONObject;
-import io.segment.android.models.EventProperties;
+import io.segment.android.models.Props;
 import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 
@@ -129,7 +129,7 @@ public class GoogleAnalyticsIntegration extends SimpleIntegration {
 	
 	@Override
 	public void track(Track track) {
-		EventProperties properties = track.getProperties();
+		Props properties = track.getProperties();
 		
 		String category = properties.getString("category", "All");
 		String action = track.getEvent();

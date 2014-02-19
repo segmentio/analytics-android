@@ -4,7 +4,7 @@ import io.segment.android.Logger;
 import io.segment.android.errors.InvalidSettingsException;
 import io.segment.android.integration.SimpleIntegration;
 import io.segment.android.models.EasyJSONObject;
-import io.segment.android.models.EventProperties;
+import io.segment.android.models.Props;
 import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 
@@ -87,7 +87,7 @@ public class OmnitureIntegration extends SimpleIntegration {
 		}
 		
 		String event = track.getEvent();
-		EventProperties properties = track.getProperties();
+		Props properties = track.getProperties();
 		
 		ADMS_Measurement measurement = ADMS_Measurement.sharedInstance();
 		measurement.trackEvents(event, toObjectHashtable(properties));

@@ -2,7 +2,10 @@ package io.segment.android.models;
 
 import org.json.JSONObject;
 
-public class EventProperties extends EasyJSONObject {
+/**
+ * @deprecated  As of release 0.6.0, replaced by {@link Props}
+ */
+public class EventProperties extends Props {
 
 	public EventProperties() {
 		super();

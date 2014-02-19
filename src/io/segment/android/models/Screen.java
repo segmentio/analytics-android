@@ -16,7 +16,7 @@ public class Screen extends Track {
 	
 	public Screen(String userId, 
 				 String screen, 
-				 EventProperties properties, 
+				 Props properties, 
 				 Calendar timestamp,
 				 Context context) {
 

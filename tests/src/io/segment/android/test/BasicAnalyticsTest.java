@@ -3,7 +3,7 @@ package io.segment.android.test;
 import io.segment.android.Analytics;
 import io.segment.android.models.Context;
 import io.segment.android.models.EasyJSONObject;
-import io.segment.android.models.EventProperties;
+import io.segment.android.models.Props;
 import io.segment.android.models.Traits;
 import io.segment.android.stats.AnalyticsStatistics;
 
@@ -85,14 +85,14 @@ public class BasicAnalyticsTest extends BaseTest {
 		
 		Analytics.track("Android: UserId Not Saved Action");
 		
-		Analytics.track("Android: First Event Properties Event", new EventProperties(
+		Analytics.track("Android: First Event Properties Event", new Props(
 			"Mickey Mouse", 4,
 			"Donnie", "Darko"
 		));
 		
-		Analytics.track("Android: With Calendar", new EventProperties(),  TestCases.calendar);
+		Analytics.track("Android: With Calendar", new Props(),  TestCases.calendar);
 		
-		Analytics.track("Android: With Context", new EventProperties(),  TestCases.calendar, new Context(
+		Analytics.track("Android: With Context", new Props(),  TestCases.calendar, new Context(
 			"providers", new EasyJSONObject(
 					"Mixpanel", true,
 					"KISSMetrics", true

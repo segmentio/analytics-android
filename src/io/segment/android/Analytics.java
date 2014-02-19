@@ -21,7 +21,7 @@ import io.segment.android.models.BasePayload;
 import io.segment.android.models.Batch;
 import io.segment.android.models.Context;
 import io.segment.android.models.EasyJSONObject;
-import io.segment.android.models.EventProperties;
+import io.segment.android.models.Props;
 import io.segment.android.models.Identify;
 import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
@@ -41,7 +41,7 @@ import android.text.TextUtils;
 
 public class Analytics {
 	
-	public static final String VERSION = "0.5.0";
+	public static final String VERSION = "0.6.0";
 	
 	private static AnalyticsStatistics statistics;
 	
@@ -744,7 +744,7 @@ public class Analytics {
 	 *            recommended—you’ll find these properties extremely useful
 	 *            later.
 	 */
-	public static void track(String event, EventProperties properties) {
+	public static void track(String event, Props properties) {
 
 		track(event, properties, null, null);
 	}
@@ -774,7 +774,7 @@ public class Analytics {
 	 *            past, make sure you provide this argument.
 	 * 
 	 */
-	public static void track(String event, EventProperties properties,
+	public static void track(String event, Props properties,
 			Calendar timestamp) {
 
 		track(event, properties, timestamp, null);
@@ -803,7 +803,7 @@ public class Analytics {
 	 *            event's properties (such as the user's IP)
 	 * 
 	 */
-	public static void track(String event, EventProperties properties,
+	public static void track(String event, Props properties,
 			 Context context) {
 
 		track(event, properties, null, context);
@@ -837,7 +837,7 @@ public class Analytics {
 	 *            event's properties (such as the user's IP)
 	 * 
 	 */
-	public static void track(String event, EventProperties properties,
+	public static void track(String event, Props properties,
 			Calendar timestamp, Context context) {
 		
 		checkInitialized();
@@ -857,7 +857,7 @@ public class Analytics {
 		if (context == null)
 			context = new Context();
 		if (properties == null)
-			properties = new EventProperties();
+			properties = new Props();
 
 		
 		Track track = new Track(userId, event, properties, timestamp, context);
@@ -919,7 +919,7 @@ public class Analytics {
 	 *            later.
 	 * 
 	 */
-	public static void screen(String screen, EventProperties properties) {
+	public static void screen(String screen, Props properties) {
 		
 		screen(screen, properties, null, null);
 	}
@@ -954,7 +954,7 @@ public class Analytics {
 	 *            past, make sure you provide this argument.
 	 * 
 	 */
-	public static void screen(String screen, EventProperties properties,
+	public static void screen(String screen, Props properties,
 							  Calendar timestamp) {
 		
 		screen(screen, properties, timestamp, null);
@@ -993,7 +993,7 @@ public class Analytics {
 	 *            event's properties (such as the user's IP)
 	 * 
 	 */
-	public static void screen(String screen, EventProperties properties,
+	public static void screen(String screen, Props properties,
 							  Calendar timestamp, Context context) {
 		
 		
@@ -1013,7 +1013,7 @@ public class Analytics {
 		if (context == null)
 			context = new Context();
 		if (properties == null)
-			properties = new EventProperties();
+			properties = new Props();
 
 		
 		Screen screenAction = new Screen(userId, screen, properties, timestamp, context);

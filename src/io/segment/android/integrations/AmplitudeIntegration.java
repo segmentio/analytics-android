@@ -3,7 +3,7 @@ package io.segment.android.integrations;
 import io.segment.android.errors.InvalidSettingsException;
 import io.segment.android.integration.SimpleIntegration;
 import io.segment.android.models.EasyJSONObject;
-import io.segment.android.models.EventProperties;
+import io.segment.android.models.Props;
 import io.segment.android.models.Identify;
 import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
@@ -74,7 +74,7 @@ public class AmplitudeIntegration extends SimpleIntegration {
 	@Override
 	public void track(Track track) {
 		String event = track.getEvent();
-		EventProperties properties = track.getProperties();
+		Props properties = track.getProperties();
 		
 		if (properties != null && properties.has("revenue")) {
 			double revenue = properties.getDouble("revenue", 0.0);
