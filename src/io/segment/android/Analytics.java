@@ -685,6 +685,7 @@ public class Analytics {
 		checkInitialized();
 		if (optedOut) return;
 
+		String sessionId = getSessionId();
 		userId = getOrSetUserId(userId);
 		
 		if (userId == null || userId.length() == 0) {
@@ -696,7 +697,7 @@ public class Analytics {
 		if (traits == null)
 			traits = new Traits();
 
-		Identify identify = new Identify(userId, traits, timestamp, context);
+		Identify identify = new Identify(sessionId, userId, traits, timestamp, context);
 
 		enqueue(identify);
 		
@@ -843,7 +844,7 @@ public class Analytics {
 		checkInitialized();
 		if (optedOut) return;
 		
-		// get the user ID from the cache
+		String sessionId = getSessionId();
 		String userId = getOrSetUserId(null);
 		
 		if (userId == null || userId.length() == 0) {
@@ -860,7 +861,7 @@ public class Analytics {
 			properties = new Props();
 
 		
-		Track track = new Track(userId, event, properties, timestamp, context);
+		Track track = new Track(sessionId, userId, event, properties, timestamp, context);
 
 		enqueue(track);
 		
@@ -994,12 +995,11 @@ public class Analytics {
 	 * 
 	 */
 	public static void screen(String screen, Props properties,
-							  Calendar timestamp, Context context) {
-		
-		
+							  Calendar timestamp, Context context) {		
 		checkInitialized();
 		if (optedOut) return;
-
+		
+		String sessionId = getSessionId();
 		String userId = getOrSetUserId(null);
 		
 		if (userId == null || userId.length() == 0) {
@@ -1016,7 +1016,7 @@ public class Analytics {
 			properties = new Props();
 
 		
-		Screen screenAction = new Screen(userId, screen, properties, timestamp, context);
+		Screen screenAction = new Screen(sessionId, userId, screen, properties, timestamp, context);
 		
 		enqueue(screenAction);
 		

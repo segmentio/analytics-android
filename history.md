@@ -2,6 +2,7 @@
 =================
 * renaming `EventProperties` to `Props`
 * deprecating `EventProperties`
+* adding `sessionId` to each message
 
 0.5.0 / February 17, 2014
 =================

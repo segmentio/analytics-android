@@ -43,7 +43,7 @@ public class BasicRequesterTest extends BaseTest {
 	@Test
 	public void testUTF8Characters () {
 		
-		Identify identify = new Identify("some_user", new Traits(
+		Identify identify = new Identify("2832-2-3", "some_user", new Traits(
 				"carrier", "GR COSMOTE",
 				"language", "Ελληνικά",
 				"country", "Ελλάδα"), 

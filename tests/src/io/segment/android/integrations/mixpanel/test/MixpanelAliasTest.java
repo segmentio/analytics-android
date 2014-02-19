@@ -54,12 +54,12 @@ public class MixpanelAliasTest extends BaseIntegrationInitializationActivity {
 		Log.e(Constants.TAG, "Mixpanel alias test is using session_id: " + 
 				sessionId + ", and user_id: " + userId);
 		
-		integration.track(new Track(sessionId, "Anonymous Event", 
+		integration.track(new Track(sessionId, null, "Anonymous Event", 
 				properties, timestamp, context));
 		
-		integration.identify(new Identify(userId, traits, timestamp, context));
+		integration.identify(new Identify(sessionId, userId, traits, timestamp, context));
 		
-		integration.track(new Track(userId, "Identified Event", properties, timestamp, context));
+		integration.track(new Track(sessionId, userId, "Identified Event", properties, timestamp, context));
 		
 		integration.flush();
 		

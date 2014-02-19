@@ -20,7 +20,7 @@ public class Alias extends BasePayload {
 				 Calendar timestamp,
 				 Context context) {
 		
-		super(null, timestamp, context);
+		super(null, null, timestamp, context);
 
 		put("action", ACTION);
 		

@@ -15,13 +15,14 @@ public class Track extends BasePayload {
 		super(obj);
 	}
 	
-	public Track(String userId, 
+	public Track(String sessionId,
+				 String userId, 
 				 String event, 
 				 Props properties, 
 				 Calendar timestamp,
 				 Context context) {
 
-		super(userId, timestamp, context);
+		super(sessionId, userId, timestamp, context);
 
 		put("action", ACTION);
 		

@@ -17,6 +17,7 @@ import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.TimeZone;
+import java.util.UUID;
 
 @SuppressWarnings("serial")
 public class TestCases {
@@ -40,7 +41,9 @@ public class TestCases {
 		calendar.set(Calendar.MINUTE, 20);
 		calendar.set(Calendar.SECOND, 15);
 		
-		identify = new Identify("ilya@segment.io", 
+		identify = new Identify(
+				UUID.randomUUID().toString(),
+				"ilya@segment.io", 
 				new Traits(
 						"name","Achilles", 
 						"email", "achilles@segment.io", 
@@ -51,7 +54,9 @@ public class TestCases {
 				calendar,
 				new Context().setIp("192.168.1.1"));
 		
-		track = new Track("ilya@segment.io", "Played a Song on Android", 
+		track = new Track(
+				UUID.randomUUID().toString(),
+				"ilya@segment.io", "Played a Song on Android", 
 				new Props(
 						"name", "Achilles",
 						"revenue", 39.95,
@@ -65,7 +70,10 @@ public class TestCases {
 								.setEnabled("KISSMetrics", true)
 								.setEnabled("Google Analytics", true)));
 		
-		screen = new Screen("ilya@segment.io", "Login Page", 
+		screen = new Screen(
+				UUID.randomUUID().toString(),
+				"ilya@segment.io", 
+				"Login Page", 
 				new Props(
 						"logged-in", true,
 						"type", "teacher"),

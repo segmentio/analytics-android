@@ -7,6 +7,7 @@ import org.json.JSONObject;
 
 public class BasePayload extends EasyJSONObject {
 	
+	private final static String SESSION_ID_KEY = "sessionId";
 	private final static String USER_ID_KEY = "userId";
 	private final static String TIMESTAMP_KEY = "timestamp";
 	private final static String REQUEST_ID_KEY = "requestId";
@@ -16,7 +17,8 @@ public class BasePayload extends EasyJSONObject {
 		super(obj);
 	}
 	
-	public BasePayload(String userId, 
+	public BasePayload(String sessionId,
+					   String userId, 
 					   Calendar timestamp, 
 					   Context context) {
 
@@ -25,10 +27,19 @@ public class BasePayload extends EasyJSONObject {
 		if (timestamp == null) timestamp = Calendar.getInstance();
 		if (context == null) context = new Context();
 		
+		setSessionId(sessionId);
 		setUserId(userId);
 		setTimestamp(timestamp);
 		setContext(context);
 		setRequestId(UUID.randomUUID().toString());
+	}
+
+	public String getSessionId() {
+		return this.optString(SESSION_ID_KEY, null);
+	}
+
+	public void setSessionId(String sessionId) {
+		this.put(SESSION_ID_KEY, sessionId);
 	}
 
 	public String getUserId() {

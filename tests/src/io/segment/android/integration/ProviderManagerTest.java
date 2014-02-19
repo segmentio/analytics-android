@@ -128,6 +128,7 @@ public class ProviderManagerTest extends BaseTest {
 		// Assemble test values
 		//
 
+		String sessionId = TestCases.identify.getSessionId();
 		String userId = TestCases.identify.getUserId();
 		Traits traits = TestCases.identify.getTraits();
 		Calendar timestamp = Calendar.getInstance();
@@ -145,10 +146,10 @@ public class ProviderManagerTest extends BaseTest {
 		io.segment.android.models.Context allFalseContext = new io.segment.android.models.Context();
 		allFalseContext.put("providers", new EasyJSONObject("all", false));
 		
-		integrationManager.identify(new Identify(userId, traits, timestamp, allFalseContext));
+		integrationManager.identify(new Identify(sessionId, userId, traits, timestamp, allFalseContext));
 		Assert.assertEquals(1, identifies.get());
 		
-		integrationManager.track(new Track(userId, event, properties, timestamp, allFalseContext));
+		integrationManager.track(new Track(sessionId, userId, event, properties, timestamp, allFalseContext));
 		Assert.assertEquals(1, tracks.get());
 		
 		integrationManager.alias(new Alias(from, to, timestamp, allFalseContext));
@@ -161,10 +162,10 @@ public class ProviderManagerTest extends BaseTest {
 		io.segment.android.models.Context providerFalseContext = new io.segment.android.models.Context();
 		providerFalseContext.put("providers", new EasyJSONObject(key, false));
 		
-		integrationManager.identify(new Identify(userId, traits, timestamp, providerFalseContext));
+		integrationManager.identify(new Identify(sessionId, userId, traits, timestamp, providerFalseContext));
 		Assert.assertEquals(1, identifies.get());
 		
-		integrationManager.track(new Track(userId, event, properties, timestamp, providerFalseContext));
+		integrationManager.track(new Track(sessionId, userId, event, properties, timestamp, providerFalseContext));
 		Assert.assertEquals(1, tracks.get());
 		
 		integrationManager.alias(new Alias(from, to, timestamp, providerFalseContext));
@@ -179,10 +180,10 @@ public class ProviderManagerTest extends BaseTest {
 		providerTrueContext.put("providers", new EasyJSONObject("All", false));
 		providerTrueContext.put("providers", new EasyJSONObject(key, true));
 		
-		integrationManager.identify(new Identify(userId, traits, timestamp, providerTrueContext));
+		integrationManager.identify(new Identify(sessionId, userId, traits, timestamp, providerTrueContext));
 		Assert.assertEquals(2, identifies.get());
 		
-		integrationManager.track(new Track(userId, event, properties, timestamp, providerTrueContext));
+		integrationManager.track(new Track(sessionId, userId, event, properties, timestamp, providerTrueContext));
 		Assert.assertEquals(2, tracks.get());
 		
 		integrationManager.alias(new Alias(from, to, timestamp, providerTrueContext));

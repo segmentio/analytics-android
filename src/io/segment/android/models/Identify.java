@@ -14,10 +14,10 @@ public class Identify extends BasePayload {
 		super(obj);
 	}
 	
-	public Identify(String userId, Traits traits, Calendar timestamp,
+	public Identify(String sessionId, String userId, Traits traits, Calendar timestamp,
 			Context context) {
 
-		super(userId, timestamp, context);
+		super(sessionId, userId, timestamp, context);
 
 		put("action", ACTION);
 		

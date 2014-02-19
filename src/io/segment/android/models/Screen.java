@@ -14,13 +14,14 @@ public class Screen extends Track {
 		super(obj);
 	}
 	
-	public Screen(String userId, 
+	public Screen(String sessionId,
+				 String userId, 
 				 String screen, 
 				 Props properties, 
 				 Calendar timestamp,
 				 Context context) {
 
-		super(userId, "Viewed " + screen, properties, timestamp, context);
+		super(sessionId, userId, "Viewed " + screen, properties, timestamp, context);
 
 		put("action", ACTION);
 		
