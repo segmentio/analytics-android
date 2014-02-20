@@ -120,7 +120,7 @@ public class GoogleAnalyticsIntegration extends SimpleIntegration {
 	
 	@Override
 	public void screen(Screen screen) {
-		String screenName = screen.getScreen();
+		String screenName = screen.getName();
 		tracker.send(MapBuilder
 		  .createAppView()
 		  .set(Fields.SCREEN_NAME, screenName)

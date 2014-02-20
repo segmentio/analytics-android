@@ -95,7 +95,7 @@ public class LocalyticsIntegration extends SimpleIntegration {
 	
 	@Override
 	public void screen(Screen screen) {
-		String screenName = screen.getScreen();
+		String screenName = screen.getName();
 		this.localyticsSession.tagScreen(screenName);
 	}
 	
