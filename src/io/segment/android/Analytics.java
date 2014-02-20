@@ -1500,6 +1500,7 @@ public class Analytics {
 	public static void reset() {
 		if (initialized) {
 			userIdCache.reset();
+			groupIdCache.reset();
 			
 			// reset all the providers
 			integrationManager.reset();
