@@ -1,6 +1,7 @@
 package io.segment.android;
 
 import io.segment.android.cache.ISettingsLayer;
+import io.segment.android.cache.ISettingsLayer.SettingsCallback;
 import io.segment.android.cache.SessionIdCache;
 import io.segment.android.cache.SettingsCache;
 import io.segment.android.cache.SettingsThread;
@@ -42,7 +43,7 @@ import android.text.TextUtils;
 
 public class Analytics {
 	
-	public static final String VERSION = "0.6.0";
+	public static final String VERSION = "0.6.1";
 	
 	private static AnalyticsStatistics statistics;
 	
@@ -429,6 +430,9 @@ public class Analytics {
 		Analytics.flushLayer.start();
 		Analytics.settingsLayer.start();
 		
+		// reload the settings on start, to eliminate the need to wait for the refresh
+		
+		
 		// tell the server to look for settings right now
 		Analytics.refreshSettingsTimer.scheduleNow();
 	}
@@ -468,7 +472,12 @@ public class Analytics {
 	private static Runnable refreshSettingsClock = new Runnable() {
 		@Override
 		public void run() {
-			integrationManager.refresh();
+			settingsCache.load(new SettingsCallback() {
+				@Override
+				public void onSettingsLoaded(boolean success, EasyJSONObject object) {
+					integrationManager.refresh();	
+				}
+			});
 		}
 	};
 

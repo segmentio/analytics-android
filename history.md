@@ -1,3 +1,8 @@
+0.6.1 / February 20, 2014
+=================
+* adding `device.id` and `device.model`
+* force settings `fetch` on application start
+
 0.6.0 / February 19, 2014
 =================
 * renaming `EventProperties` to `Props`

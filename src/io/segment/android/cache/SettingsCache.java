@@ -30,6 +30,15 @@ public class SettingsCache extends SimpleStringCache {
 
 	@Override
 	public String load() {
+		return load(null);
+	}
+	
+	/**
+	 * Load the settings asynchronously.
+	 * @param callback
+	 * @return settings
+	 */
+	public String load(final SettingsCallback callback) {
 		Logger.d("Requesting Segment.io settings ..");
 		layer.fetch(new SettingsCallback () {
 			@Override
@@ -51,6 +60,8 @@ public class SettingsCache extends SimpleStringCache {
 					
 					set(container.toString());
 				}
+				
+				if (callback != null) callback.onSettingsLoaded(success, settings);
 			}
 		});
 		
