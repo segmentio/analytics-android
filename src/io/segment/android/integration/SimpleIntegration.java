@@ -1,6 +1,7 @@
 package io.segment.android.integration;
 
 import io.segment.android.models.Alias;
+import io.segment.android.models.Group;
 import io.segment.android.models.Identify;
 import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
@@ -40,6 +41,11 @@ public abstract class SimpleIntegration extends Integration {
 	
 	@Override
 	public void identify(Identify identify) { 
+		// do nothing
+	}
+
+	@Override
+	public void group(Group group) { 
 		// do nothing
 	}
 

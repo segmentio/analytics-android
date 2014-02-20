@@ -27,10 +27,24 @@ public class JsonPayloadSerializerTest extends AndroidTestCase {
 	}
 
 	@Test
+	public void testGroup() {
+		String json = serializer.serialize(TestCases.group);
+		BasePayload got = serializer.deseralize(json);
+		Assert.assertEquals(TestCases.group, got);
+	}
+	
+	@Test
 	public void testTrack() {
 		String json = serializer.serialize(TestCases.track);
 		BasePayload got = serializer.deseralize(json);
 		Assert.assertEquals(TestCases.track, got);
+	}
+	
+	@Test
+	public void testScreen() {
+		String json = serializer.serialize(TestCases.screen);
+		BasePayload got = serializer.deseralize(json);
+		Assert.assertEquals(TestCases.screen, got);
 	}
 
 	@Test

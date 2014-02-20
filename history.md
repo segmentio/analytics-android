@@ -3,6 +3,8 @@
 * renaming `EventProperties` to `Props`
 * deprecating `EventProperties`
 * adding `sessionId` to each message
+* `screen` is now sent to the server-side API
+* added `group` method call to the API
 
 0.5.0 / February 17, 2014
 =================

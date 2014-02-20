@@ -1,6 +1,7 @@
 package io.segment.android.integration;
 
 import io.segment.android.models.Alias;
+import io.segment.android.models.Group;
 import io.segment.android.models.Identify;
 import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
@@ -44,6 +45,12 @@ public interface IIntegration {
 	 * @param identify An identify action
 	 */
 	public void identify(Identify identify);
+
+	/**
+	 * Called when the user identifies a group.
+	 * @param group A group action
+	 */
+	public void group(Group group);
 	
 	/**
 	 * Called when the user tracks an action.
@@ -80,4 +87,5 @@ public interface IIntegration {
 	 * to their respective server endpoints.
 	 */
 	public void flush();
+
 }

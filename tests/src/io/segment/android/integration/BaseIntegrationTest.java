@@ -72,6 +72,12 @@ public abstract class BaseIntegrationTest
 	}
 
 	@Test
+	public void testGroup() {
+		reachReadyState();
+		integration.group(TestCases.group);
+	}
+
+	@Test
 	public void testTrack() {
 		reachReadyState();
 		integration.track(TestCases.track);

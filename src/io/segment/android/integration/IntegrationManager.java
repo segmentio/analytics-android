@@ -17,6 +17,7 @@ import io.segment.android.integrations.TapstreamIntegration;
 import io.segment.android.models.Alias;
 import io.segment.android.models.BasePayload;
 import io.segment.android.models.EasyJSONObject;
+import io.segment.android.models.Group;
 import io.segment.android.models.Identify;
 import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
@@ -291,7 +292,6 @@ public class IntegrationManager implements IIntegration {
 		return enabled;
 	}
 	
-	
 	@Override
 	public void identify(final Identify identify) {
 		
@@ -306,6 +306,20 @@ public class IntegrationManager implements IIntegration {
 		});
 	}
 
+	@Override
+	public void group(final Group group) {
+		
+		runOperation("Group", IntegrationState.READY, new ProviderOperation () {
+			
+			@Override
+			public void run(Integration provider) {
+				
+				if (isProviderEnabled(provider, group))
+					provider.group(group);
+			}
+		});
+	}
+	
 	@Override
 	public void track(final Track track) {
 

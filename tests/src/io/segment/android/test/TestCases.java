@@ -5,8 +5,9 @@ import io.segment.android.models.BasePayload;
 import io.segment.android.models.Batch;
 import io.segment.android.models.Context;
 import io.segment.android.models.EasyJSONObject;
-import io.segment.android.models.Props;
+import io.segment.android.models.Group;
 import io.segment.android.models.Identify;
+import io.segment.android.models.Props;
 import io.segment.android.models.Providers;
 import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
@@ -25,6 +26,7 @@ public class TestCases {
 	public static Calendar calendar;
 	
 	public static Identify identify;
+	public static Group group;
 	public static Track track;
 	public static Screen screen;
 	public static Alias alias;
@@ -51,6 +53,16 @@ public class TestCases {
 						"friendCount", 29, 
 						"company", new EasyJSONObject()
 							.put("name", "Company, inc.")), 
+				calendar,
+				new Context().setIp("192.168.1.1"));
+
+		group = new Group(
+				UUID.randomUUID().toString(),
+				"ilya@segment.io", 
+				"segmentio_id",
+				new Traits(
+					"name","Segment.io", 
+					"plan", "Premium"), 
 				calendar,
 				new Context().setIp("192.168.1.1"));
 		
@@ -102,11 +114,15 @@ public class TestCases {
 	
 	public static BasePayload random() {
 		
-		switch(random.nextInt(3)) {
+		switch(random.nextInt(5)) {
 			case 0:
 				return TestCases.identify;
 			case 1: 
 				return TestCases.track;
+			case 2: 
+				return TestCases.group;
+			case 3: 
+				return TestCases.screen;
 			default:
 				return TestCases.alias;
 		}

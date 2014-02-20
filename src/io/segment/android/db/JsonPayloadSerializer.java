@@ -3,7 +3,9 @@ package io.segment.android.db;
 import io.segment.android.Logger;
 import io.segment.android.models.Alias;
 import io.segment.android.models.BasePayload;
+import io.segment.android.models.Group;
 import io.segment.android.models.Identify;
+import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 
 import org.json.JSONException;
@@ -34,6 +36,10 @@ public class JsonPayloadSerializer implements IPayloadSerializer {
 				return new Track(obj);
 			} else if (action.equals(Alias.ACTION)) {
 				return new Alias(obj);
+			} else if (action.equals(Group.ACTION)) {
+				return new Group(obj);
+			} else if (action.equals(Screen.ACTION)) {
+				return new Screen(obj);
 			} else {
 				
 			}

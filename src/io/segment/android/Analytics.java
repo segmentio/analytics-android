@@ -21,8 +21,9 @@ import io.segment.android.models.BasePayload;
 import io.segment.android.models.Batch;
 import io.segment.android.models.Context;
 import io.segment.android.models.EasyJSONObject;
-import io.segment.android.models.Props;
+import io.segment.android.models.Group;
 import io.segment.android.models.Identify;
+import io.segment.android.models.Props;
 import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 import io.segment.android.models.Traits;
@@ -65,6 +66,7 @@ public class Analytics {
 
 	private static SimpleStringCache sessionIdCache;
 	private static SimpleStringCache userIdCache;
+	private static SimpleStringCache groupIdCache;
 	private static SettingsCache settingsCache;
 
 
@@ -380,6 +382,7 @@ public class Analytics {
 		infoManager = new InfoManager();
 		
 		sessionIdCache = new SessionIdCache(context);
+		groupIdCache = new SimpleStringCache(context, Constants.SharedPreferences.GROUP_ID_KEY);
 		userIdCache = new SimpleStringCache(context, Constants.SharedPreferences.USER_ID_KEY);
 		
 		// add a global context
@@ -477,8 +480,6 @@ public class Analytics {
 	//
 	// Identify
 	//
-
-
 
 	/**
 	 * Identifying a user ties all of their actions to an id, and associates
@@ -704,6 +705,211 @@ public class Analytics {
 		integrationManager.identify(identify);
 		
 		statistics.updateIdentifies(1);
+	}
+	
+	//
+	// Group
+	//
+	
+	/**
+	 * Identifying a group ties all of the group's actions to an id, and associates
+	 * group traits to that id.
+	 * 
+	 * @param groupId
+	 *            the group's id. It's the same id as
+	 *            which you would recognize a user's company in your database.
+	 * 
+	 */
+	public static void group(String groupId) {
+
+		group(groupId, null, null, null);
+	}
+	
+	/**
+	 * Identifying a group ties all of the group's actions to an id, and associates
+	 * group traits to that id.
+	 * 
+	 * @param traits
+	 *            a dictionary with keys like plan or name. You only
+	 *            need to record a trait once, no need to send it again.
+	 * 
+	 */
+	public static void group(Traits traits) {
+
+		group(null, traits, null, null);
+	}
+	
+	/**
+	 * Identifying a group ties all of the group's actions to an id, and associates
+	 * group traits to that id.
+	 * 
+	 * @param groupId
+	 *            the group's id. It's the same id as
+	 *            which you would recognize a user's company in your database.
+	 * 
+	 * @param traits
+	 *            a dictionary with keys like plan or name. You only
+	 *            need to record a trait once, no need to send it again.
+	 * 
+	 */
+	public static void group(String groupId, Traits traits) {
+
+		group(groupId, traits, null, null);
+	}
+
+
+	/**
+	 * Identifying a group ties all of the group's actions to an id, and associates
+	 * group traits to that id.
+	 * 
+	 * @param traits
+	 *            a dictionary with keys like plan or name. You only
+	 *            need to record a trait once, no need to send it again.
+	 * 
+	 * @param context
+	 *            a custom object that describes the device context or grouping options.
+	 */
+	public static void group(Traits traits, Context context) {
+
+		group(null, traits, null, context);
+	}
+	
+	/**
+	 * Identifying a group ties all of the group's actions to an id, and associates
+	 * group traits to that id.
+	 * 
+	 * @param groupId
+	 *            the group's id. It's the same id as
+	 *            which you would recognize a user's company in your database.
+	 * 
+	 * @param traits
+	 *            a dictionary with keys like plan or name. You only
+	 *            need to record a trait once, no need to send it again.
+	 * 
+	 * @param context
+	 *            a custom object that describes the device context or grouping options.
+	 */
+	public static void group(String groupId, Traits traits, Context context) {
+
+		group(groupId, traits, null, context);
+	}
+
+
+	/**
+	 * Identifying a group ties all of the group's actions to an id, and associates
+	 * group traits to that id.
+	 * 
+	 * @param traits
+	 *            a dictionary with keys like plan or name. You only
+	 *            need to record a trait once, no need to send it again.
+	 * 
+	 * @param timestamp
+	 *            a {@link Calendar} representing when the group operation took place.
+	 *            If the grouping just happened, leave it blank and we'll use
+	 *            the server's time. If you are importing data from the past,
+	 *            make sure you provide this argument.
+	 * 
+	 */
+	public static void group(Traits traits, Calendar timestamp) {
+
+		group(null, traits, timestamp, null);
+	}
+
+	
+	/**
+	 * Identifying a group ties all of the group's actions to an id, and associates
+	 * group traits to that id.
+	 * 
+	 * @param groupId
+	 *            the group's id. It's the same id as
+	 *            which you would recognize a user's company in your database.
+	 * 
+	 * @param traits
+	 *            a dictionary with keys like plan or name. You only
+	 *            need to record a trait once, no need to send it again.
+	 * 
+	 * @param timestamp
+	 *            a {@link Calendar} representing when the group operation took place.
+	 *            If the grouping just happened, leave it blank and we'll use
+	 *            the server's time. If you are importing data from the past,
+	 *            make sure you provide this argument.
+	 * 
+	 */
+	public static void group(String groupId, Traits traits, Calendar timestamp) {
+
+		group(groupId, traits, timestamp, null);
+	}
+
+	/**
+	 * Identifying a group ties all of the group's actions to an id, and associates
+	 * group traits to that id.
+	 * 
+	 * @param traits
+	 *            a dictionary with keys like plan or name. You only
+	 *            need to record a trait once, no need to send it again.
+	 * 
+	 * @param timestamp
+	 *            a {@link Calendar} representing when the group operation took place.
+	 *            If the grouping just happened, leave it blank and we'll use
+	 *            the server's time. If you are importing data from the past,
+	 *            make sure you provide this argument.
+	 * 
+	 * @param context
+	 *            a custom object that describes the device context or grouping options.
+	 */
+	public static void group(Traits traits, Calendar timestamp,
+			Context context) {
+		
+		group(null, traits, timestamp, context);
+	}
+	
+	/**
+	 * Identifying a group ties all of the group's actions to an id, and associates
+	 * group traits to that id.
+	 * 
+	 * @param groupId
+	 *            the group's id. It's the same id as
+	 *            which you would recognize a user's company in your database.
+	 * 
+	 * @param traits
+	 *            a dictionary with keys like plan or name. You only
+	 *            need to record a trait once, no need to send it again.
+	 * 
+	 * @param timestamp
+	 *            a {@link Calendar} representing when the group operation took place.
+	 *            If the grouping just happened, leave it blank and we'll use
+	 *            the server's time. If you are importing data from the past,
+	 *            make sure you provide this argument.
+	 * 
+	 * @param context
+	 *            a custom object that describes the device context or grouping options.
+	 */
+	public static void group(String groupId, Traits traits, Calendar timestamp,
+			Context context) {
+		
+		checkInitialized();
+		if (optedOut) return;
+
+		String sessionId = getSessionId();
+		String userId = getUserId();
+		groupId = getOrSetGroupId(groupId);
+		
+		if (groupId == null || groupId.length() == 0) {
+			throw new IllegalArgumentException("analytics-android #group must be called with a valid group id.");
+		}
+		
+		if (context == null)
+			context = new Context();
+		if (traits == null)
+			traits = new Traits();
+
+		Group group = new Group(sessionId, userId, groupId, traits, timestamp, context);
+
+		enqueue(group);
+		
+		integrationManager.group(group);
+		
+		statistics.updateGroups(1);
 	}
 	
 	//
@@ -1160,6 +1366,26 @@ public class Analytics {
 		}
 		
 		return userId;
+	}
+
+	/**
+	 * Gets or sets the current groupId. If the groupId
+	 * is not null, then it will be set in the groupId cache and will
+	 * be returned.
+	 * @param groupId
+	 * @return
+	 */
+	private static String getOrSetGroupId(String groupId) {
+		
+		if (TextUtils.isEmpty(groupId)) {
+			// no group id provided, lets try to see if we have it saved
+			groupId = groupIdCache.get();
+		} else {
+			// we were passed a user Id so let's save it
+			groupIdCache.set(groupId);
+		}
+		
+		return groupId;
 	}
 	
 	/**
