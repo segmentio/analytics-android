@@ -30,5 +30,8 @@ public class Defaults {
 	// cache the settings for 1 hour before reloading
 	public static final int SETTINGS_CACHE_EXPIRY = 1000 * 60 * 60;
 
+	// try to send the location by default
+	public static final boolean SEND_LOCATION = true;
+
 
 }

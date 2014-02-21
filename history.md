@@ -1,3 +1,8 @@
+0.6.2 / February 21, 2014
+=================
+* set sessionId initially
+* add `analytics_send_location` option
+
 0.6.1 / February 20, 2014
 =================
 * adding `device.model`

@@ -15,6 +15,7 @@ import io.segment.android.flush.FlushThread.BatchFactory;
 import io.segment.android.flush.IFlushLayer;
 import io.segment.android.flush.IFlushLayer.FlushCallback;
 import io.segment.android.info.InfoManager;
+import io.segment.android.info.SessionId;
 import io.segment.android.integration.Integration;
 import io.segment.android.integration.IntegrationManager;
 import io.segment.android.models.Alias;
@@ -43,7 +44,7 @@ import android.text.TextUtils;
 
 public class Analytics {
 	
-	public static final String VERSION = "0.6.1";
+	public static final String VERSION = "0.6.2";
 	
 	private static AnalyticsStatistics statistics;
 	
@@ -380,11 +381,14 @@ public class Analytics {
 		database = PayloadDatabase.getInstance(context);
 
 		// knows how to create global context about this android device
-		infoManager = new InfoManager();
+		infoManager = new InfoManager(options);
 		
 		sessionIdCache = new SessionIdCache(context);
 		groupIdCache = new SimpleStringCache(context, Constants.SharedPreferences.GROUP_ID_KEY);
 		userIdCache = new SimpleStringCache(context, Constants.SharedPreferences.USER_ID_KEY);
+		
+		// set the sessionId initially
+		sessionIdCache.set(new SessionId().get(context));
 		
 		// add a global context
 		globalContext = new Context(infoManager.build(context));

@@ -40,6 +40,11 @@ public class Options {
 	private int settingsCacheExpiry;
 	
 	/**
+	 * Send the location in the options object.
+	 */
+	private boolean sendLocation;
+	
+	/**
 	 * Creates a default options
 	 */
 	public Options() {
@@ -48,7 +53,8 @@ public class Options {
 			 Defaults.FLUSH_AT, 
 			 Defaults.FLUSH_AFTER,
 			 Defaults.MAX_QUEUE_SIZE,
-			 Defaults.SETTINGS_CACHE_EXPIRY);
+			 Defaults.SETTINGS_CACHE_EXPIRY,
+			 Defaults.SEND_LOCATION);
 	}
 
 	/**
@@ -58,14 +64,16 @@ public class Options {
 	 * @param flushAt
 	 * @param flushAfter
 	 * @param maxQueueSize
-	 * 
+	 * @param settingsCacheExpiry
+	 * @param sendLocation
 	 */
 	Options(boolean debug, 
 			String host, 
 			int flushAt, 
 			int flushAfter, 
 			int maxQueueSize,
-			int settingsCacheExpiry) {
+			int settingsCacheExpiry,
+			boolean sendLocation) {
 
 		setDebug(debug);
 		setHost(host);
@@ -73,6 +81,7 @@ public class Options {
 		setFlushAfter(flushAfter);
 		setMaxQueueSize(maxQueueSize);
 		setSettingsCacheExpiry(settingsCacheExpiry);
+		setSendLocation(sendLocation);
 	}
 
 	public boolean isDebug() {
@@ -97,6 +106,10 @@ public class Options {
 	
 	public int getSettingsCacheExpiry() {
 		return settingsCacheExpiry;
+	}
+	
+	public boolean shouldSendLocation () {
+		return sendLocation;
 	}
 
 	/**
@@ -183,6 +196,15 @@ public class Options {
 	 */
 	public Options setDebug(boolean debug) {
 		this.debug = debug;
+		return this;
+	}
+
+	/**
+	 * Sets whether the library sends the location attributes.
+	 * @param sendLocation True to send location information
+	 */
+	public Options setSendLocation(boolean sendLocation) {
+		this.sendLocation = sendLocation;
 		return this;
 	}
 	

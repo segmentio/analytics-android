@@ -1,5 +1,6 @@
 package io.segment.android.info;
 
+import io.segment.android.Options;
 import io.segment.android.models.EasyJSONObject;
 
 import java.util.LinkedList;
@@ -16,14 +17,14 @@ public class InfoManager {
 
 	private List<Info<?>> managers; 
 	
-	public InfoManager() {
+	public InfoManager(Options options) {
 		managers = new LinkedList<Info<?>>();
 
 		managers.add(new Build());
 		managers.add(new Device());
 		managers.add(new Display());
 		managers.add(new Locale());
-		managers.add(new Location());
+		if (options.shouldSendLocation()) managers.add(new Location());
 		managers.add(new Telephony());
 		managers.add(new Wifi());
 	}
