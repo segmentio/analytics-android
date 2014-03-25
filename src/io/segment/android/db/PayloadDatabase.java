@@ -243,8 +243,13 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 						Log.getStackTraceString(e));
 				
 			} finally {
-				if (cursor != null) cursor.close();
-				if (db != null) db.close();
+				try {
+					if (cursor != null) cursor.close();
+					if (db != null) db.close();
+				} catch (SQLiteException e) {
+					Logger.e("Failed to close db cursor: " + 
+							Log.getStackTraceString(e));
+				}
 			}
 		}
 	
