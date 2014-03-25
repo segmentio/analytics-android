@@ -62,7 +62,7 @@ public class AmplitudeIntegration extends SimpleIntegration {
 		Traits traits = identify.getTraits();
 		
 		Amplitude.setUserId(userId);
-		Amplitude.setGlobalUserProperties(traits);
+		Amplitude.setUserProperties(traits);
 	}
 
 	@Override
