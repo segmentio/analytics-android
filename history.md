@@ -1,3 +1,9 @@
+0.6.5 / March 25, 2014
+=================
+* updating to Count.ly [commit](https://github.com/Countly/countly-sdk-android/commit/6a2f6b4e92faf80acd7c1a6ce3ec99c5336135b5)
+* guards against unfinalized db statements when multiple payload database are created and are unsynchronized, fixes #25
+* updating to Viewed X Screen new spec, fixes #28
+
 0.6.4 / March 25, 2014
 =================
 * updating to Crittercism [4.4.0](https://app.crittercism.com/downloads/release_notes/android/4.4.0)
@@ -6,7 +12,6 @@
 * updating to Bugsnag version [2.1.1](https://bugsnag.com/docs/notifiers/android)
 * updating to Google Analytics SDK version [3.01](https://developers.google.com/analytics/devguides/collection/android/changelog#changelog)
 * updating to Quantcast version [1.2.0](https://github.com/quantcast/android-measurement/blob/master/CHANGELOG.md)
-
 
 
 0.6.3 / March 25, 2014
