@@ -2,8 +2,8 @@
 
 <resources>
   
-  <!--Your Segment.io Project secret-->
-  <string name="analytics_secret">testsecret</string>
+  <!--Your Segment.io segmentio/android-test write key-->
+  <string name="analytics_secret">5m6gbdgho6</string>
 
   <!--The maximum amount of analytics events to queue before dropping to conserve memory-->
   <string name="analytics_host">https://api.segment.io</string>

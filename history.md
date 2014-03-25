@@ -1,3 +1,7 @@
+0.6.3 / March 25, 2014
+=================
+* updating to Mixpanel SDK [4.0.1](https://github.com/mixpanel/mixpanel-android/commit/6830db80a7ef3735c087c2c30772a99c65b28d14)
+
 0.6.2 / February 21, 2014
 =================
 * set sessionId initially
