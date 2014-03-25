@@ -1,5 +1,12 @@
 0.6.3 / March 25, 2014
 =================
+* updating to Crittercism [4.4.0](https://app.crittercism.com/downloads/release_notes/android/4.4.0)
+* updating to Amplitude version to [commit](https://github.com/amplitude/Amplitude-Android/commit/51a69da7a8ff49848985db511e72814359e1c9f0)
+* updating to Flurry version [3.4.0](http://support.flurry.com/index.php?title=Analytics/Code/ReleaseNotes/Android)
+
+
+0.6.3 / March 25, 2014
+=================
 * updating to Mixpanel SDK [4.0.1](https://github.com/mixpanel/mixpanel-android/commit/6830db80a7ef3735c087c2c30772a99c65b28d14)
 
 0.6.2 / February 21, 2014
