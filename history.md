@@ -3,7 +3,8 @@
 * updating to Crittercism [4.4.0](https://app.crittercism.com/downloads/release_notes/android/4.4.0)
 * updating to Amplitude version to [commit](https://github.com/amplitude/Amplitude-Android/commit/51a69da7a8ff49848985db511e72814359e1c9f0)
 * updating to Flurry version [3.4.0](http://support.flurry.com/index.php?title=Analytics/Code/ReleaseNotes/Android)
-
+* updating to Bugsnag version [2.1.1](https://bugsnag.com/docs/notifiers/android)
+* updating to Google Analytics SDK version [3.01](https://developers.google.com/analytics/devguides/collection/android/changelog#changelog)
 
 0.6.3 / March 25, 2014
 =================
