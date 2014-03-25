@@ -21,7 +21,7 @@ public class Screen extends Track {
 				 Calendar timestamp,
 				 Context context) {
 
-		super(sessionId, userId, "Viewed " + name, properties, timestamp, context);
+		super(sessionId, userId, "Viewed " + name + " Screen", properties, timestamp, context);
 
 		put("action", ACTION);
 		
