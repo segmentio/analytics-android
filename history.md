@@ -1,3 +1,7 @@
+0.6.6 / March 26, 2014
+=================
+* rolling back to older Tapstream, fixes #29
+
 0.6.5 / March 25, 2014
 =================
 * updating to Count.ly [commit](https://github.com/Countly/countly-sdk-android/commit/6a2f6b4e92faf80acd7c1a6ce3ec99c5336135b5)
