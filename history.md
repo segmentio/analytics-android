@@ -13,7 +13,7 @@
 * updating to Bugsnag version [2.1.1](https://bugsnag.com/docs/notifiers/android)
 * updating to Google Analytics SDK version [3.01](https://developers.google.com/analytics/devguides/collection/android/changelog#changelog)
 * updating to Quantcast version [1.2.0](https://github.com/quantcast/android-measurement/blob/master/CHANGELOG.md)
-
+* updating to Tapstream version [2.6.2](https://tapstream.com/sdk/android/)
 
 0.6.3 / March 25, 2014
 =================
