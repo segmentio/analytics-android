@@ -23,32 +23,31 @@ import org.json.JSONObject;
 import android.util.Log;
 
 public class BasicRequester implements IRequester {
-	
+
 	@Override
 	public HttpResponse send(Batch batch) {
 		batch.setRequestTimestamp(Calendar.getInstance());
-		
+
 		Options options = Analytics.getOptions();
-		
+
 		String url = options.getHost() + Defaults.ENDPOINTS.get("import");
 		String json = batch.toString();
-		
-		HttpClient httpclient = new DefaultHttpClient(); 
+
+		HttpClient httpclient = new DefaultHttpClient();
 		HttpPost post = new HttpPost(url);
 		post.setHeader("Content-Type", "application/json");
 
 		try {
-		      ByteArrayEntity se = new ByteArrayEntity(json.getBytes());  
-		      se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-		      post.setEntity(se);
-		      
-		      return httpclient.execute(post);
+			ByteArrayEntity se = new ByteArrayEntity(json.getBytes());
+			se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE,
+					"application/json"));
+			post.setEntity(se);
+
+			return httpclient.execute(post);
+		} catch (Exception e) {
+			Logger.w("Failed to send request. " + Log.getStackTraceString(e));
 		}
-		catch(Exception e){
-			Logger.w("Failed to send request. " + 
-		    		Log.getStackTraceString(e));
-		}
-		
+
 		return null;
 	}
 
@@ -56,26 +55,26 @@ public class BasicRequester implements IRequester {
 	public EasyJSONObject fetchSettings() {
 
 		Options options = Analytics.getOptions();
-		
-		String url = options.getHost() + Defaults.getSettingsEndpoint(Analytics.getWriteKey());
-		
-		HttpClient httpclient = new DefaultHttpClient(); 
+
+		String url = options.getHost()
+				+ Defaults.getSettingsEndpoint(Analytics.getWriteKey());
+
+		HttpClient httpclient = new DefaultHttpClient();
 		HttpGet get = new HttpGet(url);
 
 		try {
-		      HttpResponse response = httpclient.execute(get);
-		      
-		      String json = EntityUtils.toString(response.getEntity());
-		      
-		      JSONObject jsonObject = new JSONObject(json);
-		      
-		      return new EasyJSONObject(jsonObject);
+			HttpResponse response = httpclient.execute(get);
+
+			String json = EntityUtils.toString(response.getEntity());
+
+			JSONObject jsonObject = new JSONObject(json);
+
+			return new EasyJSONObject(jsonObject);
+			
+		} catch (Exception e) {
+			Logger.w("Failed to send request. " + Log.getStackTraceString(e));
 		}
-		catch(Exception e){
-			Logger.w("Failed to send request. " + 
-		    		Log.getStackTraceString(e));
-		}
-		
+
 		return null;
 	}
 

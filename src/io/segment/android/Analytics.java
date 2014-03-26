@@ -1407,7 +1407,6 @@ public class Analytics {
 	 * @param payload
 	 */
 	public static void enqueue(final BasePayload payload) {
-		
 		statistics.updateInsertAttempts(1);
 		
 		final long start = System.currentTimeMillis(); 
@@ -1474,7 +1473,7 @@ public class Analytics {
 	 */
 	public static void flush(boolean async) {
 		checkInitialized();
-		
+				
 		statistics.updateFlushAttempts(1);
 		
 		final long start = System.currentTimeMillis(); 

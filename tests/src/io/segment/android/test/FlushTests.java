@@ -80,4 +80,34 @@ public class FlushTests extends BaseTest {
 		
 		Assert.assertEquals(flushes, stats.getFlushTime().getCount());
 	}
+	
+	@Test
+	public void testTriggerTimerInteraction() throws InterruptedException {
+	    AnalyticsStatistics stats = Analytics.getStatistics();
+	    
+	    int flushAfter = Analytics.getOptions().getFlushAfter();
+	    int flushAt = Analytics.getOptions().getFlushAt();
+	    int flushAttempts = stats.getFlushAttempts().getCount();
+	    int flushes = stats.getFlushTime().getCount();
+	    
+	    for (int i = 0; i < flushAt + 5; i++) {
+	        Analytics.enqueue(TestCases.random());
+	    }
+	    
+	    // the flush after the trigger should have triggered a flush here
+	    flushAttempts += 1;
+	    flushes += 1;
+	    try {
+	        Thread.sleep(flushAfter + 250);
+	    } catch (InterruptedException e) {
+	        e.printStackTrace();
+	    }
+	    
+	    // the flush after timer should have triggered a flush here
+	    flushAttempts += 1;
+	    flushes += 1;
+	    Assert.assertEquals(flushes, stats.getFlushTime().getCount());
+
+	    Assert.assertEquals(flushAttempts, stats.getFlushAttempts().getCount());
+	}
 }

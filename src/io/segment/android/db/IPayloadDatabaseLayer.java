@@ -60,18 +60,8 @@ public interface IPayloadDatabaseLayer extends IThreadedLayer {
 						EnqueueCallback callback);
 	
 	/**
-	 * Gets the next payloads from the database
+	 * Gets and removes the next payload from the database
 	 * @param callback
 	 */
-	public void nextPayload(PayloadCallback callback);
-	
-	/**
-	 * Removes payloads from the database
-	 * @param minId
-	 * @param maxId
-	 * @param callback
-	 */
-	public void removePayloads(final long minId, 
-			   long maxId, 
-			   RemoveCallback callback);
+	public void removeNextPayload(PayloadCallback callback);
 }

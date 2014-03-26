@@ -89,5 +89,26 @@ public class PayloadDatabaseThread extends LooperThreadWithHandler
 			}
 		});	
 	}
+
+	@Override
+	public void removeNextPayload(final PayloadCallback callback) {
+		nextPayload(new PayloadCallback() {
+			
+			@Override
+			public void onPayload(final long minId, final long maxId, final List<BasePayload> payloads) {
+				if (payloads.size() == 0) {
+					callback.onPayload(minId, maxId, payloads);
+				} else {
+					removePayloads(minId, maxId, new RemoveCallback() {
+						
+						@Override
+						public void onRemoved(int removed) {
+							callback.onPayload(minId, maxId, payloads);
+						}
+					});
+				}
+			}
+		});
+	}
 	
 }

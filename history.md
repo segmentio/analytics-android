@@ -3,6 +3,7 @@
 * updating to Count.ly [commit](https://github.com/Countly/countly-sdk-android/commit/6a2f6b4e92faf80acd7c1a6ce3ec99c5336135b5)
 * guards against unfinalized db statements when multiple payload database are created and are unsynchronized, fixes #25
 * updating to Viewed X Screen new spec, fixes #28
+* race condition fix: updated flushing thread to remove from the db first, try sending, and re-queue only if it didn't work, fixes #24
 
 0.6.4 / March 25, 2014
 =================

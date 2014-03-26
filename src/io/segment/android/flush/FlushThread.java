@@ -4,7 +4,6 @@ import io.segment.android.Analytics;
 import io.segment.android.Logger;
 import io.segment.android.db.IPayloadDatabaseLayer;
 import io.segment.android.db.IPayloadDatabaseLayer.PayloadCallback;
-import io.segment.android.db.IPayloadDatabaseLayer.RemoveCallback;
 import io.segment.android.models.BasePayload;
 import io.segment.android.models.Batch;
 import io.segment.android.request.IRequester;
@@ -20,6 +19,7 @@ import org.apache.http.util.EntityUtils;
 
 import android.os.Handler;
 import android.util.Log;
+
 
 /**
  * A Looper/Handler backed flushing thread
@@ -56,7 +56,7 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 	public void flush(final FlushCallback callback) {
 		
 		// ask the database for the next payload batch
-		databaseLayer.nextPayload(new PayloadCallback() {
+		databaseLayer.removeNextPayload(new PayloadCallback() {
 
 			@Override
 			public void onPayload(
@@ -84,67 +84,36 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 							// we are now executing in the context of the
 							// flushing thread
 							
+							if (success) Logger.i("Batch request succeeded");
+							else Logger.e("Batch request failed.");
+							
+							AnalyticsStatistics statistics = Analytics.getStatistics();
+							
 							for (BasePayload payload : payloads) {
 								if (success) {
 									Logger.i("Item " + payload.toDescription() + " successfully sent.");
+									statistics.updateSuccessful(1);
 								} else {
 									Logger.w("Item " + payload.toDescription() + " failed to be sent.");
+									databaseLayer.enqueue(payload, null);
+									Logger.i("Re-queued payload " + payload.getRequestId());
+									statistics.updateFailed(1);
 								}
 							}
 							
 							if (!success) {
-								// if we failed at flushing (connectivity issues)
-								// return
+								// if we failed at flushing (connectivity issues), let's re-add them
 								if (callback != null) callback.onFlushCompleted(false);
 								
 							} else {
-
+								// we sent it successfully, let's update the request time 
 								long duration = System.currentTimeMillis() - start;
-								Analytics.getStatistics().updateRequestTime(duration);
+								statistics.updateRequestTime(duration);
 								
-								// if we were successful, we need to 
-								// first delete the old items from the
-								// database, and then continue flushing
-								
-								databaseLayer.removePayloads(minId, maxId, new RemoveCallback() {
-									
-									@Override
-									public void onRemoved(int removed) {
-										// we are again executing in the context of the database
-										// thread
-										
-										AnalyticsStatistics statistics = Analytics.getStatistics();
-										
-										if (removed == -1) {
-
-											for (int i = 0; i < removed; i += 1)
-												statistics.updateFailed(1);
-											
-											Logger.e("We failed to remove payload from the database.");
-											
-											if (callback != null) callback.onFlushCompleted(false);
-											
-										} else if (removed == 0) {
-
-											for (int i = 0; i < removed; i += 1)
-												statistics.updateFailed(1);
-											
-											Logger.e("We didn't end up removing anything from the database.");
-										
-											if (callback != null) callback.onFlushCompleted(false);
-											
-										} else {
-											
-											for (int i = 0; i < removed; i += 1)
-												statistics.updateSuccessful(1);
-											
-											// now we can initiate another flush to make
-											// sure that there's nothing left 
-											// in the database before we say we're fully flushed
-											flush(callback);
-										}
-									}
-								});
+								// now we can initiate another flush to make
+								// sure that there's nothing left 
+								// in the database before we say we're fully flushed
+								flush(callback);
 							}
 						}
 					});
@@ -154,7 +123,6 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 					if (callback != null) callback.onFlushCompleted(true);
 				}
 			}
-			
 		});
 	}
 	
