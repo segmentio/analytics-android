@@ -1,7 +1,9 @@
-package io.segment.android.test;
+package io.segment.android.flush.test;
 
 import io.segment.android.Analytics;
 import io.segment.android.stats.AnalyticsStatistics;
+import io.segment.android.test.BaseTest;
+import io.segment.android.test.TestCases;
 
 import org.junit.Assert;
 import org.junit.Test;

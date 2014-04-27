@@ -1,6 +1,7 @@
 package io.segment.android.test;
 
 import io.segment.android.Analytics;
+import io.segment.android.Options;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -23,7 +24,8 @@ public class BaseTest extends AndroidTestCase {
 		
 		if (Analytics.isInitialized()) Analytics.close();
 		
-		Analytics.initialize(context, "testsecret");
+		// the https://segment.io/segmentio/android-test project
+		Analytics.initialize(context, "5m6gbdgho6", new Options().setDebug(true));
 	}
 	
 	@AfterClass

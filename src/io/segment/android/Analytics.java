@@ -442,7 +442,7 @@ public class Analytics {
 	}
 	
 	/**
-	 * Factory that creates batches from payloads.
+	 * Factory that creates batches from action payloads.
 	 * 
 	 * Inserts system information into global batches
 	 */
@@ -1466,10 +1466,10 @@ public class Analytics {
 	//
 	// Actions
 	//
-	
-	
+
 	/**
-	 * Blocks until the queue is flushed
+	 * Triggers a flush of data to the server.
+	 * @param async True to block until the data is flushed
 	 */
 	public static void flush(boolean async) {
 		checkInitialized();
@@ -1491,7 +1491,6 @@ public class Analytics {
 					statistics.updateFlushTime(duration);
 				}
 			}
-
 		});
 
 		// flush all the providers as well
@@ -1631,4 +1630,14 @@ public class Analytics {
 		return statistics;
 	}
 
+	/**
+	 * Allow custom {link {@link IRequester} for counting requests or testing.
+	 * @param requester
+	 */
+	public static void setRequester(IRequester requester) {
+		if (flushLayer instanceof FlushThread) 
+			((FlushThread) flushLayer).setRequester(requester);
+	}
+	
+	
 }

@@ -19,7 +19,8 @@ public interface IFlushLayer extends IThreadedLayer {
 	public interface FlushCallback {
 		/**
 		 * Called when all messages have been flushed from the queue
-		 * @param success True for successful flush, false for not. 
+		 * @param success True for successful flush, false for not.
+		 * @param batch The batch that was sent to the server  
 		 */
 		public void onFlushCompleted(boolean success);
 	}

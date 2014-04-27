@@ -80,7 +80,7 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 					performRequest(batch, new RequestCallback() {
 						
 						@Override
-						public void onRequestCompleted(boolean success) {
+						public void onRequestCompleted(boolean success, Batch batch) {
 							// we are now executing in the context of the
 							// flushing thread
 							
@@ -132,7 +132,7 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 	 *
 	 */
 	public interface RequestCallback {
-		public void onRequestCompleted(boolean success);
+		public void onRequestCompleted(boolean success, Batch batch);
 	}
 	
 	/**
@@ -181,12 +181,18 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
 					success = true;
 				}
 				
-				if (callback != null) callback.onRequestCompleted(success);
+				if (callback != null) callback.onRequestCompleted(success, batch);
 			}
 			
 		});
 	}
 	
-	
+	/**
+	 * Allow custom {link {@link IRequester} for testing.
+	 * @param requester
+	 */
+	public void setRequester(IRequester requester) {
+		this.requester = requester;
+	}
 	
 }
