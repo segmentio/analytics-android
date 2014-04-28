@@ -1,4 +1,8 @@
 
+0.6.9 / April 27, 2014
+=================
+* updating Countly SDK to fix single quote SQL bug, fixes #32
+
 0.6.8 / April 27, 2014
 =================
 * integration.onActivityX can only be called after integration.onActivityCreate has been called. Fixes #33
