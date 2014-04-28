@@ -283,10 +283,13 @@ import java.util.Set;
         }
 
         return mDb.update(tableName, values, selection, selectionArgs);
-    }
+    }		
 
     /**
      * Deletes row(s).
+     * 
+     * WORKAROUND for ART verifier bug in KitKat: Changed method name from delete to remove
+     * 
      * <p>
      * Note: this method may perform disk operations.
      *
@@ -297,7 +300,7 @@ import java.util.Set;
      * @return The number of rows affected, which is in the range from 0 to the number of items in the table.
      * @throws IllegalArgumentException if tableName is null or not a valid table name.
      */
-    public int delete(final String tableName, final String selection, final String[] selectionArgs)
+    public int remove(final String tableName, final String selection, final String[] selectionArgs)
     {
         if (Constants.IS_PARAMETER_CHECKING_ENABLED)
         {
@@ -679,7 +682,7 @@ import java.util.Set;
             if (oldVersion < 7)
             {
                 // info table
-            	db.execSQL(String.format("CREATE TABLE %s (%s TEXT, %s INTEGER);", InfoDbColumns.TABLE_NAME, InfoDbColumns.FB_ATTRIBUTION, InfoDbColumns.FIRST_RUN));
+            	db.execSQL(String.format("CREATE TABLE IF NOT EXISTS %s (%s TEXT, %s INTEGER);", InfoDbColumns.TABLE_NAME, InfoDbColumns.FB_ATTRIBUTION, InfoDbColumns.FIRST_RUN));
             	final ContentValues values = new ContentValues();
             	values.putNull(InfoDbColumns.FB_ATTRIBUTION);
             	values.put(InfoDbColumns.FIRST_RUN, Boolean.FALSE);

@@ -38,9 +38,12 @@ import android.text.format.DateUtils;
  	 * 2.14: Expose appKey in ReferralReceiver so it can be set in code via subclassing
  	 * 2.15: KitKat GZIP bug workaround, optional HTTPS, setLocation API, and default to 50 attributes
  	 * 2.16: Improved handling of missing meta-data in AndroidManifest.xml
+ 	 * 2.17: Database migration fix
+ 	 * 2.18: Workaround for ART verifier bug on KitKat
+ 	 * 2.19: Remove collection of unused Wi-Fi MAC address and ignore GCM messages from other providers
      */
     //@formatter:on
-    public static final String LOCALYTICS_CLIENT_LIBRARY_VERSION = "android_2.16"; //$NON-NLS-1$
+    public static final String LOCALYTICS_CLIENT_LIBRARY_VERSION = "android_2.19"; //$NON-NLS-1$
 
     /**
      * The package name of the Localytics library.

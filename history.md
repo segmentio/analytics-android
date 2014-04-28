@@ -1,4 +1,9 @@
 
+0.6.10 / April 27, 2014
+=================
+* improving IntegrationManager logging
+* update Localytics to `2.19.0`
+
 0.6.9 / April 27, 2014
 =================
 * updating Countly SDK to fix single quote SQL bug, fixes #32

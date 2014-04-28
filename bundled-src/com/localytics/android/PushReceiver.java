@@ -1,3 +1,11 @@
+//@formatter:off
+/**
+ * PushReceiver.java Copyright (C) 2013 Char Software Inc., DBA Localytics. This code is provided under the Localytics Modified
+ * BSD License. A copy of this license has been distributed in a file called LICENSE with this source code. Please visit
+ * www.localytics.com for more information.
+ */
+//@formatter:on
+
 package com.localytics.android;
 
 import org.json.JSONException;
@@ -14,6 +22,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.text.TextUtils;
 import android.util.Log;
 
 public class PushReceiver extends BroadcastReceiver 
@@ -68,8 +77,31 @@ public class PushReceiver extends BroadcastReceiver
 	
 	private void handleNotificationReceived(Context context, Intent intent) 
 	{
+		// Ignore messages that aren't from Localytics
+		String llString = intent.getExtras().getString("ll");
+		if (TextUtils.isEmpty(llString)) return;
+		    	
+		// Try to parse the campaign id from the payload
+		int campaignId = 0;
+		
+		try 
+		{
+			JSONObject llObject = new JSONObject(llString);
+			campaignId = llObject.getInt("ca");
+		}
+		catch (JSONException e)
+		{
+			if (Constants.IS_LOGGABLE)
+			{
+				Log.w(Constants.LOG_TAG, "Failed to get campaign id from payload, ignoring message"); //$NON-NLS-1$
+			}    		
+			
+			return;
+		}
+    	
 		// Get the notification message
 		String message = intent.getExtras().getString("message");
+		if (TextUtils.isEmpty(message)) return;
 		
 		// Get the app name, icon, and launch intent
 		CharSequence appName = "";
@@ -104,29 +136,9 @@ public class PushReceiver extends BroadcastReceiver
 		// Auto dismiss when tapped
         notification.flags |= Notification.FLAG_AUTO_CANCEL;
         
-        int notificationId = 0;
-        
-        // Use the campaign id as the notification id to prevents duplicates
-        String llString = intent.getExtras().getString("ll");        
-        if (llString != null)
-        {
-        	try 
-        	{
-        		JSONObject llObject = new JSONObject(llString);
-        		notificationId = llObject.getInt("ca"); 
-        	}
-        	catch (JSONException e)
-        	{
-        		if (Constants.IS_LOGGABLE)
-        		{
-        			Log.w(Constants.LOG_TAG, "Failed to get campaign id from payload"); //$NON-NLS-1$
-        		}
-        	}
-        }        
-        
-        // Show the notification
+        // Show the notification (use the campaign id as the notification id to prevents duplicates)
 		NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(notificationId, notification);        
+        notificationManager.notify(campaignId, notification);
 	}
 	
 	private void setRegistrationId(final Context context, final String registrationId)

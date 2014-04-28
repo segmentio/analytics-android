@@ -204,14 +204,6 @@ import com.localytics.android.LocalyticsProvider.ApiKeysDbColumns;
             /**
              * Type: {@code String}
              * <p>
-             * SHA-256 hash of the device's Wi-Fi MAC address, if the device has Wi-Fi, the app has
-             * {@link permission#ACCESS_WIFI_STATE}, Wi-Fi is enabled. Otherwise null.
-             */
-            public static final String KEY_DEVICE_WIFI_MAC_HASH = "wmac"; //$NON-NLS-1$
-
-            /**
-             * Type: {@code String}
-             * <p>
              * Country for the device's current locale settings
              */
             public static final String KEY_LOCALE_COUNTRY = "dlc"; //$NON-NLS-1$

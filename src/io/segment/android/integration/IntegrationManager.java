@@ -100,10 +100,16 @@ public class IntegrationManager implements IIntegration {
 					// initialize the integration with those settings
 					EasyJSONObject settings = new EasyJSONObject(allSettings.getObject(integrationKey));
 					
+					Log.i(TAG, String.format("Downloaded settings for integration %s: %s", 
+							integration.getKey(), settings.toString()));
+					
 					try {
 						integration.initialize(settings);
 						// enable the integration
 						integration.enable();
+						
+						Log.i(TAG, String.format("Initialized and enabled integration %s", 
+								integration.getKey()));
 						
 					} catch (InvalidSettingsException e) {
 						

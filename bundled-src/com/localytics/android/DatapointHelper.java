@@ -279,68 +279,6 @@ import java.security.NoSuchAlgorithmException;
     }
 
     /**
-     * Gets the device's Wi-Fi MAC address.
-     * <p>
-     * Note: this method will return null if {@link permission#ACCESS_WIFI_STATE} is not available. This method will also return
-     * null on devices that do not have Wi-Fi. Even if the application has {@link permission#ACCESS_WIFI_STATE} and the device
-     * does have Wi-Fi hardware, this method may still return null if Wi-Fi is disabled or not associated with an access point.
-     *
-     * @param context The context used to access the Wi-Fi state.
-     * @return A SHA-256 of the Wi-Fi MAC address. Null if a MAC is not available, or if {@link permission#ACCESS_WIFI_STATE} is
-     *         not available.
-     */
-    public static String getWifiMacHashOrNull(final Context context)
-    {
-        if (Constants.CURRENT_API_LEVEL >= 8)
-        {
-            final Boolean hasWifi = ReflectionUtils.tryInvokeInstance(context.getPackageManager(), "hasSystemFeature", STRING_CLASS_ARRAY, HARDWARE_WIFI); //$NON-NLS-1$
-
-            if (!hasWifi.booleanValue())
-            {
-                if (Constants.IS_LOGGABLE)
-                {
-                    Log.i(Constants.LOG_TAG, "Device does not have Wi-Fi; cannot read Wi-Fi MAC"); //$NON-NLS-1$
-                }
-
-                return null;
-            }
-        }
-
-        /*
-         * Most applications using the Localytics library probably shouldn't have Wi-Fi permissions. This is primarily for
-         * customers who *really* need to identify devices.
-         */
-        String id = null;
-        if (context.getPackageManager().checkPermission(permission.ACCESS_WIFI_STATE, context.getPackageName()) == PackageManager.PERMISSION_GRANTED)
-        {
-            final WifiManager manager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-            final WifiInfo info = manager.getConnectionInfo();
-            if (null != info)
-            {
-                id = info.getMacAddress();
-            }
-        }
-        else
-        {
-            if (Constants.IS_LOGGABLE)
-            {
-                /*
-                 * Yes, this log message is different from the one that reads telephony ID. MAC address is less important than
-                 * telephony ID and most applications probably don't need the ACCESS_WIFI_STATE permission.
-                 */
-                Log.i(Constants.LOG_TAG, "Application does not have permission ACCESS_WIFI_STATE; determining MAC address is not possible."); //$NON-NLS-1$
-            }
-        }
-
-        if (null == id)
-        {
-            return null;
-        }
-
-        return getSha256_buggy(id);
-    }
-
-    /**
      * Determines the type of network this device is connected to.
      *
      * @param context the context used to access the device's WIFI

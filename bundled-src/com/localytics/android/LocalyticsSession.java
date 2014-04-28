@@ -2046,15 +2046,15 @@ public class LocalyticsSession
                                     }
                                 }
 
-                                mProvider.delete(EventHistoryDbColumns.TABLE_NAME, SELECTION_OPEN_DELETE_EMPTIES_EVENT_HISTORY_SESSION_KEY_REF, sessionIdSelection);
+                                mProvider.remove(EventHistoryDbColumns.TABLE_NAME, SELECTION_OPEN_DELETE_EMPTIES_EVENT_HISTORY_SESSION_KEY_REF, sessionIdSelection);
                                 for (final long blobId : blobsToDelete)
                                 {
-                                    mProvider.delete(UploadBlobsDbColumns.TABLE_NAME, SELECTION_OPEN_DELETE_EMPTIES_UPLOAD_BLOBS_ID, new String[]
+                                    mProvider.remove(UploadBlobsDbColumns.TABLE_NAME, SELECTION_OPEN_DELETE_EMPTIES_UPLOAD_BLOBS_ID, new String[]
                                         { Long.toString(blobId) });
                                 }
                                 // mProvider.delete(AttributesDbColumns.TABLE_NAME, String.format("%s = ?",
                                 // AttributesDbColumns.EVENTS_KEY_REF), selectionArgs)
-                                mProvider.delete(SessionsDbColumns.TABLE_NAME, SELECTION_OPEN_DELETE_EMPTIES_SESSIONS_ID, sessionIdSelection);
+                                mProvider.remove(SessionsDbColumns.TABLE_NAME, SELECTION_OPEN_DELETE_EMPTIES_SESSIONS_ID, sessionIdSelection);
                             }
                         }
                         finally
@@ -2148,7 +2148,7 @@ public class LocalyticsSession
             values.put(SessionsDbColumns.DEVICE_SERIAL_NUMBER_HASH, DatapointHelper.getSerialNumberHashOrNull());
             values.put(SessionsDbColumns.DEVICE_TELEPHONY_ID, DatapointHelper.getTelephonyDeviceIdOrNull(mContext));
             values.putNull(SessionsDbColumns.DEVICE_TELEPHONY_ID_HASH);
-            values.put(SessionsDbColumns.DEVICE_WIFI_MAC_HASH, DatapointHelper.getWifiMacHashOrNull(mContext));
+            values.putNull(SessionsDbColumns.DEVICE_WIFI_MAC_HASH);
             values.put(SessionsDbColumns.LOCALE_COUNTRY, Locale.getDefault().getCountry());
             values.put(SessionsDbColumns.LOCALE_LANGUAGE, Locale.getDefault().getLanguage());
             values.put(SessionsDbColumns.LOCALYTICS_LIBRARY_VERSION, Constants.LOCALYTICS_CLIENT_LIBRARY_VERSION);
@@ -2284,8 +2284,8 @@ public class LocalyticsSession
 
                 if (cursor.moveToFirst())
                 {
-                    mProvider.delete(AttributesDbColumns.TABLE_NAME, SELECTION_OPEN_CLOSED_SESSION_ATTRIBUTES, selectionArgs);
-                    mProvider.delete(EventsDbColumns.TABLE_NAME, SELECTION_OPEN_CLOSED_SESSION, selectionArgs);
+                    mProvider.remove(AttributesDbColumns.TABLE_NAME, SELECTION_OPEN_CLOSED_SESSION_ATTRIBUTES, selectionArgs);
+                    mProvider.remove(EventsDbColumns.TABLE_NAME, SELECTION_OPEN_CLOSED_SESSION, selectionArgs);
                 }
                 else
                 {
@@ -2658,7 +2658,7 @@ public class LocalyticsSession
                 {
                 	if (null == value)
                 	{
-                		mProvider.delete(IdentifiersDbColumns.TABLE_NAME, String.format("%s = ?", IdentifiersDbColumns.KEY), new String[] { cursor.getString(cursor.getColumnIndexOrThrow(IdentifiersDbColumns.KEY)) }); //$NON-NLS-1$
+                		mProvider.remove(IdentifiersDbColumns.TABLE_NAME, String.format("%s = ?", IdentifiersDbColumns.KEY), new String[] { cursor.getString(cursor.getColumnIndexOrThrow(IdentifiersDbColumns.KEY)) }); //$NON-NLS-1$
                 	}
                 	else
                 	{
@@ -3595,7 +3595,7 @@ public class LocalyticsSession
                     final long eventId = blobEvents.getLong(eventIdColumn);
 
                     // delete the blobevent
-                    provider.delete(UploadBlobEventsDbColumns.TABLE_NAME, String.format("%s = ?", UploadBlobEventsDbColumns._ID), new String[] { Long.toString(blobEventId) }); //$NON-NLS-1$
+                    provider.remove(UploadBlobEventsDbColumns.TABLE_NAME, String.format("%s = ?", UploadBlobEventsDbColumns._ID), new String[] { Long.toString(blobEventId) }); //$NON-NLS-1$
 
                     /*
                      * Add the blob to the list of blobs to be deleted
@@ -3603,7 +3603,7 @@ public class LocalyticsSession
                     blobsToDelete.add(Long.valueOf(blobId));
 
                     // delete all attributes for the event
-                    provider.delete(AttributesDbColumns.TABLE_NAME, String.format("%s = ?", AttributesDbColumns.EVENTS_KEY_REF), new String[] { Long.toString(eventId) }); //$NON-NLS-1$
+                    provider.remove(AttributesDbColumns.TABLE_NAME, String.format("%s = ?", AttributesDbColumns.EVENTS_KEY_REF), new String[] { Long.toString(eventId) }); //$NON-NLS-1$
 
                     /*
                      * Check to see if the event is a close event, indicating that the session is complete and can also be deleted
@@ -3621,7 +3621,7 @@ public class LocalyticsSession
                         {
                             final long sessionId = eventCursor.getLong(eventCursor.getColumnIndexOrThrow(EventsDbColumns.SESSION_KEY_REF));
 
-                            provider.delete(EventHistoryDbColumns.TABLE_NAME, String.format("%s = ?", EventHistoryDbColumns.SESSION_KEY_REF), new String[] //$NON-NLS-1$
+                            provider.remove(EventHistoryDbColumns.TABLE_NAME, String.format("%s = ?", EventHistoryDbColumns.SESSION_KEY_REF), new String[] //$NON-NLS-1$
                                 { Long.toString(sessionId) });
 
                             sessionsToDelete.add(Long.valueOf(eventCursor.getLong(eventCursor.getColumnIndexOrThrow(EventsDbColumns.SESSION_KEY_REF))));
@@ -3637,7 +3637,7 @@ public class LocalyticsSession
                     }
 
                     // delete the event
-                    provider.delete(EventsDbColumns.TABLE_NAME, String.format("%s = ?", EventsDbColumns._ID), new String[] { Long.toString(eventId) }); //$NON-NLS-1$
+                    provider.remove(EventsDbColumns.TABLE_NAME, String.format("%s = ?", EventsDbColumns._ID), new String[] { Long.toString(eventId) }); //$NON-NLS-1$
                 }
             }
             finally
@@ -3652,13 +3652,13 @@ public class LocalyticsSession
             // delete blobs
             for (final long x : blobsToDelete)
             {
-                provider.delete(UploadBlobsDbColumns.TABLE_NAME, String.format("%s = ?", UploadBlobsDbColumns._ID), new String[] { Long.toString(x) }); //$NON-NLS-1$
+                provider.remove(UploadBlobsDbColumns.TABLE_NAME, String.format("%s = ?", UploadBlobsDbColumns._ID), new String[] { Long.toString(x) }); //$NON-NLS-1$
             }
 
             // delete sessions
             for (final long x : sessionsToDelete)
             {
-                provider.delete(SessionsDbColumns.TABLE_NAME, String.format("%s = ?", SessionsDbColumns._ID), new String[] { Long.toString(x) }); //$NON-NLS-1$
+                provider.remove(SessionsDbColumns.TABLE_NAME, String.format("%s = ?", SessionsDbColumns._ID), new String[] { Long.toString(x) }); //$NON-NLS-1$
             }
         }
         
@@ -3730,8 +3730,6 @@ public class LocalyticsSession
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_DEVICE_SERIAL_HASH, cursor.isNull(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_SERIAL_NUMBER_HASH)) ? JSONObject.NULL
                             : cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_SERIAL_NUMBER_HASH)));
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_DEVICE_SDK_LEVEL, cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.ANDROID_SDK)));
-                    result.put(JsonObjects.BlobHeader.Attributes.KEY_DEVICE_WIFI_MAC_HASH, cursor.isNull(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_WIFI_MAC_HASH)) ? JSONObject.NULL
-                            : cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_WIFI_MAC_HASH)));
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_LOCALYTICS_API_KEY, apiKey);
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_LOCALYTICS_CLIENT_LIBRARY_VERSION, cursor.getString(cursor.getColumnIndexOrThrow(SessionsDbColumns.LOCALYTICS_LIBRARY_VERSION)));
                     result.put(JsonObjects.BlobHeader.Attributes.KEY_LOCALYTICS_DATA_TYPE, JsonObjects.BlobHeader.Attributes.VALUE_DATA_TYPE);
