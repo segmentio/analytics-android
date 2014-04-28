@@ -152,7 +152,7 @@ public class IntegrationManager implements IIntegration {
 	/**
 	 * A integration operation function
 	 */
-	private interface integrationOperation {
+	private interface IntegrationOperation {
 		public void run(Integration integration);
 	}
 	
@@ -162,7 +162,7 @@ public class IntegrationManager implements IIntegration {
 	 * @param minimumState The minimum state that the integration has to be in before running the operation
 	 * @param operation The actual operation to run on the integration
 	 */
-	private void runOperation(String name, IntegrationState minimumState, integrationOperation operation) {
+	private void runOperation(String name, IntegrationState minimumState, IntegrationOperation operation) {
 		
 		// time the operation
 		Stopwatch createOp = new Stopwatch("[All integrations] " + name);
@@ -189,7 +189,7 @@ public class IntegrationManager implements IIntegration {
 	
 
 	public void toggleOptOut(final boolean optedOut) {
-		runOperation("optOut", IntegrationState.INITIALIZED, new integrationOperation () {
+		runOperation("optOut", IntegrationState.INITIALIZED, new IntegrationOperation () {
 			
 			@Override
 			public void run(Integration integration) {
@@ -208,7 +208,7 @@ public class IntegrationManager implements IIntegration {
 	public void onCreate(final Context context) {
 		checkPermissions(context);
 		
-		runOperation("onCreate", IntegrationState.INITIALIZED, new integrationOperation () {
+		runOperation("onCreate", IntegrationState.INITIALIZED, new IntegrationOperation () {
 			
 			@Override
 			public void run(Integration integration) {
@@ -220,7 +220,7 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void onActivityStart(final Activity activity) {
 		
-		runOperation("onActivityStart", IntegrationState.INITIALIZED, new integrationOperation () {
+		runOperation("onActivityStart", IntegrationState.READY, new IntegrationOperation () {
 			
 			@Override
 			public void run(Integration integration) {
@@ -232,7 +232,7 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void onActivityResume(final Activity activity) {
 		
-		runOperation("onActivityResume", IntegrationState.INITIALIZED, new integrationOperation () {
+		runOperation("onActivityResume", IntegrationState.READY, new IntegrationOperation () {
 			
 			@Override
 			public void run(Integration integration) {
@@ -244,7 +244,7 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void onActivityPause(final Activity activity) {
 		
-		runOperation("onActivityPause", IntegrationState.INITIALIZED, new integrationOperation () {
+		runOperation("onActivityPause", IntegrationState.READY, new IntegrationOperation () {
 			
 			@Override
 			public void run(Integration integration) {
@@ -256,7 +256,7 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void onActivityStop(final Activity activity) {
 		
-		runOperation("onActivityStop", IntegrationState.INITIALIZED, new integrationOperation () {
+		runOperation("onActivityStop", IntegrationState.READY, new IntegrationOperation () {
 			
 			@Override
 			public void run(Integration integration) {
@@ -300,7 +300,7 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void identify(final Identify identify) {
 		
-		runOperation("Identify", IntegrationState.READY, new integrationOperation () {
+		runOperation("Identify", IntegrationState.READY, new IntegrationOperation () {
 			
 			@Override
 			public void run(Integration integration) {
@@ -314,7 +314,7 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void group(final Group group) {
 		
-		runOperation("Group", IntegrationState.READY, new integrationOperation () {
+		runOperation("Group", IntegrationState.READY, new IntegrationOperation () {
 			
 			@Override
 			public void run(Integration integration) {
@@ -328,7 +328,7 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void track(final Track track) {
 
-		runOperation("Track", IntegrationState.READY, new integrationOperation () {
+		runOperation("Track", IntegrationState.READY, new IntegrationOperation () {
 			
 			@Override
 			public void run(Integration integration) {
@@ -342,7 +342,7 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void screen(final Screen screen) {
 
-		runOperation("Screen", IntegrationState.READY, new integrationOperation () {
+		runOperation("Screen", IntegrationState.READY, new IntegrationOperation () {
 			
 			@Override
 			public void run(Integration integration) {
@@ -356,7 +356,7 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void alias(final Alias alias) {
 
-		runOperation("Alias", IntegrationState.READY, new integrationOperation () {
+		runOperation("Alias", IntegrationState.READY, new IntegrationOperation () {
 			
 			@Override
 			public void run(Integration integration) {
@@ -369,7 +369,7 @@ public class IntegrationManager implements IIntegration {
 
 	public void reset() {
 
-		runOperation("Reset", IntegrationState.READY, new integrationOperation () {
+		runOperation("Reset", IntegrationState.READY, new IntegrationOperation () {
 			
 			@Override
 			public void run(Integration integration) {
@@ -381,7 +381,7 @@ public class IntegrationManager implements IIntegration {
 	
 	public void flush() {
 
-		runOperation("Flush", IntegrationState.READY, new integrationOperation () {
+		runOperation("Flush", IntegrationState.READY, new IntegrationOperation () {
 			
 			@Override
 			public void run(Integration integration) {
