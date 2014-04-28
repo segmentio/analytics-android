@@ -55,9 +55,9 @@ public class BasicAnalyticsTest extends BaseTest {
 			"just_user_id", true
 		));
 		
-		Analytics.identify(traits, TestCases.calendar);
+		Analytics.identify(traits, TestCases.calendar());
 		
-		Analytics.identify(traits, TestCases.calendar, new Context(
+		Analytics.identify(traits, TestCases.calendar(), new Context(
 			"providers", new EasyJSONObject(
 					"Mixpanel", true,
 					"KISSMetrics", true
@@ -98,9 +98,9 @@ public class BasicAnalyticsTest extends BaseTest {
 			"just_user_id", true
 		));
 		
-		Analytics.group(traits, TestCases.calendar);
+		Analytics.group(traits, TestCases.calendar());
 		
-		Analytics.group(traits, TestCases.calendar, new Context(
+		Analytics.group(traits, TestCases.calendar(), new Context(
 			"providers", new EasyJSONObject(
 					"Mixpanel", true,
 					"KISSMetrics", true
@@ -135,9 +135,9 @@ public class BasicAnalyticsTest extends BaseTest {
 			"Donnie", "Darko"
 		));
 		
-		Analytics.track("Android: With Calendar", new Props(),  TestCases.calendar);
+		Analytics.track("Android: With Calendar", new Props(),  TestCases.calendar());
 		
-		Analytics.track("Android: With Context", new Props(),  TestCases.calendar, new Context(
+		Analytics.track("Android: With Context", new Props(),  TestCases.calendar(), new Context(
 			"providers", new EasyJSONObject(
 					"Mixpanel", true,
 					"KISSMetrics", true
@@ -172,9 +172,9 @@ public class BasicAnalyticsTest extends BaseTest {
 			"Donnie", "Darko"
 		));
 		
-		Analytics.screen("Android: Screen With Calendar", new Props(),  TestCases.calendar);
+		Analytics.screen("Android: Screen With Calendar", new Props(),  TestCases.calendar());
 		
-		Analytics.screen("Android: Screen With Context", new Props(),  TestCases.calendar, new Context(
+		Analytics.screen("Android: Screen With Context", new Props(),  TestCases.calendar(), new Context(
 			"providers", new EasyJSONObject(
 					"Mixpanel", true,
 					"KISSMetrics", true

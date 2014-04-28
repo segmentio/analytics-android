@@ -30,7 +30,9 @@ import io.segment.android.models.Screen;
 import io.segment.android.models.Track;
 import io.segment.android.models.Traits;
 import io.segment.android.request.BasicRequester;
+import io.segment.android.request.IRequestLayer;
 import io.segment.android.request.IRequester;
+import io.segment.android.request.RequestThread;
 import io.segment.android.stats.AnalyticsStatistics;
 import io.segment.android.utils.HandlerTimer;
 
@@ -44,7 +46,7 @@ import android.text.TextUtils;
 
 public class Analytics {
 	
-	public static final String VERSION = "0.6.6";
+	public static final String VERSION = "0.6.7";
 	
 	private static AnalyticsStatistics statistics;
 	
@@ -58,6 +60,7 @@ public class Analytics {
 	private static HandlerTimer refreshSettingsTimer;
 	private static PayloadDatabase database;
 	private static IPayloadDatabaseLayer databaseLayer;
+	private static IRequestLayer requestLayer;
 	private static IFlushLayer flushLayer;
 	private static ISettingsLayer settingsLayer;
 	
@@ -393,16 +396,20 @@ public class Analytics {
 		// add a global context
 		globalContext = new Context(infoManager.build(context));
 		
-		IRequester requester = new BasicRequester();
-		
 		// now we need to create our singleton thread-safe database thread
 		Analytics.databaseLayer = new PayloadDatabaseThread(database);
 		Analytics.databaseLayer.start();
+
+		IRequester requester = new BasicRequester();
+		
+		// and a single request thread
+		Analytics.requestLayer = new RequestThread(requester);
+		Analytics.requestLayer.start();
 		
 		// start the flush thread
-		Analytics.flushLayer = new FlushThread(requester, 
+		Analytics.flushLayer = new FlushThread(Analytics.databaseLayer, 
 											  batchFactory,
-											  Analytics.databaseLayer);
+											  Analytics.requestLayer);
 		
 		Analytics.flushTimer = new HandlerTimer(
 				options.getFlushAfter(), flushClock);
@@ -418,13 +425,13 @@ public class Analytics {
 	
 		
 		// important: disable Segment.io server-side processing of
-		// the bundled providers that we'll evaluate on the mobile
+		// the bundled integrations that we'll evaluate on the mobile
 		// device
-		EasyJSONObject providerContext = new EasyJSONObject();
-		for (Integration provider : integrationManager.getProviders()) {
-			providerContext.put(provider.getKey(), false);
+		EasyJSONObject integrationContext = new EasyJSONObject();
+		for (Integration integration : integrationManager.getIntegrations()) {
+			integrationContext.put(integration.getKey(), false);
 		}
-		globalContext.put("providers", providerContext);
+		globalContext.put("integrations", integrationContext);
 		
 		initialized = true;
 		
@@ -1239,7 +1246,7 @@ public class Analytics {
 		
 		enqueue(screenAction);
 		
-		// just call internally into the provider manager
+		// just call internally into the integration manager
 		integrationManager.screen(screenAction);
 		
 		statistics.updateScreens(1);
@@ -1473,19 +1480,15 @@ public class Analytics {
 	 */
 	public static void flush(boolean async) {
 		checkInitialized();
-				
+		
 		statistics.updateFlushAttempts(1);
-		
 		final long start = System.currentTimeMillis(); 
-		
 		final CountDownLatch latch = new CountDownLatch(1);
 		
 		flushLayer.flush(new FlushCallback() {
-
 			@Override
-			public void onFlushCompleted(boolean success) {
+			public void onFlushCompleted(boolean success, Batch batch) {
 				latch.countDown();
-				
 				if (success) {
 					long duration = System.currentTimeMillis() - start;
 					statistics.updateFlushTime(duration);
@@ -1493,7 +1496,7 @@ public class Analytics {
 			}
 		});
 
-		// flush all the providers as well
+		// flush all the integrations as well
 		integrationManager.flush();
 		
 		if (!async) {
@@ -1513,14 +1516,14 @@ public class Analytics {
 			userIdCache.reset();
 			groupIdCache.reset();
 			
-			// reset all the providers
+			// reset all the integrations
 			integrationManager.reset();
 		}
 	}
 	
 	/**
 	 * Triggers a download of Segment.io integration settings
-	 * from the server, and update of all the bundled providers.
+	 * from the server, and update of all the bundled integrations.
 	 */
 	public static void refreshSettings() {
 		if (initialized) {
@@ -1533,11 +1536,13 @@ public class Analytics {
 	 */
 	public static void close() {
 		checkInitialized();
-		// stops the looper on the timer, flush, and database thread
+		
+		// stops the looper on the timer, flush, request, and database thread
 		flushTimer.quit();
 		refreshSettingsTimer.quit();
 		flushLayer.quit();
 		databaseLayer.quit();
+		requestLayer.quit();
 		settingsLayer.quit();
 
 		// closes the database
@@ -1608,7 +1613,7 @@ public class Analytics {
 		Analytics.writeKey = writeKey;
 	}
 
-	public static IntegrationManager getProviderManager() {
+	public static IntegrationManager getIntegrationManager() {
 		return integrationManager;
 	}
 	
@@ -1631,12 +1636,12 @@ public class Analytics {
 	}
 
 	/**
-	 * Allow custom {link {@link IRequester} for counting requests or testing.
+	 * Allow custom {link {@link IRequester} for counting requests, bandwidth, or testing.
 	 * @param requester
 	 */
 	public static void setRequester(IRequester requester) {
-		if (flushLayer instanceof FlushThread) 
-			((FlushThread) flushLayer).setRequester(requester);
+		if (requestLayer instanceof RequestThread) 
+			((RequestThread) requestLayer).setRequester(requester);
 	}
 	
 	

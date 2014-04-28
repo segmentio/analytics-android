@@ -49,8 +49,8 @@ public class DuplicateTest extends BaseTest {
 	
 	@Test
 	public void testForDuplicates() throws InterruptedException {
-		int inserts = 20;
-		int flushesPerInsert = 1;
+		int inserts = 200;
+		int flushesPerInsert = 2;
 		
 		// set a custom counting duplicate requester
 		DuplicateCountingRequester requester = new DuplicateCountingRequester();
@@ -59,7 +59,7 @@ public class DuplicateTest extends BaseTest {
 		for (int i = 0; i < inserts; i += 1) {
 			// enqueue a random action
 			Analytics.enqueue(TestCases.random());
-			Log.i(TAG, "Enqueued message " + i + " / " + inserts);
+			Log.i(TAG, "Enqueued message " + (i+1) + " / " + inserts);
 			
 			// trigger a series of flushes for every insert
 			for (int j = 0; j < flushesPerInsert; j += 1) {

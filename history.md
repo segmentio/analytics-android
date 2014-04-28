@@ -1,3 +1,11 @@
+0.6.7 / April 27, 2014
+=================
+* separating flush and request into two threads, one for processing flushes one at a time, and one for processing requests one at a time. This eliminates the race condition between getting items from the database, sending requests, and then removing the items on the same thread. Now a flush operation encompasses all three actions, and only one flush happens at any point in time.
+* improving logging around the flush process
+* adding a `DuplicateTest`
+* renaming occurences of `provider` to `integration`
+* turning `TestCase` generators into methods instead of static objects. This allows each generated test case to have a unique `requestId`.
+
 0.6.6 / March 26, 2014
 =================
 * rolling back to older Tapstream, fixes #29

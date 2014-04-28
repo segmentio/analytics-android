@@ -45,7 +45,7 @@ public class IntegrationManager implements IIntegration {
 		this.integrations = new LinkedList<Integration>();
 		
 		/**
-		 * Add New Providers Here
+		 * Add New integrations Here
 		 */
 		this.addIntegration(new AmplitudeIntegration());
 		this.addIntegration(new BugsnagIntegration());
@@ -61,74 +61,72 @@ public class IntegrationManager implements IIntegration {
 	}
 	
 	/**
-	 * Adds a provider to the analytics manager
-	 * @param provider
+	 * Adds an integration to the integration manager
+	 * @param integration
 	 */
-	public void addIntegration(Integration provider) {
-		if (TextUtils.isEmpty(provider.getKey())) {
-			throw new IllegalArgumentException("Provider #getKey() " + 
-					"must return a non-null non-empty provider key.");
+	public void addIntegration(Integration integration) {
+		if (TextUtils.isEmpty(integration.getKey())) {
+			throw new IllegalArgumentException("integration #getKey() " + 
+					"must return a non-null non-empty integration key.");
 		}
 		
-		this.integrations.add(provider);
+		this.integrations.add(integration);
 	}
 
 	/**
-	 * Will run refresh if the provider manager hasn't yet
+	 * Will run refresh if the integration manager hasn't yet
 	 * been initialized.
-	 * @return Returns whether the provider manager has been initialized.
+	 * @return Returns whether the integration manager has been initialized.
 	 */
 	private boolean ensureInitialized() {
 		if (!initialized) refresh();
 		if (!initialized) {
 			// we still haven't gotten any settings
-			Log.i(TAG, "Provider manager waiting to be initialized ..");
+			Log.i(TAG, "Integration manager waiting to be initialized ..");
 		}
 		return initialized;
 	}
 	
 	public void refresh() {
 		
-		Log.d(TAG, "Refreshing provider manager ...");
-		
 		EasyJSONObject allSettings = settingsCache.getSettings();
 		
 		if (allSettings != null) {
 			// we managed to get the settings
 			
-			for (Integration provider : integrations) {
-				// iterate through all of the providers we enabe
-				String providerKey = provider.getKey();
-				if (allSettings.has(providerKey)) {
-					// the settings has info for this provider
-					// initialize the provider with those settings
-					EasyJSONObject settings = new EasyJSONObject(allSettings.getObject(providerKey));
+			for (Integration integration : integrations) {
+				// iterate through all of the integrations we enabe
+				String integrationKey = integration.getKey();
+				if (allSettings.has(integrationKey)) {
+					// the settings has info for this integration
+					// initialize the integration with those settings
+					EasyJSONObject settings = new EasyJSONObject(allSettings.getObject(integrationKey));
 					
 					try {
-						provider.initialize(settings);
-						// enable the provider
-						provider.enable();
+						integration.initialize(settings);
+						// enable the integration
+						integration.enable();
 						
 					} catch (InvalidSettingsException e) {
 						
-						Log.w(TAG, String.format("Provider %s couldn't be initialized: %s", 
-								provider.getKey(), e.getMessage()));
+						Log.w(TAG, String.format("integration %s couldn't be initialized: %s", 
+								integration.getKey(), e.getMessage()));
 					}
 					
-				} else if (provider.getState().ge(IntegrationState.ENABLED)) {
+				} else if (integration.getState().ge(IntegrationState.ENABLED)) {
 					// if the setting was previously enabled but is no longer
 					// in the settings, that means its been disabled
-					provider.disable();
+					integration.disable();
 				} else {
-					// settings don't mention this provider and its not enabled
+					// settings don't mention this integration and its not enabled
 					// so do nothing here
 				}
 			}
 			
-			// the provider manager has been initialized
+			// the integration manager has been initialized
 			initialized = true;
 		
-			Log.i(TAG, "Initialized the Segment.io provider manager.");
+			Log.i(TAG, "Initialized the Segment.io integration manager.");
 			
 		} else {
 			Log.i(TAG, "Async settings aren't fetched yet, waiting ..");
@@ -139,7 +137,7 @@ public class IntegrationManager implements IIntegration {
 		return initialized;
 	}
 	
-	public List<Integration> getProviders() {
+	public List<Integration> getIntegrations() {
 		return integrations;
 	}
 
@@ -152,36 +150,36 @@ public class IntegrationManager implements IIntegration {
 	}
 	
 	/**
-	 * A provider operation function
+	 * A integration operation function
 	 */
-	private interface ProviderOperation {
-		public void run(Integration provider);
+	private interface integrationOperation {
+		public void run(Integration integration);
 	}
 	
 	/**
-	 * Run an operation on all the providers
+	 * Run an operation on all the integrations
 	 * @param name Name of the operation
-	 * @param minimumState The minimum state that the provider has to be in before running the operation
-	 * @param operation The actual operation to run on the provider
+	 * @param minimumState The minimum state that the integration has to be in before running the operation
+	 * @param operation The actual operation to run on the integration
 	 */
-	private void runOperation(String name, IntegrationState minimumState, ProviderOperation operation) {
+	private void runOperation(String name, IntegrationState minimumState, integrationOperation operation) {
 		
 		// time the operation
-		Stopwatch createOp = new Stopwatch("[All Providers] " + name);
+		Stopwatch createOp = new Stopwatch("[All integrations] " + name);
 
-		// make sure that the provider manager has settings from the server first
+		// make sure that the integration manager has settings from the server first
 		if (ensureInitialized()) {
 			
-			for (Integration provider : this.integrations) {
-				// if the provider is at least in the minimum state 
-				if (provider.getState().ge(minimumState)) {
+			for (Integration integration : this.integrations) {
+				// if the integration is at least in the minimum state 
+				if (integration.getState().ge(minimumState)) {
 					
-					// time this provider's operation
-					Stopwatch providerOp = new Stopwatch("[" + provider.getKey() + "] " + name);
+					// time this integration's operation
+					Stopwatch integrationOp = new Stopwatch("[" + integration.getKey() + "] " + name);
 					
-					operation.run(provider);
+					operation.run(integration);
 					
-					providerOp.end();
+					integrationOp.end();
 				}
 			}
 		}
@@ -191,18 +189,18 @@ public class IntegrationManager implements IIntegration {
 	
 
 	public void toggleOptOut(final boolean optedOut) {
-		runOperation("optOut", IntegrationState.INITIALIZED, new ProviderOperation () {
+		runOperation("optOut", IntegrationState.INITIALIZED, new integrationOperation () {
 			
 			@Override
-			public void run(Integration provider) {
-				provider.toggleOptOut(optedOut);
+			public void run(Integration integration) {
+				integration.toggleOptOut(optedOut);
 			}
 		});
 	}
 	
 	public void checkPermissions (Context context) {
-		for (Integration provider : this.integrations) {
-			provider.checkPermission(context);
+		for (Integration integration : this.integrations) {
+			integration.checkPermission(context);
 		}
 	}
 	
@@ -210,11 +208,11 @@ public class IntegrationManager implements IIntegration {
 	public void onCreate(final Context context) {
 		checkPermissions(context);
 		
-		runOperation("onCreate", IntegrationState.INITIALIZED, new ProviderOperation () {
+		runOperation("onCreate", IntegrationState.INITIALIZED, new integrationOperation () {
 			
 			@Override
-			public void run(Integration provider) {
-				provider.onCreate(context);
+			public void run(Integration integration) {
+				integration.onCreate(context);
 			}
 		});
 	}
@@ -222,11 +220,11 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void onActivityStart(final Activity activity) {
 		
-		runOperation("onActivityStart", IntegrationState.INITIALIZED, new ProviderOperation () {
+		runOperation("onActivityStart", IntegrationState.INITIALIZED, new integrationOperation () {
 			
 			@Override
-			public void run(Integration provider) {
-				provider.onActivityStart(activity);
+			public void run(Integration integration) {
+				integration.onActivityStart(activity);
 			}
 		});
 	}
@@ -234,11 +232,11 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void onActivityResume(final Activity activity) {
 		
-		runOperation("onActivityResume", IntegrationState.INITIALIZED, new ProviderOperation () {
+		runOperation("onActivityResume", IntegrationState.INITIALIZED, new integrationOperation () {
 			
 			@Override
-			public void run(Integration provider) {
-				provider.onActivityResume(activity);
+			public void run(Integration integration) {
+				integration.onActivityResume(activity);
 			}
 		});
 	}
@@ -246,11 +244,11 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void onActivityPause(final Activity activity) {
 		
-		runOperation("onActivityPause", IntegrationState.INITIALIZED, new ProviderOperation () {
+		runOperation("onActivityPause", IntegrationState.INITIALIZED, new integrationOperation () {
 			
 			@Override
-			public void run(Integration provider) {
-				provider.onActivityPause(activity);
+			public void run(Integration integration) {
+				integration.onActivityPause(activity);
 			}
 		});
 	}
@@ -258,35 +256,42 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void onActivityStop(final Activity activity) {
 		
-		runOperation("onActivityStop", IntegrationState.INITIALIZED, new ProviderOperation () {
+		runOperation("onActivityStop", IntegrationState.INITIALIZED, new integrationOperation () {
 			
 			@Override
-			public void run(Integration provider) {
-				provider.onActivityStop(activity);
+			public void run(Integration integration) {
+				integration.onActivityStop(activity);
 			}
 		});
 	}
 
 	/**
-	 * Determines if the provider is enabled for this action
-	 * @param provider Provider
+	 * Determines if the integration is enabled for this action
+	 * @param integration integration
 	 * @param action The action being processed
 	 * @return
 	 */
-	private boolean isProviderEnabled(Integration provider, BasePayload action) {
+	private boolean isintegrationEnabled(Integration integration, BasePayload action) {
 		
 		boolean enabled = true;
 		
 		io.segment.android.models.Context context = action.getContext();
-		if (context != null && context.has("providers")) {
-			EasyJSONObject providers = new EasyJSONObject(context.getObject("providers"));
+		
+		String chooseIntegrationsKey = null;
+		if (context != null) {
+			if (context.has("integrations")) chooseIntegrationsKey = "integrations";
+			else if (context.has("providers")) chooseIntegrationsKey = "providers";
+		}
+		
+		if (chooseIntegrationsKey != null) {
+			EasyJSONObject integrations = new EasyJSONObject(context.getObject(chooseIntegrationsKey));
 
-			String key = provider.getKey();
+			String key = integration.getKey();
 			
-			if (providers.has("all")) enabled = providers.getBoolean("all", true);
-			if (providers.has("All")) enabled = providers.getBoolean("All", true);
+			if (integrations.has("all")) enabled = integrations.getBoolean("all", true);
+			if (integrations.has("All")) enabled = integrations.getBoolean("All", true);
 	
-			if (providers.has(key)) enabled = providers.getBoolean(key, true);
+			if (integrations.has(key)) enabled = integrations.getBoolean(key, true);
 		}
 		
 		return enabled;
@@ -295,13 +300,13 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void identify(final Identify identify) {
 		
-		runOperation("Identify", IntegrationState.READY, new ProviderOperation () {
+		runOperation("Identify", IntegrationState.READY, new integrationOperation () {
 			
 			@Override
-			public void run(Integration provider) {
+			public void run(Integration integration) {
 				
-				if (isProviderEnabled(provider, identify))
-					provider.identify(identify);
+				if (isintegrationEnabled(integration, identify))
+					integration.identify(identify);
 			}
 		});
 	}
@@ -309,13 +314,13 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void group(final Group group) {
 		
-		runOperation("Group", IntegrationState.READY, new ProviderOperation () {
+		runOperation("Group", IntegrationState.READY, new integrationOperation () {
 			
 			@Override
-			public void run(Integration provider) {
+			public void run(Integration integration) {
 				
-				if (isProviderEnabled(provider, group))
-					provider.group(group);
+				if (isintegrationEnabled(integration, group))
+					integration.group(group);
 			}
 		});
 	}
@@ -323,13 +328,13 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void track(final Track track) {
 
-		runOperation("Track", IntegrationState.READY, new ProviderOperation () {
+		runOperation("Track", IntegrationState.READY, new integrationOperation () {
 			
 			@Override
-			public void run(Integration provider) {
+			public void run(Integration integration) {
 				
-				if (isProviderEnabled(provider, track))
-					provider.track(track);
+				if (isintegrationEnabled(integration, track))
+					integration.track(track);
 			}
 		});
 	}
@@ -337,13 +342,13 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void screen(final Screen screen) {
 
-		runOperation("Screen", IntegrationState.READY, new ProviderOperation () {
+		runOperation("Screen", IntegrationState.READY, new integrationOperation () {
 			
 			@Override
-			public void run(Integration provider) {
+			public void run(Integration integration) {
 				
-				if (isProviderEnabled(provider, screen))
-					provider.screen(screen);
+				if (isintegrationEnabled(integration, screen))
+					integration.screen(screen);
 			}
 		});
 	}
@@ -351,37 +356,37 @@ public class IntegrationManager implements IIntegration {
 	@Override
 	public void alias(final Alias alias) {
 
-		runOperation("Alias", IntegrationState.READY, new ProviderOperation () {
+		runOperation("Alias", IntegrationState.READY, new integrationOperation () {
 			
 			@Override
-			public void run(Integration provider) {
+			public void run(Integration integration) {
 				
-				if (isProviderEnabled(provider, alias))
-					provider.alias(alias);
+				if (isintegrationEnabled(integration, alias))
+					integration.alias(alias);
 			}
 		});
 	}
 
 	public void reset() {
 
-		runOperation("Reset", IntegrationState.READY, new ProviderOperation () {
+		runOperation("Reset", IntegrationState.READY, new integrationOperation () {
 			
 			@Override
-			public void run(Integration provider) {
+			public void run(Integration integration) {
 				
-				provider.reset();
+				integration.reset();
 			}
 		});
 	}
 	
 	public void flush() {
 
-		runOperation("Flush", IntegrationState.READY, new ProviderOperation () {
+		runOperation("Flush", IntegrationState.READY, new integrationOperation () {
 			
 			@Override
-			public void run(Integration provider) {
+			public void run(Integration integration) {
 				
-				provider.flush();
+				integration.flush();
 			}
 		});
 	}

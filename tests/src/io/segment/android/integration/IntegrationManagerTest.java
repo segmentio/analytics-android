@@ -30,8 +30,7 @@ import org.junit.Test;
 
 import android.content.Context;
 
-
-public class ProviderManagerTest extends BaseTest {
+public class IntegrationManagerTest extends BaseTest {
 
 	private Context context;
 	private IRequester requester;
@@ -60,9 +59,9 @@ public class ProviderManagerTest extends BaseTest {
 	}
 	
 	@Test
-	public void testProviderSelection() {
+	public void testIntegrationSelection() {
 
-		final String key = "Some Provider";
+		final String key = "Some Integration";
 
 		// create a settings cache that will insert fake provider settings for this key 
 		SettingsCache settingsCache = new SettingsCache(context, layer, Defaults.SETTINGS_CACHE_EXPIRY) {
@@ -82,7 +81,7 @@ public class ProviderManagerTest extends BaseTest {
 		IntegrationManager integrationManager = new IntegrationManager(settingsCache);
 		
 		// removes all the providers
-		integrationManager.getProviders().clear();
+		integrationManager.getIntegrations().clear();
 		
 		final AtomicInteger identifies = new AtomicInteger();
 		final AtomicInteger tracks = new AtomicInteger();
@@ -112,32 +111,38 @@ public class ProviderManagerTest extends BaseTest {
 		// Test the no specific context.providers added
 		//
 		
-		integrationManager.identify(TestCases.identify);
+		integrationManager.identify(TestCases.identify());
 		Assert.assertEquals(1, identifies.get());
 		
-		integrationManager.track(TestCases.track);
+		integrationManager.track(TestCases.track());
 		Assert.assertEquals(1, tracks.get());
 
-		integrationManager.screen(TestCases.screen);
+		integrationManager.screen(TestCases.screen());
 		Assert.assertEquals(1, screens.get());
 		
-		integrationManager.alias(TestCases.alias);
+		integrationManager.alias(TestCases.alias());
 		Assert.assertEquals(1, aliases.get());
 		
 		//
 		// Assemble test values
 		//
 
-		String sessionId = TestCases.identify.getSessionId();
-		String userId = TestCases.identify.getUserId();
-		Traits traits = TestCases.identify.getTraits();
+		Identify identify = TestCases.identify();
+		
+		String sessionId = identify.getSessionId();
+		String userId = identify.getUserId();
+		Traits traits = identify.getTraits();
 		Calendar timestamp = Calendar.getInstance();
 
-		String event = TestCases.track.getEvent();
-		Props properties = TestCases.track.getProperties();
+		Track track = TestCases.track();
+		
+		String event = TestCases.track().getEvent();
+		Props properties = track.getProperties();
 
-		String from = TestCases.alias.getFrom();
-		String to = TestCases.alias.getTo();
+		Alias alias = TestCases.alias();
+		
+		String from = alias.getFrom();
+		String to = alias.getTo();
 		
 		//
 		// Test the context.providers.all = false setting default to false

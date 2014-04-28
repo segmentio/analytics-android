@@ -1,5 +1,6 @@
 package io.segment.android.flush;
 
+import io.segment.android.models.Batch;
 import io.segment.android.utils.IThreadedLayer;
 
 /**
@@ -13,7 +14,7 @@ public interface IFlushLayer extends IThreadedLayer {
 	//
 	
 	/**
-	 * Callback for the #flush method
+	 * Callback for the {@link IFlushLayer.flush} method
 	 *
 	 */
 	public interface FlushCallback {
@@ -22,7 +23,7 @@ public interface IFlushLayer extends IThreadedLayer {
 		 * @param success True for successful flush, false for not.
 		 * @param batch The batch that was sent to the server  
 		 */
-		public void onFlushCompleted(boolean success);
+		public void onFlushCompleted(boolean success, Batch batch);
 	}
 	
 	//
@@ -30,7 +31,7 @@ public interface IFlushLayer extends IThreadedLayer {
 	//
 	
 	/**
-	 * Called to flush the queue
+	 * Triggers a flush from the local action database to the server.
 	 * @param callback
 	 */
 	public void flush(FlushCallback callback);

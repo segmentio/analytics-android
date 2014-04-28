@@ -68,32 +68,32 @@ public abstract class BaseIntegrationTest
 	@Test
 	public void testIdentifying() {
 		reachReadyState();
-		integration.identify(TestCases.identify);
+		integration.identify(TestCases.identify());
 	}
 
 	@Test
 	public void testGroup() {
 		reachReadyState();
-		integration.group(TestCases.group);
+		integration.group(TestCases.group());
 	}
 
 	@Test
 	public void testTrack() {
 		reachReadyState();
-		integration.track(TestCases.track);
+		integration.track(TestCases.track());
 	}
 	
 
 	@Test
 	public void testScreen() {
 		reachReadyState();
-		integration.screen(TestCases.screen);
+		integration.screen(TestCases.screen());
 	}
 
 	@Test
 	public void testAlias() {
 		reachReadyState();
-		integration.alias(TestCases.alias);
+		integration.alias(TestCases.alias());
 	}
 
 	@Test

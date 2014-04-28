@@ -1,7 +1,12 @@
 package io.segment.android.db.test;
 
 import io.segment.android.db.JsonPayloadSerializer;
+import io.segment.android.models.Alias;
 import io.segment.android.models.BasePayload;
+import io.segment.android.models.Group;
+import io.segment.android.models.Identify;
+import io.segment.android.models.Screen;
+import io.segment.android.models.Track;
 import io.segment.android.test.TestCases;
 import junit.framework.Assert;
 
@@ -21,44 +26,42 @@ public class JsonPayloadSerializerTest extends AndroidTestCase {
 
 	@Test
 	public void testIdentify() {
-		String json = serializer.serialize(TestCases.identify);
+		Identify identify = TestCases.identify();
+		String json = serializer.serialize(identify);
 		BasePayload got = serializer.deseralize(json);
-		Assert.assertEquals(TestCases.identify, got);
+		Assert.assertEquals(identify, got);
 	}
 
 	@Test
 	public void testGroup() {
-		String json = serializer.serialize(TestCases.group);
+		Group group = TestCases.group();
+		String json = serializer.serialize(group);
 		BasePayload got = serializer.deseralize(json);
-		Assert.assertEquals(TestCases.group, got);
+		Assert.assertEquals(group, got);
 	}
 	
 	@Test
 	public void testTrack() {
-		String json = serializer.serialize(TestCases.track);
+		Track track = TestCases.track();
+		String json = serializer.serialize(track);
 		BasePayload got = serializer.deseralize(json);
-		Assert.assertEquals(TestCases.track, got);
+		Assert.assertEquals(track, got);
 	}
 	
 	@Test
 	public void testScreen() {
-		String json = serializer.serialize(TestCases.screen);
+		Screen screen = TestCases.screen();
+		String json = serializer.serialize(screen);
 		BasePayload got = serializer.deseralize(json);
-		Assert.assertEquals(TestCases.screen, got);
+		Assert.assertEquals(screen, got);
 	}
 
 	@Test
 	public void testAlias() {
-		String json = serializer.serialize(TestCases.alias);
+		Alias alias = TestCases.alias();
+		String json = serializer.serialize(alias);
 		BasePayload got = serializer.deseralize(json);
-		Assert.assertEquals(TestCases.alias, got);
-	}
-
-	@Test
-	public void testBatch() {
-		String got = TestCases.batch.toString();
-		String expected = "{\"context\":{\"library\":\"analytics-android\",\"userAgent\":\"something\"},\"secret\":\"testsecret\",\"batch\":[{\"action\":\"identify\",\"context\":{\"library\":\"analytics-android\",\"ip\":\"192.168.1.1\"},\"timestamp\":\"2013-05-05T21:20:15+00:00\",\"traits\":{\"friendCount\":29,\"subscriptionPlan\":\"Premium\",\"email\":\"achilles@segment.io\",\"company\":{\"name\":\"Company, inc.\"},\"name\":\"Achilles\"},\"userId\":\"ilya@segment.io\"},{\"action\":\"track\",\"context\":{\"providers\":{\"Google Analytics\":true,\"KISSMetrics\":true,\"Mixpanel\":false,\"all\":true},\"library\":\"analytics-android\",\"ip\":\"192.168.1.1\"},\"timestamp\":\"2013-05-05T21:20:15+00:00\",\"properties\":{\"shippingMethod\":\"2-day\",\"revenue\":39.95,\"name\":\"Achilles\"},\"event\":\"Played a Song on Android\",\"userId\":\"ilya@segment.io\"},{\"to\":\"to\",\"action\":\"alias\",\"from\":\"from\"}]}";
-		//Assert.assertEquals(expected, got);
+		Assert.assertEquals(alias, got);
 	}
 	
 }

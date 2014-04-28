@@ -16,7 +16,7 @@ public class FlushTests extends BaseTest {
 		AnalyticsStatistics stats = Analytics.getStatistics();
 		
 		int flushAttempts = stats.getFlushAttempts().getCount();
-		int flushes = stats.getFlushTime().getCount();
+		int requests = stats.getRequestTime().getCount();
 		
 		Analytics.flush(false);
 		Analytics.flush(false);
@@ -25,7 +25,7 @@ public class FlushTests extends BaseTest {
 		flushAttempts += 3;
 		
 		Assert.assertEquals(flushAttempts, stats.getFlushAttempts().getCount());
-		Assert.assertEquals(0, flushes);
+		Assert.assertEquals(0, requests);
 	}
 	
 	@Test
@@ -60,7 +60,7 @@ public class FlushTests extends BaseTest {
 		AnalyticsStatistics stats = Analytics.getStatistics();
 		
 		int flushAttempts = stats.getFlushAttempts().getCount();
-		int flushes = stats.getFlushTime().getCount();
+		int requests = stats.getRequestTime().getCount();
 		
 		Analytics.enqueue(TestCases.random());
 
@@ -72,7 +72,7 @@ public class FlushTests extends BaseTest {
 		
 		// the flush after timer should have triggered a flush here
 		flushAttempts += 1;
-		flushes += 1;
+		requests += 1;
 		
 		// we want to wait until the flush actually happens
 		Analytics.flush(false);
@@ -80,36 +80,7 @@ public class FlushTests extends BaseTest {
 
 		Assert.assertEquals(flushAttempts, stats.getFlushAttempts().getCount());
 		
-		Assert.assertEquals(flushes, stats.getFlushTime().getCount());
+		Assert.assertEquals(requests, stats.getRequestTime().getCount());
 	}
 	
-	@Test
-	public void testTriggerTimerInteraction() throws InterruptedException {
-	    AnalyticsStatistics stats = Analytics.getStatistics();
-	    
-	    int flushAfter = Analytics.getOptions().getFlushAfter();
-	    int flushAt = Analytics.getOptions().getFlushAt();
-	    int flushAttempts = stats.getFlushAttempts().getCount();
-	    int flushes = stats.getFlushTime().getCount();
-	    
-	    for (int i = 0; i < flushAt + 5; i++) {
-	        Analytics.enqueue(TestCases.random());
-	    }
-	    
-	    // the flush after the trigger should have triggered a flush here
-	    flushAttempts += 1;
-	    flushes += 1;
-	    try {
-	        Thread.sleep(flushAfter + 250);
-	    } catch (InterruptedException e) {
-	        e.printStackTrace();
-	    }
-	    
-	    // the flush after timer should have triggered a flush here
-	    flushAttempts += 1;
-	    flushes += 1;
-	    Assert.assertEquals(flushes, stats.getFlushTime().getCount());
-
-	    Assert.assertEquals(flushAttempts, stats.getFlushAttempts().getCount());
-	}
 }

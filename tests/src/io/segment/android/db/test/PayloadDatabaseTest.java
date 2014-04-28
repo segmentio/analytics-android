@@ -3,6 +3,7 @@ package io.segment.android.db.test;
 import io.segment.android.db.PayloadDatabase;
 import io.segment.android.models.BasePayload;
 import io.segment.android.models.EasyJSONObject;
+import io.segment.android.models.Identify;
 import io.segment.android.test.BaseTest;
 import io.segment.android.test.TestCases;
 
@@ -34,12 +35,14 @@ public class PayloadDatabaseTest extends BaseTest {
 		List<Pair<Long, BasePayload>> events = database.getEvents(50);
 		Assert.assertEquals(0, events.size());
 		
-		boolean success = database.addPayload(TestCases.identify);
+		Identify identify = TestCases.identify();
+		
+		boolean success = database.addPayload(identify);
 		Assert.assertTrue(success);
 		
 		events = database.getEvents(50);
 		Assert.assertEquals(1, events.size());
-		boolean equals = EasyJSONObject.equals(TestCases.identify, events.get(0).second);
+		boolean equals = EasyJSONObject.equals(identify, events.get(0).second);
 		Assert.assertTrue(equals);
 		
 		// check that our row counter is correct

@@ -10,6 +10,7 @@ import io.segment.android.models.Traits;
 import io.segment.android.request.BasicRequester;
 import io.segment.android.request.IRequester;
 import io.segment.android.test.BaseTest;
+import io.segment.android.test.Constants;
 import io.segment.android.test.TestCases;
 
 import java.util.Calendar;
@@ -35,8 +36,7 @@ public class BasicRequesterTest extends BaseTest {
 	
 	@Test
 	public void testSimpleBatchRequest () {
-		HttpResponse response = requester.send(TestCases.batch);
-		
+		HttpResponse response = requester.send(TestCases.batch(Constants.WRITE_KEY));
 		Assert.assertEquals(200, response.getStatusLine().getStatusCode());
 	}
 	
@@ -52,7 +52,8 @@ public class BasicRequesterTest extends BaseTest {
 		List<BasePayload> items = new LinkedList<BasePayload>();
 		items.add(identify);
 		
-		Batch batch = new Batch(TestCases.batch.getWriteKey(), items);
+		
+		Batch batch = new Batch(Constants.WRITE_KEY, items);
 		
 		HttpResponse response = requester.send(batch);
 		
