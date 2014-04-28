@@ -1,0 +1,46 @@
+
+apply plugin: 'android-library'
+
+repositories {
+    mavenCentral()
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.9.+'
+    }
+}
+
+version = '0.6.10'
+
+dependencies {
+    compile 'com.android.support:support-v4:+'
+    compile "com.mixpanel.android:mixpanel-android:4.1.0@aar"
+}
+
+android {
+    buildToolsVersion "19.0.1"
+    compileSdkVersion 19
+
+     sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src', 'bundled-src']
+            resources.srcDirs = ['src']
+            aidl.srcDirs = ['src']
+            renderscript.srcDirs = ['src']
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
+        }
+
+        instrumentTest.setRoot('tests')
+    }
+
+    dependencies {
+        compile fileTree(dir: 'libs/', include: '*.jar')
+    }
+}
