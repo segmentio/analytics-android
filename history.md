@@ -1,3 +1,9 @@
+
+0.6.8 / April 27, 2014
+=================
+* integration.onActivityX can only be called after integration.onActivityCreate has been called. Fixes #33
+* removing `Omniture` bundled SDK in favor of the server-side integration
+
 0.6.7 / April 27, 2014
 =================
 * separating flush and request into two threads, one for processing flushes one at a time, and one for processing requests one at a time. This eliminates the race condition between getting items from the database, sending requests, and then removing the items on the same thread. Now a flush operation encompasses all three actions, and only one flush happens at any point in time.

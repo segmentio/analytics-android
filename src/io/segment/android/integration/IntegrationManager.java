@@ -11,7 +11,6 @@ import io.segment.android.integrations.FlurryIntegration;
 import io.segment.android.integrations.GoogleAnalyticsIntegration;
 import io.segment.android.integrations.LocalyticsIntegration;
 import io.segment.android.integrations.MixpanelIntegration;
-import io.segment.android.integrations.OmnitureIntegration;
 import io.segment.android.integrations.QuantcastIntegration;
 import io.segment.android.integrations.TapstreamIntegration;
 import io.segment.android.models.Alias;
@@ -55,7 +54,6 @@ public class IntegrationManager implements IIntegration {
 		this.addIntegration(new GoogleAnalyticsIntegration());
 		this.addIntegration(new LocalyticsIntegration());
 		this.addIntegration(new MixpanelIntegration());
-		this.addIntegration(new OmnitureIntegration());
 		this.addIntegration(new QuantcastIntegration());
 		this.addIntegration(new TapstreamIntegration());
 	}
