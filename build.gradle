@@ -15,10 +15,11 @@ buildscript {
     }
 }
 
+group = 'io.segment.android'
+archivesBaseName = 'analytics-android'
 version = '0.6.10'
 
 dependencies {
-    compile 'com.android.support:support-v4:+'
     compile "com.mixpanel.android:mixpanel-android:4.1.0@aar"
 }
 
@@ -43,4 +44,23 @@ android {
     dependencies {
         compile fileTree(dir: 'libs/', include: '*.jar')
     }
+}
+
+android.libraryVariants.all { variant ->
+  def name = variant.buildType.name
+  if (name.equals(com.android.builder.BuilderConstants.DEBUG)) {
+    return; // skip debug builds
+  }
+  def task = project.tasks.create "jar${name.capitalize()}", Jar
+  task.dependsOn variant.javaCompile
+  // include Java classes
+  task.from variant.javaCompile.destinationDir
+  // include dependent jars with some exceptions
+  task.from configurations.compile.findAll {
+        it.getName() != 'android.jar' &&
+        !it.getName().startsWith('junit')
+    }.collect {
+        it.isDirectory() ? it : zipTree(it)
+    }
+  artifacts.add('archives', task);
 }
