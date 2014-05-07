@@ -46,7 +46,7 @@ import android.text.TextUtils;
 
 public class Analytics {
 	
-	public static final String VERSION = "0.6.10";
+	public static final String VERSION = "0.6.11";
 	
 	private static AnalyticsStatistics statistics;
 	
@@ -937,7 +937,7 @@ public class Analytics {
 	//
 
 	/**
-	 * Whenever a user triggers an event, you’ll want to track it.
+	 * Whenever a user triggers an event, you���ll want to track it.
 	 * 
 	 * Track will use an automatically generated userId unless one has been
 	 * provided by identify(..).
@@ -955,7 +955,7 @@ public class Analytics {
 	
 
 	/**
-	 * Whenever a user triggers an event, you’ll want to track it.
+	 * Whenever a user triggers an event, you���ll want to track it.
 	 * 
 	 * Track will use an automatically generated userId unless one has been
 	 * provided by identify(..).
@@ -968,7 +968,7 @@ public class Analytics {
 	 * @param properties
 	 *            a dictionary with items that describe the event in more
 	 *            detail. This argument is optional, but highly
-	 *            recommended—you’ll find these properties extremely useful
+	 *            recommended���you���ll find these properties extremely useful
 	 *            later.
 	 */
 	public static void track(String event, Props properties) {
@@ -978,7 +978,7 @@ public class Analytics {
 	
 
 	/**
-	 * Whenever a user triggers an event, you’ll want to track it.
+	 * Whenever a user triggers an event, you���ll want to track it.
 	 * 
 	 * Track will use an automatically generated userId unless one has been
 	 * provided by identify(..).
@@ -991,7 +991,7 @@ public class Analytics {
 	 * @param properties
 	 *            a dictionary with items that describe the event in more
 	 *            detail. This argument is optional, but highly
-	 *            recommended—you’ll find these properties extremely useful
+	 *            recommended���you���ll find these properties extremely useful
 	 *            later.
 	 * 
 	 * @param timestamp
@@ -1009,7 +1009,7 @@ public class Analytics {
 
 
 	/**
-	 * Whenever a user triggers an event, you’ll want to track it.
+	 * Whenever a user triggers an event, you���ll want to track it.
 	 * 
 	 * Track will use an automatically generated userId unless one has been
 	 * provided by identify(..).
@@ -1022,7 +1022,7 @@ public class Analytics {
 	 * @param properties
 	 *            a dictionary with items that describe the event in more
 	 *            detail. This argument is optional, but highly
-	 *            recommended—you’ll find these properties extremely useful
+	 *            recommended���you���ll find these properties extremely useful
 	 *            later.
 	 * 
 	 * @param context
@@ -1037,7 +1037,7 @@ public class Analytics {
 	}
 	
 	/**
-	 * Whenever a user triggers an event, you’ll want to track it.
+	 * Whenever a user triggers an event, you���ll want to track it.
 	 * 
 	 * Track will use an automatically generated userId unless one has been
 	 * provided by identify(..).
@@ -1050,7 +1050,7 @@ public class Analytics {
 	 * @param properties
 	 *            a dictionary with items that describe the event in more
 	 *            detail. This argument is optional, but highly
-	 *            recommended—you’ll find these properties extremely useful
+	 *            recommended���you���ll find these properties extremely useful
 	 *            later.
 	 * 
 	 * @param timestamp
@@ -1142,7 +1142,7 @@ public class Analytics {
 	 * @param properties
 	 *            a dictionary with items that describe the screen in more
 	 *            detail. This argument is optional, but highly
-	 *            recommended—you’ll find these properties extremely useful
+	 *            recommended���you���ll find these properties extremely useful
 	 *            later.
 	 * 
 	 */
@@ -1171,7 +1171,7 @@ public class Analytics {
 	 * @param properties
 	 *            a dictionary with items that describe the screen in more
 	 *            detail. This argument is optional, but highly
-	 *            recommended—you’ll find these properties extremely useful
+	 *            recommended���you���ll find these properties extremely useful
 	 *            later.
 	 * 
 	 * @param timestamp
@@ -1206,7 +1206,7 @@ public class Analytics {
 	 * @param properties
 	 *            a dictionary with items that describe the screen in more
 	 *            detail. This argument is optional, but highly
-	 *            recommended—you’ll find these properties extremely useful
+	 *            recommended���you���ll find these properties extremely useful
 	 *            later.
 	 * 
 	 * @param timestamp

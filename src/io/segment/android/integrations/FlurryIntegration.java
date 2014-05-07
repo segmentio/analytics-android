@@ -61,20 +61,15 @@ public class FlurryIntegration extends SimpleIntegration {
 
 	@Override
 	public void onCreate(Context context) {
-		// do nothing	
+		initialize();
+		ready(); // should be ready so that onActivityStart(..) can run
 	}
 	
 	@Override
 	public void onActivityStart(Activity activity) {
-
-		initialize();
-		
 		EasyJSONObject settings = this.getSettings();
 		String apiKey = settings.getString(SettingKey.API_KEY);
-		
 		FlurryAgent.onStartSession(activity, apiKey);
-		
-		ready();
 	}
 	
 	@Override

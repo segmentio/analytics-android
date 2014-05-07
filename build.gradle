@@ -1,5 +1,7 @@
 
 apply plugin: 'android-library'
+apply plugin: 'maven'
+apply plugin: 'signing'
 
 repositories {
     mavenCentral()
@@ -27,6 +29,10 @@ android {
     buildToolsVersion "19.0.1"
     compileSdkVersion 19
 
+    defaultConfig {
+        testInstrumentationRunner "android.test.InstrumentationTestRunner"
+    }
+
      sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
@@ -39,12 +45,22 @@ android {
         }
 
         instrumentTest.setRoot('tests')
+        instrumentTest {
+            java.srcDirs = ['tests/src']
+            resources.srcDirs = ['tests/src']
+            res.srcDirs = ['tests/res']
+            assets.srcDirs = ['tests/assets']
+        }
     }
 
     dependencies {
         compile fileTree(dir: 'libs/', include: '*.jar')
     }
 }
+
+//
+// Enable jar builds
+//
 
 android.libraryVariants.all { variant ->
   def name = variant.buildType.name
@@ -63,4 +79,57 @@ android.libraryVariants.all { variant ->
         it.isDirectory() ? it : zipTree(it)
     }
   artifacts.add('archives', task);
+}
+
+
+configurations {
+    archives {
+        extendsFrom configurations.default
+    }
+}
+
+signing {
+    required { gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+
+uploadArchives {
+    configuration = configurations.archives
+
+    repositories.mavenDeployer {
+        pom.project {
+            name project.name
+            packaging 'jar'
+            description 'Segment.io Android Analytics Library \n' +
+                    'https://segment.io/mobile'
+            url 'github.com/segmentio/analytics-android'
+            scm {
+                url 'https://github.com/segmentio/analytics-android'
+                connection 'scm:git:http://github.com/segmentio/analytics-android'
+                developerConnection 'scm:git:git@github.com:segmentio/analytics-android.git'
+            }
+            licenses {
+                license {
+                    name 'MIT License'
+                    url 'http://opensource.org/licenses/MIT'
+                    distribution 'repo'
+                }
+            }
+            developers {
+                developer {
+                    id 'ivolo'
+                    name 'Ilya Volodarsky'
+                    email 'ilya@segment.io'
+                }
+            }
+        }
+
+        beforeDeployment {
+            MavenDeployment deployment -> signing.signPom(deployment)
+        }
+        repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+            authentication(userName: sonatypeUsername, password: sonatypePassword)
+        }
+
+    }
 }

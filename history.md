@@ -1,4 +1,8 @@
 
+0.6.11 / May 6, 2014
+=================
+* fixing bug that prevented Flurry from being ready because `ready(..)` was called in `integration.onActivityStart`
+
 0.6.10 / April 27, 2014
 =================
 * improving IntegrationManager logging
