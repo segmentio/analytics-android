@@ -1,4 +1,8 @@
 
+0.6.12 / May 8, 2014
+=================
+* updating Mixpanel to 4.2.0
+
 0.6.11 / May 6, 2014
 =================
 * fixing bug that prevented Flurry from being ready because `ready(..)` was called in `integration.onActivityStart`
