@@ -1,4 +1,12 @@
 
+0.6.13 / 2014-05-16
+==================
+
+ * releasing build 0.6.13
+ * removing android manifest.xml
+ * updating to Google Analytics 3.02
+ * updating countly, fixes #31
+
 0.6.13 / May 16, 2014
 =================
 * updating to Countly SDK 13.10, fixes #31
