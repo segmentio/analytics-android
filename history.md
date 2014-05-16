@@ -1,4 +1,8 @@
 
+0.6.13 / May 16, 2014
+=================
+* updating to Countly SDK 13.10, fixes #31
+
 0.6.12 / May 8, 2014
 =================
 * updating Mixpanel to 4.2.0

@@ -4,8 +4,13 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Timer;
@@ -20,10 +25,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -31,669 +34,617 @@ import android.view.Display;
 import android.view.WindowManager;
 
 public class Countly {
-	private static Countly sharedInstance_;
-	private Timer timer_;
-	private ConnectionQueue queue_;
-	private EventQueue eventQueue_;
-	private boolean isVisible_;
-	private double unsentSessionLength_;
-	private double lastTime_;
-	private int activityCount_;
-	private CountlyDB countlyDB_;
+    private static Countly sharedInstance_;
+    private Timer timer_;
+    private ConnectionQueue queue_;
+    private EventQueue eventQueue_;
+    private boolean isVisible_;
+    private double unsentSessionLength_;
+    private double lastTime_;
+    private int activityCount_;
+    private CountlyStore countlyStore_;
 
-	static public Countly sharedInstance() {
-		if (sharedInstance_ == null)
-			sharedInstance_ = new Countly();
+    protected static final int SESSION_DURATION_WHEN_TIME_ADJUSTED = 15;
 
-		return sharedInstance_;
-	}
+    static public Countly sharedInstance() {
+        if (sharedInstance_ == null)
+            sharedInstance_ = new Countly();
 
-	private Countly() {
-		queue_ = new ConnectionQueue();
-		timer_ = new Timer();
-		timer_.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				onTimer();
-			}
-		}, 60 * 1000, 60 * 1000);
+        return sharedInstance_;
+    }
 
-		isVisible_ = false;
-		unsentSessionLength_ = 0;
-		activityCount_ = 0;
-	}
+    private Countly() {
+        queue_ = new ConnectionQueue();
+        timer_ = new Timer();
+        timer_.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                onTimer();
+            }
+        }, 60 * 1000, 60 * 1000);
 
-	public void init(Context context, String serverURL, String appKey) {
-		OpenUDID_manager.sync(context);
-		countlyDB_ = new CountlyDB(context);
+        isVisible_ = false;
+        unsentSessionLength_ = 0;
+        activityCount_ = 0;
+    }
 
-		queue_.setContext(context);
-		queue_.setServerURL(serverURL);
-		queue_.setAppKey(appKey);
-		queue_.setCountlyDB(countlyDB_);
+    public void init(Context context, String serverURL, String appKey) {
+        OpenUDID_manager.sync(context);
+        countlyStore_ = new CountlyStore(context);
 
-		eventQueue_ = new EventQueue(countlyDB_);
-	}
+        queue_.setContext(context);
+        queue_.setServerURL(serverURL);
+        queue_.setAppKey(appKey);
+        queue_.setCountlyStore(countlyStore_);
 
-	public void onStart() {
-		activityCount_++;
-		if (activityCount_ == 1)
-			onStartHelper();
-	}
+        eventQueue_ = new EventQueue(countlyStore_);
+    }
 
-	public void onStop() {
-		activityCount_--;
-		if (activityCount_ == 0)
-			onStopHelper();
-	}
+    public void onStart() {
+        activityCount_++;
+        if (activityCount_ == 1)
+            onStartHelper();
+    }
 
-	public void onStartHelper() {
-		lastTime_ = System.currentTimeMillis() / 1000.0;
+    public void onStop() {
+        activityCount_--;
+        if (activityCount_ == 0)
+            onStopHelper();
+    }
 
-		queue_.beginSession();
+    public void onStartHelper() {
+        lastTime_ = System.currentTimeMillis() / 1000.0;
 
-		isVisible_ = true;
-	}
+        queue_.beginSession();
 
-	public void onStopHelper() {
-		if (eventQueue_.size() > 0)
-			queue_.recordEvents(eventQueue_.events());
+        isVisible_ = true;
+    }
 
-		double currTime = System.currentTimeMillis() / 1000.0;
-		unsentSessionLength_ += currTime - lastTime_;
+    public void onStopHelper() {
+        if (eventQueue_.size() > 0)
+            queue_.recordEvents(eventQueue_.events());
 
-		int duration = (int) unsentSessionLength_;
-		queue_.endSession(duration);
-		unsentSessionLength_ -= duration;
+        double currTime = System.currentTimeMillis() / 1000.0;
+        unsentSessionLength_ += currTime - lastTime_;
 
-		isVisible_ = false;
-	}
+        int duration = (int) unsentSessionLength_;
+        queue_.endSession(duration);
+        unsentSessionLength_ -= duration;
 
-	public void recordEvent(String key, int count) {
-		eventQueue_.recordEvent(key, count);
+        isVisible_ = false;
+    }
 
-		if (eventQueue_.size() >= 10)
-			queue_.recordEvents(eventQueue_.events());
-	}
+    public void recordEvent(String key) {
+        eventQueue_.recordEvent(key);
 
-	public void recordEvent(String key, int count, double sum) {
-		eventQueue_.recordEvent(key, count, sum);
+        if (eventQueue_.size() >= 10)
+            queue_.recordEvents(eventQueue_.events());
+    }
 
-		if (eventQueue_.size() >= 10)
-			queue_.recordEvents(eventQueue_.events());
-	}
+    public void recordEvent(String key, int count) {
+        eventQueue_.recordEvent(key, count);
 
-	public void recordEvent(String key, Map<String, String> segmentation, int count) {
-		eventQueue_.recordEvent(key, segmentation, count);
+        if (eventQueue_.size() >= 10)
+            queue_.recordEvents(eventQueue_.events());
+    }
 
-		if (eventQueue_.size() >= 10)
-			queue_.recordEvents(eventQueue_.events());
-	}
+    public void recordEvent(String key, int count, double sum) {
+        eventQueue_.recordEvent(key, count, sum);
 
-	public void recordEvent(String key, Map<String, String> segmentation, int count, double sum) {
-		eventQueue_.recordEvent(key, segmentation, count, sum);
+        if (eventQueue_.size() >= 10)
+            queue_.recordEvents(eventQueue_.events());
+    }
 
-		if (eventQueue_.size() >= 10)
-			queue_.recordEvents(eventQueue_.events());
-	}
+    public void recordEvent(String key, Map<String, String> segmentation, int count) {
+        eventQueue_.recordEvent(key, segmentation, count);
 
-	private void onTimer() {
-		if (isVisible_ == false)
-			return;
+        if (eventQueue_.size() >= 10)
+            queue_.recordEvents(eventQueue_.events());
+    }
 
-		double currTime = System.currentTimeMillis() / 1000.0;
-		unsentSessionLength_ += currTime - lastTime_;
-		lastTime_ = currTime;
+    public void recordEvent(String key, Map<String, String> segmentation, int count, double sum) {
+        eventQueue_.recordEvent(key, segmentation, count, sum);
 
-		int duration = (int) unsentSessionLength_;
-		queue_.updateSession(duration);
-		unsentSessionLength_ -= duration;
+        if (eventQueue_.size() >= 10)
+            queue_.recordEvents(eventQueue_.events());
+    }
 
-		if (eventQueue_.size() > 0)
-			queue_.recordEvents(eventQueue_.events());
-	}
+    private void onTimer() {
+        if (isVisible_ == false)
+            return;
+
+        double currTime = System.currentTimeMillis() / 1000.0;
+        unsentSessionLength_ += currTime - lastTime_;
+        lastTime_ = currTime;
+
+        int duration = (int) unsentSessionLength_;
+        queue_.updateSession(duration);
+        unsentSessionLength_ -= duration;
+
+        if (eventQueue_.size() > 0)
+            queue_.recordEvents(eventQueue_.events());
+    }
 }
 
 class ConnectionQueue {
-	private CountlyDB queue_;
-	private Thread thread_ = null;
-	private String appKey_;
-	private Context context_;
-	private String serverURL_;
+    private CountlyStore store_;
+    private Thread thread_ = null;
+    private String appKey_;
+    private Context context_;
+    private String serverURL_;
 
-	public void setAppKey(String appKey) {
-		appKey_ = appKey;
-	}
+    public void setAppKey(String appKey) {
+        appKey_ = appKey;
+    }
 
-	public void setContext(Context context) {
-		context_ = context;
-	}
+    public void setContext(Context context) {
+        context_ = context;
+    }
 
-	public void setServerURL(String serverURL) {
-		serverURL_ = serverURL;
-	}
+    public void setServerURL(String serverURL) {
+        serverURL_ = serverURL;
+    }
 
-	public void setCountlyDB(CountlyDB countlyDB) {
-		queue_ = countlyDB;
-	}
+    public void setCountlyStore(CountlyStore countlyStore) {
+        store_ = countlyStore;
+    }
 
-	public void beginSession() {
-		String data;
-		data = "app_key=" + appKey_;
-		data += "&" + "device_id=" + DeviceInfo.getUDID();
-		data += "&" + "timestamp=" + (long) (System.currentTimeMillis() / 1000.0);
-		data += "&" + "sdk_version=" + "2.0";
-		data += "&" + "begin_session=" + "1";
-		data += "&" + "metrics=" + DeviceInfo.getMetrics(context_);
+    public void beginSession() {
+        String data;
+        data = "app_key=" + appKey_;
+        data += "&" + "device_id=" + DeviceInfo.getUDID();
+        data += "&" + "timestamp=" + (long) (System.currentTimeMillis() / 1000.0);
+        data += "&" + "sdk_version=" + "2.0";
+        data += "&" + "begin_session=" + "1";
+        data += "&" + "metrics=" + DeviceInfo.getMetrics(context_);
 
-		queue_.offer(data);
+        store_.addConnection(data);
 
-		tick();
-	}
+        tick();
+    }
 
-	public void updateSession(int duration) {
-		String data;
-		data = "app_key=" + appKey_;
-		data += "&" + "device_id=" + DeviceInfo.getUDID();
-		data += "&" + "timestamp=" + (long) (System.currentTimeMillis() / 1000.0);
-		data += "&" + "session_duration=" + duration;
+    public void updateSession(int duration) {
+        String data;
+        data = "app_key=" + appKey_;
+        data += "&" + "device_id=" + DeviceInfo.getUDID();
+        data += "&" + "timestamp=" + (long) (System.currentTimeMillis() / 1000.0);
+        data += "&" + "session_duration=" + (duration > 0 ? duration : Countly.SESSION_DURATION_WHEN_TIME_ADJUSTED);
 
-		queue_.offer(data);
+        store_.addConnection(data);
 
-		tick();
-	}
+        tick();
+    }
 
-	public void endSession(int duration) {
-		String data;
-		data = "app_key=" + appKey_;
-		data += "&" + "device_id=" + DeviceInfo.getUDID();
-		data += "&" + "timestamp=" + (long) (System.currentTimeMillis() / 1000.0);
-		data += "&" + "end_session=" + "1";
-		data += "&" + "session_duration=" + duration;
+    public void endSession(int duration) {
+        String data;
+        data = "app_key=" + appKey_;
+        data += "&" + "device_id=" + DeviceInfo.getUDID();
+        data += "&" + "timestamp=" + (long) (System.currentTimeMillis() / 1000.0);
+        data += "&" + "end_session=" + "1";
+        data += "&" + "session_duration=" + (duration > 0 ? duration : Countly.SESSION_DURATION_WHEN_TIME_ADJUSTED);
 
-		queue_.offer(data);
+        store_.addConnection(data);
 
-		tick();
-	}
+        tick();
+    }
 
-	public void recordEvents(String events) {
-		String data;
-		data = "app_key=" + appKey_;
-		data += "&" + "device_id=" + DeviceInfo.getUDID();
-		data += "&" + "timestamp=" + (long) (System.currentTimeMillis() / 1000.0);
-		data += "&" + "events=" + events;
+    public void recordEvents(String events) {
+        String data;
+        data = "app_key=" + appKey_;
+        data += "&" + "device_id=" + DeviceInfo.getUDID();
+        data += "&" + "timestamp=" + (long) (System.currentTimeMillis() / 1000.0);
+        data += "&" + "events=" + events;
 
-		queue_.offer(data);
+        store_.addConnection(data);
 
-		tick();
-	}
+        tick();
+    }
 
-	private void tick() {
-		if (thread_ != null && thread_.isAlive())
-			return;
+    private void tick() {
+        if (thread_ != null && thread_.isAlive())
+            return;
 
-		if (queue_.isEmpty())
-			return;
+        if (store_.isEmptyConnections())
+            return;
 
-		thread_ = new Thread() {
-			@Override
-			public void run() {
-				while (true) {
-					String[] qItem = queue_.peek();
+        thread_ = new Thread() {
+            @Override
+            public void run() {
+                while (true) {
+                    String[] sessions = store_.connections();
 
-					String connId = qItem[0];
-					String data = qItem[1];
+                    if (sessions.length == 0)
+                        break;
 
-					if (data == null)
-						break;
+                    String data = sessions[0];
 
-					int index = data.indexOf("REPLACE_UDID");
-					if (index != -1) {
-						if (OpenUDID_manager.isInitialized() == false)
-							break;
-						data = data.replaceFirst("REPLACE_UDID", OpenUDID_manager.getOpenUDID());
-					}
+                    int index = data.indexOf("REPLACE_UDID");
+                    if (index != -1) {
+                        if (OpenUDID_manager.isInitialized() == false)
+                            break;
+                        data = data.replaceFirst("REPLACE_UDID", OpenUDID_manager.getOpenUDID());
+                    }
 
-					try {
-						DefaultHttpClient httpClient = new DefaultHttpClient();
-						HttpGet method = new HttpGet(new URI(serverURL_ + "/i?" + data));
-						HttpResponse response = httpClient.execute(method);
-						InputStream input = response.getEntity().getContent();
-						while (input.read() != -1)
-							;
-						httpClient.getConnectionManager().shutdown();
+                    try {
+                        DefaultHttpClient httpClient = new DefaultHttpClient();
+                        HttpGet method = new HttpGet(new URI(serverURL_ + "/i?" + data));
+                        HttpResponse response = httpClient.execute(method);
+                        InputStream input = response.getEntity().getContent();
+                        while (input.read() != -1)
+                            ;
+                        httpClient.getConnectionManager().shutdown();
 
-						Log.d("Countly", "ok ->" + data);
+                        Log.d("Countly", "ok ->" + data);
 
-						queue_.delete(connId);
-					} catch (Exception e) {
-						Log.d("Countly", e.toString());
-						Log.d("Countly", "error ->" + data);
-						break;
-					}
-				}
-			}
-		};
+                        store_.removeConnection(data);
+                    } catch (Exception e) {
+                        Log.d("Countly", e.toString());
+                        Log.d("Countly", "error ->" + data);
+                        break;
+                    }
+                }
+            }
+        };
 
-		thread_.start();
-	}
+        thread_.start();
+    }
 }
 
 class DeviceInfo {
-	public static String getUDID() {
-		return OpenUDID_manager.isInitialized() == false ? "REPLACE_UDID" : OpenUDID_manager.getOpenUDID();
-	}
+    public static String getUDID() {
+        return OpenUDID_manager.isInitialized() == false ? "REPLACE_UDID" : OpenUDID_manager.getOpenUDID();
+    }
 
-	public static String getOS() {
-		return "Android";
-	}
+    public static String getOS() {
+        return "Android";
+    }
 
-	public static String getOSVersion() {
-		return android.os.Build.VERSION.RELEASE;
-	}
+    public static String getOSVersion() {
+        return android.os.Build.VERSION.RELEASE;
+    }
 
-	public static String getDevice() {
-		return android.os.Build.MODEL;
-	}
+    public static String getDevice() {
+        return android.os.Build.MODEL;
+    }
 
-	public static String getResolution(Context context) {
-		WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+    public static String getResolution(Context context) {
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 
-		Display display = wm.getDefaultDisplay();
+        Display display = wm.getDefaultDisplay();
 
-		DisplayMetrics metrics = new DisplayMetrics();
-		display.getMetrics(metrics);
+        DisplayMetrics metrics = new DisplayMetrics();
+        display.getMetrics(metrics);
 
-		return metrics.widthPixels + "x" + metrics.heightPixels;
-	}
+        return metrics.widthPixels + "x" + metrics.heightPixels;
+    }
 
-	public static String getCarrier(Context context) {
-		try {
-			TelephonyManager manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-			return manager.getNetworkOperatorName();
-		} catch (NullPointerException npe) {
-			npe.printStackTrace();
-			Log.e("Countly", "No carrier found");
-		}
-		return "";
-	}
+    public static String getDensity(Context context) {
+        int density = context.getResources().getDisplayMetrics().densityDpi;
 
-	public static String getLocale() {
-		Locale locale = Locale.getDefault();
-		return locale.getLanguage() + "_" + locale.getCountry();
-	}
+        switch (density) {
+            case DisplayMetrics.DENSITY_LOW:
+                return "LDPI";
+            case DisplayMetrics.DENSITY_MEDIUM:
+                return "MDPI";
+            case DisplayMetrics.DENSITY_TV:
+                return "TVDPI";
+            case DisplayMetrics.DENSITY_HIGH:
+                return "HDPI";
+            case DisplayMetrics.DENSITY_XHIGH:
+                return "XHDPI";
+            case DisplayMetrics.DENSITY_XXHIGH:
+                return "XXHDPI";
+            case DisplayMetrics.DENSITY_XXXHIGH:
+                return "XXXHDPI";
+            default:
+                return "";
+        }
+    }
 
-	public static String appVersion(Context context) {
-		String result = "1.0";
-		try {
-			result = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
-		} catch (NameNotFoundException e) {
-		}
+    public static String getCarrier(Context context) {
+        try {
+            TelephonyManager manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            return manager.getNetworkOperatorName();
+        } catch (NullPointerException npe) {
+            npe.printStackTrace();
+            Log.e("Countly", "No carrier found");
+        }
+        return "";
+    }
 
-		return result;
-	}
+    public static String getLocale() {
+        Locale locale = Locale.getDefault();
+        return locale.getLanguage() + "_" + locale.getCountry();
+    }
 
-	public static String getMetrics(Context context) {
-		String result = "";
-		JSONObject json = new JSONObject();
+    public static String appVersion(Context context) {
+        String result = "1.0";
+        try {
+            result = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
+        } catch (NameNotFoundException e) {
+        }
 
-		try {
-			json.put("_device", getDevice());
-			json.put("_os", getOS());
-			json.put("_os_version", getOSVersion());
-			json.put("_carrier", getCarrier(context));
-			json.put("_resolution", getResolution(context));
-			json.put("_locale", getLocale());
-			json.put("_app_version", appVersion(context));
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+        return result;
+    }
 
-		result = json.toString();
+    public static String getMetrics(Context context) {
+        String result = "";
+        JSONObject json = new JSONObject();
 
-		try {
-			result = java.net.URLEncoder.encode(result, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
+        try {
+            json.put("_device", getDevice());
+            json.put("_os", getOS());
+            json.put("_os_version", getOSVersion());
+            json.put("_carrier", getCarrier(context));
+            json.put("_resolution", getResolution(context));
+            json.put("_density", getDensity(context));
+            json.put("_locale", getLocale());
+            json.put("_app_version", appVersion(context));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
-		}
+        result = json.toString();
 
-		return result;
-	}
+        try {
+            result = java.net.URLEncoder.encode(result, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+
+        }
+
+        return result;
+    }
 }
 
 class Event {
-	public String key = null;
-	public Map<String, String> segmentation = null;
-	public int count = 0;
-	public double sum = 0;
-	public int timestamp = 0;
+    public String key = null;
+    public Map<String, String> segmentation = null;
+    public int count = 0;
+    public double sum = 0;
+    public int timestamp = 0;
+
+    public boolean equals(Object o) {
+        if (o == null || !(o instanceof Event)) return false;
+
+        Event e = (Event) o;
+
+        return (key == null ? e.key == null : key.equals(e.key)) &&
+                timestamp == e.timestamp && (segmentation == null ? e.segmentation == null : segmentation.equals(e.segmentation));
+    }
 }
 
 class EventQueue {
-	private ArrayList<Event> events_;
-	private CountlyDB countlyDB_;
+    private CountlyStore countlyStore_;
 
-	public EventQueue(CountlyDB countlyDB) {
-		countlyDB_ = countlyDB;
-		events_ = countlyDB_.getEvents();
-	}
+    public EventQueue(CountlyStore countlyStore) {
+        countlyStore_ = countlyStore;
+    }
 
-	public int size() {
-		synchronized (this) {
-			return events_.size();
-		}
-	}
+    public int size() {
+        synchronized (this) {
+            return countlyStore_.events().length;
+        }
+    }
 
-	public String events() {
-		String result = "";
+    public String events() {
+        String result = "";
 
-		synchronized (this) {
-			JSONArray eventArray = new JSONArray();
+        synchronized (this) {
+            List<Event> events = countlyStore_.eventsList();
 
-			for (int i = 0; i < events_.size(); ++i) {
-				JSONObject json = new JSONObject();
-				Event currEvent = events_.get(i);
+            JSONArray eventArray = new JSONArray();
+            for (Event e : events) eventArray.put(CountlyStore.eventToJSON(e));
 
-				try {
-					json.put("key", currEvent.key);
-					json.put("count", currEvent.count);
-					json.put("sum", currEvent.sum);
-					json.put("timestamp", currEvent.timestamp);
+            result = eventArray.toString();
 
-					if (currEvent.segmentation != null) {
-						json.put("segmentation", new JSONObject(currEvent.segmentation));
-					}
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
+            countlyStore_.removeEvents(events);
+        }
 
-				eventArray.put(json);
-			}
+        try {
+            result = java.net.URLEncoder.encode(result, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
 
-			result = eventArray.toString();
+        }
 
-			events_.clear();
-			countlyDB_.clearEvents();
-		}
+        return result;
+    }
 
-		try {
-			result = java.net.URLEncoder.encode(result, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
+    public void recordEvent(String key) {
+        recordEvent(key, null, 1, 0);
+    }
 
-		}
+    public void recordEvent(String key, int count) {
+        recordEvent(key, null, count, 0);
+    }
 
-		return result;
-	}
+    public void recordEvent(String key, int count, double sum) {
+        recordEvent(key, null, count, sum);
+    }
 
-	public void recordEvent(String key, int count) {
-		synchronized (this) {
-			for (int i = 0; i < events_.size(); ++i) {
-				Event event = events_.get(i);
+    public void recordEvent(String key, Map<String, String> segmentation, int count) {
+        recordEvent(key, segmentation, count, 0);
+    }
 
-				if (event.key.equals(key)) {
-					event.count += count;
-					event.timestamp = Math.round((event.timestamp + (System.currentTimeMillis() / 1000)) / 2);
-					countlyDB_.saveEvents(events_);
-					return;
-				}
-			}
-
-			Event event = new Event();
-			event.key = key;
-			event.count = count;
-			event.timestamp = Math.round(System.currentTimeMillis() / 1000);
-			events_.add(event);
-
-			countlyDB_.saveEvents(events_);
-		}
-	}
-
-	public void recordEvent(String key, int count, double sum) {
-		synchronized (this) {
-			for (int i = 0; i < events_.size(); ++i) {
-				Event event = events_.get(i);
-
-				if (event.key.equals(key)) {
-					event.count += count;
-					event.sum += sum;
-					event.timestamp = Math.round((event.timestamp + (System.currentTimeMillis() / 1000)) / 2);
-					countlyDB_.saveEvents(events_);
-					return;
-				}
-			}
-
-			Event event = new Event();
-			event.key = key;
-			event.count = count;
-			event.sum = sum;
-			event.timestamp = Math.round(System.currentTimeMillis() / 1000);
-			events_.add(event);
-
-			countlyDB_.saveEvents(events_);
-		}
-	}
-
-	public void recordEvent(String key, Map<String, String> segmentation, int count) {
-		synchronized (this) {
-			for (int i = 0; i < events_.size(); ++i) {
-				Event event = events_.get(i);
-
-				if (event.key.equals(key) && event.segmentation != null && event.segmentation.equals(segmentation)) {
-					event.count += count;
-					event.timestamp = Math.round((event.timestamp + (System.currentTimeMillis() / 1000)) / 2);
-					countlyDB_.saveEvents(events_);
-					return;
-				}
-			}
-
-			Event event = new Event();
-			event.key = key;
-			event.segmentation = segmentation;
-			event.count = count;
-			event.timestamp = Math.round(System.currentTimeMillis() / 1000);
-			events_.add(event);
-
-			countlyDB_.saveEvents(events_);
-		}
-	}
-
-	public void recordEvent(String key, Map<String, String> segmentation, int count, double sum) {
-		synchronized (this) {
-			for (int i = 0; i < events_.size(); ++i) {
-				Event event = events_.get(i);
-
-				if (event.key.equals(key) && event.segmentation != null && event.segmentation.equals(segmentation)) {
-					event.count += count;
-					event.sum += sum;
-					event.timestamp = Math.round((event.timestamp + (System.currentTimeMillis() / 1000)) / 2);
-					countlyDB_.saveEvents(events_);
-					return;
-				}
-			}
-
-			Event event = new Event();
-			event.key = key;
-			event.segmentation = segmentation;
-			event.count = count;
-			event.sum = sum;
-			event.timestamp = Math.round(System.currentTimeMillis() / 1000);
-			events_.add(event);
-
-			countlyDB_.saveEvents(events_);
-		}
-	}
+    public void recordEvent(String key, Map<String, String> segmentation, int count, double sum) {
+        synchronized (this) {
+            countlyStore_.addEvent(key, segmentation, count, sum);
+        }
+    }
 }
 
-class CountlyDB extends SQLiteOpenHelper {
+class CountlyStore {
+    private static final String TAG = "COUNTLY_STORE";
+    private static final String PREFERENCES = "COUNTLY_STORE";
+    private static final String DELIMITER = "===";
+    private static final String CONNECTIONS_PREFERENCE = "CONNECTIONS";
+    private static final String EVENTS_PREFERENCE = "EVENTS";
 
-	private static final int DATABASE_VERSION = 1;
-	private static final String DATABASE_NAME = "countly";
-	private static final String CONNECTIONS_TABLE_NAME = "CONNECTIONS";
-	private static final String EVENTS_TABLE_NAME = "EVENTS";
-	private static final String CONNECTIONS_TABLE_CREATE = "CREATE TABLE " + CONNECTIONS_TABLE_NAME + " (ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, CONNECTION TEXT NOT NULL);";
-	private static final String EVENTS_TABLE_CREATE = "CREATE TABLE " + EVENTS_TABLE_NAME + " (ID INTEGER UNIQUE NOT NULL, EVENT TEXT NOT NULL);";
+    private SharedPreferences preferences;
 
-	CountlyDB(Context context) {
-		super(context, DATABASE_NAME, null, DATABASE_VERSION);
-	}
+    protected CountlyStore(Context ctx) {
+        preferences = ctx.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
+    }
 
-	@Override
-	public void onCreate(SQLiteDatabase db) {
-		db.execSQL(CONNECTIONS_TABLE_CREATE);
-		db.execSQL(EVENTS_TABLE_CREATE);
-	}
+    public String[] connections() {
+        String array = preferences.getString(CONNECTIONS_PREFERENCE, null);
+        return array == null || "".equals(array) ? new String[0] : array.split(DELIMITER);
+    }
 
-	@Override
-	public void onUpgrade(SQLiteDatabase db, int arg1, int arg2) {
+    public String[] events() {
+        String array = preferences.getString(EVENTS_PREFERENCE, null);
+        return array == null || "".equals(array) ? new String[0] : array.split(DELIMITER);
+    }
 
-	}
+    public List<Event> eventsList() {
+        String[] array = events();
+        if (array.length == 0) return new ArrayList<Event>();
+        else {
+            List<Event> events = new ArrayList<Event>();
+            for (String s : array) {
+                try {
+                    events.add(jsonToEvent(new JSONObject(s)));
+                } catch (JSONException e) {
+                    Log.e(TAG, "Cannot parse Event json", e);
+                }
+            }
 
-	public String[] peek() {
-		synchronized (this) {
-			SQLiteDatabase db = this.getReadableDatabase();
+            Collections.sort(events, new Comparator<Event>() {
+                @Override
+                public int compare(Event e1, Event e2) {
+                    return e2.timestamp - e1.timestamp;
+                }
+            });
 
-			Cursor cursor = db.query(CONNECTIONS_TABLE_NAME, null, null, null, null, null, "ID DESC", "1");
+            return events;
+        }
+    }
 
-			String[] connection = new String[2];
+    public boolean isEmptyConnections() {
+        return connections().length == 0;
+    }
 
-			if (cursor != null && cursor.getCount() > 0) {
-				cursor.moveToFirst();
-				connection[0] = cursor.getString(0);
-				connection[1] = cursor.getString(1);
-				Log.d("Countly", "Fetched: " + connection[1]);
-			}
+    public boolean isEmptyEvents() {
+        return events().length == 0;
+    }
 
-			cursor.close();
-			return connection;
-		}
-	}
+    public void addConnection(String str) {
+        List<String> connections = new ArrayList<String>(Arrays.asList(connections()));
+        connections.add(str);
+        preferences.edit().putString(CONNECTIONS_PREFERENCE, join(connections, DELIMITER)).commit();
+    }
 
-	public void delete(String connId) {
-		SQLiteDatabase db = this.getWritableDatabase();
-		db.execSQL("DELETE FROM " + CONNECTIONS_TABLE_NAME + " WHERE ID = " + connId + ";");
-	}
+    public void removeConnection(String str) {
+        List<String> connections = new ArrayList<String>(Arrays.asList(connections()));
+        connections.remove(str);
+        preferences.edit().putString(CONNECTIONS_PREFERENCE, join(connections, DELIMITER)).commit();
+    }
 
-	public void offer(String data) {
-		SQLiteDatabase db = this.getWritableDatabase();
+    public void addEvent(Event event) {
+        List<Event> events = eventsList();
+        if (!events.contains(event)) events.add(event);
+        preferences.edit().putString(EVENTS_PREFERENCE, joinEvents(events, DELIMITER)).commit();
+    }
 
-		db.execSQL("INSERT INTO " + CONNECTIONS_TABLE_NAME + "(CONNECTION) VALUES('" + data + "');");
+    public void addEvent(String key, Map<String, String> segmentation, int count, double sum) {
+        List<Event> events = eventsList();
+        Event event = null;
+        for (Event e : events) if (e.key != null && e.key.equals(key)) event = e;
 
-		Log.d("Countly", "Insert into " + CONNECTIONS_TABLE_NAME + ": " + data);
-	}
+        if (event == null) {
+            event = new Event();
+            event.key = key;
+            event.segmentation = segmentation;
+            event.count = 0;
+            event.sum = 0;
+            event.timestamp = (int) (System.currentTimeMillis() / 1000);
+        } else {
+            removeEvent(event);
+            event.timestamp = Math.round((event.timestamp + (System.currentTimeMillis() / 1000)) / 2);
+        }
 
-	public boolean isEmpty() {
-		SQLiteDatabase db = this.getReadableDatabase();
-		Cursor cursor = db.query(CONNECTIONS_TABLE_NAME, null, null, null, null, null, "ID DESC", "1");
+        event.count += count;
+        event.sum += sum;
 
-		boolean isEmpty = !(cursor != null && cursor.getCount() > 0);
-		cursor.close();
-		return isEmpty;
-	}
+        addEvent(event);
+    }
 
-	// Event related functions
+    public void removeEvent(Event event) {
+        List<Event> events = eventsList();
+        events.remove(event);
+        preferences.edit().putString(EVENTS_PREFERENCE, joinEvents(events, DELIMITER)).commit();
+    }
 
-	public ArrayList<Event> getEvents() {
-		SQLiteDatabase db = this.getReadableDatabase();
+    public void removeEvents(Collection<Event> eventsToRemove) {
+        List<Event> events = eventsList();
+        for (Event e : eventsToRemove) events.remove(e);
+        preferences.edit().putString(EVENTS_PREFERENCE, joinEvents(events, DELIMITER)).commit();
+    }
 
-		Cursor cursor = db.query(EVENTS_TABLE_NAME, null, null, null, null, null, "ID = 1", "1");
-		ArrayList<Event> eventsArray = new ArrayList<Event>();
+    protected static JSONObject eventToJSON(Event event) {
+        JSONObject json = new JSONObject();
 
-		if (cursor != null && cursor.getCount() > 0) {
-			cursor.moveToFirst();
-			String events = cursor.getString(1);
+        try {
+            json.put("key", event.key);
+            json.put("count", event.count);
+            json.put("sum", event.sum);
+            json.put("timestamp", event.timestamp);
 
-			JSONObject json = new JSONObject();
+            if (event.segmentation != null) {
+                json.put("segmentation", new JSONObject(event.segmentation));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
-			try {
-				json = new JSONObject(events);
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
+        return json;
+    }
 
-			JSONArray jArray = json.optJSONArray("events");
+    protected static Event jsonToEvent(JSONObject json) {
+        Event event = new Event();
 
-			if (jArray != null) {
-				for (int i = 0; i < jArray.length(); i++) {
-					try {
-						eventsArray.add(jsonToEvent(new JSONObject(jArray.get(i).toString())));
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}
+        try {
+            event.key = json.get("key").toString();
+            event.count = Integer.valueOf(json.get("count").toString());
+            event.sum = Double.valueOf(json.get("sum").toString());
+            event.timestamp = Integer.valueOf(json.get("timestamp").toString());
 
-		cursor.close();
-		return eventsArray;
-	}
+            if (json.has("segmentation")) {
+                JSONObject segm = json.getJSONObject("segmentation");
+                HashMap<String, String> segmentation = new HashMap<String, String>();
+                Iterator nameItr = segm.keys();
 
-	public void saveEvents(ArrayList<Event> events) {
-		JSONArray eventArray = new JSONArray();
-		JSONObject json = new JSONObject();
+                while (nameItr.hasNext()) {
+                    Object obj = nameItr.next();
+                    if (obj instanceof String) {
+                        segmentation.put((String) obj, ((JSONObject) json.get("segmentation")).getString((String) obj));
+                    }
+                }
 
-		for (int i = 0; i < events.size(); ++i) {
-			eventArray.put(eventToJSON(events.get(i)));
-		}
+                event.segmentation = segmentation;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
-		try {
-			json.put("events", eventArray);
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+        return event;
+    }
 
-		SQLiteDatabase db = this.getWritableDatabase();
+    private static String joinEvents(Collection<Event> collection, String delimiter) {
+        List<String> strings = new ArrayList<String>();
+        for (Event e : collection) strings.add(eventToJSON(e).toString());
+        return join(strings, delimiter);
+    }
 
-		String query = "INSERT OR REPLACE INTO " + EVENTS_TABLE_NAME + "(ID, EVENT) VALUES(1, ?);";
-		db.rawQuery(query, new String[] { json.toString() });
-	}
+    private static String join(Collection<String> collection, String delimiter) {
+        StringBuilder builder = new StringBuilder();
 
-	public void clearEvents() {
-		SQLiteDatabase db = this.getWritableDatabase();
-		db.execSQL("DELETE FROM " + EVENTS_TABLE_NAME + ";");
-	}
+        int i = 0;
+        for (String s : collection) {
+            builder.append(s);
+            if (++i < collection.size()) builder.append(delimiter);
+        }
 
-	private JSONObject eventToJSON(Event event) {
-		JSONObject json = new JSONObject();
+        return builder.toString();
+    }
 
-		try {
-			json.put("key", event.key);
-			json.put("count", event.count);
-			json.put("sum", event.sum);
-			json.put("timestamp", event.timestamp);
-
-			if (event.segmentation != null) {
-				json.put("segmentation", new JSONObject(event.segmentation));
-			}
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-
-		return json;
-	}
-
-	private Event jsonToEvent(JSONObject json) {
-		Event event = new Event();
-
-		try {
-			event.key = json.get("key").toString();
-			event.count = Integer.valueOf(json.get("count").toString());
-			event.sum = Double.valueOf(json.get("sum").toString());
-			event.timestamp = Integer.valueOf(json.get("timestamp").toString());
-
-			HashMap<String, String> segmentation = new HashMap<String, String>();
-			@SuppressWarnings("unchecked")
-			Iterator<String> nameItr = ((JSONObject) json.get("segmentation")).keys();
-
-			while (nameItr.hasNext()) {
-				String key = nameItr.next();
-				segmentation.put(key, ((JSONObject) json.get("segmentation")).getString(key));
-			}
-
-			event.segmentation = segmentation;
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-
-		return event;
-	}
 }
