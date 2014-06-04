@@ -2,30 +2,21 @@ package com.segment.android.models;
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.UUID;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 public class Batch extends EasyJSONObject {
 
 	private final static String WRITE_KEY = "writeKey";
 	private final static String BATCH_KEY = "batch";
-	private final static String CONTEXT_KEY = "context";
-	private final static String REQUEST_TIMESTAMP_KEY = "requestTimestamp";
+	private final static String MESSAGE_ID_KEY = "messageId";
+	private final static String SENT_AT_KEY = "sentAt";
 	
 	public Batch(String writeKey, List<BasePayload> batch) {
 		setWriteKey(writeKey);
 		setBatch(batch);
-	}
-	
-	public Context getContext() {
-		JSONObject object = getObject(CONTEXT_KEY);
-		if (object == null) return null;
-		else return new Context(object);
-	}
-
-	public void setContext(Context context) {
-		this.put(CONTEXT_KEY, context);
+		setMessageId(UUID.randomUUID().toString());
 	}
 	
 	public String getWriteKey() {
@@ -44,11 +35,20 @@ public class Batch extends EasyJSONObject {
 		this.put(BATCH_KEY, new JSONArray(batch));
 	}
 
-	public Calendar getRequestTimestamp() {
-		return getCalendar(REQUEST_TIMESTAMP_KEY);
+	public Calendar getSentAt() {
+		return getCalendar(SENT_AT_KEY);
 	}
 
-	public void setRequestTimestamp(Calendar timestamp) {
-		super.put(REQUEST_TIMESTAMP_KEY, timestamp);
+	public void setSentAt(Calendar sentAt) {
+		super.put(SENT_AT_KEY, sentAt);
 	}
+	
+	public String getMessageId() {
+		return this.getString(MESSAGE_ID_KEY);
+	}
+
+	public void setMessageId(String messageId) {
+		super.put(MESSAGE_ID_KEY, messageId);
+	}
+	
 }

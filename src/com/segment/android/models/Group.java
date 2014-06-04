@@ -1,31 +1,34 @@
 package com.segment.android.models;
 
-import java.util.Calendar;
-
 import org.json.JSONObject;
 
 public class Group extends BasePayload {
 
-	public final static String ACTION = "group";
+	public final static String TYPE = "group";
 	
-	private final static String TRAITS_KEY = "traits";
+	private final static String USER_ID_KEY = "userId";
 	private final static String GROUP_ID_KEY = "groupId";
+	private final static String TRAITS_KEY = "traits";
 	
 	public Group (JSONObject obj) {
 		super(obj);
 	}
 	
-	public Group(String sessionId, String userId, String groupId, Traits traits, Calendar timestamp,
-			Context context) {
-
-		super(sessionId, userId, timestamp, context);
-
-		put("action", ACTION);
-		
+	public Group(String userId, String groupId, Traits traits, Options options) {
+		super(TYPE, options);
+		setUserId(userId);
 		setGroupId(groupId);
 		setTraits(traits);
 	}
+	
+	public String getUserId() {
+		return this.optString(USER_ID_KEY, null);
+	}
 
+	public void setUserId(String userId) {
+		this.put(USER_ID_KEY, userId);
+	}
+	
 	public String getGroupId() {
 		return this.optString(GROUP_ID_KEY, null);
 	}

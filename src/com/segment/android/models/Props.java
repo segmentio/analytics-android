@@ -16,4 +16,15 @@ public class Props extends EasyJSONObject {
 		super(kvs);
 	}
 	
+	@Override
+	public Props put(String key, String value) {
+		super.put(key, value);
+		return this;
+	}
+
+	@Override
+	public Props put(String key, Object value) {
+		super.putObject(key, value);
+		return this;
+	}
 }

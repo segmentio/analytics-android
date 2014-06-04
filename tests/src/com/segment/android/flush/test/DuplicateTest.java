@@ -31,13 +31,13 @@ public class DuplicateTest extends BaseTest {
 		@Override
 		public HttpResponse send(Batch batch) {
 			for (BasePayload payload : batch.getBatch()) {
-				if (requestIds.contains(payload.getRequestId())) {
+				if (requestIds.contains(payload.getMessageId())) {
 					// we've already sent this action
 					duplicates.addAndGet(1);
-					Log.w(TAG, "Detected duplicate " + payload.getRequestId());
+					Log.w(TAG, "Detected duplicate " + payload.getMessageId());
 				} else {
 					// we haven't seen this action, lets remember it
-					requestIds.add(payload.getRequestId());
+					requestIds.add(payload.getMessageId());
 				}
 			}
 			return super.send(batch);

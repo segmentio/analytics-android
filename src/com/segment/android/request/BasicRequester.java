@@ -28,7 +28,7 @@ public class BasicRequester implements IRequester {
 
 	@Override
 	public HttpResponse send(Batch batch) {
-		batch.setRequestTimestamp(Calendar.getInstance());
+		batch.setSentAt(Calendar.getInstance());
 
 		Config options = Analytics.getOptions();
 

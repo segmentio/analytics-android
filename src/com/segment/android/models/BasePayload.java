@@ -7,47 +7,50 @@ import org.json.JSONObject;
 
 public class BasePayload extends EasyJSONObject {
 	
-	private final static String SESSION_ID_KEY = "sessionId";
-	private final static String USER_ID_KEY = "userId";
-	private final static String TIMESTAMP_KEY = "timestamp";
-	private final static String REQUEST_ID_KEY = "requestId";
+	private final static String TYPE_KEY = "type";
 	private final static String CONTEXT_KEY = "context";
+	private final static String ANONYMOUS_ID_KEY = "anonymousId";
+	private final static String TIMESTAMP_KEY = "timestamp";
+	private final static String MESSAGE_ID_KEY = "messageId";
 	
 	public BasePayload (JSONObject obj) {
 		super(obj);
 	}
 	
-	public BasePayload(String sessionId,
-					   String userId, 
-					   Calendar timestamp, 
-					   Context context) {
-
-		// we want to time stamp the events in case they get 
-		// batched in the future
-		if (timestamp == null) timestamp = Calendar.getInstance();
-		if (context == null) context = new Context();
+	public BasePayload(String type, Options options) {
+		if (options == null) options = new Options();
 		
-		setSessionId(sessionId);
-		setUserId(userId);
-		setTimestamp(timestamp);
-		setContext(context);
-		setRequestId(UUID.randomUUID().toString());
+		setType(type);
+		setContext(options.getContext());
+		setAnonymousId(options.getAnonymousId());
+		setTimestamp(options.getTimestamp());
+		setMessageId(UUID.randomUUID().toString());
 	}
 
-	public String getSessionId() {
-		return this.optString(SESSION_ID_KEY, null);
+	public String getType() {
+		return this.optString(TYPE_KEY, null);
 	}
 
-	public void setSessionId(String sessionId) {
-		this.put(SESSION_ID_KEY, sessionId);
+	public void setType(String type) {
+		this.put(TYPE_KEY, type);
+	}
+	
+	public Context getContext() {
+		JSONObject object = getObject(CONTEXT_KEY);
+		if (object == null) return null;
+		else return new Context(object);
 	}
 
-	public String getUserId() {
-		return this.optString(USER_ID_KEY, null);
+	public void setContext(Context context) {
+		this.put(CONTEXT_KEY, context);
+	}
+	
+	public String getAnonymousId() {
+		return this.optString(ANONYMOUS_ID_KEY, null);
 	}
 
-	public void setUserId(String userId) {
-		this.put(USER_ID_KEY, userId);
+	public void setAnonymousId(String anonymousId) {
+		this.put(ANONYMOUS_ID_KEY, anonymousId);
 	}
 
 	public Calendar getTimestamp() {
@@ -58,31 +61,20 @@ public class BasePayload extends EasyJSONObject {
 		super.put(TIMESTAMP_KEY, timestamp);
 	}
 
-	public Context getContext() {
-		JSONObject object = getObject(CONTEXT_KEY);
-		if (object == null) return null;
-		else return new Context(object);
+	public String getMessageId() {
+		return this.optString(MESSAGE_ID_KEY, null);
 	}
 
-	public void setContext(Context context) {
-		this.put(CONTEXT_KEY, context);
-	}
-
-	public String getRequestId() {
-		return this.optString(REQUEST_ID_KEY, null);
-	}
-
-	public void setRequestId(String requestId) {
-		this.put(REQUEST_ID_KEY, requestId);
+	public void setMessageId(String requestId) {
+		this.put(MESSAGE_ID_KEY, requestId);
 	}
 
 	/**
-	 * Gets a description of this item.
+	 * Gets a simple string description of this payload.
 	 * @return {String}
 	 */
 	public String toDescription() {
-		return "[Item " + this.getRequestId() + "] " + 
-				this.getString("action", "action");
+		return String.format("%s [%s]", this.getType(), this.getMessageId());
 	}
 	
 }
