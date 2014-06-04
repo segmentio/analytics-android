@@ -11,6 +11,7 @@ import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.integration.SimpleIntegration;
 import com.segment.android.models.EasyJSONObject;
 import com.segment.android.models.Identify;
+import com.segment.android.models.Props;
 import com.segment.android.models.Screen;
 import com.segment.android.models.Track;
 
@@ -46,7 +47,6 @@ public class QuantcastIntegration extends SimpleIntegration {
 	
 	@Override
 	public void onCreate(Context context) {
-		
 		checkPermission(context);
 		
 		EasyJSONObject settings = this.getSettings();
@@ -80,15 +80,17 @@ public class QuantcastIntegration extends SimpleIntegration {
 	@Override
 	public void screen(Screen screen) {
 		if (!hasPermission) return;
-		// track a "Viewed SCREEN" event
-		track(screen);
+		event("Viewed " + screen.getName() + " Screen", screen.getProperties());
 	}
 	
 	@Override
 	public void track(Track track) {
 		if (!hasPermission) return; 
-		String event = track.getEvent();
-		QuantcastClient.logEvent(event);
+		event(track.getEvent(), track.getProperties());
+	}
+	
+	private void event(String name, Props properties) {
+		QuantcastClient.logEvent(name);
 	}
 
 }

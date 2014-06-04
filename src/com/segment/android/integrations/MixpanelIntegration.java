@@ -100,16 +100,16 @@ public class MixpanelIntegration extends SimpleIntegration {
 	
 	@Override
 	public void screen(Screen screen) {
-		// track a "Viewed SCREEN" event
-		track(screen);
+		event("Viewed " + screen.getName() + " Screen", screen.getProperties());
 	}
 	
 	@Override
 	public void track(Track track) {
-		String event = track.getEvent();
-		Props properties = track.getProperties();
-				
-		mixpanel.track(event, properties);
+		event(track.getEvent(), track.getProperties());
+	}
+	
+	private void event(String name, Props properties) {
+		mixpanel.track(name, properties);
 		
 		if (isMixpanelPeopleEnabled()) {			
 			// consider the charge
@@ -123,14 +123,11 @@ public class MixpanelIntegration extends SimpleIntegration {
 	
 	@Override
 	public void alias(Alias alias) {
-		String to = alias.getTo();
-		
-		mixpanel.identify(to);
+		mixpanel.identify(alias.getUserId());
 	}
 	
 	@Override
 	public void reset() {
-		
 		if (mixpanel != null)
 			mixpanel.clearSuperProperties();
 	}

@@ -44,7 +44,6 @@ public class CountlyIntegration extends SimpleIntegration {
 	
 	@Override
 	public void onCreate(Context context) {
-		
 		EasyJSONObject settings = this.getSettings();
 		String serverUrl = settings.getString(SettingKey.SERVER_URL);
 		String appKey = settings.getString(SettingKey.APP_KEY);
@@ -66,27 +65,25 @@ public class CountlyIntegration extends SimpleIntegration {
 
 	@Override
 	public void screen(Screen screen) {
-		// track a "Viewed SCREEN" event
-		track(screen);
+		event("Viewed " + screen.getName() + " Screen", screen.getProperties());
 	}
 	
 	@Override
 	public void track(Track track) {
-		String event = track.getEvent();
-		Props properties = track.getProperties();
-		
+		event(track.getEvent(), track.getProperties());
+	}
+	
+	private void event(String name, Props properties) {
 		Map<String, String> segmentation = new HashMap<String, String>();
 		int count = 0;
 		
 		if (properties != null) {
-			
 			segmentation = properties.toStringMap();
-			
 			if (properties.has("sum")) {
 				count = properties.getInt("sum", 0);
 			}
 		}
 		
-		Countly.sharedInstance().recordEvent(event, segmentation, count);
+		Countly.sharedInstance().recordEvent(name, segmentation, count);
 	}
 }

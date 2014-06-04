@@ -107,15 +107,16 @@ public class FlurryIntegration extends SimpleIntegration {
 		// increment flurry's page view count
 		FlurryAgent.onPageView();
 		// track a "Viewed SCREEN" event
-		track(screen);
+		event("Viewed " + screen.getName() + " Screen", screen.getProperties());
 	}
 	
 	@Override
 	public void track(Track track) {
-		String event = track.getEvent();
-		Props properties = track.getProperties();
-		
-		FlurryAgent.logEvent(event, toMap(properties));
+		event(track.getEvent(), track.getProperties());
+	}
+	
+	private void event(String name, Props properties) {
+		FlurryAgent.logEvent(name, toMap(properties));
 	}
 
 	private Map<String, String> toMap(Props properties) {

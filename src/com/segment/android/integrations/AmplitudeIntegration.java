@@ -67,21 +67,21 @@ public class AmplitudeIntegration extends SimpleIntegration {
 
 	@Override
 	public void screen(Screen screen) {
-		// track a "Viewed SCREEN" event
-		track(screen);
+		event("Viewed " + screen.getName() + " Screen", screen.getProperties());
 	}
 	
 	@Override
 	public void track(Track track) {
-		String event = track.getEvent();
-		Props properties = track.getProperties();
-		
+		event(track.getEvent(), track.getProperties());
+	}
+	
+	private void event(String name, Props properties) {
 		if (properties != null && properties.has("revenue")) {
 			double revenue = properties.getDouble("revenue", 0.0);
 			Amplitude.logRevenue(revenue);
 		}
 		
-		Amplitude.logEvent(event, properties);
+		Amplitude.logEvent(name, properties);
 	}
 	
 	@Override

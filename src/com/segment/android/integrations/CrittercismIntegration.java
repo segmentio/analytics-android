@@ -9,6 +9,7 @@ import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.integration.SimpleIntegration;
 import com.segment.android.models.EasyJSONObject;
 import com.segment.android.models.Identify;
+import com.segment.android.models.Props;
 import com.segment.android.models.Screen;
 import com.segment.android.models.Track;
 import com.segment.android.models.Traits;
@@ -40,7 +41,6 @@ public class CrittercismIntegration extends SimpleIntegration {
 
 	@Override
 	public void onCreate(Context context) {
-		
 		EasyJSONObject settings = this.getSettings();
 		String appId = settings.getString(SettingKey.APP_ID);
 		
@@ -65,24 +65,24 @@ public class CrittercismIntegration extends SimpleIntegration {
 		
 		Crittercism.setUsername(userId);
 		if (traits != null) {
-			
 			if (traits.has("name"))
 				Crittercism.setUsername(traits.getString("name"));
-			
 			Crittercism.setMetadata(traits);
 		}
 	}
 	
 	@Override
 	public void screen(Screen screen) {
-		// track a "Viewed SCREEN" event
-		track(screen);
+		event("Viewed " + screen.getName() + " Screen", screen.getProperties());
 	}
 	
 	@Override
 	public void track(Track track) {
-		String event = track.getEvent();
-		Crittercism.leaveBreadcrumb(event);
+		event(track.getEvent(), track.getProperties());
+	}
+	
+	private void event(String name, Props properties) {
+		Crittercism.leaveBreadcrumb(name);
 	}
 	
 	@Override

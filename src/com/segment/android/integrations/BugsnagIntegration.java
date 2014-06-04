@@ -60,7 +60,6 @@ public class BugsnagIntegration extends SimpleIntegration {
 	
 	@Override
 	public void identify(Identify identify) {
-		
 		String userId = identify.getUserId();
 		Traits traits = identify.getTraits();
 		

@@ -59,14 +59,12 @@ public class TapstreamIntegration extends SimpleIntegration {
 
 	@Override
 	public void screen(Screen screen) {
-		String name = screen.getName();
-		Tapstream.getInstance().fireEvent(makeEvent("screen-" + name, screen.getProperties()));
+		Tapstream.getInstance().fireEvent(makeEvent("screen-" + screen.getName(), screen.getProperties()));
 	}
 
 	@Override
 	public void track(Track track) {
-		String name = track.getEvent();
-		Tapstream.getInstance().fireEvent(makeEvent(name, track.getProperties()));
+		Tapstream.getInstance().fireEvent(makeEvent(track.getEvent(), track.getProperties()));
 	}
 
 	private Event makeEvent(String name, Props properties) {
