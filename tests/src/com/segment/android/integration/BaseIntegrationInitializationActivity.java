@@ -6,7 +6,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import com.segment.android.Analytics;
-import com.segment.android.Options;
+import com.segment.android.Config;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.integration.Integration;
 import com.segment.android.integration.IntegrationState;
@@ -80,7 +80,7 @@ public abstract class BaseIntegrationInitializationActivity extends
 		reachEnabledState();
 
 		// initialize since we can't get the proper context otherwise
-		Analytics.initialize(activity, "testsecret", new Options());
+		Analytics.initialize(activity, "testsecret", new Config());
 		
 		integration.onCreate(activity);
 

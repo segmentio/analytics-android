@@ -52,7 +52,7 @@ public class Analytics {
 	private static AnalyticsStatistics statistics;
 	
 	private static String writeKey;
-	private static Options options;
+	private static Config options;
 	
 	private static InfoManager infoManager;
 	
@@ -147,7 +147,7 @@ public class Analytics {
 	 * 
 	 * 
 	 */
-	public static void onCreate (android.content.Context context, String writeKey, Options options) {
+	public static void onCreate (android.content.Context context, String writeKey, Config options) {
 		Analytics.initialize(context, writeKey, options);
 		integrationManager.onCreate(context);
 	}
@@ -223,7 +223,7 @@ public class Analytics {
 	 * 
 	 * 
 	 */
-	public static void activityStart (Activity activity, String writeKey, Options options) {
+	public static void activityStart (Activity activity, String writeKey, Config options) {
 		Analytics.initialize(activity, writeKey, options);
 		if (optedOut) return;
 		integrationManager.onActivityStart(activity);
@@ -290,7 +290,7 @@ public class Analytics {
 
 		// read both writeKey and options from analytics.xml
 		String writeKey = Configuration.getWriteKey(context);
-		Options options = Configuration.getOptions(context);
+		Config options = Configuration.getOptions(context);
 		
 		initialize(context, writeKey, options);
 	}
@@ -325,7 +325,7 @@ public class Analytics {
 		if (initialized) return;
 
 		// read options from analytics.xml
-		Options options = Configuration.getOptions(context);
+		Config options = Configuration.getOptions(context);
 		
 		initialize(context, writeKey, options);
 	}
@@ -358,7 +358,7 @@ public class Analytics {
 	 * 
 	 * 
 	 */
-	public static void initialize(android.content.Context context, String writeKey, Options options) {
+	public static void initialize(android.content.Context context, String writeKey, Config options) {
 		
 		String errorPrefix = "analytics-android client must be initialized with a valid ";
 
@@ -1622,7 +1622,7 @@ public class Analytics {
 	 * Gets the Segment.io client options
 	 * @return
 	 */
-	public static Options getOptions() {
+	public static Config getOptions() {
 		if (options == null) checkInitialized();
 		return options;
 	}

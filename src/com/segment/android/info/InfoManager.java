@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
-import com.segment.android.Options;
+import com.segment.android.Config;
 import com.segment.android.models.EasyJSONObject;
 
 /**
@@ -18,7 +18,7 @@ public class InfoManager {
 
 	private List<Info<?>> managers; 
 	
-	public InfoManager(Options options) {
+	public InfoManager(Config options) {
 		managers = new LinkedList<Info<?>>();
 
 		managers.add(new Build());

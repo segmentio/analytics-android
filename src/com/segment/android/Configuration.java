@@ -29,8 +29,8 @@ public class Configuration {
 		} 
 	}
 	
-	public static Options getOptions(Context context) {
-		Options options = new Options();
+	public static Config getOptions(Context context) {
+		Config options = new Config();
 		
 		String host = getString(context, HOST_KEY);
 		if (!TextUtils.isEmpty(host)) options.setHost(host);

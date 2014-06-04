@@ -3,10 +3,10 @@ package com.segment.android;
 import android.text.TextUtils;
 
 /**
- * Segment.io client options
+ * Client configuration
  * 
  */
-public class Options {
+public class Config {
 
 	/**
 	 * Whether or not debug logging is enabled to ADT logcat
@@ -47,7 +47,7 @@ public class Options {
 	/**
 	 * Creates a default options
 	 */
-	public Options() {
+	public Config() {
 		this(Defaults.DEBUG, 
 			 Defaults.HOST, 
 			 Defaults.FLUSH_AT, 
@@ -67,7 +67,7 @@ public class Options {
 	 * @param settingsCacheExpiry
 	 * @param sendLocation
 	 */
-	Options(boolean debug, 
+	Config(boolean debug, 
 			String host, 
 			int flushAt, 
 			int flushAfter, 
@@ -118,7 +118,7 @@ public class Options {
 	 * 
 	 * @param flushAt
 	 */
-	public Options setFlushAt(int flushAt) {
+	public Config setFlushAt(int flushAt) {
 		
 		if (flushAt <= 0) 
 			throw new IllegalArgumentException("Analytics Options #flushAt must be greater than 0.");
@@ -133,7 +133,7 @@ public class Options {
 	 * 
 	 * @param flushAfter
 	 */
-	public Options setFlushAfter(int flushAfter) {
+	public Config setFlushAfter(int flushAfter) {
 
 		if (flushAfter <= 50) 
 			throw new IllegalArgumentException("Analytics Options #flushAfter must be greater than 50.");
@@ -149,7 +149,7 @@ public class Options {
 	 * 
 	 * @param maxQueueSize
 	 */
-	public Options setMaxQueueSize(int maxQueueSize) {
+	public Config setMaxQueueSize(int maxQueueSize) {
 		
 		if (flushAfter <= 0) 
 			throw new IllegalArgumentException("Analytics Options #flushAfter must be greater than 0.");
@@ -163,7 +163,7 @@ public class Options {
 	 * 
 	 * @param host
 	 */
-	public Options setHost(String host) {
+	public Config setHost(String host) {
 		
 		if (TextUtils.isEmpty(host)) 
 			throw new IllegalArgumentException("Analytics Options #host must be non-null or empty.");
@@ -181,7 +181,7 @@ public class Options {
 	 * 
 	 * @param milliseconds Settings cache time
 	 */
-	public Options setSettingsCacheExpiry(int milliseconds) {
+	public Config setSettingsCacheExpiry(int milliseconds) {
 		
 		if (milliseconds < 1000 || milliseconds > 999999999)
 			throw new IllegalArgumentException("Analytics Options #settingsCacheExpiry must be between 1000 and 999999999.");
@@ -194,7 +194,7 @@ public class Options {
 	 * Sets whether debug logging to LogCat is enabled
 	 * @param debug True to enable debug logging
 	 */
-	public Options setDebug(boolean debug) {
+	public Config setDebug(boolean debug) {
 		this.debug = debug;
 		return this;
 	}
@@ -203,7 +203,7 @@ public class Options {
 	 * Sets whether the library sends the location attributes.
 	 * @param sendLocation True to send location information
 	 */
-	public Options setSendLocation(boolean sendLocation) {
+	public Config setSendLocation(boolean sendLocation) {
 		this.sendLocation = sendLocation;
 		return this;
 	}

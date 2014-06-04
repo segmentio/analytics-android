@@ -17,7 +17,7 @@ import org.json.JSONObject;
 import com.segment.android.Analytics;
 import com.segment.android.Defaults;
 import com.segment.android.Logger;
-import com.segment.android.Options;
+import com.segment.android.Config;
 import com.segment.android.models.Batch;
 import com.segment.android.models.EasyJSONObject;
 
@@ -29,7 +29,7 @@ public class BasicRequester implements IRequester {
 	public HttpResponse send(Batch batch) {
 		batch.setRequestTimestamp(Calendar.getInstance());
 
-		Options options = Analytics.getOptions();
+		Config options = Analytics.getOptions();
 
 		String url = options.getHost() + Defaults.ENDPOINTS.get("import");
 		String json = batch.toString();
@@ -55,7 +55,7 @@ public class BasicRequester implements IRequester {
 	@Override
 	public EasyJSONObject fetchSettings() {
 
-		Options options = Analytics.getOptions();
+		Config options = Analytics.getOptions();
 
 		String url = options.getHost()
 				+ Defaults.getSettingsEndpoint(Analytics.getWriteKey());

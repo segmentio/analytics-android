@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import com.segment.android.Analytics;
 import com.segment.android.Configuration;
-import com.segment.android.Options;
+import com.segment.android.Config;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -27,7 +27,7 @@ public class ConfigurationTest extends ActivityTestCase {
 	@Test
 	public void testOptions() {
 		Context context = getInstrumentation().getContext();
-		Options options = Configuration.getOptions(context);
+		Config options = Configuration.getOptions(context);
 		testOptions(context, options);
 	}
 	
@@ -36,12 +36,12 @@ public class ConfigurationTest extends ActivityTestCase {
 	    Context context = getInstrumentation().getContext();
 	    if (Analytics.isInitialized()) Analytics.close();
 		Analytics.initialize(context);
-		Options options = Analytics.getOptions();
+		Config options = Analytics.getOptions();
 		testOptions(context, options);
 		Analytics.close();
 	}
 	
-	private void testOptions(Context context, Options options) {
+	private void testOptions(Context context, Config options) {
 		
 		Resources resources = context.getResources();
 		
