@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.text.TextUtils;
 
-public class Configuration {
+public class ResourceConfig {
 
 	private static final String STRING_RESOURCE_KEY = "string";
 	private static final String INTEGER_RESOURCE_KEY = "integer";

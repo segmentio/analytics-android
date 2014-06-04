@@ -289,8 +289,8 @@ public class Analytics {
 		if (initialized) return;
 
 		// read both writeKey and options from analytics.xml
-		String writeKey = Configuration.getWriteKey(context);
-		Config options = Configuration.getOptions(context);
+		String writeKey = ResourceConfig.getWriteKey(context);
+		Config options = ResourceConfig.getOptions(context);
 		
 		initialize(context, writeKey, options);
 	}
@@ -325,7 +325,7 @@ public class Analytics {
 		if (initialized) return;
 
 		// read options from analytics.xml
-		Config options = Configuration.getOptions(context);
+		Config options = ResourceConfig.getOptions(context);
 		
 		initialize(context, writeKey, options);
 	}

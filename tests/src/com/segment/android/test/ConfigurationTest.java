@@ -7,7 +7,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.segment.android.Analytics;
-import com.segment.android.Configuration;
+import com.segment.android.ResourceConfig;
 import com.segment.android.Config;
 
 import android.content.Context;
@@ -20,14 +20,14 @@ public class ConfigurationTest extends ActivityTestCase {
 	public void testSecret() {
 	    Context context = getInstrumentation().getContext();
 		Resources resources = context.getResources();
-		String writeKey = Configuration.getWriteKey(context);
+		String writeKey = ResourceConfig.getWriteKey(context);
 		Assert.assertEquals(resources.getString(R.string.analytics_secret), writeKey);
 	}
 	
 	@Test
 	public void testOptions() {
 		Context context = getInstrumentation().getContext();
-		Config options = Configuration.getOptions(context);
+		Config options = ResourceConfig.getOptions(context);
 		testOptions(context, options);
 	}
 	
