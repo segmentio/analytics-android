@@ -21,6 +21,7 @@ import com.segment.android.Config;
 import com.segment.android.models.Batch;
 import com.segment.android.models.EasyJSONObject;
 
+import android.util.Base64;
 import android.util.Log;
 
 public class BasicRequester implements IRequester {
@@ -38,6 +39,10 @@ public class BasicRequester implements IRequester {
 		HttpPost post = new HttpPost(url);
 		post.setHeader("Content-Type", "application/json");
 
+		// Basic Authentication
+		// https://segment.io/docs/tracking-api/reference/#authentication
+		post.addHeader("Authorization", basicAuthHeader());
+		
 		try {
 			ByteArrayEntity se = new ByteArrayEntity(json.getBytes());
 			se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE,
@@ -62,6 +67,10 @@ public class BasicRequester implements IRequester {
 
 		HttpClient httpclient = new DefaultHttpClient();
 		HttpGet get = new HttpGet(url);
+		
+		// Basic Authentication
+		// https://segment.io/docs/tracking-api/reference/#authentication
+		get.addHeader("Authorization", basicAuthHeader());
 
 		try {
 			HttpResponse response = httpclient.execute(get);
@@ -79,4 +88,9 @@ public class BasicRequester implements IRequester {
 		return null;
 	}
 
+	private String basicAuthHeader() {
+		return "Basic " + Base64.encodeToString(
+				(Analytics.getWriteKey()+":").getBytes(), Base64.DEFAULT);
+	}
+	
 }
