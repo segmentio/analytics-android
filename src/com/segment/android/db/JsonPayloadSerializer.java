@@ -23,26 +23,23 @@ public class JsonPayloadSerializer implements IPayloadSerializer {
 
 	@Override
 	public BasePayload deseralize(String str) {
-		
 		JSONObject obj;
-		
 		try {
 			obj = new JSONObject(str);
-			
-			String action = obj.getString("action");
-			
-			if (action.equals(Identify.ACTION)) {
+			String type = obj.getString("type");
+			if (type.equals(Identify.TYPE)) {
 				return new Identify(obj);
-			} else if (action.equals(Track.ACTION)) {
+			} else if (type.equals(Track.TYPE)) {
 				return new Track(obj);
-			} else if (action.equals(Alias.ACTION)) {
+			} else if (type.equals(Alias.TYPE)) {
 				return new Alias(obj);
-			} else if (action.equals(Group.ACTION)) {
+			} else if (type.equals(Group.TYPE)) {
 				return new Group(obj);
-			} else if (action.equals(Screen.ACTION)) {
+			} else if (type.equals(Screen.TYPE)) {
 				return new Screen(obj);
 			} else {
-				
+				Logger.e("Failed to convert json to base payload because of unknown type: " + 
+						type);
 			}
 		} catch (JSONException e) {
 			Logger.e("Failed to convert json to base payload: " + 
