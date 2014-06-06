@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import com.segment.android.cache.ISettingsLayer;
-import com.segment.android.cache.SessionIdCache;
+import com.segment.android.cache.AnonymousIdCache;
 import com.segment.android.cache.SettingsCache;
 import com.segment.android.cache.SettingsThread;
 import com.segment.android.cache.SimpleStringCache;
@@ -387,7 +387,7 @@ public class Analytics {
 		// knows how to create global context about this android device
 		infoManager = new InfoManager(options);
 		
-		sessionIdCache = new SessionIdCache(context);
+		sessionIdCache = new AnonymousIdCache(context);
 		groupIdCache = new SimpleStringCache(context, Constants.SharedPreferences.GROUP_ID_KEY);
 		userIdCache = new SimpleStringCache(context, Constants.SharedPreferences.USER_ID_KEY);
 		
