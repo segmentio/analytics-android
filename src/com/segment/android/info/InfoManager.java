@@ -21,13 +21,14 @@ public class InfoManager {
 	public InfoManager(Config options) {
 		managers = new LinkedList<Info<?>>();
 
-		managers.add(new Build());
+		managers.add(new App());
 		managers.add(new Device());
-		managers.add(new Display());
+		managers.add(new Network());
+		managers.add(new Screen());
 		managers.add(new Locale());
 		if (options.shouldSendLocation()) managers.add(new Location());
-		managers.add(new Telephony());
-		managers.add(new Wifi());
+		managers.add(new OS());
+		managers.add(new UserAgent());
 	}
 	
 	

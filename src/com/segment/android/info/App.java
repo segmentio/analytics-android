@@ -9,28 +9,30 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 
-public class Build implements Info<JSONObject> {
+public class App implements Info<JSONObject> {
 
 	@Override
 	public String getKey() {
-		return "build";
+		return "app";
 	}
 
 	@Override
 	public JSONObject get(Context context) {
 
-		EasyJSONObject build = new EasyJSONObject();
+		EasyJSONObject app = new EasyJSONObject();
 		
 		PackageInfo packageInfo;
 		try {
 			packageInfo = context.getPackageManager().getPackageInfo(
 					context.getPackageName(), 0);
-			build.put("code", packageInfo.versionCode);
-			build.put("name", packageInfo.versionName);
+			
+			app.put("name", packageInfo.applicationInfo.name);
+			app.put("version", packageInfo.versionName);
+			app.put("build", packageInfo.packageName);
 			
 		} catch (NameNotFoundException e) {}
 	
-		return build;
+		return app;
 	}
 
 }

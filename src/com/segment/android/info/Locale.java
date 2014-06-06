@@ -1,14 +1,10 @@
 package com.segment.android.info;
 
-
-import org.json.JSONObject;
-
-import com.segment.android.models.EasyJSONObject;
+import java.text.MessageFormat;
 
 import android.content.Context;
-import android.telephony.TelephonyManager;
 
-public class Locale implements Info<JSONObject> {
+public class Locale implements Info<String> {
 
 	@Override
 	public String getKey() {
@@ -16,17 +12,11 @@ public class Locale implements Info<JSONObject> {
 	}
 
 	@Override
-	public JSONObject get(Context context) {
-
-		EasyJSONObject locale = new EasyJSONObject();
-
-		TelephonyManager manager = (TelephonyManager) context
-				.getSystemService(Context.TELEPHONY_SERVICE);
-		
-		locale.put("carrier",  manager.getNetworkOperatorName());
-		locale.put("country",  java.util.Locale.getDefault().getDisplayCountry());
-		locale.put("language", java.util.Locale.getDefault().getDisplayLanguage());
-		
-		return locale;
+	public String get(Context context) {
+		java.util.Locale l = java.util.Locale.getDefault();
+		// IETF BCP 47 language tag representing this locale.
+		// equivalent of toLangaugeTag() in JDK7
+		// http://docs.oracle.com/javase/7/docs/api/java/util/Locale.html#toLanguageTag()
+		return MessageFormat.format("{0}-{1}", l.getLanguage(), l.getCountry());
 	}
 }

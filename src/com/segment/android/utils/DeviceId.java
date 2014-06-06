@@ -1,27 +1,23 @@
-package com.segment.android.info;
-
+package com.segment.android.utils;
 
 import java.util.UUID;
-
-import com.segment.android.Constants;
-import com.segment.android.utils.AndroidUtils;
 
 import android.content.Context;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 
-public class SessionId implements Info<String> {
+import com.segment.android.Constants;
 
-	@Override
-	public String getKey() {
-		return "sessionId";
-	}
+public class DeviceId {
 
-	@Override
-	public String get(Context context) {
-
-		// borrowed from Amplitude's Android library
+	/**
+	 * Get a unique device id.
+	 * @param context Android Activity context.
+	 * @return the unique device ID
+	 */
+	public static String get (Context context) {
+		// credit method: Amplitude's Android library
 		
 		// Android ID
 		// Issues on 2.2, some phones have same Android ID due to manufacturer
@@ -57,9 +53,7 @@ public class SessionId implements Info<String> {
 
 		// If this still fails, generate random identifier that does not persist
 		// across installations
-		String randomId = UUID.randomUUID().toString();
-		return randomId;
-
+		return  UUID.randomUUID().toString();
 	}
-
+	
 }
