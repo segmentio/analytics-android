@@ -5,22 +5,25 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import com.segment.android.cache.ISettingsLayer;
+import android.app.Activity;
+import android.app.Service;
+import android.text.TextUtils;
+
 import com.segment.android.cache.AnonymousIdCache;
+import com.segment.android.cache.ISettingsLayer;
+import com.segment.android.cache.ISettingsLayer.SettingsCallback;
 import com.segment.android.cache.SettingsCache;
 import com.segment.android.cache.SettingsThread;
 import com.segment.android.cache.SimpleStringCache;
-import com.segment.android.cache.ISettingsLayer.SettingsCallback;
 import com.segment.android.db.IPayloadDatabaseLayer;
+import com.segment.android.db.IPayloadDatabaseLayer.EnqueueCallback;
 import com.segment.android.db.PayloadDatabase;
 import com.segment.android.db.PayloadDatabaseThread;
-import com.segment.android.db.IPayloadDatabaseLayer.EnqueueCallback;
 import com.segment.android.flush.FlushThread;
-import com.segment.android.flush.IFlushLayer;
 import com.segment.android.flush.FlushThread.BatchFactory;
+import com.segment.android.flush.IFlushLayer;
 import com.segment.android.flush.IFlushLayer.FlushCallback;
 import com.segment.android.info.InfoManager;
-import com.segment.android.info.SessionId;
 import com.segment.android.integration.Integration;
 import com.segment.android.integration.IntegrationManager;
 import com.segment.android.models.Alias;
@@ -39,17 +42,16 @@ import com.segment.android.request.IRequestLayer;
 import com.segment.android.request.IRequester;
 import com.segment.android.request.RequestThread;
 import com.segment.android.stats.AnalyticsStatistics;
+import com.segment.android.utils.DeviceId;
 import com.segment.android.utils.HandlerTimer;
-
-import android.app.Activity;
-import android.app.Service;
-import android.text.TextUtils;
 
 public class Analytics {
 	
 	public static final String VERSION = "0.6.13";
 	
 	private static AnalyticsStatistics statistics;
+	
+	private static Context globalContext;
 	
 	private static String writeKey;
 	private static Config options;
@@ -64,8 +66,6 @@ public class Analytics {
 	private static IRequestLayer requestLayer;
 	private static IFlushLayer flushLayer;
 	private static ISettingsLayer settingsLayer;
-	
-	private static Context globalContext;
 	
 	private static volatile boolean initialized;
 	private static volatile boolean optedOut;
@@ -392,10 +392,7 @@ public class Analytics {
 		userIdCache = new SimpleStringCache(context, Constants.SharedPreferences.USER_ID_KEY);
 		
 		// set the sessionId initially
-		sessionIdCache.set(new SessionId().get(context));
-		
-		// add a global context
-		globalContext = new Context(infoManager.build(context));
+		sessionIdCache.set(DeviceId.get(context));
 		
 		// now we need to create our singleton thread-safe database thread
 		Analytics.databaseLayer = new PayloadDatabaseThread(database);
@@ -423,16 +420,8 @@ public class Analytics {
 		settingsCache = new SettingsCache(context, settingsLayer, options.getSettingsCacheExpiry());
 		
 		integrationManager = new IntegrationManager(settingsCache);
-	
 		
-		// important: disable Segment.io server-side processing of
-		// the bundled integrations that we'll evaluate on the mobile
-		// device
-		EasyJSONObject integrationContext = new EasyJSONObject();
-		for (Integration integration : integrationManager.getIntegrations()) {
-			integrationContext.put(integration.getKey(), false);
-		}
-		globalContext.put("integrations", integrationContext);
+		globalContext = generateContext(context);
 		
 		initialized = true;
 		
@@ -442,11 +431,23 @@ public class Analytics {
 		Analytics.flushLayer.start();
 		Analytics.settingsLayer.start();
 		
-		// reload the settings on start, to eliminate the need to wait for the refresh
-		
-		
 		// tell the server to look for settings right now
 		Analytics.refreshSettingsTimer.scheduleNow();
+	}
+	
+	private static Context generateContext(android.content.Context context) {
+		Context ctx = new Context(infoManager.build(context));
+
+		// important: disable Segment.io server-side processing of
+		// the bundled integrations that we'll evaluate on the mobile
+		// device
+		EasyJSONObject integrationContext = new EasyJSONObject();
+		for (Integration integration : integrationManager.getIntegrations()) {
+			integrationContext.put(integration.getKey(), false);
+		}
+		ctx.put("integrations", integrationContext);
+		
+		return ctx;
 	}
 	
 	/**
@@ -458,12 +459,7 @@ public class Analytics {
 		
 		@Override
 		public Batch create(List<BasePayload> payloads) {
-			
-			Batch batch = new Batch(writeKey, payloads); 
-					
-			// add global batch settings from system information
-			batch.setContext(globalContext);
-			
+			Batch batch = new Batch(writeKey, payloads);
 			return batch;
 		}
 	};
@@ -701,8 +697,7 @@ public class Analytics {
 	 *            an object that describes anything that doesn't fit into this
 	 *            event's properties (such as the user's IP)
 	 */
-	public static void identify(String userId, Traits traits, Calendar timestamp,
-			Context context) {
+	public static void identify(String userId, Traits traits, Calendar timestamp, Context context) {
 		
 		checkInitialized();
 		if (optedOut) return;
@@ -714,10 +709,8 @@ public class Analytics {
 			throw new IllegalArgumentException("analytics-android #identify must be initialized with a valid user id.");
 		}
 		
-		if (context == null)
-			context = new Context();
-		if (traits == null)
-			traits = new Traits();
+		if (context == null) context = new Context();
+		if (traits == null) traits = new Traits();
 
 		Identify identify = new Identify(sessionId, userId, traits, timestamp, context);
 
@@ -1416,6 +1409,9 @@ public class Analytics {
 	 */
 	public static void enqueue(final BasePayload payload) {
 		statistics.updateInsertAttempts(1);
+		
+		// merge the global context into this payload's context
+		payload.getContext().merge(globalContext);
 		
 		final long start = System.currentTimeMillis(); 
 		

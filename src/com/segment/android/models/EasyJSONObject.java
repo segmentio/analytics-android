@@ -27,22 +27,7 @@ public class EasyJSONObject extends JSONObject {
 	
 	public EasyJSONObject(JSONObject obj) {
 		super();
-		
-		if (obj != null) {
-			@SuppressWarnings("unchecked")
-			Iterator<String> keys = obj.keys();
-			while (keys.hasNext()) {
-				String key = keys.next();
-				Object val;
-				try {
-					val = obj.get(key);
-					this.putObject(key, val);
-				} catch (JSONException e) {
-					Logger.w("JSON object had an invalid value during merge. " + 
-						Log.getStackTraceString(e));	
-				}
-			}
-		}
+		merge(obj);
 	}
 	
 	public EasyJSONObject(Object... kvs) {
@@ -64,6 +49,29 @@ public class EasyJSONObject extends JSONObject {
 		}
 	}
 
+	/**
+	 * Shallow merge json obj into this json object. If a key already exists,
+	 * then it wont be merged.
+	 * @param obj json object to be copied into this object
+	 */
+	public void merge(JSONObject obj) {
+		if (obj != null) {
+			@SuppressWarnings("unchecked")
+			Iterator<String> keys = obj.keys();
+			while (keys.hasNext()) {
+				String key = keys.next();
+				if (this.has(key)) continue; 
+				Object val;
+				try {
+					val = obj.get(key);
+					this.putObject(key, val);
+				} catch (JSONException e) {
+					Logger.w("JSON object had an invalid value during merge. " + 
+						Log.getStackTraceString(e));	
+				}
+			}
+		}
+	}
 
 	//
 	// Put Handlers
