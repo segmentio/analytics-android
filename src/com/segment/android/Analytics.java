@@ -33,6 +33,7 @@ import com.segment.android.models.Context;
 import com.segment.android.models.EasyJSONObject;
 import com.segment.android.models.Group;
 import com.segment.android.models.Identify;
+import com.segment.android.models.Options;
 import com.segment.android.models.Props;
 import com.segment.android.models.Screen;
 import com.segment.android.models.Track;
@@ -510,10 +511,29 @@ public class Analytics {
 	 * 
 	 */
 	public static void identify(String userId) {
-
-		identify(userId, null, null, null);
+		identify(userId, null, null);
 	}
 	
+
+	/**
+	 * Identifying a user ties all of their actions to an id, and associates
+	 * user traits to that id.
+	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
+	 * 
+	 * @param userId
+	 *            the user's id after they are logged in. It's the same id as
+	 *            which you would recognize a signed-in user in your system.
+	 *            
+	 * @param options
+	 *            options allows you to set a timestamp, an anonymousId, a context, 
+	 *            and select specific integrations.
+	 */
+	public static void identify(String userId, Options options) {
+		identify(userId, null, options);
+	}
 	
 	/**
 	 * Identifying a user ties all of their actions to an id, and associates
@@ -529,8 +549,27 @@ public class Analytics {
 	 *            again.
 	 */
 	public static void identify(Traits traits) {
-
-		identify(null, traits, null, null);
+		identify(null, traits, null);
+	}
+	
+	/**
+	 * Identifying a user ties all of their actions to an id, and associates
+	 * user traits to that id.
+	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
+	 * 
+	 * @param traits
+	 *            a dictionary with keys like subscriptionPlan or age. You only
+	 *            need to record a trait once, no need to send it again.
+	 *            
+	 * @param options
+	 *            options allows you to set a timestamp, an anonymousId, a context, 
+	 *            and select specific integrations.
+	 */
+	public static void identify(Traits traits, Options options) {
+		identify(null, traits, options);
 	}
 	
 	/**
@@ -542,38 +581,14 @@ public class Analytics {
 	 *            which you would recognize a signed-in user in your system.
 	 * 
 	 * @param traits
-	 *            a dictionary with keys like email, name, subscriptionPlan or
-	 *            age. You only need to record a trait once, no need to send it
-	 *            again.
+	 *            a dictionary with keys like subscriptionPlan or age. You only
+	 *            need to record a trait once, no need to send it again.
+	 * 
 	 */
 	public static void identify(String userId, Traits traits) {
-
-		identify(userId, traits, null, null);
+		identify(userId, traits, null);
 	}
 
-
-	/**
-	 * Identifying a user ties all of their actions to an id, and associates
-	 * user traits to that id.
-	 * 
-	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
-	 * If identify(userId) or track(userId) was never called, a randomly generated session 
-	 * id will be used. Otherwise, the most recent cached userId is used.  
-	 * 
-	 * @param traits
-	 *            a dictionary with keys like subscriptionPlan or age. You only
-	 *            need to record a trait once, no need to send it again.
-	 * 
-	 * @param context
-	 *            an object that describes anything that doesn't fit into this
-	 *            event's properties (such as the user's IP)
-	 * 
-	 */
-	public static void identify(Traits traits, Context context) {
-
-		identify(null, traits, null, context);
-	}
-	
 	/**
 	 * Identifying a user ties all of their actions to an id, and associates
 	 * user traits to that id.
@@ -586,137 +601,26 @@ public class Analytics {
 	 *            a dictionary with keys like subscriptionPlan or age. You only
 	 *            need to record a trait once, no need to send it again.
 	 * 
-	 * @param context
-	 *            an object that describes anything that doesn't fit into this
-	 *            event's properties (such as the user's IP)
-	 * 
+	 * @param options
+	 *            options allows you to set a timestamp, an anonymousId, a context, 
+	 *            and select specific integrations.
 	 */
-	public static void identify(String userId, Traits traits, Context context) {
-
-		identify(userId, traits, null, context);
-	}
-
-
-	/**
-	 * Identifying a user ties all of their actions to an id, and associates
-	 * user traits to that id.
-	 * 
-	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
-	 * If identify(userId) or track(userId) was never called, a randomly generated session 
-	 * id will be used. Otherwise, the most recent cached userId is used.  
-	 * 
-	 * @param traits
-	 *            a dictionary with keys like subscriptionPlan or age. You only
-	 *            need to record a trait once, no need to send it again.
-	 * 
-	 * @param timestamp
-	 *            a {@link Calendar} representing when the identify took place.
-	 *            If the identify just happened, leave it blank and we'll use
-	 *            the server's time. If you are importing data from the past,
-	 *            make sure you provide this argument.
-	 * 
-	 */
-	public static void identify(Traits traits, Calendar timestamp) {
-
-		identify(null, traits, timestamp, null);
-	}
-
-	
-	/**
-	 * Identifying a user ties all of their actions to an id, and associates
-	 * user traits to that id.
-	 * 
-	 * @param userId
-	 *            the user's id after they are logged in. It's the same id as
-	 *            which you would recognize a signed-in user in your system.
-	 * 
-	 * @param traits
-	 *            a dictionary with keys like subscriptionPlan or age. You only
-	 *            need to record a trait once, no need to send it again.
-	 * 
-	 * @param timestamp
-	 *            a {@link Calendar} representing when the identify took place.
-	 *            If the identify just happened, leave it blank and we'll use
-	 *            the server's time. If you are importing data from the past,
-	 *            make sure you provide this argument.
-	 * 
-	 */
-	public static void identify(String userId, Traits traits, Calendar timestamp) {
-
-		identify(userId, traits, timestamp, null);
-	}
-
-	/**
-	 * Identifying a user ties all of their actions to an id, and associates
-	 * user traits to that id.
-	 * 
-	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
-	 * If identify(userId) or track(userId) was never called, a randomly generated session 
-	 * id will be used. Otherwise, the most recent cached userId is used.  
-	 * 
-	 * @param traits
-	 *            a dictionary with keys like subscriptionPlan or age. You only
-	 *            need to record a trait once, no need to send it again.
-	 * 
-	 * @param timestamp
-	 *            a {@link Calendar} representing when the identify took place.
-	 *            If the identify just happened, leave it blank and we'll use
-	 *            the server's time. If you are importing data from the past,
-	 *            make sure you provide this argument.
-	 * 
-	 * @param context
-	 *            an object that describes anything that doesn't fit into this
-	 *            event's properties (such as the user's IP)
-	 */
-	public static void identify(Traits traits, Calendar timestamp,
-			Context context) {
-		
-		identify(null, traits, timestamp, context);
-	}
-	
-	/**
-	 * Identifying a user ties all of their actions to an id, and associates
-	 * user traits to that id.
-	 * 
-	 * @param userId
-	 *            the user's id after they are logged in. It's the same id as
-	 *            which you would recognize a signed-in user in your system.
-	 * 
-	 * @param traits
-	 *            a dictionary with keys like subscriptionPlan or age. You only
-	 *            need to record a trait once, no need to send it again.
-	 * 
-	 * @param timestamp
-	 *            a {@link Calendar} representing when the identify took place.
-	 *            If the identify just happened, leave it blank and we'll use
-	 *            the server's time. If you are importing data from the past,
-	 *            make sure you provide this argument.
-	 * 
-	 * @param context
-	 *            an object that describes anything that doesn't fit into this
-	 *            event's properties (such as the user's IP)
-	 */
-	public static void identify(String userId, Traits traits, Calendar timestamp, Context context) {
-		
+	public static void identify(String userId, Traits traits, Options options) {
 		checkInitialized();
 		if (optedOut) return;
 
-		String sessionId = getAnonymousId();
 		userId = getOrSetUserId(userId);
 		
 		if (userId == null || userId.length() == 0) {
 			throw new IllegalArgumentException("analytics-android #identify must be initialized with a valid user id.");
 		}
 		
-		if (context == null) context = new Context();
 		if (traits == null) traits = new Traits();
+		if (options == null) options = new Options();
 
-		Identify identify = new Identify(sessionId, userId, traits, timestamp, context);
-
+		Identify identify = new Identify(userId, traits, options);
 		enqueue(identify);
-		
 		integrationManager.identify(identify);
-		
 		statistics.updateIdentifies(1);
 	}
 	
@@ -734,9 +638,25 @@ public class Analytics {
 	 * 
 	 */
 	public static void group(String groupId) {
-
-		group(groupId, null, null, null);
+		group(groupId, null, null);
 	}
+	
+	/**
+	 * Identifying a group ties all of the group's actions to an id, and associates
+	 * group traits to that id.
+	 * 
+	 * @param groupId
+	 *            the group's id. It's the same id as
+	 *            which you would recognize a user's company in your database.
+	 *
+	 * @param options
+	 *            options allows you to set a timestamp, an anonymousId, a context, 
+	 *            and select specific integrations. 
+	 */
+	public static void group(String groupId, Options options) {
+		group(groupId, null, options);
+	}	
+
 	
 	/**
 	 * Identifying a group ties all of the group's actions to an id, and associates
@@ -748,8 +668,23 @@ public class Analytics {
 	 * 
 	 */
 	public static void group(Traits traits) {
-
-		group(null, traits, null, null);
+		group(null, traits, null);
+	}
+	
+	/**
+	 * Identifying a group ties all of the group's actions to an id, and associates
+	 * group traits to that id.
+	 * 
+	 * @param traits
+	 *            a dictionary with keys like plan or name. You only
+	 *            need to record a trait once, no need to send it again.
+	 * 
+	 * @param options
+	 *            options allows you to set a timestamp, an anonymousId, a context, 
+	 *            and select specific integrations. 
+	 */
+	public static void group(Traits traits, Options options) {
+		group(null, traits, options);
 	}
 	
 	/**
@@ -766,27 +701,9 @@ public class Analytics {
 	 * 
 	 */
 	public static void group(String groupId, Traits traits) {
-
-		group(groupId, traits, null, null);
+		group(groupId, traits, null);
 	}
 
-
-	/**
-	 * Identifying a group ties all of the group's actions to an id, and associates
-	 * group traits to that id.
-	 * 
-	 * @param traits
-	 *            a dictionary with keys like plan or name. You only
-	 *            need to record a trait once, no need to send it again.
-	 * 
-	 * @param context
-	 *            a custom object that describes the device context or grouping options.
-	 */
-	public static void group(Traits traits, Context context) {
-
-		group(null, traits, null, context);
-	}
-	
 	/**
 	 * Identifying a group ties all of the group's actions to an id, and associates
 	 * group traits to that id.
@@ -799,111 +716,15 @@ public class Analytics {
 	 *            a dictionary with keys like plan or name. You only
 	 *            need to record a trait once, no need to send it again.
 	 * 
-	 * @param context
-	 *            a custom object that describes the device context or grouping options.
+	 * @param options
+	 *            options allows you to set a timestamp, an anonymousId, a context, 
+	 *            and select specific integrations.
 	 */
-	public static void group(String groupId, Traits traits, Context context) {
-
-		group(groupId, traits, null, context);
-	}
-
-
-	/**
-	 * Identifying a group ties all of the group's actions to an id, and associates
-	 * group traits to that id.
-	 * 
-	 * @param traits
-	 *            a dictionary with keys like plan or name. You only
-	 *            need to record a trait once, no need to send it again.
-	 * 
-	 * @param timestamp
-	 *            a {@link Calendar} representing when the group operation took place.
-	 *            If the grouping just happened, leave it blank and we'll use
-	 *            the server's time. If you are importing data from the past,
-	 *            make sure you provide this argument.
-	 * 
-	 */
-	public static void group(Traits traits, Calendar timestamp) {
-
-		group(null, traits, timestamp, null);
-	}
-
-	
-	/**
-	 * Identifying a group ties all of the group's actions to an id, and associates
-	 * group traits to that id.
-	 * 
-	 * @param groupId
-	 *            the group's id. It's the same id as
-	 *            which you would recognize a user's company in your database.
-	 * 
-	 * @param traits
-	 *            a dictionary with keys like plan or name. You only
-	 *            need to record a trait once, no need to send it again.
-	 * 
-	 * @param timestamp
-	 *            a {@link Calendar} representing when the group operation took place.
-	 *            If the grouping just happened, leave it blank and we'll use
-	 *            the server's time. If you are importing data from the past,
-	 *            make sure you provide this argument.
-	 * 
-	 */
-	public static void group(String groupId, Traits traits, Calendar timestamp) {
-
-		group(groupId, traits, timestamp, null);
-	}
-
-	/**
-	 * Identifying a group ties all of the group's actions to an id, and associates
-	 * group traits to that id.
-	 * 
-	 * @param traits
-	 *            a dictionary with keys like plan or name. You only
-	 *            need to record a trait once, no need to send it again.
-	 * 
-	 * @param timestamp
-	 *            a {@link Calendar} representing when the group operation took place.
-	 *            If the grouping just happened, leave it blank and we'll use
-	 *            the server's time. If you are importing data from the past,
-	 *            make sure you provide this argument.
-	 * 
-	 * @param context
-	 *            a custom object that describes the device context or grouping options.
-	 */
-	public static void group(Traits traits, Calendar timestamp,
-			Context context) {
-		
-		group(null, traits, timestamp, context);
-	}
-	
-	/**
-	 * Identifying a group ties all of the group's actions to an id, and associates
-	 * group traits to that id.
-	 * 
-	 * @param groupId
-	 *            the group's id. It's the same id as
-	 *            which you would recognize a user's company in your database.
-	 * 
-	 * @param traits
-	 *            a dictionary with keys like plan or name. You only
-	 *            need to record a trait once, no need to send it again.
-	 * 
-	 * @param timestamp
-	 *            a {@link Calendar} representing when the group operation took place.
-	 *            If the grouping just happened, leave it blank and we'll use
-	 *            the server's time. If you are importing data from the past,
-	 *            make sure you provide this argument.
-	 * 
-	 * @param context
-	 *            a custom object that describes the device context or grouping options.
-	 */
-	public static void group(String groupId, Traits traits, Calendar timestamp,
-			Context context) {
-		
+	public static void group(String groupId, Traits traits, Options options) {
 		checkInitialized();
 		if (optedOut) return;
 
-		String sessionId = getAnonymousId();
+		String anonymousId = getAnonymousId();
 		String userId = getUserId();
 		groupId = getOrSetGroupId(groupId);
 		
@@ -911,17 +732,12 @@ public class Analytics {
 			throw new IllegalArgumentException("analytics-android #group must be called with a valid group id.");
 		}
 		
-		if (context == null)
-			context = new Context();
-		if (traits == null)
-			traits = new Traits();
+		if (traits == null) traits = new Traits();
+		if (options == null) options = new Options();
 
-		Group group = new Group(sessionId, userId, groupId, traits, timestamp, context);
-
+		Group group = new Group(userId, groupId, traits, options);
 		enqueue(group);
-		
 		integrationManager.group(group);
-		
 		statistics.updateGroups(1);
 	}
 	
@@ -1043,23 +859,15 @@ public class Analytics {
 	 * @param properties
 	 *            a dictionary with items that describe the event in more
 	 *            detail. This argument is optional, but highly
-	 *            recommended?????????you?????????ll find these properties extremely useful
+	 *            recommended. You'll find these properties extremely useful
 	 *            later.
 	 * 
-	 * @param timestamp
-	 *            a {@link Calendar} object representing when the track took
-	 *            place. If the event just happened, leave it blank and we'll
-	 *            use the server's time. If you are importing data from the
-	 *            past, make sure you provide this argument.
-	 * 
-	 * @param context
-	 *            an object that describes anything that doesn't fit into this
-	 *            event's properties (such as the user's IP)
+	 * @param options
+	 *            options allows you to set a timestamp, an anonymousId, a context, 
+	 *            and select specific integrations.
 	 * 
 	 */
-	public static void track(String event, Props properties,
-			Calendar timestamp, Context context) {
-		
+	public static void track(String event, Props properties, Options options) {
 		checkInitialized();
 		if (optedOut) return;
 		
@@ -1074,18 +882,12 @@ public class Analytics {
 			throw new IllegalArgumentException("analytics-android #track must be initialized with a valid event name.");
 		}
 		
-		if (context == null)
-			context = new Context();
-		if (properties == null)
-			properties = new Props();
+		if (properties == null) properties = new Props();
+		if (options == null) options = new Options();
 
-		
-		Track track = new Track(sessionId, userId, event, properties, timestamp, context);
-
+		Track track = new Track(userId, event, properties, options);
 		enqueue(track);
-		
 		integrationManager.track(track);
-		
 		statistics.updateTracks(1);
 	}
 
@@ -1184,13 +986,13 @@ public class Analytics {
 	 * Whenever a user opens a new screen (or activity), track its screen view.
 	 * Example:
 	 * 
-	 * 	Analytics.screen("Login Page");
+	 * 	Analytics.screen("Login");
 	 * 
 	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
 	 * If identify(userId) or track(userId) was never called, a randomly generated session 
 	 * id will be used. Otherwise, the most recent cached userId is used.  
 	 * 
-	 * @param screen
+	 * @param name
 	 *            describes the screen name of the activity that the user just
 	 *            opened. We don't recommend to name each screen dynamically. For 
 	 *            example, if a screen shows a new article, you should call it
@@ -1198,23 +1000,15 @@ public class Analytics {
 	 * 
 	 * @param properties
 	 *            a dictionary with items that describe the screen in more
-	 *            detail. This argument is optional, but highly
-	 *            recommended?????????you?????????ll find these properties extremely useful
-	 *            later.
+	 *            detail. This argument is optional, but highly recommended. 
+	 *            You'll find these properties extremely useful later.
 	 * 
-	 * @param timestamp
-	 *            a {@link Calendar} object representing when the track took
-	 *            place. If the event just happened, leave it blank and we'll
-	 *            use the server's time. If you are importing data from the
-	 *            past, make sure you provide this argument.
-	 * 
-	 * @param context
-	 *            an object that describes anything that doesn't fit into this
-	 *            event's properties (such as the user's IP)
+	 * @param options
+	 *            options allows you to set a timestamp, an anonymousId, a context, 
+	 *            and select specific integrations.
 	 * 
 	 */
-	public static void screen(String screen, Props properties,
-							  Calendar timestamp, Context context) {		
+	public static void screen(String name, Props properties, Options options) {		
 		checkInitialized();
 		if (optedOut) return;
 		
@@ -1225,23 +1019,16 @@ public class Analytics {
 			throw new IllegalArgumentException("analytics-android #track must be initialized with a valid user id.");
 		}
 		
-		if (screen == null || screen.length() == 0) {
+		if (name == null || name.length() == 0) {
 			throw new IllegalArgumentException("analytics-android #screen must be initialized with a valid screen name.");
 		}
 		
-		if (context == null)
-			context = new Context();
-		if (properties == null)
-			properties = new Props();
+		if (properties == null) properties = new Props();
+		if (options == null) options = new Options();
 
-		
-		Screen screenAction = new Screen(sessionId, userId, screen, properties, timestamp, context);
-		
+		Screen screenAction = new Screen(userId, name, properties, options);		
 		enqueue(screenAction);
-		
-		// just call internally into the integration manager
 		integrationManager.screen(screenAction);
-		
 		statistics.updateScreens(1);
 	}
 	
@@ -1308,47 +1095,34 @@ public class Analytics {
 	/**
 	 * Aliases an anonymous user into an identified user.
 	 * 
-	 * @param from
+	 * @param previousId
 	 *            the anonymous user's id before they are logged in.
 	 * 
-	 * @param to
+	 * @param userId
 	 *            the identified user's id after they're logged in.
 	 * 
-	 * 
-	 * @param timestamp
-	 *            a {@link Calendar} object representing when the track took
-	 *            place. If the event just happened, leave it blank and we'll
-	 *            use the server's time. If you are importing data from the
-	 *            past, make sure you provide this argument.
-	 * 
-	 * @param context
-	 *            an object that describes anything that doesn't fit into this
-	 *            event's properties (such as the user's IP)
+	 * @param options
+	 *            options allows you to set a timestamp, an anonymousId, a context, 
+	 *            and select specific integrations.
 	 *
-	 *             
 	 */
-	public static void alias(String from, String to, Calendar timestamp, Context context) {
-		
-		checkInitialized();
+	public static void alias(String previousId, String userId, Options options) {
+		checkInitialized();		
 		if (optedOut) return;
 		
-		if (from == null || from.length() == 0) {
+		if (previousId == null || previousId.length() == 0) {
 			throw new IllegalArgumentException("analytics-android #alias must be initialized with a valid from id.");
 		}
 		
-		if (to == null || to.length() == 0) {
+		if (userId == null || userId.length() == 0) {
 			throw new IllegalArgumentException("analytics-android #alias must be initialized with a valid to id.");
 		}
 		
-		if (context == null)
-			context = new Context();
+		if (options == null) options = new Options();
 		
-		Alias alias = new Alias(from, to, timestamp, context);
-		
+		Alias alias = new Alias(previousId, userId, options);
 		enqueue(alias);
-		
 		integrationManager.alias(alias);
-		
 		statistics.updateAlias(1);
 	}
 
