@@ -130,7 +130,7 @@ public class IntegrationManagerTest extends BaseTest {
 
 		Identify identify = TestCases.identify();
 		
-		String sessionId = identify.getSessionId();
+		String sessionId = identify.getAnonymousId();
 		String userId = identify.getUserId();
 		Traits traits = identify.getTraits();
 		Calendar timestamp = Calendar.getInstance();

@@ -201,10 +201,10 @@ public class BasicAnalyticsTest extends BaseTest {
 		int flushAttempts =  statistics.getFlushAttempts().getCount();
 		int successful = statistics.getSuccessful().getCount();
 		
-		String from = Analytics.getSessionId();
+		String from = Analytics.getAnonymousId();
 		String to = "android_user_" + (new Random()).nextInt(999999);
 
-		Analytics.setSessionId(from);
+		Analytics.setAnonymousId(from);
 		
 		Log.w("AnalyticsTest", "Aliasing : " + from + " => " + to);
 		

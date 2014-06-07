@@ -50,7 +50,7 @@ public class MixpanelAliasTest extends BaseIntegrationInitializationActivity {
 		Calendar timestamp = Calendar.getInstance();
 		Context context = new Context();
 		
-		Analytics.setSessionId(sessionId);
+		Analytics.setAnonymousId(sessionId);
 		
 		Log.e(Constants.TAG, "Mixpanel alias test is using session_id: " + 
 				sessionId + ", and user_id: " + userId);

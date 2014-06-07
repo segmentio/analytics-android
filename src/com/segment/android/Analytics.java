@@ -70,7 +70,7 @@ public class Analytics {
 	private static volatile boolean initialized;
 	private static volatile boolean optedOut;
 
-	private static SimpleStringCache sessionIdCache;
+	private static SimpleStringCache anonymousIdCache;
 	private static SimpleStringCache userIdCache;
 	private static SimpleStringCache groupIdCache;
 	private static SettingsCache settingsCache;
@@ -387,12 +387,12 @@ public class Analytics {
 		// knows how to create global context about this android device
 		infoManager = new InfoManager(options);
 		
-		sessionIdCache = new AnonymousIdCache(context);
+		anonymousIdCache = new AnonymousIdCache(context);
 		groupIdCache = new SimpleStringCache(context, Constants.SharedPreferences.GROUP_ID_KEY);
 		userIdCache = new SimpleStringCache(context, Constants.SharedPreferences.USER_ID_KEY);
 		
 		// set the sessionId initially
-		sessionIdCache.set(DeviceId.get(context));
+		anonymousIdCache.set(DeviceId.get(context));
 		
 		// now we need to create our singleton thread-safe database thread
 		Analytics.databaseLayer = new PayloadDatabaseThread(database);
@@ -489,7 +489,6 @@ public class Analytics {
 		}
 	};
 
-	
 	//
 	// API Calls
 	//
@@ -702,7 +701,7 @@ public class Analytics {
 		checkInitialized();
 		if (optedOut) return;
 
-		String sessionId = getSessionId();
+		String sessionId = getAnonymousId();
 		userId = getOrSetUserId(userId);
 		
 		if (userId == null || userId.length() == 0) {
@@ -904,7 +903,7 @@ public class Analytics {
 		checkInitialized();
 		if (optedOut) return;
 
-		String sessionId = getSessionId();
+		String sessionId = getAnonymousId();
 		String userId = getUserId();
 		groupId = getOrSetGroupId(groupId);
 		
@@ -1064,7 +1063,7 @@ public class Analytics {
 		checkInitialized();
 		if (optedOut) return;
 		
-		String sessionId = getSessionId();
+		String sessionId = getAnonymousId();
 		String userId = getOrSetUserId(null);
 		
 		if (userId == null || userId.length() == 0) {
@@ -1219,7 +1218,7 @@ public class Analytics {
 		checkInitialized();
 		if (optedOut) return;
 		
-		String sessionId = getSessionId();
+		String sessionId = getAnonymousId();
 		String userId = getOrSetUserId(null);
 		
 		if (userId == null || userId.length() == 0) {
@@ -1373,7 +1372,7 @@ public class Analytics {
 			userId = userIdCache.get();
 			if (TextUtils.isEmpty(userId))
 				// we have no user Id, let's use the sessionId
-				userId = sessionIdCache.get();
+				userId = anonymousIdCache.get();
 		} else {
 			// we were passed a user Id so let's save it
 			userIdCache.set(userId);
@@ -1556,7 +1555,7 @@ public class Analytics {
 	//
 
 	/**
-	 * Gets the unique session ID generated for this user
+	 * Gets the unique anonymous ID generated for this user
 	 * until a userId is provided.
 	 * 
 	 * Use this ID as the "from" ID to alias your new
@@ -1564,18 +1563,18 @@ public class Analytics {
 	 * 
 	 * @return
 	 */
-	public static String getSessionId() {
+	public static String getAnonymousId() {
 		checkInitialized();
-		return sessionIdCache.get();
+		return anonymousIdCache.get();
 	}
 	
 	/**
-	 * Allows you to set your own sessionId. Used mostly for testing.
-	 * @param sessionId
+	 * Allows you to set your own anonymousId. Used mostly for testing.
+	 * @param anonymousId
 	 */
-	public static void setSessionId(String sessionId) {
+	public static void setAnonymousId(String anonymousId) {
 		checkInitialized();
-		sessionIdCache.set(sessionId);
+		anonymousIdCache.set(anonymousId);
 	}
 	
 	/**
