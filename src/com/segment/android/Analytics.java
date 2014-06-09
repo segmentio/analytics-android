@@ -1,7 +1,6 @@
 package com.segment.android;
 
 
-import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -724,7 +723,6 @@ public class Analytics {
 		checkInitialized();
 		if (optedOut) return;
 
-		String anonymousId = getAnonymousId();
 		String userId = getUserId();
 		groupId = getOrSetGroupId(groupId);
 		
@@ -746,7 +744,7 @@ public class Analytics {
 	//
 
 	/**
-	 * Whenever a user triggers an event, you?????????ll want to track it.
+	 * Whenever a user performs an event, you'll want to track it.
 	 * 
 	 * Track will use an automatically generated userId unless one has been
 	 * provided by identify(..).
@@ -758,13 +756,11 @@ public class Analytics {
 	 * 
 	 */
 	public static void track(String event) {
-
-		track(event, null, null, null);
+		track(event, null, null);
 	}
 	
-
 	/**
-	 * Whenever a user triggers an event, you?????????ll want to track it.
+	 * Whenever a user performs an event, you'll want to track it.
 	 * 
 	 * Track will use an automatically generated userId unless one has been
 	 * provided by identify(..).
@@ -773,80 +769,41 @@ public class Analytics {
 	 *            describes what this user just did. It's a human readable
 	 *            description like "Played a Song", "Printed a Report" or
 	 *            "Updated Status".
+	 *            
+	 * @param options
+	 *            options allows you to set a timestamp, an anonymousId, a context, 
+	 *            and select specific integrations.
 	 * 
+	 */
+	public static void track(String event, Options options) {
+		track(event, null, options);
+	}
+	
+
+	/**
+	 * Whenever a user performs an event, you'll want to track it.
+	 * 
+	 * Track will use an automatically generated userId unless one has been
+	 * provided by identify(..).
+	 * 
+	 * @param event
+	 *            describes what this user just did. It's a human readable
+	 *            description like "Played a Song", "Printed a Report" or
+	 *            "Updated Status".
+	 *            
 	 * @param properties
 	 *            a dictionary with items that describe the event in more
 	 *            detail. This argument is optional, but highly
-	 *            recommended?????????you?????????ll find these properties extremely useful
+	 *            recommended. You'll find these properties extremely useful
 	 *            later.
+	 * 
 	 */
 	public static void track(String event, Props properties) {
-
-		track(event, properties, null, null);
-	}
-	
-
-	/**
-	 * Whenever a user triggers an event, you?????????ll want to track it.
-	 * 
-	 * Track will use an automatically generated userId unless one has been
-	 * provided by identify(..).
-	 * 
-	 * @param event
-	 *            describes what this user just did. It's a human readable
-	 *            description like "Played a Song", "Printed a Report" or
-	 *            "Updated Status".
-	 * 
-	 * @param properties
-	 *            a dictionary with items that describe the event in more
-	 *            detail. This argument is optional, but highly
-	 *            recommended?????????you?????????ll find these properties extremely useful
-	 *            later.
-	 * 
-	 * @param timestamp
-	 *            a {@link DateTime} object representing when the track took
-	 *            place. If the event just happened, leave it blank and we'll
-	 *            use the server's time. If you are importing data from the
-	 *            past, make sure you provide this argument.
-	 * 
-	 */
-	public static void track(String event, Props properties,
-			Calendar timestamp) {
-
-		track(event, properties, timestamp, null);
-	}
-
-
-	/**
-	 * Whenever a user triggers an event, you?????????ll want to track it.
-	 * 
-	 * Track will use an automatically generated userId unless one has been
-	 * provided by identify(..).
-	 * 
-	 * @param event
-	 *            describes what this user just did. It's a human readable
-	 *            description like "Played a Song", "Printed a Report" or
-	 *            "Updated Status".
-	 * 
-	 * @param properties
-	 *            a dictionary with items that describe the event in more
-	 *            detail. This argument is optional, but highly
-	 *            recommended?????????you?????????ll find these properties extremely useful
-	 *            later.
-	 * 
-	 * @param context
-	 *            an object that describes anything that doesn't fit into this
-	 *            event's properties (such as the user's IP)
-	 * 
-	 */
-	public static void track(String event, Props properties,
-			 Context context) {
-
-		track(event, properties, null, context);
+		track(event, properties, null);
 	}
 	
 	/**
-	 * Whenever a user triggers an event, you?????????ll want to track it.
+	 * Whenever a user performs an action, you'll want to track it.
 	 * 
 	 * Track will use an automatically generated userId unless one has been
 	 * provided by identify(..).
@@ -871,7 +828,6 @@ public class Analytics {
 		checkInitialized();
 		if (optedOut) return;
 		
-		String sessionId = getAnonymousId();
 		String userId = getOrSetUserId(null);
 		
 		if (userId == null || userId.length() == 0) {
@@ -895,40 +851,115 @@ public class Analytics {
 	// Screen
 	//
 	
+	/**
+	 * Whenever a user opens a new screen (or activity), track its screen view.
+	 * Example:
+	 * 
+	 * 	Analytics.screen("Login");
+	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
+	 * 
+	 * @param name
+	 *            describes the screen name of the activity that the user just
+	 *            opened. We don't recommend to name each screen dynamically. For 
+	 *            example, if a screen shows a new article, you should call it
+	 *            "News Screen" instead of the name of the news article.
+	 * 
+	 * 
+	 */
+	public static void screen(String name) {	
+		screen(name, null, null, null);
+	}
 
 	/**
 	 * Whenever a user opens a new screen (or activity), track its screen view.
 	 * Example:
 	 * 
-	 * 	Analytics.screen("Login Page");
+	 * 	Analytics.screen("Login");
 	 * 
 	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
 	 * If identify(userId) or track(userId) was never called, a randomly generated session 
 	 * id will be used. Otherwise, the most recent cached userId is used.  
 	 * 
-	 * @param screen
+	 * @param name
 	 *            describes the screen name of the activity that the user just
 	 *            opened. We don't recommend to name each screen dynamically. For 
 	 *            example, if a screen shows a new article, you should call it
 	 *            "News Screen" instead of the name of the news article.
 	 * 
+	 * @param options
+	 *            options allows you to set a timestamp, an anonymousId, a context, 
+	 *            and select specific integrations.
+	 * 
 	 */
-	public static void screen(String screen) {
-		
-		screen(screen, null, null, null);
+	public static void screen(String name, Options options) {	
+		screen(name, null, null, options);
 	}
 	
 	/**
 	 * Whenever a user opens a new screen (or activity), track its screen view.
 	 * Example:
 	 * 
-	 * 	Analytics.screen("Login Page");
-	 *
+	 * 	Analytics.screen("Login");
+	 * 
 	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
 	 * If identify(userId) or track(userId) was never called, a randomly generated session 
 	 * id will be used. Otherwise, the most recent cached userId is used.  
 	 * 
-	 * @param screen
+	 * @param name
+	 *            describes the screen name of the activity that the user just
+	 *            opened. We don't recommend to name each screen dynamically. For 
+	 *            example, if a screen shows a new article, you should call it
+	 *            "News Screen" instead of the name of the news article.
+	 * 
+	 * @param category
+	 *            The (optional) category of the screen view, like "Sports" or "Authentication"
+	 * 
+	 */
+	public static void screen(String name, String category) {	
+		screen(name, category, null, null);
+	}
+
+	/**
+	 * Whenever a user opens a new screen (or activity), track its screen view.
+	 * Example:
+	 * 
+	 * 	Analytics.screen("Login");
+	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
+	 * 
+	 * @param name
+	 *            describes the screen name of the activity that the user just
+	 *            opened. We don't recommend to name each screen dynamically. For 
+	 *            example, if a screen shows a new article, you should call it
+	 *            "News Screen" instead of the name of the news article.
+	 * 
+	 * @param category
+	 *            The (optional) category of the screen view, like "Sports" or "Authentication"
+	 * 
+	 * @param options
+	 *            options allows you to set a timestamp, an anonymousId, a context, 
+	 *            and select specific integrations.
+	 */
+	public static void screen(String name, String category, Options options) {	
+		screen(name, category, null, options);
+	}
+
+	/**
+	 * Whenever a user opens a new screen (or activity), track its screen view.
+	 * Example:
+	 * 
+	 * 	Analytics.screen("Login");
+	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
+	 * 
+	 * @param name
 	 *            describes the screen name of the activity that the user just
 	 *            opened. We don't recommend to name each screen dynamically. For 
 	 *            example, if a screen shows a new article, you should call it
@@ -936,50 +967,12 @@ public class Analytics {
 	 * 
 	 * @param properties
 	 *            a dictionary with items that describe the screen in more
-	 *            detail. This argument is optional, but highly
-	 *            recommended?????????you?????????ll find these properties extremely useful
-	 *            later.
+	 *            detail. This argument is optional, but highly recommended. 
+	 *            You'll find these properties extremely useful later.
 	 * 
 	 */
-	public static void screen(String screen, Props properties) {
-		
-		screen(screen, properties, null, null);
-	}
-	
-	
-	/**
-	 * Whenever a user opens a new screen (or activity), track its screen view.
-	 * Example:
-	 * 
-	 * 	Analytics.screen("Login Page");
-	 * 
-	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
-	 * If identify(userId) or track(userId) was never called, a randomly generated session 
-	 * id will be used. Otherwise, the most recent cached userId is used.  
-	 * 
-	 * @param screen
-	 *            describes the screen name of the activity that the user just
-	 *            opened. We don't recommend to name each screen dynamically. For 
-	 *            example, if a screen shows a new article, you should call it
-	 *            "News Screen" instead of the name of the news article.
-	 * 
-	 * @param properties
-	 *            a dictionary with items that describe the screen in more
-	 *            detail. This argument is optional, but highly
-	 *            recommended?????????you?????????ll find these properties extremely useful
-	 *            later.
-	 * 
-	 * @param timestamp
-	 *            a {@link Calendar} object representing when the track took
-	 *            place. If the event just happened, leave it blank and we'll
-	 *            use the server's time. If you are importing data from the
-	 *            past, make sure you provide this argument.
-	 * 
-	 */
-	public static void screen(String screen, Props properties,
-							  Calendar timestamp) {
-		
-		screen(screen, properties, timestamp, null);
+	public static void screen(String name, Props properties) {	
+		screen(name, null, properties, null);
 	}
 	
 	/**
@@ -1006,17 +999,48 @@ public class Analytics {
 	 * @param options
 	 *            options allows you to set a timestamp, an anonymousId, a context, 
 	 *            and select specific integrations.
+	 */
+	public static void screen(String name, Props properties, Options options) {	
+		screen(name, null, properties, options);
+	}
+	
+	/**
+	 * Whenever a user opens a new screen (or activity), track its screen view.
+	 * Example:
+	 * 
+	 * 	Analytics.screen("Login");
+	 * 
+	 * You don't need to provide a userId to this method, because this library uses the most recent userId. 
+	 * If identify(userId) or track(userId) was never called, a randomly generated session 
+	 * id will be used. Otherwise, the most recent cached userId is used.  
+	 * 
+	 * @param name
+	 *            describes the screen name of the activity that the user just
+	 *            opened. We don't recommend to name each screen dynamically. For 
+	 *            example, if a screen shows a new article, you should call it
+	 *            "News Screen" instead of the name of the news article.
+	 * 
+	 * @param category
+	 *            The (optional) category of the screen view, like "Sports" or "Authentication"
+	 *            
+	 * @param properties
+	 *            a dictionary with items that describe the screen in more
+	 *            detail. This argument is optional, but highly recommended. 
+	 *            You'll find these properties extremely useful later.
+	 * 
+	 * @param options
+	 *            options allows you to set a timestamp, an anonymousId, a context, 
+	 *            and select specific integrations.
 	 * 
 	 */
-	public static void screen(String name, Props properties, Options options) {		
+	public static void screen(String name, String category, Props properties, Options options) {		
 		checkInitialized();
 		if (optedOut) return;
 		
-		String sessionId = getAnonymousId();
 		String userId = getOrSetUserId(null);
 		
 		if (userId == null || userId.length() == 0) {
-			throw new IllegalArgumentException("analytics-android #track must be initialized with a valid user id.");
+			throw new IllegalArgumentException("analytics-android #screen must be initialized with a valid user id.");
 		}
 		
 		if (name == null || name.length() == 0) {
@@ -1026,7 +1050,7 @@ public class Analytics {
 		if (properties == null) properties = new Props();
 		if (options == null) options = new Options();
 
-		Screen screenAction = new Screen(userId, name, properties, options);		
+		Screen screenAction = new Screen(userId, name, category, properties, options);		
 		enqueue(screenAction);
 		integrationManager.screen(screenAction);
 		statistics.updateScreens(1);
@@ -1037,63 +1061,27 @@ public class Analytics {
 	//
 
 	/**
-	 * Aliases an anonymous user into an identified user.
+	 * Aliases an anonymous user into an identified user. 
 	 * 
-	 * @param from
+	 * This method is only needed for specific integrations.
+	 * Check https://segment.io/docs for integration information. 
+	 * 
+	 * @param previousId
 	 *            the anonymous user's id before they are logged in.
 	 * 
-	 * @param to
+	 * @param userId
 	 *            the identified user's id after they're logged in.
-	 *           
+	 *
 	 */
-	public static void alias(String from, String to) {
-		alias(from, to, null, null);
-	}
-
-	/**
-	 * Aliases an anonymous user into an identified user.
-	 * 
-	 * @param from
-	 *            the anonymous user's id before they are logged in.
-	 * 
-	 * @param to
-	 *            the identified user's id after they're logged in.
-	 * 
-	 * 
-	 * @param timestamp
-	 *            a {@link Calendar} object representing when the track took
-	 *            place. If the event just happened, leave it blank and we'll
-	 *            use the server's time. If you are importing data from the
-	 *            past, make sure you provide this argument.
-	 * 
-	 *           
-	 */
-	public static void alias(String from, String to, Calendar timestamp) {
-		alias(from, to, timestamp, null);
-	}
-
-	/**
-	 * Aliases an anonymous user into an identified user.
-	 * 
-	 * @param from
-	 *            the anonymous user's id before they are logged in.
-	 * 
-	 * @param to
-	 *            the identified user's id after they're logged in.
-	 * 
-	 * 
-	 * @param context
-	 *            an object that describes anything that doesn't fit into this
-	 *            event's properties (such as the user's IP)
-	 *           
-	 */
-	public static void alias(String from, String to, Context context) {
-		alias(from, to, null, context);
+	public static void alias(String previousId, String userId) {
+		alias(previousId, userId, null);
 	}
 	
-
 	/**
-	 * Aliases an anonymous user into an identified user.
+	 * Aliases an anonymous user into an identified user. 
+	 * 
+	 * This method is only needed for specific integrations.
+	 * Check https://segment.io/docs for integration information. 
 	 * 
 	 * @param previousId
 	 *            the anonymous user's id before they are logged in.
