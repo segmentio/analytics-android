@@ -17,7 +17,7 @@ buildscript {
     }
 }
 
-group = 'io.segment.android'
+group = 'com.segment.android'
 archivesBaseName = 'analytics-android'
 version = '0.6.13'
 

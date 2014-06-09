@@ -13,9 +13,9 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
+import android.util.Base64;
 import android.util.Log;
 
-import com.mixpanel.android.util.Base64Coder;
 import com.segment.android.Analytics;
 import com.segment.android.Config;
 import com.segment.android.Defaults;
@@ -80,7 +80,9 @@ public class BasicRequester implements IRequester {
 	}
 
 	private String basicAuthHeader() {
-		return "Basic " + Base64Coder.encodeString(Analytics.getWriteKey()+":");
+		return "Basic " + Base64.encodeToString(
+				(Analytics.getWriteKey()+":").getBytes(), 
+				Base64.NO_WRAP);
 	}
 	
 }

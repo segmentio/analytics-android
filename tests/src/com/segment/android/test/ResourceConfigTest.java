@@ -1,20 +1,18 @@
 package com.segment.android.test;
 
 
-import io.segment.android.test.R;
-
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.segment.android.Analytics;
-import com.segment.android.ResourceConfig;
-import com.segment.android.Config;
 
 import android.content.Context;
 import android.content.res.Resources;
 import android.test.ActivityTestCase;
 
-public class ConfigurationTest extends ActivityTestCase {
+import com.segment.android.Analytics;
+import com.segment.android.Config;
+import com.segment.android.ResourceConfig;
+
+public class ResourceConfigTest extends ActivityTestCase {
 
 	@Test
 	public void testSecret() {
