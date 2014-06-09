@@ -47,7 +47,8 @@ import com.segment.android.utils.HandlerTimer;
 
 public class Analytics {
 	
-	public static final String VERSION = "0.6.13";
+	// NOTE: Don't forget to update build.gradle
+	public static final String VERSION = "1.0.0";
 	
 	private static AnalyticsStatistics statistics;
 	

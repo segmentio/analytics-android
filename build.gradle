@@ -19,7 +19,7 @@ buildscript {
 
 group = 'com.segment.android'
 archivesBaseName = 'analytics-android'
-version = '0.6.13'
+version = '1.0.0'
 
 dependencies {
     compile "com.mixpanel.android:mixpanel-android:4.2.0@aar"
