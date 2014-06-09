@@ -16,6 +16,10 @@ public class Constants {
 	
 	public static class Database {
 
+		/**
+		 * Version 1: uses payload.action
+		 * Version 2: uses payload.type
+		 */
 		public static final int VERSION = 2;
 		
 		public static final String NAME = PACKAGE_NAME;
