@@ -9,17 +9,17 @@ import junit.framework.Assert;
 import org.json.JSONObject;
 import org.junit.Test;
 
+import android.content.Context;
+
 import com.segment.android.Defaults;
 import com.segment.android.cache.ISettingsLayer;
 import com.segment.android.cache.SettingsCache;
 import com.segment.android.cache.SettingsThread;
 import com.segment.android.errors.InvalidSettingsException;
-import com.segment.android.integration.Integration;
-import com.segment.android.integration.IntegrationManager;
-import com.segment.android.integration.SimpleIntegration;
 import com.segment.android.models.Alias;
 import com.segment.android.models.EasyJSONObject;
 import com.segment.android.models.Identify;
+import com.segment.android.models.Options;
 import com.segment.android.models.Props;
 import com.segment.android.models.Screen;
 import com.segment.android.models.Track;
@@ -28,8 +28,6 @@ import com.segment.android.request.BasicRequester;
 import com.segment.android.request.IRequester;
 import com.segment.android.test.BaseTest;
 import com.segment.android.test.TestCases;
-
-import android.content.Context;
 
 public class IntegrationManagerTest extends BaseTest {
 
@@ -130,7 +128,6 @@ public class IntegrationManagerTest extends BaseTest {
 
 		Identify identify = TestCases.identify();
 		
-		String sessionId = identify.getAnonymousId();
 		String userId = identify.getUserId();
 		Traits traits = identify.getTraits();
 		Calendar timestamp = Calendar.getInstance();
@@ -142,57 +139,59 @@ public class IntegrationManagerTest extends BaseTest {
 
 		Alias alias = TestCases.alias();
 		
-		String from = alias.getFrom();
-		String to = alias.getTo();
+		String from = alias.getPreviousId();
+		String to = alias.getUserId();
 		
 		//
-		// Test the context.providers.all = false setting default to false
+		// Test the integrations.all = false setting default to false
 		// 
 		
-		com.segment.android.models.Context allFalseContext = new com.segment.android.models.Context();
-		allFalseContext.put("providers", new EasyJSONObject("all", false));
+		Options allFalseOptions = new Options()
+			.setTimestamp(timestamp)
+			.setIntegration("all", false);
 		
-		integrationManager.identify(new Identify(sessionId, userId, traits, timestamp, allFalseContext));
+		integrationManager.identify(new Identify(userId, traits, allFalseOptions));
 		Assert.assertEquals(1, identifies.get());
 		
-		integrationManager.track(new Track(sessionId, userId, event, properties, timestamp, allFalseContext));
+		integrationManager.track(new Track(userId, event, properties, allFalseOptions));
 		Assert.assertEquals(1, tracks.get());
 		
-		integrationManager.alias(new Alias(from, to, timestamp, allFalseContext));
+		integrationManager.alias(new Alias(from, to, allFalseOptions));
 		Assert.assertEquals(1, aliases.get());
 		
 		//
-		// Test the context.providers[provider.key] = false turns it off
+		// Test the integrations[integration.key] = false turns it off
 		//
+
+		Options integrationFalseOptions = new Options()
+			.setTimestamp(timestamp)
+			.setIntegration(key, false);
 		
-		com.segment.android.models.Context providerFalseContext = new com.segment.android.models.Context();
-		providerFalseContext.put("providers", new EasyJSONObject(key, false));
-		
-		integrationManager.identify(new Identify(sessionId, userId, traits, timestamp, providerFalseContext));
+		integrationManager.identify(new Identify(userId, traits, integrationFalseOptions));
 		Assert.assertEquals(1, identifies.get());
 		
-		integrationManager.track(new Track(sessionId, userId, event, properties, timestamp, providerFalseContext));
+		integrationManager.track(new Track(userId, event, properties, integrationFalseOptions));
 		Assert.assertEquals(1, tracks.get());
 		
-		integrationManager.alias(new Alias(from, to, timestamp, providerFalseContext));
+		integrationManager.alias(new Alias(from, to, integrationFalseOptions));
 		Assert.assertEquals(1, aliases.get());
-		
 
 		//
-		// Test the context.providers[provider.key] = true, All=false keeps it on
+		// Test the integrations[integration.key] = true, All=false keeps it on
 		//
+
+		Options integrationTrueOptions = new Options()
+			.setTimestamp(timestamp)
+			.setIntegration("all", false)
+			.setIntegration(key, true);
 		
-		com.segment.android.models.Context providerTrueContext = new com.segment.android.models.Context();
-		providerTrueContext.put("providers", new EasyJSONObject("All", false));
-		providerTrueContext.put("providers", new EasyJSONObject(key, true));
-		
-		integrationManager.identify(new Identify(sessionId, userId, traits, timestamp, providerTrueContext));
+		integrationManager.identify(new Identify(userId, traits, integrationTrueOptions));
 		Assert.assertEquals(2, identifies.get());
 		
-		integrationManager.track(new Track(sessionId, userId, event, properties, timestamp, providerTrueContext));
+		integrationManager.track(new Track(userId, event, properties, integrationTrueOptions));
 		Assert.assertEquals(2, tracks.get());
 		
-		integrationManager.alias(new Alias(from, to, timestamp, providerTrueContext));
+		integrationManager.alias(new Alias(from, to, integrationTrueOptions));
 		Assert.assertEquals(2, aliases.get());
 	}
 	

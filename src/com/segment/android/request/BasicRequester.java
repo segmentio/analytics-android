@@ -2,7 +2,6 @@ package com.segment.android.request;
 
 import java.util.Calendar;
 
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -14,15 +13,15 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
+import android.util.Log;
+
+import com.mixpanel.android.util.Base64Coder;
 import com.segment.android.Analytics;
+import com.segment.android.Config;
 import com.segment.android.Defaults;
 import com.segment.android.Logger;
-import com.segment.android.Config;
 import com.segment.android.models.Batch;
 import com.segment.android.models.EasyJSONObject;
-
-import android.util.Base64;
-import android.util.Log;
 
 public class BasicRequester implements IRequester {
 
@@ -59,7 +58,6 @@ public class BasicRequester implements IRequester {
 
 	@Override
 	public EasyJSONObject fetchSettings() {
-
 		Config options = Analytics.getOptions();
 
 		String url = options.getHost()
@@ -67,18 +65,11 @@ public class BasicRequester implements IRequester {
 
 		HttpClient httpclient = new DefaultHttpClient();
 		HttpGet get = new HttpGet(url);
-		
-		// Basic Authentication
-		// https://segment.io/docs/tracking-api/reference/#authentication
-		get.addHeader("Authorization", basicAuthHeader());
 
 		try {
 			HttpResponse response = httpclient.execute(get);
-
 			String json = EntityUtils.toString(response.getEntity());
-
 			JSONObject jsonObject = new JSONObject(json);
-
 			return new EasyJSONObject(jsonObject);
 			
 		} catch (Exception e) {
@@ -89,8 +80,7 @@ public class BasicRequester implements IRequester {
 	}
 
 	private String basicAuthHeader() {
-		return "Basic " + Base64.encodeToString(
-				(Analytics.getWriteKey()+":").getBytes(), Base64.DEFAULT);
+		return "Basic " + Base64Coder.encodeString(Analytics.getWriteKey()+":");
 	}
 	
 }

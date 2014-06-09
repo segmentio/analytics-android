@@ -1,7 +1,6 @@
 package com.segment.android.request.test;
 
 
-import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -12,7 +11,6 @@ import org.junit.Test;
 import com.segment.android.Logger;
 import com.segment.android.models.BasePayload;
 import com.segment.android.models.Batch;
-import com.segment.android.models.Context;
 import com.segment.android.models.EasyJSONObject;
 import com.segment.android.models.Identify;
 import com.segment.android.models.Traits;
@@ -43,21 +41,16 @@ public class BasicRequesterTest extends BaseTest {
 	
 	@Test
 	public void testUTF8Characters () {
-		
-		Identify identify = new Identify("2832-2-3", "some_user", new Traits(
+		Identify identify = new Identify("some_user", new Traits(
 				"carrier", "GR COSMOTE",
 				"language", "????????????????",
-				"country", "????????????"), 
-			Calendar.getInstance(), new Context());
+				"country", "????????????"), null);
 		
 		List<BasePayload> items = new LinkedList<BasePayload>();
 		items.add(identify);
 		
-		
 		Batch batch = new Batch(Constants.WRITE_KEY, items);
-		
 		HttpResponse response = requester.send(batch);
-		
 		Assert.assertEquals(200, response.getStatusLine().getStatusCode());
 	}
 	
@@ -77,5 +70,4 @@ public class BasicRequesterTest extends BaseTest {
 			Assert.assertNotNull(settings.getObject(key));
 		}
 	}
-	
 }

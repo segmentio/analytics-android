@@ -33,4 +33,15 @@ public class Context extends EasyJSONObject {
 			.put(LIBRARY_VERSION_KEY, Analytics.VERSION));
 	}
 	
+	@Override
+	public Context put(String key, String value) {
+		super.put(key, value);
+		return this;
+	}
+
+	@Override
+	public Context put(String key, Object value) {
+		super.putObject(key, value);
+		return this;
+	}
 }

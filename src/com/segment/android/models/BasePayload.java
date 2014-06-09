@@ -11,6 +11,7 @@ public class BasePayload extends EasyJSONObject {
 	private final static String CONTEXT_KEY = "context";
 	private final static String ANONYMOUS_ID_KEY = "anonymousId";
 	private final static String TIMESTAMP_KEY = "timestamp";
+	private final static String INTEGRATIONS_KEY = "integrations";
 	private final static String MESSAGE_ID_KEY = "messageId";
 	
 	public BasePayload (JSONObject obj) {
@@ -24,6 +25,7 @@ public class BasePayload extends EasyJSONObject {
 		setContext(options.getContext());
 		setAnonymousId(options.getAnonymousId());
 		setTimestamp(options.getTimestamp());
+		setIntegrations(options.getIntegrations());
 		setMessageId(UUID.randomUUID().toString());
 	}
 
@@ -35,10 +37,20 @@ public class BasePayload extends EasyJSONObject {
 		this.put(TYPE_KEY, type);
 	}
 	
+	public EasyJSONObject getIntegrations() {
+		JSONObject object = getObject(INTEGRATIONS_KEY);
+		if (object == null) return null;
+		else return (EasyJSONObject)object;
+	}
+	
+	public void setIntegrations(EasyJSONObject integrations) {
+		this.putObject(INTEGRATIONS_KEY, integrations);
+	}
+	
 	public Context getContext() {
 		JSONObject object = getObject(CONTEXT_KEY);
 		if (object == null) return null;
-		else return new Context(object);
+		else return (Context)object;
 	}
 
 	public void setContext(Context context) {

@@ -7,14 +7,13 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import android.util.Log;
+
 import com.segment.android.Analytics;
-import com.segment.android.models.Context;
-import com.segment.android.models.EasyJSONObject;
+import com.segment.android.models.Options;
 import com.segment.android.models.Props;
 import com.segment.android.models.Traits;
 import com.segment.android.stats.AnalyticsStatistics;
-
-import android.util.Log;
 
 public class BasicAnalyticsTest extends BaseTest {
 
@@ -56,13 +55,14 @@ public class BasicAnalyticsTest extends BaseTest {
 			"just_user_id", true
 		));
 		
-		Analytics.identify(traits, TestCases.calendar());
+		Analytics.identify(traits, new Options()
+			.setTimestamp(TestCases.calendar()));
 		
-		Analytics.identify(traits, TestCases.calendar(), new Context(
-			"providers", new EasyJSONObject(
-					"Mixpanel", true,
-					"KISSMetrics", true
-		)));
+		Analytics.identify(traits, new Options()
+			.setTimestamp(TestCases.calendar())
+			.setIntegration("Mixpanel", true)
+			.setIntegration("KISSMetrics", true)
+		);
 		
 		Assert.assertEquals(identifyAttempts + 5, statistics.getIdentifies().getCount());
 		Assert.assertEquals(insertAttempts + 5, statistics.getInsertAttempts().getCount());
@@ -99,13 +99,14 @@ public class BasicAnalyticsTest extends BaseTest {
 			"just_user_id", true
 		));
 		
-		Analytics.group(traits, TestCases.calendar());
+		Analytics.group(traits, new Options()
+			.setTimestamp(TestCases.calendar()));
 		
-		Analytics.group(traits, TestCases.calendar(), new Context(
-			"providers", new EasyJSONObject(
-					"Mixpanel", true,
-					"KISSMetrics", true
-		)));
+		Analytics.group(traits, new Options()
+			.setTimestamp(TestCases.calendar())
+			.setIntegration("Mixpanel", true)
+			.setIntegration("KISSMetrics", true)
+		);
 		
 		Assert.assertEquals(groupAttempts + 5, statistics.getGroups().getCount());
 		Assert.assertEquals(insertAttempts + 5, statistics.getInsertAttempts().getCount());
@@ -136,13 +137,14 @@ public class BasicAnalyticsTest extends BaseTest {
 			"Donnie", "Darko"
 		));
 		
-		Analytics.track("Android: With Calendar", new Props(),  TestCases.calendar());
+		Analytics.track("Android: With Calendar", new Props(), new Options()
+			.setTimestamp(TestCases.calendar()));
 		
-		Analytics.track("Android: With Context", new Props(),  TestCases.calendar(), new Context(
-			"providers", new EasyJSONObject(
-					"Mixpanel", true,
-					"KISSMetrics", true
-		)));
+		Analytics.track("Android: With Context", new Props(), new Options()
+			.setTimestamp(TestCases.calendar())
+			.setIntegration("Mixpanel", true)
+			.setIntegration("KISSMetrics", true)
+		);
 		
 		Assert.assertEquals(trackAttempts + 5, statistics.getTracks().getCount());
 		Assert.assertEquals(insertAttempts + 5, statistics.getInsertAttempts().getCount());
@@ -173,13 +175,15 @@ public class BasicAnalyticsTest extends BaseTest {
 			"Donnie", "Darko"
 		));
 		
-		Analytics.screen("Android: Screen With Calendar", new Props(),  TestCases.calendar());
+		Analytics.screen("Android: Screen With Calendar", new Props(), new Options()
+			.setTimestamp(TestCases.calendar())
+		);
 		
-		Analytics.screen("Android: Screen With Context", new Props(),  TestCases.calendar(), new Context(
-			"providers", new EasyJSONObject(
-					"Mixpanel", true,
-					"KISSMetrics", true
-		)));
+		Analytics.screen("Android: Screen With Context", new Props(), new Options()
+			.setTimestamp(TestCases.calendar())
+			.setIntegration("Mixpanel", true)
+			.setIntegration("KISSMetrics", true)
+		);
 		
 		Assert.assertEquals(screenAttempts + 5, statistics.getScreens().getCount());
 		Assert.assertEquals(insertAttempts + 5, statistics.getInsertAttempts().getCount());

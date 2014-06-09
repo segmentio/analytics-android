@@ -6,10 +6,10 @@ public class Screen extends BasePayload {
 	
 	public final static String TYPE = "screen";
 	
-	private final static String USER_ID_KEY = "userId";
+	private static final String USER_ID_KEY = "userId";
 	private static final String NAME_KEY = "name";
 	private static final String CATEGORY_KEY = "category";
-	private static final String PROPERTIES_KEY = "category";
+	private static final String PROPERTIES_KEY = "properties";
 	
 	
 	public Screen (JSONObject obj) {
