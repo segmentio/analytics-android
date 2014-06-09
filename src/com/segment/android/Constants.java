@@ -16,7 +16,7 @@ public class Constants {
 	
 	public static class Database {
 
-		public static final int VERSION = 1;
+		public static final int VERSION = 2;
 		
 		public static final String NAME = PACKAGE_NAME;
 		

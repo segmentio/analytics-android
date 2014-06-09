@@ -73,7 +73,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 		try {
 			db.execSQL(sql);
 		} catch (SQLException e) {
-			Logger.e("Failed to create Segment.io SQL lite database: " + 
+			Logger.e("Failed to create Segment SQL lite database: " + 
 						Log.getStackTraceString(e));
 		}
 	}
@@ -98,7 +98,8 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 	
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		// do nothing here for now
+		// migration from db version, 1->2, we want to drop all the existing items to prevent crashes
+		if (oldVersion == 1) removeEvents();
 	}
 
 	/**
@@ -145,7 +146,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 				
 			} catch (SQLiteException e) {
 				
-				Logger.e("Failed to open or write to Segment.io payload db: " + 
+				Logger.e("Failed to open or write to Segment payload db: " + 
 						Log.getStackTraceString(e));
 				
 			} finally {
@@ -177,7 +178,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 				numberRows = statement.simpleQueryForLong();
 				
 			} catch (SQLiteException e) {
-				Logger.e("Failed to ensure row count in the Segment.io payload db: " + 
+				Logger.e("Failed to ensure row count in the Segment payload db: " + 
 						Log.getStackTraceString(e));
 			} finally {
 				if (db != null) db.close();
@@ -240,7 +241,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 				
 			} catch (SQLiteException e) {
 	
-				Logger.e("Failed to open or read from the Segment.io payload db: " + 
+				Logger.e("Failed to open or read from the Segment payload db: " + 
 						Log.getStackTraceString(e));
 				
 			} finally {
@@ -264,7 +265,6 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 	 */
 	@SuppressLint("DefaultLocale")
 	public int removeEvents(long minId, long maxId) {
-
 		ensureCount();
 		
 		SQLiteDatabase db = null;
@@ -277,24 +277,48 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 		int deleted = -1;
 		
 		synchronized (this) {
-			
 			try {
 				db = getWritableDatabase();
 				deleted = db.delete(Constants.Database.PayloadTable.NAME, filter, null);
-				
 				// decrement the row counter
 				count.addAndGet(-deleted);
-				
 			} catch (SQLiteException e) {
-	
-				Logger.e("Failed to remove items from the Segment.io payload db: " + 
+				Logger.e("Failed to remove items from the Segment payload db: " + 
 						Log.getStackTraceString(e));
-				
 			} finally {
 				if (db != null) db.close();
 			}
 		}
 		
+		return deleted;
+	}
+	
+	/**
+	 * Remove all events from the database
+	 * @param minId
+	 * @param maxId
+	 */
+	@SuppressLint("DefaultLocale")
+	public int removeEvents() {
+		ensureCount();
+		SQLiteDatabase db = null;
+		int deleted = -1;
+		
+		synchronized (this) {
+			try {
+				db = getWritableDatabase();
+				deleted = db.delete(Constants.Database.PayloadTable.NAME, null, null);
+				// decrement the row counter
+				count.addAndGet(-deleted);
+			} catch (SQLiteException e) {
+				Logger.e("Failed to remove all items from the Segment payload db: " + 
+						Log.getStackTraceString(e));
+			} finally {
+				if (db != null) db.close();
+			}
+		}
+		
+		Logger.i("Removed all " + deleted + " event items from the Segment payload db.");
 		return deleted;
 	}
 	

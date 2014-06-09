@@ -11,7 +11,7 @@ public class Defaults {
 	public static final String HOST = "https://api.segment.io";
 
 	public static final int FLUSH_AT = 20;
-	public static final int FLUSH_AFTER = (int) TimeUnit.SECONDS.toMillis(30);
+	public static final int FLUSH_AFTER = (int) TimeUnit.SECONDS.toMillis(10);
 	
 	@SuppressWarnings("serial")
 	public static final Map<String, String> ENDPOINTS = new HashMap<String, String>() {{
