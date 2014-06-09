@@ -277,28 +277,14 @@ public class IntegrationManager implements IIntegration {
 	 * @return
 	 */
 	private boolean isintegrationEnabled(Integration integration, BasePayload action) {
-		
 		boolean enabled = true;
-		
-		com.segment.android.models.Context context = action.getContext();
-		
-		String chooseIntegrationsKey = null;
-		if (context != null) {
-			if (context.has("integrations")) chooseIntegrationsKey = "integrations";
-			else if (context.has("providers")) chooseIntegrationsKey = "providers";
-		}
-		
-		if (chooseIntegrationsKey != null) {
-			EasyJSONObject integrations = new EasyJSONObject(context.getObject(chooseIntegrationsKey));
-
+		EasyJSONObject integrations = action.getIntegrations();
+		if (integrations!= null) {
 			String key = integration.getKey();
-			
 			if (integrations.has("all")) enabled = integrations.getBoolean("all", true);
 			if (integrations.has("All")) enabled = integrations.getBoolean("All", true);
-	
 			if (integrations.has(key)) enabled = integrations.getBoolean(key, true);
 		}
-		
 		return enabled;
 	}
 	
