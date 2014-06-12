@@ -1,5 +1,15 @@
 
-0.6.13 / 2014-05-16
+1.0.0 / June 9, 2014
+==================
+This is a big release (1.0.0) that changes the major API. Refer to this [migration guide](https://segment.io/docs/export-api/migration-guide/) for more information.
+
+* Updating to Segment Spec API v1
+* Adding Options
+* Adding .group, .page, and .screen
+* Logging improvements
+* Bumping major version
+
+0.6.13 / May 16, 2014
 ==================
 
  * releasing build 0.6.13
