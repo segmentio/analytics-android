@@ -11,13 +11,9 @@ You can find usage documentation at [https://segment.io/libraries/android](https
 
 #### Build via Gradle
 
-1. Download [Gradle](http://www.gradle.org/downloads) 1.10, add the `/bin` directory to your PATH.
-2. Set `ANDROID_HOME` to your Android SDK directory. If you're using Android Developer Tools on a mac, it'd mean adding this line to your `~/.bash_history`:
+Simply run `./gradlew clean build connectedTest` to run all the test and build a jar.
 
-```
-export ANDROID_HOME=/Users/ivolo/adt-bundle-mac-x86_64-20131030/sdk/
-```
-3. Clone this repo, and build by running `gradle build`
+This assumes that your `$ANDROID_HOME` variable is set.
 
 Check out how to contribute to the library, or add providers here: [https://segment.io/libraries/android#contributing](https://segment.io/libraries/android#contributing).
 
