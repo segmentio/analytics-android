@@ -22,7 +22,6 @@ android {
 checkstyle {
   configFile project.file('../checkstyle.xml')
   showViolations true
-  ignoreFailures true
 }
 
 android.libraryVariants.all { variant ->

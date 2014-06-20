@@ -55,8 +55,8 @@ public class GoogleAnalyticsIntegration extends SimpleIntegration {
 
     // docs: https://developers.google.com/analytics/devguides/collection/android/v2/parameters
 
-    // The Google Analytics tracking ID to which to send your data. Dashes in the ID must be unencoded.
-    // You can disable your tracking by not providing this value.
+    // The Google Analytics tracking ID to which to send your data. Dashes in the ID must be
+    // unencoded. You can disable your tracking by not providing this value.
     String trackingId = settings.getString(SettingKey.TRACKING_ID);
     // The sample rate to use. Default is 100.0. It can be any value between 0.0 and 100.0
     Double sampleFrequency = settings.getDouble(SettingKey.SAMPLING_FREQUENCY, Double.valueOf(100));

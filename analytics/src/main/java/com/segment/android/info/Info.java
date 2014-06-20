@@ -9,7 +9,7 @@ public interface Info<T> {
   /**
    * Fetches the context key for this piece of info
    */
-  public String getKey();
+  String getKey();
 
   /**
    * Returns a primitive object or a {@link org.json.JSONObject} that
@@ -17,5 +17,5 @@ public interface Info<T> {
    *
    * @param context The Android Application Context
    */
-  public T get(android.content.Context context);
+  T get(android.content.Context context);
 }

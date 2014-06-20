@@ -6,7 +6,7 @@ import org.apache.http.HttpResponse;
 
 public interface IRequester {
 
-  public HttpResponse send(Batch batch);
+  HttpResponse send(Batch batch);
 
-  public EasyJSONObject fetchSettings();
+  EasyJSONObject fetchSettings();
 }

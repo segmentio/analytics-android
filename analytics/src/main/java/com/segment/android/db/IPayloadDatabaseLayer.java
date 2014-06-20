@@ -9,7 +9,6 @@ import java.util.List;
  * on its own thread to achieve SQL thread safety.
  */
 public interface IPayloadDatabaseLayer extends IThreadedLayer {
-
   //
   // Callbacks
   //
@@ -22,9 +21,9 @@ public interface IPayloadDatabaseLayer extends IThreadedLayer {
      * Called when an enqueue finishes.
      *
      * @param success Whether the enqueue was successful.
-     * @param count The new database size
+     * @param rowCount The new database size
      */
-    public void onEnqueue(boolean success, long rowCount);
+    void onEnqueue(boolean success, long rowCount);
   }
 
   /**
@@ -33,7 +32,7 @@ public interface IPayloadDatabaseLayer extends IThreadedLayer {
    * @author ivolo
    */
   public interface PayloadCallback {
-    public void onPayload(long minId, long maxId, List<BasePayload> payloads);
+    void onPayload(long minId, long maxId, List<BasePayload> payloads);
   }
 
   /**
@@ -42,7 +41,7 @@ public interface IPayloadDatabaseLayer extends IThreadedLayer {
    * @author ivolo
    */
   public interface RemoveCallback {
-    public void onRemoved(int removed);
+    void onRemoved(int removed);
   }
 
   //
@@ -52,15 +51,15 @@ public interface IPayloadDatabaseLayer extends IThreadedLayer {
   /**
    * Adds a payload to the database
    */
-  public void enqueue(BasePayload payload, EnqueueCallback callback);
+  void enqueue(BasePayload payload, EnqueueCallback callback);
 
   /**
    * Gets the next payloads from the database
    */
-  public void nextPayload(PayloadCallback callback);
+  void nextPayload(PayloadCallback callback);
 
   /**
    * Removes payloads from the database
    */
-  public void removePayloads(final long minId, long maxId, RemoveCallback callback);
+  void removePayloads(final long minId, long maxId, RemoveCallback callback);
 }

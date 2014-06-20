@@ -8,7 +8,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 /**
- * Android answer: http://stackoverflow.com/questions/2201925/converting-iso8601-compliant-string-to-java-util-date
+ * Android answer:
+ * http://stackoverflow.com/questions/2201925/converting-iso8601-compliant-string-to-java-util-date
  *
  * Helper class for handling ISO 8601 strings of the following format:
  * "2008-03-01T13:00:00+01:00". It also supports parsing the "Z" timezone.

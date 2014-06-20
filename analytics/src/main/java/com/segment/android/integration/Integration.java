@@ -38,14 +38,15 @@ public abstract class Integration implements IIntegration {
       changeState(IntegrationState.INITIALIZED, new IntegrationState[] {
           // if the integration hasn't been initialized yet, then allow it to be initialized
           IntegrationState.NOT_INITIALIZED,
-          // if the integration was invalid previously, but is now valid, you can mark it as initialized
+          // if the integration was invalid previously, but is now valid, you
+          // can mark it as initialized
           IntegrationState.INVALID
       });
     } catch (InvalidSettingsException e) {
-
       // if we get past validation, then its
       changeState(IntegrationState.INVALID, new IntegrationState[] {
-          // if the integration hasn't been initialized yet, then its settings could be marked invalid
+          // if the integration hasn't been initialized yet, then its settings could be marked
+          // invalid
           IntegrationState.NOT_INITIALIZED
       });
 
@@ -130,8 +131,8 @@ public abstract class Integration implements IIntegration {
       state = to;
       return true;
     } else {
-      Logger.w("Integration " + getKey() +
-          " cant be " + to + " because its in state " + state + ".");
+      Logger.w(
+          "Integration " + getKey() + " cant be " + to + " because its in state " + state + ".");
       return false;
     }
   }

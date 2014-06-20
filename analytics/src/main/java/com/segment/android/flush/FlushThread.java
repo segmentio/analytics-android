@@ -25,7 +25,7 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
    * A factory to create a batch around a list of payload actions
    */
   public interface BatchFactory {
-    public Batch create(List<BasePayload> payloads);
+    Batch create(List<BasePayload> payloads);
   }
 
   private IRequestLayer requestLayer;

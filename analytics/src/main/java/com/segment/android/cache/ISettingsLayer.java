@@ -7,7 +7,6 @@ import com.segment.android.utils.IThreadedLayer;
  * Handles flushing to the server endpoint
  */
 public interface ISettingsLayer extends IThreadedLayer {
-
   /**
    * Callback for the #get method
    */
@@ -18,11 +17,11 @@ public interface ISettingsLayer extends IThreadedLayer {
      *
      * @param success True for successful flush, false for not.
      */
-    public void onSettingsLoaded(boolean success, EasyJSONObject object);
+    void onSettingsLoaded(boolean success, EasyJSONObject object);
   }
 
   /**
    * Called to flush the queue
    */
-  public void fetch(SettingsCallback callback);
+  void fetch(SettingsCallback callback);
 }

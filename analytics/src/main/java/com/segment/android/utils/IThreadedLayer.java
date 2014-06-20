@@ -9,10 +9,10 @@ public interface IThreadedLayer {
   /**
    * Starts the threads associated with this layer
    */
-  public void start();
+  void start();
 
   /**
    * Stops the threads associated with this layer
    */
-  public void quit();
+  void quit();
 }

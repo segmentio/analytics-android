@@ -28,7 +28,6 @@ public class Parameters {
         Object val = copy.get(fromKey);
         copy.remove(fromKey);
         copy.put(toKey, val);
-        ;
       }
     }
 

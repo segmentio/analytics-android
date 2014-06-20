@@ -113,9 +113,10 @@ public class EasyJSONObject extends JSONObject {
     try {
       return super.put(key, value);
     } catch (JSONException e) {
-      Logger.e("Failed to add json key => value" +
-          String.format("[%s => %s] : ", key, value) +
-          Log.getStackTraceString(e));
+      Logger.e("Failed to add json key => value"
+              + String.format("[%s => %s] : ", key, value)
+              + Log.getStackTraceString(e)
+      );
     }
     return null;
   }
@@ -239,6 +240,11 @@ public class EasyJSONObject extends JSONObject {
     return equals(this, (JSONObject) o);
   }
 
+  @Override public int hashCode() {
+    // todo: have a real one!
+    return super.hashCode();
+  }
+
   //
   // Equals Helpers
   //
@@ -312,4 +318,5 @@ public class EasyJSONObject extends JSONObject {
 
     return true;
   }
+
 }

@@ -4,21 +4,21 @@ public class AnalyticsStatistics extends Statistics {
 
   private static final long serialVersionUID = 5469315718941515883L;
 
-  private static String IDENTIFY_KEY = "Identify";
-  private static String TRACK_KEY = "Track";
-  private static String SCREEN_KEY = "Screen";
-  private static String GROUP_KEY = "Group";
-  private static String ALiAS_KEY = "Alias";
+  private static final String IDENTIFY_KEY = "Identify";
+  private static final String TRACK_KEY = "Track";
+  private static final String SCREEN_KEY = "Screen";
+  private static final String GROUP_KEY = "Group";
+  private static final String ALiAS_KEY = "Alias";
 
-  private static String INSERT_ATTEMPTS_KEY = "Insert Attempts";
-  private static String FLUSHED_ATTEMPTS_KEY = "Flushed Attempts";
+  private static final String INSERT_ATTEMPTS_KEY = "Insert Attempts";
+  private static final String FLUSHED_ATTEMPTS_KEY = "Flushed Attempts";
 
-  private static String INSERT_TIME_KEY = "Insert Time";
-  private static String REQUEST_TIME_KEY = "Request Time";
-  private static String FLUSH_TIME_KEY = "Flush Time";
+  private static final String INSERT_TIME_KEY = "Insert Time";
+  private static final String REQUEST_TIME_KEY = "Request Time";
+  private static final String FLUSH_TIME_KEY = "Flush Time";
 
-  private static String SUCCESSFUL_KEY = "Successful";
-  private static String FAILED_KEY = "Failed";
+  private static final String SUCCESSFUL_KEY = "Successful";
+  private static final String FAILED_KEY = "Failed";
 
   public Statistic getIdentifies() {
     return ensure(IDENTIFY_KEY);

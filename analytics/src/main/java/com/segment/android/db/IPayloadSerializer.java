@@ -3,8 +3,7 @@ package com.segment.android.db;
 import com.segment.android.models.BasePayload;
 
 public interface IPayloadSerializer {
+  String serialize(BasePayload payload);
 
-  public String serialize(BasePayload payload);
-
-  public BasePayload deseralize(String str);
+  BasePayload deserialize(String str);
 }

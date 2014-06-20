@@ -19,7 +19,7 @@ public class JsonPayloadSerializer implements IPayloadSerializer {
   }
 
   @Override
-  public BasePayload deseralize(String str) {
+  public BasePayload deserialize(String str) {
     JSONObject obj;
     try {
       obj = new JSONObject(str);

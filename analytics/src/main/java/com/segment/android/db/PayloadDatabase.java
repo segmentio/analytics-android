@@ -214,7 +214,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
           long id = cursor.getLong(0);
           String json = cursor.getString(1);
 
-          BasePayload payload = serializer.deseralize(json);
+          BasePayload payload = serializer.deserialize(json);
 
           if (payload != null) result.add(new Pair<Long, BasePayload>(id, payload));
         }
@@ -244,10 +244,10 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 
     SQLiteDatabase db = null;
 
-    String ID_FIELD_NAME = Constants.Database.PayloadTable.Fields.Id.NAME;
+    String idFieldName = Constants.Database.PayloadTable.Fields.Id.NAME;
 
     String filter =
-        String.format("%s >= %d AND %s <= %d", ID_FIELD_NAME, minId, ID_FIELD_NAME, maxId);
+        String.format("%s >= %d AND %s <= %d", idFieldName, minId, idFieldName, maxId);
 
     int deleted = -1;
 

@@ -13,7 +13,8 @@ public interface IFlushLayer extends IThreadedLayer {
   //
 
   /**
-   * Callback for the {@link com.segment.android.flush.IFlushLayer.flush} method
+   * Callback for the
+   * {@link IFlushLayer#flush(com.segment.android.flush.IFlushLayer.FlushCallback)} method
    */
   public interface FlushCallback {
     /**
@@ -22,7 +23,7 @@ public interface IFlushLayer extends IThreadedLayer {
      * @param success True for successful flush, false for not.
      * @param batch The batch that was sent to the server
      */
-    public void onFlushCompleted(boolean success, Batch batch);
+    void onFlushCompleted(boolean success, Batch batch);
   }
 
   //
@@ -32,5 +33,5 @@ public interface IFlushLayer extends IThreadedLayer {
   /**
    * Triggers a flush from the local action database to the server.
    */
-  public void flush(FlushCallback callback);
+  void flush(FlushCallback callback);
 }

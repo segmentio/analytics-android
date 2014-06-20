@@ -21,7 +21,7 @@ public interface IRequestLayer extends IThreadedLayer {
      *
      * @param success True for a successful request, false for not.
      */
-    public void onRequestCompleted(boolean success);
+    void onRequestCompleted(boolean success);
   }
 
   //
@@ -31,5 +31,5 @@ public interface IRequestLayer extends IThreadedLayer {
   /**
    * Send an action batch to the server.
    */
-  public void send(Batch batch, RequestCallback callback);
+  void send(Batch batch, RequestCallback callback);
 }

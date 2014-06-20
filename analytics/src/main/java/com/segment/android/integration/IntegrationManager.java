@@ -156,7 +156,7 @@ public class IntegrationManager implements IIntegration {
    * A integration operation function
    */
   private interface IntegrationOperation {
-    public void run(Integration integration);
+    void run(Integration integration);
   }
 
   /**

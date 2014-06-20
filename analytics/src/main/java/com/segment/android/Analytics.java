@@ -41,7 +41,7 @@ import com.segment.android.utils.HandlerTimer;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-public class Analytics {
+public final class Analytics {
 
   // NOTE: todo: Don't forget to update build.gradle
   public static final String VERSION = "1.0.0";
@@ -71,6 +71,10 @@ public class Analytics {
   private static SimpleStringCache userIdCache;
   private static SimpleStringCache groupIdCache;
   private static SettingsCache settingsCache;
+
+  private Analytics() {
+    throw new AssertionError("No instances allowed");
+  }
 
   /**
    * Initializes the Segment.io Android client, and tells the client that this
@@ -233,9 +237,8 @@ public class Analytics {
   /**
    * Initializes the Segment.io Android client.
    *
-   * You don't need to call this if you've called {@link com.segment.android.Analytics}.activityStart
-   * from
-   * your Android activity.
+   * You don't need to call this if you've called
+   * {@link com.segment.android.Analytics}.activityStart from  your Android activity.
    *
    * You can use this method from a non-activity, such as a {@link android.app.Service}.
    *
@@ -263,9 +266,9 @@ public class Analytics {
   /**
    * Initializes the Segment.io Android client.
    *
-   * You don't need to call this if you've called {@link com.segment.android.Analytics}.activityStart
-   * from
-   * your Android activity.
+   * You don't need to call this if you've called
+   * {@link com.segment.android.Analytics}.activityStart
+   * from your Android activity.
    *
    * You can use this method from a non-activity, such as a {@link android.app.Service}.
    *
@@ -294,9 +297,9 @@ public class Analytics {
   /**
    * Initializes the Segment.io Android client.
    *
-   * You don't need to call this if you've called {@link com.segment.android.Analytics}.activityStart
-   * from
-   * your Android activity.
+   * You don't need to call this if you've called
+   * {@link com.segment.android.Analytics}.activityStart
+   * from your Android activity.
    *
    * You can use this method from a non-activity, such as a {@link android.app.Service}.
    *
@@ -996,13 +999,11 @@ public class Analytics {
    * be returned.
    */
   private static String getOrSetUserId(String userId) {
-
     if (TextUtils.isEmpty(userId)) {
       // no user id provided, lets try to see if we have it saved
       userId = userIdCache.get();
-      if (TextUtils.isEmpty(userId))
-      // we have no user Id, let's use the sessionId
-      {
+      if (TextUtils.isEmpty(userId)) {
+        // we have no user Id, let's use the sessionId
         userId = anonymousIdCache.get();
       }
     } else {
@@ -1019,7 +1020,6 @@ public class Analytics {
    * be returned.
    */
   private static String getOrSetGroupId(String groupId) {
-
     if (TextUtils.isEmpty(groupId)) {
       // no group id provided, lets try to see if we have it saved
       groupId = groupIdCache.get();
@@ -1032,8 +1032,8 @@ public class Analytics {
   }
 
   /**
-   * Enqueues an {@link com.segment.android.models.Identify}, {@link com.segment.android.models.Track},
-   * {@link com.segment.android.models.Alias},
+   * Enqueues an {@link com.segment.android.models.Identify},
+   * {@link com.segment.android.models.Track}, {@link com.segment.android.models.Alias},
    * or any action of type {@link com.segment.android.models.BasePayload}
    */
   public static void enqueue(final BasePayload payload) {

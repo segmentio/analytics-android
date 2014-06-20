@@ -26,7 +26,7 @@ public class JsonPayloadSerializerTest extends AndroidTestCase {
   public void testIdentify() {
     Identify identify = TestCases.identify();
     String json = serializer.serialize(identify);
-    BasePayload got = serializer.deseralize(json);
+    BasePayload got = serializer.deserialize(json);
     Assert.assertEquals(identify, got);
   }
 
@@ -34,7 +34,7 @@ public class JsonPayloadSerializerTest extends AndroidTestCase {
   public void testGroup() {
     Group group = TestCases.group();
     String json = serializer.serialize(group);
-    BasePayload got = serializer.deseralize(json);
+    BasePayload got = serializer.deserialize(json);
     Assert.assertEquals(group, got);
   }
 
@@ -42,7 +42,7 @@ public class JsonPayloadSerializerTest extends AndroidTestCase {
   public void testTrack() {
     Track track = TestCases.track();
     String json = serializer.serialize(track);
-    BasePayload got = serializer.deseralize(json);
+    BasePayload got = serializer.deserialize(json);
     Assert.assertEquals(track, got);
   }
 
@@ -50,7 +50,7 @@ public class JsonPayloadSerializerTest extends AndroidTestCase {
   public void testScreen() {
     Screen screen = TestCases.screen();
     String json = serializer.serialize(screen);
-    BasePayload got = serializer.deseralize(json);
+    BasePayload got = serializer.deserialize(json);
     Assert.assertEquals(screen, got);
   }
 
@@ -58,7 +58,7 @@ public class JsonPayloadSerializerTest extends AndroidTestCase {
   public void testAlias() {
     Alias alias = TestCases.alias();
     String json = serializer.serialize(alias);
-    BasePayload got = serializer.deseralize(json);
+    BasePayload got = serializer.deserialize(json);
     Assert.assertEquals(alias, got);
   }
 }
