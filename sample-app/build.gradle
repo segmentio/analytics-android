@@ -1,4 +1,5 @@
 apply plugin: 'android'
+apply plugin: 'checkstyle'
 
 android {
   compileSdkVersion 19
@@ -11,12 +12,32 @@ android {
     versionName '1.0'
   }
 
+  lintOptions {
+    abortOnError false
+  }
+
   buildTypes {
     release {
       runProguard false
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
     }
   }
+}
+
+checkstyle {
+  configFile project.file('../checkstyle.xml')
+  showViolations true
+}
+
+android.applicationVariants.all { variant ->
+  def name = variant.buildType.name
+  def checkstyle = project.tasks.create "checkstyle${name.capitalize()}", Checkstyle
+  checkstyle.dependsOn variant.javaCompile
+  checkstyle.source variant.javaCompile.source
+  checkstyle.classpath = project.fileTree(variant.javaCompile.destinationDir)
+  checkstyle.exclude('**/BuildConfig.java')
+  checkstyle.exclude('**/R.java')
+  project.tasks.getByName("check").dependsOn checkstyle
 }
 
 dependencies {
