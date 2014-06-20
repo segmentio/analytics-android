@@ -285,8 +285,8 @@ public class PayloadDatabase extends SQLiteOpenHelper {
         count.addAndGet(-deleted);
       } catch (SQLiteException e) {
         Logger.e(
-            "Failed to remove all items from the Segment payload db: " + Log.getStackTraceString(
-                e));
+            "Failed to remove all items from the Segment payload db: " + Log.getStackTraceString(e)
+        );
       } finally {
         if (db != null) db.close();
       }

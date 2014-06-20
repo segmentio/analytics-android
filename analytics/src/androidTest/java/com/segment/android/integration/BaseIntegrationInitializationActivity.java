@@ -1,98 +1,91 @@
 package com.segment.android.integration;
 
-import junit.framework.Assert;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-
-import com.segment.android.Analytics;
-import com.segment.android.Config;
-import com.segment.android.errors.InvalidSettingsException;
-import com.segment.android.integration.Integration;
-import com.segment.android.integration.IntegrationState;
-import com.segment.android.models.EasyJSONObject;
-
 import android.content.Context;
 import android.content.Intent;
 import android.test.ActivityUnitTestCase;
+import com.segment.android.Analytics;
+import com.segment.android.Config;
+import com.segment.android.errors.InvalidSettingsException;
+import com.segment.android.models.EasyJSONObject;
+import junit.framework.Assert;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 /**
  * An Activity Unit Test that's capable of setting up a provider
  * for testing. Doesn't actually include tests, but expects
  * child to do so.
- *
  */
-public abstract class BaseIntegrationInitializationActivity extends
-		ActivityUnitTestCase<MockActivity> {
+public abstract class BaseIntegrationInitializationActivity
+    extends ActivityUnitTestCase<MockActivity> {
 
-	protected MockActivity activity;
-	protected Integration integration;
+  protected MockActivity activity;
+  protected Integration integration;
 
-	public BaseIntegrationInitializationActivity() {
-		super(MockActivity.class);
-	}
+  public BaseIntegrationInitializationActivity() {
+    super(MockActivity.class);
+  }
 
-	@BeforeClass
-	protected void setUp() throws Exception {
-		super.setUp();
+  @BeforeClass
+  protected void setUp() throws Exception {
+    super.setUp();
 
-		integration = getIntegration();
+    integration = getIntegration();
 
-		Context context = getInstrumentation().getTargetContext();
-		
-		Intent intent = new Intent(context, MockActivity.class);
-		startActivity(intent, null, null);
-		
-		activity = getActivity();
-	}
+    Context context = getInstrumentation().getTargetContext();
 
-	public abstract Integration getIntegration();
+    Intent intent = new Intent(context, MockActivity.class);
+    startActivity(intent, null, null);
 
-	public abstract EasyJSONObject getSettings();
+    activity = getActivity();
+  }
 
-	protected void reachInitializedState() {
+  public abstract Integration getIntegration();
 
-		EasyJSONObject settings = getSettings();
+  public abstract EasyJSONObject getSettings();
 
-		integration.reset();
+  protected void reachInitializedState() {
 
-		Assert.assertEquals(IntegrationState.NOT_INITIALIZED, integration.getState());
+    EasyJSONObject settings = getSettings();
 
-		try {
-			integration.initialize(settings);
+    integration.reset();
 
-		} catch (InvalidSettingsException e) {
-			Assert.assertTrue("Invalid settings.", false);
-		}
+    Assert.assertEquals(IntegrationState.NOT_INITIALIZED, integration.getState());
 
-		Assert.assertEquals(IntegrationState.INITIALIZED, integration.getState());
-	}
+    try {
+      integration.initialize(settings);
+    } catch (InvalidSettingsException e) {
+      Assert.assertTrue("Invalid settings.", false);
+    }
 
-	protected void reachEnabledState() {
-		reachInitializedState();
+    Assert.assertEquals(IntegrationState.INITIALIZED, integration.getState());
+  }
 
-		integration.enable();
+  protected void reachEnabledState() {
+    reachInitializedState();
 
-		Assert.assertEquals(IntegrationState.ENABLED, integration.getState());
-	}
+    integration.enable();
 
-	protected void reachReadyState() {
-		reachEnabledState();
+    Assert.assertEquals(IntegrationState.ENABLED, integration.getState());
+  }
 
-		// initialize since we can't get the proper context otherwise
-		Analytics.initialize(activity, "testsecret", new Config());
-		
-		integration.onCreate(activity);
+  protected void reachReadyState() {
+    reachEnabledState();
 
-		integration.onActivityStart(activity);
+    // initialize since we can't get the proper context otherwise
+    Analytics.initialize(activity, "testsecret", new Config());
 
-		Assert.assertEquals(IntegrationState.READY, integration.getState());
-	}
+    integration.onCreate(activity);
 
-	@AfterClass
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		
-		integration.flush();
-	}
+    integration.onActivityStart(activity);
+
+    Assert.assertEquals(IntegrationState.READY, integration.getState());
+  }
+
+  @AfterClass
+  protected void tearDown() throws Exception {
+    super.tearDown();
+
+    integration.flush();
+  }
 }

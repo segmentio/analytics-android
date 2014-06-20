@@ -100,7 +100,8 @@ public class IntegrationManager implements IIntegration {
 
           Log.i(TAG,
               String.format("Downloaded settings for integration %s: %s", integration.getKey(),
-                  settings.toString()));
+                  settings.toString())
+          );
 
           try {
             integration.initialize(settings);
@@ -113,7 +114,8 @@ public class IntegrationManager implements IIntegration {
 
             Log.w(TAG,
                 String.format("integration %s couldn't be initialized: %s", integration.getKey(),
-                    e.getMessage()));
+                    e.getMessage())
+            );
           }
         } else if (integration.getState().ge(IntegrationState.ENABLED)) {
           // if the setting was previously enabled but is no longer

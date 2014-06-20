@@ -62,7 +62,8 @@ public abstract class Integration implements IIntegration {
       if (!AndroidUtils.permissionGranted(context, permission)) {
         Logger.w(
             String.format("integration %s requires permission %s but its not granted.", getKey(),
-                permission));
+                permission)
+        );
         changeState(IntegrationState.INVALID, new IntegrationState[] {
             IntegrationState.NOT_INITIALIZED, IntegrationState.INITIALIZED
         });
