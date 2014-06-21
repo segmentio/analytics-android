@@ -1,5 +1,6 @@
 package com.segment.android.integrations;
 
+import android.app.Application;
 import android.content.Context;
 import android.text.TextUtils;
 import com.segment.android.errors.InvalidSettingsException;
@@ -43,7 +44,8 @@ public class TapstreamIntegration extends SimpleIntegration {
 
     Config config = new Config();
     config.setOpenUdid(OpenUDID_manager.getOpenUDID());
-    Tapstream.create(context, accountName, sdkSecret, config);
+
+    Tapstream.create((Application) context.getApplicationContext(), accountName, sdkSecret, config);
 
     ready();
   }
