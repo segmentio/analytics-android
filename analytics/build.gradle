@@ -1,5 +1,6 @@
 apply plugin: 'android-library'
 apply plugin: 'checkstyle'
+apply from: '../release.gradle'
 
 android {
   compileSdkVersion 19
@@ -27,6 +28,7 @@ checkstyle {
 android.libraryVariants.all { variant ->
   def name = variant.buildType.name
 
+  // Checkstyle
   def checkstyle = project.tasks.create "checkstyle${name.capitalize()}", Checkstyle
   checkstyle.dependsOn variant.javaCompile
   checkstyle.source variant.javaCompile.source
@@ -37,7 +39,7 @@ android.libraryVariants.all { variant ->
   project.tasks.getByName('check').dependsOn checkstyle
 
   // Only attach a jar for non-debug build types.
-  if (!name.equals(com.android.builder.core.BuilderConstants.DEBUG)) {
+  if (!name.equals(com.android.builder.core.BuilderConstants)) {
     def task = project.tasks.create "jar${name.capitalize()}", Jar
     task.dependsOn variant.javaCompile
     task.from variant.javaCompile.destinationDir

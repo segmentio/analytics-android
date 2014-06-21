@@ -9,7 +9,7 @@ android {
     minSdkVersion 14
     targetSdkVersion 19
     versionCode 1
-    versionName '1.0'
+    versionName VERSION_NAME
   }
 
   lintOptions {
@@ -38,6 +38,15 @@ android.applicationVariants.all { variant ->
   checkstyle.exclude('**/BuildConfig.java')
   checkstyle.exclude('**/R.java')
   project.tasks.getByName("check").dependsOn checkstyle
+
+  def apk = variant.packageApplication.outputFile;
+  def newName = apk.name.replace(".apk",
+      "-v${android.defaultConfig.versionName}.apk");
+  newName = newName.replace("app", "${android.defaultConfig.applicationId}");
+  variant.packageApplication.outputFile = new File(apk.parentFile, newName);
+  if (variant.zipAlign) {
+    variant.zipAlign.outputFile = new File(apk.parentFile, newName.replace("-unaligned", ""));
+  }
 }
 
 dependencies {
