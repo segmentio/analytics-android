@@ -1,5 +1,5 @@
 analytics-android
-==============
+=================
 
 analytics-android is an Android client for [Segment.io](https://segment.io)
 
@@ -11,9 +11,8 @@ You can find usage documentation at [https://segment.io/libraries/android](https
 
 #### Build via Gradle
 
-Simply run `./gradlew clean build connectedTest` to run all the test and build a jar.
-
-This assumes that your `$ANDROID_HOME` variable is set.
+Once you have set your `$ANDROID_HOME` variable, run `./gradlew clean build connectedTest` to run all the tests and build a jar.
+Be sure to a device/emulator connected for the tests to run.
 
 Check out how to contribute to the library, or add providers here: [https://segment.io/libraries/android#contributing](https://segment.io/libraries/android#contributing).
 
@@ -42,6 +41,6 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
+[![Build Status](https://travis-ci.org/segmentio/analytics-android.svg?branch=f2prateek%2Fgradle)](https://travis-ci.org/segmentio/analytics-android)
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/segmentio/analytics-android/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
