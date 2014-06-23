@@ -51,4 +51,7 @@ android.applicationVariants.all { variant ->
 
 dependencies {
   compile project(':analytics')
+  // compile (project(':analytics')) {
+  //   exclude module: 'mixpanel-android'
+  // }
 }
