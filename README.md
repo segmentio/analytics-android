@@ -11,8 +11,11 @@ You can find usage documentation at [https://segment.io/libraries/android](https
 
 #### Build via Gradle
 
-Once you have set your `$ANDROID_HOME` variable, run `./gradlew clean build connectedTest` to run all the tests and build a jar.
-Be sure to a device/emulator connected for the tests to run.
+To build the project with [Gradle](http://tools.android.com/tech-docs/new-build-system/user-guide), you will need to install the Android SDK and set a variable `$ANDROID_HOME` to point to its install location.
+You'll also need to open the SDK Manager tool and install the right SDK version of Android (API 19) and the right version of the build tools (19.1.0).
+
+Once you have set all this up, run `./gradlew tasks --all` to see all available tasks.
+Runing `./gradlew clean build connectedTest` will run all the tests. Note that you'll need to have a connected device or emulator for tests.
 
 Check out how to contribute to the library, or add providers here: [https://segment.io/libraries/android#contributing](https://segment.io/libraries/android#contributing).
 
