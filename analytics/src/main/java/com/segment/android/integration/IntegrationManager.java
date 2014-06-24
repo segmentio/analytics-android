@@ -68,16 +68,56 @@ public class IntegrationManager implements IIntegration {
     /**
      * Add New integrations Here
      */
-    this.addIntegration(new AmplitudeIntegration());
-    this.addIntegration(new BugsnagIntegration());
-    this.addIntegration(new CountlyIntegration());
-    this.addIntegration(new CrittercismIntegration());
-    this.addIntegration(new FlurryIntegration());
-    this.addIntegration(new GoogleAnalyticsIntegration());
-    this.addIntegration(new LocalyticsIntegration());
-    this.addIntegration(new MixpanelIntegration());
-    this.addIntegration(new QuantcastIntegration());
-    this.addIntegration(new TapstreamIntegration());
+    try {
+      Class.forName("com.amplitude.api.Amplitude");
+      this.addIntegration(new AmplitudeIntegration());
+    } catch (ClassNotFoundException e) {
+    }
+    try {
+      Class.forName("com.bugsnag.android.Bugsnag");
+      this.addIntegration(new BugsnagIntegration());
+    } catch (ClassNotFoundException e) {
+    }
+    try {
+      Class.forName("ly.count.android.api.Countly");
+      this.addIntegration(new CountlyIntegration());
+    } catch (ClassNotFoundException e) {
+    }
+    try {
+      Class.forName("com.crittercism.app.Crittercism");
+      this.addIntegration(new CrittercismIntegration());
+    } catch (ClassNotFoundException e) {
+    }
+    try {
+      Class.forName("com.flurry.android.FlurryAgent");
+      this.addIntegration(new FlurryIntegration());
+    } catch (ClassNotFoundException e) {
+    }
+    try {
+      Class.forName("com.google.analytics.tracking.android.EasyTracker");
+      this.addIntegration(new GoogleAnalyticsIntegration());
+    } catch (ClassNotFoundException e) {
+    }
+    try {
+      Class.forName("com.localytics.android.LocalyticsSession");
+      this.addIntegration(new LocalyticsIntegration());
+    } catch (ClassNotFoundException e) {
+    }
+    try {
+      Class.forName("com.mixpanel.android.mpmetrics.MixpanelAPI");
+      this.addIntegration(new MixpanelIntegration());
+    } catch (ClassNotFoundException e) {
+    }
+    try {
+      Class.forName("com.quantcast.measurement.service.QuantcastClient");
+      this.addIntegration(new QuantcastIntegration());
+    } catch (ClassNotFoundException e) {
+    }
+    try {
+      Class.forName("com.tapstream.sdk.Tapstream");
+      this.addIntegration(new TapstreamIntegration());
+    } catch (ClassNotFoundException e) {
+    }
   }
 
   /**
@@ -115,7 +155,7 @@ public class IntegrationManager implements IIntegration {
       // we managed to get the settings
 
       for (Integration integration : integrations) {
-        // iterate through all of the integrations we enabe
+        // iterate through all of the integrations we enable
         String integrationKey = integration.getKey();
         if (allSettings.has(integrationKey)) {
           // the settings has info for this integration
