@@ -43,6 +43,11 @@ android.libraryVariants.all { variant ->
     def task = project.tasks.create "jar${name.capitalize()}", Jar
     task.dependsOn variant.javaCompile
     task.from variant.javaCompile.destinationDir
+    task.from configurations.compile.findAll {
+      it.getName() != 'android.jar'
+    }.collect {
+      it.isDirectory() ? it : zipTree(it)
+    }
     artifacts.add('archives', task);
   }
 }
