@@ -140,7 +140,7 @@ public class MixpanelIntegration extends SimpleIntegration {
 
   @Override
   public void alias(Alias alias) {
-    mixpanel.identify(alias.getUserId());
+    mixpanel.alias(alias.getUserId(), alias.getPreviousId());
   }
 
   @Override
