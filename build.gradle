@@ -4,7 +4,7 @@ apply plugin: 'versions'
 buildscript {
   repositories {
     mavenCentral()
-    maven { url "https://github.com/ben-manes/gradle-versions-plugin/raw/mvnrepo" }
+    maven { url 'https://github.com/ben-manes/gradle-versions-plugin/raw/mvnrepo' }
   }
   dependencies {
     classpath 'com.android.tools.build:gradle:0.11.+'
@@ -15,5 +15,6 @@ buildscript {
 allprojects {
   repositories {
     mavenCentral()
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
   }
 }
