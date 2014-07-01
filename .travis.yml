@@ -1,6 +1,4 @@
-language: java
-
-jdk: oraclejdk7
+language: android
 
 notifications:
   email: false
@@ -9,24 +7,23 @@ branches:
   except:
     - gh-pages
 
+android:
+  components:
+    - build-tools-19.1.0
+    - android-19
+    - sysimg-19
+  licenses:
+    - android-sdk-license-5be876d5
+    - '.*intel.+'
+
 before_install:
-    # Install base Android SDK and components
-    - sudo apt-get install -qq libstdc++6:i386 lib32z1
-    - export COMPONENTS=build-tools-19.1.0,android-19,sysimg-19,extra-android-support,extra-google-google_play_services,extra-google-gcm,extra-google-m2repository,extra-android-m2repository
-    - curl -L https://raw.github.com/embarkmobile/android-sdk-installer/version-1/android-sdk-installer | bash /dev/stdin --install=$COMPONENTS
-    - source ~/.android-sdk-installer/env
+  - curl https://raw.githubusercontent.com/embarkmobile/android-sdk-installer/master/wait_for_emulator >> wait.sh
+  - chmod u+x wait.sh
 
-    # Create and start emulator
-    - echo no | android create avd --force -n test -t android-19 --abi armeabi-v7a
-    - emulator -avd test -no-skin -no-audio -no-window &
-
-install:
-    # Without TERM=dumb, we get mangled output in the Travis console
-    - TERM=dumb ./gradlew assemble
+  # Create and start emulator  
+  - echo no | android create avd --force -n test -t android-19 --abi armeabi-v7a
+  - emulator -avd test -no-skin -no-audio -no-window &
 
 before_script:
-    # Make sure the emulator has started before running tests
-    - wait_for_emulator
-
-script:
-    - TERM=dumb ./gradlew build connectedCheck
+  # Make sure the emulator has started before running tests
+  - ./wait.sh
