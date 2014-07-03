@@ -27,6 +27,7 @@ package com.segment.android.integrations;
 import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
+
 import com.amplitude.api.Amplitude;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.integration.SimpleIntegration;
@@ -100,7 +101,11 @@ public class AmplitudeIntegration extends SimpleIntegration {
   private void event(String name, Props properties) {
     if (properties != null && properties.has("revenue")) {
       double revenue = properties.getDouble("revenue", 0.0);
-      Amplitude.logRevenue(revenue);
+      String productId = properties.getString("productId", null);
+      int quantity = properties.getInt("quantity", 1);
+      String receipt = properties.getString("receipt", null);
+      String receiptSignature = properties.getString("receiptSignature", null);
+      Amplitude.logRevenue(productId, quantity, revenue, receipt, receiptSignature);
     }
 
     Amplitude.logEvent(name, properties);
