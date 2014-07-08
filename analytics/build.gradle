@@ -42,7 +42,9 @@ android.libraryVariants.all { variant ->
   if (!name.equals(com.android.builder.core.BuilderConstants)) {
     def task = project.tasks.create "jar${name.capitalize()}", Jar
     task.dependsOn variant.javaCompile
+    //Include Java classes
     task.from variant.javaCompile.destinationDir
+    //Include dependent jars with some exceptions
     task.from configurations.compile.findAll {
       it.getName() != 'android.jar'
     }.collect {
