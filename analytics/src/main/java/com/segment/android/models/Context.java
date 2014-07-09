@@ -24,7 +24,7 @@
 
 package com.segment.android.models;
 
-import com.segment.android.Analytics;
+import com.segment.android.BuildConfig;
 import org.json.JSONObject;
 
 public class Context extends EasyJSONObject {
@@ -52,7 +52,7 @@ public class Context extends EasyJSONObject {
 
   private void addLibraryContext() {
     this.putObject(LIBRARY_KEY, new Props().put(LIBRARY_NAME_KEY, LIBRARY_NAME_VALUE)
-        .put(LIBRARY_VERSION_KEY, Analytics.VERSION));
+        .put(LIBRARY_VERSION_KEY, BuildConfig.VERSION_NAME));
   }
 
   @Override

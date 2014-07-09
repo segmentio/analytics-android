@@ -30,7 +30,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.telephony.TelephonyManager;
 import com.segment.android.models.EasyJSONObject;
-import com.segment.android.utils.Utils;
 import org.json.JSONObject;
 
 import static com.segment.android.utils.Utils.getSystemService;
