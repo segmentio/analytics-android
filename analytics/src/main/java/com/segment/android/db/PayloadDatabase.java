@@ -33,7 +33,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
-import android.util.Log;
 import android.util.Pair;
 import com.segment.android.Analytics;
 import com.segment.android.Constants;
@@ -93,7 +92,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
     try {
       db.execSQL(sql);
     } catch (SQLException e) {
-      Logger.e("Failed to create Segment SQL lite database: " + Log.getStackTraceString(e));
+      Logger.e(e, "Failed to create Segment SQL lite database");
     }
   }
 
@@ -129,8 +128,9 @@ public class PayloadDatabase extends SQLiteOpenHelper {
     ensureCount();
 
     long rowCount = getRowCount();
-    if (rowCount >= Analytics.getOptions().getMaxQueueSize()) {
-      Logger.w("Cant add action, the database is larger than max queue size.");
+    final int maxQueueSize = Analytics.getOptions().getMaxQueueSize();
+    if (rowCount >= maxQueueSize) {
+      Logger.w("Cant add action, the database is larger than max queue size (%d).", maxQueueSize);
       return false;
     }
 
@@ -152,15 +152,14 @@ public class PayloadDatabase extends SQLiteOpenHelper {
         long result = db.insert(Constants.Database.PayloadTable.NAME, null, contentValues);
 
         if (result == -1) {
-          Logger.w("Database insert failed. Result: " + result);
+          Logger.w("Database insert failed. Result: %s", result);
         } else {
           success = true;
           // increase the row count
           count.addAndGet(1);
         }
       } catch (SQLiteException e) {
-
-        Logger.e("Failed to open or write to Segment payload db: " + Log.getStackTraceString(e));
+        Logger.e(e, "Failed to open or write to Segment payload db");
       } finally {
         if (db != null) db.close();
       }
@@ -187,8 +186,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
         SQLiteStatement statement = db.compileStatement(sql);
         numberRows = statement.simpleQueryForLong();
       } catch (SQLiteException e) {
-        Logger.e(
-            "Failed to ensure row count in the Segment payload db: " + Log.getStackTraceString(e));
+        Logger.e(e, "Failed to ensure row count in the Segment payload db");
       } finally {
         if (db != null) db.close();
       }
@@ -243,15 +241,13 @@ public class PayloadDatabase extends SQLiteOpenHelper {
           if (payload != null) result.add(new Pair<Long, BasePayload>(id, payload));
         }
       } catch (SQLiteException e) {
-
-        Logger.e(
-            "Failed to open or read from the Segment payload db: " + Log.getStackTraceString(e));
+        Logger.e(e, "Failed to open or read from the Segment payload db");
       } finally {
         try {
           if (cursor != null) cursor.close();
           if (db != null) db.close();
         } catch (SQLiteException e) {
-          Logger.e("Failed to close db cursor: " + Log.getStackTraceString(e));
+          Logger.e(e, "Failed to close db cursor");
         }
       }
     }
@@ -270,8 +266,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
 
     String idFieldName = Constants.Database.PayloadTable.Fields.Id.NAME;
 
-    String filter =
-        String.format("%s >= %d AND %s <= %d", idFieldName, minId, idFieldName, maxId);
+    String filter = String.format("%s >= %d AND %s <= %d", idFieldName, minId, idFieldName, maxId);
 
     int deleted = -1;
 
@@ -282,8 +277,7 @@ public class PayloadDatabase extends SQLiteOpenHelper {
         // decrement the row counter
         count.addAndGet(-deleted);
       } catch (SQLiteException e) {
-        Logger.e(
-            "Failed to remove items from the Segment payload db: " + Log.getStackTraceString(e));
+        Logger.e(e, "Failed to remove items from the Segment payload db");
       } finally {
         if (db != null) db.close();
       }
@@ -308,15 +302,13 @@ public class PayloadDatabase extends SQLiteOpenHelper {
         // decrement the row counter
         count.addAndGet(-deleted);
       } catch (SQLiteException e) {
-        Logger.e(
-            "Failed to remove all items from the Segment payload db: " + Log.getStackTraceString(e)
-        );
+        Logger.e(e, "Failed to remove all items from the Segment payload db");
       } finally {
         if (db != null) db.close();
       }
     }
 
-    Logger.i("Removed all " + deleted + " event items from the Segment payload db.");
+    Logger.d("Removed all %d event items from the Segment payload db.", deleted);
     return deleted;
   }
 }

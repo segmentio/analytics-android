@@ -59,7 +59,7 @@ public class Stopwatch {
   public void end() {
     end = System.currentTimeMillis();
 
-    Logger.d("[Stopwatch] " + msg + " finished in : " + duration() + " milliseconds.");
+    Logger.d("[Stopwatch] %s finished in %d milliseconds.", msg, duration());
   }
 
   /**

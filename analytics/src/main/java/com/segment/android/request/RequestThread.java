@@ -25,7 +25,6 @@
 package com.segment.android.request;
 
 import android.os.Handler;
-import android.util.Log;
 import com.segment.android.Analytics;
 import com.segment.android.Logger;
 import com.segment.android.models.Batch;
@@ -73,16 +72,14 @@ public class RequestThread extends LooperThreadWithHandler implements IRequestLa
           // there's been an error
           Logger.w("Failed to make request to the server.");
         } else if (response.getStatusLine().getStatusCode() != 200) {
-
           try {
             // there's been a server error
-            String responseBody = EntityUtils.toString(response.getEntity());
-
-            Logger.e("Received a failed response from the server." + responseBody);
+            Logger.e("Received a failed response from the server. %s",
+                EntityUtils.toString(response.getEntity()));
           } catch (ParseException e) {
-            Logger.w("Failed to parse the response from the server." + Log.getStackTraceString(e));
+            Logger.w(e, "Failed to parse the response from the server.");
           } catch (IOException e) {
-            Logger.w("Failed to read the response from the server." + Log.getStackTraceString(e));
+            Logger.w(e, "Failed to read the response from the server.");
           }
         } else {
 

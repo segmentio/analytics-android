@@ -98,7 +98,7 @@ public class FlurryIntegration extends SimpleIntegration {
     try {
       FlurryAgent.onEndSession(activity);
     } catch (NullPointerException e) {
-      Logger.w("Flurry Agent's #onEndSession threw a NullPointerException.", e);
+      Logger.w(e, "Flurry Agent's #onEndSession threw a NullPointerException.");
     }
   }
 

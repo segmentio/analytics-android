@@ -24,7 +24,6 @@
 
 package com.segment.android.db;
 
-import android.util.Log;
 import com.segment.android.Logger;
 import com.segment.android.models.Alias;
 import com.segment.android.models.BasePayload;
@@ -59,10 +58,10 @@ public class JsonPayloadSerializer implements IPayloadSerializer {
       } else if (type.equals(Screen.TYPE)) {
         return new Screen(obj);
       } else {
-        Logger.e("Failed to convert json to base payload because of unknown type: " + type);
+        Logger.e("Failed to convert json to base payload because of unknown type: %s", type);
       }
     } catch (JSONException e) {
-      Logger.e("Failed to convert json to base payload: " + Log.getStackTraceString(e));
+      Logger.e(e, "Failed to convert json to base payload");
     }
 
     return null;

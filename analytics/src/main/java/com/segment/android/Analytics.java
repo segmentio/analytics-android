@@ -1077,9 +1077,9 @@ public final class Analytics {
         statistics.updateInsertTime(duration);
 
         if (success) {
-          Logger.i("Item " + payload.toDescription() + " successfully enqueued.");
+          Logger.d("Item %s successfully enqueued.", payload.toDescription());
         } else {
-          Logger.w("Item " + payload.toDescription() + " failed to be enqueued.");
+          Logger.w("Item %s failed to be enqueued.", payload.toDescription());
         }
 
         if (rowCount >= options.getFlushAt()) {

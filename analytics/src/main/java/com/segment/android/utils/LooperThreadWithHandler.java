@@ -26,7 +26,6 @@ package com.segment.android.utils;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import com.segment.android.Logger;
 
 public class LooperThreadWithHandler extends Thread implements IThreadedLayer {
@@ -39,8 +38,7 @@ public class LooperThreadWithHandler extends Thread implements IThreadedLayer {
         try {
           wait();
         } catch (InterruptedException e) {
-          Logger.e(
-              "Failed while waiting for singleton thread ready. " + Log.getStackTraceString(e));
+          Logger.e(e, "Failed while waiting for singleton thread ready.");
         }
       }
     }

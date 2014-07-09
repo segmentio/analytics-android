@@ -25,7 +25,6 @@
 package com.segment.android.flush;
 
 import android.os.Handler;
-import android.util.Log;
 import com.segment.android.Analytics;
 import com.segment.android.Logger;
 import com.segment.android.db.IPayloadDatabaseLayer;
@@ -96,9 +95,9 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
             latch.countDown();
 
             if (success) {
-              Logger.d("Flush op success. [" + batch.getBatch().size() + " items]");
+              Logger.d("Flush op success. [%d items]", batch.getBatch().size());
             } else {
-              Logger.w("Flush op failed. [" + batch.getBatch().size() + " items]");
+              Logger.w("Flush op failed. [%d items]", batch.getBatch().size());
             }
 
             if (callback != null) callback.onFlushCompleted(success, batch);
@@ -110,7 +109,7 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
         try {
           latch.await();
         } catch (InterruptedException e) {
-          Logger.w("Failed to wait for flush to finish. " + Log.getStackTraceString(e));
+          Logger.w(e, "Failed to wait for flush to finish.");
         }
       }
     });
@@ -139,7 +138,7 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
           // there is nothing to flush, we're done
           if (callback != null) callback.onFlushCompleted(true, batch);
         } else {
-          Logger.i("Sending batch to the servers .. " + range);
+          Logger.d("Sending batch to the servers .. %s", range);
           // now let's make a request on the flushing thread
           requestLayer.send(batch, new RequestCallback() {
 
@@ -148,12 +147,12 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
               // we are now executing in the context of the request thread
 
               if (!success) {
-                Logger.w("Failed to batch to the servers .. " + range);
+                Logger.w("Failed to batch to the servers .. %s", range);
                 // if we failed at flushing (connectivity issues), return
                 if (callback != null) callback.onFlushCompleted(false, batch);
               } else {
-                Logger.d("Successfully sent batch to the server." + range);
-                Logger.d("Removing flushed items from the db  .. " + range);
+                Logger.d("Successfully sent batch to the server. %s", range);
+                Logger.d("Removing flushed items from the db  .. %s", range);
                 // if we were successful, we need to first delete the old items from the
                 // database, and then continue flushing
                 databaseLayer.removePayloads(minId, maxId, new RemoveCallback() {
@@ -168,7 +167,7 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
                       for (int i = 0; i < removed; i += 1)
                         statistics.updateFailed(1);
 
-                      Logger.e("We failed to remove payload from the database." + range);
+                      Logger.e("We failed to remove payload from the database. %s", range);
 
                       if (callback != null) callback.onFlushCompleted(false, batch);
                     } else if (removed == 0) {
@@ -176,7 +175,7 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
                       for (int i = 0; i < removed; i += 1)
                         statistics.updateFailed(1);
 
-                      Logger.e("We didn't end up removing anything from the database. " + range);
+                      Logger.e("We didn't end up removing anything from the database. %s", range);
 
                       if (callback != null) callback.onFlushCompleted(false, batch);
                     } else {
@@ -184,7 +183,7 @@ public class FlushThread extends LooperThreadWithHandler implements IFlushLayer 
                       for (int i = 0; i < removed; i += 1)
                         statistics.updateSuccessful(1);
 
-                      Logger.i("Successfully removed items from the flush db." + range);
+                      Logger.d("Successfully removed items from the flush db. %s", range);
 
                       if (callback != null) callback.onFlushCompleted(true, batch);
                     }

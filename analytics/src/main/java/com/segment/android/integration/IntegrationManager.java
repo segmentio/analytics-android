@@ -27,8 +27,7 @@ package com.segment.android.integration;
 import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
-import com.segment.android.Constants;
+import com.segment.android.Logger;
 import com.segment.android.cache.SettingsCache;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.integrations.AmplitudeIntegration;
@@ -53,9 +52,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class IntegrationManager implements IIntegration {
-
-  private static final String TAG = Constants.TAG;
-
   private SettingsCache settingsCache;
   private List<Integration> integrations;
   private boolean initialized;
@@ -142,7 +138,7 @@ public class IntegrationManager implements IIntegration {
     if (!initialized) refresh();
     if (!initialized) {
       // we still haven't gotten any settings
-      Log.i(TAG, "Integration manager waiting to be initialized ..");
+      Logger.d("Integration manager waiting to be initialized ..");
     }
     return initialized;
   }
@@ -162,24 +158,16 @@ public class IntegrationManager implements IIntegration {
           // initialize the integration with those settings
           EasyJSONObject settings = new EasyJSONObject(allSettings.getObject(integrationKey));
 
-          Log.i(TAG,
-              String.format("Downloaded settings for integration %s: %s", integration.getKey(),
-                  settings.toString())
-          );
+          Logger.d("Downloaded settings for integration %s: %s", integration.getKey(),
+              settings.toString());
 
           try {
             integration.initialize(settings);
             // enable the integration
             integration.enable();
-
-            Log.i(TAG,
-                String.format("Initialized and enabled integration %s", integration.getKey()));
+            Logger.d("Initialized and enabled integration %s", integration.getKey());
           } catch (InvalidSettingsException e) {
-
-            Log.w(TAG,
-                String.format("integration %s couldn't be initialized: %s", integration.getKey(),
-                    e.getMessage())
-            );
+            Logger.e(e, "Could not initialize integration %s", integration);
           }
         } else if (integration.getState().ge(IntegrationState.ENABLED)) {
           // if the setting was previously enabled but is no longer
@@ -194,9 +182,9 @@ public class IntegrationManager implements IIntegration {
       // the integration manager has been initialized
       initialized = true;
 
-      Log.i(TAG, "Initialized the Segment.io integration manager.");
+      Logger.d("Initialized the Segment.io integration manager.");
     } else {
-      Log.i(TAG, "Async settings aren't fetched yet, waiting ..");
+      Logger.d("Async settings aren't fetched yet, waiting ..");
     }
   }
 
