@@ -347,7 +347,7 @@ public final class Analytics {
 
     if (context == null) throw new IllegalArgumentException(errorPrefix + "android context.");
 
-    if (writeKey == null || writeKey.length() == 0) {
+    if (isNullOrEmpty(writeKey)) {
       throw new IllegalArgumentException(errorPrefix + "writeKey.");
     }
 
@@ -574,7 +574,7 @@ public final class Analytics {
 
     userId = getOrSetUserId(userId);
 
-    if (userId == null || userId.length() == 0) {
+    if (isNullOrEmpty(userId)) {
       throw new IllegalArgumentException(
           "analytics-android #identify must be initialized with a valid user id.");
     }
@@ -671,7 +671,7 @@ public final class Analytics {
     String userId = getUserId();
     groupId = getOrSetGroupId(groupId);
 
-    if (groupId == null || groupId.length() == 0) {
+    if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException(
           "analytics-android #group must be called with a valid group id.");
     }
@@ -759,12 +759,12 @@ public final class Analytics {
 
     String userId = getOrSetUserId(null);
 
-    if (userId == null || userId.length() == 0) {
+    if (isNullOrEmpty(userId)) {
       throw new IllegalArgumentException(
           "analytics-android #track must be initialized with a valid user id.");
     }
 
-    if (event == null || event.length() == 0) {
+    if (isNullOrEmpty(event)) {
       throw new IllegalArgumentException(
           "analytics-android #track must be initialized with a valid event name.");
     }
@@ -944,7 +944,7 @@ public final class Analytics {
 
     String userId = getOrSetUserId(null);
 
-    if (userId == null || userId.length() == 0) {
+    if (isNullOrEmpty(userId)) {
       throw new IllegalArgumentException(
           "analytics-android #screen must be initialized with a valid user id.");
     }
@@ -995,12 +995,12 @@ public final class Analytics {
     checkInitialized();
     if (optedOut) return;
 
-    if (previousId == null || previousId.length() == 0) {
+    if (isNullOrEmpty(previousId)) {
       throw new IllegalArgumentException(
           "analytics-android #alias must be initialized with a valid from id.");
     }
 
-    if (userId == null || userId.length() == 0) {
+    if (isNullOrEmpty(userId)) {
       throw new IllegalArgumentException(
           "analytics-android #alias must be initialized with a valid to id.");
     }
