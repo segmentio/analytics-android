@@ -24,22 +24,44 @@
 
 package com.segment.android.utils;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import com.segment.android.Constants;
 import java.util.UUID;
 
-public class DeviceId {
+public final class Utils {
+  private Utils() {
+    throw new AssertionError("No instances");
+  }
 
-  /**
-   * Get a unique device id.
-   *
-   * @param context Android Activity context.
-   * @return the unique device ID
-   */
-  public static String get(Context context) {
+  /** Returns true if the application has the given permission. */
+  public static boolean hasPermission(Context context, String permission) {
+    return context.checkCallingOrSelfPermission(permission) == PackageManager.PERMISSION_GRANTED;
+  }
+
+  /** Returns true if the application has the given feature. */
+  public static boolean hasFeature(Context context, String feature) {
+    return context.getPackageManager().hasSystemFeature(feature);
+  }
+
+  /** Returns the system service for the given string. */
+  @SuppressWarnings("unchecked")
+  public static <T> T getSystemService(Context context, String serviceConstant) {
+    return (T) context.getSystemService(serviceConstant);
+  }
+
+  /** Returns true if the string is null, or empty (when trimmed). */
+  public static boolean isNullOrEmpty(String text) {
+    // Rather than using text.trim().length() == 0, use getTrimmedLength to avoid allocating an
+    // extra string object
+    return TextUtils.isEmpty(text) || TextUtils.getTrimmedLength(text) == 0;
+  }
+
+  /** Creates a unique device id to anonymously track a user. */
+  public static String getDeviceId(Context context) {
     // credit method: Amplitude's Android library
 
     // Android ID
@@ -48,7 +70,7 @@ public class DeviceId {
     String androidId = android.provider.Settings.Secure.getString(context.getContentResolver(),
         android.provider.Settings.Secure.ANDROID_ID);
 
-    if (!(TextUtils.isEmpty(androidId) || androidId.equals("9774d56d682e549c"))) {
+    if (!(isNullOrEmpty(androidId) || androidId.equals("9774d56d682e549c"))) {
       return androidId;
     }
 
@@ -56,21 +78,21 @@ public class DeviceId {
     // Guaranteed to be on all non phones in 2.3+
     try {
       String serialNumber = (String) Build.class.getField("SERIAL").get(null);
-      if (!TextUtils.isEmpty(serialNumber)) {
+      if (!isNullOrEmpty(serialNumber)) {
         return serialNumber;
       }
     } catch (Exception e) {
+      // Ignore
     }
 
     // Telephony ID
     // Guaranteed to be on all phones, requires READ_PHONE_STATE permission
-    if (AndroidUtils.permissionGranted(context, Constants.Permission.READ_PHONE_STATE)
-        && context.getPackageManager().hasSystemFeature("android.hardware.telephony")) {
+    if (hasPermission(context, Manifest.permission.READ_PHONE_STATE) && hasFeature(context,
+        PackageManager.FEATURE_TELEPHONY)) {
 
-      TelephonyManager telephone =
-          ((TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE));
-      String telephonyId = telephone.getDeviceId();
-      if (!TextUtils.isEmpty(telephonyId)) {
+      TelephonyManager telephonyManager = getSystemService(context, Context.TELEPHONY_SERVICE);
+      String telephonyId = telephonyManager.getDeviceId();
+      if (!isNullOrEmpty(telephonyId)) {
         return telephonyId;
       }
     }

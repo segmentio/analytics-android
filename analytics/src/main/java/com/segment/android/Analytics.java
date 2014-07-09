@@ -25,7 +25,6 @@
 package com.segment.android;
 
 import android.app.Activity;
-import android.text.TextUtils;
 import com.segment.android.cache.AnonymousIdCache;
 import com.segment.android.cache.ISettingsLayer;
 import com.segment.android.cache.ISettingsLayer.SettingsCallback;
@@ -60,10 +59,12 @@ import com.segment.android.request.IRequestLayer;
 import com.segment.android.request.IRequester;
 import com.segment.android.request.RequestThread;
 import com.segment.android.stats.AnalyticsStatistics;
-import com.segment.android.utils.DeviceId;
 import com.segment.android.utils.HandlerTimer;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+
+import static com.segment.android.utils.Utils.getDeviceId;
+import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public final class Analytics {
 
@@ -112,7 +113,7 @@ public final class Analytics {
    * your calls to make a HTTP request. It uses batching to efficiently send
    * your requests on a separate resource-constrained thread pool.
    *
-   * @param activity Your Android Activity
+   * @param context Your Android context
    */
   public static void onCreate(android.content.Context context) {
     Analytics.initialize(context);
@@ -131,7 +132,7 @@ public final class Analytics {
    * your calls to make a HTTP request. It uses batching to efficiently send
    * your requests on a separate resource-constrained thread pool.
    *
-   * @param activity Your Android Activity
+   * @param context Your Android context
    * @param writeKey Your segment.io writeKey. You can get one of these by
    * registering for a project at https://segment.io
    */
@@ -152,7 +153,7 @@ public final class Analytics {
    * your calls to make a HTTP request. It uses batching to efficiently send
    * your requests on a separate resource-constrained thread pool.
    *
-   * @param activity Your Android Activity
+   * @param context Your Android context
    * @param writeKey Your segment.io writeKey. You can get one of these by
    * registering for a project at https://segment.io
    * @param options Options to configure the behavior of the Segment.io client
@@ -274,7 +275,7 @@ public final class Analytics {
    * your calls to make a HTTP request. It uses batching to efficiently send
    * your requests on a separate resource-constrained thread pool.
    *
-   * @param activity Your Android Activity
+   * @param context Your Android application context
    */
   public static void initialize(android.content.Context context) {
 
@@ -373,7 +374,7 @@ public final class Analytics {
     userIdCache = new SimpleStringCache(context, Constants.SharedPreferences.USER_ID_KEY);
 
     // set the sessionId initially
-    anonymousIdCache.set(DeviceId.get(context));
+    anonymousIdCache.set(getDeviceId(context));
 
     // now we need to create our singleton thread-safe database thread
     Analytics.databaseLayer = new PayloadDatabaseThread(database);
@@ -1023,10 +1024,10 @@ public final class Analytics {
    * be returned.
    */
   private static String getOrSetUserId(String userId) {
-    if (TextUtils.isEmpty(userId)) {
+    if (isNullOrEmpty(userId)) {
       // no user id provided, lets try to see if we have it saved
       userId = userIdCache.get();
-      if (TextUtils.isEmpty(userId)) {
+      if (isNullOrEmpty(userId)) {
         // we have no user Id, let's use the sessionId
         userId = anonymousIdCache.get();
       }
@@ -1044,7 +1045,7 @@ public final class Analytics {
    * be returned.
    */
   private static String getOrSetGroupId(String groupId) {
-    if (TextUtils.isEmpty(groupId)) {
+    if (isNullOrEmpty(groupId)) {
       // no group id provided, lets try to see if we have it saved
       groupId = groupIdCache.get();
     } else {

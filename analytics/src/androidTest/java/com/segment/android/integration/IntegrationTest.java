@@ -25,9 +25,10 @@
 package com.segment.android.integration;
 
 import android.content.Context;
-import android.text.TextUtils;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.models.EasyJSONObject;
+
+import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class IntegrationTest extends BaseIntegrationTest {
 
@@ -43,7 +44,7 @@ public class IntegrationTest extends BaseIntegrationTest {
       @Override
       public void validate(EasyJSONObject settings) throws InvalidSettingsException {
 
-        if (TextUtils.isEmpty(settings.getString("apiKey"))) {
+        if (isNullOrEmpty(settings.getString("apiKey"))) {
           throw new InvalidSettingsException("apiKey",
               "Test Provider requires the apiKey setting.");
         }

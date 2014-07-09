@@ -24,11 +24,10 @@
 
 package com.segment.android.integrations;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.text.TextUtils;
 import com.quantcast.measurement.service.QuantcastClient;
-import com.segment.android.Constants;
 import com.segment.android.Logger;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.integration.SimpleIntegration;
@@ -37,6 +36,8 @@ import com.segment.android.models.Identify;
 import com.segment.android.models.Props;
 import com.segment.android.models.Screen;
 import com.segment.android.models.Track;
+
+import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class QuantcastIntegration extends SimpleIntegration {
 
@@ -55,14 +56,13 @@ public class QuantcastIntegration extends SimpleIntegration {
   @Override
   public String[] getRequiredPermissions() {
     return new String[] {
-        Constants.Permission.ACCESS_NETWORK_STATE
+        Manifest.permission.READ_PHONE_STATE
     };
   }
 
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
-
-    if (TextUtils.isEmpty(settings.getString(SettingKey.API_KEY))) {
+    if (isNullOrEmpty(settings.getString(SettingKey.API_KEY))) {
       throw new InvalidSettingsException(SettingKey.API_KEY,
           "Quantcast requires the apiKey setting.");
     }

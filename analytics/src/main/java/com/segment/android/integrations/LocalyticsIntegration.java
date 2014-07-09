@@ -26,7 +26,6 @@ package com.segment.android.integrations;
 
 import android.app.Activity;
 import android.content.Context;
-import android.text.TextUtils;
 import com.localytics.android.LocalyticsSession;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.integration.SimpleIntegration;
@@ -39,6 +38,8 @@ import com.segment.android.models.Traits;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class LocalyticsIntegration extends SimpleIntegration {
 
@@ -56,8 +57,7 @@ public class LocalyticsIntegration extends SimpleIntegration {
 
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
-
-    if (TextUtils.isEmpty(settings.getString(SettingKey.APP_KEY))) {
+    if (isNullOrEmpty(settings.getString(SettingKey.APP_KEY))) {
       throw new InvalidSettingsException(SettingKey.APP_KEY,
           "Localytics requires the appKey setting.");
     }

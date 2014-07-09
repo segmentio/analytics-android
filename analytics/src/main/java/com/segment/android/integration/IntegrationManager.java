@@ -26,7 +26,6 @@ package com.segment.android.integration;
 
 import android.app.Activity;
 import android.content.Context;
-import android.text.TextUtils;
 import com.segment.android.Logger;
 import com.segment.android.cache.SettingsCache;
 import com.segment.android.errors.InvalidSettingsException;
@@ -50,6 +49,8 @@ import com.segment.android.models.Track;
 import com.segment.android.stats.Stopwatch;
 import java.util.LinkedList;
 import java.util.List;
+
+import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class IntegrationManager implements IIntegration {
   private SettingsCache settingsCache;
@@ -120,7 +121,7 @@ public class IntegrationManager implements IIntegration {
    * Adds an integration to the integration manager
    */
   public void addIntegration(Integration integration) {
-    if (TextUtils.isEmpty(integration.getKey())) {
+    if (isNullOrEmpty(integration.getKey())) {
       throw new IllegalArgumentException(
           "integration #getKey() " + "must return a non-null non-empty integration key.");
     }

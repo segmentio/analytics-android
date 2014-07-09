@@ -26,7 +26,6 @@ package com.segment.android.integrations;
 
 import android.app.Application;
 import android.content.Context;
-import android.text.TextUtils;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.integration.SimpleIntegration;
 import com.segment.android.models.EasyJSONObject;
@@ -39,6 +38,8 @@ import com.tapstream.sdk.Tapstream;
 import java.util.Iterator;
 import org.OpenUDID.OpenUDID_manager;
 
+import static com.segment.android.utils.Utils.isNullOrEmpty;
+
 public class TapstreamIntegration extends SimpleIntegration {
 
   private static class SettingKey {
@@ -48,10 +49,10 @@ public class TapstreamIntegration extends SimpleIntegration {
 
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
-    if (TextUtils.isEmpty(settings.getString(SettingKey.ACCOUNT_NAME))) {
+    if (isNullOrEmpty(settings.getString(SettingKey.ACCOUNT_NAME))) {
       throw new InvalidSettingsException(SettingKey.ACCOUNT_NAME, "accountName required.");
     }
-    if (TextUtils.isEmpty(settings.getString(SettingKey.SDK_SECRET))) {
+    if (isNullOrEmpty(settings.getString(SettingKey.SDK_SECRET))) {
       throw new InvalidSettingsException(SettingKey.SDK_SECRET, "sdkSecret required.");
     }
   }

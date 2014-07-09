@@ -26,7 +26,8 @@ package com.segment.android;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.text.TextUtils;
+
+import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class ResourceConfig {
 
@@ -57,7 +58,7 @@ public class ResourceConfig {
     Config options = new Config();
 
     String host = getString(context, HOST_KEY);
-    if (!TextUtils.isEmpty(host)) options.setHost(host);
+    if (!isNullOrEmpty(host)) options.setHost(host);
 
     Boolean debug = getBoolean(context, DEBUG_KEY);
     if (debug != null) options.setDebug(debug);

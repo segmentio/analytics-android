@@ -78,14 +78,4 @@ public class Constants {
     public static final String USER_ID_KEY = "user.id";
     public static final String GROUP_ID_KEY = "group.id";
   }
-
-  public class Permission {
-
-    public static final String GET_ACCOUNTS = "android.permission.GET_ACCOUNTS";
-    public static final String READ_PHONE_STATE = "android.permission.READ_PHONE_STATE";
-    public static final String FINE_LOCATION = "android.permission.ACCESS_FINE_LOCATION";
-    public static final String COARSE_LOCATION = "android.permission.ACCESS_COARSE_LOCATION";
-    public static final String INTERNET = "android.permission.INTERNET";
-    public static final String ACCESS_NETWORK_STATE = "android.permission.ACCESS_NETWORK_STATE";
-  }
 }

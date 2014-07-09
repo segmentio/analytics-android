@@ -26,7 +26,6 @@ package com.segment.android.integrations;
 
 import android.app.Activity;
 import android.content.Context;
-import android.text.TextUtils;
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.analytics.tracking.android.ExceptionReporter;
 import com.google.analytics.tracking.android.Fields;
@@ -43,6 +42,8 @@ import com.segment.android.models.Props;
 import com.segment.android.models.Screen;
 import com.segment.android.models.Track;
 import java.lang.Thread.UncaughtExceptionHandler;
+
+import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class GoogleAnalyticsIntegration extends SimpleIntegration {
 
@@ -66,8 +67,7 @@ public class GoogleAnalyticsIntegration extends SimpleIntegration {
 
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
-
-    if (TextUtils.isEmpty(settings.getString(SettingKey.TRACKING_ID))) {
+    if (isNullOrEmpty(settings.getString(SettingKey.TRACKING_ID))) {
       throw new InvalidSettingsException(SettingKey.TRACKING_ID,
           "Google Analytics requires the trackingId (UA-XXXXXXXX-XX) setting.");
     }

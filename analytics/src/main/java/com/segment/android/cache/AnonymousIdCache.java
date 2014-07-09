@@ -26,10 +26,10 @@ package com.segment.android.cache;
 
 import android.content.Context;
 import com.segment.android.Constants;
-import com.segment.android.utils.DeviceId;
+
+import static com.segment.android.utils.Utils.getDeviceId;
 
 public class AnonymousIdCache extends SimpleStringCache {
-
   private Context context;
 
   public AnonymousIdCache(Context context) {
@@ -40,6 +40,6 @@ public class AnonymousIdCache extends SimpleStringCache {
 
   @Override
   public String load() {
-    return DeviceId.get(context);
+    return getDeviceId(context);
   }
 }
