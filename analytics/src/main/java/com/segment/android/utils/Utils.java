@@ -76,17 +76,11 @@ public final class Utils {
 
     // Serial number
     // Guaranteed to be on all non phones in 2.3+
-    try {
-      String serialNumber = (String) Build.class.getField("SERIAL").get(null);
-      if (!isNullOrEmpty(serialNumber)) {
-        return serialNumber;
-      }
-    } catch (Exception e) {
-      // Ignore
+    if (!isNullOrEmpty(Build.SERIAL)) {
+      return Build.SERIAL;
     }
 
-    // Telephony ID
-    // Guaranteed to be on all phones, requires READ_PHONE_STATE permission
+    // Telephony ID, guaranteed to be on all phones, requires READ_PHONE_STATE permission
     if (hasPermission(context, Manifest.permission.READ_PHONE_STATE) && hasFeature(context,
         PackageManager.FEATURE_TELEPHONY)) {
 
