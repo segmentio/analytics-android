@@ -30,6 +30,8 @@ import android.location.LocationManager;
 import com.segment.android.models.EasyJSONObject;
 import org.json.JSONObject;
 
+import static com.segment.android.utils.Utils.getSystemService;
+
 public class Location implements Info<JSONObject> {
 
   @Override
@@ -40,8 +42,7 @@ public class Location implements Info<JSONObject> {
   @Override
   public JSONObject get(Context context) {
 
-    LocationManager locationManager =
-        (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+    LocationManager locationManager = getSystemService(context, Context.LOCATION_SERVICE);
 
     // http://stackoverflow.com/questions/5505429/switching-between-network-and-gps-provider
     // only read from the network to avoid turning on GPS

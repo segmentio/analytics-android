@@ -26,7 +26,6 @@ package com.segment.android.integrations;
 
 import android.app.Activity;
 import android.content.Context;
-import android.text.TextUtils;
 import com.bugsnag.android.Bugsnag;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.integration.SimpleIntegration;
@@ -34,6 +33,8 @@ import com.segment.android.models.EasyJSONObject;
 import com.segment.android.models.Identify;
 import com.segment.android.models.Traits;
 import java.util.Iterator;
+
+import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class BugsnagIntegration extends SimpleIntegration {
 
@@ -51,8 +52,7 @@ public class BugsnagIntegration extends SimpleIntegration {
 
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
-
-    if (TextUtils.isEmpty(settings.getString(SettingKey.API_KEY))) {
+    if (isNullOrEmpty(settings.getString(SettingKey.API_KEY))) {
       throw new InvalidSettingsException(SettingKey.API_KEY,
           "Bugsnag requires the setting apiKey.");
     }

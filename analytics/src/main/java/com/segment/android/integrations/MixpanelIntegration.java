@@ -25,7 +25,6 @@
 package com.segment.android.integrations;
 
 import android.content.Context;
-import android.text.TextUtils;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.integration.SimpleIntegration;
@@ -40,6 +39,8 @@ import com.segment.android.utils.Parameters;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class MixpanelIntegration extends SimpleIntegration {
 
@@ -57,8 +58,7 @@ public class MixpanelIntegration extends SimpleIntegration {
 
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
-
-    if (TextUtils.isEmpty(settings.getString(SettingKey.TOKEN))) {
+    if (isNullOrEmpty(settings.getString(SettingKey.TOKEN))) {
       throw new InvalidSettingsException(SettingKey.TOKEN, "Mixpanel requires the token setting.");
     }
   }

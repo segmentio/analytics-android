@@ -22,26 +22,24 @@
  * SOFTWARE.
  */
 
-package com.segment.android.utils;
+package com.segment.android.utils.test;
 
-import android.content.pm.PackageManager;
+import android.test.AndroidTestCase;
+import junit.framework.Assert;
+import org.junit.Test;
 
-public class AndroidUtils {
+import static com.segment.android.utils.Utils.isNullOrEmpty;
 
-  /**
-   * Returns whether the permission currently exists for this application
-   */
-  public static boolean permissionGranted(android.content.Context context, String permission) {
-    return context.checkCallingOrSelfPermission(permission) == PackageManager.PERMISSION_GRANTED;
-  }
+public class UtilsTest extends AndroidTestCase {
 
-  /**
-   * Returns whether the permissions currently exists for this application
-   */
-  public static boolean permissionGranted(android.content.Context context, String[] permissions) {
-    for (String permission : permissions) {
-      if (!permissionGranted(context, permission)) return false;
-    }
-    return true;
+  @Test
+  public void testEmptyString() {
+    Assert.assertTrue(isNullOrEmpty(""));
+    Assert.assertTrue(isNullOrEmpty(null));
+    Assert.assertTrue(isNullOrEmpty(" "));
+    Assert.assertTrue(isNullOrEmpty("      "));
+
+    Assert.assertFalse(isNullOrEmpty("a"));
+    Assert.assertFalse(isNullOrEmpty("dasdak"));
   }
 }

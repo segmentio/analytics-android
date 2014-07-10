@@ -30,8 +30,10 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.telephony.TelephonyManager;
 import com.segment.android.models.EasyJSONObject;
-import com.segment.android.utils.AndroidUtils;
 import org.json.JSONObject;
+
+import static com.segment.android.utils.Utils.getSystemService;
+import static com.segment.android.utils.Utils.hasPermission;
 
 public class Network implements Info<JSONObject> {
 
@@ -44,22 +46,22 @@ public class Network implements Info<JSONObject> {
   public JSONObject get(Context context) {
     EasyJSONObject network = new EasyJSONObject();
 
-    if (AndroidUtils.permissionGranted(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
-      ConnectivityManager manager =
-          (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-      if (manager != null) {
-        NetworkInfo wifi = manager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+    if (hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
+      ConnectivityManager connectivityManager =
+          getSystemService(context, Context.CONNECTIVITY_SERVICE);
+      if (connectivityManager != null) {
+        NetworkInfo wifi = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
         if (wifi != null) network.put("wifi", wifi.isConnected());
-        NetworkInfo bluetooth = manager.getNetworkInfo(ConnectivityManager.TYPE_BLUETOOTH);
+        NetworkInfo bluetooth =
+            connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_BLUETOOTH);
         if (bluetooth != null) network.put("bluetooth", bluetooth.isConnected());
-        NetworkInfo cellular = manager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+        NetworkInfo cellular = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
         if (cellular != null) network.put("cellular", cellular.isConnected());
       }
     }
 
-    TelephonyManager telephony =
-        (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-    if (telephony != null) network.put("carrier", telephony.getNetworkOperatorName());
+    TelephonyManager telephonyManager = getSystemService(context, Context.TELEPHONY_SERVICE);
+    if (telephonyManager != null) network.put("carrier", telephonyManager.getNetworkOperatorName());
 
     return network;
   }

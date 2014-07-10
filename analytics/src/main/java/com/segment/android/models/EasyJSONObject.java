@@ -24,7 +24,6 @@
 
 package com.segment.android.models;
 
-import android.text.TextUtils;
 import com.segment.android.Logger;
 import com.segment.android.utils.ISO8601;
 import java.text.ParseException;
@@ -37,6 +36,8 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class EasyJSONObject extends JSONObject {
 
@@ -192,7 +193,7 @@ public class EasyJSONObject extends JSONObject {
   public String getString(String key, String defaultString) {
     try {
       String str = super.getString(key);
-      if (TextUtils.isEmpty(str)) {
+      if (isNullOrEmpty(str)) {
         return defaultString;
       } else {
         return str;

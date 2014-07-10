@@ -30,6 +30,8 @@ import android.view.WindowManager;
 import com.segment.android.models.EasyJSONObject;
 import org.json.JSONObject;
 
+import static com.segment.android.utils.Utils.getSystemService;
+
 public class Screen implements Info<JSONObject> {
 
   @Override
@@ -40,7 +42,7 @@ public class Screen implements Info<JSONObject> {
   @Override
   public JSONObject get(Context context) {
     EasyJSONObject screen = new EasyJSONObject();
-    WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+    WindowManager manager = getSystemService(context, Context.WINDOW_SERVICE);
     if (manager != null) {
       DisplayMetrics metrics = new DisplayMetrics();
 

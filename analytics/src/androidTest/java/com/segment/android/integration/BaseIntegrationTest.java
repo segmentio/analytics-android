@@ -25,22 +25,23 @@
 package com.segment.android.integration;
 
 import android.app.Activity;
-import android.text.TextUtils;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.models.EasyJSONObject;
 import com.segment.android.test.TestCases;
 import junit.framework.Assert;
 import org.junit.Test;
 
+import static com.segment.android.utils.Utils.isNullOrEmpty;
+
 /**
  * Automated generic provider activity tests built on
- * top of {@link BaseProviderInitializationActivity}.
+ * top of {@link BaseIntegrationInitializationActivity}.
  */
 public abstract class BaseIntegrationTest extends BaseIntegrationInitializationActivity {
 
   @Test
   public void testGetKey() {
-    Assert.assertFalse(TextUtils.isEmpty(integration.getKey()));
+    Assert.assertFalse(isNullOrEmpty(integration.getKey()));
   }
 
   @Test

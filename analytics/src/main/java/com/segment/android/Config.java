@@ -24,7 +24,7 @@
 
 package com.segment.android;
 
-import android.text.TextUtils;
+import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 /**
  * Client configuration
@@ -166,7 +166,7 @@ public class Config {
    */
   public Config setHost(String host) {
 
-    if (TextUtils.isEmpty(host)) {
+    if (isNullOrEmpty(host)) {
       throw new IllegalArgumentException("Analytics Options #host must be non-null or empty.");
     }
 

@@ -26,7 +26,6 @@ package com.segment.android.integrations;
 
 import android.app.Activity;
 import android.content.Context;
-import android.text.TextUtils;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.integration.SimpleIntegration;
 import com.segment.android.models.EasyJSONObject;
@@ -36,6 +35,8 @@ import com.segment.android.models.Track;
 import java.util.HashMap;
 import java.util.Map;
 import ly.count.android.api.Countly;
+
+import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class CountlyIntegration extends SimpleIntegration {
 
@@ -52,13 +53,12 @@ public class CountlyIntegration extends SimpleIntegration {
 
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
-
-    if (TextUtils.isEmpty(settings.getString(SettingKey.SERVER_URL))) {
+    if (isNullOrEmpty(settings.getString(SettingKey.SERVER_URL))) {
       throw new InvalidSettingsException(SettingKey.SERVER_URL,
           "Countly requires the serverUrl setting.");
     }
 
-    if (TextUtils.isEmpty(settings.getString(SettingKey.APP_KEY))) {
+    if (isNullOrEmpty(settings.getString(SettingKey.APP_KEY))) {
       throw new InvalidSettingsException(SettingKey.APP_KEY,
           "Amplitude requires the appKey setting.");
     }

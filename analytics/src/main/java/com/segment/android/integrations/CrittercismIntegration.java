@@ -25,7 +25,6 @@
 package com.segment.android.integrations;
 
 import android.content.Context;
-import android.text.TextUtils;
 import com.crittercism.app.Crittercism;
 import com.crittercism.app.CrittercismConfig;
 import com.segment.android.errors.InvalidSettingsException;
@@ -36,6 +35,8 @@ import com.segment.android.models.Props;
 import com.segment.android.models.Screen;
 import com.segment.android.models.Track;
 import com.segment.android.models.Traits;
+
+import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class CrittercismIntegration extends SimpleIntegration {
 
@@ -56,7 +57,7 @@ public class CrittercismIntegration extends SimpleIntegration {
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
 
-    if (TextUtils.isEmpty(settings.getString(SettingKey.APP_ID))) {
+    if (isNullOrEmpty(settings.getString(SettingKey.APP_ID))) {
       throw new InvalidSettingsException(SettingKey.APP_ID,
           "Crittercism requires the appId setting.");
     }

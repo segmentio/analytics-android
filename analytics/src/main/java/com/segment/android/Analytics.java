@@ -25,7 +25,6 @@
 package com.segment.android;
 
 import android.app.Activity;
-import android.text.TextUtils;
 import com.segment.android.cache.AnonymousIdCache;
 import com.segment.android.cache.ISettingsLayer;
 import com.segment.android.cache.ISettingsLayer.SettingsCallback;
@@ -60,16 +59,14 @@ import com.segment.android.request.IRequestLayer;
 import com.segment.android.request.IRequester;
 import com.segment.android.request.RequestThread;
 import com.segment.android.stats.AnalyticsStatistics;
-import com.segment.android.utils.DeviceId;
 import com.segment.android.utils.HandlerTimer;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import static com.segment.android.utils.Utils.getDeviceId;
+import static com.segment.android.utils.Utils.isNullOrEmpty;
+
 public final class Analytics {
-
-  // NOTE: todo: Don't forget to update build.gradle
-  public static final String VERSION = "1.0.0";
-
   private static AnalyticsStatistics statistics;
 
   private static Context globalContext;
@@ -112,7 +109,7 @@ public final class Analytics {
    * your calls to make a HTTP request. It uses batching to efficiently send
    * your requests on a separate resource-constrained thread pool.
    *
-   * @param activity Your Android Activity
+   * @param context Your Android context
    */
   public static void onCreate(android.content.Context context) {
     Analytics.initialize(context);
@@ -131,7 +128,7 @@ public final class Analytics {
    * your calls to make a HTTP request. It uses batching to efficiently send
    * your requests on a separate resource-constrained thread pool.
    *
-   * @param activity Your Android Activity
+   * @param context Your Android context
    * @param writeKey Your segment.io writeKey. You can get one of these by
    * registering for a project at https://segment.io
    */
@@ -152,7 +149,7 @@ public final class Analytics {
    * your calls to make a HTTP request. It uses batching to efficiently send
    * your requests on a separate resource-constrained thread pool.
    *
-   * @param activity Your Android Activity
+   * @param context Your Android context
    * @param writeKey Your segment.io writeKey. You can get one of these by
    * registering for a project at https://segment.io
    * @param options Options to configure the behavior of the Segment.io client
@@ -274,7 +271,7 @@ public final class Analytics {
    * your calls to make a HTTP request. It uses batching to efficiently send
    * your requests on a separate resource-constrained thread pool.
    *
-   * @param activity Your Android Activity
+   * @param context Your Android application context
    */
   public static void initialize(android.content.Context context) {
 
@@ -346,7 +343,7 @@ public final class Analytics {
 
     if (context == null) throw new IllegalArgumentException(errorPrefix + "android context.");
 
-    if (writeKey == null || writeKey.length() == 0) {
+    if (isNullOrEmpty(writeKey)) {
       throw new IllegalArgumentException(errorPrefix + "writeKey.");
     }
 
@@ -373,7 +370,7 @@ public final class Analytics {
     userIdCache = new SimpleStringCache(context, Constants.SharedPreferences.USER_ID_KEY);
 
     // set the sessionId initially
-    anonymousIdCache.set(DeviceId.get(context));
+    anonymousIdCache.set(getDeviceId(context));
 
     // now we need to create our singleton thread-safe database thread
     Analytics.databaseLayer = new PayloadDatabaseThread(database);
@@ -573,7 +570,7 @@ public final class Analytics {
 
     userId = getOrSetUserId(userId);
 
-    if (userId == null || userId.length() == 0) {
+    if (isNullOrEmpty(userId)) {
       throw new IllegalArgumentException(
           "analytics-android #identify must be initialized with a valid user id.");
     }
@@ -670,7 +667,7 @@ public final class Analytics {
     String userId = getUserId();
     groupId = getOrSetGroupId(groupId);
 
-    if (groupId == null || groupId.length() == 0) {
+    if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException(
           "analytics-android #group must be called with a valid group id.");
     }
@@ -758,12 +755,12 @@ public final class Analytics {
 
     String userId = getOrSetUserId(null);
 
-    if (userId == null || userId.length() == 0) {
+    if (isNullOrEmpty(userId)) {
       throw new IllegalArgumentException(
           "analytics-android #track must be initialized with a valid user id.");
     }
 
-    if (event == null || event.length() == 0) {
+    if (isNullOrEmpty(event)) {
       throw new IllegalArgumentException(
           "analytics-android #track must be initialized with a valid event name.");
     }
@@ -943,7 +940,7 @@ public final class Analytics {
 
     String userId = getOrSetUserId(null);
 
-    if (userId == null || userId.length() == 0) {
+    if (isNullOrEmpty(userId)) {
       throw new IllegalArgumentException(
           "analytics-android #screen must be initialized with a valid user id.");
     }
@@ -994,12 +991,12 @@ public final class Analytics {
     checkInitialized();
     if (optedOut) return;
 
-    if (previousId == null || previousId.length() == 0) {
+    if (isNullOrEmpty(previousId)) {
       throw new IllegalArgumentException(
           "analytics-android #alias must be initialized with a valid from id.");
     }
 
-    if (userId == null || userId.length() == 0) {
+    if (isNullOrEmpty(userId)) {
       throw new IllegalArgumentException(
           "analytics-android #alias must be initialized with a valid to id.");
     }
@@ -1023,10 +1020,10 @@ public final class Analytics {
    * be returned.
    */
   private static String getOrSetUserId(String userId) {
-    if (TextUtils.isEmpty(userId)) {
+    if (isNullOrEmpty(userId)) {
       // no user id provided, lets try to see if we have it saved
       userId = userIdCache.get();
-      if (TextUtils.isEmpty(userId)) {
+      if (isNullOrEmpty(userId)) {
         // we have no user Id, let's use the sessionId
         userId = anonymousIdCache.get();
       }
@@ -1044,7 +1041,7 @@ public final class Analytics {
    * be returned.
    */
   private static String getOrSetGroupId(String groupId) {
-    if (TextUtils.isEmpty(groupId)) {
+    if (isNullOrEmpty(groupId)) {
       // no group id provided, lets try to see if we have it saved
       groupId = groupIdCache.get();
     } else {

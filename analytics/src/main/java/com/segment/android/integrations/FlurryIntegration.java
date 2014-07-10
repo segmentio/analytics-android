@@ -26,7 +26,6 @@ package com.segment.android.integrations;
 
 import android.app.Activity;
 import android.content.Context;
-import android.text.TextUtils;
 import com.flurry.android.Constants;
 import com.flurry.android.FlurryAgent;
 import com.segment.android.Logger;
@@ -42,6 +41,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import static com.segment.android.utils.Utils.isNullOrEmpty;
+
 public class FlurryIntegration extends SimpleIntegration {
 
   private static class SettingKey {
@@ -55,8 +56,7 @@ public class FlurryIntegration extends SimpleIntegration {
 
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
-
-    if (TextUtils.isEmpty(settings.getString(SettingKey.API_KEY))) {
+    if (isNullOrEmpty(settings.getString(SettingKey.API_KEY))) {
       throw new InvalidSettingsException(SettingKey.API_KEY, "API Key (apiKey) required.");
     }
   }
@@ -107,7 +107,7 @@ public class FlurryIntegration extends SimpleIntegration {
     Traits traits = identify.getTraits();
 
     String gender = traits.getString("gender");
-    if (!TextUtils.isEmpty(gender)) {
+    if (!isNullOrEmpty(gender)) {
       if (gender.equalsIgnoreCase("male")) {
         FlurryAgent.setGender(Constants.MALE);
       } else if (gender.equalsIgnoreCase("female")) {

@@ -28,7 +28,8 @@ import android.content.Context;
 import com.segment.android.Logger;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.models.EasyJSONObject;
-import com.segment.android.utils.AndroidUtils;
+
+import static com.segment.android.utils.Utils.hasPermission;
 
 public abstract class Integration implements IIntegration {
 
@@ -83,7 +84,7 @@ public abstract class Integration implements IIntegration {
   public boolean checkPermission(Context context) {
     String[] permissions = getRequiredPermissions();
     for (String permission : permissions) {
-      if (!AndroidUtils.permissionGranted(context, permission)) {
+      if (!hasPermission(context, permission)) {
         Logger.w("integration %s requires permission %s but its not granted.", getKey(),
             permission);
         changeState(IntegrationState.INVALID, new IntegrationState[] {
