@@ -47,8 +47,7 @@ public abstract class Integration implements IIntegration {
   public void initialize(EasyJSONObject settings) throws InvalidSettingsException {
     if (this.settings != null) {
       if (!EasyJSONObject.equals(this.settings, settings)) {
-        Logger.w(String.format("integration %s settings changed. %s => %s", getKey(), this.settings,
-            settings));
+        Logger.w("integration %s settings changed. %s => %s", getKey(), this.settings, settings);
       }
     }
 
@@ -85,10 +84,8 @@ public abstract class Integration implements IIntegration {
     String[] permissions = getRequiredPermissions();
     for (String permission : permissions) {
       if (!AndroidUtils.permissionGranted(context, permission)) {
-        Logger.w(
-            String.format("integration %s requires permission %s but its not granted.", getKey(),
-                permission)
-        );
+        Logger.w("integration %s requires permission %s but its not granted.", getKey(),
+            permission);
         changeState(IntegrationState.INVALID, new IntegrationState[] {
             IntegrationState.NOT_INITIALIZED, IntegrationState.INITIALIZED
         });
@@ -155,8 +152,8 @@ public abstract class Integration implements IIntegration {
       state = to;
       return true;
     } else {
-      Logger.w(
-          "Integration " + getKey() + " cant be " + to + " because its in state " + state + ".");
+      Logger.w("Integration %s can't be changed to %s because it is in state %s.", getKey(), to,
+          state);
       return false;
     }
   }
@@ -196,12 +193,17 @@ public abstract class Integration implements IIntegration {
 
   /**
    * Validates that the provided settings are enough for this driver to perform its function.
-   * Will throw {@link com.segment.android.errors.InvalidSettingsException} if the settings are not
-   * enough.
+   * Will throw {@link com.segment.android.errors.InvalidSettingsException} if the settings are
+   * not enough.
    *
    * @param settings The Segment.io integration settings
    * @throws com.segment.android.errors.InvalidSettingsException An exception that says a field
    * setting is invalid
    */
   public abstract void validate(EasyJSONObject settings) throws InvalidSettingsException;
+
+  @Override public String toString() {
+    return String.format("Integration{settings=%s, state=%s, hasPermission=%s}", settings, state,
+        hasPermission);
+  }
 }

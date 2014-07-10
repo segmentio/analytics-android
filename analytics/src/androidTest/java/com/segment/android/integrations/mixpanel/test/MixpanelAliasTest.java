@@ -24,9 +24,8 @@
 
 package com.segment.android.integrations.mixpanel.test;
 
-import android.util.Log;
 import com.segment.android.Analytics;
-import com.segment.android.Constants;
+import com.segment.android.Logger;
 import com.segment.android.integration.BaseIntegrationInitializationActivity;
 import com.segment.android.integration.Integration;
 import com.segment.android.integrations.MixpanelIntegration;
@@ -70,8 +69,7 @@ public class MixpanelAliasTest extends BaseIntegrationInitializationActivity {
 
     Analytics.setAnonymousId(anonymousId);
 
-    Log.e(Constants.TAG, "Mixpanel alias test is using session_id: " +
-        anonymousId + ", and user_id: " + userId);
+    Logger.e("Mixpanel alias test is using session_id: %s and user_id: %s", anonymousId, userId);
 
     integration.track(new Track(null, "Anonymous Event", properties, options));
 

@@ -25,13 +25,7 @@
 package com.segment.android;
 
 public class Constants {
-
   public static final String PACKAGE_NAME = Constants.class.getPackage().getName();
-
-  /**
-   * Logging tag
-   */
-  public static final String TAG = "analytics";
 
   /**
    * The maximum amount of events to flush at a time

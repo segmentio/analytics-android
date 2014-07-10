@@ -25,7 +25,6 @@
 package com.segment.android.request;
 
 import android.util.Base64;
-import android.util.Log;
 import com.segment.android.Analytics;
 import com.segment.android.Config;
 import com.segment.android.Defaults;
@@ -67,10 +66,9 @@ public class BasicRequester implements IRequester {
       ByteArrayEntity se = new ByteArrayEntity(json.getBytes());
       se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
       post.setEntity(se);
-
       return httpclient.execute(post);
     } catch (Exception e) {
-      Logger.w("Failed to send request. " + Log.getStackTraceString(e));
+      Logger.w(e, "Failed to send request.");
     }
 
     return null;
@@ -91,7 +89,7 @@ public class BasicRequester implements IRequester {
       JSONObject jsonObject = new JSONObject(json);
       return new EasyJSONObject(jsonObject);
     } catch (Exception e) {
-      Logger.w("Failed to send request. " + Log.getStackTraceString(e));
+      Logger.w(e, "Failed to send request.");
     }
 
     return null;

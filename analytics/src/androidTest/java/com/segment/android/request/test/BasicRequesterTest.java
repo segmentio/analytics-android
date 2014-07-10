@@ -64,7 +64,8 @@ public class BasicRequesterTest extends BaseTest {
   public void testUTF8Characters() {
     Identify identify = new Identify("some_user",
         new Traits("carrier", "GR COSMOTE", "language", "????????????????", "country",
-            "????????????"), null);
+            "????????????"), null
+    );
 
     List<BasePayload> items = new LinkedList<BasePayload>();
     items.add(identify);
@@ -85,7 +86,9 @@ public class BasicRequesterTest extends BaseTest {
     String[] keys = { "Segment.io" };
 
     for (String key : keys) {
-      if (settings.getObject(key) == null) Logger.e(key + " is not in settings!");
+      if (settings.getObject(key) == null) {
+        Logger.e("%s is not in settings!", key);
+      }
       Assert.assertNotNull(settings.getObject(key));
     }
   }

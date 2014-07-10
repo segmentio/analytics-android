@@ -94,7 +94,7 @@ public class SettingsCache extends SimpleStringCache {
       try {
         return new EasyJSONObject(new JSONObject(json));
       } catch (JSONException e) {
-        Logger.w("Failed to parse json object representing cached settings.");
+        Logger.w(e, "Failed to parse json object representing cached settings.");
       }
     }
 
@@ -125,7 +125,7 @@ public class SettingsCache extends SimpleStringCache {
 
         return container.toString();
       } else {
-        Logger.w("Container exists, but without last updated key. JSON: " + container.toString());
+        Logger.w("Container exists, but without last updated key. JSON: %s", container);
       }
     }
 

@@ -25,7 +25,6 @@
 package com.segment.android.models;
 
 import android.text.TextUtils;
-import android.util.Log;
 import com.segment.android.Logger;
 import com.segment.android.utils.ISO8601;
 import java.text.ParseException;
@@ -86,7 +85,7 @@ public class EasyJSONObject extends JSONObject {
           val = obj.get(key);
           this.putObject(key, val);
         } catch (JSONException e) {
-          Logger.w("JSON object had an invalid value during merge. " + Log.getStackTraceString(e));
+          Logger.w(e, "JSON object had an invalid value during merge");
         }
       }
     }
@@ -137,10 +136,7 @@ public class EasyJSONObject extends JSONObject {
     try {
       return super.put(key, value);
     } catch (JSONException e) {
-      Logger.e("Failed to add json key => value"
-              + String.format("[%s => %s] : ", key, value)
-              + Log.getStackTraceString(e)
-      );
+      Logger.e(e, "Failed to add json key => value [%s => %s] : ", key, value);
     }
     return null;
   }
@@ -155,8 +151,7 @@ public class EasyJSONObject extends JSONObject {
       try {
         return ISO8601.toCalendar(timestampStr);
       } catch (ParseException e) {
-        Logger.w(
-            "Failed to parse timestamp string into ISO 8601 format: " + Log.getStackTraceString(e));
+        Logger.w(e, "Failed to parse timestamp string into ISO 8601 format");
       }
     }
 
@@ -235,7 +230,7 @@ public class EasyJSONObject extends JSONObject {
     try {
       return super.get(key);
     } catch (JSONException e) {
-      Logger.e("Failed to read json key. " + String.format("[%s] : ", key));
+      Logger.e(e, "Failed to read json key : [%s]", key);
     }
     return null;
   }
@@ -342,5 +337,4 @@ public class EasyJSONObject extends JSONObject {
 
     return true;
   }
-
 }
