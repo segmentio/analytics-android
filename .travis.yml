@@ -2,6 +2,9 @@ language: android
 
 notifications:
   email: false
+  hipchat:
+    rooms:
+      secure: CO1rkQMD/T5fpAozqneRg6SqVIMrgi659A5hGUA9pdwFXDv9y4MZTjTE9cws30po1v74k9EtrNSGwAMnZoKao6lorQBL2d1S+HQKkFQIrwNJ1wLrgFz8KBDziv35Bt3+8yYHxPGtu0iLgK+xHvSx2WWs+MtoH9Xdj37QfJi56+o=
 
 branches:
   except:
