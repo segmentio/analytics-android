@@ -30,8 +30,9 @@ import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.fest.assertions.api.Assertions.assertThat;
 
 public class ISO8601Test extends AndroidTestCase {
 
@@ -46,7 +47,7 @@ public class ISO8601Test extends AndroidTestCase {
 
     Calendar got = ISO8601.toCalendar(iso8601);
 
-    // test this way until millisecond testing is fixed
-    Assert.assertEquals(date.toString(), got.getTime().toString());
+    // todo: test this way until millisecond testing is fixed
+    assertThat(got.getTime().toString()).isEqualTo(date.toString());
   }
 }

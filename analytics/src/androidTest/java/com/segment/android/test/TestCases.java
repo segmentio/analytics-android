@@ -43,9 +43,13 @@ import java.util.Random;
 import java.util.TimeZone;
 
 @SuppressWarnings("serial")
-public class TestCases {
+public final class TestCases {
 
   private static Random random = new Random();
+
+  private TestCases() {
+    throw new AssertionError("No instances");
+  }
 
   public static Calendar calendar() {
     Calendar calendar = new GregorianCalendar();
@@ -58,17 +62,15 @@ public class TestCases {
     return new Identify("ilya@segment.io",
         new Traits("name", "Achilles", "email", "achilles@segment.io", "subscriptionPlan",
             "Premium", "friendCount", 29, "company",
-            new EasyJSONObject().put("name", "Company, inc.")
-        ), new Options().setTimestamp(calendar()).setContext(new Context().put("ip", "192.168.1.1")
-    )
+            new EasyJSONObject().put("name", "Company, inc.")),
+        new Options().setTimestamp(calendar()).setContext(new Context().put("ip", "192.168.1.1"))
     );
   }
 
   public static Group group() {
     return new Group("ilya@segment.io", "segmentio_id",
         new Traits("name", "Segment.io", "plan", "Premium"),
-        new Options().setTimestamp(calendar()).setContext(new Context("ip", "192.168.1.1"))
-    );
+        new Options().setTimestamp(calendar()).setContext(new Context("ip", "192.168.1.1")));
   }
 
   public static Track track() {

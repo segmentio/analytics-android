@@ -30,9 +30,10 @@ import com.segment.android.cache.SettingsThread;
 import com.segment.android.request.BasicRequester;
 import com.segment.android.request.IRequester;
 import com.segment.android.test.BaseTest;
-import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.fest.assertions.api.Assertions.assertThat;
 
 public class SettingsCacheTest extends BaseTest {
 
@@ -56,25 +57,25 @@ public class SettingsCacheTest extends BaseTest {
 
   @Test
   public void loadTest() {
-
     int reloads = cache.getReloads();
 
-    Assert.assertEquals(reloads, cache.getReloads());
-    Assert.assertNotNull(cache.get());
-    Assert.assertEquals(reloads + 1, cache.getReloads());
-    Assert.assertNotNull(cache.getSettings());
-    Assert.assertEquals(reloads + 1, cache.getReloads());
+    assertThat(reloads).isEqualTo(cache.getReloads());
+    assertThat(cache.get()).isNotNull();
 
-    Assert.assertNotNull(cache.get());
-    Assert.assertEquals(reloads + 1, cache.getReloads());
+    assertThat(reloads + 1).isEqualTo(cache.getReloads());
+    assertThat(cache.getSettings()).isNotNull();
+    assertThat(reloads + 1).isEqualTo(cache.getReloads());
 
-    Assert.assertNotNull(cache.getSettings());
-    Assert.assertEquals(reloads + 1, cache.getReloads());
+    assertThat(cache.get()).isNotNull();
+    assertThat(reloads + 1).isEqualTo(cache.getReloads());
+
+    assertThat(cache.getSettings()).isNotNull();
+    assertThat(reloads + 1).isEqualTo(cache.getReloads());
   }
 
 	
 	/* TODO:  Test needs to be fixed
-	@Test
+  @Test
 	public void testRefreshTest() {
 		
 		int reloads = cache.getReloads();

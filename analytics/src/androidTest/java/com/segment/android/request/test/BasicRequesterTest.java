@@ -38,8 +38,9 @@ import com.segment.android.test.TestCases;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.http.HttpResponse;
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.fest.assertions.api.Assertions.assertThat;
 
 // The big question: requester or requestor? : 
 // http://english.stackexchange.com/questions/29254/whats-the-difference-between-requester-and-requestor
@@ -57,7 +58,7 @@ public class BasicRequesterTest extends BaseTest {
   @Test
   public void testSimpleBatchRequest() {
     HttpResponse response = requester.send(TestCases.batch(Constants.WRITE_KEY));
-    Assert.assertEquals(200, response.getStatusLine().getStatusCode());
+    assertThat(response.getStatusLine().getStatusCode()).isEqualTo(200);
   }
 
   @Test
@@ -72,24 +73,23 @@ public class BasicRequesterTest extends BaseTest {
 
     Batch batch = new Batch(Constants.WRITE_KEY, items);
     HttpResponse response = requester.send(batch);
-    Assert.assertEquals(200, response.getStatusLine().getStatusCode());
+    assertThat(response.getStatusLine().getStatusCode()).isEqualTo(200);
   }
 
   @Test
   public void testSimpleSettingsRequest() {
-
     EasyJSONObject settings = requester.fetchSettings();
 
-    Assert.assertNotNull(settings);
-    Assert.assertTrue(settings.length() > 0);
+    assertThat(settings).isNotNull();
+    assertThat(settings.length()).isGreaterThan(0);
 
-    String[] keys = { "Segment.io" };
+    String[] keys = {"Segment.io"};
 
     for (String key : keys) {
       if (settings.getObject(key) == null) {
         Logger.e("%s is not in settings!", key);
       }
-      Assert.assertNotNull(settings.getObject(key));
+      assertThat(settings.getObject(key)).isNotNull();
     }
   }
 }

@@ -34,9 +34,10 @@ import com.segment.android.test.TestCases;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import junit.framework.Assert;
 import org.apache.http.HttpResponse;
 import org.junit.Test;
+
+import static org.fest.assertions.api.Assertions.assertThat;
 
 public class DuplicateTest extends BaseTest {
 
@@ -96,6 +97,6 @@ public class DuplicateTest extends BaseTest {
     Log.i(TAG, "Detected " + requester.countDuplicates() + " duplicates.");
 
     // check that we haven't seen any duplicates
-    Assert.assertEquals(0, requester.countDuplicates());
+    assertThat(requester.countDuplicates()).isZero();
   }
 }

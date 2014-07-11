@@ -25,15 +25,15 @@
 package com.segment.android.info.test;
 
 import android.test.AndroidTestCase;
-import junit.framework.Assert;
 import org.junit.Test;
 
 import static com.segment.android.utils.Utils.getDeviceId;
+import static org.fest.assertions.api.Assertions.assertThat;
 
 public class DeviceIdTest extends AndroidTestCase {
   @Test
   public void testGet() {
     String deviceId = getDeviceId(getContext());
-    Assert.assertNotNull(deviceId);
+    assertThat(deviceId).isNotNull();
   }
 }

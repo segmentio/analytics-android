@@ -29,8 +29,9 @@ import com.segment.android.models.EasyJSONObject;
 import com.segment.android.utils.Parameters;
 import java.util.HashMap;
 import java.util.Map;
-import junit.framework.Assert;
 import org.junit.Test;
+
+import static org.fest.assertions.api.Assertions.assertThat;
 
 public class ParametersTest extends AndroidTestCase {
 
@@ -41,7 +42,7 @@ public class ParametersTest extends AndroidTestCase {
 
     EasyJSONObject moved = Parameters.move(json, new HashMap<String, String>());
 
-    Assert.assertTrue(EasyJSONObject.equals(json, moved));
+    assertThat(moved).isEqualTo(json);
   }
 
   @Test
@@ -55,6 +56,6 @@ public class ParametersTest extends AndroidTestCase {
 
     EasyJSONObject moved = Parameters.move(json, map);
 
-    Assert.assertTrue(EasyJSONObject.equals(moved, expected));
+    assertThat(moved).isEqualTo(expected);
   }
 }

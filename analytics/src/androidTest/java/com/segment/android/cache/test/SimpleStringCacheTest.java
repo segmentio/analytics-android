@@ -24,33 +24,28 @@
 
 package com.segment.android.cache.test;
 
-import android.content.Context;
 import android.test.AndroidTestCase;
 import com.segment.android.cache.SimpleStringCache;
-import junit.framework.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.fest.assertions.api.Assertions.assertThat;
+
 public class SimpleStringCacheTest extends AndroidTestCase {
+  SimpleStringCache cache;
 
-  private SimpleStringCache noLoaderCache;
-  private String val;
+  @Override protected void setUp() throws Exception {
+    super.setUp();
 
-  @BeforeClass
-  public void setup() {
-    Context context = this.getContext();
-    noLoaderCache = new SimpleStringCache(context, "cache.key");
-    val = "cache value";
+    cache = new SimpleStringCache(getContext(), "cache.key");
+    cache.reset(); // clear before start
   }
 
   @Test
-  public void getNull() {
-    Assert.assertNull(noLoaderCache.get());
-  }
+  public void testCachePersistence() {
+    assertThat(cache.get()).isNull();
 
-  @Test
-  public void set() {
-    noLoaderCache.set(val);
-    Assert.assertEquals(val, noLoaderCache.get());
+    String val = "a cache value";
+    cache.set(val);
+    assertThat(cache.get()).isEqualTo(val);
   }
 }

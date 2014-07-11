@@ -30,8 +30,9 @@ import android.test.ActivityTestCase;
 import com.segment.android.Analytics;
 import com.segment.android.Config;
 import com.segment.android.ResourceConfig;
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.fest.assertions.api.Assertions.assertThat;
 
 public class ResourceConfigTest extends ActivityTestCase {
 
@@ -40,7 +41,7 @@ public class ResourceConfigTest extends ActivityTestCase {
     Context context = getInstrumentation().getContext();
     Resources resources = context.getResources();
     String writeKey = ResourceConfig.getWriteKey(context);
-    Assert.assertEquals(resources.getString(R.string.analytics_secret), writeKey);
+    assertThat(resources.getString(R.string.analytics_secret)).isEqualTo(writeKey);
   }
 
   @Test
@@ -64,16 +65,15 @@ public class ResourceConfigTest extends ActivityTestCase {
 
     Resources resources = context.getResources();
 
-    Assert.assertEquals(resources.getInteger(R.integer.analytics_flush_after),
+    assertThat(resources.getInteger(R.integer.analytics_flush_after)).isEqualTo(
         options.getFlushAfter());
-    Assert.assertEquals(resources.getInteger(R.integer.analytics_flush_at), options.getFlushAt());
-    Assert.assertEquals(resources.getInteger(R.integer.analytics_max_queue_size),
+    assertThat(resources.getInteger(R.integer.analytics_flush_at)).isEqualTo(options.getFlushAt());
+    assertThat(resources.getInteger(R.integer.analytics_max_queue_size)).isEqualTo(
         options.getMaxQueueSize());
-    Assert.assertEquals(resources.getInteger(R.integer.analytics_settings_cache_expiry),
+    assertThat(resources.getInteger(R.integer.analytics_settings_cache_expiry)).isEqualTo(
         options.getSettingsCacheExpiry());
-
-    Assert.assertEquals(resources.getString(R.string.analytics_host), options.getHost());
-    Assert.assertEquals(Boolean.parseBoolean(resources.getString(R.string.analytics_debug)),
+    assertThat(resources.getString(R.string.analytics_host)).isEqualTo(options.getHost());
+    assertThat(Boolean.parseBoolean(resources.getString(R.string.analytics_debug))).isEqualTo(
         options.isDebug());
   }
 }

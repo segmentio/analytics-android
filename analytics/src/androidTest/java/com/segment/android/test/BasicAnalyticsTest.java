@@ -31,8 +31,9 @@ import com.segment.android.models.Props;
 import com.segment.android.models.Traits;
 import com.segment.android.stats.AnalyticsStatistics;
 import java.util.Random;
-import junit.framework.Assert;
 import org.junit.Test;
+
+import static org.fest.assertions.api.Assertions.assertThat;
 
 public class BasicAnalyticsTest extends BaseTest {
 
@@ -72,14 +73,14 @@ public class BasicAnalyticsTest extends BaseTest {
             .setIntegration("KISSMetrics", true)
     );
 
-    Assert.assertEquals(identifyAttempts + 5, statistics.getIdentifies().getCount());
-    Assert.assertEquals(insertAttempts + 5, statistics.getInsertAttempts().getCount());
+    assertThat(statistics.getIdentifies().getCount()).isEqualTo(identifyAttempts + 5);
+    assertThat(statistics.getInsertAttempts().getCount()).isEqualTo(insertAttempts + 5);
 
     Analytics.flush(false);
 
-    Assert.assertEquals(flushAttempts + 1, statistics.getFlushAttempts().getCount());
+    assertThat(statistics.getFlushAttempts().getCount()).isEqualTo(flushAttempts + 1);
 
-    Assert.assertEquals(successful + 5, statistics.getSuccessful().getCount());
+    assertThat(statistics.getSuccessful().getCount()).isEqualTo(successful + 5);
   }
 
   @Test
@@ -107,14 +108,14 @@ public class BasicAnalyticsTest extends BaseTest {
             .setIntegration("KISSMetrics", true)
     );
 
-    Assert.assertEquals(groupAttempts + 5, statistics.getGroups().getCount());
-    Assert.assertEquals(insertAttempts + 5, statistics.getInsertAttempts().getCount());
+    assertThat(statistics.getGroups().getCount()).isEqualTo(groupAttempts + 5);
+    assertThat(statistics.getInsertAttempts().getCount()).isEqualTo(insertAttempts + 5);
 
     Analytics.flush(false);
 
-    Assert.assertEquals(flushAttempts + 1, statistics.getFlushAttempts().getCount());
+    assertThat(statistics.getFlushAttempts().getCount()).isEqualTo(flushAttempts + 1);
 
-    Assert.assertEquals(successful + 5, statistics.getSuccessful().getCount());
+    assertThat(statistics.getSuccessful().getCount()).isEqualTo(successful + 5);
   }
 
   @Test
@@ -143,14 +144,14 @@ public class BasicAnalyticsTest extends BaseTest {
             .setIntegration("KISSMetrics", true)
     );
 
-    Assert.assertEquals(trackAttempts + 5, statistics.getTracks().getCount());
-    Assert.assertEquals(insertAttempts + 5, statistics.getInsertAttempts().getCount());
+    assertThat(statistics.getTracks().getCount()).isEqualTo(trackAttempts + 5);
+    assertThat(statistics.getInsertAttempts().getCount()).isEqualTo(insertAttempts + 5);
 
     Analytics.flush(false);
 
-    Assert.assertEquals(flushAttempts + 1, statistics.getFlushAttempts().getCount());
+    assertThat(statistics.getFlushAttempts().getCount()).isEqualTo(flushAttempts + 1);
 
-    Assert.assertEquals(successful + 5, statistics.getSuccessful().getCount());
+    assertThat(statistics.getSuccessful().getCount()).isEqualTo(successful + 5);
   }
 
   @Test
@@ -171,8 +172,7 @@ public class BasicAnalyticsTest extends BaseTest {
         new Props("Mickey Mouse", 4, "Donnie", "Darko"));
 
     Analytics.screen("Android: Screen With Calendar", new Props(),
-        new Options().setTimestamp(TestCases.calendar())
-    );
+        new Options().setTimestamp(TestCases.calendar()));
 
     Analytics.screen("Android: Screen With Context", new Props(),
         new Options().setTimestamp(TestCases.calendar())
@@ -180,14 +180,14 @@ public class BasicAnalyticsTest extends BaseTest {
             .setIntegration("KISSMetrics", true)
     );
 
-    Assert.assertEquals(screenAttempts + 5, statistics.getScreens().getCount());
-    Assert.assertEquals(insertAttempts + 5, statistics.getInsertAttempts().getCount());
+    assertThat(statistics.getScreens().getCount()).isEqualTo(screenAttempts + 5);
+    assertThat(statistics.getInsertAttempts().getCount()).isEqualTo(insertAttempts + 5);
 
     Analytics.flush(false);
 
-    Assert.assertEquals(flushAttempts + 1, statistics.getFlushAttempts().getCount());
+    assertThat(statistics.getFlushAttempts().getCount()).isEqualTo(flushAttempts + 1);
 
-    Assert.assertEquals(successful + 5, statistics.getSuccessful().getCount());
+    assertThat(statistics.getSuccessful().getCount()).isEqualTo(successful + 5);
   }
 
   @Test
@@ -215,13 +215,13 @@ public class BasicAnalyticsTest extends BaseTest {
 
     Analytics.track("Identified Event");
 
-    Assert.assertEquals(aliasAttempts + 1, statistics.getAlias().getCount());
-    Assert.assertEquals(insertAttempts + 4, statistics.getInsertAttempts().getCount());
+    assertThat(statistics.getAlias().getCount()).isEqualTo(aliasAttempts + 1);
+    assertThat(statistics.getInsertAttempts().getCount()).isEqualTo(insertAttempts + 4);
 
     Analytics.flush(false);
 
-    Assert.assertEquals(flushAttempts + 1, statistics.getFlushAttempts().getCount());
+    assertThat(statistics.getFlushAttempts().getCount()).isEqualTo(flushAttempts + 1);
 
-    Assert.assertEquals(successful + 4, statistics.getSuccessful().getCount());
+    assertThat(statistics.getSuccessful().getCount()).isEqualTo(successful + 4);
   }
 }

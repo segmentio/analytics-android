@@ -44,9 +44,10 @@ import com.segment.android.test.BaseTest;
 import com.segment.android.test.TestCases;
 import java.util.Calendar;
 import java.util.concurrent.atomic.AtomicInteger;
-import junit.framework.Assert;
 import org.json.JSONObject;
 import org.junit.Test;
+
+import static org.fest.assertions.api.Assertions.assertThat;
 
 public class IntegrationManagerTest extends BaseTest {
 
@@ -65,15 +66,13 @@ public class IntegrationManagerTest extends BaseTest {
 
   @Test
   public void testInitialization() {
-
     SettingsCache settingsCache = new SettingsCache(context, layer, Defaults.SETTINGS_CACHE_EXPIRY);
     IntegrationManager integrationManager = new IntegrationManager(settingsCache);
-
-    Assert.assertFalse(integrationManager.isInitialized());
+    assertThat(integrationManager.isInitialized()).isFalse();
 
     integrationManager.refresh();
 
-    Assert.assertTrue(integrationManager.isInitialized());
+    assertThat(integrationManager.isInitialized()).isTrue();
   }
 
   @Test
@@ -149,16 +148,16 @@ public class IntegrationManagerTest extends BaseTest {
     //
 
     integrationManager.identify(TestCases.identify());
-    Assert.assertEquals(1, identifies.get());
+    assertThat(identifies.get()).isEqualTo(1);
 
     integrationManager.track(TestCases.track());
-    Assert.assertEquals(1, tracks.get());
+    assertThat(tracks.get()).isEqualTo(1);
 
     integrationManager.screen(TestCases.screen());
-    Assert.assertEquals(1, screens.get());
+    assertThat(screens.get()).isEqualTo(1);
 
     integrationManager.alias(TestCases.alias());
-    Assert.assertEquals(1, aliases.get());
+    assertThat(aliases.get()).isEqualTo(1);
 
     //
     // Assemble test values
@@ -187,13 +186,13 @@ public class IntegrationManagerTest extends BaseTest {
     Options allFalseOptions = new Options().setTimestamp(timestamp).setIntegration("all", false);
 
     integrationManager.identify(new Identify(userId, traits, allFalseOptions));
-    Assert.assertEquals(1, identifies.get());
+    assertThat(identifies.get()).isEqualTo(1);
 
     integrationManager.track(new Track(userId, event, properties, allFalseOptions));
-    Assert.assertEquals(1, tracks.get());
+    assertThat(tracks.get()).isEqualTo(1);
 
     integrationManager.alias(new Alias(from, to, allFalseOptions));
-    Assert.assertEquals(1, aliases.get());
+    assertThat(aliases.get()).isEqualTo(1);
 
     //
     // Test the integrations[integration.key] = false turns it off
@@ -203,13 +202,13 @@ public class IntegrationManagerTest extends BaseTest {
         new Options().setTimestamp(timestamp).setIntegration(key, false);
 
     integrationManager.identify(new Identify(userId, traits, integrationFalseOptions));
-    Assert.assertEquals(1, identifies.get());
+    assertThat(identifies.get()).isEqualTo(1);
 
     integrationManager.track(new Track(userId, event, properties, integrationFalseOptions));
-    Assert.assertEquals(1, tracks.get());
+    assertThat(tracks.get()).isEqualTo(1);
 
     integrationManager.alias(new Alias(from, to, integrationFalseOptions));
-    Assert.assertEquals(1, aliases.get());
+    assertThat(aliases.get()).isEqualTo(1);
 
     //
     // Test the integrations[integration.key] = true, All=false keeps it on
@@ -220,12 +219,12 @@ public class IntegrationManagerTest extends BaseTest {
         .setIntegration(key, true);
 
     integrationManager.identify(new Identify(userId, traits, integrationTrueOptions));
-    Assert.assertEquals(2, identifies.get());
+    assertThat(identifies.get()).isEqualTo(2);
 
     integrationManager.track(new Track(userId, event, properties, integrationTrueOptions));
-    Assert.assertEquals(2, tracks.get());
+    assertThat(tracks.get()).isEqualTo(2);
 
     integrationManager.alias(new Alias(from, to, integrationTrueOptions));
-    Assert.assertEquals(2, aliases.get());
+    assertThat(aliases.get()).isEqualTo(2);
   }
 }

@@ -28,10 +28,9 @@ import android.app.Activity;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.models.EasyJSONObject;
 import com.segment.android.test.TestCases;
-import junit.framework.Assert;
 import org.junit.Test;
 
-import static com.segment.android.utils.Utils.isNullOrEmpty;
+import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
  * Automated generic provider activity tests built on
@@ -41,7 +40,7 @@ public abstract class BaseIntegrationTest extends BaseIntegrationInitializationA
 
   @Test
   public void testGetKey() {
-    Assert.assertFalse(isNullOrEmpty(integration.getKey()));
+    assertThat(integration.getKey()).isNotNull();
   }
 
   @Test
@@ -49,7 +48,7 @@ public abstract class BaseIntegrationTest extends BaseIntegrationInitializationA
 
     integration.reset();
 
-    Assert.assertEquals(IntegrationState.NOT_INITIALIZED, integration.getState());
+    assertThat(integration.getState()).isEqualTo(IntegrationState.NOT_INITIALIZED);
 
     // empty json object, should fail
     EasyJSONObject settings = new EasyJSONObject();
@@ -60,7 +59,7 @@ public abstract class BaseIntegrationTest extends BaseIntegrationInitializationA
       // do nothing
     }
 
-    Assert.assertEquals(IntegrationState.INVALID, integration.getState());
+    assertThat(integration.getState()).isEqualTo(IntegrationState.INVALID);
   }
 
   @Test
@@ -77,7 +76,7 @@ public abstract class BaseIntegrationTest extends BaseIntegrationInitializationA
   public void testDisabledState() {
     reachEnabledState();
     integration.disable();
-    Assert.assertEquals(IntegrationState.DISABLED, integration.getState());
+    assertThat(integration.getState()).isEqualTo(IntegrationState.DISABLED);
   }
 
   @Test
