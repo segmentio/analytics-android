@@ -31,9 +31,10 @@ import com.segment.android.Analytics;
 import com.segment.android.Config;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.models.EasyJSONObject;
-import junit.framework.Assert;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+
+import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
  * An Activity Unit Test that's capable of setting up a provider
@@ -74,15 +75,15 @@ public abstract class BaseIntegrationInitializationActivity
 
     integration.reset();
 
-    Assert.assertEquals(IntegrationState.NOT_INITIALIZED, integration.getState());
+    assertThat(integration.getState()).isEqualTo(IntegrationState.NOT_INITIALIZED);
 
     try {
       integration.initialize(settings);
     } catch (InvalidSettingsException e) {
-      Assert.assertTrue("Invalid settings.", false);
+      fail("invalid settings");
     }
 
-    Assert.assertEquals(IntegrationState.INITIALIZED, integration.getState());
+    assertThat(integration.getState()).isEqualTo(IntegrationState.INITIALIZED);
   }
 
   protected void reachEnabledState() {
@@ -90,7 +91,7 @@ public abstract class BaseIntegrationInitializationActivity
 
     integration.enable();
 
-    Assert.assertEquals(IntegrationState.ENABLED, integration.getState());
+    assertThat(integration.getState()).isEqualTo(IntegrationState.ENABLED);
   }
 
   protected void reachReadyState() {
@@ -103,7 +104,7 @@ public abstract class BaseIntegrationInitializationActivity
 
     integration.onActivityStart(activity);
 
-    Assert.assertEquals(IntegrationState.READY, integration.getState());
+    assertThat(integration.getState()).isEqualTo(IntegrationState.READY);
   }
 
   @AfterClass

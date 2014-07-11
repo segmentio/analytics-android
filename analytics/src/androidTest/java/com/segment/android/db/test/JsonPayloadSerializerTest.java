@@ -33,56 +33,45 @@ import com.segment.android.models.Identify;
 import com.segment.android.models.Screen;
 import com.segment.android.models.Track;
 import com.segment.android.test.TestCases;
-import junit.framework.Assert;
 import org.junit.Test;
 
+import static org.fest.assertions.api.Assertions.assertThat;
+
 public class JsonPayloadSerializerTest extends AndroidTestCase {
-
-  private static JsonPayloadSerializer serializer;
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    serializer = new JsonPayloadSerializer();
-  }
 
   @Test
   public void testIdentify() {
     Identify identify = TestCases.identify();
-    String json = serializer.serialize(identify);
-    BasePayload got = serializer.deserialize(json);
-    Assert.assertEquals(identify, got);
+    assertThat(serializeThenDeserialize(identify)).isEqualTo(identify);
   }
 
   @Test
   public void testGroup() {
     Group group = TestCases.group();
-    String json = serializer.serialize(group);
-    BasePayload got = serializer.deserialize(json);
-    Assert.assertEquals(group, got);
+    assertThat(serializeThenDeserialize(group)).isEqualTo(group);
   }
 
   @Test
   public void testTrack() {
     Track track = TestCases.track();
-    String json = serializer.serialize(track);
-    BasePayload got = serializer.deserialize(json);
-    Assert.assertEquals(track, got);
+    assertThat(serializeThenDeserialize(track)).isEqualTo(track);
   }
 
   @Test
   public void testScreen() {
     Screen screen = TestCases.screen();
-    String json = serializer.serialize(screen);
-    BasePayload got = serializer.deserialize(json);
-    Assert.assertEquals(screen, got);
+    assertThat(serializeThenDeserialize(screen)).isEqualTo(screen);
   }
 
   @Test
   public void testAlias() {
     Alias alias = TestCases.alias();
-    String json = serializer.serialize(alias);
-    BasePayload got = serializer.deserialize(json);
-    Assert.assertEquals(alias, got);
+    assertThat(serializeThenDeserialize(alias)).isEqualTo(alias);
+  }
+
+  BasePayload serializeThenDeserialize(BasePayload payload) {
+    JsonPayloadSerializer serializer = new JsonPayloadSerializer();
+    String json = serializer.serialize(payload);
+    return serializer.deserialize(json);
   }
 }

@@ -27,8 +27,9 @@ package com.segment.android.utils.test;
 import android.test.AndroidTestCase;
 import com.segment.android.utils.HandlerTimer;
 import java.util.concurrent.atomic.AtomicInteger;
-import junit.framework.Assert;
 import org.junit.Test;
+
+import static org.fest.assertions.api.Assertions.assertThat;
 
 public class HandleTimerTest extends AndroidTestCase {
 
@@ -62,7 +63,7 @@ public class HandleTimerTest extends AndroidTestCase {
     int got1 = counter.get();
 
     // assume that we get expected counts
-    Assert.assertEquals(expected, got1);
+    assertThat(got1).isEqualTo(expected);
 
     // stop the timer
     timer.quit();
@@ -78,6 +79,6 @@ public class HandleTimerTest extends AndroidTestCase {
     int got2 = counter.get();
 
     // assume that we didn't grow since we stopped the timer
-    Assert.assertEquals(got1, got2);
+    assertThat(got2).isEqualTo(got1);
   }
 }

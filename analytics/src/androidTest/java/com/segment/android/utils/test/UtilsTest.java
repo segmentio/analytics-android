@@ -29,17 +29,18 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 import static com.segment.android.utils.Utils.isNullOrEmpty;
+import static org.fest.assertions.api.Assertions.assertThat;
 
 public class UtilsTest extends AndroidTestCase {
 
   @Test
   public void testEmptyString() {
-    Assert.assertTrue(isNullOrEmpty(""));
-    Assert.assertTrue(isNullOrEmpty(null));
-    Assert.assertTrue(isNullOrEmpty(" "));
-    Assert.assertTrue(isNullOrEmpty("      "));
+    assertThat(isNullOrEmpty("")).isTrue();
+    assertThat(isNullOrEmpty(null)).isTrue();
+    assertThat(isNullOrEmpty(" ")).isTrue();
+    assertThat(isNullOrEmpty("      ")).isTrue();
 
-    Assert.assertFalse(isNullOrEmpty("a"));
-    Assert.assertFalse(isNullOrEmpty("dasdak"));
+    assertThat(isNullOrEmpty("a")).isFalse();
+    assertThat(isNullOrEmpty("dasdak")).isFalse();
   }
 }

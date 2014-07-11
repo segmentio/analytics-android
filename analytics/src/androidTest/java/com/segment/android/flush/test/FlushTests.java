@@ -31,6 +31,8 @@ import com.segment.android.test.TestCases;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.fest.assertions.api.Assertions.assertThat;
+
 public class FlushTests extends BaseTest {
 
   @Test
@@ -47,8 +49,8 @@ public class FlushTests extends BaseTest {
 
     flushAttempts += 3;
 
-    Assert.assertEquals(flushAttempts, stats.getFlushAttempts().getCount());
-    Assert.assertEquals(0, requests);
+    assertThat(stats.getFlushAttempts().getCount()).isEqualTo(flushAttempts);
+    assertThat(requests).isZero();
   }
 
   @Test
@@ -71,7 +73,7 @@ public class FlushTests extends BaseTest {
     Analytics.flush(false);
     flushAttempts += 1;
 
-    Assert.assertEquals(flushAttempts, stats.getFlushAttempts().getCount());
+    assertThat(stats.getFlushAttempts().getCount()).isEqualTo(flushAttempts);
   }
 
   @Test
@@ -100,8 +102,7 @@ public class FlushTests extends BaseTest {
     Analytics.flush(false);
     flushAttempts += 1;
 
-    Assert.assertEquals(flushAttempts, stats.getFlushAttempts().getCount());
-
-    Assert.assertEquals(requests, stats.getRequestTime().getCount());
+    assertThat(stats.getFlushAttempts().getCount()).isEqualTo(flushAttempts);
+    assertThat(stats.getRequestTime().getCount()).isEqualTo(requests);
   }
 }
