@@ -1,16 +1,23 @@
 apply plugin: 'android'
-apply plugin: 'checkstyle'
-apply from: '../release.gradle'
+
+dependencies {
+  compile project(':analytics-android')
+  compile project(':analytics-android-amplitude')
+  compile project(':analytics-android-bugsnag')
+  compile project(':analytics-android-countly')
+  compile project(':analytics-android-crittercism')
+  compile project(':analytics-android-localytics')
+}
 
 android {
-  compileSdkVersion 19
-  buildToolsVersion '19.1.0'
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
 
   defaultConfig {
-    minSdkVersion 10
-    targetSdkVersion 19
-    versionCode 1
-    versionName VERSION_NAME
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
+    versionCode rootProject.ext.versionCode
+    versionName rootProject.ext.versionName
   }
 
   lintOptions {
@@ -25,34 +32,5 @@ android {
   }
 }
 
-checkstyle {
-  configFile project.file('../checkstyle.xml')
-  showViolations true
-}
-
-android.applicationVariants.all { variant ->
-  def name = variant.buildType.name
-  def checkstyle = project.tasks.create "checkstyle${name.capitalize()}", Checkstyle
-  checkstyle.dependsOn variant.javaCompile
-  checkstyle.source variant.javaCompile.source
-  checkstyle.classpath = project.fileTree(variant.javaCompile.destinationDir)
-  checkstyle.exclude('**/BuildConfig.java')
-  checkstyle.exclude('**/R.java')
-  project.tasks.getByName("check").dependsOn checkstyle
-
-  def apk = variant.packageApplication.outputFile;
-  def newName = apk.name.replace(".apk",
-      "-v${android.defaultConfig.versionName}.apk");
-  newName = newName.replace("app", "${android.defaultConfig.applicationId}");
-  variant.packageApplication.outputFile = new File(apk.parentFile, newName);
-  if (variant.zipAlign) {
-    variant.zipAlign.outputFile = new File(apk.parentFile, newName.replace("-unaligned", ""));
-  }
-}
-
-dependencies {
-  compile project(':analytics-android')
-  compile project(':analytics-android-amplitude')
-  compile project(':analytics-android-bugsnag')
-  compile project(':analytics-android-localytics')
-}
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
+apply from: rootProject.file('gradle/checkstyle-app.gradle')

@@ -14,3 +14,14 @@ allprojects {
     mavenCentral()
   }
 }
+
+ext {
+  versionCode = Integer.parseInt(VERSION_CODE)
+  versionName = VERSION_NAME
+
+  minSdkVersion = 10
+  targetSdkVersion = 19
+
+  compileSdkVersion = 19
+  buildToolsVersion = '19.1.0'
+}

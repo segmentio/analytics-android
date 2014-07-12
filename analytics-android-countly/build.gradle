@@ -1,14 +1,19 @@
 apply plugin: 'android-library'
-apply from: '../release.gradle'
+
+dependencies {
+  provided project(':analytics-android')
+  compile 'ly.count:sdk-android:13.11'
+}
 
 android {
-  compileSdkVersion 19
-  buildToolsVersion '19.1.0'
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
 
   defaultConfig {
-    minSdkVersion 10
-    targetSdkVersion 19
-    versionName VERSION_NAME
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
+    versionCode rootProject.ext.versionCode
+    versionName rootProject.ext.versionName
   }
 
   lintOptions {
@@ -20,20 +25,5 @@ android {
   }
 }
 
-android.libraryVariants.all { variant ->
-  def name = variant.buildType.name
-
-  // Only attach a jar for non-debug build types.
-  if (!name.equals(com.android.builder.core.BuilderConstants.DEBUG)) {
-    def task = project.tasks.create "jar${name.capitalize()}", Jar
-    task.dependsOn variant.javaCompile
-    // Include Java classes
-    task.from variant.javaCompile.destinationDir
-    artifacts.add('archives', task);
-  }
-}
-
-dependencies {
-  provided project(':analytics-android')
-  compile 'ly.count:sdk-android:13.11'
-}
+apply from: rootProject.file('gradle/checkstyle.gradle')
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
