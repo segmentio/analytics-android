@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.segment.android.integrations;
+package com.segment.android;
 
 import android.app.Activity;
 import android.content.Context;
@@ -42,11 +42,7 @@ import java.util.Map;
 import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class LocalyticsIntegration extends SimpleIntegration {
-
-  private static class SettingKey {
-
-    private static final String APP_KEY = "appKey";
-  }
+  private static final String APP_KEY = "appKey";
 
   private LocalyticsSession localyticsSession;
 
@@ -57,9 +53,8 @@ public class LocalyticsIntegration extends SimpleIntegration {
 
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
-    if (isNullOrEmpty(settings.getString(SettingKey.APP_KEY))) {
-      throw new InvalidSettingsException(SettingKey.APP_KEY,
-          "Localytics requires the appKey setting.");
+    if (isNullOrEmpty(settings.getString(APP_KEY))) {
+      throw new InvalidSettingsException(APP_KEY, "Localytics requires the appKey setting.");
     }
   }
 
@@ -67,7 +62,7 @@ public class LocalyticsIntegration extends SimpleIntegration {
   public void onCreate(Context context) {
     // docs: http://www.localytics.com/docs/android-integration/
     EasyJSONObject settings = this.getSettings();
-    String appKey = settings.getString(SettingKey.APP_KEY);
+    String appKey = settings.getString(APP_KEY);
 
     this.localyticsSession = new LocalyticsSession(context, appKey);
 

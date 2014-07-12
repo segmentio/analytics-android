@@ -52,4 +52,5 @@ android.applicationVariants.all { variant ->
 
 dependencies {
   compile project(':analytics-android')
+  compile project(':analytics-android-localytics')
 }

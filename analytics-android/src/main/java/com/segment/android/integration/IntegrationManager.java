@@ -29,16 +29,6 @@ import android.content.Context;
 import com.segment.android.Logger;
 import com.segment.android.cache.SettingsCache;
 import com.segment.android.errors.InvalidSettingsException;
-import com.segment.android.integrations.AmplitudeIntegration;
-import com.segment.android.integrations.BugsnagIntegration;
-import com.segment.android.integrations.CountlyIntegration;
-import com.segment.android.integrations.CrittercismIntegration;
-import com.segment.android.integrations.FlurryIntegration;
-import com.segment.android.integrations.GoogleAnalyticsIntegration;
-import com.segment.android.integrations.LocalyticsIntegration;
-import com.segment.android.integrations.MixpanelIntegration;
-import com.segment.android.integrations.QuantcastIntegration;
-import com.segment.android.integrations.TapstreamIntegration;
 import com.segment.android.models.Alias;
 import com.segment.android.models.BasePayload;
 import com.segment.android.models.EasyJSONObject;
@@ -65,55 +55,31 @@ public class IntegrationManager implements IIntegration {
     /**
      * Add New integrations Here
      */
+    loadIntegration("com.segment.android.LocalyticsIntegration");
+    /**
+     loadIntegration("com.amplitude.api.Amplitude");
+     loadIntegration("com.bugsnag.android.Bugsnag");
+     loadIntegration("ly.count.android.api.Countly");
+     loadIntegration("com.crittercism.app.Crittercism");
+     loadIntegration("com.flurry.android.FlurryAgent");
+     loadIntegration("com.google.analytics.tracking.android.EasyTracker");
+     loadIntegration("com.mixpanel.android.mpmetrics.MixpanelAPI");
+     loadIntegration("com.quantcast.measurement.service.QuantcastClient");
+     loadIntegration("com.tapstream.sdk.Tapstream");
+     **/
+  }
+
+  private void loadIntegration(final String name) {
     try {
-      Class.forName("com.amplitude.api.Amplitude");
-      this.addIntegration(new AmplitudeIntegration());
+      Class clz = Class.forName(name);
+      addIntegration((Integration) clz.newInstance()); // todo: profile performance
+      Logger.d("Successfully found and loaded integration for name %s!", name);
+    } catch (InstantiationException e) {
+      Logger.e(e, "Failed to instantiate integration.");
+    } catch (IllegalAccessException e) {
+      Logger.e(e, "Failed to access integration constructor.");
     } catch (ClassNotFoundException e) {
-    }
-    try {
-      Class.forName("com.bugsnag.android.Bugsnag");
-      this.addIntegration(new BugsnagIntegration());
-    } catch (ClassNotFoundException e) {
-    }
-    try {
-      Class.forName("ly.count.android.api.Countly");
-      this.addIntegration(new CountlyIntegration());
-    } catch (ClassNotFoundException e) {
-    }
-    try {
-      Class.forName("com.crittercism.app.Crittercism");
-      this.addIntegration(new CrittercismIntegration());
-    } catch (ClassNotFoundException e) {
-    }
-    try {
-      Class.forName("com.flurry.android.FlurryAgent");
-      this.addIntegration(new FlurryIntegration());
-    } catch (ClassNotFoundException e) {
-    }
-    try {
-      Class.forName("com.google.analytics.tracking.android.EasyTracker");
-      this.addIntegration(new GoogleAnalyticsIntegration());
-    } catch (ClassNotFoundException e) {
-    }
-    try {
-      Class.forName("com.localytics.android.LocalyticsSession");
-      this.addIntegration(new LocalyticsIntegration());
-    } catch (ClassNotFoundException e) {
-    }
-    try {
-      Class.forName("com.mixpanel.android.mpmetrics.MixpanelAPI");
-      this.addIntegration(new MixpanelIntegration());
-    } catch (ClassNotFoundException e) {
-    }
-    try {
-      Class.forName("com.quantcast.measurement.service.QuantcastClient");
-      this.addIntegration(new QuantcastIntegration());
-    } catch (ClassNotFoundException e) {
-    }
-    try {
-      Class.forName("com.tapstream.sdk.Tapstream");
-      this.addIntegration(new TapstreamIntegration());
-    } catch (ClassNotFoundException e) {
+      Logger.e(e, "Could not find integration.");
     }
   }
 
