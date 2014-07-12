@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.segment.android.integrations;
+package com.segment.android;
 
 import android.app.Activity;
 import android.content.Context;
@@ -37,13 +37,8 @@ import java.util.Iterator;
 import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class BugsnagIntegration extends SimpleIntegration {
-
-  private static class SettingKey {
-
-    private static final String API_KEY = "apiKey";
-
-    private static final String USE_SSL = "useSSL";
-  }
+  private static final String API_KEY = "apiKey";
+  private static final String USE_SSL = "useSSL";
 
   @Override
   public String getKey() {
@@ -52,9 +47,8 @@ public class BugsnagIntegration extends SimpleIntegration {
 
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
-    if (isNullOrEmpty(settings.getString(SettingKey.API_KEY))) {
-      throw new InvalidSettingsException(SettingKey.API_KEY,
-          "Bugsnag requires the setting apiKey.");
+    if (isNullOrEmpty(settings.getString(API_KEY))) {
+      throw new InvalidSettingsException(API_KEY, "Bugsnag requires the setting apiKey.");
     }
   }
 
@@ -62,9 +56,9 @@ public class BugsnagIntegration extends SimpleIntegration {
   public void onCreate(Context context) {
 
     EasyJSONObject settings = this.getSettings();
-    String apiKey = settings.getString(SettingKey.API_KEY);
+    String apiKey = settings.getString(API_KEY);
 
-    boolean useSsl = settings.getBoolean(SettingKey.USE_SSL, false);
+    boolean useSsl = settings.getBoolean(USE_SSL, false);
 
     Bugsnag.setUseSSL(useSsl);
 

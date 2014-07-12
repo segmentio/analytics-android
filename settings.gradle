@@ -1,4 +1,5 @@
 include ':analytics-android'
 include ':analytics-android-amplitude'
+include ':analytics-android-bugsnag'
 include ':analytics-android-localytics'
 include ':analytics-android-sample-app'

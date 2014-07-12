@@ -52,5 +52,7 @@ android.applicationVariants.all { variant ->
 
 dependencies {
   compile project(':analytics-android')
+  compile project(':analytics-android-amplitude')
+  compile project(':analytics-android-bugsnag')
   compile project(':analytics-android-localytics')
 }

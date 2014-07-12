@@ -1,0 +1,39 @@
+apply plugin: 'android-library'
+apply from: '../release.gradle'
+
+android {
+  compileSdkVersion 19
+  buildToolsVersion '19.1.0'
+
+  defaultConfig {
+    minSdkVersion 10
+    targetSdkVersion 19
+    versionName VERSION_NAME
+  }
+
+  lintOptions {
+    abortOnError false
+  }
+
+  packagingOptions {
+    exclude 'LICENSE.txt'
+  }
+}
+
+android.libraryVariants.all { variant ->
+  def name = variant.buildType.name
+
+  // Only attach a jar for non-debug build types.
+  if (!name.equals(com.android.builder.core.BuilderConstants.DEBUG)) {
+    def task = project.tasks.create "jar${name.capitalize()}", Jar
+    task.dependsOn variant.javaCompile
+    // Include Java classes
+    task.from variant.javaCompile.destinationDir
+    artifacts.add('archives', task);
+  }
+}
+
+dependencies {
+  provided project(':analytics-android')
+  compile 'com.bugsnag:bugsnag-android:2.2.0'
+}

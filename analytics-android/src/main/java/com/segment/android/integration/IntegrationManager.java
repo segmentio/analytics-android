@@ -56,6 +56,7 @@ public class IntegrationManager implements IIntegration {
      * Add New integrations Here
      */
     loadIntegration("com.segment.android.AmplitudeIntegration");
+    loadIntegration("com.segment.android.BugsnagIntegration");
     loadIntegration("com.segment.android.LocalyticsIntegration");
     /**
      loadIntegration("com.bugsnag.android.Bugsnag");
