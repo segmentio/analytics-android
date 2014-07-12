@@ -1,5 +1,6 @@
 apply plugin: 'android'
 apply plugin: 'checkstyle'
+apply from: '../release.gradle'
 
 android {
   compileSdkVersion 19
@@ -50,5 +51,5 @@ android.applicationVariants.all { variant ->
 }
 
 dependencies {
-  compile project(':analytics')
+  compile project(':analytics-android')
 }

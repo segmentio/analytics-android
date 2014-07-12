@@ -1,1 +1,2 @@
-include ':analytics', ':sample-app'
+include ':analytics-android'
+include ':analytics-android-sample-app'
