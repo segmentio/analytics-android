@@ -51,11 +51,4 @@ android.applicationVariants.all { variant ->
 
 dependencies {
   compile project(':analytics')
-
-  // The snapshot is just for us to be able to quickly test release builds
-  // compile 'io.segment.android:analytics:1.2.0-SNAPSHOT@aar'
-
-  // compile (project(':analytics')) {
-  //   exclude module: 'mixpanel-android'
-  // }
 }
