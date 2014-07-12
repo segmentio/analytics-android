@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.segment.android.integrations;
+package com.segment.android;
 
 import android.app.Activity;
 import android.content.Context;
