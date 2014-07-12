@@ -56,7 +56,6 @@ android.libraryVariants.all { variant ->
 
 dependencies {
   compile fileTree(dir: 'libs', include: ['*.jar'])
-  compile 'com.amplitude:android-sdk:1.4'
   compile 'com.bugsnag:bugsnag-android:2.2.0'
   compile 'ly.count:sdk-android:13.11'
   compile 'com.mixpanel.android:mixpanel-android:4.2.1@aar'

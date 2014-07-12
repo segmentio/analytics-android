@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.segment.android.integrations;
+package com.segment.android;
 
 import android.app.Activity;
 import android.content.Context;
@@ -39,10 +39,7 @@ import com.segment.android.models.Traits;
 import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class AmplitudeIntegration extends SimpleIntegration {
-
-  private static class SettingKey {
-    private static final String API_KEY = "apiKey";
-  }
+  private static final String API_KEY = "apiKey";
 
   @Override
   public String getKey() {
@@ -51,20 +48,16 @@ public class AmplitudeIntegration extends SimpleIntegration {
 
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
-    if (isNullOrEmpty(settings.getString(SettingKey.API_KEY))) {
-      throw new InvalidSettingsException(SettingKey.API_KEY,
-          "Amplitude requires the apiKey setting.");
+    if (isNullOrEmpty(settings.getString(API_KEY))) {
+      throw new InvalidSettingsException(API_KEY, "Amplitude requires the apiKey setting.");
     }
   }
 
   @Override
   public void onCreate(Context context) {
-
-    EasyJSONObject settings = this.getSettings();
-    String apiKey = settings.getString(SettingKey.API_KEY);
-
+    EasyJSONObject settings = getSettings();
+    String apiKey = settings.getString(API_KEY);
     Amplitude.initialize(context, apiKey);
-
     ready();
   }
 
@@ -98,6 +91,8 @@ public class AmplitudeIntegration extends SimpleIntegration {
   }
 
   private void event(String name, Props properties) {
+    Amplitude.logEvent(name, properties);
+
     if (properties != null && properties.has("revenue")) {
       double revenue = properties.getDouble("revenue", 0.0);
       String productId = properties.getString("productId", null);
@@ -106,8 +101,6 @@ public class AmplitudeIntegration extends SimpleIntegration {
       String receiptSignature = properties.getString("receiptSignature", null);
       Amplitude.logRevenue(productId, quantity, revenue, receipt, receiptSignature);
     }
-
-    Amplitude.logEvent(name, properties);
   }
 
   @Override

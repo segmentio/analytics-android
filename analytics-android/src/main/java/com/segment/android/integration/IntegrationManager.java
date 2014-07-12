@@ -55,9 +55,9 @@ public class IntegrationManager implements IIntegration {
     /**
      * Add New integrations Here
      */
+    loadIntegration("com.segment.android.AmplitudeIntegration");
     loadIntegration("com.segment.android.LocalyticsIntegration");
     /**
-     loadIntegration("com.amplitude.api.Amplitude");
      loadIntegration("com.bugsnag.android.Bugsnag");
      loadIntegration("ly.count.android.api.Countly");
      loadIntegration("com.crittercism.app.Crittercism");
