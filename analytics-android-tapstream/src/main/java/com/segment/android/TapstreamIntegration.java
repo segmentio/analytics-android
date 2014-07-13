@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.segment.android.integrations;
+package com.segment.android;
 
 import android.app.Application;
 import android.content.Context;
@@ -40,19 +40,16 @@ import java.util.Iterator;
 import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class TapstreamIntegration extends SimpleIntegration {
-
-  private static class SettingKey {
-    private static final String ACCOUNT_NAME = "accountName";
-    private static final String SDK_SECRET = "sdkSecret";
-  }
+  private static final String ACCOUNT_NAME = "accountName";
+  private static final String SDK_SECRET = "sdkSecret";
 
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
-    if (isNullOrEmpty(settings.getString(SettingKey.ACCOUNT_NAME))) {
-      throw new InvalidSettingsException(SettingKey.ACCOUNT_NAME, "accountName required.");
+    if (isNullOrEmpty(settings.getString(ACCOUNT_NAME))) {
+      throw new InvalidSettingsException(ACCOUNT_NAME, "accountName required.");
     }
-    if (isNullOrEmpty(settings.getString(SettingKey.SDK_SECRET))) {
-      throw new InvalidSettingsException(SettingKey.SDK_SECRET, "sdkSecret required.");
+    if (isNullOrEmpty(settings.getString(SDK_SECRET))) {
+      throw new InvalidSettingsException(SDK_SECRET, "sdkSecret required.");
     }
   }
 
@@ -63,10 +60,11 @@ public class TapstreamIntegration extends SimpleIntegration {
 
   private void initialize(Context context) {
     EasyJSONObject settings = this.getSettings();
-    String accountName = settings.getString(SettingKey.ACCOUNT_NAME);
-    String sdkSecret = settings.getString(SettingKey.SDK_SECRET);
+    String accountName = settings.getString(ACCOUNT_NAME);
+    String sdkSecret = settings.getString(SDK_SECRET);
 
     Config config = new Config();
+
     Tapstream.create((Application) context.getApplicationContext(), accountName, sdkSecret, config);
 
     ready();

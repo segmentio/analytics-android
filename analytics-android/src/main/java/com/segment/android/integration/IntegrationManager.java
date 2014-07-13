@@ -60,8 +60,9 @@ public class IntegrationManager implements IIntegration {
     loadIntegration("com.segment.android.CountlyIntegration");
     loadIntegration("com.segment.android.CrittercismIntegration");
     loadIntegration("com.segment.android.FlurryIntegration");
-    loadIntegration("com.segment.android.MixpanelIntegration");
     loadIntegration("com.segment.android.LocalyticsIntegration");
+    loadIntegration("com.segment.android.MixpanelIntegration");
+    loadIntegration("com.segment.android.TapstreamIntegration");
     loadIntegration("com.segment.android.QuantcastIntegration");
     /**
      loadIntegration("com.bugsnag.android.Bugsnag");
