@@ -2,7 +2,7 @@ android.libraryVariants.all { variant ->
   def name = variant.buildType.name
 
   // Only attach a jar for non-debug build types.
-  if (!name.equals(com.android.builder.core.BuilderConstants.DEBUG)) {
+  if (!name.contains("debug")) {
     def task = project.tasks.create "jar${name.capitalize()}", Jar
     task.dependsOn variant.javaCompile
     // Include Java classes
