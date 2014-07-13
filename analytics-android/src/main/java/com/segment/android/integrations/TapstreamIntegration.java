@@ -36,7 +36,6 @@ import com.tapstream.sdk.Config;
 import com.tapstream.sdk.Event;
 import com.tapstream.sdk.Tapstream;
 import java.util.Iterator;
-import org.OpenUDID.OpenUDID_manager;
 
 import static com.segment.android.utils.Utils.isNullOrEmpty;
 
@@ -68,8 +67,6 @@ public class TapstreamIntegration extends SimpleIntegration {
     String sdkSecret = settings.getString(SettingKey.SDK_SECRET);
 
     Config config = new Config();
-    config.setOpenUdid(OpenUDID_manager.getOpenUDID());
-
     Tapstream.create((Application) context.getApplicationContext(), accountName, sdkSecret, config);
 
     ready();
