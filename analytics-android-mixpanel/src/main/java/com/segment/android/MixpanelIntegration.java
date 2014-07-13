@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.segment.android.integrations;
+package com.segment.android;
 
 import android.content.Context;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
@@ -43,11 +43,8 @@ import java.util.Map;
 import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class MixpanelIntegration extends SimpleIntegration {
-
-  private static class SettingKey {
-    private static final String TOKEN = "token";
-    private static final String PEOPLE = "people";
-  }
+  private static final String TOKEN = "token";
+  private static final String PEOPLE = "people";
 
   private MixpanelAPI mixpanel;
 
@@ -58,21 +55,21 @@ public class MixpanelIntegration extends SimpleIntegration {
 
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
-    if (isNullOrEmpty(settings.getString(SettingKey.TOKEN))) {
-      throw new InvalidSettingsException(SettingKey.TOKEN, "Mixpanel requires the token setting.");
+    if (isNullOrEmpty(settings.getString(TOKEN))) {
+      throw new InvalidSettingsException(TOKEN, "Mixpanel requires the token setting.");
     }
   }
 
   private boolean isMixpanelPeopleEnabled() {
     EasyJSONObject settings = this.getSettings();
-    return settings.getBoolean(SettingKey.PEOPLE, false);
+    return settings.getBoolean(PEOPLE, false);
   }
 
   @Override
   public void onCreate(Context context) {
 
     EasyJSONObject settings = this.getSettings();
-    String token = settings.getString(SettingKey.TOKEN);
+    String token = settings.getString(TOKEN);
 
     mixpanel = MixpanelAPI.getInstance(context, token);
 

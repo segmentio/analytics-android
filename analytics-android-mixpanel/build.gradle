@@ -1,9 +1,8 @@
 apply plugin: 'android-library'
 
 dependencies {
-  compile fileTree(dir: 'libs', include: ['*.jar'])
-  androidTestCompile 'junit:junit:4.11'
-  androidTestCompile 'com.squareup:fest-android:1.0.8'
+  provided project(':analytics-android')
+  compile 'com.mixpanel.android:mixpanel-android:4.2.1@aar'
 }
 
 android {

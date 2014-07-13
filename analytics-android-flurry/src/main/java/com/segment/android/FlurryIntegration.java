@@ -43,7 +43,6 @@ import java.util.Map;
 import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class FlurryIntegration extends SimpleIntegration {
-
   private static final String API_KEY = "apiKey";
   private static final String SESSION_LENGTH = "sessionLength";
   private static final String CAPTURE_UNCAUGHT_EXCEPTIONS = "captureUncaughtExceptions";
