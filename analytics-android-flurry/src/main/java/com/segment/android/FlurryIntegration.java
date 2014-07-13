@@ -22,13 +22,12 @@
  * SOFTWARE.
  */
 
-package com.segment.android.integrations;
+package com.segment.android;
 
 import android.app.Activity;
 import android.content.Context;
 import com.flurry.android.Constants;
 import com.flurry.android.FlurryAgent;
-import com.segment.android.Logger;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.integration.SimpleIntegration;
 import com.segment.android.models.EasyJSONObject;
@@ -45,19 +44,15 @@ import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class FlurryIntegration extends SimpleIntegration {
 
-  private static class SettingKey {
-
-    private static final String API_KEY = "apiKey";
-
-    private static final String SESSION_LENGTH = "sessionLength";
-    private static final String CAPTURE_UNCAUGHT_EXCEPTIONS = "captureUncaughtExceptions";
-    private static final String USE_HTTPS = "useHttps";
-  }
+  private static final String API_KEY = "apiKey";
+  private static final String SESSION_LENGTH = "sessionLength";
+  private static final String CAPTURE_UNCAUGHT_EXCEPTIONS = "captureUncaughtExceptions";
+  private static final String USE_HTTPS = "useHttps";
 
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
-    if (isNullOrEmpty(settings.getString(SettingKey.API_KEY))) {
-      throw new InvalidSettingsException(SettingKey.API_KEY, "API Key (apiKey) required.");
+    if (isNullOrEmpty(settings.getString(API_KEY))) {
+      throw new InvalidSettingsException(API_KEY, "API Key (apiKey) required.");
     }
   }
 
@@ -70,10 +65,9 @@ public class FlurryIntegration extends SimpleIntegration {
 
     EasyJSONObject settings = this.getSettings();
 
-    int sessionLength = settings.getInt(SettingKey.SESSION_LENGTH, 10000);
-    boolean captureUncaughtExceptions =
-        settings.getBoolean(SettingKey.CAPTURE_UNCAUGHT_EXCEPTIONS, false);
-    boolean useHttps = settings.getBoolean(SettingKey.USE_HTTPS, false);
+    int sessionLength = settings.getInt(SESSION_LENGTH, 10000);
+    boolean captureUncaughtExceptions = settings.getBoolean(CAPTURE_UNCAUGHT_EXCEPTIONS, false);
+    boolean useHttps = settings.getBoolean(USE_HTTPS, false);
 
     FlurryAgent.setContinueSessionMillis(sessionLength);
     FlurryAgent.setCaptureUncaughtExceptions(captureUncaughtExceptions);
@@ -89,7 +83,7 @@ public class FlurryIntegration extends SimpleIntegration {
   @Override
   public void onActivityStart(Activity activity) {
     EasyJSONObject settings = this.getSettings();
-    String apiKey = settings.getString(SettingKey.API_KEY);
+    String apiKey = settings.getString(API_KEY);
     FlurryAgent.onStartSession(activity, apiKey);
   }
 

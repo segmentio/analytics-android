@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.segment.android.integrations;
+package com.segment.android;
 
 import android.content.Context;
 import com.crittercism.app.Crittercism;
@@ -39,15 +39,10 @@ import com.segment.android.models.Traits;
 import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class CrittercismIntegration extends SimpleIntegration {
-
-  private static class SettingKey {
-
-    private static final String APP_ID = "appId";
-
-    private static final String DELAY_SENDING_APP_LOAD = "delaySendingAppLoad";
-    private static final String INCLUDE_VERSION_CODE = "includeVersionCode";
-    private static final String SHOULD_INCLUDE_LOGCAT = "shouldCollectLogcat";
-  }
+  private static final String APP_ID = "appId";
+  private static final String DELAY_SENDING_APP_LOAD = "delaySendingAppLoad";
+  private static final String INCLUDE_VERSION_CODE = "includeVersionCode";
+  private static final String SHOULD_INCLUDE_LOGCAT = "shouldCollectLogcat";
 
   @Override
   public String getKey() {
@@ -57,26 +52,25 @@ public class CrittercismIntegration extends SimpleIntegration {
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
 
-    if (isNullOrEmpty(settings.getString(SettingKey.APP_ID))) {
-      throw new InvalidSettingsException(SettingKey.APP_ID,
-          "Crittercism requires the appId setting.");
+    if (isNullOrEmpty(settings.getString(APP_ID))) {
+      throw new InvalidSettingsException(APP_ID, "Crittercism requires the appId setting.");
     }
   }
 
   @Override
   public void onCreate(Context context) {
     EasyJSONObject settings = this.getSettings();
-    String appId = settings.getString(SettingKey.APP_ID);
+    String appId = settings.getString(APP_ID);
 
     // docs: https://app.crittercism.com/developers/docs-optional-android
     CrittercismConfig config = new CrittercismConfig();
     // send app load data with Crittercism.sendAppLoadData()
-    config.setDelaySendingAppLoad(settings.getBoolean(SettingKey.DELAY_SENDING_APP_LOAD, false));
+    config.setDelaySendingAppLoad(settings.getBoolean(DELAY_SENDING_APP_LOAD, false));
     // necessary for collecting logcat data on Android Jelly Bean devices.
-    config.setLogcatReportingEnabled(settings.getBoolean(SettingKey.SHOULD_INCLUDE_LOGCAT, false));
+    config.setLogcatReportingEnabled(settings.getBoolean(SHOULD_INCLUDE_LOGCAT, false));
     // include version code in version name.
     config.setVersionCodeToBeIncludedInVersionString(
-        settings.getBoolean(SettingKey.INCLUDE_VERSION_CODE, false));
+        settings.getBoolean(INCLUDE_VERSION_CODE, false));
 
     Crittercism.initialize(context, appId, config);
 
