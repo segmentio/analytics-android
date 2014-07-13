@@ -1,0 +1,30 @@
+apply plugin: 'android-library'
+
+dependencies {
+  provided project(':analytics-android')
+  compile files('libs/QuantcastAndroidSdk.jar')
+}
+
+android {
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
+
+  defaultConfig {
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
+    versionCode rootProject.ext.versionCode
+    versionName rootProject.ext.versionName
+  }
+
+  lintOptions {
+    abortOnError false
+  }
+
+  packagingOptions {
+    exclude 'LICENSE.txt'
+  }
+}
+
+apply from: rootProject.file('gradle/checkstyle.gradle')
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
+apply from: rootProject.file('gradle/package-jar.gradle')

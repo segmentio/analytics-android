@@ -22,13 +22,12 @@
  * SOFTWARE.
  */
 
-package com.segment.android.integrations;
+package com.segment.android;
 
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import com.quantcast.measurement.service.QuantcastClient;
-import com.segment.android.Logger;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.integration.SimpleIntegration;
 import com.segment.android.models.EasyJSONObject;
@@ -40,11 +39,7 @@ import com.segment.android.models.Track;
 import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class QuantcastIntegration extends SimpleIntegration {
-
-  private static class SettingKey {
-
-    private static final String API_KEY = "apiKey";
-  }
+  private static final String API_KEY = "apiKey";
 
   private String apiKey;
 
@@ -62,9 +57,8 @@ public class QuantcastIntegration extends SimpleIntegration {
 
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
-    if (isNullOrEmpty(settings.getString(SettingKey.API_KEY))) {
-      throw new InvalidSettingsException(SettingKey.API_KEY,
-          "Quantcast requires the apiKey setting.");
+    if (isNullOrEmpty(settings.getString(API_KEY))) {
+      throw new InvalidSettingsException(API_KEY, "Quantcast requires the apiKey setting.");
     }
   }
 
@@ -73,7 +67,7 @@ public class QuantcastIntegration extends SimpleIntegration {
     checkPermission(context);
 
     EasyJSONObject settings = this.getSettings();
-    apiKey = settings.getString(SettingKey.API_KEY);
+    apiKey = settings.getString(API_KEY);
 
     QuantcastClient.enableLogging(Logger.isLogging());
 
