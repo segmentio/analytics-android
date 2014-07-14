@@ -1,8 +1,8 @@
 apply plugin: 'android-library'
 
 dependencies {
-  androidTestCompile 'junit:junit:4.11'
-  androidTestCompile 'com.squareup:fest-android:1.0.8'
+  provided project(':analytics-android')
+  compile 'com.google.android.gms:play-services:5.0.77'
 }
 
 android {

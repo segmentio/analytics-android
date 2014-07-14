@@ -22,19 +22,16 @@
  * SOFTWARE.
  */
 
-package com.segment.android.integrations;
+package com.segment.android;
 
 import android.app.Activity;
 import android.content.Context;
-import com.google.analytics.tracking.android.EasyTracker;
-import com.google.analytics.tracking.android.ExceptionReporter;
-import com.google.analytics.tracking.android.Fields;
-import com.google.analytics.tracking.android.GAServiceManager;
-import com.google.analytics.tracking.android.GoogleAnalytics;
-import com.google.analytics.tracking.android.Logger.LogLevel;
-import com.google.analytics.tracking.android.MapBuilder;
-import com.google.analytics.tracking.android.Tracker;
-import com.segment.android.Logger;
+import android.text.TextUtils;
+import com.google.android.gms.analytics.ExceptionReporter;
+import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Logger.LogLevel;
+import com.google.android.gms.analytics.Tracker;
 import com.segment.android.errors.InvalidSettingsException;
 import com.segment.android.integration.SimpleIntegration;
 import com.segment.android.models.EasyJSONObject;
@@ -43,21 +40,15 @@ import com.segment.android.models.Screen;
 import com.segment.android.models.Track;
 import java.lang.Thread.UncaughtExceptionHandler;
 
-import static com.segment.android.utils.Utils.isNullOrEmpty;
-
 public class GoogleAnalyticsIntegration extends SimpleIntegration {
+  private static final String TRACKING_ID = "mobileTrackingId";
 
-  private static class SettingKey {
+  private static final String SAMPLING_FREQUENCY = "sampleFrequency";
+  private static final String ANONYMIZE_IP_TRACKING = "anonymizeIp";
+  private static final String REPORT_UNCAUGHT_EXCEPTIONS = "reportUncaughtExceptions";
+  private static final String USE_HTTPS = "useHttps";
 
-    private static final String TRACKING_ID = "mobileTrackingId";
-
-    private static final String SAMPLING_FREQUENCY = "sampleFrequency";
-    private static final String ANONYMIZE_IP_TRACKING = "anonymizeIp";
-    private static final String REPORT_UNCAUGHT_EXCEPTIONS = "reportUncaughtExceptions";
-    private static final String USE_HTTPS = "useHttps";
-  }
-
-  private Tracker tracker;
+  private Tracker tracker = null;
   private boolean optedOut;
 
   @Override
@@ -67,8 +58,9 @@ public class GoogleAnalyticsIntegration extends SimpleIntegration {
 
   @Override
   public void validate(EasyJSONObject settings) throws InvalidSettingsException {
-    if (isNullOrEmpty(settings.getString(SettingKey.TRACKING_ID))) {
-      throw new InvalidSettingsException(SettingKey.TRACKING_ID,
+
+    if (TextUtils.isEmpty(settings.getString(TRACKING_ID))) {
+      throw new InvalidSettingsException(TRACKING_ID,
           "Google Analytics requires the trackingId (UA-XXXXXXXX-XX) setting.");
     }
   }
@@ -81,40 +73,39 @@ public class GoogleAnalyticsIntegration extends SimpleIntegration {
 
     // The Google Analytics tracking ID to which to send your data. Dashes in the ID must be
     // unencoded. You can disable your tracking by not providing this value.
-    String trackingId = settings.getString(SettingKey.TRACKING_ID);
+    String trackingId = settings.getString(TRACKING_ID);
     // The sample rate to use. Default is 100.0. It can be any value between 0.0 and 100.0
-    Double sampleFrequency = settings.getDouble(SettingKey.SAMPLING_FREQUENCY, Double.valueOf(100));
+    Double sampleFrequency = settings.getDouble(SAMPLING_FREQUENCY, Double.valueOf(100));
     // Tells Google Analytics to anonymize the information sent by the tracker objects by
     // removing the last octet of the IP address prior to its storage. Note that this will slightly
     // reduce the accuracy of geographic reporting. false by default.
-    boolean anonymizeIp = settings.getBoolean(SettingKey.ANONYMIZE_IP_TRACKING, false);
+    boolean anonymizeIp = settings.getBoolean(ANONYMIZE_IP_TRACKING, false);
     // Automatically track an Exception each time an uncaught exception is thrown
     // in your application. false by default.
-    boolean reportUncaughtExceptions =
-        settings.getBoolean(SettingKey.REPORT_UNCAUGHT_EXCEPTIONS, false);
+    boolean reportUncaughtExceptions = settings.getBoolean(REPORT_UNCAUGHT_EXCEPTIONS, false);
     // Log to the server using https
-    boolean useHttps = settings.getBoolean(SettingKey.USE_HTTPS, false);
+    boolean useHttps = settings.getBoolean(USE_HTTPS, false);
 
     GoogleAnalytics gaInstance = GoogleAnalytics.getInstance(context);
 
     if (Logger.isLogging()) gaInstance.getLogger().setLogLevel(LogLevel.VERBOSE);
 
-    tracker = gaInstance.getTracker(trackingId);
-    tracker.set(Fields.SAMPLE_RATE, "" + sampleFrequency);
-    tracker.set(Fields.ANONYMIZE_IP, "" + anonymizeIp);
-    tracker.set(Fields.USE_SECURE, "" + useHttps);
+    if (tracker == null) tracker = gaInstance.newTracker(trackingId);
+    tracker.setSampleRate(sampleFrequency);
+    tracker.setAnonymizeIp(anonymizeIp);
+    tracker.setUseSecure(useHttps);
 
     if (reportUncaughtExceptions) enableAutomaticExceptionTracking(tracker, context);
 
-    gaInstance.setDefaultTracker(tracker);
+    gaInstance.setLocalDispatchPeriod(15);
+    tracker.enableAutoActivityTracking(true);
 
     ready();
   }
 
   private void enableAutomaticExceptionTracking(Tracker tracker, Context context) {
     UncaughtExceptionHandler myHandler =
-        new ExceptionReporter(tracker, GAServiceManager.getInstance(),
-            Thread.getDefaultUncaughtExceptionHandler(), context);
+        new ExceptionReporter(tracker, Thread.getDefaultUncaughtExceptionHandler(), context);
 
     Thread.setDefaultUncaughtExceptionHandler(myHandler);
   }
@@ -128,22 +119,25 @@ public class GoogleAnalyticsIntegration extends SimpleIntegration {
     initialize(context);
   }
 
+  // onActivityStart and onActivityStop are no longer required in v4 - see
+  // tracker.enableAutoActivityTracking keeping for applyOptOut
+
   @Override
   public void onActivityStart(Activity activity) {
     applyOptOut(activity);
-    EasyTracker.getInstance(activity).activityStart(activity);
   }
 
   @Override
   public void onActivityStop(Activity activity) {
     applyOptOut(activity);
-    EasyTracker.getInstance(activity).activityStop(activity);
   }
 
   @Override
   public void screen(Screen screen) {
     String screenName = screen.getName();
-    tracker.send(MapBuilder.createAppView().set(Fields.SCREEN_NAME, screenName).build());
+    tracker.setScreenName(screenName);
+    tracker.send(new HitBuilders.AppViewBuilder().build());
+    tracker.setScreenName(null);
   }
 
   @Override
@@ -154,8 +148,11 @@ public class GoogleAnalyticsIntegration extends SimpleIntegration {
     String action = track.getEvent();
     String label = properties.getString("label", null);
     Integer value = properties.getInt("value", 0);
-
-    tracker.send(MapBuilder.createEvent(category, action, label, value.longValue()).build());
+    tracker.send(new HitBuilders.EventBuilder().setCategory(category)
+        .setAction(action)
+        .setLabel(label)
+        .setValue(value)
+        .build());
   }
 
   @Override
