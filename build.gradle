@@ -20,8 +20,7 @@ ext {
   versionName = VERSION_NAME
 
   minSdkVersion = 10
-  targetSdkVersion = 19
-
-  compileSdkVersion = 19
-  buildToolsVersion = '19.1.0'
+  targetSdkVersion = 20
+  compileSdkVersion = 20
+  buildToolsVersion = '20.0.0'
 }
