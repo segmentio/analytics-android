@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 dependencies {
-  provided project(':analytics-android-core')
+  compile project(':analytics-android-core')
   compile project(':analytics-android-amplitude')
   compile project(':analytics-android-mixpanel')
   compile project(':analytics-android-flurry')
