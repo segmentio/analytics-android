@@ -1,7 +1,7 @@
 apply plugin: 'android-library'
 
 dependencies {
-  provided project(':analytics-android')
+  provided project(':analytics-android-core')
   compile 'ly.count:sdk-android:13.11'
 }
 
