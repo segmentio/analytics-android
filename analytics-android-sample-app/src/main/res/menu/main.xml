@@ -29,7 +29,6 @@
 
   <item android:id="@+id/action_docs"
       android:title="@string/link_docs"
-      android:orderInCategory="100"
-      android:showAsAction="never"/>
+      android:orderInCategory="100"/>
 
 </menu>

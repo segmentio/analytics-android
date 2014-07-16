@@ -24,6 +24,7 @@
 
 package com.segment.android;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
 
@@ -62,7 +63,7 @@ import android.os.Bundle;
  * your calls to make a HTTP request. It uses batching to efficiently send
  * your requests on a separate resource-constrained thread pool.
  */
-public class TrackedActivity extends Activity {
+@SuppressLint("Registered") public class TrackedActivity extends Activity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
