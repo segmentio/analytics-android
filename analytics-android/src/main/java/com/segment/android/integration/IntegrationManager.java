@@ -43,14 +43,13 @@ import java.util.List;
 import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public class IntegrationManager implements IIntegration {
-  private SettingsCache settingsCache;
-  private List<Integration> integrations;
+  private final SettingsCache settingsCache;
+  private final List<Integration> integrations;
   private boolean initialized;
 
   public IntegrationManager(SettingsCache settingsCache) {
     this.settingsCache = settingsCache;
-
-    this.integrations = new LinkedList<Integration>();
+    integrations = new LinkedList<Integration>();
 
     /**
      * Add New integrations Here
@@ -99,7 +98,7 @@ public class IntegrationManager implements IIntegration {
           "integration #getKey() " + "must return a non-null non-empty integration key.");
     }
 
-    this.integrations.add(integration);
+    integrations.add(integration);
   }
 
   /**
@@ -118,7 +117,6 @@ public class IntegrationManager implements IIntegration {
   }
 
   public void refresh() {
-
     EasyJSONObject allSettings = settingsCache.getSettings();
 
     if (allSettings != null) {
@@ -172,10 +170,6 @@ public class IntegrationManager implements IIntegration {
 
   public SettingsCache getSettingsCache() {
     return settingsCache;
-  }
-
-  public void setSettingsCache(SettingsCache settingsCache) {
-    this.settingsCache = settingsCache;
   }
 
   /**

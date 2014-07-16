@@ -3,10 +3,8 @@ apply plugin: 'android'
 dependencies {
   compile project(':analytics-android')
   compile project(':analytics-android-amplitude')
-  compile project(':analytics-android-bugsnag')
-  compile project(':analytics-android-countly')
-  compile project(':analytics-android-crittercism')
-  compile project(':analytics-android-localytics')
+  compile project(':analytics-android-mixpanel')
+  compile project(':analytics-android-flurry')
 }
 
 android {

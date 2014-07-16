@@ -24,9 +24,14 @@
 
 package com.segment.android.sample;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Toast;
 import com.segment.android.Analytics;
 import com.segment.android.TrackedActivity;
 
@@ -34,7 +39,25 @@ public class MainActivity extends TrackedActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
     setContentView(R.layout.activity_main);
+
+    initializeTrackers();
+  }
+
+  private void initializeTrackers() {
+    findViewById(R.id.action_track_a).setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        Analytics.track("Button A clicked");
+        Analytics.flush(true);
+      }
+    });
+    findViewById(R.id.action_track_b).setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        Analytics.track("Button B clicked");
+        Analytics.flush(true);
+      }
+    });
   }
 
   @Override
@@ -46,13 +69,14 @@ public class MainActivity extends TrackedActivity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     int id = item.getItemId();
-    if (id == R.id.action_settings) {
-      Analytics.track("settings clicked");
-      // todo: don't flush
-      // This is just so the action shows up in the debugger right away, otherwise
-      // events are batched, and I'll have to click this n times for it to actually send
-      // Once we demo more actions in this app, I can get rid of this.
-      Analytics.flush(true);
+    if (id == R.id.action_docs) {
+      Intent intent = new Intent(Intent.ACTION_VIEW,
+          Uri.parse("https://segment.io/docs/tutorials/quickstart-android/"));
+      try {
+        startActivity(intent);
+      } catch (ActivityNotFoundException e) {
+        Toast.makeText(this, R.string.no_browser_available, Toast.LENGTH_LONG).show();
+      }
       return true;
     }
     return super.onOptionsItemSelected(item);
