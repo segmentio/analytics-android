@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 
 dependencies {
-  compile project(':analytics-android-core')
+  provided project(':analytics-android-core')
 }
 
 android {

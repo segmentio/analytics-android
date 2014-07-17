@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 
 dependencies {
-  compile project(':analytics-android-core')
+  provided project(':analytics-android-core')
   compile 'com.mixpanel.android:mixpanel-android:4.2.1@aar'
 }
 
