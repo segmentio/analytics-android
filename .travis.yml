@@ -23,8 +23,8 @@ before_install:
   # Upgrade 'platform-tools' before 'tools' (workaround for https://github.com/travis-ci/travis-ci/issues/2470)
   # Run dinstinct 'android update sdk' commands
   - "android-update-sdk --components='platform-tools,tools' --accept-licenses='.+'"
-  - "android-update-sdk --components='build-tools-19.1.0' --accept-licenses='.+'"
-  - "android-update-sdk --components='android-19' --accept-licenses='.+'"
+  - "android-update-sdk --components='build-tools-20.0.0' --accept-licenses='.+'"
+  - "android-update-sdk --components='android-20' --accept-licenses='.+'"
   - "android-update-sdk --components='sys-img-armeabi-v7a-android-19' --accept-licenses='.+'"
   - "android-update-sdk --components='extra-android-m2repository,extra-google-m2repository' --accept-licenses='.+'"
 
