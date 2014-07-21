@@ -39,9 +39,9 @@ public class Screen extends BasePayload {
     super(obj);
   }
 
-  public Screen(String userId, String name, String category, Props properties, Options options) {
-
-    super(TYPE, options);
+  public Screen(String userId, String name, String category, Props properties,
+      EasyJSONObject bundledIntegrations, Options options) {
+    super(TYPE, bundledIntegrations, options);
     setUserId(userId);
     setName(name);
     setCategory(category);

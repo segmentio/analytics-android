@@ -296,7 +296,10 @@ public class IntegrationManager implements IIntegration {
    */
   private boolean isIntegrationEnabled(Integration integration, BasePayload action) {
     boolean enabled = true;
-    EasyJSONObject integrations = action.getIntegrations();
+    // look under the context's integrations to see which BUNDLED integrations should be disabled
+    // the top-level one is reserved for the server, where all bundled integrations are set to
+    // false, so we can't use those
+    EasyJSONObject integrations = (EasyJSONObject) action.getContext().get("integrations");
     if (integrations != null) {
       String key = integration.getKey();
       if (integrations.has("all")) enabled = integrations.getBoolean("all", true);
@@ -335,7 +338,6 @@ public class IntegrationManager implements IIntegration {
 
       @Override
       public void run(Integration integration) {
-
         if (isIntegrationEnabled(integration, track)) integration.track(track);
       }
     });

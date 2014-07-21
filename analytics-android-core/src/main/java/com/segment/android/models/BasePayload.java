@@ -29,7 +29,6 @@ import java.util.UUID;
 import org.json.JSONObject;
 
 public class BasePayload extends EasyJSONObject {
-
   private final static String TYPE_KEY = "type";
   private final static String CONTEXT_KEY = "context";
   private final static String ANONYMOUS_ID_KEY = "anonymousId";
@@ -41,14 +40,14 @@ public class BasePayload extends EasyJSONObject {
     super(obj);
   }
 
-  public BasePayload(String type, Options options) {
+  public BasePayload(String type, EasyJSONObject bundledIntegrations, Options options) {
     if (options == null) options = new Options();
 
     setType(type);
     setContext(options.getContext());
     setAnonymousId(options.getAnonymousId());
     setTimestamp(options.getTimestamp());
-    setIntegrations(options.getIntegrations());
+    setIntegrations(bundledIntegrations, options);
     setMessageId(UUID.randomUUID().toString());
   }
 
@@ -69,8 +68,26 @@ public class BasePayload extends EasyJSONObject {
     }
   }
 
-  public void setIntegrations(EasyJSONObject integrations) {
-    this.putObject(INTEGRATIONS_KEY, integrations);
+  public void setIntegrations(EasyJSONObject serverIntegrations, Options options) {
+    // Top level integrations are used by servers, this is a combination of disabled bundled
+    // integrations, and anything the user may have passed in
+    putObject(INTEGRATIONS_KEY, generateServerIntegrations(serverIntegrations, options));
+    // Context level integrations are used by IntegrationManger, this is simply what the user may
+    // have passed in, used to disable integrations for specific events.
+    getContext().put(INTEGRATIONS_KEY, options.getIntegrations());
+  }
+
+  /**
+   * Create a map of integrations for our servers to process.
+   *
+   * @param bundledIntegrations Map of integrations sent only through the bundled integrations
+   * @param options contains any user defined integrations.
+   */
+  private static EasyJSONObject generateServerIntegrations(EasyJSONObject bundledIntegrations,
+      Options options) {
+    EasyJSONObject serverIntegrations = new EasyJSONObject(bundledIntegrations);
+    serverIntegrations.merge(options.getIntegrations());
+    return serverIntegrations;
   }
 
   public Context getContext() {
