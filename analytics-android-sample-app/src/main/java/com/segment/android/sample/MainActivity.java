@@ -58,6 +58,12 @@ public class MainActivity extends TrackedActivity {
         Analytics.flush(true);
       }
     });
+    findViewById(R.id.action_track_c).setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        Analytics.track("Button C clicked");
+        Analytics.flush(true);
+      }
+    });
   }
 
   @Override

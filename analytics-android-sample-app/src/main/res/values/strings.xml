@@ -30,5 +30,6 @@
   <string name="no_browser_available">No browser to open link</string>
   <string name="track_button_a">Track Button A</string>
   <string name="track_button_b">Track Button B</string>
+  <string name="track_button_c">Track Button C</string>
 
 </resources>

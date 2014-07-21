@@ -196,7 +196,7 @@ public class IntegrationManager implements IIntegration {
     // make sure that the integration manager has settings from the server first
     if (ensureInitialized()) {
 
-      for (Integration integration : this.integrations) {
+      for (Integration integration : integrations) {
         // if the integration is at least in the minimum state
         if (integration.getState().ge(minimumState)) {
 
