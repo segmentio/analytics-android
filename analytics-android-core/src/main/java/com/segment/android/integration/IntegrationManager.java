@@ -244,7 +244,6 @@ public class IntegrationManager implements IIntegration {
 
   @Override
   public void onActivityStart(final Activity activity) {
-
     runOperation("onActivityStart", IntegrationState.READY, new IntegrationOperation() {
 
       @Override
@@ -256,7 +255,6 @@ public class IntegrationManager implements IIntegration {
 
   @Override
   public void onActivityResume(final Activity activity) {
-
     runOperation("onActivityResume", IntegrationState.READY, new IntegrationOperation() {
 
       @Override
@@ -296,7 +294,7 @@ public class IntegrationManager implements IIntegration {
    * @param integration integration
    * @param action The action being processed
    */
-  private boolean isintegrationEnabled(Integration integration, BasePayload action) {
+  private boolean isIntegrationEnabled(Integration integration, BasePayload action) {
     boolean enabled = true;
     EasyJSONObject integrations = action.getIntegrations();
     if (integrations != null) {
@@ -310,26 +308,22 @@ public class IntegrationManager implements IIntegration {
 
   @Override
   public void identify(final Identify identify) {
-
     runOperation("Identify", IntegrationState.READY, new IntegrationOperation() {
 
       @Override
       public void run(Integration integration) {
-
-        if (isintegrationEnabled(integration, identify)) integration.identify(identify);
+        if (isIntegrationEnabled(integration, identify)) integration.identify(identify);
       }
     });
   }
 
   @Override
   public void group(final Group group) {
-
     runOperation("Group", IntegrationState.READY, new IntegrationOperation() {
 
       @Override
       public void run(Integration integration) {
-
-        if (isintegrationEnabled(integration, group)) integration.group(group);
+        if (isIntegrationEnabled(integration, group)) integration.group(group);
       }
     });
   }
@@ -342,56 +336,48 @@ public class IntegrationManager implements IIntegration {
       @Override
       public void run(Integration integration) {
 
-        if (isintegrationEnabled(integration, track)) integration.track(track);
+        if (isIntegrationEnabled(integration, track)) integration.track(track);
       }
     });
   }
 
   @Override
   public void screen(final Screen screen) {
-
     runOperation("Screen", IntegrationState.READY, new IntegrationOperation() {
 
       @Override
       public void run(Integration integration) {
-
-        if (isintegrationEnabled(integration, screen)) integration.screen(screen);
+        if (isIntegrationEnabled(integration, screen)) integration.screen(screen);
       }
     });
   }
 
   @Override
   public void alias(final Alias alias) {
-
     runOperation("Alias", IntegrationState.READY, new IntegrationOperation() {
 
       @Override
       public void run(Integration integration) {
-
-        if (isintegrationEnabled(integration, alias)) integration.alias(alias);
+        if (isIntegrationEnabled(integration, alias)) integration.alias(alias);
       }
     });
   }
 
   public void reset() {
-
     runOperation("Reset", IntegrationState.READY, new IntegrationOperation() {
 
       @Override
       public void run(Integration integration) {
-
         integration.reset();
       }
     });
   }
 
   public void flush() {
-
     runOperation("Flush", IntegrationState.READY, new IntegrationOperation() {
 
       @Override
       public void run(Integration integration) {
-
         integration.flush();
       }
     });
