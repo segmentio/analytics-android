@@ -38,8 +38,9 @@ public class Group extends BasePayload {
     super(obj);
   }
 
-  public Group(String userId, String groupId, Traits traits, Options options) {
-    super(TYPE, options);
+  public Group(String userId, String groupId, Traits traits, EasyJSONObject bundledIntegrations,
+      Options options) {
+    super(TYPE, bundledIntegrations, options);
     setUserId(userId);
     setGroupId(groupId);
     setTraits(traits);

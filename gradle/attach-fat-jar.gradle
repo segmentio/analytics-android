@@ -10,10 +10,10 @@ android.libraryVariants.all { variant ->
       if (it.isDirectory()) {
         return it
       } else if (it.name.endsWith('.aar')) {
-        def tempDir = "${buildDir}\\unpacked\\dist\\extracted-" + it.name
+        def tempDir = "${buildDir}/unpacked/dist/extracted-" + it.name
 
         // Unzip the aar
-        def extractAar = project.tasks.create "jarExtract${it.name.capitalize()}", Copy
+        def extractAar = project.tasks.create "jarExtractAar${it.name.capitalize()}", Copy
         extractAar.from zipTree(it).matching {
           exclude 'R.txt'
           exclude 'proguard.txt'
@@ -28,7 +28,7 @@ android.libraryVariants.all { variant ->
         extractAar.execute()
 
         // Extract classes.jar
-        def extractClassesJar = project.tasks.create "jarExtractClasses${it.name.capitalize()}",
+        def extractClassesJar = project.tasks.create "jarExtractClassesJar${it.name.capitalize()}",
             Copy
         extractClassesJar.from zipTree(file(tempDir + "\\classes.jar")).matching {
           exclude 'META-INF/'

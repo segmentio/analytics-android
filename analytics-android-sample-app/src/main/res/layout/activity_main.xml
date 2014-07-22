@@ -45,4 +45,10 @@
       android:layout_width="match_parent"
       android:layout_height="wrap_content"/>
 
+  <Button
+      android:id="@+id/action_track_c"
+      android:text="@string/track_button_c"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"/>
+
 </LinearLayout>
