@@ -18,7 +18,7 @@ android.libraryVariants.all { variant ->
           exclude 'R.txt'
           exclude 'proguard.txt'
           exclude 'AndroidManifest.xml'
-          exclude 'META-INF?'
+          exclude 'META-INF/'
           exclude 'assets/'
           exclude 'libs/'
           exclude 'res/'
@@ -30,12 +30,14 @@ android.libraryVariants.all { variant ->
         // Extract classes.jar
         def extractClassesJar = project.tasks.create "jarExtractClasses${it.name.capitalize()}",
             Copy
-        extractClassesJar.from zipTree(file(tempDir + "\\classes.jar"))
+        extractClassesJar.from zipTree(file(tempDir + "\\classes.jar")).matching {
+          exclude 'META-INF/'
+        }
         extractClassesJar.into file(tempDir)
         extractClassesJar.setDuplicatesStrategy DuplicatesStrategy.EXCLUDE
         extractClassesJar.execute()
 
-        return fileTree(tempDir).matching {
+        return fileTree(file(tempDir)).matching {
           exclude '**/BuildConfig.java'
           exclude 'classes.jar'
         }
