@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 dependencies {
   provided project(':core')
-  compile 'com.amplitude:android-sdk:1.4'
+  compile 'com.amplitude:android-sdk:1.4.1'
 }
 
 android {
