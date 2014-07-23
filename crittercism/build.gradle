@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 dependencies {
   provided project(':core')
-  compile files('libs/crittercism_v4_5_1_sdkonly.jar')
+  compile 'com.crittercism:crittercism-android-agent:4.5.3'
 }
 
 android {
