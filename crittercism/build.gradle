@@ -1,0 +1,30 @@
+apply plugin: 'com.android.library'
+
+dependencies {
+  provided project(':core')
+  compile files('libs/crittercism_v4_5_1_sdkonly.jar')
+}
+
+android {
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
+
+  defaultConfig {
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
+    versionCode rootProject.ext.versionCode
+    versionName rootProject.ext.versionName
+  }
+
+  lintOptions {
+    abortOnError false
+  }
+
+  packagingOptions {
+    exclude 'LICENSE.txt'
+  }
+}
+
+apply from: rootProject.file('gradle/checkstyle.gradle')
+apply from: rootProject.file('gradle/attach-lean-jar.gradle')
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

@@ -1,0 +1,39 @@
+apply plugin: 'com.android.library'
+
+dependencies {
+  compile project(':core')
+  compile project(':amplitude')
+  compile project(':bugsnag')
+  compile project(':countly')
+  compile project(':crittercism')
+  compile project(':flurry')
+  compile project(':google-analytics')
+  compile project(':localytics')
+  compile project(':mixpanel')
+  compile project(':quantcast')
+  compile project(':tapstream')
+}
+
+android {
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
+
+  defaultConfig {
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
+    versionCode rootProject.ext.versionCode
+    versionName rootProject.ext.versionName
+  }
+
+  lintOptions {
+    abortOnError false
+  }
+
+  packagingOptions {
+    exclude 'LICENSE.txt'
+    exclude 'AndroidManifest.xml'
+  }
+}
+
+apply from: rootProject.file('gradle/checkstyle.gradle')
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
