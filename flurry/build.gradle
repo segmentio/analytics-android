@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 dependencies {
   provided project(':core')
-  compile files('libs/FlurryAnalytics-4.0.0.jar')
+  compile files('libs/FlurryAnalytics-4.1.0.jar')
 }
 
 android {
