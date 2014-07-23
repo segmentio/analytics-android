@@ -22,7 +22,7 @@
   ~ SOFTWARE.
   -->
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -30,11 +30,43 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
     tools:context="com.segment.android.sample.MainActivity">
 
-  <TextView
-      android:text="@string/hello_world"
-      android:layout_width="wrap_content"
+  <Button
+      android:id="@+id/action_track_a"
+      android:text="@string/track_button_a"
+      android:layout_width="match_parent"
       android:layout_height="wrap_content"/>
 
-</RelativeLayout>
+  <Button
+      android:id="@+id/action_track_b"
+      android:text="@string/track_button_b"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"/>
+
+  <Button
+      android:id="@+id/action_track_c"
+      android:text="@string/track_button_c"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"/>
+
+  <Button
+      android:id="@+id/action_track_custom_event"
+      android:text="@string/track_button_custom_event"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"/>
+
+  <EditText
+      android:id="@+id/action_custom_event_name"
+      android:hint="@string/custom_event_name_hint"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"/>
+
+  <Button
+      android:id="@+id/action_flush"
+      android:text="@string/flush"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"/>
+
+</LinearLayout>

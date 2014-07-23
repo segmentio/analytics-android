@@ -28,5 +28,5 @@
   <string name="analytics_write_key">l8v1ga655b</string>
 
   <!--Whether to print additional debug information as you develop.-->
-  <string name="analytics_debug">false</string>
+  <string name="analytics_debug">true</string>
 </resources>

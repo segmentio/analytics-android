@@ -27,8 +27,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.segment.android.sample.MainActivity">
 
-  <item android:id="@+id/action_settings"
-      android:title="@string/action_settings"
+  <item android:id="@+id/action_view_docs"
+      android:title="@string/action_view_docs"
       android:orderInCategory="100"
       android:showAsAction="never"/>
 
