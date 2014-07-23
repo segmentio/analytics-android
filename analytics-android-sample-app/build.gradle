@@ -27,5 +27,5 @@ android {
   }
 }
 
-apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
 apply from: rootProject.file('gradle/checkstyle-app.gradle')
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
