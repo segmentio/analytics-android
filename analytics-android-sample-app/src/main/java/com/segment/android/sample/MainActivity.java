@@ -28,9 +28,11 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 import com.segment.android.Analytics;
 import com.segment.android.TrackedActivity;
@@ -42,19 +44,38 @@ public class MainActivity extends TrackedActivity {
 
     setContentView(R.layout.activity_main);
 
-    initializeTrackers();
+    initViews();
   }
 
-  private void initializeTrackers() {
+  private void initViews() {
     findViewById(R.id.action_track_a).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         Analytics.track("Button A clicked");
-        Analytics.flush(true);
       }
     });
     findViewById(R.id.action_track_b).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         Analytics.track("Button B clicked");
+      }
+    });
+    findViewById(R.id.action_track_c).setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        Analytics.track("Button C clicked");
+      }
+    });
+    findViewById(R.id.action_custom_event_name).setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        String event =
+            ((EditText) findViewById(R.id.action_custom_event_name)).getText().toString();
+        if (isNullOrEmpty(event)) {
+          Toast.makeText(MainActivity.this, R.string.name_required, Toast.LENGTH_LONG).show();
+        } else {
+          Analytics.track(event);
+        }
+      }
+    });
+    findViewById(R.id.action_flush).setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
         Analytics.flush(true);
       }
     });
@@ -69,7 +90,7 @@ public class MainActivity extends TrackedActivity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     int id = item.getItemId();
-    if (id == R.id.action_docs) {
+    if (id == R.id.action_view_docs) {
       Intent intent = new Intent(Intent.ACTION_VIEW,
           Uri.parse("https://segment.io/docs/tutorials/quickstart-android/"));
       try {
@@ -80,5 +101,12 @@ public class MainActivity extends TrackedActivity {
       return true;
     }
     return super.onOptionsItemSelected(item);
+  }
+
+  /** Returns true if the string is null, or empty (when trimmed). */
+  public static boolean isNullOrEmpty(String text) {
+    // Rather than using text.trim().length() == 0, use getTrimmedLength to avoid allocating an
+    // extra string object
+    return TextUtils.isEmpty(text) || TextUtils.getTrimmedLength(text) == 0;
   }
 }

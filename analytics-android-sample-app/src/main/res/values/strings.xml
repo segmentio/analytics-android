@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <!--
   ~ The MIT License (MIT)
   ~
@@ -26,9 +25,14 @@
 <resources>
 
   <string name="app_name">Segment.io Sample</string>
-  <string name="link_docs">Docs</string>
+  <string name="action_view_docs">Docs</string>
   <string name="no_browser_available">No browser to open link</string>
   <string name="track_button_a">Track Button A</string>
   <string name="track_button_b">Track Button B</string>
+  <string name="track_button_c">Track Button C</string>
+  <string name="track_button_custom_event">Track Custom Event</string>
+  <string name="custom_event_name_hint">Type in a name for a custom event here</string>
+  <string name="flush">Flush Events</string>
+  <string name="name_required">Event name should be blank or empty</string>
 
 </resources>

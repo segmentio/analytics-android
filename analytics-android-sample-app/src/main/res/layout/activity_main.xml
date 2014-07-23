@@ -45,4 +45,28 @@
       android:layout_width="match_parent"
       android:layout_height="wrap_content"/>
 
+  <Button
+      android:id="@+id/action_track_c"
+      android:text="@string/track_button_c"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"/>
+
+  <Button
+      android:id="@+id/action_track_custom_event"
+      android:text="@string/track_button_custom_event"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"/>
+
+  <EditText
+      android:id="@+id/action_custom_event_name"
+      android:hint="@string/custom_event_name_hint"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"/>
+
+  <Button
+      android:id="@+id/action_flush"
+      android:text="@string/flush"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"/>
+
 </LinearLayout>

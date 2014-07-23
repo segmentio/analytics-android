@@ -59,20 +59,11 @@ public class IntegrationManager implements IIntegration {
     loadIntegration("com.segment.android.CountlyIntegration");
     loadIntegration("com.segment.android.CrittercismIntegration");
     loadIntegration("com.segment.android.FlurryIntegration");
+    loadIntegration("com.segment.android.GoogleAnalyticsIntegration");
     loadIntegration("com.segment.android.LocalyticsIntegration");
     loadIntegration("com.segment.android.MixpanelIntegration");
     loadIntegration("com.segment.android.TapstreamIntegration");
     loadIntegration("com.segment.android.QuantcastIntegration");
-    /**
-     loadIntegration("com.bugsnag.android.Bugsnag");
-     loadIntegration("ly.count.android.api.Countly");
-     loadIntegration("com.crittercism.app.Crittercism");
-     loadIntegration("com.flurry.android.FlurryAgent");
-     loadIntegration("com.google.analytics.tracking.android.EasyTracker");
-     loadIntegration("com.mixpanel.android.mpmetrics.MixpanelAPI");
-     loadIntegration("com.quantcast.measurement.service.QuantcastClient");
-     loadIntegration("com.tapstream.sdk.Tapstream");
-     **/
   }
 
   private void loadIntegration(final String name) {
