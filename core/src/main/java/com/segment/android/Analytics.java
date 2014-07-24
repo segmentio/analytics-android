@@ -63,7 +63,6 @@ import com.segment.android.utils.HandlerTimer;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import static com.segment.android.utils.Utils.getDeviceId;
 import static com.segment.android.utils.Utils.isNullOrEmpty;
 
 public final class Analytics {
@@ -368,9 +367,6 @@ public final class Analytics {
     anonymousIdCache = new AnonymousIdCache(context);
     groupIdCache = new SimpleStringCache(context, Constants.SharedPreferences.GROUP_ID_KEY);
     userIdCache = new SimpleStringCache(context, Constants.SharedPreferences.USER_ID_KEY);
-
-    // set the sessionId initially
-    anonymousIdCache.set(getDeviceId(context));
 
     // now we need to create our singleton thread-safe database thread
     Analytics.databaseLayer = new PayloadDatabaseThread(database);

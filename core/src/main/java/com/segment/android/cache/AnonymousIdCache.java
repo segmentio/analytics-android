@@ -25,21 +25,43 @@
 package com.segment.android.cache;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import com.segment.android.Constants;
+import com.segment.android.Logger;
 
-import static com.segment.android.utils.Utils.getDeviceId;
+import static com.segment.android.utils.Utils.getAnonymousId;
 
 public class AnonymousIdCache extends SimpleStringCache {
-  private Context context;
 
   public AnonymousIdCache(Context context) {
     super(context, Constants.SharedPreferences.ANONYMOUS_ID_KEY);
 
-    this.context = context;
+    if (!isSet()) {
+      new GetDeviceIdTask(context, this).execute();
+    }
   }
 
-  @Override
-  public String load() {
-    return getDeviceId(context);
+  static class GetDeviceIdTask extends AsyncTask<Void, Void, String> {
+    final Context context;
+    final AnonymousIdCache cache;
+
+    GetDeviceIdTask(Context context, AnonymousIdCache cache) {
+      this.context = context;
+      this.cache = cache;
+    }
+
+    @Override protected String doInBackground(Void... params) {
+      return getAnonymousId(context);
+    }
+
+    @Override protected void onPostExecute(String deviceId) {
+      super.onPostExecute(deviceId);
+
+      Logger.v("Generated anonymous device ID : %s", deviceId);
+      if (!cache.isSet()) {
+        Logger.v("Anonymous ID already set, skipping");
+        cache.set(deviceId);
+      }
+    }
   }
 }
