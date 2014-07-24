@@ -58,24 +58,39 @@ public final class TestCases {
     return calendar;
   }
 
+  static EasyJSONObject createBundledIntegrations() {
+    return new EasyJSONObject();
+  }
+
   public static Identify identify() {
     return new Identify("ilya@segment.io",
         new Traits("name", "Achilles", "email", "achilles@segment.io", "subscriptionPlan",
             "Premium", "friendCount", 29, "company",
-            new EasyJSONObject().put("name", "Company, inc.")),
+            new EasyJSONObject().put("name", "Company, inc.")), createBundledIntegrations(),
         new Options().setTimestamp(calendar()).setContext(new Context().put("ip", "192.168.1.1"))
     );
   }
 
   public static Group group() {
     return new Group("ilya@segment.io", "segmentio_id",
-        new Traits("name", "Segment.io", "plan", "Premium"),
+        new Traits("name", "Segment.io", "plan", "Premium"), createBundledIntegrations(),
         new Options().setTimestamp(calendar()).setContext(new Context("ip", "192.168.1.1")));
   }
 
   public static Track track() {
     return new Track("ilya@segment.io", "Played a Song on Android",
         new Props("name", "Achilles", "revenue", 39.95, "shippingMethod", "2-day"),
+        createBundledIntegrations(), new Options().setTimestamp(calendar())
+        .setContext(new Context("ip", "192.168.1.1"))
+        .setIntegration("Mixpanel", false)
+        .setIntegration("KISSMetrics", true)
+        .setIntegration("Google Analytics", true)
+    );
+  }
+
+  public static Screen screen() {
+    return new Screen("ilya@segment.io", "Login Page", "Authentication",
+        new Props("logged-in", true, "type", "teacher"), createBundledIntegrations(),
         new Options().setTimestamp(calendar())
             .setContext(new Context("ip", "192.168.1.1"))
             .setIntegration("Mixpanel", false)
@@ -84,18 +99,8 @@ public final class TestCases {
     );
   }
 
-  public static Screen screen() {
-    return new Screen("ilya@segment.io", "Login Page", "Authentication",
-        new Props("logged-in", true, "type", "teacher"), new Options().setTimestamp(calendar())
-        .setContext(new Context("ip", "192.168.1.1"))
-        .setIntegration("Mixpanel", false)
-        .setIntegration("KISSMetrics", true)
-        .setIntegration("Google Analytics", true)
-    );
-  }
-
   public static Alias alias() {
-    return new Alias("from", "to", null);
+    return new Alias("from", "to", createBundledIntegrations(), null);
   }
 
   public static Batch batch(String writeKey) {

@@ -65,7 +65,7 @@ public class BasicRequesterTest extends BaseTest {
   public void testUTF8Characters() {
     Identify identify = new Identify("some_user",
         new Traits("carrier", "GR COSMOTE", "language", "????????????????", "country",
-            "????????????"), null
+            "????????????"), new EasyJSONObject(), null
     );
 
     List<BasePayload> items = new LinkedList<BasePayload>();
@@ -83,7 +83,7 @@ public class BasicRequesterTest extends BaseTest {
     assertThat(settings).isNotNull();
     assertThat(settings.length()).isGreaterThan(0);
 
-    String[] keys = {"Segment.io"};
+    String[] keys = { "Segment.io" };
 
     for (String key : keys) {
       if (settings.getObject(key) == null) {

@@ -184,14 +184,16 @@ public class IntegrationManagerTest extends BaseTest {
     //
 
     Options allFalseOptions = new Options().setTimestamp(timestamp).setIntegration("all", false);
+    EasyJSONObject bundledIntegrations = new EasyJSONObject();
 
-    integrationManager.identify(new Identify(userId, traits, allFalseOptions));
+    integrationManager.identify(new Identify(userId, traits, bundledIntegrations, allFalseOptions));
     assertThat(identifies.get()).isEqualTo(1);
 
-    integrationManager.track(new Track(userId, event, properties, allFalseOptions));
+    integrationManager.track(
+        new Track(userId, event, properties, bundledIntegrations, allFalseOptions));
     assertThat(tracks.get()).isEqualTo(1);
 
-    integrationManager.alias(new Alias(from, to, allFalseOptions));
+    integrationManager.alias(new Alias(from, to, bundledIntegrations, allFalseOptions));
     assertThat(aliases.get()).isEqualTo(1);
 
     //
@@ -201,13 +203,15 @@ public class IntegrationManagerTest extends BaseTest {
     Options integrationFalseOptions =
         new Options().setTimestamp(timestamp).setIntegration(key, false);
 
-    integrationManager.identify(new Identify(userId, traits, integrationFalseOptions));
+    integrationManager.identify(
+        new Identify(userId, traits, bundledIntegrations, integrationFalseOptions));
     assertThat(identifies.get()).isEqualTo(1);
 
-    integrationManager.track(new Track(userId, event, properties, integrationFalseOptions));
+    integrationManager.track(
+        new Track(userId, event, properties, bundledIntegrations, integrationFalseOptions));
     assertThat(tracks.get()).isEqualTo(1);
 
-    integrationManager.alias(new Alias(from, to, integrationFalseOptions));
+    integrationManager.alias(new Alias(from, to, bundledIntegrations, integrationFalseOptions));
     assertThat(aliases.get()).isEqualTo(1);
 
     //
@@ -218,13 +222,15 @@ public class IntegrationManagerTest extends BaseTest {
         .setIntegration("all", false)
         .setIntegration(key, true);
 
-    integrationManager.identify(new Identify(userId, traits, integrationTrueOptions));
+    integrationManager.identify(
+        new Identify(userId, traits, bundledIntegrations, integrationTrueOptions));
     assertThat(identifies.get()).isEqualTo(2);
 
-    integrationManager.track(new Track(userId, event, properties, integrationTrueOptions));
+    integrationManager.track(
+        new Track(userId, event, properties, bundledIntegrations, integrationTrueOptions));
     assertThat(tracks.get()).isEqualTo(2);
 
-    integrationManager.alias(new Alias(from, to, integrationTrueOptions));
+    integrationManager.alias(new Alias(from, to, bundledIntegrations, integrationTrueOptions));
     assertThat(aliases.get()).isEqualTo(2);
   }
 }
