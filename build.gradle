@@ -13,6 +13,9 @@ subprojects {
   repositories {
     mavenCentral()
   }
+
+  group = GROUP
+  version = VERSION_NAME
 }
 
 ext {
