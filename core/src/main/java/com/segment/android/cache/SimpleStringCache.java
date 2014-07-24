@@ -82,11 +82,4 @@ public class SimpleStringCache {
   public void reset() {
     preferences.edit().remove(cacheKey).commit();
   }
-
-  /**
-   * Returns true if a value has been persisted to disk.
-   */
-  public boolean isSet() {
-    return preferences.contains(cacheKey);
-  }
 }

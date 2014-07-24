@@ -1,8 +1,6 @@
 apply plugin: 'com.android.library'
 
 dependencies {
-  provided 'com.google.android.gms:play-services:5.0.77'
-
   androidTestCompile 'junit:junit:4.11'
   androidTestCompile 'com.squareup:fest-android:1.0.8'
 }

@@ -28,11 +28,8 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.os.Looper;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 public final class Utils {
@@ -63,44 +60,7 @@ public final class Utils {
     return TextUtils.isEmpty(text) || TextUtils.getTrimmedLength(text) == 0;
   }
 
-  /**
-   * Throws {@link IllegalStateException} if called from the main thread.
-   */
-  public static void checkNotMain() {
-    if (isMain()) {
-      throw new IllegalStateException("Method call should not happen from the main thread.");
-    }
-  }
-
-  /**
-   * Throws {@link IllegalStateException} if not called from the main thread.
-   */
-  public static void checkMain() {
-    if (!isMain()) {
-      throw new IllegalStateException("Method call should happen from the main thread.");
-    }
-  }
-
-  /**
-   * Returns true if called on the main thread.
-   */
-  static boolean isMain() {
-    return Looper.getMainLooper().getThread() == Thread.currentThread();
-  }
-
-  public static boolean isOnClasspath(String className) {
-    try {
-      Class.forName(className);
-      return true;
-    } catch (ClassNotFoundException e) {
-      return false;
-    }
-  }
-
-  /**
-   * Creates a unique device id to anonymously track a user. Only use this as a fallback if {@link
-   * #getAdvertisingId(Context)} returns null.
-   */
+  /** Creates a unique device id to anonymously track a user. */
   public static String getDeviceId(Context context) {
     // credit method: Amplitude's Android library
 
@@ -110,15 +70,7 @@ public final class Utils {
     String androidId = android.provider.Settings.Secure.getString(context.getContentResolver(),
         android.provider.Settings.Secure.ANDROID_ID);
 
-    Set<String> invalidIds = new HashSet<String>();
-    invalidIds.add("");
-    invalidIds.add("9774d56d682e549c");
-    invalidIds.add("unknown");
-    invalidIds.add("000000000000000");
-    invalidIds.add("Android");
-    invalidIds.add("DEFACE");
-
-    if (!isNullOrEmpty(androidId) && !invalidIds.contains(androidId)) {
+    if (!(isNullOrEmpty(androidId) || androidId.equals("9774d56d682e549c"))) {
       return androidId;
     }
 
@@ -142,26 +94,5 @@ public final class Utils {
     // If this still fails, generate random identifier that does not persist
     // across installations
     return UUID.randomUUID().toString();
-  }
-
-  /**
-   * This will check if the Play Service are available on the device and application, and return an
-   * advertising ID if so. Must not be called from the main thread.
-   */
-  public static String getAdvertisingId(Context context) {
-    if (!isOnClasspath("com.google.android.gms.ads.identifier.AdvertisingIdClient")) {
-      return null;
-    } else {
-      return AdvertisingIdProvider.get(context);
-    }
-  }
-
-  /**
-   * Retrieve an anonymousId. We'll try to look up the advertising Id, and if that is unavailable,
-   * we'll generate a device ID. Must not be called from the main thread.
-   */
-  public static String getAnonymousId(Context context) {
-    String advertisingId = getAdvertisingId(context);
-    return isNullOrEmpty(advertisingId) ? getDeviceId(context) : advertisingId;
   }
 }
