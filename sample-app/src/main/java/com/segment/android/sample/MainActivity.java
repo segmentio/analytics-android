@@ -63,7 +63,7 @@ public class MainActivity extends TrackedActivity {
         Analytics.track("Button C clicked");
       }
     });
-    findViewById(R.id.action_custom_event_name).setOnClickListener(new View.OnClickListener() {
+    findViewById(R.id.action_track_custom_event).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         String event =
             ((EditText) findViewById(R.id.action_custom_event_name)).getText().toString();

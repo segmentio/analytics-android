@@ -37,8 +37,9 @@ public class Identify extends BasePayload {
     super(obj);
   }
 
-  public Identify(String userId, Traits traits, Options options) {
-    super(TYPE, options);
+  public Identify(String userId, Traits traits, EasyJSONObject bundledIntegrations,
+      Options options) {
+    super(TYPE, bundledIntegrations, options);
     setUserId(userId);
     setTraits(traits);
   }

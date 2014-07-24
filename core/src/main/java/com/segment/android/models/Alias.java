@@ -37,9 +37,9 @@ public class Alias extends BasePayload {
     super(obj);
   }
 
-  public Alias(String previousId, String userId, Options options) {
-
-    super(TYPE, options);
+  public Alias(String previousId, String userId, EasyJSONObject bundledIntegrations,
+      Options options) {
+    super(TYPE, bundledIntegrations, options);
     setPreviousId(previousId);
     setUserId(userId);
   }

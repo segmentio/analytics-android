@@ -69,6 +69,7 @@ public final class Analytics {
   private static AnalyticsStatistics statistics;
 
   private static Context globalContext;
+  private static EasyJSONObject bundledIntegrations;
 
   private static String writeKey;
   private static Config options;
@@ -394,6 +395,7 @@ public final class Analytics {
     integrationManager = new IntegrationManager(settingsCache);
 
     globalContext = generateContext(context);
+    bundledIntegrations = generateBundledIntegrations();
 
     initialized = true;
 
@@ -408,18 +410,18 @@ public final class Analytics {
   }
 
   private static Context generateContext(android.content.Context context) {
-    Context ctx = new Context(infoManager.build(context));
+    return new Context(infoManager.build(context));
+  }
 
+  private static EasyJSONObject generateBundledIntegrations() {
     // important: disable Segment.io server-side processing of
     // the bundled integrations that we'll evaluate on the mobile
     // device
-    EasyJSONObject integrationContext = new EasyJSONObject();
+    EasyJSONObject integrations = new EasyJSONObject();
     for (Integration integration : integrationManager.getIntegrations()) {
-      integrationContext.put(integration.getKey(), false);
+      integrations.put(integration.getKey(), false);
     }
-    ctx.put("integrations", integrationContext);
-
-    return ctx;
+    return integrations;
   }
 
   /**
@@ -431,8 +433,7 @@ public final class Analytics {
 
     @Override
     public Batch create(List<BasePayload> payloads) {
-      Batch batch = new Batch(writeKey, payloads);
-      return batch;
+      return new Batch(writeKey, payloads);
     }
   };
 
@@ -574,7 +575,7 @@ public final class Analytics {
     if (traits == null) traits = new Traits();
     if (options == null) options = new Options();
 
-    Identify identify = new Identify(userId, traits, options);
+    Identify identify = new Identify(userId, traits, bundledIntegrations, options);
     enqueue(identify);
     integrationManager.identify(identify);
     statistics.updateIdentifies(1);
@@ -671,7 +672,7 @@ public final class Analytics {
     if (traits == null) traits = new Traits();
     if (options == null) options = new Options();
 
-    Group group = new Group(userId, groupId, traits, options);
+    Group group = new Group(userId, groupId, traits, bundledIntegrations, options);
     enqueue(group);
     integrationManager.group(group);
     statistics.updateGroups(1);
@@ -764,7 +765,7 @@ public final class Analytics {
     if (properties == null) properties = new Props();
     if (options == null) options = new Options();
 
-    Track track = new Track(userId, event, properties, options);
+    Track track = new Track(userId, event, properties, bundledIntegrations, options);
     enqueue(track);
     integrationManager.track(track);
     statistics.updateTracks(1);
@@ -949,7 +950,8 @@ public final class Analytics {
     if (properties == null) properties = new Props();
     if (options == null) options = new Options();
 
-    Screen screenAction = new Screen(userId, name, category, properties, options);
+    Screen screenAction =
+        new Screen(userId, name, category, properties, bundledIntegrations, options);
     enqueue(screenAction);
     integrationManager.screen(screenAction);
     statistics.updateScreens(1);
@@ -999,7 +1001,7 @@ public final class Analytics {
 
     if (options == null) options = new Options();
 
-    Alias alias = new Alias(previousId, userId, options);
+    Alias alias = new Alias(previousId, userId, bundledIntegrations, options);
     enqueue(alias);
     integrationManager.alias(alias);
     statistics.updateAlias(1);

@@ -38,9 +38,9 @@ public class Track extends BasePayload {
     super(obj);
   }
 
-  public Track(String userId, String event, Props properties, Options options) {
-
-    super(TYPE, options);
+  public Track(String userId, String event, Props properties, EasyJSONObject bundledIntegrations,
+      Options options) {
+    super(TYPE, bundledIntegrations, options);
     setUserId(userId);
     setEvent(event);
     setProperties(properties);
