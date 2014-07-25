@@ -1,7 +1,10 @@
 apply plugin: 'com.android.application'
 
 dependencies {
-  compile project(':all')
+  compile 'io.segment.analytics.android:core:1.3.1@aar'
+  compile('io.segment.analytics.android:mixpanel:1.3.1@aar') {
+    transitive = true
+  }
   /**repositories { maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }}compile('io.segment.analytics.android:all:1.3.1-SNAPSHOT@aar') {transitive = true}**/
 }
 

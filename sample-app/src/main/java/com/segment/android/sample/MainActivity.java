@@ -79,6 +79,15 @@ public class MainActivity extends TrackedActivity {
         Analytics.flush(true);
       }
     });
+    findViewById(R.id.action_test_sequence).setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        Analytics.track("The first test event");
+        Analytics.screen("The first test screen");
+        Analytics.identify("93");
+        Analytics.track("Should have 93 as id");
+        Analytics.screen("Should also have 93 as id");
+      }
+    });
   }
 
   @Override
