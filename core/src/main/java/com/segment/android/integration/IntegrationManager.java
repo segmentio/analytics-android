@@ -66,7 +66,7 @@ public class IntegrationManager implements IIntegration {
     loadIntegration("com.segment.android.QuantcastIntegration");
   }
 
-  private void loadIntegration(final String name) {
+  private void loadIntegration(String name) {
     try {
       Class clz = Class.forName(name);
       addIntegration((Integration) clz.newInstance()); // todo: profile performance
@@ -76,7 +76,7 @@ public class IntegrationManager implements IIntegration {
     } catch (IllegalAccessException e) {
       Logger.e(e, "Failed to access integration constructor.");
     } catch (ClassNotFoundException e) {
-      Logger.e(e, "Could not find integration.");
+      Logger.w(e, "%s not bundled.", name);
     }
   }
 
