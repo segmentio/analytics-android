@@ -1,6 +1,17 @@
 apply plugin: 'com.android.library'
 
 dependencies {
+  compile 'com.amplitude:android-sdk:1.4.1'
+  compile 'com.bugsnag:bugsnag-android:2.2.0'
+  compile 'ly.count:sdk-android:13.11'
+  compile 'com.crittercism:crittercism-android-agent:4.5.3'
+  compile files('libs/FlurryAnalytics-4.1.0.jar')
+  compile 'com.google.android.gms:play-services:5.0.77'
+  compile project(':localytics')
+  compile 'com.mixpanel.android:mixpanel-android:4.2.1@aar'
+  compile files('libs/QuantcastAndroidSdk.jar')
+  compile files('libs/Tapstream-2.7.1.jar')
+
   androidTestCompile 'junit:junit:4.11'
   androidTestCompile 'com.squareup:fest-android:1.0.8'
 }

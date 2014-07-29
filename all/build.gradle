@@ -2,16 +2,6 @@ apply plugin: 'com.android.library'
 
 dependencies {
   compile project(':core')
-  compile project(':amplitude')
-  compile project(':bugsnag')
-  compile project(':countly')
-  compile project(':crittercism')
-  compile project(':flurry')
-  compile project(':google-analytics')
-  compile project(':localytics')
-  compile project(':mixpanel')
-  compile project(':quantcast')
-  compile project(':tapstream')
 }
 
 android {

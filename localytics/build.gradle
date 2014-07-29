@@ -1,9 +1,5 @@
 apply plugin: 'com.android.library'
 
-dependencies {
-  provided project(':core')
-}
-
 android {
   compileSdkVersion rootProject.ext.compileSdkVersion
   buildToolsVersion rootProject.ext.buildToolsVersion
