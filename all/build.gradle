@@ -2,6 +2,16 @@ apply plugin: 'com.android.library'
 
 dependencies {
   compile project(':core')
+  compile rootProject.ext.libraries.amplitude
+  compile rootProject.ext.libraries.bugsnag
+  compile rootProject.ext.libraries.countly
+  compile rootProject.ext.libraries.crittercism
+  compile rootProject.ext.libraries.flurry
+  compile rootProject.ext.libraries.googleAnalytics
+  compile rootProject.ext.libraries.localytics
+  compile rootProject.ext.libraries.mixpanel
+  compile rootProject.ext.libraries.quantcast
+  compile rootProject.ext.libraries.tapstream
 }
 
 android {

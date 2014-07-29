@@ -1,16 +1,16 @@
 apply plugin: 'com.android.library'
 
 dependencies {
-  compile rootProject.ext.libraries.amplitude
-  compile rootProject.ext.libraries.bugsnag
-  compile rootProject.ext.libraries.countly
-  compile rootProject.ext.libraries.crittercism
-  compile rootProject.ext.libraries.flurry
-  compile rootProject.ext.libraries.googleAnalytics
-  compile rootProject.ext.libraries.localytics
-  compile rootProject.ext.libraries.mixpanel
-  compile rootProject.ext.libraries.quantcast
-  compile rootProject.ext.libraries.tapstream
+  provided rootProject.ext.libraries.amplitude
+  provided rootProject.ext.libraries.bugsnag
+  provided rootProject.ext.libraries.countly
+  provided rootProject.ext.libraries.crittercism
+  provided rootProject.ext.libraries.flurry
+  provided rootProject.ext.libraries.googleAnalytics
+  provided rootProject.ext.libraries.localytics
+  provided rootProject.ext.libraries.mixpanel
+  provided rootProject.ext.libraries.quantcast
+  provided rootProject.ext.libraries.tapstream
 
   androidTestCompile 'junit:junit:4.11'
   androidTestCompile 'com.squareup:fest-android:1.0.8'
