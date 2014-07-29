@@ -1,7 +1,11 @@
 apply plugin: 'com.android.application'
 
 dependencies {
-  compile project(':all')
+  // repositories { maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' } }
+  // compile('io.segment.analytics.android:all:1.3.11-SNAPSHOT@aar') {
+  //   transitive = true
+  // }
+  compile project(':core')
 }
 
 android {
