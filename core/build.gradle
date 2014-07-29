@@ -36,5 +36,6 @@ android {
   }
 }
 
-apply from: rootProject.file('gradle/checkstyle.gradle')
+apply from: rootProject.file('gradle/checkstyle-library.gradle')
+apply from: rootProject.file('gradle/attach-lean-jar.gradle')
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
