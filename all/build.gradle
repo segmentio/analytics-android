@@ -30,6 +30,10 @@ android {
     abortOnError false
   }
 
+  dexOptions {
+    preDexLibraries = rootProject.ext.preDexLibraries
+  }
+
   packagingOptions {
     exclude 'LICENSE.txt'
     exclude 'AndroidManifest.xml'
