@@ -8,6 +8,7 @@ subprojects {
     }
     dependencies {
       classpath 'com.android.tools.build:gradle:0.12.+'
+      classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.+'
     }
   }
 
@@ -19,6 +20,9 @@ subprojects {
   version = VERSION_NAME
 }
 
+def isTravis = "true".equals(System.getenv("TRAVIS"))
+def preDexEnabled = "true".equals(System.getProperty("pre-dex", "true"))
+
 ext {
   versionCode = Integer.parseInt(VERSION_CODE)
   versionName = VERSION_NAME
@@ -27,6 +31,8 @@ ext {
   targetSdkVersion = 20
   compileSdkVersion = 20
   buildToolsVersion = '20.0.0'
+
+  preDexLibraries = preDexEnabled && !isTravis
 }
 
 ext.libraries = [
@@ -35,7 +41,8 @@ ext.libraries = [
   countly: 'ly.count:sdk-android:13.11',
   crittercism: 'com.crittercism:crittercism-android-agent:4.5.3',
   flurry: files('libs/FlurryAnalytics-4.1.0.jar'),
-  googleAnalytics: 'com.google.android.gms:play-services:5.0.89',
+  googleAnalytics: 'com.google.android.gms:play-services:5.0.77',
+  supportLib: 'com.android.support:support-v4:19.1.0',
   localytics: project(':localytics'),
   mixpanel: 'com.mixpanel.android:mixpanel-android:4.2.1@aar',
   quantcast: files('libs/QuantcastAndroidSdk.jar'),
