@@ -1,4 +1,4 @@
-language: android
+language: java
 
 notifications:
   email: false
@@ -10,33 +10,6 @@ branches:
   except:
     - gh-pages
 
-#android:
-#  components:
-#    - build-tools-19.1.0
-#  licenses:
-#    - android-sdk-license-5be876d5
-
 before_install:
-  # workaround for https://github.com/travis-ci/travis-ci/issues/2279
-  - 'sudo mv /usr/local/android-sdk/tools/android-* /usr/local/bin'
-  # Accept all licenses (workaround for travis-ci/travis-ci#2466)
-  # Upgrade 'platform-tools' before 'tools' (workaround for https://github.com/travis-ci/travis-ci/issues/2470)
-  # Run dinstinct 'android update sdk' commands
-  - "android-update-sdk --components='platform-tools,tools' --accept-licenses='.+'"
-  - "android-update-sdk --components='build-tools-20.0.0' --accept-licenses='.+'"
-  - "android-update-sdk --components='android-20' --accept-licenses='.+'"
-  - "android-update-sdk --components='sys-img-armeabi-v7a-android-19' --accept-licenses='.+'"
-  - "android-update-sdk --components='extra-android-m2repository,extra-google-m2repository' --accept-licenses='.+'"
-
-  - curl https://raw.githubusercontent.com/embarkmobile/android-sdk-installer/master/wait_for_emulator >> wait.sh
-  - chmod u+x wait.sh
-
-  - android list sdk --no-ui --all --extended
-
-  # Create and start emulator  
-  - echo no | android create avd --force -n test -t android-19 --abi armeabi-v7a
-  - emulator -avd test -no-skin -no-audio -no-window &
-
-before_script:
-  # Make sure the emulator has started before running tests
-  - ./wait.sh
+  - export TERM=dumb
+  - sudo apt-get install -qq libstdc++6:i386 lib32z1
