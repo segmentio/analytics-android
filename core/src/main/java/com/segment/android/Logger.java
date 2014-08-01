@@ -28,7 +28,7 @@ import android.util.Log;
 
 /**
  * {@link android.util.Log} wrapper.
- *
+ * <p/>
  * Generates a tag dynamically,
  */
 public final class Logger {
