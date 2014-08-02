@@ -27,21 +27,15 @@ package com.segment.android;
 import android.Manifest;
 import android.app.Application;
 import android.content.pm.PackageManager;
-import android.test.AndroidTestCase;
 
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
-import static org.mockito.MockitoAnnotations.initMocks;
 
-public class SegmentBuilderTest extends AndroidTestCase {
+public class SegmentBuilderTest extends BaseAndroidTestCase {
   @Mock Application application;
 
   @Override protected void setUp() throws Exception {
     super.setUp();
-
-    System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
-
-    initMocks(this);
 
     // Setup Fake Required Permissions
     when(application.checkCallingOrSelfPermission(Manifest.permission.INTERNET)).thenReturn(

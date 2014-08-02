@@ -30,12 +30,12 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import javax.net.ssl.HttpsURLConnection;
 
 class SegmentHTTPApi {
-  static final String IMPORT_ENDPOINT = "http://api.segment.io/v1/identify";
+  static final String IMPORT_ENDPOINT = "https://api.segment.io/v1/identify";
   static final URL IMPORT_URL = createUrl(IMPORT_ENDPOINT);
 
   private final String apiKey;
@@ -62,21 +62,21 @@ class SegmentHTTPApi {
   }
 
   void upload(Payload payload) throws IOException {
-    HttpURLConnection httpURLConnection = (HttpURLConnection) IMPORT_URL.openConnection();
+    HttpsURLConnection httpsURLConnection = (HttpsURLConnection) IMPORT_URL.openConnection();
 
-    httpURLConnection.setDoOutput(true);
-    httpURLConnection.setRequestMethod("POST");
-    httpURLConnection.setRequestProperty("Content-Type", "application/json");
-    httpURLConnection.setRequestProperty("Authorization", "Basic " + apiKey + ":");
-    httpURLConnection.setDoOutput(true);
-    httpURLConnection.setChunkedStreamingMode(0);
+    httpsURLConnection.setDoOutput(true);
+    httpsURLConnection.setRequestMethod("POST");
+    httpsURLConnection.setRequestProperty("Content-Type", "application/json");
+    httpsURLConnection.setRequestProperty("Authorization", "Basic " + apiKey + ":");
+    httpsURLConnection.setDoOutput(true);
+    httpsURLConnection.setChunkedStreamingMode(0);
 
-    OutputStream out = new BufferedOutputStream(httpURLConnection.getOutputStream());
+    OutputStream out = new BufferedOutputStream(httpsURLConnection.getOutputStream());
     out.write(payload.toString().getBytes()); //
     out.close();
 
-    InputStream in = new BufferedInputStream(httpURLConnection.getInputStream());
+    InputStream in = new BufferedInputStream(httpsURLConnection.getInputStream());
     in.close();
-    httpURLConnection.disconnect();
+    httpsURLConnection.disconnect();
   }
 }
