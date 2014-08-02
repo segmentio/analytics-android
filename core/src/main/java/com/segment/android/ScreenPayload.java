@@ -26,23 +26,21 @@ package com.segment.android;
 
 import java.util.Map;
 
-public class ScreenPayload extends Payload {
+class ScreenPayload extends Payload {
   /** The category of the page or screen. We recommend using title case, like Docs. */
-
-  private final String category;
+  private static final String CATEGORY_KEY = "category";
 
   /** The name of the page or screen. We recommend using title case, like About. */
-  private final String name;
+  private static final String NAME_KEY = "name";
 
   /** The page and screen methods also take a properties dictionary, just like track. */
-  private final Properties properties;
+  private static final String PROPERTIES_KEY = "properties";
 
-  public ScreenPayload(String anonymousId, AnalyticsContext context,
-      Map<String, Boolean> integrations, String userId, String category, String name,
-      Properties properties) {
+  ScreenPayload(String anonymousId, AnalyticsContext context, Map<String, Boolean> integrations,
+      String userId, String category, String name, Properties properties) {
     super(Type.SCREEN, anonymousId, context, integrations, userId);
-    this.category = category;
-    this.name = name;
-    this.properties = properties;
+    put(CATEGORY_KEY, category);
+    put(NAME_KEY, name);
+    put(PROPERTIES_KEY, properties);
   }
 }

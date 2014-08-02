@@ -30,7 +30,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-public class ISO8601Time {
+class ISO8601Time {
   private static final DateFormat ISO_8601_DATE_FORMAT =
       new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
@@ -40,19 +40,23 @@ public class ISO8601Time {
     this.date = date;
   }
 
-  public static ISO8601Time now() {
+  static ISO8601Time now() {
     return new ISO8601Time(Calendar.getInstance().getTime());
   }
 
-  public static ISO8601Time parse(String time) throws ParseException {
+  static ISO8601Time parse(String time) throws ParseException {
     return new ISO8601Time(ISO_8601_DATE_FORMAT.parse(time));
   }
 
-  public static ISO8601Time from(Date date) {
+  static ISO8601Time from(Date date) {
     return new ISO8601Time(date); // exposes mutability?
   }
 
-  public static ISO8601Time from(long timestamp) {
+  static ISO8601Time from(long timestamp) {
     return new ISO8601Time(new Date(timestamp));
+  }
+
+  @Override public String toString() {
+    return ISO_8601_DATE_FORMAT.format(date);
   }
 }

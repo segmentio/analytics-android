@@ -25,8 +25,14 @@
 package com.segment.android;
 
 import android.content.Context;
-import java.util.HashMap;
+import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import static com.segment.android.JsonUtils.jsonString;
+import static com.segment.android.JsonUtils.toMap;
 
 /**
  * Traits can be anything you want, but some of them have semantic meaning and we treat them in
@@ -37,50 +43,66 @@ import java.util.Map;
  * This is persisted to disk, and will be remembered between sessions.
  */
 public class Traits {
+  private static final String ADDRESS_KEY = "address";
+  private static final String ADDRESS_CITY_KEY = "city";
+  private static final String ADDRESS_COUNTRY_KEY = "country";
+  private static final String ADDRESS_POSTAL_CODE_KEY = "postalCode";
+  private static final String ADDRESS_STATE_KEY = "state";
+  private static final String ADDRESS_STREET_KEY = "street";
 
-  static class Address {
-    String city;
-    String country;
-    String postalCode;
-    String state;
-    String street;
-
-    Address(String city, String country, String postalCode, String state, String street) {
-      this.city = city;
-      this.country = country;
-      this.postalCode = postalCode;
-      this.state = state;
-      this.street = street;
-    }
+  public Traits putAddress(String city, String country, String postalCode, String state,
+      String street) {
+    Map<String, String> address = new LinkedHashMap<String, String>(5);
+    address.put(ADDRESS_CITY_KEY, city);
+    address.put(ADDRESS_COUNTRY_KEY, country);
+    address.put(ADDRESS_POSTAL_CODE_KEY, postalCode);
+    address.put(ADDRESS_STATE_KEY, state);
+    address.put(ADDRESS_STREET_KEY, street);
+    return put(ADDRESS_KEY, address);
   }
 
-  String avatar;
-  String createdAt;
-  String description;
-  String email;
-  String fax;
-  String id;
-  String name;
-  String phone;
-  String website;
-  Map<String, Object> other;
+  private static final String AVATAR_KEY = "avatar";
+  private static final String CREATED_AT_KEY = "createdAt";
+  private static final String DESCRIPTION_KEY = "description";
+  private static final String EMAIL_KEY = "email";
+  private static final String FAX_KEY = "fax";
+  private static final String ID_KEY = "id";
+  private static final String NAME_KEY = "name";
+  private static final String PHONE_KEY = "phone";
+  private static final String WEBSITE_KEY = "website";
 
   // For Identify Calls
-  short age;
-  ISO8601Time birthday;
-  String firstName;
-  String gender;
-  String lastName;
-  String title;
-  String username;
+  private static final String AGE_KEY = "age";
+  private static final String BIRTHDAY_KEY = "birthday";
+  private static final String FIRST_NAME_KEY = "firstName";
+  private static final String GENDER_KEY = "gender";
+  private static final String LAST_NAME_KEY = "lastName";
+  private static final String TITLE_KEY = "title";
+  private static final String USERNAME_KEY = "username";
 
   // For Group calls
-  long employees;
-  String industry;
+  private static final String EMPLOYEES_KEY = "employees";
+  private static final String INDUSTRY_KEY = "industry";
+
+  private final Map<String, Object> jsonMap;
+
+  static Traits fromJson(String json) throws JSONException {
+    JSONObject jsonObject = new JSONObject(json);
+    Map<String, Object> map = toMap(jsonObject);
+    return new Traits(map);
+  }
+
+  Traits() {
+    this.jsonMap = new LinkedHashMap<String, Object>(5);
+  }
+
+  Traits(Map<String, Object> jsonMap) {
+    this.jsonMap = jsonMap;
+  }
 
   private Traits(Context context) {
-    setId(Utils.getDeviceId(context));
-    other = new HashMap<String, Object>();
+    this();
+    putId(Utils.getDeviceId(context));
   }
 
   static Traits singleton = null;
@@ -96,102 +118,88 @@ public class Traits {
     return singleton;
   }
 
-  public Traits setAvatar(String avatar) {
-    this.avatar = avatar;
-    return this;
+  public Traits putAvatar(String avatar) {
+    return put(AVATAR_KEY, avatar);
   }
 
-  public Traits setCreatedAt(String createdAt) {
-    this.createdAt = createdAt;
-    return this;
+  public Traits putCreatedAt(String createdAt) {
+    return put(CREATED_AT_KEY, createdAt);
   }
 
-  public Traits setDescription(String description) {
-    this.description = description;
-    return this;
+  public Traits putDescription(String description) {
+    return put(DESCRIPTION_KEY, description);
   }
 
-  public Traits setEmail(String email) {
-    this.email = email;
-    return this;
+  public Traits putEmail(String email) {
+    return put(EMAIL_KEY, email);
   }
 
-  public Traits setFax(String fax) {
-    this.fax = fax;
-    return this;
+  public Traits putFax(String fax) {
+    return put(FAX_KEY, fax);
   }
 
-  public Traits setId(String id) {
-    this.id = id;
-    return this;
+  public Traits putId(String id) {
+    return put(ID_KEY, id);
   }
 
   public String getId() {
-    return id;
+    return (String) jsonMap.get(ID_KEY);
   }
 
-  public Traits setName(String name) {
-    this.name = name;
-    return this;
+  public Traits putName(String name) {
+    return put(NAME_KEY, name);
   }
 
-  public Traits setPhone(String phone) {
-    this.phone = phone;
-    return this;
+  public Traits putPhone(String phone) {
+    return put(PHONE_KEY, phone);
   }
 
-  public Traits setWebsite(String website) {
-    this.website = website;
-    return this;
+  public Traits putWebsite(String website) {
+    return put(WEBSITE_KEY, website);
   }
 
-  public Traits setAge(short age) {
-    this.age = age;
-    return this;
+  public Traits putAge(short age) {
+    return put(AGE_KEY, age);
   }
 
-  public Traits setBirthday(ISO8601Time birthday) {
-    this.birthday = birthday;
-    return this;
+  public Traits putBirthday(Date birthday) {
+    return put(BIRTHDAY_KEY, ISO8601Time.from(birthday).toString());
   }
 
-  public Traits setFirstName(String firstName) {
-    this.firstName = firstName;
-    return this;
+  public Traits putFirstName(String firstName) {
+    return put(FIRST_NAME_KEY, firstName);
   }
 
-  public Traits setGender(String gender) {
-    this.gender = gender;
-    return this;
+  public Traits putGender(String gender) {
+    return put(GENDER_KEY, gender);
   }
 
-  public Traits setLastName(String lastName) {
-    this.lastName = lastName;
-    return this;
+  public Traits putLastName(String lastName) {
+    return put(LAST_NAME_KEY, lastName);
   }
 
-  public Traits setTitle(String title) {
-    this.title = title;
-    return this;
+  public Traits putTitle(String title) {
+    return put(TITLE_KEY, title);
   }
 
-  public Traits setUsername(String username) {
-    this.username = username;
-    return this;
+  public Traits putUsername(String username) {
+    return put(USERNAME_KEY, username);
   }
 
-  public Traits setEmployees(long employees) {
-    this.employees = employees;
-    return this;
+  public Traits putEmployees(long employees) {
+    return put(EMPLOYEES_KEY, employees);
   }
 
-  public Traits setIndustry(String industry) {
-    this.industry = industry;
-    return this;
+  public Traits putIndustry(String industry) {
+    return put(INDUSTRY_KEY, industry);
   }
 
   public Traits put(String key, Object value) {
-    other.put(key, value);
+    jsonMap.put(key, value);
     return this;
+  }
+
+  @Override public String toString() {
+    return jsonString(jsonMap);
   }
 }

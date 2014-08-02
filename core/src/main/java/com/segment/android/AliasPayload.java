@@ -26,16 +26,16 @@ package com.segment.android;
 
 import java.util.Map;
 
-public class AliasPayload extends Payload {
+class AliasPayload extends Payload {
   /**
    * The previous ID for the user that you want to alias from, that you previously called identify
    * with as their User ID.
    */
-  private final String previousId;
+  private static final String PREVIOUS_ID_KEY = "previousId";
 
-  public AliasPayload(String anonymousId, AnalyticsContext context,
-      Map<String, Boolean> integrations, String userId, String previousId) {
+  AliasPayload(String anonymousId, AnalyticsContext context, Map<String, Boolean> integrations,
+      String userId, String previousId) {
     super(Type.ALIAS, anonymousId, context, integrations, userId);
-    this.previousId = previousId;
+    put(PREVIOUS_ID_KEY, previousId);
   }
 }

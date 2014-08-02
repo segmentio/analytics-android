@@ -26,23 +26,23 @@ package com.segment.android;
 
 import java.util.Map;
 
-public class GroupPayload extends Payload {
+class GroupPayload extends Payload {
   /**
    * A unique identifier that refers to the group in your database. For example, if your product
    * groups people by "organization" you would use the organization's ID in your database as the
    * group ID.
    */
-  private final String groupId;
+  private static final String GROUP_ID_KEY = "groupId";
 
   /**
    * The group method also takes a traits dictionary, just like identify.
    */
-  private final Traits traits;
+  private static final String TRAITS_KEY = "traits";
 
-  public GroupPayload(String anonymousId, AnalyticsContext context,
-      Map<String, Boolean> integrations, String userId, String groupId, Traits traits) {
+  GroupPayload(String anonymousId, AnalyticsContext context, Map<String, Boolean> integrations,
+      String userId, String groupId, Traits traits) {
     super(Type.GROUP, anonymousId, context, integrations, userId);
-    this.groupId = groupId;
-    this.traits = traits;
+    put(GROUP_ID_KEY, groupId);
+    put(TRAITS_KEY, traits);
   }
 }

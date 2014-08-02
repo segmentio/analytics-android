@@ -26,26 +26,24 @@ package com.segment.android;
 
 import java.util.Map;
 
-public class TrackPayload extends Payload {
-
+class TrackPayload extends Payload {
   /**
    * The name of the event. We recommend using title case and past tense for event names, like
    * Signed Up.
    */
-  private final String event;
+  private static final String EVENT_KEY = "event";
 
   /**
    * A dictionary of properties that give more information about the event. We have a collection of
    * special properties that we recognize with semantic meaning. You can also add your own custom
    * properties.
    */
-  private final Properties properties;
+  private static final String PROPERTIES_KEY = "properties";
 
-  public TrackPayload(String anonymousId, AnalyticsContext context,
-      Map<String, Boolean> integrations, String userId, String event, Properties properties) {
+  TrackPayload(String anonymousId, AnalyticsContext context, Map<String, Boolean> integrations,
+      String userId, String event, Properties properties) {
     super(Type.TRACK, anonymousId, context, integrations, userId);
-    this.event = event;
-    this.properties = properties;
+    put(EVENT_KEY, event);
+    put(PROPERTIES_KEY, properties);
   }
-
 }
