@@ -44,7 +44,6 @@ import static android.content.Context.TELEPHONY_SERVICE;
 import static android.net.ConnectivityManager.TYPE_BLUETOOTH;
 import static android.net.ConnectivityManager.TYPE_MOBILE;
 import static android.net.ConnectivityManager.TYPE_WIFI;
-import static com.segment.android.JsonUtils.jsonString;
 import static com.segment.android.Utils.getSystemService;
 
 /**
@@ -59,8 +58,7 @@ import static com.segment.android.Utils.getSystemService;
  * manually, you'll have to update it as well for each app start if you want it to persist between
  * sessions.
  */
-public class AnalyticsContext {
-
+public class AnalyticsContext extends Json<AnalyticsContext> {
   private static final String APP_KEY = "app";
   private static final String APP_NAME_KEY = "name";
   private static final String APP_VERSION_KEY = "version";
@@ -93,7 +91,7 @@ public class AnalyticsContext {
   private static final String CAMPAIGN_TERM_KEY = "term";
   private static final String CAMPAIGN_CONTENT_KEY = "content";
 
-  public AnalyticsContext putCampaign(String name, String source, String medium, String term,
+  public AnalyticsContext  putCampaign(String name, String source, String medium, String term,
       String content) {
     Map<String, Object> campaign = new LinkedHashMap<String, Object>(5);
     campaign.put(CAMPAIGN_NAME_KEY, name);
@@ -283,18 +281,7 @@ public class AnalyticsContext {
     return singleton;
   }
 
-  private final Map<String, Object> jsonMap;
-
-  AnalyticsContext() {
-    this.jsonMap = new LinkedHashMap<String, Object>(10);
-  }
-
-  AnalyticsContext(Map<String, Object> jsonMap) {
-    this.jsonMap = jsonMap;
-  }
-
   private AnalyticsContext(Context context) {
-    this();
     putApp(context);
     // todo: campaign
     putDevice();
@@ -311,12 +298,7 @@ public class AnalyticsContext {
     put(USER_AGENT_KEY, System.getProperty("http.agent"));
   }
 
-  public AnalyticsContext put(String key, Object value) {
-    jsonMap.put(key, value);
+  @Override protected AnalyticsContext self() {
     return this;
-  }
-
-  @Override public String toString() {
-    return jsonString(jsonMap);
   }
 }

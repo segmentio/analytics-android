@@ -28,11 +28,8 @@ import android.content.Context;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import static com.segment.android.JsonUtils.jsonString;
-import static com.segment.android.JsonUtils.toMap;
+import static com.segment.android.Utils.getDeviceId;
 
 /**
  * Traits can be anything you want, but some of them have semantic meaning and we treat them in
@@ -42,7 +39,7 @@ import static com.segment.android.JsonUtils.toMap;
  * <p/>
  * This is persisted to disk, and will be remembered between sessions.
  */
-public class Traits {
+public class Traits extends Json<Traits> {
   private static final String ADDRESS_KEY = "address";
   private static final String ADDRESS_CITY_KEY = "city";
   private static final String ADDRESS_COUNTRY_KEY = "country";
@@ -84,25 +81,8 @@ public class Traits {
   private static final String EMPLOYEES_KEY = "employees";
   private static final String INDUSTRY_KEY = "industry";
 
-  private final Map<String, Object> jsonMap;
-
-  static Traits fromJson(String json) throws JSONException {
-    JSONObject jsonObject = new JSONObject(json);
-    Map<String, Object> map = toMap(jsonObject);
-    return new Traits(map);
-  }
-
-  Traits() {
-    this.jsonMap = new LinkedHashMap<String, Object>(5);
-  }
-
-  Traits(Map<String, Object> jsonMap) {
-    this.jsonMap = jsonMap;
-  }
-
   private Traits(Context context) {
-    this();
-    putId(Utils.getDeviceId(context));
+    putId(getDeviceId(context));
   }
 
   static Traits singleton = null;
@@ -143,7 +123,7 @@ public class Traits {
   }
 
   public String getId() {
-    return (String) jsonMap.get(ID_KEY);
+    return (String) get(ID_KEY);
   }
 
   public Traits putName(String name) {
@@ -194,12 +174,7 @@ public class Traits {
     return put(INDUSTRY_KEY, industry);
   }
 
-  public Traits put(String key, Object value) {
-    jsonMap.put(key, value);
+  @Override protected Traits self() {
     return this;
-  }
-
-  @Override public String toString() {
-    return jsonString(jsonMap);
   }
 }

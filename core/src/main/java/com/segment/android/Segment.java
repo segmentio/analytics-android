@@ -37,12 +37,13 @@ import java.util.Map;
 import static com.segment.android.Asserts.assertOnMainThread;
 import static com.segment.android.ResourceUtils.getInteger;
 import static com.segment.android.ResourceUtils.getString;
+import static com.segment.android.Utils.isNullOrEmpty;
 
 public class Segment {
   static Segment singleton = null;
 
   /**
-   * The global default {@link Analytics} instance.
+   * The global default {@link Segment} instance.
    * <p/>
    * This instance is automatically initialized with defaults that are suitable to most
    * implementations.
@@ -64,7 +65,7 @@ public class Segment {
     return singleton;
   }
 
-  /** Fluent API for creating {@link Analytics} instances. */
+  /** Fluent API for creating {@link Segment} instances. */
   @SuppressWarnings("UnusedDeclaration") // Public API.
   public static class Builder {
     private final Application application;
@@ -101,7 +102,7 @@ public class Segment {
      * Set the write api key for Segment.io.
      */
     public Builder apiKey(String apiKey) {
-      if (Utils.isNullOrEmpty(apiKey)) {
+      if (isNullOrEmpty(apiKey)) {
         throw new IllegalArgumentException("apiKey must not be null.");
       }
       if (this.apiKey != null) {
@@ -137,8 +138,8 @@ public class Segment {
     public Segment build() {
       if (apiKey == null) {
         apiKey = getString(application, API_KEY_RESOURCE_IDENTIFIER, null);
-        if (Utils.isNullOrEmpty(apiKey)) {
-          throw new IllegalStateException("apiKey must be defined in analytics.xml");
+        if (isNullOrEmpty(apiKey)) {
+          throw new IllegalStateException("apiKey must be provided or defined in analytics.xml");
         }
       }
 
@@ -205,11 +206,11 @@ public class Segment {
   public void identify(String userId, Options options) {
     assertOnMainThread();
 
-    if (Utils.isNullOrEmpty(userId)) {
+    if (isNullOrEmpty(userId)) {
       throw new IllegalArgumentException("userId must be null or empty.");
     }
 
-    Traits.with(application).setId(userId);
+    Traits.with(application).putId(userId);
 
     submit(new IdentifyPayload(anonymousId, AnalyticsContext.with(application),
         generateServerIntegrations(), userId, Traits.with(application)));
@@ -218,7 +219,7 @@ public class Segment {
   public void group(String groupId) {
     assertOnMainThread();
 
-    if (Utils.isNullOrEmpty(groupId)) {
+    if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException("groupId must be null or empty.");
     }
 
@@ -230,7 +231,7 @@ public class Segment {
   public void track(String event, Properties properties, Options options) {
     assertOnMainThread();
 
-    if (Utils.isNullOrEmpty(event)) {
+    if (isNullOrEmpty(event)) {
       throw new IllegalArgumentException("event must be null or empty.");
     }
     if (properties == null) {
@@ -244,7 +245,7 @@ public class Segment {
   public void screen(String category, String name, Properties properties, Options options) {
     assertOnMainThread();
 
-    if (Utils.isNullOrEmpty(category) && Utils.isNullOrEmpty(name)) {
+    if (isNullOrEmpty(category) && isNullOrEmpty(name)) {
       throw new IllegalArgumentException(
           "either one of category or name must not be null or empty.");
     }
@@ -260,12 +261,12 @@ public class Segment {
   public void alias(String newId, Options options) {
     assertOnMainThread();
 
-    if (Utils.isNullOrEmpty(newId)) {
+    if (isNullOrEmpty(newId)) {
       throw new IllegalArgumentException("newId must not be null or empty.");
     }
 
     String previousId = Traits.with(application).getId(); // copy the previousId
-    Traits.with(application).setId(newId); // update the new id
+    Traits.with(application).putId(newId); // update the new id
 
     submit(new AliasPayload(anonymousId, AnalyticsContext.with(application),
         generateServerIntegrations(), Traits.with(application).getId(), previousId));

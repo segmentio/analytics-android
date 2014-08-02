@@ -24,44 +24,45 @@
 
 package com.segment.android;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static com.segment.android.JsonUtils.jsonString;
 
 /**
  * Just like traits, we also imbue some properties with semantic meaning, and you should only ever
  * use these property names for that purpose.
  */
-public class Properties {
+public class Properties extends Json<Properties> {
   private static final String REVENUE_KEY = "revenue";
   private static final String CURRENCY_KEY = "currency";
   private static final String VALUE_KEY = "value";
 
-  private final Map<String, Object> jsonMap;
-
   public Properties() {
-    this.jsonMap = new LinkedHashMap<String, Object>();
   }
 
-  public Properties setRevenue(double revenue) {
-    return put(REVENUE_KEY, revenue);
+  public Properties(int initialCapacity) {
+    super(initialCapacity);
   }
 
-  public Properties setCurrency(String currency) {
-    return put(CURRENCY_KEY, currency);
+  public Properties(Map<String, Object> map) {
+    super(map);
   }
 
-  public Properties setValue(String value) {
-    return put(VALUE_KEY, value);
+  public Properties(String json) {
+    super(json);
   }
 
-  public Properties put(String key, Object value) {
-    jsonMap.put(key, value);
+  @Override protected Properties self() {
     return this;
   }
 
-  @Override public String toString() {
-    return jsonString(jsonMap);
+  public Properties putRevenue(double revenue) {
+    return put(REVENUE_KEY, revenue);
+  }
+
+  public Properties putCurrency(String currency) {
+    return put(CURRENCY_KEY, currency);
+  }
+
+  public Properties putValue(String value) {
+    return put(VALUE_KEY, value);
   }
 }

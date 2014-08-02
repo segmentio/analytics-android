@@ -24,20 +24,14 @@
 
 package com.segment.android;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import static com.segment.android.JsonUtils.jsonString;
-import static com.segment.android.JsonUtils.toMap;
 
 /**
  * A payload object that will be sent to the server. Clients will not create instances of this
  * directly, but through one if it's subclasses.
  */
 /* This ignores projectId, receivedAt, messageId, sentAt, version that are set by the server. */
-class Payload {
+class Payload extends Json<Payload> {
   enum Type {
     ALIAS, GROUP, IDENTIFY, PAGE, SCREEN, TRACK
   }
@@ -96,25 +90,8 @@ class Payload {
    */
   private static final String USER_ID_KEY = "userId";
 
-  private final Map<String, Object> jsonMap;
-
-  static Payload fromJson(String json) throws JSONException {
-    JSONObject jsonObject = new JSONObject(json);
-    Map<String, Object> map = toMap(jsonObject);
-    return new Payload(map);
-  }
-
-  Payload() {
-    this.jsonMap = new LinkedHashMap<String, Object>(5);
-  }
-
-  Payload(Map<String, Object> jsonMap) {
-    this.jsonMap = jsonMap;
-  }
-
   Payload(Type type, String anonymousId, AnalyticsContext context,
       Map<String, Boolean> integrations, String userId) {
-    this();
     put(TYPE_KEY, type.toString());
     put(CHANNEL_KEY, Channel.MOBILE);
     put(ANONYMOUS_ID_KEY, anonymousId);
@@ -124,11 +101,9 @@ class Payload {
     put(USER_ID_KEY, userId);
   }
 
-  void put(String key, Object value) {
-    jsonMap.put(key, value);
-  }
-
-  @Override public String toString() {
-    return jsonString(jsonMap);
+  @Override protected Payload self() {
+    // We can stop the chain here since this is an Internal API. If we ever need it internally,
+    // simply remove this method and implement it in it's subclasses
+    return this;
   }
 }
