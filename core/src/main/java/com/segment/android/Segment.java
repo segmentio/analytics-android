@@ -37,6 +37,7 @@ import java.util.Map;
 import static com.segment.android.Asserts.assertOnMainThread;
 import static com.segment.android.ResourceUtils.getInteger;
 import static com.segment.android.ResourceUtils.getString;
+import static com.segment.android.Utils.hasPermission;
 import static com.segment.android.Utils.isNullOrEmpty;
 
 public class Segment {
@@ -87,10 +88,10 @@ public class Segment {
       if (context == null) {
         throw new IllegalArgumentException("Context must not be null.");
       }
-      if (!Utils.hasPermission(context, Manifest.permission.INTERNET)) {
+      if (!hasPermission(context, Manifest.permission.INTERNET)) {
         throw new IllegalArgumentException("INTERNET permission is required.");
       }
-      if (!Utils.hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
+      if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
         // todo: do we really need this permission?
         throw new IllegalArgumentException("ACCESS_NETWORK_STATE permission is required.");
       }
