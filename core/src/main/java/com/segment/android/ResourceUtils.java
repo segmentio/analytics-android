@@ -42,7 +42,7 @@ final class ResourceUtils {
   }
 
   static boolean getBooleanOrThrow(Context context, String key) {
-    int id = getIdentifier(context, "integer", key);
+    int id = getIdentifier(context, "bool", key);
     if (id != 0) {
       return context.getResources().getBoolean(id);
     } else {

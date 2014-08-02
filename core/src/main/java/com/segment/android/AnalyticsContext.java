@@ -91,7 +91,7 @@ public class AnalyticsContext extends Json<AnalyticsContext> {
   private static final String CAMPAIGN_TERM_KEY = "term";
   private static final String CAMPAIGN_CONTENT_KEY = "content";
 
-  public AnalyticsContext  putCampaign(String name, String source, String medium, String term,
+  public AnalyticsContext putCampaign(String name, String source, String medium, String term,
       String content) {
     Map<String, Object> campaign = new LinkedHashMap<String, Object>(5);
     campaign.put(CAMPAIGN_NAME_KEY, name);
@@ -133,6 +133,7 @@ public class AnalyticsContext extends Json<AnalyticsContext> {
   private static final String LIBRARY_DEBUG_KEY = "debug";
   private static final String LIBRARY_BUILD_TYPE_KEY = "buildType";
   private static final String LIBRARY_FLAVOR_KEY = "flavor";
+  private static final String LIBRARY_LOGGING = "logging";
 
   void putLibrary() {
     Map<String, Object> library = new LinkedHashMap<String, Object>(6);
@@ -142,6 +143,7 @@ public class AnalyticsContext extends Json<AnalyticsContext> {
     library.put(LIBRARY_DEBUG_KEY, BuildConfig.DEBUG);
     library.put(LIBRARY_BUILD_TYPE_KEY, BuildConfig.BUILD_TYPE);
     library.put(LIBRARY_FLAVOR_KEY, BuildConfig.FLAVOR);
+    library.put(LIBRARY_LOGGING, Logger.isLogging());
     put(LIBRARY_KEY, library);
   }
 

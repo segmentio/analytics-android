@@ -30,12 +30,12 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import javax.net.ssl.HttpsURLConnection;
 
 class SegmentHTTPApi {
-  static final String IMPORT_ENDPOINT = "https://api.segment.io/v1/identify";
+  static final String IMPORT_ENDPOINT = "http://api.segment.io/v1/identify";
   static final URL IMPORT_URL = createUrl(IMPORT_ENDPOINT);
 
   private final String writeKey;
@@ -62,21 +62,26 @@ class SegmentHTTPApi {
   }
 
   void upload(Payload payload) throws IOException {
-    HttpsURLConnection httpsURLConnection = (HttpsURLConnection) IMPORT_URL.openConnection();
+    HttpURLConnection httpURLConnection = (HttpURLConnection) IMPORT_URL.openConnection();
 
-    httpsURLConnection.setDoOutput(true);
-    httpsURLConnection.setRequestMethod("POST");
-    httpsURLConnection.setRequestProperty("Content-Type", "application/json");
-    httpsURLConnection.setRequestProperty("Authorization", "Basic " + writeKey + ":");
-    httpsURLConnection.setDoOutput(true);
-    httpsURLConnection.setChunkedStreamingMode(0);
+    httpURLConnection.setDoOutput(true);
+    httpURLConnection.setRequestMethod("POST");
+    httpURLConnection.setRequestProperty("Content-Type", "application/json");
+    httpURLConnection.setRequestProperty("Authorization", "Basic " + writeKey + ":");
+    httpURLConnection.setDoOutput(true);
+    httpURLConnection.setChunkedStreamingMode(0);
 
-    OutputStream out = new BufferedOutputStream(httpsURLConnection.getOutputStream());
+    Logger.d("Uploading Payload: %s", payload.toString());
+
+    OutputStream out = new BufferedOutputStream(httpURLConnection.getOutputStream());
     out.write(payload.toString().getBytes());
     out.close();
 
-    InputStream in = new BufferedInputStream(httpsURLConnection.getInputStream());
+    Logger.d("Response code: %s", httpURLConnection.getResponseCode());
+    Logger.d("Response message: %s", httpURLConnection.getResponseMessage());
+
+    InputStream in = new BufferedInputStream(httpURLConnection.getInputStream());
     in.close();
-    httpsURLConnection.disconnect();
+    httpURLConnection.disconnect();
   }
 }

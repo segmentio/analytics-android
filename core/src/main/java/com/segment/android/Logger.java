@@ -31,7 +31,7 @@ import android.util.Log;
  * <p/>
  * Generates a tag dynamically,
  */
-public final class Logger {
+final class Logger {
   private static final String TAG_FORMAT = "[%s] %s:%s";
   private static volatile boolean log;
 

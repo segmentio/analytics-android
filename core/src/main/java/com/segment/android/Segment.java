@@ -38,6 +38,7 @@ import static com.segment.android.Asserts.assertOnMainThread;
 import static com.segment.android.ResourceUtils.getBooleanOrThrow;
 import static com.segment.android.ResourceUtils.getIntegerOrThrow;
 import static com.segment.android.ResourceUtils.getString;
+import static com.segment.android.Utils.getDeviceId;
 import static com.segment.android.Utils.hasPermission;
 import static com.segment.android.Utils.isNullOrEmpty;
 
@@ -192,12 +193,11 @@ public class Segment {
   Segment(Application application, Dispatcher dispatcher, boolean debugging) {
     this.application = application;
     this.dispatcher = dispatcher;
-    this.debugging = debugging;
-    this.anonymousId = Utils.getDeviceId(application);
+    this.anonymousId = getDeviceId(application);
+    setDebugging(debugging);
 
     // Initialize the AnalyticsContext, which will initialize Traits automatically
     AnalyticsContext.with(application);
-    Logger.setLog(debugging);
   }
 
   /**
@@ -208,6 +208,7 @@ public class Segment {
    */
   public void setDebugging(boolean enabled) {
     debugging = enabled;
+    Logger.setLog(enabled);
   }
 
   /** {@code true} if debugging is enabled. */
