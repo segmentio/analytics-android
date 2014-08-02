@@ -32,12 +32,22 @@ final class ResourceUtils {
     throw new AssertionError("No instances");
   }
 
-  static String getString(Context context, String key, String defaultValue) {
+  static String getString(Context context, String key) {
     int id = getIdentifier(context, "string", key);
     if (id != 0) {
       return context.getResources().getString(id);
     } else {
-      return defaultValue;
+      return null;
+    }
+  }
+
+  static boolean getBooleanOrThrow(Context context, String key) {
+    int id = getIdentifier(context, "integer", key);
+    if (id != 0) {
+      return context.getResources().getBoolean(id);
+    } else {
+      // We won't ever have an error thrown since we check the id first, so we'll re-throw it up
+      throw new Resources.NotFoundException("boolean with key:" + key + " not found in resources");
     }
   }
 

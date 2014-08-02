@@ -72,7 +72,7 @@ class SegmentHTTPApi {
     httpsURLConnection.setChunkedStreamingMode(0);
 
     OutputStream out = new BufferedOutputStream(httpsURLConnection.getOutputStream());
-    out.write(payload.toString().getBytes()); //
+    out.write(payload.toString().getBytes());
     out.close();
 
     InputStream in = new BufferedInputStream(httpsURLConnection.getInputStream());

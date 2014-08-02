@@ -35,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static com.segment.android.Asserts.assertOnMainThread;
+import static com.segment.android.ResourceUtils.getBooleanOrThrow;
 import static com.segment.android.ResourceUtils.getIntegerOrThrow;
 import static com.segment.android.ResourceUtils.getString;
 import static com.segment.android.Utils.hasPermission;
@@ -71,17 +72,18 @@ public class Segment {
   public static class Builder {
     private final Application application;
     private String writeKey;
-    private int queueSize = UNDEFINED;
-    private boolean debugging = false;
+    // Use Boxed types to be able to see what has been defined and what has not
+    private Integer queueSize;
+    private Boolean debugging;
 
     // Defaults
     public static final int DEFAULT_QUEUE_SIZE = 20;
+    public static final boolean DEFAULT_DEBUGGING = false;
 
     // Resource identifier to define options in xml
     public static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
     public static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
-
-    private static final int UNDEFINED = -1;
+    public static final String DEBUGGING_RESOURCE_IDENTIFIER = "analytics_debug";
 
     /** Start building a new {@link Segment} instance. */
     public Builder(Context context) {
@@ -120,7 +122,7 @@ public class Segment {
       if (queueSize <= 0) {
         throw new IllegalArgumentException("queueSize must be greater than or equal to zero.");
       }
-      if (this.queueSize != UNDEFINED) {
+      if (this.queueSize != null) {
         throw new IllegalStateException("queueSize is already set.");
       }
       this.queueSize = queueSize;
@@ -138,13 +140,13 @@ public class Segment {
     /** Create Segment {@link Segment} instance. */
     public Segment build() {
       if (writeKey == null) {
-        writeKey = getString(application, WRITE_KEY_RESOURCE_IDENTIFIER, null);
+        writeKey = getString(application, WRITE_KEY_RESOURCE_IDENTIFIER);
         if (isNullOrEmpty(writeKey)) {
-          throw new IllegalStateException("apiKey must be provided or defined in analytics.xml");
+          throw new IllegalStateException("apiKey must be provided defined in analytics.xml");
         }
       }
 
-      if (queueSize == UNDEFINED) {
+      if (queueSize == null) {
         try {
           queueSize = getIntegerOrThrow(application, QUEUE_SIZE_RESOURCE_IDENTIFIER);
           if (queueSize <= 0) {
@@ -154,6 +156,15 @@ public class Segment {
         } catch (Resources.NotFoundException e) {
           // when queueSize is not defined in xml, we'll use a default option
           queueSize = DEFAULT_QUEUE_SIZE;
+        }
+      }
+
+      if (debugging == null) {
+        try {
+          debugging = getBooleanOrThrow(application, DEBUGGING_RESOURCE_IDENTIFIER);
+        } catch (Resources.NotFoundException e) {
+          // when debugging is not defined in xml, we'll use a default option
+          debugging = DEFAULT_DEBUGGING;
         }
       }
 
