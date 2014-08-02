@@ -38,10 +38,10 @@ class SegmentHTTPApi {
   static final String IMPORT_ENDPOINT = "https://api.segment.io/v1/identify";
   static final URL IMPORT_URL = createUrl(IMPORT_ENDPOINT);
 
-  private final String apiKey;
+  private final String writeKey;
 
-  SegmentHTTPApi(String apiKey) {
-    this.apiKey = apiKey;
+  SegmentHTTPApi(String writeKey) {
+    this.writeKey = writeKey;
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
       // bug in pre-froyo, http://android-developers.blogspot.com/2011/09/androids-http-clients.html
@@ -49,8 +49,8 @@ class SegmentHTTPApi {
     }
   }
 
-  static SegmentHTTPApi create(String apiKey) {
-    return new SegmentHTTPApi(apiKey);
+  static SegmentHTTPApi create(String writeKey) {
+    return new SegmentHTTPApi(writeKey);
   }
 
   private static URL createUrl(String url) {
@@ -67,7 +67,7 @@ class SegmentHTTPApi {
     httpsURLConnection.setDoOutput(true);
     httpsURLConnection.setRequestMethod("POST");
     httpsURLConnection.setRequestProperty("Content-Type", "application/json");
-    httpsURLConnection.setRequestProperty("Authorization", "Basic " + apiKey + ":");
+    httpsURLConnection.setRequestProperty("Authorization", "Basic " + writeKey + ":");
     httpsURLConnection.setDoOutput(true);
     httpsURLConnection.setChunkedStreamingMode(0);
 

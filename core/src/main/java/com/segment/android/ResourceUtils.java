@@ -41,21 +41,12 @@ final class ResourceUtils {
     }
   }
 
-  static int getInteger(Context context, String key, int defaultValue) {
-    int id = getIdentifier(context, "integer", key);
-    if (id != 0) {
-      return context.getResources().getInteger(id);
-    } else {
-      return defaultValue;
-    }
-  }
-
   static int getIntegerOrThrow(Context context, String key) {
     int id = getIdentifier(context, "integer", key);
     if (id != 0) {
       return context.getResources().getInteger(id);
     } else {
-      // We won't ever have an error thrown since we  check the id first
+      // We won't ever have an error thrown since we check the id first, so we'll re-throw it up
       throw new Resources.NotFoundException("integer with key:" + key + " not found in resources");
     }
   }

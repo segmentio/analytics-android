@@ -35,7 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static com.segment.android.Asserts.assertOnMainThread;
-import static com.segment.android.ResourceUtils.getInteger;
+import static com.segment.android.ResourceUtils.getIntegerOrThrow;
 import static com.segment.android.ResourceUtils.getString;
 import static com.segment.android.Utils.hasPermission;
 import static com.segment.android.Utils.isNullOrEmpty;
@@ -70,7 +70,7 @@ public class Segment {
   @SuppressWarnings("UnusedDeclaration") // Public API.
   public static class Builder {
     private final Application application;
-    private String apiKey;
+    private String writeKey;
     private int queueSize = UNDEFINED;
     private boolean debugging = false;
 
@@ -78,8 +78,8 @@ public class Segment {
     public static final int DEFAULT_QUEUE_SIZE = 20;
 
     // Resource identifier to define options in xml
-    public static final String API_KEY_RESOURCE_IDENTIFIER = "segment_api_key";
-    public static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "segment_queue_size";
+    public static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
+    public static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
 
     private static final int UNDEFINED = -1;
 
@@ -102,14 +102,14 @@ public class Segment {
     /**
      * Set the write api key for Segment.io.
      */
-    public Builder apiKey(String apiKey) {
-      if (isNullOrEmpty(apiKey)) {
-        throw new IllegalArgumentException("apiKey must not be null.");
+    public Builder writeKey(String writeKey) {
+      if (isNullOrEmpty(writeKey)) {
+        throw new IllegalArgumentException("writeKey must not be null.");
       }
-      if (this.apiKey != null) {
-        throw new IllegalStateException("apiKey is already set.");
+      if (this.writeKey != null) {
+        throw new IllegalStateException("writeKey is already set.");
       }
-      this.apiKey = apiKey;
+      this.writeKey = writeKey;
       return this;
     }
 
@@ -137,27 +137,27 @@ public class Segment {
 
     /** Create Segment {@link Segment} instance. */
     public Segment build() {
-      if (apiKey == null) {
-        apiKey = getString(application, API_KEY_RESOURCE_IDENTIFIER, null);
-        if (isNullOrEmpty(apiKey)) {
+      if (writeKey == null) {
+        writeKey = getString(application, WRITE_KEY_RESOURCE_IDENTIFIER, null);
+        if (isNullOrEmpty(writeKey)) {
           throw new IllegalStateException("apiKey must be provided or defined in analytics.xml");
         }
       }
 
       if (queueSize == UNDEFINED) {
         try {
-          queueSize = getInteger(application, QUEUE_SIZE_RESOURCE_IDENTIFIER, DEFAULT_QUEUE_SIZE);
+          queueSize = getIntegerOrThrow(application, QUEUE_SIZE_RESOURCE_IDENTIFIER);
           if (queueSize <= 0) {
             throw new IllegalStateException(
                 "queueSize(" + queueSize + ") may not be zero or negative.");
           }
         } catch (Resources.NotFoundException e) {
-          // when queueSize is not defined in xml
+          // when queueSize is not defined in xml, we'll use a default option
           queueSize = DEFAULT_QUEUE_SIZE;
         }
       }
 
-      SegmentHTTPApi segmentHTTPApi = SegmentHTTPApi.create(apiKey);
+      SegmentHTTPApi segmentHTTPApi = SegmentHTTPApi.create(writeKey);
       Dispatcher dispatcher = Dispatcher.create(application, HANDLER, queueSize, segmentHTTPApi);
 
       return new Segment(application, dispatcher, debugging);
