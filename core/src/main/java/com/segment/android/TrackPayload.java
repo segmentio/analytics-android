@@ -42,7 +42,7 @@ class TrackPayload extends Payload {
 
   TrackPayload(String anonymousId, AnalyticsContext context, Map<String, Boolean> integrations,
       String userId, String event, Properties properties) {
-    super(Type.TRACK, anonymousId, context, integrations, userId);
+    super(Type.track, anonymousId, context, integrations, userId);
     put(EVENT_KEY, event);
     put(PROPERTIES_KEY, properties);
   }

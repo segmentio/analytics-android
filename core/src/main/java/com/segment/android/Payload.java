@@ -33,11 +33,11 @@ import java.util.Map;
 /* This ignores projectId, receivedAt, messageId, sentAt, version that are set by the server. */
 class Payload extends Json<Payload> {
   enum Type {
-    ALIAS, GROUP, IDENTIFY, PAGE, SCREEN, TRACK
+    alias, group, identify, page, screen, track
   }
 
   private enum Channel {
-    BROWSER, MOBILE, SERVER
+    browser, mobile, server
   }
 
   /** The type of message. */
@@ -55,7 +55,7 @@ class Payload extends Json<Payload> {
    * The channel where the request originated from: server, browser or mobile. In the future we may
    * add additional channels as we add libraries, for example console.
    * <p/>
-   * This is always {@link Channel#MOBILE} for us.
+   * This is always {@link Channel#mobile} for us.
    */
   private static final String CHANNEL_KEY = "channel";
 
@@ -93,7 +93,7 @@ class Payload extends Json<Payload> {
   Payload(Type type, String anonymousId, AnalyticsContext context,
       Map<String, Boolean> integrations, String userId) {
     put(TYPE_KEY, type.toString());
-    put(CHANNEL_KEY, Channel.MOBILE);
+    put(CHANNEL_KEY, Channel.mobile.toString());
     put(ANONYMOUS_ID_KEY, anonymousId);
     put(CONTEXT_KEY, context);
     put(INTEGRATIONS_KEY, integrations);

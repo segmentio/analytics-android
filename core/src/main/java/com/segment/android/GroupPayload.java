@@ -41,7 +41,7 @@ class GroupPayload extends Payload {
 
   GroupPayload(String anonymousId, AnalyticsContext context, Map<String, Boolean> integrations,
       String userId, String groupId, Traits traits) {
-    super(Type.GROUP, anonymousId, context, integrations, userId);
+    super(Type.group, anonymousId, context, integrations, userId);
     put(GROUP_ID_KEY, groupId);
     put(TRAITS_KEY, traits);
   }

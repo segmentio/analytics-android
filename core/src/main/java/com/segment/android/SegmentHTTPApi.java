@@ -25,17 +25,21 @@
 package com.segment.android;
 
 import android.os.Build;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
+import android.util.Base64;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 
 class SegmentHTTPApi {
-  static final String IMPORT_ENDPOINT = "http://api.segment.io/v1/identify";
+  static final String IMPORT_ENDPOINT = "https://api.segment.io/v1/track";
   static final URL IMPORT_URL = createUrl(IMPORT_ENDPOINT);
 
   private final String writeKey;
@@ -62,26 +66,50 @@ class SegmentHTTPApi {
   }
 
   void upload(Payload payload) throws IOException {
-    HttpURLConnection httpURLConnection = (HttpURLConnection) IMPORT_URL.openConnection();
+    String url = "https://api.segment.io/v1/track";
+    String json = payload.toString();
 
-    httpURLConnection.setDoOutput(true);
-    httpURLConnection.setRequestMethod("POST");
-    httpURLConnection.setRequestProperty("Content-Type", "application/json");
-    httpURLConnection.setRequestProperty("Authorization", "Basic " + writeKey + ":");
-    httpURLConnection.setDoOutput(true);
-    httpURLConnection.setChunkedStreamingMode(0);
+    Logger.d("Uploading Payload: %s", json);
 
-    Logger.d("Uploading Payload: %s", payload.toString());
+    HttpClient httpclient = new DefaultHttpClient();
+    HttpPost post = new HttpPost(url);
+    post.setHeader("Content-Type", "application/json");
 
-    OutputStream out = new BufferedOutputStream(httpURLConnection.getOutputStream());
-    out.write(payload.toString().getBytes());
-    out.close();
+    // Basic Authentication
+    // https://segment.io/docs/tracking-api/reference/#authentication
+    post.addHeader("Authorization",
+        "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP));
 
-    Logger.d("Response code: %s", httpURLConnection.getResponseCode());
-    Logger.d("Response message: %s", httpURLConnection.getResponseMessage());
+    ByteArrayEntity se = new ByteArrayEntity(json.getBytes());
+    se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+    post.setEntity(se);
+    HttpResponse response = httpclient.execute(post);
+    Logger.d("Response line: %s", response.getStatusLine());
+    Logger.d("Response: %s", EntityUtils.toString(response.getEntity()));
 
-    InputStream in = new BufferedInputStream(httpURLConnection.getInputStream());
-    in.close();
-    httpURLConnection.disconnect();
+
+    /**
+     HttpsURLConnection urlConnection = (HttpsURLConnection) IMPORT_URL.openConnection();
+
+     urlConnection.setDoOutput(true);
+     urlConnection.setRequestMethod("POST");
+     urlConnection.setRequestProperty("Content-Type", "application/json");
+     urlConnection.setRequestProperty("Authorization", "Basic " + writeKey + ":");
+     urlConnection.setDoOutput(true);
+     urlConnection.setChunkedStreamingMode(0);
+
+     Logger.d("Uploading Payload: %s", payload.toString());
+
+     OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
+     out.write(payload.toString().getBytes());
+     out.close();
+
+     Logger.d("Response code: %s", urlConnection.getResponseCode());
+     Logger.d("Response message: %s", urlConnection.getResponseMessage());
+
+     InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+     in.close();
+     urlConnection.disconnect();
+     */
   }
 }

@@ -37,7 +37,7 @@ class IdentifyPayload extends Payload {
 
   IdentifyPayload(String anonymousId, AnalyticsContext context, Map<String, Boolean> integrations,
       String userId, Traits traits) {
-    super(Type.IDENTIFY, anonymousId, context, integrations, userId);
+    super(Type.identify, anonymousId, context, integrations, userId);
     put(TRAITS_KEY, traits);
   }
 }

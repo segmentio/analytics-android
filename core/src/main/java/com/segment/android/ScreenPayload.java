@@ -38,7 +38,7 @@ class ScreenPayload extends Payload {
 
   ScreenPayload(String anonymousId, AnalyticsContext context, Map<String, Boolean> integrations,
       String userId, String category, String name, Properties properties) {
-    super(Type.SCREEN, anonymousId, context, integrations, userId);
+    super(Type.screen, anonymousId, context, integrations, userId);
     put(CATEGORY_KEY, category);
     put(NAME_KEY, name);
     put(PROPERTIES_KEY, properties);
