@@ -110,4 +110,8 @@ abstract class Payload extends Json<Payload> {
   String getType() {
     return get(TYPE_KEY);
   }
+
+  void setSentAt(ISO8601Time time) {
+    put(SENT_AT_KEY, time.toString());
+  }
 }

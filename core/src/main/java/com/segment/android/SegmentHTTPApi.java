@@ -73,6 +73,7 @@ class SegmentHTTPApi {
         "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP));
     urlConnection.setChunkedStreamingMode(0);
 
+    payload.setSentAt(ISO8601Time.now());
     String json = payload.toString();
     Logger.d("Uploading payload: %s", json);
 
