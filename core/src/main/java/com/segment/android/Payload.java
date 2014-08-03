@@ -31,7 +31,7 @@ import java.util.Map;
  * directly, but through one if it's subclasses.
  */
 /* This ignores projectId, receivedAt, messageId, sentAt, version that are set by the server. */
-class Payload extends Json<Payload> {
+abstract class Payload extends Json<Payload> {
   enum Type {
     alias, group, identify, page, screen, track
   }
@@ -105,5 +105,9 @@ class Payload extends Json<Payload> {
     // We can stop the chain here since this is an Internal API. If we ever need it internally,
     // simply remove this method and implement it in it's subclasses
     return this;
+  }
+
+  String getType() {
+    return get(TYPE_KEY);
   }
 }

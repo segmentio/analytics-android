@@ -36,8 +36,7 @@ import java.net.URL;
 import javax.net.ssl.HttpsURLConnection;
 
 class SegmentHTTPApi {
-  static final String IMPORT_ENDPOINT = "https://api.segment.io/v1/track";
-  static final URL IMPORT_URL = createUrl(IMPORT_ENDPOINT);
+  static final String API_URL = "https://api.segment.io/v1/";
 
   private final String writeKey;
 
@@ -54,16 +53,17 @@ class SegmentHTTPApi {
     return new SegmentHTTPApi(writeKey);
   }
 
-  private static URL createUrl(String url) {
+  private static URL createUrl(Payload payload) {
+    String url = API_URL + payload.getType();
     try {
-      return new URL(url);
+      return new URL(API_URL + payload.getType());
     } catch (MalformedURLException e) {
-      throw new IllegalArgumentException("Invalid url: " + url);
+      throw new IllegalArgumentException("Could not form url for " + url);
     }
   }
 
   void upload(Payload payload) throws IOException {
-    HttpsURLConnection urlConnection = (HttpsURLConnection) IMPORT_URL.openConnection();
+    HttpsURLConnection urlConnection = (HttpsURLConnection) createUrl(payload).openConnection();
 
     urlConnection.setDoOutput(true);
     urlConnection.setDoInput(true);
@@ -74,6 +74,7 @@ class SegmentHTTPApi {
     urlConnection.setChunkedStreamingMode(0);
 
     String json = payload.toString();
+    Logger.d("Uploading payload: %s", json);
 
     OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
     out.write(json.getBytes());
