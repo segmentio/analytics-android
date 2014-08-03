@@ -10,7 +10,7 @@ public class JsonTest extends BaseAndroidTestCase {
         .put("discount", true);
     String json = properties.toString();
     assertThat(json).isEqualTo(
-        "{\"value\":\"starter\",\"discount\":true,\"currency\":\"dollars\",\"revenue\":39.99}");
+        "{\"revenue\":39.99,\"currency\":\"dollars\",\"value\":\"starter\",\"discount\":true}");
 
     Properties duplicate = new Properties().putRevenue(39.99)
         .putCurrency("dollars")
@@ -32,9 +32,8 @@ public class JsonTest extends BaseAndroidTestCase {
         .put("discount", true)
         .put("extra", nested);
     String json = properties.toString();
-    assertThat(json).isEqualTo("{\"value\":\"starter\",\"extra\":{\"someKey\":\"someValue\","
-        + "\"anotherKey\":\"anotherValue\"},\"discount\":true,\"currency\":\"dollars\","
-        + "\"revenue\":39.99}");
+    assertThat(json).isEqualTo(
+        "{\"revenue\":39.99,\"currency\":\"dollars\",\"value\":\"starter\",\"discount\":true,\"extra\":{\"someKey\":\"someValue\",\"anotherKey\":\"anotherValue\"}}");
 
     assertThat(new Properties(json)).isEqualTo(properties);
   }
