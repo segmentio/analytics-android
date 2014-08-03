@@ -155,7 +155,7 @@ public abstract class Json<T extends Json<T>> {
     if (value == null) {
       throw new IllegalArgumentException("value must not be null");
     }
-    return putObject(key, value.map);
+    return put(key, value.map);
   }
 
   public T put(String key, Map<String, ?> value) {
@@ -253,6 +253,9 @@ public abstract class Json<T extends Json<T>> {
       } else if (value instanceof Map) {
         stringer.key(key);
         writeTo((Map) value, stringer);
+      } else if (value instanceof Json) {
+        stringer.key(key);
+        writeTo(((Json) value).map, stringer);
       } else if (value instanceof Collection) {
         writeTo((Collection) value, stringer);
       } else if (value.getClass().isArray()) {

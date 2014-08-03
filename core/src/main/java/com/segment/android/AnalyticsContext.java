@@ -300,7 +300,7 @@ public class AnalyticsContext extends Json<AnalyticsContext> {
   }
 
   AnalyticsContext putTraits(Traits traits) {
-    return put(TRAITS_KEY, traits.toString());
+    return put(TRAITS_KEY, traits);
   }
 
   @Override protected AnalyticsContext self() {
