@@ -102,7 +102,7 @@ abstract class Payload extends Json<Payload> {
   }
 
   @Override protected Payload self() {
-    // We can stop the chain here since this is an Internal API. If we ever need it internally,
+    // We can stop the chain here since we don't chain methods internally. If we ever need it,
     // simply remove this method and implement it in it's subclasses
     return this;
   }
