@@ -225,7 +225,8 @@ public class Segment {
 
     Traits.with(application).putId(userId);
 
-    submit(new IdentifyPayload(anonymousId, AnalyticsContext.with(application),
+    submit(new IdentifyPayload(anonymousId,
+        AnalyticsContext.with(application).putTraits(Traits.with(application)),
         generateServerIntegrations(), userId, Traits.with(application)));
   }
 
@@ -236,9 +237,11 @@ public class Segment {
       throw new IllegalArgumentException("groupId must be null or empty.");
     }
 
-    submit(new GroupPayload(anonymousId, AnalyticsContext.with(application),
+    submit(new GroupPayload(anonymousId,
+        AnalyticsContext.with(application).putTraits(Traits.with(application)),
         generateServerIntegrations(), Traits.with(application).getId(), groupId,
-        Traits.with(application)));
+        Traits.with(application)
+    ));
   }
 
   public void track(String event, Properties properties, Options options) {
@@ -251,8 +254,10 @@ public class Segment {
       properties = new Properties();
     }
 
-    submit(new TrackPayload(anonymousId, AnalyticsContext.with(application),
-        generateServerIntegrations(), Traits.with(application).getId(), event, properties));
+    submit(new TrackPayload(anonymousId,
+        AnalyticsContext.with(application).putTraits(Traits.with(application)),
+        generateServerIntegrations(), Traits.with(application).getId(), event, properties
+    ));
   }
 
   public void screen(String category, String name, Properties properties, Options options) {
@@ -266,9 +271,10 @@ public class Segment {
       properties = new Properties();
     }
 
-    submit(new ScreenPayload(anonymousId, AnalyticsContext.with(application),
-        generateServerIntegrations(), Traits.with(application).getId(), category, name,
-        properties));
+    submit(new ScreenPayload(anonymousId,
+        AnalyticsContext.with(application).putTraits(Traits.with(application)),
+        generateServerIntegrations(), Traits.with(application).getId(), category, name, properties
+    ));
   }
 
   public void alias(String newId, Options options) {
@@ -281,7 +287,8 @@ public class Segment {
     String previousId = Traits.with(application).getId(); // copy the previousId
     Traits.with(application).putId(newId); // update the new id
 
-    submit(new AliasPayload(anonymousId, AnalyticsContext.with(application),
+    submit(new AliasPayload(anonymousId,
+        AnalyticsContext.with(application).putTraits(Traits.with(application)),
         generateServerIntegrations(), Traits.with(application).getId(), previousId));
   }
 

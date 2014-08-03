@@ -295,9 +295,12 @@ public class AnalyticsContext extends Json<AnalyticsContext> {
     putOs();
     // todo: referrer
     putScreen(context);
-    put(TRAITS_KEY, Traits.with(context).toString());
     // todo: groupId
     put(USER_AGENT_KEY, System.getProperty("http.agent"));
+  }
+
+  AnalyticsContext putTraits(Traits traits) {
+    return put(TRAITS_KEY, traits.toString());
   }
 
   @Override protected AnalyticsContext self() {
