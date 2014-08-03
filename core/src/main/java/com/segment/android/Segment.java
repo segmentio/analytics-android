@@ -172,7 +172,9 @@ public class Segment {
       SegmentHTTPApi segmentHTTPApi = SegmentHTTPApi.create(writeKey);
       Dispatcher dispatcher = Dispatcher.create(application, HANDLER, queueSize, segmentHTTPApi);
 
-      return new Segment(application, dispatcher, debugging);
+      IntegrationManager integrationManager = new IntegrationManager();
+
+      return new Segment(application, dispatcher, integrationManager, debugging);
     }
   }
 
@@ -189,15 +191,22 @@ public class Segment {
   final Dispatcher dispatcher;
   volatile boolean debugging;
   final String anonymousId;
+  final IntegrationManager integrationManager;
+  final ProjectSettingsCache projectSettingsCache;
 
-  Segment(Application application, Dispatcher dispatcher, boolean debugging) {
+  Segment(Application application, Dispatcher dispatcher, IntegrationManager integrationManager,
+      boolean debugging) {
     this.application = application;
     this.dispatcher = dispatcher;
-    this.anonymousId = getDeviceId(application);
+    this.integrationManager = integrationManager;
     setDebugging(debugging);
 
-    // Initialize the AnalyticsContext, which will initialize Traits automatically
+    projectSettingsCache = new ProjectSettingsCache(application);
+    anonymousId = getDeviceId(application);
+
+    dispatcher.dispatchFetchSettings(this);
     AnalyticsContext.with(application);
+    Traits.with(application);
   }
 
   /**
@@ -240,8 +249,7 @@ public class Segment {
     submit(new GroupPayload(anonymousId,
         AnalyticsContext.with(application).putTraits(Traits.with(application)),
         generateServerIntegrations(), Traits.with(application).getId(), groupId,
-        Traits.with(application)
-    ));
+        Traits.with(application)));
   }
 
   public void track(String event, Properties properties, Options options) {
@@ -256,8 +264,7 @@ public class Segment {
 
     submit(new TrackPayload(anonymousId,
         AnalyticsContext.with(application).putTraits(Traits.with(application)),
-        generateServerIntegrations(), Traits.with(application).getId(), event, properties
-    ));
+        generateServerIntegrations(), Traits.with(application).getId(), event, properties));
   }
 
   public void screen(String category, String name, Properties properties, Options options) {
@@ -273,8 +280,8 @@ public class Segment {
 
     submit(new ScreenPayload(anonymousId,
         AnalyticsContext.with(application).putTraits(Traits.with(application)),
-        generateServerIntegrations(), Traits.with(application).getId(), category, name, properties
-    ));
+        generateServerIntegrations(), Traits.with(application).getId(), category, name,
+        properties));
   }
 
   public void alias(String newId, Options options) {

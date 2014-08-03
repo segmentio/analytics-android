@@ -41,6 +41,8 @@ import static android.content.Context.CONNECTIVITY_SERVICE;
 import static android.content.Intent.ACTION_AIRPLANE_MODE_CHANGED;
 import static android.net.ConnectivityManager.CONNECTIVITY_ACTION;
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
+import static com.segment.android.Utils.hasPermission;
+import static com.segment.android.Utils.isAirplaneModeOn;
 
 class Dispatcher {
   private static final int DEFAULT_QUEUE_SIZE = 20;
@@ -50,6 +52,7 @@ class Dispatcher {
   private static final int AIRPLANE_MODE_OFF = 0;
 
   static final int REQUEST_ENQUEUE = 1;
+  static final int REQUEST_FETCH_SETTINGS = 2;
   static final int NETWORK_STATE_CHANGE = 9;
   static final int AIRPLANE_MODE_CHANGE = 10;
 
@@ -78,9 +81,8 @@ class Dispatcher {
     this.mainThreadHandler = mainThreadHandler;
     this.queueSize = queueSize;
     this.segmentHTTPApi = segmentHTTPApi;
-    this.airplaneMode = Utils.isAirplaneModeOn(context);
-    this.scansNetworkChanges =
-        Utils.hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE);
+    this.airplaneMode = isAirplaneModeOn(context);
+    this.scansNetworkChanges = hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE);
     isShutdown = false;
     receiver = new NetworkBroadcastReceiver(this);
     receiver.register();
@@ -98,6 +100,10 @@ class Dispatcher {
     handler.sendMessage(handler.obtainMessage(REQUEST_ENQUEUE, payload));
   }
 
+  void dispatchFetchSettings(Segment segment) {
+    handler.sendMessage(handler.obtainMessage(REQUEST_FETCH_SETTINGS, segment));
+  }
+
   void dispatchAirplaneModeChange(boolean airplaneMode) {
     handler.sendMessage(handler.obtainMessage(AIRPLANE_MODE_CHANGE,
         airplaneMode ? AIRPLANE_MODE_ON : AIRPLANE_MODE_OFF, 0));
@@ -110,10 +116,22 @@ class Dispatcher {
   // Perform dispatched actions, these run on a non-ui thread
 
   void performEnqueue(Payload payload) {
-    // todo: add(payload);
+    // todo: add(payload) to disk;
     try {
       segmentHTTPApi.upload(payload);
-      segmentHTTPApi.fetchSettings();
+    } catch (IOException e) {
+      Logger.e(e, "Exception!");
+    }
+  }
+
+  void performFetchSettings(final Segment segment) {
+    try {
+      final ProjectSettings settings = segmentHTTPApi.fetchSettings();
+      Segment.HANDLER.post(new Runnable() {
+        @Override public void run() {
+          segment.integrationManager.initialize(segment.application, settings);
+        }
+      });
     } catch (IOException e) {
       Logger.e(e, "Exception!");
     }
@@ -143,6 +161,11 @@ class Dispatcher {
         case REQUEST_ENQUEUE: {
           Payload payload = (Payload) msg.obj;
           dispatcher.performEnqueue(payload);
+          break;
+        }
+        case REQUEST_FETCH_SETTINGS: {
+          Segment segment = (Segment) msg.obj;
+          dispatcher.performFetchSettings(segment);
           break;
         }
         case NETWORK_STATE_CHANGE: {

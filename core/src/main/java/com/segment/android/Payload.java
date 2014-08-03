@@ -108,7 +108,11 @@ abstract class Payload extends Json<Payload> {
   }
 
   String getType() {
-    return get(TYPE_KEY);
+    return getString(TYPE_KEY);
+  }
+
+  String getUserId() {
+    return getString(USER_ID_KEY);
   }
 
   void setSentAt(ISO8601Time time) {

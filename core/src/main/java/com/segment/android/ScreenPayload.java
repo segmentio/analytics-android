@@ -43,4 +43,16 @@ class ScreenPayload extends Payload {
     put(NAME_KEY, name);
     put(PROPERTIES_KEY, properties);
   }
+
+  String getCategory() {
+    return getString(CATEGORY_KEY);
+  }
+
+  String getName() {
+    return getString(NAME_KEY);
+  }
+
+  Properties getProperties() {
+    return (Properties) get(PROPERTIES_KEY);
+  }
 }

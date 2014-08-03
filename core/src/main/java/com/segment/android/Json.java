@@ -127,28 +127,56 @@ public abstract class Json<T extends Json<T>> {
     return putObject(key, value);
   }
 
+  public int getInt(String key) {
+    return (Integer) get(key);
+  }
+
   public T put(String key, short value) {
     return putObject(key, value);
+  }
+
+  public short getShort(String key) {
+    return (Short) get(key);
   }
 
   public T put(String key, long value) {
     return putObject(key, value);
   }
 
+  public long getLong(String key) {
+    return (Long) get(key);
+  }
+
   public T put(String key, double value) {
     return putObject(key, value);
+  }
+
+  public double getDouble(String key) {
+    return (Double) get(key);
   }
 
   public T put(String key, float value) {
     return putObject(key, value);
   }
 
+  public float getFloat(String key) {
+    return (Float) get(key);
+  }
+
   public T put(String key, boolean value) {
     return putObject(key, value);
   }
 
+  public boolean getBoolean(String key) {
+    return (Boolean) get(key);
+  }
+
   public T put(String key, String value) {
     return putObject(key, value);
+  }
+
+  public String getString(String key) {
+    return (String) get(key);
   }
 
   public T put(String key, Json<?> value) {
@@ -158,6 +186,19 @@ public abstract class Json<T extends Json<T>> {
     return put(key, value.map);
   }
 
+  public Json getJson(String key) {
+    Object value = get(key);
+    if (value == null) {
+      return create();
+    } else if (value instanceof Json) {
+      return (Json) value;
+    } else if (value instanceof Map) {
+      return create((Map) get(key));
+    } else {
+      throw new ClassCastException("Could not cast " + value + " to Json or Map");
+    }
+  }
+
   public T put(String key, Map<String, ?> value) {
     if (value == null) {
       throw new IllegalArgumentException("value must not be null");
@@ -165,8 +206,16 @@ public abstract class Json<T extends Json<T>> {
     return putObject(key, value);
   }
 
+  public Map<String, ?> getMap(String key) {
+    return (Map) get(key);
+  }
+
   public T put(String key, Enum<?> anEnum) {
     return putObject(key, anEnum);
+  }
+
+  public Enum<?> getEnum(String key) {
+    return (Enum) get(key);
   }
 
   protected abstract T self();
@@ -186,9 +235,14 @@ public abstract class Json<T extends Json<T>> {
    * if no mapping for the specified key is found.
    * @throws NullPointerException if the key is {@code null}.
    */
-  public <T> T get(String key) {
+  public Object get(String key) {
     assertKeyNotNull(key);
-    return (T) map.get(key);
+    return map.get(key);
+  }
+
+  public boolean has(String key) {
+    assertKeyNotNull(key);
+    return map.get(key) != null;
   }
 
   private void assertKeyNotNull(String key) {
@@ -286,5 +340,9 @@ public abstract class Json<T extends Json<T>> {
       }
     }
     stringer.endArray();
+  }
+
+  public JSONObject toJsonObject() {
+    return new JSONObject(map);
   }
 }

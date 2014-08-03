@@ -6,7 +6,8 @@ dependencies {
   // compile('io.segment.analytics.android:all:1.3.11-SNAPSHOT@aar') {
   //   transitive = true
   // }
-  compile project(':all')
+  compile project(':core')
+  compile rootProject.ext.libraries.amplitude
 }
 
 android {
@@ -23,7 +24,7 @@ android {
   lintOptions {
     abortOnError false
   }
-  
+
   dexOptions {
     preDexLibraries = rootProject.ext.preDexLibraries
   }

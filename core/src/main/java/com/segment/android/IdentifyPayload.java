@@ -40,4 +40,8 @@ class IdentifyPayload extends Payload {
     super(Type.identify, anonymousId, context, integrations, userId);
     put(TRAITS_KEY, traits);
   }
+
+  Traits getTraits() {
+    return (Traits) get(TRAITS_KEY);
+  }
 }

@@ -46,4 +46,12 @@ class TrackPayload extends Payload {
     put(EVENT_KEY, event);
     put(PROPERTIES_KEY, properties);
   }
+
+  String getEvent() {
+    return getString(EVENT_KEY);
+  }
+
+  Properties getProperties() {
+    return (Properties) get(PROPERTIES_KEY);
+  }
 }

@@ -98,7 +98,7 @@ class SegmentHTTPApi {
     urlConnection.disconnect();
   }
 
-  Json fetchSettings() throws IOException {
+  ProjectSettings fetchSettings() throws IOException {
     HttpsURLConnection urlConnection =
         (HttpsURLConnection) createUrl("project/" + writeKey + "/settings").openConnection();
 
@@ -114,15 +114,15 @@ class SegmentHTTPApi {
       in = new BufferedInputStream(urlConnection.getErrorStream());
     }
 
-    String response = readFully(in);
+    String json = readFully(in);
     in.close();
     urlConnection.disconnect();
-    Logger.d("Response code: %s, response: %s, message: %s", responseCode, response,
+    Logger.d("Response code: %s, json: %s, message: %s", responseCode, json,
         urlConnection.getResponseMessage());
-    return null;
+    return new ProjectSettings(json);
   }
 
-  static String readFully(InputStream in) throws IOException {
+  private static String readFully(InputStream in) throws IOException {
     BufferedReader r = new BufferedReader(new InputStreamReader(in));
     StringBuilder response = new StringBuilder();
     for (String line; (line = r.readLine()) != null; ) {
