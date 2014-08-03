@@ -113,6 +113,7 @@ class Dispatcher {
     // todo: add(payload);
     try {
       segmentHTTPApi.upload(payload);
+      segmentHTTPApi.fetchSettings();
     } catch (IOException e) {
       Logger.e(e, "Exception!");
     }

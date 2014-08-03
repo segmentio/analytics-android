@@ -28,15 +28,19 @@ import android.os.Build;
 import android.util.Base64;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.net.ssl.HttpsURLConnection;
 
+import static java.net.HttpURLConnection.HTTP_OK;
+
 class SegmentHTTPApi {
-  static final String API_URL = "https://api.segment.io/v1/";
+  static final String API_URL = "https://api.segment.io/";
 
   private final String writeKey;
 
@@ -53,17 +57,18 @@ class SegmentHTTPApi {
     return new SegmentHTTPApi(writeKey);
   }
 
-  private static URL createUrl(Payload payload) {
-    String url = API_URL + payload.getType();
+  private static URL createUrl(String endpoint) {
+    String url = API_URL + endpoint;
     try {
-      return new URL(API_URL + payload.getType());
+      return new URL(url);
     } catch (MalformedURLException e) {
       throw new IllegalArgumentException("Could not form url for " + url);
     }
   }
 
   void upload(Payload payload) throws IOException {
-    HttpsURLConnection urlConnection = (HttpsURLConnection) createUrl(payload).openConnection();
+    HttpsURLConnection urlConnection =
+        (HttpsURLConnection) createUrl("v1/" + payload.getType()).openConnection();
 
     urlConnection.setDoOutput(true);
     urlConnection.setDoInput(true);
@@ -81,11 +86,48 @@ class SegmentHTTPApi {
     out.write(json.getBytes());
     out.close();
 
-    InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+    int responseCode = urlConnection.getResponseCode();
+    if (responseCode == HTTP_OK) {
+      Logger.d("Response code: %s, message: %s", responseCode, urlConnection.getResponseMessage());
+    } else {
+      InputStream in = new BufferedInputStream(urlConnection.getErrorStream());
+      String response = readFully(in);
+      in.close();
+      Logger.d("Response code: %s, response: %s", responseCode, response);
+    }
+    urlConnection.disconnect();
+  }
+
+  Json fetchSettings() throws IOException {
+    HttpsURLConnection urlConnection =
+        (HttpsURLConnection) createUrl("project/" + writeKey + "/settings").openConnection();
+
+    urlConnection.setDoInput(true);
+    urlConnection.setRequestMethod("GET");
+    urlConnection.setRequestProperty("Content-Type", "application/json");
+
+    int responseCode = urlConnection.getResponseCode();
+    InputStream in;
+    if (responseCode == HTTP_OK) {
+      in = new BufferedInputStream(urlConnection.getInputStream());
+    } else {
+      in = new BufferedInputStream(urlConnection.getErrorStream());
+    }
+
+    String response = readFully(in);
     in.close();
     urlConnection.disconnect();
-
-    Logger.d("Response code: %s, message: %s", urlConnection.getResponseCode(),
+    Logger.d("Response code: %s, response: %s, message: %s", responseCode, response,
         urlConnection.getResponseMessage());
+    return null;
+  }
+
+  static String readFully(InputStream in) throws IOException {
+    BufferedReader r = new BufferedReader(new InputStreamReader(in));
+    StringBuilder response = new StringBuilder();
+    for (String line; (line = r.readLine()) != null; ) {
+      response.append(line);
+    }
+    return response.toString();
   }
 }
