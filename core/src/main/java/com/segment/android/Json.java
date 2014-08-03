@@ -1,6 +1,8 @@
 package com.segment.android;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -8,6 +10,7 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONStringer;
 
 import static com.segment.android.Utils.isNullOrEmpty;
 
@@ -228,6 +231,57 @@ public abstract class Json<T extends Json<T>> {
   }
 
   @Override public String toString() {
-    return new JSONObject(map).toString();
+    try {
+      // Support proper parsing. The default implementation ignores Arrays, Collections and Maps.
+      JSONStringer stringer = new JSONStringer();
+      writeTo(map, stringer);
+      return stringer.toString();
+    } catch (JSONException e) {
+      return null;
+    }
+  }
+
+  /* Recursively write to the stringer for a given map. */
+  static void writeTo(Map<String, Object> map, JSONStringer stringer) throws JSONException {
+    stringer.object();
+    for (Map.Entry<String, Object> entry : map.entrySet()) {
+      String key = entry.getKey();
+      Object value = entry.getValue();
+
+      if (value == null) {
+        stringer.key(key).value(value);
+      } else if (value instanceof Map) {
+        stringer.key(key);
+        writeTo((Map) value, stringer);
+      } else if (value instanceof Collection) {
+        writeTo((Collection) value, stringer);
+      } else if (value.getClass().isArray()) {
+        writeTo(toList(value), stringer);
+      } else {
+        stringer.key(key).value(value);
+      }
+    }
+    stringer.endObject();
+  }
+
+  static List<Object> toList(Object array) {
+    final int length = Array.getLength(array);
+    List<Object> values = new ArrayList<Object>(length);
+    for (int i = 0; i < length; ++i) {
+      values.add(Array.get(array, i));
+    }
+    return values;
+  }
+
+  static void writeTo(Collection<Object> collection, JSONStringer stringer) throws JSONException {
+    stringer.array();
+    for (Object value : collection) {
+      if (value instanceof Map) {
+        writeTo((Map) value, stringer);
+      } else {
+        stringer.value(value);
+      }
+    }
+    stringer.endArray();
   }
 }
