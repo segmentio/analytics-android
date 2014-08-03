@@ -76,19 +76,19 @@ public class SegmentBuilderTest extends BaseAndroidTestCase {
 
   public void testInvalidApiKeyThrowsException() throws Exception {
     try {
-      new Segment.Builder(application).apiKey(null);
+      new Segment.Builder(application).writeKey(null);
       fail("Null apiKey should throw exception.");
     } catch (IllegalArgumentException expected) {
     }
 
     try {
-      new Segment.Builder(application).apiKey("");
+      new Segment.Builder(application).writeKey("");
       fail("Empty apiKey should throw exception.");
     } catch (IllegalArgumentException expected) {
     }
 
     try {
-      new Segment.Builder(application).apiKey("   ");
+      new Segment.Builder(application).writeKey("   ");
       fail("Blank apiKey should throw exception.");
     } catch (IllegalArgumentException expected) {
     }
