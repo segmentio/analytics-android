@@ -3,6 +3,9 @@ package com.segment.android;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import java.util.Map;
+
+import static com.segment.android.Options.ALL_INTEGRATIONS_KEY;
 
 abstract class Integration {
 
@@ -35,7 +38,20 @@ abstract class Integration {
 
   /** Returns whether the integration has been enabled. */
   final boolean shouldPerformOperation(Options options) {
-    return state == State.INITIALIZED && !options.getDisabledIntegrations().contains(getKey());
+    if (state != State.INITIALIZED) {
+      Logger.d("Integration (%s) not yet initialized.", getKey());
+      return false;
+    }
+
+    Map<String, Boolean> integrations = options.getIntegrations();
+
+    if (integrations.containsKey(getKey())) {
+      // user has specified an option for this integration, respect this value
+      return options.getIntegrations().get(getKey());
+    } else {
+      // user has not specified an option for this setting, so let's see what is defined for 'all'
+      return options.getIntegrations().get(ALL_INTEGRATIONS_KEY);
+    }
   }
 
   abstract String getKey();

@@ -25,36 +25,51 @@
 package com.segment.android;
 
 import java.util.Calendar;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Options {
+  public static final String ALL_INTEGRATIONS_KEY = "all";
+
   private Calendar timestamp;
-  private Set<String> disabledIntegrations = new LinkedHashSet<String>();
+  private final Map<String, Boolean> integrations;
+
+  public Options() {
+    integrations = new LinkedHashMap<String, Boolean>();
+    integrations.put(ALL_INTEGRATIONS_KEY, true);
+  }
 
   /**
-   * Sets whether this call will be sent to the target integration. For instance:
-   * .disableIntegration("Google Analytics") will disable Google Analytics
+   * Sets whether this call will be sent to the target integration.
+   * <p>
+   * By default, all integrations are sent a payload.
+   * You can disable specific payloads. For instance,
+   * <code>options.setIntegration("Google Analytics", false).setIntegration("Countly",
+   * false)</code> will send the event to all integrations except Google Analytic and Countly.
+   * If you want to enable only specific integrations, first override the defaults and then
+   * enable specific integrations.
+   * For example,
+   * <code>options.setIntegration(Options.ALL_INTEGRATIONS_KEY, false).setIntegration("Countly",
+   * true).setIntegration("Google Analytics", true)</code> will only send events to Countly and
+   * Google Analytics.
    *
-   * @param integration The integration name
-   * @param enabled True for enabled
+   * @param integrationKey The integration key
+   * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
    * @return This options object for chaining
    */
-  public Options disableIntegration(String integration) {
-    disabledIntegrations.add(integration);
+  public Options setIntegration(String integrationKey, boolean enabled) {
+    integrations.put(integrationKey, enabled);
     return this;
   }
 
-  Collection<String> getDisabledIntegrations() {
-    return disabledIntegrations;
+  Map<String, Boolean> getIntegrations() {
+    return integrations; // todo: wrap in Collections.Unmodifiable?
   }
 
   /**
    * Sets the timestamp of when an analytics call occurred. The timestamp is primarily used for
    * historical imports or if this event happened in the past. The timestamp is not required, and
-   * if
-   * its not provided, our servers will timestamp the call as if it just happened.
+   * if it's not provided, our servers will timestamp the call as if it just happened.
    *
    * @param timestamp The time when this event happened
    * @return This options object for chaining

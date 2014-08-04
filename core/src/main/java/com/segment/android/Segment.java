@@ -307,10 +307,11 @@ public class Segment {
       // Disable any integrations that are bundled so the server doesn't send the
       map.put(key, false);
     }
-    for (String key : options.getDisabledIntegrations()) {
-      // Disable any integrations that the user has passed in, this will also be looked up by
-      // IntegrationManager to make sure it doesn't post to the bundled integration.
-      map.put(key, false);
+    for (Map.Entry<String, Boolean> entry : options.getIntegrations().entrySet()) {
+      // Copy any settings for integrations that the user has passed in.
+      // This will also be looked up by IntegrationManager to make sure it doesn't post to any
+      // bundled integration.
+      map.put(entry.getKey(), entry.getValue());
     }
     return map;
   }
