@@ -28,8 +28,6 @@ import android.content.Context;
 import com.segment.android.models.EasyJSONObject;
 import org.json.JSONObject;
 
-import static com.segment.android.utils.Utils.getDeviceId;
-
 public class Device implements Info<JSONObject> {
 
   @Override
@@ -41,7 +39,7 @@ public class Device implements Info<JSONObject> {
   public JSONObject get(Context context) {
     EasyJSONObject device = new EasyJSONObject();
 
-    device.put("id", getDeviceId(context));
+    device.put("id", android.os.Build.ID);
     device.put("manufacturer", android.os.Build.MANUFACTURER);
     device.put("model", android.os.Build.MODEL);
     device.put("version", android.os.Build.VERSION.SDK_INT);
