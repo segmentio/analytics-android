@@ -5,6 +5,9 @@ import android.content.Context;
 import android.os.Bundle;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
+import static com.segment.android.Options.ALL_INTEGRATIONS_KEY;
 
 class IntegrationManager {
   private final List<Integration> integrations = new LinkedList<Integration>();
@@ -73,7 +76,24 @@ class IntegrationManager {
    */
   void identify(IdentifyPayload identify) {
     for (Integration integration : integrations) {
-      if (integration.shouldPerformOperation(identify.getOptions())) integration.identify(identify);
+      if (shouldPerformIntegration(integration, identify)) integration.identify(identify);
+    }
+  }
+
+  private boolean shouldPerformIntegration(Integration integration, Payload payload) {
+    if (!integration.isReady()) {
+      Logger.d("Integration (%s) not yet initialized.", integration.getKey());
+      return false;
+    }
+
+    Map<String, Boolean> integrations = payload.getOptions().getIntegrations();
+
+    if (integrations.containsKey(integration.getKey())) {
+      // user has specified an option for this integration, respect this value
+      return integrations.get(integration.getKey());
+    } else {
+      // user has not specified an option for this setting, so let's use what is defined for 'all'
+      return integrations.get(ALL_INTEGRATIONS_KEY);
     }
   }
 
@@ -93,7 +113,7 @@ class IntegrationManager {
    */
   void track(TrackPayload track) {
     for (Integration integration : integrations) {
-      if (integration.shouldPerformOperation(track.getOptions())) integration.track(track);
+      if (shouldPerformIntegration(integration, track)) integration.track(track);
     }
   }
 
