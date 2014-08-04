@@ -236,10 +236,10 @@ public class Segment {
 
     submit(new IdentifyPayload(anonymousId,
         AnalyticsContext.with(application).putTraits(Traits.with(application)),
-        generateServerIntegrations(), userId, Traits.with(application)));
+        generateServerIntegrations(options), userId, Traits.with(application), options));
   }
 
-  public void group(String groupId) {
+  public void group(String groupId, Options options) {
     assertOnMainThread();
 
     if (isNullOrEmpty(groupId)) {
@@ -248,8 +248,8 @@ public class Segment {
 
     submit(new GroupPayload(anonymousId,
         AnalyticsContext.with(application).putTraits(Traits.with(application)),
-        generateServerIntegrations(), Traits.with(application).getId(), groupId,
-        Traits.with(application)));
+        generateServerIntegrations(options), Traits.with(application).getId(), groupId,
+        Traits.with(application), options));
   }
 
   public void track(String event, Properties properties, Options options) {
@@ -264,7 +264,8 @@ public class Segment {
 
     submit(new TrackPayload(anonymousId,
         AnalyticsContext.with(application).putTraits(Traits.with(application)),
-        generateServerIntegrations(), Traits.with(application).getId(), event, properties));
+        generateServerIntegrations(options), Traits.with(application).getId(), event, properties,
+        options));
   }
 
   public void screen(String category, String name, Properties properties, Options options) {
@@ -280,8 +281,8 @@ public class Segment {
 
     submit(new ScreenPayload(anonymousId,
         AnalyticsContext.with(application).putTraits(Traits.with(application)),
-        generateServerIntegrations(), Traits.with(application).getId(), category, name,
-        properties));
+        generateServerIntegrations(options), Traits.with(application).getId(), category, name,
+        properties, options));
   }
 
   public void alias(String newId, Options options) {
@@ -296,12 +297,22 @@ public class Segment {
 
     submit(new AliasPayload(anonymousId,
         AnalyticsContext.with(application).putTraits(Traits.with(application)),
-        generateServerIntegrations(), Traits.with(application).getId(), previousId));
+        generateServerIntegrations(options), Traits.with(application).getId(), previousId,
+        options));
   }
 
-  Map<String, Boolean> generateServerIntegrations() {
-    // todo: implement
-    return new LinkedHashMap<String, Boolean>();
+  Map<String, Boolean> generateServerIntegrations(Options options) {
+    Map<String, Boolean> map = new LinkedHashMap<String, Boolean>();
+    for (String key : integrationManager.keys()) {
+      // Disable any integrations that are bundled so the server doesn't send the
+      map.put(key, false);
+    }
+    for (String key : options.getDisabledIntegrations()) {
+      // Disable any integrations that the user has passed in, this will also be looked up by
+      // IntegrationManager to make sure it doesn't post to the bundled integration.
+      map.put(key, false);
+    }
+    return map;
   }
 
   void submit(Payload payload) {

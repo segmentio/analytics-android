@@ -41,8 +41,8 @@ class TrackPayload extends Payload {
   private static final String PROPERTIES_KEY = "properties";
 
   TrackPayload(String anonymousId, AnalyticsContext context, Map<String, Boolean> integrations,
-      String userId, String event, Properties properties) {
-    super(Type.track, anonymousId, context, integrations, userId);
+      String userId, String event, Properties properties, Options options) {
+    super(Type.track, anonymousId, context, integrations, userId, options);
     put(EVENT_KEY, event);
     put(PROPERTIES_KEY, properties);
   }

@@ -34,8 +34,8 @@ abstract class Integration {
   }
 
   /** Returns whether the integration has been enabled. */
-  final boolean isEnabled() {
-    return state == State.INITIALIZED;
+  final boolean shouldPerformOperation(Options options) {
+    return state == State.INITIALIZED && !options.getDisabledIntegrations().contains(getKey());
   }
 
   abstract String getKey();

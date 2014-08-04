@@ -52,6 +52,10 @@ class ISO8601Time {
     return new ISO8601Time(date); // exposes mutability?
   }
 
+  static ISO8601Time from(Calendar calendar) {
+    return new ISO8601Time(calendar.getTime()); // exposes mutability?
+  }
+
   static ISO8601Time from(long timestamp) {
     return new ISO8601Time(new Date(timestamp));
   }

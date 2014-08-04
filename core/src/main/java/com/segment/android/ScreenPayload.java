@@ -37,8 +37,8 @@ class ScreenPayload extends Payload {
   private static final String PROPERTIES_KEY = "properties";
 
   ScreenPayload(String anonymousId, AnalyticsContext context, Map<String, Boolean> integrations,
-      String userId, String category, String name, Properties properties) {
-    super(Type.screen, anonymousId, context, integrations, userId);
+      String userId, String category, String name, Properties properties, Options options) {
+    super(Type.screen, anonymousId, context, integrations, userId, options);
     put(CATEGORY_KEY, category);
     put(NAME_KEY, name);
     put(PROPERTIES_KEY, properties);

@@ -8,13 +8,20 @@ import java.util.List;
 
 class IntegrationManager {
   private final List<Integration> integrations = new LinkedList<Integration>();
+  private final List<String> keys = new LinkedList<String>();
 
   IntegrationManager() {
     try {
       Class.forName("com.amplitude.api.Amplitude");
-      integrations.add(new AmplitudeIntegration());
+      Integration integration = new AmplitudeIntegration();
+      integrations.add(integration);
+      keys.add(integration.getKey());
     } catch (ClassNotFoundException e) {
     }
+  }
+
+  List<String> keys() {
+    return keys;
   }
 
   void initialize(Context context, ProjectSettings projectSettings) {
@@ -65,7 +72,9 @@ class IntegrationManager {
    * @param identify An identify action
    */
   void identify(IdentifyPayload identify) {
-
+    for (Integration integration : integrations) {
+      if (integration.shouldPerformOperation(identify.getOptions())) integration.identify(identify);
+    }
   }
 
   /**
@@ -84,7 +93,7 @@ class IntegrationManager {
    */
   void track(TrackPayload track) {
     for (Integration integration : integrations) {
-      if (integration.isEnabled()) integration.track(track);
+      if (integration.shouldPerformOperation(track.getOptions())) integration.track(track);
     }
   }
 

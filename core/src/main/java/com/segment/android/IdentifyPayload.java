@@ -36,8 +36,8 @@ class IdentifyPayload extends Payload {
   private static final String TRAITS_KEY = "traits";
 
   IdentifyPayload(String anonymousId, AnalyticsContext context, Map<String, Boolean> integrations,
-      String userId, Traits traits) {
-    super(Type.identify, anonymousId, context, integrations, userId);
+      String userId, Traits traits, Options options) {
+    super(Type.identify, anonymousId, context, integrations, userId, options);
     put(TRAITS_KEY, traits);
   }
 

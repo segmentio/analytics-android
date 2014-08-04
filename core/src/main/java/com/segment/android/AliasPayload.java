@@ -34,8 +34,8 @@ class AliasPayload extends Payload {
   private static final String PREVIOUS_ID_KEY = "previousId";
 
   AliasPayload(String anonymousId, AnalyticsContext context, Map<String, Boolean> integrations,
-      String userId, String previousId) {
-    super(Type.alias, anonymousId, context, integrations, userId);
+      String userId, String previousId, Options options) {
+    super(Type.alias, anonymousId, context, integrations, userId, options);
     put(PREVIOUS_ID_KEY, previousId);
   }
 }

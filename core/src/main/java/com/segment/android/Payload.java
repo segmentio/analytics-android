@@ -90,15 +90,20 @@ abstract class Payload extends Json<Payload> {
    */
   private static final String USER_ID_KEY = "userId";
 
+  // Options will be serialized, but not for the json payload
+  private final Options options;
+
   Payload(Type type, String anonymousId, AnalyticsContext context,
-      Map<String, Boolean> integrations, String userId) {
+      Map<String, Boolean> integrations, String userId, Options options) {
     put(TYPE_KEY, type.toString());
     put(CHANNEL_KEY, Channel.mobile.toString());
     put(ANONYMOUS_ID_KEY, anonymousId);
     put(CONTEXT_KEY, context);
     put(INTEGRATIONS_KEY, integrations);
-    put(TIMESTAMP_KEY, ISO8601Time.now().toString());
     put(USER_ID_KEY, userId);
+    this.options = options;
+    put(TIMESTAMP_KEY, options.getTimestamp() == null ? ISO8601Time.now().toString()
+        : ISO8601Time.from(options.getTimestamp()).toString());
   }
 
   @Override protected Payload self() {
@@ -113,6 +118,10 @@ abstract class Payload extends Json<Payload> {
 
   String getUserId() {
     return getString(USER_ID_KEY);
+  }
+
+  Options getOptions() {
+    return options;
   }
 
   void setSentAt(ISO8601Time time) {

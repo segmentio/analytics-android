@@ -25,29 +25,35 @@
 package com.segment.android;
 
 import java.util.Calendar;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class Options {
-  private Calendar timestamp = Calendar.getInstance();
-  private Map<String, Boolean> integrations = new LinkedHashMap<String, Boolean>();
+  private Calendar timestamp;
+  private Set<String> disabledIntegrations = new LinkedHashSet<String>();
 
   /**
-   * Sets whether this call will be sent to the target integration. Use "all" to select all
-   * integrations, like so: .setIntegration("all", false) .setIntegration("Google Analytics", true)
+   * Sets whether this call will be sent to the target integration. For instance:
+   * .disableIntegration("Google Analytics") will disable Google Analytics
    *
    * @param integration The integration name
-   * @param enabled     True for enabled
+   * @param enabled True for enabled
    * @return This options object for chaining
    */
-  public Options setIntegration(String integration, boolean enabled) {
-    integrations.put(integration, enabled);
+  public Options disableIntegration(String integration) {
+    disabledIntegrations.add(integration);
     return this;
+  }
+
+  Collection<String> getDisabledIntegrations() {
+    return disabledIntegrations;
   }
 
   /**
    * Sets the timestamp of when an analytics call occurred. The timestamp is primarily used for
-   * historical imports or if this event happened in the past. The timestamp is not required, and if
+   * historical imports or if this event happened in the past. The timestamp is not required, and
+   * if
    * its not provided, our servers will timestamp the call as if it just happened.
    *
    * @param timestamp The time when this event happened
