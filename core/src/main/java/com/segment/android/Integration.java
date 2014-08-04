@@ -45,7 +45,8 @@ abstract class Integration {
   /** Start the integration with the given settings. */
   final void start(Context context, Json settings) {
     if (settings == null) {
-      Logger.d("No settings for bundled integration (%s). Disabled on device.", getKey());
+      Logger.d("No settings for bundled integration (%s) from server. Disabling on device.",
+          getKey());
       state = State.DISABLED;
       return;
     }
@@ -65,7 +66,8 @@ abstract class Integration {
    * {@link android.Manifest.permission#INTERNET}
    * permission. Also check for any required values in your settings.
    */
-  abstract void initialize(Context context, Json settings) throws InvalidConfigurationException;
+  protected abstract void initialize(Context context, Json settings)
+      throws InvalidConfigurationException;
 
   // Application Callbacks, same as Application$ActivityLifecycleCallbacks
 

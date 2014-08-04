@@ -28,9 +28,7 @@ class IntegrationManager {
   }
 
   void initialize(Context context, ProjectSettings projectSettings) {
-    Logger.v("Initializing integrations: ");
     for (Integration integration : integrations) {
-      Logger.v("Initializing integration: ", integration.getKey());
       Json settings = projectSettings.getSettingsForIntegration(integration);
       Logger.v("Initializing integration %s with settings %s ", integration.getKey(), settings);
       integration.start(context, settings);
