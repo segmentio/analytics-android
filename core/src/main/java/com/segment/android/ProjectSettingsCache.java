@@ -7,23 +7,23 @@ import static com.segment.android.Utils.getSharedPreferences;
 class ProjectSettingsCache {
   private final StringCache cache;
 
-  public ProjectSettingsCache(Context context) {
+  ProjectSettingsCache(Context context) {
     cache = new StringCache(getSharedPreferences(context), "project_settings");
   }
 
-  public ProjectSettings get() {
+  ProjectSettings get() {
     return new ProjectSettings(cache.get());
   }
 
-  public boolean isSet() {
+  boolean isSet() {
     return cache.isSet();
   }
 
-  public void set(ProjectSettings value) {
+  void set(ProjectSettings value) {
     cache.set(value.toString());
   }
 
-  public void delete() {
+  void delete() {
     cache.delete();
   }
 }

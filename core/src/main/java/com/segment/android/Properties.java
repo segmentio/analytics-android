@@ -38,15 +38,15 @@ public class Properties extends Json<Properties> {
   public Properties() {
   }
 
-  public Properties(int initialCapacity) {
+  Properties(int initialCapacity) {
     super(initialCapacity);
   }
 
-  public Properties(Map<String, Object> map) {
+  Properties(Map<String, Object> map) {
     super(map);
   }
 
-  public Properties(String json) {
+  Properties(String json) {
     super(json);
   }
 

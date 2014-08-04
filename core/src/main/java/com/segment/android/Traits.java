@@ -40,6 +40,23 @@ import static com.segment.android.Utils.getDeviceId;
  * This is persisted to disk, and will be remembered between sessions.
  */
 public class Traits extends Json<Traits> {
+  private Traits(Context context) {
+    putId(getDeviceId(context));
+  }
+
+  static Traits singleton = null;
+
+  public static Traits with(Context context) {
+    if (singleton == null) {
+      synchronized (Traits.class) {
+        if (singleton == null) {
+          singleton = new Traits(context);
+        }
+      }
+    }
+    return singleton;
+  }
+
   private static final String ADDRESS_KEY = "address";
   private static final String ADDRESS_CITY_KEY = "city";
   private static final String ADDRESS_COUNTRY_KEY = "country";
@@ -80,23 +97,6 @@ public class Traits extends Json<Traits> {
   // For Group calls
   private static final String EMPLOYEES_KEY = "employees";
   private static final String INDUSTRY_KEY = "industry";
-
-  private Traits(Context context) {
-    putId(getDeviceId(context));
-  }
-
-  static Traits singleton = null;
-
-  public static Traits with(Context context) {
-    if (singleton == null) {
-      synchronized (Traits.class) {
-        if (singleton == null) {
-          singleton = new Traits(context);
-        }
-      }
-    }
-    return singleton;
-  }
 
   public Traits putAvatar(String avatar) {
     return put(AVATAR_KEY, avatar);

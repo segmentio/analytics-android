@@ -28,10 +28,8 @@ public abstract class Json<T extends Json<T>> {
     }
   }
 
-  /**
-   * Simplest implementation of Json for public API.
-   */
-  static class Simple extends Json<Simple> {
+  /** Simplest implementation of Json for public API. */
+  private static class Simple extends Json<Simple> {
     Simple() {
     }
 

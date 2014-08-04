@@ -21,8 +21,7 @@ class AmplitudeIntegration extends Integration {
     return AMPLITUDE_KEY;
   }
 
-  @Override public void initialize(Context context, Json settings)
-      throws InvalidConfigurationException {
+  @Override void initialize(Context context, Json settings) throws InvalidConfigurationException {
     String apiKey = (String) settings.get(API_KEY);
     if (isNullOrEmpty(apiKey)) {
       throw new InvalidConfigurationException("Amplitude requires the apiKey setting.");
@@ -30,15 +29,15 @@ class AmplitudeIntegration extends Integration {
     Amplitude.initialize(context, apiKey);
   }
 
-  @Override public void onActivityStarted(Activity activity) {
+  @Override void onActivityStarted(Activity activity) {
     Amplitude.startSession();
   }
 
-  @Override public void track(TrackPayload track) {
+  @Override void track(TrackPayload track) {
     event(track.getEvent(), track.getProperties());
   }
 
-  @Override public void screen(ScreenPayload screen) {
+  @Override void screen(ScreenPayload screen) {
     event("Viewed " + screen.getName() + " Screen", screen.getProperties());
   }
 
@@ -55,7 +54,7 @@ class AmplitudeIntegration extends Integration {
     }
   }
 
-  @Override public void identify(IdentifyPayload identify) {
+  @Override void identify(IdentifyPayload identify) {
     String userId = identify.getUserId();
     Traits traits = identify.getTraits();
 
@@ -63,47 +62,47 @@ class AmplitudeIntegration extends Integration {
     Amplitude.setUserProperties(traits.toJsonObject());
   }
 
-  @Override public void onActivityStopped(Activity activity) {
+  @Override void onActivityStopped(Activity activity) {
     Amplitude.endSession();
   }
 
-  @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+  @Override void onActivityCreated(Activity activity, Bundle savedInstanceState) {
     // Ignore
   }
 
-  @Override public void onActivityResumed(Activity activity) {
+  @Override void onActivityResumed(Activity activity) {
     // Ignore
   }
 
-  @Override public void onActivityPaused(Activity activity) {
+  @Override void onActivityPaused(Activity activity) {
     // Ignore
   }
 
-  @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+  @Override void onActivitySaveInstanceState(Activity activity, Bundle outState) {
     // Ignore
   }
 
-  @Override public void onActivityDestroyed(Activity activity) {
+  @Override void onActivityDestroyed(Activity activity) {
     // Ignore
   }
 
-  @Override public void group(GroupPayload group) {
+  @Override void group(GroupPayload group) {
     // Ignore
   }
 
-  @Override public void alias(AliasPayload alias) {
+  @Override void alias(AliasPayload alias) {
     // Ignore
   }
 
-  @Override public void reset() {
+  @Override void reset() {
     // Ignore
   }
 
-  @Override public void optOut(boolean optedOut) {
+  @Override void optOut(boolean optedOut) {
     // Ignore
   }
 
-  @Override public void flush() {
+  @Override void flush() {
     // Ignore
   }
 }
