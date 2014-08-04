@@ -33,7 +33,9 @@
   <string name="track_button_custom_event">Track Custom Event</string>
   <string name="custom_event_name_hint">Type in a name for a custom event here</string>
   <string name="flush">Flush Events</string>
-  <string name="name_required">Event name should be blank or empty</string>
-  <string name="test_sequence">Test Sequence</string>
+  <string name="name_required">Should be blank or empty</string>
+  <string name="test_sequence">Test Custom Sequence</string>
+  <string name="identify_button">Identify User</string>
+  <string name="identify_user_id">Type in an ID to recognize the user</string>
 
 </resources>

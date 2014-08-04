@@ -51,17 +51,44 @@
       android:layout_width="match_parent"
       android:layout_height="wrap_content"/>
 
-  <Button
-      android:id="@+id/action_track_custom_event"
-      android:text="@string/track_button_custom_event"
+  <View
+      android:background="@android:color/black"
       android:layout_width="match_parent"
-      android:layout_height="wrap_content"/>
+      android:layout_height="1dp"/>
 
   <EditText
       android:id="@+id/action_custom_event_name"
       android:hint="@string/custom_event_name_hint"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"/>
+
+  <Button
+      android:id="@+id/action_track_custom_event"
+      android:text="@string/track_button_custom_event"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"/>
+
+  <View
+      android:background="@android:color/black"
+      android:layout_width="match_parent"
+      android:layout_height="1dp"/>
+
+  <EditText
+      android:id="@+id/action_identify_id"
+      android:hint="@string/identify_user_id"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"/>
+
+  <Button
+      android:id="@+id/action_identify"
+      android:text="@string/identify_button"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"/>
+
+  <View
+      android:background="@android:color/black"
+      android:layout_width="match_parent"
+      android:layout_height="1dp"/>
 
   <Button
       android:id="@+id/action_flush"

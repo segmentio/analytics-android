@@ -76,6 +76,16 @@ public class MainActivity extends Activity {
         }
       }
     });
+    findViewById(R.id.action_identify).setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        String id = ((EditText) findViewById(R.id.action_identify_id)).getText().toString();
+        if (isNullOrEmpty(id)) {
+          Toast.makeText(MainActivity.this, R.string.name_required, Toast.LENGTH_LONG).show();
+        } else {
+          Segment.with(MainActivity.this).identify(id, new Options());
+        }
+      }
+    });
     findViewById(R.id.action_flush).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         // Analytics.flush(true);
