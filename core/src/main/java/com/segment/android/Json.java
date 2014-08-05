@@ -246,29 +246,16 @@ public abstract class Json<T extends Json<T>> {
     }
   }
 
-  private static Map<String, Object> toMap(JSONObject jsonObject) throws JSONException {
-    Map<String, Object> map = new LinkedHashMap<String, Object>(jsonObject.length());
-
-    Iterator<String> keysItr = jsonObject.keys();
-    while (keysItr.hasNext()) {
-      String key = keysItr.next();
-      Object value = jsonObject.get(key);
-      if (value instanceof JSONArray) {
-        value = toList((JSONArray) value);
-      } else if (value instanceof JSONObject) {
-        value = toMap((JSONObject) value);
-      }
-      map.put(key, value);
-    }
-    return map;
+  public JSONObject toJsonObject() {
+    return new JSONObject(map);
   }
 
-  private static List<Object> toList(JSONArray array) throws JSONException {
-    List<Object> list = new ArrayList<Object>();
-    for (int i = 0; i < array.length(); i++) {
-      list.add(array.get(i));
-    }
-    return list;
+  public int size() {
+    return map.size();
+  }
+
+  public static boolean isNullOrEmpty(Json json) {
+    return json == null || json.size() == 0;
   }
 
   @Override public boolean equals(Object o) {
@@ -302,9 +289,6 @@ public abstract class Json<T extends Json<T>> {
       } else if (value instanceof Map) {
         stringer.key(key);
         writeTo((Map) value, stringer);
-      } else if (value instanceof Json) {
-        stringer.key(key);
-        writeTo(((Json) value).map, stringer);
       } else if (value instanceof Collection) {
         writeTo((Collection) value, stringer);
       } else if (value.getClass().isArray()) {
@@ -337,15 +321,28 @@ public abstract class Json<T extends Json<T>> {
     stringer.endArray();
   }
 
-  public JSONObject toJsonObject() {
-    return new JSONObject(map);
+  static Map<String, Object> toMap(JSONObject jsonObject) throws JSONException {
+    Map<String, Object> map = new LinkedHashMap<String, Object>(jsonObject.length());
+
+    Iterator<String> keysItr = jsonObject.keys();
+    while (keysItr.hasNext()) {
+      String key = keysItr.next();
+      Object value = jsonObject.get(key);
+      if (value instanceof JSONArray) {
+        value = toList((JSONArray) value);
+      } else if (value instanceof JSONObject) {
+        value = toMap((JSONObject) value);
+      }
+      map.put(key, value);
+    }
+    return map;
   }
 
-  public int size() {
-    return map.size();
-  }
-
-  public static boolean isNullOrEmpty(Json json) {
-    return json == null || json.size() == 0;
+  static List<Object> toList(JSONArray array) throws JSONException {
+    List<Object> list = new ArrayList<Object>();
+    for (int i = 0; i < array.length(); i++) {
+      list.add(array.get(i));
+    }
+    return list;
   }
 }

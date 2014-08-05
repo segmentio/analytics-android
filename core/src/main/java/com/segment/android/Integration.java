@@ -62,8 +62,7 @@ abstract class Integration {
 
   /**
    * Validate the context and settings. Check for any specific permissions or features that your
-   * integration needs. Users are only guaranteed to have the {@link android.Manifest.permission#INTERNET}
-   * permission. Also check for any required values in your settings.
+   * integration needs. Also check for any required values in your settings.
    */
   protected abstract void initialize(Context context, Json settings)
       throws InvalidConfigurationException;
