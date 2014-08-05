@@ -21,7 +21,8 @@ class AmplitudeIntegration extends Integration {
     return AMPLITUDE_KEY;
   }
 
-  @Override void initialize(Context context, Json settings) throws InvalidConfigurationException {
+  @Override protected void initialize(Context context, Json settings)
+      throws InvalidConfigurationException {
     String apiKey = (String) settings.get(API_KEY);
     if (isNullOrEmpty(apiKey)) {
       throw new InvalidConfigurationException("Amplitude requires the apiKey setting.");
