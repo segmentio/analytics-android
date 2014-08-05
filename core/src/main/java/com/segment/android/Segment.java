@@ -262,10 +262,13 @@ public class Segment {
       properties = new Properties();
     }
 
-    submit(new TrackPayload(anonymousId,
+    TrackPayload payload = new TrackPayload(anonymousId,
         AnalyticsContext.with(application).putTraits(Traits.with(application)),
         generateServerIntegrations(options), Traits.with(application).getId(), event, properties,
-        options));
+        options);
+    integrationManager.track(payload);
+
+    submit(payload);
   }
 
   public void screen(String category, String name, Properties properties, Options options) {

@@ -88,10 +88,14 @@ class IntegrationManager {
 
     if (integrations.containsKey(integration.getKey())) {
       // user has specified an option for this integration, respect this value
-      return integrations.get(integration.getKey());
+      boolean enabled = integrations.get(integration.getKey());
+      Logger.v("Integration (%s) is (%s) by user options", integration.getKey(), enabled);
+      return enabled;
     } else {
       // user has not specified an option for this setting, so let's use what is defined for 'all'
-      return integrations.get(ALL_INTEGRATIONS_KEY);
+      boolean enabled = integrations.get(ALL_INTEGRATIONS_KEY);
+      Logger.v("By default, integration (%s) is [%s] in options", integration.getKey(), enabled);
+      return enabled;
     }
   }
 
@@ -148,8 +152,8 @@ class IntegrationManager {
   }
 
   /**
-   * If possible, will flush all the messages from this provider
-   * to their respective server endpoints.
+   * If possible, will flush all the messages from this provider to their respective server
+   * endpoints.
    */
   void flush() {
 

@@ -44,7 +44,7 @@ abstract class Integration {
 
   /** Start the integration with the given settings. */
   final void start(Context context, Json settings) {
-    if (settings == null) {
+    if (Json.isNullOrEmpty(settings)) {
       Logger.d("No settings for bundled integration (%s) from server. Disabling on device.",
           getKey());
       state = State.DISABLED;
@@ -62,8 +62,7 @@ abstract class Integration {
 
   /**
    * Validate the context and settings. Check for any specific permissions or features that your
-   * integration needs. Users are only guaranteed to have the
-   * {@link android.Manifest.permission#INTERNET}
+   * integration needs. Users are only guaranteed to have the {@link android.Manifest.permission#INTERNET}
    * permission. Also check for any required values in your settings.
    */
   protected abstract void initialize(Context context, Json settings)
@@ -133,8 +132,8 @@ abstract class Integration {
   abstract void optOut(boolean optedOut);
 
   /**
-   * If possible, will flush all the messages from this provider
-   * to their respective server endpoints.
+   * If possible, will flush all the messages from this provider to their respective server
+   * endpoints.
    */
   abstract void flush();
 }

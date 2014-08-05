@@ -12,12 +12,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 
-import static com.segment.android.Utils.isNullOrEmpty;
-
 /**
- * A base class that encapsulates Json functionality.
- * Specifically it exposes constructor that takes in a Json string, and it's toString will
- * return a json formatted string.
+ * A base class that encapsulates Json functionality. Specifically it exposes constructor that takes
+ * in a Json string, and it's toString will return a json formatted string.
  */
 public abstract class Json<T extends Json<T>> {
   private final Map<String, Object> map;
@@ -86,8 +83,7 @@ public abstract class Json<T extends Json<T>> {
   }
 
   /**
-   * Constructs a new {@code Json} instance with the specified
-   * capacity.
+   * Constructs a new {@code Json} instance with the specified capacity.
    *
    * @param initialCapacity the initial capacity of this json.
    * @throws IllegalArgumentException when the capacity is less than zero.
@@ -229,8 +225,9 @@ public abstract class Json<T extends Json<T>> {
    * Returns the value of the mapping with the specified key.
    *
    * @param key the key.
-   * @return the value of the mapping with the specified key, or {@code null}
-   * if no mapping for the specified key is found.
+   * @return the value of the mapping with the specified key, or {@code null} if no mapping for the
+   * specified key is found.
+   *
    * @throws NullPointerException if the key is {@code null}.
    */
   public Object get(String key) {
@@ -244,7 +241,7 @@ public abstract class Json<T extends Json<T>> {
   }
 
   private void assertKeyNotNull(String key) {
-    if (isNullOrEmpty(key)) {
+    if (Utils.isNullOrEmpty(key)) {
       throw new IllegalArgumentException("Key must not be null.");
     }
   }
@@ -342,5 +339,13 @@ public abstract class Json<T extends Json<T>> {
 
   public JSONObject toJsonObject() {
     return new JSONObject(map);
+  }
+
+  public int size() {
+    return map.size();
+  }
+
+  public static boolean isNullOrEmpty(Json json) {
+    return json == null || json.size() == 0;
   }
 }
