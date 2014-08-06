@@ -76,7 +76,7 @@ public class GoogleAnalyticsIntegration extends SimpleIntegration {
     // unencoded. You can disable your tracking by not providing this value.
     String trackingId = settings.getString(TRACKING_ID);
     // The sample rate to use. Default is 100.0. It can be any value between 0.0 and 100.0
-    Double sampleFrequency = settings.getDouble(SAMPLING_FREQUENCY, Double.valueOf(100));
+    Double sampleFrequency = settings.getDouble(SAMPLING_FREQUENCY, (double) 100);
     // Tells Google Analytics to anonymize the information sent by the tracker objects by
     // removing the last octet of the IP address prior to its storage. Note that this will slightly
     // reduce the accuracy of geographic reporting. false by default.
