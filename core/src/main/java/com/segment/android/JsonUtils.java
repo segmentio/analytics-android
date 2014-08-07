@@ -43,7 +43,20 @@ class JsonUtils {
     }
   }
 
-  /** Converts the given json into a map. */
+  /**
+   * Converts the given json into a map. The Map will contain values for primitive types and
+   * Strings, or recursively Maps and Lists for the same types.
+   *
+   * byte -> integer
+   * short -> integer
+   * integer -> integer
+   * long -> long
+   * float -> double
+   * double -> double
+   * char -> String
+   * String -> String
+   * boolean -> boolean
+   */
   static Map<String, Object> toMap(String json) throws JsonConversionException {
     try {
       JSONObject jsonObject = new JSONObject(json);

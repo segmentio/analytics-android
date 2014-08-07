@@ -27,7 +27,10 @@ package com.segment.android;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
 import org.fest.assertions.data.Index;
+import org.fest.assertions.data.MapEntry;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
@@ -139,5 +142,66 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
     Map<String, Object> item13 = new HashMap<String, Object>();
     item13.put("id", "Copy");
     assertThat(json).contains(item13, Index.atIndex(13));
+  }
+
+  static class Person {
+    int age;
+    String name;
+
+    Person(int age, String name) {
+      this.age = age;
+      this.name = name;
+    }
+  }
+
+  public void testObjectSerialization() throws Exception {
+    Person person = new Person(21, "Prateek");
+    Map<String, Object> sourceMap = new HashMap<String, Object>();
+    sourceMap.put("person", person);
+    sourceMap.put("extra", 40.32);
+    String json = JsonUtils.fromMap(sourceMap);
+    Map<String, Object> retrieved = JsonUtils.toMap(json);
+    assertThat(retrieved).hasSize(2);
+    assertThat(retrieved).contains(MapEntry.entry("person", person.toString()),
+        MapEntry.entry("extra", 40.32));
+  }
+
+  public void testAllTypes() throws Exception {
+    Random random = new Random();
+    byte aByte = (byte) random.nextInt();
+    short aShort = (short) random.nextInt();
+    int anInt = random.nextInt();
+    long aLong = random.nextLong();
+    float aFloat = random.nextFloat();
+    double aDouble = random.nextDouble();
+    char aChar = (char) random.nextInt(256);
+    String aString = UUID.randomUUID().toString(); // good enough
+    boolean aBoolean = random.nextBoolean();
+
+    Map<String, Object> sourceMap = new HashMap<String, Object>();
+    sourceMap.put("aByte", aByte);
+    sourceMap.put("aShort", aShort);
+    sourceMap.put("anInt", anInt);
+    sourceMap.put("aLong", aLong);
+    sourceMap.put("aFloat", aFloat);
+    sourceMap.put("aDouble", aDouble);
+    sourceMap.put("aChar", aChar);
+    sourceMap.put("aString", aString);
+    sourceMap.put("aBoolean", aBoolean);
+
+    String json = JsonUtils.fromMap(sourceMap);
+
+    Map<String, Object> retrieved = JsonUtils.toMap(json);
+    sourceMap.put("aFloat", (double) aFloat);
+
+    assertThat(retrieved) //
+        .contains(MapEntry.entry("aByte", (int) aByte))
+        .contains(MapEntry.entry("aShort", (int) aShort))
+        .contains(MapEntry.entry("anInt", anInt))
+        .contains(MapEntry.entry("aFloat", Double.valueOf(String.valueOf(aFloat))))
+        .contains(MapEntry.entry("aDouble", aDouble))
+        .contains(MapEntry.entry("aChar", String.valueOf(aChar)))
+        .contains(MapEntry.entry("aString", aString))
+        .contains(MapEntry.entry("aBoolean", aBoolean));
   }
 }
