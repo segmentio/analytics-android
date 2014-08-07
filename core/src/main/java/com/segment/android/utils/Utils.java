@@ -27,6 +27,7 @@ package com.segment.android.utils;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.text.TextUtils;
+import java.util.Collection;
 
 public final class Utils {
   private Utils() {
@@ -54,5 +55,12 @@ public final class Utils {
     // Rather than using text.trim().length() == 0, use getTrimmedLength to avoid allocating an
     // extra string object
     return TextUtils.isEmpty(text) || TextUtils.getTrimmedLength(text) == 0;
+  }
+
+  /** Returns true if the collection is null, or empty. */
+  public static boolean isCollectionNullOrEmpty(Collection collection) {
+    // Rather than using text.trim().length() == 0, use getTrimmedLength to avoid allocating an
+    // extra string object
+    return collection == null || collection.size() == 0;
   }
 }

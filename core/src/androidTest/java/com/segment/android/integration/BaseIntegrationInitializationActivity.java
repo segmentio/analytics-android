@@ -58,6 +58,7 @@ public abstract class BaseIntegrationInitializationActivity
     integration = getIntegration();
 
     Context context = getInstrumentation().getTargetContext();
+    System.setProperty("dexmaker.dexcache", context.getCacheDir().getPath());
 
     Intent intent = new Intent(context, MockActivity.class);
     startActivity(intent, null, null);
