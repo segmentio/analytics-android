@@ -40,17 +40,42 @@ import com.segment.android.models.Props;
 import com.segment.android.models.Screen;
 import com.segment.android.models.Track;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.HashSet;
+import java.util.Set;
 
 public class GoogleAnalyticsIntegration extends SimpleIntegration {
   private static final String TRACKING_ID = "mobileTrackingId";
-
   private static final String SAMPLING_FREQUENCY = "sampleFrequency";
   private static final String ANONYMIZE_IP_TRACKING = "anonymizeIp";
   private static final String REPORT_UNCAUGHT_EXCEPTIONS = "reportUncaughtExceptions";
   private static final String USE_HTTPS = "useHttps";
 
-  private Tracker tracker = null;
+  Tracker tracker = null; // exposed for testing
   private boolean optedOut;
+
+  private Set<String> itemEventNames; // sends item events
+  private static final String COMPLETED_ORDER_EVENT_NAME = "Completed Order";
+
+  Set<String> getItemEventNames() {
+    if (itemEventNames == null) {
+      itemEventNames = new HashSet<String>();
+      itemEventNames.add("Viewed Product");
+      itemEventNames.add("Added Product");
+      itemEventNames.add("Removed Product");
+      itemEventNames.add("Favorited Product");
+      itemEventNames.add("Liked Product");
+      itemEventNames.add("Shared Product");
+      itemEventNames.add("Wishlisted Product");
+      itemEventNames.add("Reviewed Product");
+      itemEventNames.add("Filtered Product");
+      itemEventNames.add("Sorted Product");
+      itemEventNames.add("Searched Product");
+      itemEventNames.add("Viewed Product Image");
+      itemEventNames.add("Viewed Product Reviews");
+      itemEventNames.add("Viewed Sale Page");
+    }
+    return itemEventNames;
+  }
 
   @Override
   public String getKey() {
@@ -136,6 +161,10 @@ public class GoogleAnalyticsIntegration extends SimpleIntegration {
   @Override
   public void screen(Screen screen) {
     String screenName = screen.getName();
+    if (checkAndPerformEcommerceEvent(screenName, screen.getCategory(), screen.getProperties())) {
+      return;
+    }
+
     tracker.setScreenName(screenName);
     tracker.send(new HitBuilders.AppViewBuilder().build());
     tracker.setScreenName(null);
@@ -144,7 +173,9 @@ public class GoogleAnalyticsIntegration extends SimpleIntegration {
   @Override
   public void track(Track track) {
     Props properties = track.getProperties();
-
+    if (checkAndPerformEcommerceEvent(track.getEvent(), null, properties)) {
+      return;
+    }
     String category = properties.getString("category", "All");
     String action = track.getEvent();
     String label = properties.getString("label", null);
@@ -153,6 +184,61 @@ public class GoogleAnalyticsIntegration extends SimpleIntegration {
         .setAction(action)
         .setLabel(label)
         .setValue(value)
+        .build());
+  }
+
+  boolean checkAndPerformEcommerceEvent(String event, String categoryName, Props props) {
+    if (getItemEventNames().contains(event)) {
+      sendItem(categoryName, props);
+      return true;
+    } else if (COMPLETED_ORDER_EVENT_NAME.equals(event)) {
+      // Only sent via .track so won't have categoryName
+      sendTransaction(props);
+      return true;
+    }
+    return false;
+  }
+
+  private void sendItem(String categoryName, Props props) {
+    String id = props.getString("id");
+    String sku = props.getString("sku");
+    String name = props.getString("name");
+    double price = props.getDouble("price", 0d);
+    long quantity = props.getDouble("quantity", 1d).longValue();
+    String category = props.getString("category", categoryName);
+
+    // Specific for GA
+    String currency = props.getString("currency");
+
+    tracker.send(new HitBuilders.ItemBuilder() //
+        .setTransactionId(id)
+        .setName(name)
+        .setSku(sku)
+        .setCategory(category)
+        .setPrice(price)
+        .setQuantity(quantity)
+        .setCurrencyCode(currency)
+        .build());
+  }
+
+  private void sendTransaction(Props props) {
+    String id = props.getString("id");
+    // skip total
+    double revenue = props.getDouble("revenue", 0d);
+    double shipping = props.getDouble("shipping", 0d);
+    double tax = props.getDouble("tax", 0d);
+
+    // Specific for GA
+    String affiliation = props.getString("affiliation");
+    String currency = props.getString("currency");
+
+    tracker.send(new HitBuilders.TransactionBuilder() //
+        .setTransactionId(id)
+        .setAffiliation(affiliation)
+        .setRevenue(revenue)
+        .setTax(tax)
+        .setShipping(shipping)
+        .setCurrencyCode(currency)
         .build());
   }
 
