@@ -1,16 +1,20 @@
 package com.segment.android.integrations;
 
-import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.segment.android.integration.BaseIntegrationTest;
 import com.segment.android.integration.Integration;
 import com.segment.android.models.EasyJSONObject;
 import com.segment.android.models.Props;
 import java.util.Map;
+import org.json.JSONArray;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyMap;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class GoogleAnalyticsIntegrationTest extends BaseIntegrationTest {
 
@@ -31,7 +35,7 @@ public class GoogleAnalyticsIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void testSendsItemEventsCorrectly() throws Exception {
-    Tracker mockTracker = Mockito.mock(Tracker.class);
+    Tracker mockTracker = mock(Tracker.class);
     ((GoogleAnalyticsIntegration) integration).tracker = mockTracker;
 
     Props props = new Props();
@@ -48,22 +52,14 @@ public class GoogleAnalyticsIntegrationTest extends BaseIntegrationTest {
             "Games", props);
     assertThat(wasEcommerceEvent).isTrue();
 
-    Map<String, String> params = new HitBuilders.ItemBuilder() //
-        .setTransactionId(props.getString("id"))
-        .setName(props.getString("name"))
-        .setSku(props.getString("sku"))
-        .setCategory(props.getString("category"))
-        .setPrice(props.getDouble("price", 0d))
-        .setQuantity(props.getDouble("quantity", 1d).longValue())
-        .setCurrencyCode(props.getString("currency"))
-        .build();
-    Mockito.verify(mockTracker).send(params);
-    Mockito.verifyNoMoreInteractions(mockTracker);
+    Map<String, String> params = GoogleAnalyticsIntegration.productToMap("Games", props);
+    verify(mockTracker).send(params);
+    verifyNoMoreInteractions(mockTracker);
   }
 
   @Test
   public void testSendsTransactionEventsCorrectly() throws Exception {
-    Tracker mockTracker = Mockito.mock(Tracker.class);
+    Tracker mockTracker = mock(Tracker.class);
     ((GoogleAnalyticsIntegration) integration).tracker = mockTracker;
 
     Props props = new Props();
@@ -79,16 +75,38 @@ public class GoogleAnalyticsIntegrationTest extends BaseIntegrationTest {
             "Games", props);
     assertThat(wasEcommerceEvent).isTrue();
 
-    Map<String, String> params = new HitBuilders.TransactionBuilder() //
-        .setTransactionId(props.getString("id"))
-        .setAffiliation(props.getString("affiliation"))
-        .setRevenue(props.getDouble("revenue"))
-        .setTax(props.getDouble("tax"))
-        .setShipping(props.getDouble("shipping"))
-        .setCurrencyCode(props.getString("currency"))
-        .build();
-    Mockito.verify(mockTracker).send(params);
-    Mockito.verifyNoMoreInteractions(mockTracker);
+    Map<String, String> params = GoogleAnalyticsIntegration.transactionToMap(props);
+    verify(mockTracker).send(params);
+    verifyNoMoreInteractions(mockTracker);
+  }
+
+  @Test
+  public void testSendsTransactionEventsWithProducts() throws Exception {
+    Tracker mockTracker = mock(Tracker.class);
+    ((GoogleAnalyticsIntegration) integration).tracker = mockTracker;
+
+    Props product1 = new Props();
+    Props product2 = new Props();
+    Props product3 = new Props();
+    Props product4 = new Props();
+    Props product5 = new Props();
+
+    Props props = new Props();
+    props.put("id", "507f1f77bcf86cd799439011");
+    props.put("revenue", 23.41);
+    props.put("shipping", 29.99);
+    props.put("tax", 18.99d);
+    props.put("affiliation", "A fake store name");
+    props.put("currency", "USD");
+    props.put("products",
+        new JSONArray().put(product1).put(product2).put(product3).put(product4).put(product5));
+
+    boolean wasEcommerceEvent =
+        ((GoogleAnalyticsIntegration) integration).checkAndPerformEcommerceEvent("Completed Order",
+            null, props);
+    assertThat(wasEcommerceEvent).isTrue();
+
+    verify(mockTracker, times(6)).send(anyMap());
   }
 
   @Test

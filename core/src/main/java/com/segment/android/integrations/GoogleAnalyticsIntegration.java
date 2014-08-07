@@ -41,7 +41,11 @@ import com.segment.android.models.Screen;
 import com.segment.android.models.Track;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import static com.segment.android.utils.Utils.isCollectionNullOrEmpty;
 
 public class GoogleAnalyticsIntegration extends SimpleIntegration {
   private static final String TRACKING_ID = "mobileTrackingId";
@@ -200,17 +204,20 @@ public class GoogleAnalyticsIntegration extends SimpleIntegration {
   }
 
   private void sendItem(String categoryName, Props props) {
+    tracker.send(productToMap(categoryName, props));
+  }
+
+  static Map<String, String> productToMap(String categoryName, EasyJSONObject props) {
     String id = props.getString("id");
     String sku = props.getString("sku");
     String name = props.getString("name");
     double price = props.getDouble("price", 0d);
     long quantity = props.getDouble("quantity", 1d).longValue();
     String category = props.getString("category", categoryName);
-
     // Specific for GA
     String currency = props.getString("currency");
 
-    tracker.send(new HitBuilders.ItemBuilder() //
+    return new HitBuilders.ItemBuilder() //
         .setTransactionId(id)
         .setName(name)
         .setSku(sku)
@@ -218,10 +225,21 @@ public class GoogleAnalyticsIntegration extends SimpleIntegration {
         .setPrice(price)
         .setQuantity(quantity)
         .setCurrencyCode(currency)
-        .build());
+        .build();
   }
 
   private void sendTransaction(Props props) {
+    tracker.send(transactionToMap(props));
+
+    List<EasyJSONObject> products = props.getArray("products");
+    if (!isCollectionNullOrEmpty(products)) {
+      for (EasyJSONObject easyJSONObject : products) {
+        tracker.send(productToMap(null, easyJSONObject));
+      }
+    }
+  }
+
+  static Map<String, String> transactionToMap(EasyJSONObject props) {
     String id = props.getString("id");
     // skip total
     double revenue = props.getDouble("revenue", 0d);
@@ -232,14 +250,14 @@ public class GoogleAnalyticsIntegration extends SimpleIntegration {
     String affiliation = props.getString("affiliation");
     String currency = props.getString("currency");
 
-    tracker.send(new HitBuilders.TransactionBuilder() //
+    return new HitBuilders.TransactionBuilder() //
         .setTransactionId(id)
         .setAffiliation(affiliation)
         .setRevenue(revenue)
         .setTax(tax)
         .setShipping(shipping)
         .setCurrencyCode(currency)
-        .build());
+        .build();
   }
 
   @Override
