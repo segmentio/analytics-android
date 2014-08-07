@@ -12,10 +12,19 @@ branches:
 
 android:
   components:
+    # Update these each time
     - platform-tools
     - tools
+
     - build-tools-20.0.0
+
+    # Target SDK
     - android-20
+    # For emulator
+    - android-19
+    - sys-img-armeabi-v7a-android-19
+
+    # Local Maven Repos
     - extra-android-m2repository
     - extra-google-google_play_services
     - extra-google-m2repository
@@ -26,5 +35,12 @@ android:
 before_install:
   - android list sdk --no-ui --all
 
+# Emulator Management: Create, Start and Wait
+before_script:
+  - echo no | android create avd --force -n test -t android-19 --abi armeabi-v7a
+  - emulator -avd test -no-skin -no-audio -no-window &
+  - android-wait-for-emulator
+  - adb shell input keyevent 82 &
+
 script:
- - ./gradlew clean check
+ - ./gradlew clean build connectedCheck
