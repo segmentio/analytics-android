@@ -1,4 +1,4 @@
-package com.segment.android;
+package com.segment.android.json;
 
 import java.util.Collection;
 import java.util.Map;
@@ -22,7 +22,7 @@ import java.util.Set;
  *
  * In addition to these, Strings can be coerced to Numbers as well.
  */
-public class JsonMap implements Map<String, V> {
+public class JsonMap<V> implements Map<String, V> {
   @Override public void clear() {
 
   }

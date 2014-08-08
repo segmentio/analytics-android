@@ -22,8 +22,9 @@
  * SOFTWARE.
  */
 
-package com.segment.android;
+package com.segment.android.json;
 
+import com.segment.android.BaseAndroidTestCase;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -166,28 +167,44 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
         MapEntry.entry("extra", 40.32));
   }
 
-  public void testAllTypes() throws Exception {
+  @SuppressWarnings("UnnecessaryBoxing") public void testAllTypes() throws Exception {
     Random random = new Random();
     byte aByte = (byte) random.nextInt();
+    Byte aBoxedByte = Byte.valueOf((byte) random.nextInt());
     short aShort = (short) random.nextInt();
+    Short aBoxedShort = Short.valueOf((short) random.nextInt());
     int anInt = random.nextInt();
+    Integer aBoxedInt = Integer.valueOf(random.nextInt());
     long aLong = random.nextLong();
+    Long aBoxedLong = Long.valueOf(random.nextLong());
     float aFloat = random.nextFloat();
+    Float aBoxedFloat = Float.valueOf(random.nextFloat());
     double aDouble = random.nextDouble();
+    Double aBoxedDouble = Double.valueOf(random.nextDouble());
     char aChar = (char) random.nextInt(256);
+    Character aBoxedChar = Character.valueOf((char) random.nextInt(256));
     String aString = UUID.randomUUID().toString(); // good enough
     boolean aBoolean = random.nextBoolean();
+    Boolean aBoxedBoolean = Boolean.valueOf(random.nextBoolean());
 
     Map<String, Object> sourceMap = new HashMap<String, Object>();
     sourceMap.put("aByte", aByte);
+    sourceMap.put("aBoxedByte", aBoxedByte);
     sourceMap.put("aShort", aShort);
+    sourceMap.put("aBoxedShort", aBoxedShort);
     sourceMap.put("anInt", anInt);
+    sourceMap.put("aBoxedInt", aBoxedInt);
     sourceMap.put("aLong", aLong);
+    sourceMap.put("aBoxedLong", aBoxedLong);
     sourceMap.put("aFloat", aFloat);
+    sourceMap.put("aBoxedFloat", aBoxedFloat);
     sourceMap.put("aDouble", aDouble);
+    sourceMap.put("aBoxedDouble", aBoxedDouble);
     sourceMap.put("aChar", aChar);
+    sourceMap.put("aBoxedChar", aBoxedChar);
     sourceMap.put("aString", aString);
     sourceMap.put("aBoolean", aBoolean);
+    sourceMap.put("aBoxedBoolean", aBoxedBoolean);
 
     String json = JsonUtils.fromMap(sourceMap);
 
@@ -196,12 +213,19 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
 
     assertThat(retrieved) //
         .contains(MapEntry.entry("aByte", (int) aByte))
+        .contains(MapEntry.entry("aBoxedByte", (int) aBoxedByte))
         .contains(MapEntry.entry("aShort", (int) aShort))
+        .contains(MapEntry.entry("aBoxedShort", (int) aBoxedShort))
         .contains(MapEntry.entry("anInt", anInt))
+        .contains(MapEntry.entry("aBoxedInt", aBoxedInt))
         .contains(MapEntry.entry("aFloat", Double.valueOf(String.valueOf(aFloat))))
+        .contains(MapEntry.entry("aBoxedFloat", Double.valueOf(String.valueOf(aBoxedFloat))))
         .contains(MapEntry.entry("aDouble", aDouble))
+        .contains(MapEntry.entry("aBoxedDouble", aBoxedDouble))
         .contains(MapEntry.entry("aChar", String.valueOf(aChar)))
+        .contains(MapEntry.entry("aBoxedChar", String.valueOf(aBoxedChar)))
         .contains(MapEntry.entry("aString", aString))
-        .contains(MapEntry.entry("aBoolean", aBoolean));
+        .contains(MapEntry.entry("aBoolean", aBoolean))
+        .contains(MapEntry.entry("aBoxedBoolean", aBoxedBoolean));
   }
 }

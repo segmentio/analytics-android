@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.segment.android;
+package com.segment.android.json;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
