@@ -47,6 +47,9 @@ class JsonUtils {
    * Converts the given json into a map. The Map will contain values for primitive types and
    * Strings, or recursively Maps and Lists for the same types.
    *
+   * Some type information is lost during deserialization. See the chart below to see which types
+   * exhibit this behaviour.
+   *
    * byte -> integer
    * short -> integer
    * integer -> integer
