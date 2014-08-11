@@ -3,6 +3,7 @@ package com.segment.android;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import com.segment.android.json.JsonMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +30,7 @@ class IntegrationManager {
 
   void initialize(Context context, ProjectSettings projectSettings) {
     for (Integration integration : integrations) {
-      Json settings = projectSettings.getSettingsForIntegration(integration);
+      JsonMap settings = projectSettings.getSettingsForIntegration(integration);
       Logger.v("Initializing integration %s with settings %s ", integration.getKey(), settings);
       integration.start(context, settings);
     }
@@ -78,7 +79,7 @@ class IntegrationManager {
     }
   }
 
-  private boolean shouldPerformIntegration(Integration integration, Payload payload) {
+  private boolean shouldPerformIntegration(Integration integration, BasePayload payload) {
     if (!integration.isReady()) {
       Logger.d("Integration (%s) not yet initialized.", integration.getKey());
       return false;

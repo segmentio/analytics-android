@@ -319,7 +319,7 @@ public class Segment {
     return map;
   }
 
-  void submit(Payload payload) {
+  void submit(BasePayload payload) {
     dispatcher.dispatchEnqueue(payload);
   }
 }

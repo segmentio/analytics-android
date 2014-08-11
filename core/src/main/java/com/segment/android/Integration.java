@@ -3,6 +3,7 @@ package com.segment.android;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import com.segment.android.json.JsonMap;
 
 abstract class Integration {
 
@@ -14,7 +15,7 @@ abstract class Integration {
     /** Integration was enabled on the server but failed to initialize. */
     FAILED,
     /** Integration was successfully initialized on the device. */
-    INITIALIZED;
+    INITIALIZED
   }
 
   public class InvalidConfigurationException extends Exception {
@@ -43,8 +44,8 @@ abstract class Integration {
   // Integrations Lifecycle
 
   /** Start the integration with the given settings. */
-  final void start(Context context, Json settings) {
-    if (Json.isNullOrEmpty(settings)) {
+  final void start(Context context, JsonMap settings) {
+    if (JsonMap.isNullOrEmpty(settings)) {
       Logger.d("No settings for bundled integration (%s) from server. Disabling on device.",
           getKey());
       state = State.DISABLED;
@@ -64,7 +65,7 @@ abstract class Integration {
    * Validate the context and settings. Check for any specific permissions or features that your
    * integration needs. Also check for any required values in your settings.
    */
-  protected abstract void initialize(Context context, Json settings)
+  protected abstract void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException;
 
   // Application Callbacks, same as Application$ActivityLifecycleCallbacks

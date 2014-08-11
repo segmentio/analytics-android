@@ -27,11 +27,11 @@ package com.segment.android;
 import java.util.Map;
 
 /**
- * A payload object that will be sent to the server. Clients will not create instances of this
+ * A payload object that will be sent to the server. Clients will not decode instances of this
  * directly, but through one if it's subclasses.
  */
 /* This ignores projectId, receivedAt, messageId, sentAt, version that are set by the server. */
-abstract class Payload extends Json<Payload> {
+abstract class BasePayload extends SegmentEntity<BasePayload> {
   enum Type {
     alias, group, identify, page, screen, track
   }
@@ -93,7 +93,7 @@ abstract class Payload extends Json<Payload> {
   // Options will be serialized, but not for the json payload
   private final Options options;
 
-  Payload(Type type, String anonymousId, AnalyticsContext context,
+  BasePayload(Type type, String anonymousId, AnalyticsContext context,
       Map<String, Boolean> integrations, String userId, Options options) {
     put(TYPE_KEY, type.toString());
     put(CHANNEL_KEY, Channel.mobile.toString());
@@ -106,7 +106,7 @@ abstract class Payload extends Json<Payload> {
         : ISO8601Time.from(options.getTimestamp()).toString());
   }
 
-  @Override protected Payload self() {
+  @Override protected BasePayload self() {
     // We can stop the chain here since we don't chain methods internally. If we ever need it,
     // simply remove this method and implement it in it's subclasses
     return this;

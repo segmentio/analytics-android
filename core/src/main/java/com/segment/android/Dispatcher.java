@@ -96,7 +96,7 @@ class Dispatcher {
 
   // Dispatch, these methods simply pass the action to a thread handler
 
-  void dispatchEnqueue(Payload payload) {
+  void dispatchEnqueue(BasePayload payload) {
     handler.sendMessage(handler.obtainMessage(REQUEST_ENQUEUE, payload));
   }
 
@@ -115,7 +115,7 @@ class Dispatcher {
 
   // Perform dispatched actions, these run on a non-ui thread
 
-  void performEnqueue(Payload payload) {
+  void performEnqueue(BasePayload payload) {
     // todo: add(payload) to disk;
     try {
       segmentHTTPApi.upload(payload);
@@ -159,7 +159,7 @@ class Dispatcher {
     @Override public void handleMessage(final Message msg) {
       switch (msg.what) {
         case REQUEST_ENQUEUE: {
-          Payload payload = (Payload) msg.obj;
+          BasePayload payload = (BasePayload) msg.obj;
           dispatcher.performEnqueue(payload);
           break;
         }

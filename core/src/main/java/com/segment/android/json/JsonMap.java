@@ -2,9 +2,9 @@ package com.segment.android.json;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.json.JSONObject;
 
 /**
  * A Map wrapper that exposes additional methods to coerce types lost during serialization.
@@ -37,25 +37,25 @@ import java.util.Set;
  * utility methods, including methods to coerce numeric types from Strings, and a {@link
  * #putValue(String, Object)} to be able to chain method calls.
  * <p>
- * To create an instance of this class, use one of the static factory methods.
- * <code>JsonMap<Object> map = JsonMap.create();</code>
- * <code>JsonMap<Object> map = JsonMap.create(json);</code>
+ * To decode an instance of this class, use one of the static factory methods.
+ * <code>JsonMap<Object> map = JsonMap.decode();</code>
+ * <code>JsonMap<Object> map = JsonMap.decode(json);</code>
  * <code>JsonMap<Object> map = JsonMap.wrap(new HashMap<String, Object>);</code>
  * <p>
  * Since it implements the {@link Map} interface, you could just as simply do:
- * <code>Map<String, Object> map = JsonMap.create();</code>
- * <code>Map<String, Object> map = JsonMap.create(json);</code>
+ * <code>Map<String, Object> map = JsonMap.decode();</code>
+ * <code>Map<String, Object> map = JsonMap.decode(json);</code>
  * <code>Map<String, Object> map = JsonMap.wrap(new HashMap<String, Object>);</code>
  * <p>
  * Although it lets you use custom objects for values, note that type information is lost during
  * serialization. For a custom class Person using the default <code>toString</code> implementation.
  * {@code
- * JsonMap<Object> map = JsonMap.create();
+ * JsonMap<Object> map = JsonMap.decode();
  * map.put("person", new Person("john", "doe", 32));
  * Person person = (Person) map.get("person"); // no serialization yet
  *
  * String json = map.toString();
- * JsonMap<Object> deserialized = JsonMap.create(map.toString());
+ * JsonMap<Object> deserialized = JsonMap.decode(map.toString());
  * Person person = (Person) deserialized.get("person"); // ClassCastException
  * }
  * <p>
@@ -75,10 +75,10 @@ public class JsonMap<V> implements Map<String, V> {
   }
 
   /** Parse a json string into a map. */
-  public static JsonMap<Object> create(String json) {
+  public static JsonMap<Object> decode(String json) {
     try {
       return wrap(JsonUtils.toMap(json));
-    } catch (JsonUtils.JsonConversionException e) {
+    } catch (JsonConversionException e) {
       throw new RuntimeException(e);
     }
   }
@@ -99,7 +99,7 @@ public class JsonMap<V> implements Map<String, V> {
     return new JsonMap<P>((Map<String, P>) map);
   }
 
-  JsonMap(Map<String, V> delegate) {
+  protected JsonMap(Map<String, V> delegate) {
     this.delegate = delegate;
   }
 
@@ -164,7 +164,7 @@ public class JsonMap<V> implements Map<String, V> {
   @Override public String toString() {
     try {
       return JsonUtils.fromMap(delegate);
-    } catch (JsonUtils.JsonConversionException e) {
+    } catch (JsonConversionException e) {
       throw new RuntimeException(e);
     }
   }
@@ -350,5 +350,27 @@ public class JsonMap<V> implements Map<String, V> {
       }
     }
     return null;
+  }
+
+  /**
+   * Returns the value mapped by {@code key} if it exists and is a boolean or
+   * can be coerced to a boolean. Returns null otherwise.
+   */
+  public JsonMap getJsonMap(Object key) {
+    V value = get(key);
+    if (value instanceof Map) {
+      return JsonMap.wrap((Map<String, Object>) value);
+    } else {
+      return null;
+    }
+  }
+
+  public JSONObject toJsonObject() {
+    return new JSONObject(delegate);
+  }
+
+  /** Returns true if the map is null or empty, false otherwise. */
+  public static boolean isNullOrEmpty(JsonMap map) {
+    return map == null || map.size() == 0;
   }
 }

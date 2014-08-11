@@ -1,6 +1,8 @@
 package com.segment.android;
 
-class ProjectSettings extends Json<ProjectSettings> {
+import com.segment.android.json.JsonMap;
+
+class ProjectSettings extends SegmentEntity<ProjectSettings> {
   ProjectSettings(String json) {
     super(json);
   }
@@ -9,7 +11,7 @@ class ProjectSettings extends Json<ProjectSettings> {
     return this;
   }
 
-  Json getSettingsForIntegration(Integration integration) {
-    return getJson(integration.getKey());
+  JsonMap getSettingsForIntegration(Integration integration) {
+    return getJsonMap(integration.getKey());
   }
 }

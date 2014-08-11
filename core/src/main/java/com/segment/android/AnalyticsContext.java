@@ -58,7 +58,7 @@ import static com.segment.android.Utils.getSystemService;
  * manually, you'll have to update it as well for each app start if you want it to persist between
  * sessions.
  */
-public class AnalyticsContext extends Json<AnalyticsContext> {
+public class AnalyticsContext extends SegmentEntity<AnalyticsContext> {
   private static final String APP_KEY = "app";
   private static final String APP_NAME_KEY = "name";
   private static final String APP_VERSION_KEY = "version";

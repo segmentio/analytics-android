@@ -37,11 +37,6 @@ import org.json.JSONObject;
 import org.json.JSONStringer;
 
 class JsonUtils {
-  static class JsonConversionException extends Exception {
-    public JsonConversionException(String detailMessage, Throwable throwable) {
-      super(detailMessage, throwable);
-    }
-  }
 
   /**
    * Converts the given json into a map. The Map will contain values for primitive types and

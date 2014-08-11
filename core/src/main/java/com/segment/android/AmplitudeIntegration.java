@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import com.amplitude.api.Amplitude;
+import com.segment.android.json.JsonMap;
 
 import static com.segment.android.Utils.isNullOrEmpty;
 
@@ -21,7 +22,7 @@ class AmplitudeIntegration extends Integration {
     return AMPLITUDE_KEY;
   }
 
-  @Override protected void initialize(Context context, Json settings)
+  @Override protected void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     String apiKey = (String) settings.get(API_KEY);
     if (isNullOrEmpty(apiKey)) {
@@ -45,10 +46,10 @@ class AmplitudeIntegration extends Integration {
   private void event(String name, Properties properties) {
     Amplitude.logEvent(name, properties.toJsonObject());
 
-    if (properties.has(REVENUE_KEY)) {
-      double revenue = properties.getDouble(REVENUE_KEY);
+    Double revenue = properties.getDouble(REVENUE_KEY);
+    if (revenue != null) {
       String productId = properties.getString(PRODUCT_ID_KEY);
-      int quantity = properties.getInt(QUANTITY_KEY);
+      int quantity = properties.getInteger(QUANTITY_KEY);
       String receipt = properties.getString(RECEIPT_KEY);
       String receiptSignature = properties.getString(RECEIPT_SIGNATURE_KEY);
       Amplitude.logRevenue(productId, quantity, revenue, receipt, receiptSignature);

@@ -26,7 +26,7 @@ package com.segment.android;
 
 import java.util.Map;
 
-class ScreenPayload extends Payload {
+class ScreenPayload extends BasePayload {
   /** The category of the page or screen. We recommend using title case, like Docs. */
   private static final String CATEGORY_KEY = "category";
 

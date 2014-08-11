@@ -26,7 +26,7 @@ package com.segment.android;
 
 import java.util.Map;
 
-class TrackPayload extends Payload {
+class TrackPayload extends BasePayload {
   /**
    * The name of the event. We recommend using title case and past tense for event names, like
    * Signed Up.

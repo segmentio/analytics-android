@@ -39,7 +39,7 @@ import static com.segment.android.Utils.getDeviceId;
  * <p/>
  * This is persisted to disk, and will be remembered between sessions.
  */
-public class Traits extends Json<Traits> {
+public class Traits extends SegmentEntity<Traits> {
   private Traits(Context context) {
     putId(getDeviceId(context));
   }

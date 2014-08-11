@@ -26,7 +26,7 @@ package com.segment.android;
 
 import java.util.Map;
 
-class AliasPayload extends Payload {
+class AliasPayload extends BasePayload {
   /**
    * The previous ID for the user that you want to alias from, that you previously called identify
    * with as their User ID.

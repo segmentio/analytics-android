@@ -17,24 +17,18 @@ public class JsonMapTest extends BaseAndroidTestCase {
   public void testStringToNumber() throws Exception {
     JsonMap<Object> map = JsonMap.create();
 
-    // Put a number as a string
-    map.put("string_pi", String.valueOf(Math.PI));
     map.put("double_pi", Math.PI);
+    map.put("string_pi", String.valueOf(Math.PI));    // Put a double as a string
 
     assertThat(map).contains(MapEntry.entry("string_pi", String.valueOf(Math.PI)))
         .contains(MapEntry.entry("double_pi", Math.PI));
 
     assertThat(map.getDouble("string_pi")).isEqualTo(Math.PI);
     assertThat(map.get("double_pi")).isEqualTo(Math.PI);
-    try {
-      map.getInteger("string_pi");
-      fail("trying to coerce a double value to integer should throw exception");
-    } catch (IllegalAccessError e) {
-    }
-    try {
-      map.getInteger("double_pi");
-      fail("trying to coerce double to integer should throw exception");
-    } catch (IllegalAccessError e) {
-    }
+
+    assertThat(map.getInteger("string_pi")).isNull();
+    assertThat(map.getInteger("double_pi")).isNull();
   }
+
+  // todo: test to JsonObject
 }

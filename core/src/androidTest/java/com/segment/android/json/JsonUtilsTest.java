@@ -50,7 +50,7 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
             + "          \"Acronym\": \"SGML\",\n"
             + "          \"Abbrev\": \"ISO 8879:1986\",\n"
             + "          \"GlossDef\": {\n"
-            + "            \"para\": \"A meta-markup language, used to create markup languages such as DocBook.\",\n"
+            + "            \"para\": \"A meta-markup language, used to decode markup languages such as DocBook.\",\n"
             + "            \"GlossSeeAlso\": [\n"
             + "              \"GML\",\n"
             + "              \"XML\"\n"

@@ -66,7 +66,7 @@ class SegmentHTTPApi {
     }
   }
 
-  void upload(Payload payload) throws IOException {
+  void upload(BasePayload payload) throws IOException {
     HttpsURLConnection urlConnection =
         (HttpsURLConnection) createUrl("v1/" + payload.getType()).openConnection();
 

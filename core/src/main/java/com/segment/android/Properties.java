@@ -30,16 +30,12 @@ import java.util.Map;
  * Just like traits, we also imbue some properties with semantic meaning, and you should only ever
  * use these property names for that purpose.
  */
-public class Properties extends Json<Properties> {
+public class Properties extends SegmentEntity<Properties> {
   private static final String REVENUE_KEY = "revenue";
   private static final String CURRENCY_KEY = "currency";
   private static final String VALUE_KEY = "value";
 
   public Properties() {
-  }
-
-  Properties(int initialCapacity) {
-    super(initialCapacity);
   }
 
   Properties(Map<String, Object> map) {
