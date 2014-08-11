@@ -24,13 +24,13 @@
 
 package com.segment.android;
 
-import java.util.Map;
+import com.segment.android.json.JsonMap;
 
 /**
  * Just like traits, we also imbue some properties with semantic meaning, and you should only ever
  * use these property names for that purpose.
  */
-public class Properties extends SegmentEntity<Properties> {
+public class Properties extends JsonMap {
   private static final String REVENUE_KEY = "revenue";
   private static final String CURRENCY_KEY = "currency";
   private static final String VALUE_KEY = "value";
@@ -38,27 +38,20 @@ public class Properties extends SegmentEntity<Properties> {
   public Properties() {
   }
 
-  Properties(Map<String, Object> map) {
-    super(map);
-  }
-
-  Properties(String json) {
-    super(json);
-  }
-
-  @Override protected Properties self() {
+  @Override public Properties putValue(String key, Object value) {
+    super.putValue(key, value);
     return this;
   }
 
   public Properties putRevenue(double revenue) {
-    return put(REVENUE_KEY, revenue);
+    return putValue(REVENUE_KEY, revenue);
   }
 
   public Properties putCurrency(String currency) {
-    return put(CURRENCY_KEY, currency);
+    return putValue(CURRENCY_KEY, currency);
   }
 
   public Properties putValue(String value) {
-    return put(VALUE_KEY, value);
+    return putValue(VALUE_KEY, value);
   }
 }

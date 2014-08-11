@@ -24,6 +24,7 @@
 
 package com.segment.android;
 
+import com.segment.android.json.JsonMap;
 import java.util.Map;
 
 /**
@@ -31,7 +32,7 @@ import java.util.Map;
  * directly, but through one if it's subclasses.
  */
 /* This ignores projectId, receivedAt, messageId, sentAt, version that are set by the server. */
-abstract class BasePayload extends SegmentEntity<BasePayload> {
+abstract class BasePayload extends JsonMap {
   enum Type {
     alias, group, identify, page, screen, track
   }
@@ -106,12 +107,6 @@ abstract class BasePayload extends SegmentEntity<BasePayload> {
         : ISO8601Time.from(options.getTimestamp()).toString());
   }
 
-  @Override protected BasePayload self() {
-    // We can stop the chain here since we don't chain methods internally. If we ever need it,
-    // simply remove this method and implement it in it's subclasses
-    return this;
-  }
-
   String getType() {
     return getString(TYPE_KEY);
   }
@@ -126,5 +121,10 @@ abstract class BasePayload extends SegmentEntity<BasePayload> {
 
   void setSentAt(ISO8601Time time) {
     put(SENT_AT_KEY, time.toString());
+  }
+
+  @Override public BasePayload putValue(String key, Object value) {
+    super.putValue(key, value);
+    return this;
   }
 }

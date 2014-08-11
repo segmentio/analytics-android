@@ -25,6 +25,7 @@
 package com.segment.android;
 
 import android.content.Context;
+import com.segment.android.json.JsonMap;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -38,8 +39,9 @@ import static com.segment.android.Utils.getDeviceId;
  * reason, you should only use special traits for their intended purpose.
  * <p/>
  * This is persisted to disk, and will be remembered between sessions.
+ * todo: document API to clear the user traits
  */
-public class Traits extends SegmentEntity<Traits> {
+public class Traits extends JsonMap {
   private Traits(Context context) {
     putId(getDeviceId(context));
   }
@@ -72,7 +74,7 @@ public class Traits extends SegmentEntity<Traits> {
     address.put(ADDRESS_POSTAL_CODE_KEY, postalCode);
     address.put(ADDRESS_STATE_KEY, state);
     address.put(ADDRESS_STREET_KEY, street);
-    return put(ADDRESS_KEY, address);
+    return putValue(ADDRESS_KEY, address);
   }
 
   private static final String AVATAR_KEY = "avatar";
@@ -99,27 +101,27 @@ public class Traits extends SegmentEntity<Traits> {
   private static final String INDUSTRY_KEY = "industry";
 
   public Traits putAvatar(String avatar) {
-    return put(AVATAR_KEY, avatar);
+    return putValue(AVATAR_KEY, avatar);
   }
 
   public Traits putCreatedAt(String createdAt) {
-    return put(CREATED_AT_KEY, createdAt);
+    return putValue(CREATED_AT_KEY, createdAt);
   }
 
   public Traits putDescription(String description) {
-    return put(DESCRIPTION_KEY, description);
+    return putValue(DESCRIPTION_KEY, description);
   }
 
   public Traits putEmail(String email) {
-    return put(EMAIL_KEY, email);
+    return putValue(EMAIL_KEY, email);
   }
 
   public Traits putFax(String fax) {
-    return put(FAX_KEY, fax);
+    return putValue(FAX_KEY, fax);
   }
 
   public Traits putId(String id) {
-    return put(ID_KEY, id);
+    return putValue(ID_KEY, id);
   }
 
   public String getId() {
@@ -127,54 +129,55 @@ public class Traits extends SegmentEntity<Traits> {
   }
 
   public Traits putName(String name) {
-    return put(NAME_KEY, name);
+    return putValue(NAME_KEY, name);
   }
 
   public Traits putPhone(String phone) {
-    return put(PHONE_KEY, phone);
+    return putValue(PHONE_KEY, phone);
   }
 
   public Traits putWebsite(String website) {
-    return put(WEBSITE_KEY, website);
+    return putValue(WEBSITE_KEY, website);
   }
 
   public Traits putAge(short age) {
-    return put(AGE_KEY, age);
+    return putValue(AGE_KEY, age);
   }
 
   public Traits putBirthday(Date birthday) {
-    return put(BIRTHDAY_KEY, ISO8601Time.from(birthday).toString());
+    return putValue(BIRTHDAY_KEY, ISO8601Time.from(birthday).toString());
   }
 
   public Traits putFirstName(String firstName) {
-    return put(FIRST_NAME_KEY, firstName);
+    return putValue(FIRST_NAME_KEY, firstName);
   }
 
   public Traits putGender(String gender) {
-    return put(GENDER_KEY, gender);
+    return putValue(GENDER_KEY, gender);
   }
 
   public Traits putLastName(String lastName) {
-    return put(LAST_NAME_KEY, lastName);
+    return putValue(LAST_NAME_KEY, lastName);
   }
 
   public Traits putTitle(String title) {
-    return put(TITLE_KEY, title);
+    return putValue(TITLE_KEY, title);
   }
 
   public Traits putUsername(String username) {
-    return put(USERNAME_KEY, username);
+    return putValue(USERNAME_KEY, username);
   }
 
   public Traits putEmployees(long employees) {
-    return put(EMPLOYEES_KEY, employees);
+    return putValue(EMPLOYEES_KEY, employees);
   }
 
   public Traits putIndustry(String industry) {
-    return put(INDUSTRY_KEY, industry);
+    return putValue(INDUSTRY_KEY, industry);
   }
 
-  @Override protected Traits self() {
+  @Override public Traits putValue(String key, Object value) {
+    super.putValue(key, value);
     return this;
   }
 }

@@ -7,43 +7,22 @@ import java.util.Set;
 import org.json.JSONObject;
 
 /**
- * A Map wrapper that exposes additional methods to coerce types lost during serialization.
- * This lets clients use pure Maps if they wish.
- * For instance, a float will be deserialized as a double. getFloat() will try to coerce that value
- * for you.
- *
- * The types on the left get mapped to the types on the right.
- * byte -> integer
- * short -> integer
- * integer -> integer
- * long -> long
- * float -> double
- * double -> double
- * char -> String
- * String -> String
- * boolean -> boolean
- *
- * In addition to these, Strings can be coerced to Numbers as well.
- */
-
-/**
  * A wrapper around {@link Map} to expose Json functionality. Only the {@link #toString()} method
  * is modified to return a json formatted string. All other methods will be forwarded to another
  * map.
  * <p>
  * The purpose of this class is to not limit clients to a custom implementation of a Json type,
- * they
- * can use existing {@link Map} and {@link List} implementations as they see fit. It adds some
- * utility methods, including methods to coerce numeric types from Strings, and a {@link
- * #putValue(String, Object)} to be able to chain method calls.
+ * they can use existing {@link Map} and {@link java.util.List} implementations as they see fit.
+ * It adds some utility methods, including methods to coerce numeric types from Strings, and a
+ * {@link #putValue(String, Object)} to be able to chain method calls.
  * <p>
- * To decode an instance of this class, use one of the static factory methods.
- * <code>JsonMap<Object> map = JsonMap.decode();</code>
+ * To create an instance of this class, use one of the static factory methods.
+ * <code>JsonMap<Object> map = JsonMap.create();</code>
  * <code>JsonMap<Object> map = JsonMap.decode(json);</code>
  * <code>JsonMap<Object> map = JsonMap.wrap(new HashMap<String, Object>);</code>
  * <p>
  * Since it implements the {@link Map} interface, you could just as simply do:
- * <code>Map<String, Object> map = JsonMap.decode();</code>
+ * <code>Map<String, Object> map = JsonMap.create();</code>
  * <code>Map<String, Object> map = JsonMap.decode(json);</code>
  * <code>Map<String, Object> map = JsonMap.wrap(new HashMap<String, Object>);</code>
  * <p>
@@ -53,10 +32,10 @@ import org.json.JSONObject;
  * JsonMap<Object> map = JsonMap.decode();
  * map.put("person", new Person("john", "doe", 32));
  * Person person = (Person) map.get("person"); // no serialization yet
- *
  * String json = map.toString();
  * JsonMap<Object> deserialized = JsonMap.decode(map.toString());
- * Person person = (Person) deserialized.get("person"); // ClassCastException
+ * // The line below will throw a ClassCastException, since Person get's stored as a String
+ * Person person = (Person) deserialized.get("person");
  * }
  * <p>
  * Only String, Integer, Double, Long and Boolean types are supported.
@@ -66,21 +45,17 @@ import org.json.JSONObject;
  * Float -> Double
  * Char -> String
  */
-public class JsonMap<V> implements Map<String, V> {
-  final Map<String, V> delegate;
+public class JsonMap<T extends JsonMap<T>> implements Map<String, Object> {
+  final Map<String, Object> delegate;
 
   /** Create an empty map. */
-  public static <P> JsonMap<P> create() {
-    return new JsonMap<P>(new LinkedHashMap<String, P>());
+  public static JsonMap create() {
+    return new JsonMap();
   }
 
   /** Parse a json string into a map. */
-  public static JsonMap<Object> decode(String json) {
-    try {
-      return wrap(JsonUtils.toMap(json));
-    } catch (JsonConversionException e) {
-      throw new RuntimeException(e);
-    }
+  public static JsonMap decode(String json) {
+    return new JsonMap(json);
   }
 
   /**
@@ -89,18 +64,30 @@ public class JsonMap<V> implements Map<String, V> {
    *
    * @throws IllegalArgumentException if the map is null
    */
-  public static <P> JsonMap<P> wrap(Map<String, ? extends P> map) {
+  public static JsonMap wrap(Map<String, ?> map) {
     if (map == null) {
       throw new IllegalArgumentException("Map must not be null.");
     }
     if (map instanceof JsonMap) {
       return (JsonMap) map;
     }
-    return new JsonMap<P>((Map<String, P>) map);
+    return new JsonMap(map);
   }
 
-  protected JsonMap(Map<String, V> delegate) {
+  protected JsonMap() {
+    this.delegate = new LinkedHashMap<String, Object>();
+  }
+
+  protected JsonMap(Map<String, Object> delegate) {
     this.delegate = delegate;
+  }
+
+  protected JsonMap(String json) {
+    try {
+      this.delegate = JsonUtils.toMap(json);
+    } catch (JsonConversionException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override public void clear() {
@@ -115,11 +102,11 @@ public class JsonMap<V> implements Map<String, V> {
     return delegate.containsValue(value);
   }
 
-  @Override public Set<Entry<String, V>> entrySet() {
+  @Override public Set<Entry<String, Object>> entrySet() {
     return delegate.entrySet();
   }
 
-  @Override public V get(Object key) {
+  @Override public Object get(Object key) {
     return delegate.get(key);
   }
 
@@ -131,17 +118,17 @@ public class JsonMap<V> implements Map<String, V> {
     return delegate.keySet();
   }
 
-  @Override public V put(String key, V value) {
+  @Override public Object put(String key, Object value) {
     return delegate.put(key, value);
   }
 
-  @Override public void putAll(Map<? extends String, ? extends V> map) {
-    for (Map.Entry<? extends String, ? extends V> entry : map.entrySet()) {
+  @Override public void putAll(Map<? extends String, ?> map) {
+    for (Map.Entry<? extends String, ?> entry : map.entrySet()) {
       put(entry.getKey(), entry.getValue());
     }
   }
 
-  @Override public V remove(Object key) {
+  @Override public Object remove(Object key) {
     return delegate.remove(key);
   }
 
@@ -149,7 +136,7 @@ public class JsonMap<V> implements Map<String, V> {
     return delegate.size();
   }
 
-  @Override public Collection<V> values() {
+  @Override public Collection<Object> values() {
     return delegate.values();
   }
 
@@ -170,7 +157,7 @@ public class JsonMap<V> implements Map<String, V> {
   }
 
   /** Helper method to be able to chain put methods. */
-  public JsonMap<V> putValue(String key, V value) {
+  public JsonMap putValue(String key, Object value) {
     delegate.put(key, value);
     return this;
   }
@@ -183,7 +170,7 @@ public class JsonMap<V> implements Map<String, V> {
    * can be coerced to a byte. Returns null otherwise.
    */
   public Byte getByte(Object key) {
-    V value = get(key);
+    Object value = get(key);
     if (value instanceof Byte) {
       return (Byte) value;
     } else if (value instanceof Number) {
@@ -203,7 +190,7 @@ public class JsonMap<V> implements Map<String, V> {
    * can be coerced to a short. Returns null otherwise.
    */
   public Short getShort(Object key) {
-    V value = get(key);
+    Object value = get(key);
     if (value != null) {
       if (value instanceof Short) {
         return (Short) value;
@@ -225,7 +212,7 @@ public class JsonMap<V> implements Map<String, V> {
    * can be coerced to a integer. Returns null otherwise.
    */
   public Integer getInteger(Object key) {
-    V value = get(key);
+    Object value = get(key);
     if (value instanceof Integer) {
       return (Integer) value;
     } else if (value instanceof Number) {
@@ -245,7 +232,7 @@ public class JsonMap<V> implements Map<String, V> {
    * can be coerced to a long. Returns null otherwise.
    */
   public Long getLong(Object key) {
-    V value = get(key);
+    Object value = get(key);
     if (value instanceof Long) {
       return (Long) value;
     } else if (value instanceof Number) {
@@ -265,7 +252,7 @@ public class JsonMap<V> implements Map<String, V> {
    * can be coerced to a integer. Returns null otherwise.
    */
   public Float getFloat(Object key) {
-    V value = get(key);
+    Object value = get(key);
     if (value instanceof Float) {
       return (Float) value;
     } else if (value instanceof Number) {
@@ -285,7 +272,7 @@ public class JsonMap<V> implements Map<String, V> {
    * can be coerced to a double. Returns null otherwise.
    */
   public Double getDouble(Object key) {
-    V value = get(key);
+    Object value = get(key);
     if (value instanceof Double) {
       return (Double) value;
     } else if (value instanceof Number) {
@@ -305,7 +292,7 @@ public class JsonMap<V> implements Map<String, V> {
    * can be coerced to a char. Returns null otherwise.
    */
   public Character getChar(Object key) {
-    V value = get(key);
+    Object value = get(key);
     if (value instanceof Character) {
       return (Character) value;
     } else if (value != null && value instanceof String) {
@@ -324,7 +311,7 @@ public class JsonMap<V> implements Map<String, V> {
    * representation.
    */
   public String getString(Object key) {
-    V value = get(key);
+    Object value = get(key);
     if (value instanceof String) {
       return (String) value;
     } else if (value != null) {
@@ -338,7 +325,7 @@ public class JsonMap<V> implements Map<String, V> {
    * can be coerced to a boolean. Returns null otherwise.
    */
   public Boolean getBoolean(Object key) {
-    V value = get(key);
+    Object value = get(key);
     if (value instanceof Boolean) {
       return (Boolean) value;
     } else if (value instanceof String) {
@@ -357,7 +344,7 @@ public class JsonMap<V> implements Map<String, V> {
    * can be coerced to a boolean. Returns null otherwise.
    */
   public JsonMap getJsonMap(Object key) {
-    V value = get(key);
+    Object value = get(key);
     if (value instanceof Map) {
       return JsonMap.wrap((Map<String, Object>) value);
     } else {

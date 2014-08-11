@@ -52,6 +52,6 @@ class TrackPayload extends BasePayload {
   }
 
   Properties getProperties() {
-    return new Properties((Map<String, Object>) get(PROPERTIES_KEY));
+    return (Properties) get(PROPERTIES_KEY);
   }
 }

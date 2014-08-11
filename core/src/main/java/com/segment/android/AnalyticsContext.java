@@ -34,6 +34,7 @@ import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
+import com.segment.android.json.JsonMap;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -58,7 +59,7 @@ import static com.segment.android.Utils.getSystemService;
  * manually, you'll have to update it as well for each app start if you want it to persist between
  * sessions.
  */
-public class AnalyticsContext extends SegmentEntity<AnalyticsContext> {
+public class AnalyticsContext extends JsonMap {
   private static final String APP_KEY = "app";
   private static final String APP_NAME_KEY = "name";
   private static final String APP_VERSION_KEY = "version";
@@ -99,7 +100,8 @@ public class AnalyticsContext extends SegmentEntity<AnalyticsContext> {
     campaign.put(CAMPAIGN_MEDIUM_KEY, medium);
     campaign.put(CAMPAIGN_TERM_KEY, term);
     campaign.put(CAMPAIGN_CONTENT_KEY, content);
-    return put(CAMPAIGN_KEY, campaign);
+    put(CAMPAIGN_KEY, campaign);
+    return this;
   }
 
   private static final String DEVICE_KEY = "device";
@@ -157,7 +159,8 @@ public class AnalyticsContext extends SegmentEntity<AnalyticsContext> {
     location.put(LOCATION_LATITUDE_KEY, latitude);
     location.put(LOCATION_LONGITUDE_KEY, longitude);
     location.put(LOCATION_SPEED_KEY, speed);
-    return put(LOCATION_KEY, location);
+    put(LOCATION_KEY, location);
+    return this;
   }
 
   private static final String NETWORK_KEY = "network";
@@ -219,7 +222,8 @@ public class AnalyticsContext extends SegmentEntity<AnalyticsContext> {
     referrer.put(REFERRER_NAME_KEY, name);
     referrer.put(REFERRER_TYPE_KEY, type);
     referrer.put(REFERRER_URL_KEY, url);
-    return put(REFERRER_KEY, referrer);
+    put(REFERRER_KEY, referrer);
+    return this;
   }
 
   private static final String SCREEN_KEY = "screen";
@@ -300,10 +304,11 @@ public class AnalyticsContext extends SegmentEntity<AnalyticsContext> {
   }
 
   AnalyticsContext putTraits(Traits traits) {
-    return put(TRAITS_KEY, traits);
+    return putValue(TRAITS_KEY, traits);
   }
 
-  @Override protected AnalyticsContext self() {
+  @Override public AnalyticsContext putValue(String key, Object value) {
+    super.putValue(key, value);
     return this;
   }
 }
