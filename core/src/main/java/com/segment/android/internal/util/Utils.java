@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.segment.android;
+package com.segment.android.internal.util;
 
 import android.Manifest;
 import android.content.ContentResolver;
@@ -35,44 +35,44 @@ import java.util.Collection;
 import static android.content.Context.MODE_PRIVATE;
 import static android.provider.Settings.System.AIRPLANE_MODE_ON;
 
-final class Utils {
-  static final String THREAD_PREFIX = "SegmentAnalytics-";
+public final class Utils {
+  public static final String THREAD_PREFIX = "SegmentAnalytics-";
 
   private Utils() {
     throw new AssertionError("No instances");
   }
 
   /** Returns true if the application has the given permission. */
-  static boolean hasPermission(Context context, String permission) {
+  public static boolean hasPermission(Context context, String permission) {
     return context.checkCallingOrSelfPermission(permission) == PackageManager.PERMISSION_GRANTED;
   }
 
   /** Returns true if the application has the given feature. */
-  static boolean hasFeature(Context context, String feature) {
+  public static boolean hasFeature(Context context, String feature) {
     return context.getPackageManager().hasSystemFeature(feature);
   }
 
   /** Returns the system service for the given string. */
   @SuppressWarnings("unchecked")
-  static <T> T getSystemService(Context context, String serviceConstant) {
+  public static <T> T getSystemService(Context context, String serviceConstant) {
     return (T) context.getSystemService(serviceConstant);
   }
 
   /** Returns true if the string is null, or empty (once trimmed). */
-  static boolean isNullOrEmpty(String text) {
+  public static boolean isNullOrEmpty(String text) {
     // Rather than using text.trim().length() == 0, use getTrimmedLength to avoid allocating an
     // extra string object
     return TextUtils.isEmpty(text) || TextUtils.getTrimmedLength(text) == 0;
   }
 
   /** Returns true the phone is in AirplaneMode. */
-  static boolean isAirplaneModeOn(Context context) {
+  public static boolean isAirplaneModeOn(Context context) {
     ContentResolver contentResolver = context.getContentResolver();
     return android.provider.Settings.System.getInt(contentResolver, AIRPLANE_MODE_ON, 0) != 0;
   }
 
   /** Creates a unique device id to anonymously track a user. */
-  static String getDeviceId(Context context) {
+  public static String getDeviceId(Context context) {
     // credit method: Amplitude's Android library
 
     // Android ID
@@ -108,7 +108,7 @@ final class Utils {
   }
 
   /** Returns a shared preferences for storing any library preferences. */
-  static SharedPreferences getSharedPreferences(Context context) {
+  public static SharedPreferences getSharedPreferences(Context context) {
     return context.getSharedPreferences("analytics-android", MODE_PRIVATE);
   }
 }

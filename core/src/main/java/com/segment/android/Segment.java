@@ -31,16 +31,21 @@ import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import com.segment.android.internal.payload.AliasPayload;
+import com.segment.android.internal.payload.BasePayload;
+import com.segment.android.internal.payload.GroupPayload;
+import com.segment.android.internal.payload.IdentifyPayload;
+import com.segment.android.internal.payload.ScreenPayload;
+import com.segment.android.internal.payload.TrackPayload;
+import com.segment.android.internal.util.Logger;
 
 import static com.segment.android.Asserts.assertOnMainThread;
 import static com.segment.android.ResourceUtils.getBooleanOrThrow;
 import static com.segment.android.ResourceUtils.getIntegerOrThrow;
 import static com.segment.android.ResourceUtils.getString;
-import static com.segment.android.Utils.getDeviceId;
-import static com.segment.android.Utils.hasPermission;
-import static com.segment.android.Utils.isNullOrEmpty;
+import static com.segment.android.internal.util.Utils.getDeviceId;
+import static com.segment.android.internal.util.Utils.hasPermission;
+import static com.segment.android.internal.util.Utils.isNullOrEmpty;
 
 public class Segment {
   static Segment singleton = null;
@@ -171,10 +176,7 @@ public class Segment {
 
       SegmentHTTPApi segmentHTTPApi = SegmentHTTPApi.create(writeKey);
       Dispatcher dispatcher = Dispatcher.create(application, HANDLER, queueSize, segmentHTTPApi);
-
-      IntegrationManager integrationManager = new IntegrationManager();
-
-      return new Segment(application, dispatcher, integrationManager, debugging);
+      return new Segment(application, dispatcher, debugging);
     }
   }
 
@@ -191,20 +193,12 @@ public class Segment {
   final Dispatcher dispatcher;
   volatile boolean debugging;
   final String anonymousId;
-  final IntegrationManager integrationManager;
-  final ProjectSettingsCache projectSettingsCache;
 
-  Segment(Application application, Dispatcher dispatcher, IntegrationManager integrationManager,
-      boolean debugging) {
+  Segment(Application application, Dispatcher dispatcher, boolean debugging) {
     this.application = application;
     this.dispatcher = dispatcher;
-    this.integrationManager = integrationManager;
     setDebugging(debugging);
-
-    projectSettingsCache = new ProjectSettingsCache(application);
     anonymousId = getDeviceId(application);
-
-    dispatcher.dispatchFetchSettings(this);
     AnalyticsContext.with(application);
     Traits.with(application);
   }
@@ -235,8 +229,8 @@ public class Segment {
     Traits.with(application).putId(userId);
 
     submit(new IdentifyPayload(anonymousId,
-        AnalyticsContext.with(application).putTraits(Traits.with(application)),
-        generateServerIntegrations(options), userId, Traits.with(application), options));
+        AnalyticsContext.with(application).putTraits(Traits.with(application)), userId,
+        Traits.with(application), options));
   }
 
   public void group(String groupId, Options options) {
@@ -245,11 +239,9 @@ public class Segment {
     if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException("groupId must be null or empty.");
     }
-
     submit(new GroupPayload(anonymousId,
         AnalyticsContext.with(application).putTraits(Traits.with(application)),
-        generateServerIntegrations(options), Traits.with(application).getId(), groupId,
-        Traits.with(application), options));
+        Traits.with(application).getId(), groupId, Traits.with(application), options));
   }
 
   public void track(String event, Properties properties, Options options) {
@@ -262,13 +254,9 @@ public class Segment {
       properties = new Properties();
     }
 
-    TrackPayload payload = new TrackPayload(anonymousId,
+    submit(new TrackPayload(anonymousId,
         AnalyticsContext.with(application).putTraits(Traits.with(application)),
-        generateServerIntegrations(options), Traits.with(application).getId(), event, properties,
-        options);
-    integrationManager.track(payload);
-
-    submit(payload);
+        Traits.with(application).getId(), event, properties, options));
   }
 
   public void screen(String category, String name, Properties properties, Options options) {
@@ -284,39 +272,24 @@ public class Segment {
 
     submit(new ScreenPayload(anonymousId,
         AnalyticsContext.with(application).putTraits(Traits.with(application)),
-        generateServerIntegrations(options), Traits.with(application).getId(), category, name,
-        properties, options));
+        Traits.with(application).getId(), category, name, properties, options));
   }
 
-  public void alias(String newId, Options options) {
+  public void alias(String newId, String previousId, Options options) {
     assertOnMainThread();
 
     if (isNullOrEmpty(newId)) {
       throw new IllegalArgumentException("newId must not be null or empty.");
     }
 
-    String previousId = Traits.with(application).getId(); // copy the previousId
+    if (isNullOrEmpty(previousId)) {
+      previousId = Traits.with(application).getId(); // copy the previousId
+    }
     Traits.with(application).putId(newId); // update the new id
 
     submit(new AliasPayload(anonymousId,
         AnalyticsContext.with(application).putTraits(Traits.with(application)),
-        generateServerIntegrations(options), Traits.with(application).getId(), previousId,
-        options));
-  }
-
-  Map<String, Boolean> generateServerIntegrations(Options options) {
-    Map<String, Boolean> map = new LinkedHashMap<String, Boolean>();
-    for (String key : integrationManager.keys()) {
-      // Disable any integrations that are bundled so the server doesn't send the
-      map.put(key, false);
-    }
-    for (Map.Entry<String, Boolean> entry : options.getIntegrations().entrySet()) {
-      // Copy any settings for integrations that the user has passed in.
-      // This will also be looked up by IntegrationManager to make sure it doesn't post to any
-      // bundled integration.
-      map.put(entry.getKey(), entry.getValue());
-    }
-    return map;
+        Traits.with(application).getId(), previousId, options));
   }
 
   void submit(BasePayload payload) {

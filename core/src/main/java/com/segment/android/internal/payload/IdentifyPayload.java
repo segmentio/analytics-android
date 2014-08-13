@@ -22,11 +22,13 @@
  * SOFTWARE.
  */
 
-package com.segment.android;
+package com.segment.android.internal.payload;
 
-import java.util.Map;
+import com.segment.android.AnalyticsContext;
+import com.segment.android.Options;
+import com.segment.android.Traits;
 
-class IdentifyPayload extends BasePayload {
+public class IdentifyPayload extends BasePayload {
   /**
    * A dictionary of traits you know about a user, for example email or name. We have a collection
    * of special traits that we recognize with semantic meaning, which you should always use when
@@ -35,13 +37,13 @@ class IdentifyPayload extends BasePayload {
    */
   private static final String TRAITS_KEY = "traits";
 
-  IdentifyPayload(String anonymousId, AnalyticsContext context, Map<String, Boolean> integrations,
-      String userId, Traits traits, Options options) {
-    super(Type.identify, anonymousId, context, integrations, userId, options);
+  public IdentifyPayload(String anonymousId, AnalyticsContext context, String userId, Traits traits,
+      Options options) {
+    super(Type.identify, anonymousId, context, userId, options);
     put(TRAITS_KEY, traits);
   }
 
-  Traits getTraits() {
+  public Traits getTraits() {
     return (Traits) get(TRAITS_KEY);
   }
 }

@@ -45,7 +45,7 @@ import org.json.JSONObject;
  * Float -> Double
  * Char -> String
  */
-public class JsonMap<T extends JsonMap<T>> implements Map<String, Object> {
+public class JsonMap implements Map<String, Object> {
   final Map<String, Object> delegate;
 
   /** Create an empty map. */
@@ -71,7 +71,7 @@ public class JsonMap<T extends JsonMap<T>> implements Map<String, Object> {
     if (map instanceof JsonMap) {
       return (JsonMap) map;
     }
-    return new JsonMap(map);
+    return new JsonMap((Map<String, Object>) map);
   }
 
   protected JsonMap() {

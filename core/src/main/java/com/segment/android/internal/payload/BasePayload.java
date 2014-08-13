@@ -22,8 +22,11 @@
  * SOFTWARE.
  */
 
-package com.segment.android;
+package com.segment.android.internal.payload;
 
+import com.segment.android.AnalyticsContext;
+import com.segment.android.Options;
+import com.segment.android.internal.util.ISO8601Time;
 import com.segment.android.json.JsonMap;
 import java.util.Map;
 
@@ -32,7 +35,7 @@ import java.util.Map;
  * directly, but through one if it's subclasses.
  */
 /* This ignores projectId, receivedAt, messageId, sentAt, version that are set by the server. */
-abstract class BasePayload extends JsonMap {
+public abstract class BasePayload extends JsonMap {
   enum Type {
     alias, group, identify, page, screen, track
   }
@@ -94,33 +97,36 @@ abstract class BasePayload extends JsonMap {
   // Options will be serialized, but not for the json payload
   private final Options options;
 
-  BasePayload(Type type, String anonymousId, AnalyticsContext context,
-      Map<String, Boolean> integrations, String userId, Options options) {
+  BasePayload(Type type, String anonymousId, AnalyticsContext context, String userId,
+      Options options) {
     put(TYPE_KEY, type.toString());
     put(CHANNEL_KEY, Channel.mobile.toString());
     put(ANONYMOUS_ID_KEY, anonymousId);
     put(CONTEXT_KEY, context);
-    put(INTEGRATIONS_KEY, integrations);
     put(USER_ID_KEY, userId);
     this.options = options;
     put(TIMESTAMP_KEY, options.getTimestamp() == null ? ISO8601Time.now().toString()
         : ISO8601Time.from(options.getTimestamp()).toString());
   }
 
-  String getType() {
+  public String getType() {
     return getString(TYPE_KEY);
   }
 
-  String getUserId() {
+  public String getUserId() {
     return getString(USER_ID_KEY);
   }
 
-  Options getOptions() {
+  public Options getOptions() {
     return options;
   }
 
-  void setSentAt(ISO8601Time time) {
+  public void setSentAt(ISO8601Time time) {
     put(SENT_AT_KEY, time.toString());
+  }
+
+  public void setServerIntegrations(Map<String, Boolean> integrations) {
+    put(INTEGRATIONS_KEY, integrations);
   }
 
   @Override public BasePayload putValue(String key, Object value) {

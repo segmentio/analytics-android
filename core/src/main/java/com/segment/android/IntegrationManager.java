@@ -3,160 +3,159 @@ package com.segment.android;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import com.segment.android.internal.integrations.AmplitudeIntegration;
+import com.segment.android.internal.integrations.Integration;
+import com.segment.android.internal.integrations.InvalidConfigurationException;
+import com.segment.android.internal.payload.AliasPayload;
+import com.segment.android.internal.payload.GroupPayload;
+import com.segment.android.internal.payload.IdentifyPayload;
+import com.segment.android.internal.payload.ScreenPayload;
+import com.segment.android.internal.payload.TrackPayload;
+import com.segment.android.internal.util.Logger;
 import com.segment.android.json.JsonMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.segment.android.Options.ALL_INTEGRATIONS_KEY;
+public class IntegrationManager {
+  @SuppressWarnings("SpellCheckingInspection")
+  public enum BundledProvider {
+    AMPLITUDE,
+    BUGSNAG,
+    COUNTLY,
+    CRITTERCISM,
+    FLURRY,
+    GOOGLE_ANALYTICS,
+    LOCALYTICS,
+    MIXPANEL,
+    QUANTCAST,
+    TAPSTREAM
+  }
 
-class IntegrationManager {
+  private static final Map<String, BundledProvider> providers;
+
+  static {
+    // A Map of all providers that can be bundled.
+    providers = new LinkedHashMap<String, BundledProvider>();
+    providers.put("AMPLITUDE", BundledProvider.AMPLITUDE);
+    providers.put("BUGSNAG", BundledProvider.BUGSNAG);
+    providers.put("COUNTLY", BundledProvider.COUNTLY);
+    providers.put("CRITTERCISM", BundledProvider.CRITTERCISM);
+    providers.put("FLURRY", BundledProvider.FLURRY);
+    providers.put("GOOGLE_ANALYTICS", BundledProvider.GOOGLE_ANALYTICS);
+    providers.put("LOCALYTICS", BundledProvider.LOCALYTICS);
+    providers.put("MIXPANEL", BundledProvider.MIXPANEL);
+    providers.put("QUANTCAST", BundledProvider.QUANTCAST);
+    providers.put("TAPSTREAM", BundledProvider.TAPSTREAM);
+  }
+
   private final List<Integration> integrations = new LinkedList<Integration>();
-  private final List<String> keys = new LinkedList<String>();
 
-  IntegrationManager() {
-    try {
-      Class.forName("com.amplitude.api.Amplitude");
-      Integration integration = new AmplitudeIntegration();
-      integrations.add(integration);
-      keys.add(integration.getKey());
-    } catch (ClassNotFoundException e) {
+  IntegrationManager(Context context, JsonMap projectSettings) {
+    // todo: SLOWWWWWW. Or maybe not, but profile this and optimise it if needed
+    for (String key : projectSettings.keySet()) {
+      BundledProvider provider = providers.get(key);
+      if (provider == null) continue;
+
+      JsonMap integrationSettings = projectSettings.getJsonMap(key);
+      switch (provider) {
+        case AMPLITUDE:
+          try {
+            Class.forName("com.amplitude.api.Amplitude");
+            Integration integration = new AmplitudeIntegration(context, integrationSettings);
+            integrations.add(integration);
+          } catch (ClassNotFoundException e) {
+            Logger.w("Amplitude is not bundled in the app.");
+          } catch (InvalidConfigurationException e) {
+            Logger.e(e, "Could not initialize Amplitude's SDK.");
+          }
+          break;
+        case BUGSNAG:
+        case COUNTLY:
+        case CRITTERCISM:
+        case FLURRY:
+        case GOOGLE_ANALYTICS:
+        case LOCALYTICS:
+        case MIXPANEL:
+        case QUANTCAST:
+        case TAPSTREAM:
+        default:
+          throw new IllegalArgumentException("provider is not available as a bundled integration");
+      }
     }
   }
 
-  List<String> keys() {
-    return keys;
-  }
-
-  void initialize(Context context, ProjectSettings projectSettings) {
+  public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
     for (Integration integration : integrations) {
-      JsonMap settings = projectSettings.getSettingsForIntegration(integration);
-      Logger.v("Initializing integration %s with settings %s ", integration.getKey(), settings);
-      integration.start(context, settings);
+      integration.onActivityCreated(activity, savedInstanceState);
     }
-  }
-
-  // Application Callbacks, same as Application$ActivityLifecycleCallbacks
-
-  void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-
   }
 
   void onActivityStarted(Activity activity) {
-
+    for (Integration integration : integrations) {
+      integration.onActivityStarted(activity);
+    }
   }
 
   void onActivityResumed(Activity activity) {
-
+    for (Integration integration : integrations) {
+      integration.onActivityResumed(activity);
+    }
   }
 
   void onActivityPaused(Activity activity) {
-
+    for (Integration integration : integrations) {
+      integration.onActivityPaused(activity);
+    }
   }
 
   void onActivityStopped(Activity activity) {
-
+    for (Integration integration : integrations) {
+      integration.onActivityStopped(activity);
+    }
   }
 
   void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-
+    for (Integration integration : integrations) {
+      integration.onActivitySaveInstanceState(activity, outState);
+    }
   }
 
   void onActivityDestroyed(Activity activity) {
-
+    for (Integration integration : integrations) {
+      integration.onActivityDestroyed(activity);
+    }
   }
 
   // Analytics Actions
-
-  /**
-   * Called when the user identifies a user.
-   *
-   * @param identify An identify action
-   */
   void identify(IdentifyPayload identify) {
     for (Integration integration : integrations) {
-      if (shouldPerformIntegration(integration, identify)) integration.identify(identify);
+      integration.identify(identify);
     }
   }
 
-  private boolean shouldPerformIntegration(Integration integration, BasePayload payload) {
-    if (!integration.isReady()) {
-      Logger.d("Integration (%s) not yet initialized.", integration.getKey());
-      return false;
-    }
-
-    Map<String, Boolean> integrations = payload.getOptions().getIntegrations();
-
-    if (integrations.containsKey(integration.getKey())) {
-      // user has specified an option for this integration, respect this value
-      boolean enabled = integrations.get(integration.getKey());
-      Logger.v("Integration (%s) is (%s) by user options", integration.getKey(), enabled);
-      return enabled;
-    } else {
-      // user has not specified an option for this setting, so let's use what is defined for 'all'
-      boolean enabled = integrations.get(ALL_INTEGRATIONS_KEY);
-      Logger.v("By default, integration (%s) is [%s] in options", integration.getKey(), enabled);
-      return enabled;
-    }
-  }
-
-  /**
-   * Called when the user identifies a group.
-   *
-   * @param group A group action
-   */
   void group(GroupPayload group) {
-
+    for (Integration integration : integrations) {
+      integration.group(group);
+    }
   }
 
-  /**
-   * Called when the user tracks an action.
-   *
-   * @param track : A track action
-   */
   void track(TrackPayload track) {
     for (Integration integration : integrations) {
-      if (shouldPerformIntegration(integration, track)) integration.track(track);
+      integration.track(track);
     }
   }
 
-  /**
-   * Called when a user aliases an action.
-   *
-   * @param alias An alias action
-   */
   void alias(AliasPayload alias) {
-
+    for (Integration integration : integrations) {
+      integration.alias(alias);
+    }
   }
 
-  /**
-   * Called when a user opens up a new screen
-   *
-   * @param screen Screen action
-   */
   void screen(ScreenPayload screen) {
-
-  }
-
-  /**
-   * Resets the identified user in the library. Can be used when the user logs out.
-   */
-  void reset() {
-
-  }
-
-  /**
-   * Opt out of analytics.
-   */
-  void optOut(boolean optedOut) {
-
-  }
-
-  /**
-   * If possible, will flush all the messages from this provider to their respective server
-   * endpoints.
-   */
-  void flush() {
-
+    for (Integration integration : integrations) {
+      integration.screen(screen);
+    }
   }
 }

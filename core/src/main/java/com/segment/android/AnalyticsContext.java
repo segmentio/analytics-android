@@ -34,6 +34,8 @@ import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
+import com.segment.android.internal.util.Logger;
+import com.segment.android.internal.util.Utils;
 import com.segment.android.json.JsonMap;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -45,7 +47,7 @@ import static android.content.Context.TELEPHONY_SERVICE;
 import static android.net.ConnectivityManager.TYPE_BLUETOOTH;
 import static android.net.ConnectivityManager.TYPE_MOBILE;
 import static android.net.ConnectivityManager.TYPE_WIFI;
-import static com.segment.android.Utils.getSystemService;
+import static com.segment.android.internal.util.Utils.getSystemService;
 
 /**
  * Context is a dictionary of extra, free-form information about a specific API call. You can add
@@ -303,7 +305,7 @@ public class AnalyticsContext extends JsonMap {
     put(USER_AGENT_KEY, System.getProperty("http.agent"));
   }
 
-  AnalyticsContext putTraits(Traits traits) {
+  public AnalyticsContext putTraits(Traits traits) {
     return putValue(TRAITS_KEY, traits);
   }
 

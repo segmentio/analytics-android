@@ -22,27 +22,38 @@
  * SOFTWARE.
  */
 
-package com.segment.android;
+package com.segment.android.internal.payload;
 
-import java.util.Map;
+import com.segment.android.AnalyticsContext;
+import com.segment.android.Options;
+import com.segment.android.Properties;
 
-class GroupPayload extends BasePayload {
+public class TrackPayload extends BasePayload {
   /**
-   * A unique identifier that refers to the group in your database. For example, if your product
-   * groups people by "organization" you would use the organization's ID in your database as the
-   * group ID.
+   * The name of the event. We recommend using title case and past tense for event names, like
+   * Signed Up.
    */
-  private static final String GROUP_ID_KEY = "groupId";
+  private static final String EVENT_KEY = "event";
 
   /**
-   * The group method also takes a traits dictionary, just like identify.
+   * A dictionary of properties that give more information about the event. We have a collection of
+   * special properties that we recognize with semantic meaning. You can also add your own custom
+   * properties.
    */
-  private static final String TRAITS_KEY = "traits";
+  private static final String PROPERTIES_KEY = "properties";
 
-  GroupPayload(String anonymousId, AnalyticsContext context, Map<String, Boolean> integrations,
-      String userId, String groupId, Traits traits, Options options) {
-    super(Type.group, anonymousId, context, integrations, userId, options);
-    put(GROUP_ID_KEY, groupId);
-    put(TRAITS_KEY, traits);
+  public TrackPayload(String anonymousId, AnalyticsContext context, String userId, String event,
+      Properties properties, Options options) {
+    super(Type.track, anonymousId, context, userId, options);
+    put(EVENT_KEY, event);
+    put(PROPERTIES_KEY, properties);
+  }
+
+  public String getEvent() {
+    return getString(EVENT_KEY);
+  }
+
+  public Properties getProperties() {
+    return (Properties) get(PROPERTIES_KEY);
   }
 }

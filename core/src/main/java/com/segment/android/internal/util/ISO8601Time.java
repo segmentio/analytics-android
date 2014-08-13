@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.segment.android;
+package com.segment.android.internal.util;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -30,7 +30,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-class ISO8601Time {
+public class ISO8601Time {
   private static final DateFormat ISO_8601_DATE_FORMAT =
       new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
@@ -40,23 +40,23 @@ class ISO8601Time {
     this.date = date;
   }
 
-  static ISO8601Time now() {
+  public static ISO8601Time now() {
     return new ISO8601Time(Calendar.getInstance().getTime());
   }
 
-  static ISO8601Time parse(String time) throws ParseException {
+  public static ISO8601Time parse(String time) throws ParseException {
     return new ISO8601Time(ISO_8601_DATE_FORMAT.parse(time));
   }
 
-  static ISO8601Time from(Date date) {
+  public static ISO8601Time from(Date date) {
     return new ISO8601Time(date); // exposes mutability?
   }
 
-  static ISO8601Time from(Calendar calendar) {
+  public static ISO8601Time from(Calendar calendar) {
     return new ISO8601Time(calendar.getTime()); // exposes mutability?
   }
 
-  static ISO8601Time from(long timestamp) {
+  public static ISO8601Time from(long timestamp) {
     return new ISO8601Time(new Date(timestamp));
   }
 

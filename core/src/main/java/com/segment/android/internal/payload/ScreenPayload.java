@@ -22,11 +22,13 @@
  * SOFTWARE.
  */
 
-package com.segment.android;
+package com.segment.android.internal.payload;
 
-import java.util.Map;
+import com.segment.android.AnalyticsContext;
+import com.segment.android.Options;
+import com.segment.android.Properties;
 
-class ScreenPayload extends BasePayload {
+public class ScreenPayload extends BasePayload {
   /** The category of the page or screen. We recommend using title case, like Docs. */
   private static final String CATEGORY_KEY = "category";
 
@@ -36,23 +38,23 @@ class ScreenPayload extends BasePayload {
   /** The page and screen methods also take a properties dictionary, just like track. */
   private static final String PROPERTIES_KEY = "properties";
 
-  ScreenPayload(String anonymousId, AnalyticsContext context, Map<String, Boolean> integrations,
-      String userId, String category, String name, Properties properties, Options options) {
-    super(Type.screen, anonymousId, context, integrations, userId, options);
+  public ScreenPayload(String anonymousId, AnalyticsContext context, String userId, String category,
+      String name, Properties properties, Options options) {
+    super(Type.screen, anonymousId, context, userId, options);
     put(CATEGORY_KEY, category);
     put(NAME_KEY, name);
     put(PROPERTIES_KEY, properties);
   }
 
-  String getCategory() {
+  public String getCategory() {
     return getString(CATEGORY_KEY);
   }
 
-  String getName() {
+  public String getName() {
     return getString(NAME_KEY);
   }
 
-  Properties getProperties() {
+  public Properties getProperties() {
     return (Properties) get(PROPERTIES_KEY);
   }
 }

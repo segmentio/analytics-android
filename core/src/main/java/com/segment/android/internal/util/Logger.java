@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.segment.android;
+package com.segment.android.internal.util;
 
 import android.util.Log;
 
@@ -31,7 +31,7 @@ import android.util.Log;
  * <p/>
  * Generates a tag dynamically,
  */
-final class Logger {
+public final class Logger {
   private static final String TAG_FORMAT = "[%s] %s:%s";
   private static volatile boolean log;
 
@@ -40,52 +40,52 @@ final class Logger {
   }
 
   /** Enable({@link Boolean#TRUE}) or disable({@link Boolean#FALSE}) logging. */
-  static void setLog(boolean enabled) {
+  public static void setLog(boolean enabled) {
     log = enabled;
   }
 
   /** Get whether this logger logs (true to log) */
-  static boolean isLogging() {
+  public static boolean isLogging() {
     return log;
   }
 
-  static void v(String format, Object... args) {
+  public static void v(String format, Object... args) {
     println(Log.VERBOSE, format, args);
   }
 
-  static void v(Throwable throwable, String format, Object... args) {
+  public static void v(Throwable throwable, String format, Object... args) {
     println(Log.VERBOSE, throwable, format, args);
   }
 
-  static void d(String format, Object... args) {
+  public static void d(String format, Object... args) {
     println(Log.DEBUG, format, args);
   }
 
-  static void d(Throwable throwable, String format, Object... args) {
+  public static void d(Throwable throwable, String format, Object... args) {
     println(Log.DEBUG, throwable, format, args);
   }
 
-  static void i(String format, Object... args) {
+  public static void i(String format, Object... args) {
     println(Log.INFO, format, args);
   }
 
-  static void i(Throwable throwable, String format, Object... args) {
+  public static void i(Throwable throwable, String format, Object... args) {
     println(Log.INFO, throwable, format, args);
   }
 
-  static void w(String format, Object... args) {
+  public static void w(String format, Object... args) {
     println(Log.WARN, format, args);
   }
 
-  static void w(Throwable throwable, String format, Object... args) {
+  public static void w(Throwable throwable, String format, Object... args) {
     println(Log.WARN, throwable, format, args);
   }
 
-  static void e(String format, Object... args) {
+  public static void e(String format, Object... args) {
     println(Log.ERROR, format, args);
   }
 
-  static void e(Throwable throwable, String format, Object... args) {
+  public static void e(Throwable throwable, String format, Object... args) {
     println(Log.ERROR, throwable, format, args);
   }
 
