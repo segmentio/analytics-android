@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import com.segment.android.internal.SegmentHTTPApi;
 import com.segment.android.internal.integrations.AmplitudeIntegration;
 import com.segment.android.internal.integrations.Integration;
 import com.segment.android.internal.payload.AliasPayload;
@@ -96,6 +97,7 @@ public class IntegrationManager {
       final JsonMap jsonMap = segmentHTTPApi.fetchSettings();
       Segment.HANDLER.post(new Runnable() {
         @Override public void run() {
+          initialize(jsonMap);
           Logger.d("Fetched %s", jsonMap.toString());
         }
       });

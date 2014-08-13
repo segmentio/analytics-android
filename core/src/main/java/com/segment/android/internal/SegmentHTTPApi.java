@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.segment.android;
+package com.segment.android.internal;
 
 import android.os.Build;
 import android.util.Base64;
@@ -43,12 +43,12 @@ import javax.net.ssl.HttpsURLConnection;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
-class SegmentHTTPApi {
+public class SegmentHTTPApi {
   static final String API_URL = "https://api.segment.io/";
 
   private final String writeKey;
 
-  SegmentHTTPApi(String writeKey) {
+  public SegmentHTTPApi(String writeKey) {
     this.writeKey = writeKey;
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
@@ -57,7 +57,7 @@ class SegmentHTTPApi {
     }
   }
 
-  static SegmentHTTPApi create(String writeKey) {
+  public static SegmentHTTPApi create(String writeKey) {
     return new SegmentHTTPApi(writeKey);
   }
 
@@ -70,7 +70,7 @@ class SegmentHTTPApi {
     }
   }
 
-  void upload(BasePayload payload) throws IOException {
+  public void upload(BasePayload payload) throws IOException {
     HttpsURLConnection urlConnection =
         (HttpsURLConnection) createUrl("v1/" + payload.getType()).openConnection();
 
@@ -85,9 +85,10 @@ class SegmentHTTPApi {
     payload.setSentAt(ISO8601Time.now());
     String json = payload.toString();
     Logger.d("Uploading payload: %s", json);
+    byte[] bytes = json.getBytes();
 
     OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-    out.write(json.getBytes());
+    out.write(bytes);
     out.close();
 
     int responseCode = urlConnection.getResponseCode();
@@ -102,7 +103,7 @@ class SegmentHTTPApi {
     urlConnection.disconnect();
   }
 
-  JsonMap fetchSettings() throws IOException {
+  public JsonMap fetchSettings() throws IOException {
     HttpsURLConnection urlConnection =
         (HttpsURLConnection) createUrl("project/" + writeKey + "/settings").openConnection();
 
@@ -129,7 +130,7 @@ class SegmentHTTPApi {
   private static String readFully(InputStream in) throws IOException {
     BufferedReader r = new BufferedReader(new InputStreamReader(in));
     StringBuilder response = new StringBuilder();
-    for (String line; (line = r.readLine()) != null;) {
+    for (String line; (line = r.readLine()) != null; ) {
       response.append(line);
     }
     return response.toString();

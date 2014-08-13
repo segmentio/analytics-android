@@ -31,6 +31,7 @@ import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import com.segment.android.internal.SegmentHTTPApi;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.BasePayload;
 import com.segment.android.internal.payload.GroupPayload;
@@ -79,11 +80,11 @@ public class Segment {
     private final Application application;
     private String writeKey;
     // Use Boxed types to be able to see what has been defined and what has not
-    private Integer queueSize;
+    private Integer maxQueueSize;
     private Boolean debugging;
 
     // Defaults
-    public static final int DEFAULT_QUEUE_SIZE = 20;
+    public static final int DEFAULT_QUEUE_SIZE = 3;
     public static final boolean DEFAULT_DEBUGGING = false;
 
     // Resource identifier to define options in xml
@@ -124,14 +125,14 @@ public class Segment {
     /**
      * Set the size of the queue to batch events.
      */
-    public Builder queueSize(int queueSize) {
-      if (queueSize <= 0) {
-        throw new IllegalArgumentException("queueSize must be greater than or equal to zero.");
+    public Builder maxQueueSize(int maxQueueSize) {
+      if (maxQueueSize <= 0) {
+        throw new IllegalArgumentException("maxQueueSize must be greater than or equal to zero.");
       }
-      if (this.queueSize != null) {
-        throw new IllegalStateException("queueSize is already set.");
+      if (this.maxQueueSize != null) {
+        throw new IllegalStateException("maxQueueSize is already set.");
       }
-      this.queueSize = queueSize;
+      this.maxQueueSize = maxQueueSize;
       return this;
     }
 
@@ -152,16 +153,16 @@ public class Segment {
         }
       }
 
-      if (queueSize == null) {
+      if (maxQueueSize == null) {
         try {
-          queueSize = getIntegerOrThrow(application, QUEUE_SIZE_RESOURCE_IDENTIFIER);
-          if (queueSize <= 0) {
+          maxQueueSize = getIntegerOrThrow(application, QUEUE_SIZE_RESOURCE_IDENTIFIER);
+          if (maxQueueSize <= 0) {
             throw new IllegalStateException(
-                "queueSize(" + queueSize + ") may not be zero or negative.");
+                "maxQueueSize(" + maxQueueSize + ") may not be zero or negative.");
           }
         } catch (Resources.NotFoundException e) {
-          // when queueSize is not defined in xml, we'll use a default option
-          queueSize = DEFAULT_QUEUE_SIZE;
+          // when maxQueueSize is not defined in xml, we'll use a default option
+          maxQueueSize = DEFAULT_QUEUE_SIZE;
         }
       }
 
@@ -175,7 +176,7 @@ public class Segment {
       }
 
       SegmentHTTPApi segmentHTTPApi = SegmentHTTPApi.create(writeKey);
-      Dispatcher dispatcher = Dispatcher.create(application, HANDLER, queueSize, segmentHTTPApi);
+      Dispatcher dispatcher = Dispatcher.create(application, HANDLER, maxQueueSize, segmentHTTPApi);
       IntegrationManager integrationManager =
           IntegrationManager.create(application, HANDLER, segmentHTTPApi);
       return new Segment(application, dispatcher, integrationManager, debugging);

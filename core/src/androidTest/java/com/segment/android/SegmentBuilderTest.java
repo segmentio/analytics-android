@@ -96,14 +96,14 @@ public class SegmentBuilderTest extends BaseAndroidTestCase {
 
   public void testInvalidQueueSizeThrowsException() throws Exception {
     try {
-      new Segment.Builder(application).queueSize(-1);
-      fail("queueSize < 0 should throw exception.");
+      new Segment.Builder(application).maxQueueSize(-1);
+      fail("maxQueueSize < 0 should throw exception.");
     } catch (IllegalArgumentException expected) {
     }
 
     try {
-      new Segment.Builder(application).queueSize(0);
-      fail("queueSize = 0 should throw exception.");
+      new Segment.Builder(application).maxQueueSize(0);
+      fail("maxQueueSize = 0 should throw exception.");
     } catch (IllegalArgumentException expected) {
     }
   }

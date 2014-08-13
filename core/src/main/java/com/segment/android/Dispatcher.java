@@ -35,9 +35,15 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import com.segment.android.internal.SegmentHTTPApi;
 import com.segment.android.internal.payload.BasePayload;
+import com.segment.android.internal.queue.PayloadUploadTask;
+import com.segment.android.internal.queue.PayloadUploadTaskConverter;
 import com.segment.android.internal.util.Logger;
 import com.segment.android.internal.util.Utils;
+import com.squareup.tape.FileObjectQueue;
+import com.squareup.tape.ObjectQueue;
+import java.io.File;
 import java.io.IOException;
 
 import static android.content.Context.CONNECTIVITY_SERVICE;
@@ -47,7 +53,7 @@ import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.android.internal.util.Utils.hasPermission;
 import static com.segment.android.internal.util.Utils.isAirplaneModeOn;
 
-class Dispatcher {
+class Dispatcher implements PayloadUploadTask.Callback {
   private static final int DEFAULT_QUEUE_SIZE = 20;
   private static final String DISPATCHER_THREAD_NAME = "Dispatcher";
 
@@ -61,30 +67,42 @@ class Dispatcher {
   final DispatcherThread dispatcherThread;
   final Handler mainThreadHandler;
   final DispatcherHandler handler;
+  final ObjectQueue<PayloadUploadTask> queue;
   final Context context;
   final NetworkBroadcastReceiver receiver;
   final boolean scansNetworkChanges;
   final SegmentHTTPApi segmentHTTPApi;
-  final int queueSize;
+  final int maxQueueSize;
   boolean isShutdown;
   boolean airplaneMode;
 
+  private static final String TASK_QUEUE_FILE_NAME = "payload_task_queue";
+
   static Dispatcher create(Context context, Handler mainThreadHandler, int queueSize,
       SegmentHTTPApi segmentHTTPApi) {
-    return new Dispatcher(context, mainThreadHandler, queueSize, segmentHTTPApi);
+    FileObjectQueue.Converter converter = new PayloadUploadTaskConverter();
+    File queueFile = new File(context.getFilesDir(), TASK_QUEUE_FILE_NAME);
+    FileObjectQueue<PayloadUploadTask> delegate;
+    try {
+      delegate = new FileObjectQueue<PayloadUploadTask>(queueFile, converter);
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to create file queue.", e);
+    }
+    return new Dispatcher(context, mainThreadHandler, queueSize, segmentHTTPApi, delegate);
   }
 
-  Dispatcher(Context context, Handler mainThreadHandler, int queueSize,
-      SegmentHTTPApi segmentHTTPApi) {
+  Dispatcher(Context context, Handler mainThreadHandler, int maxQueueSize,
+      SegmentHTTPApi segmentHTTPApi, ObjectQueue<PayloadUploadTask> queue) {
     this.context = context;
     this.dispatcherThread = new DispatcherThread();
     this.dispatcherThread.start();
     this.handler = new DispatcherHandler(dispatcherThread.getLooper(), this);
     this.mainThreadHandler = mainThreadHandler;
-    this.queueSize = queueSize;
+    this.maxQueueSize = maxQueueSize;
     this.segmentHTTPApi = segmentHTTPApi;
     this.airplaneMode = isAirplaneModeOn(context);
     this.scansNetworkChanges = hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE);
+    this.queue = queue;
     isShutdown = false;
     receiver = new NetworkBroadcastReceiver(this);
     receiver.register();
@@ -114,12 +132,34 @@ class Dispatcher {
   // Perform dispatched actions, these run on a non-ui thread
 
   void performEnqueue(BasePayload payload) {
-    // todo: add(payload) to disk;
-    try {
-      segmentHTTPApi.upload(payload);
-    } catch (IOException e) {
-      Logger.e(e, "Exception!");
+    queue.add(new PayloadUploadTask(payload));
+
+    if (queue.size() >= maxQueueSize) {
+      performFlush();
     }
+  }
+
+  void performFlush() {
+    executeNext();
+  }
+
+  private void executeNext() {
+    if (!airplaneMode) {
+      PayloadUploadTask task = queue.peek();
+      if (task != null) {
+        task.setSegmentHTTPApi(segmentHTTPApi);
+        task.execute(this);
+      }
+    }
+  }
+
+  @Override public void onSuccess() {
+    queue.remove();
+    executeNext();
+  }
+
+  @Override public void onFailure() {
+    Logger.e("Failed to upload payload");
   }
 
   void performAirplaneModeChange(boolean airplaneMode) {

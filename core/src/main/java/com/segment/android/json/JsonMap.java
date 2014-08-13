@@ -356,6 +356,10 @@ public class JsonMap implements Map<String, Object> {
     return new JSONObject(delegate);
   }
 
+  public Map<String, Object> delegate() {
+    return delegate;
+  }
+
   /** Returns true if the map is null or empty, false otherwise. */
   public static boolean isNullOrEmpty(JsonMap map) {
     return map == null || map.size() == 0;

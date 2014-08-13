@@ -35,7 +35,7 @@ import java.util.Map;
  * directly, but through one if it's subclasses.
  */
 /* This ignores projectId, receivedAt, messageId, sentAt, version that are set by the server. */
-public abstract class BasePayload extends JsonMap {
+public class BasePayload extends JsonMap {
   enum Type {
     alias, group, identify, page, screen, track
   }
@@ -95,9 +95,9 @@ public abstract class BasePayload extends JsonMap {
   private static final String USER_ID_KEY = "userId";
 
   // Options will be serialized, but not for the json payload
-  private final Options options;
+  private Options options;
 
-  BasePayload(Type type, String anonymousId, AnalyticsContext context, String userId,
+  public BasePayload(Type type, String anonymousId, AnalyticsContext context, String userId,
       Options options) {
     put(TYPE_KEY, type.toString());
     put(CHANNEL_KEY, Channel.mobile.toString());
@@ -107,6 +107,10 @@ public abstract class BasePayload extends JsonMap {
     this.options = options;
     put(TIMESTAMP_KEY, options.getTimestamp() == null ? ISO8601Time.now().toString()
         : ISO8601Time.from(options.getTimestamp()).toString());
+  }
+
+  public BasePayload(String json) {
+    super(json);
   }
 
   public String getType() {
