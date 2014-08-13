@@ -31,6 +31,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.text.TextUtils;
 import java.util.Collection;
+import java.util.UUID;
 
 import static android.content.Context.MODE_PRIVATE;
 import static android.provider.Settings.System.AIRPLANE_MODE_ON;
@@ -63,6 +64,11 @@ public final class Utils {
     // Rather than using text.trim().length() == 0, use getTrimmedLength to avoid allocating an
     // extra string object
     return TextUtils.isEmpty(text) || TextUtils.getTrimmedLength(text) == 0;
+  }
+
+  /** Returns true if the collection or has a size 0. */
+  public static boolean isNullOrEmpty(Collection collection) {
+    return collection == null || collection.size() == 0;
   }
 
   /** Returns true the phone is in AirplaneMode. */

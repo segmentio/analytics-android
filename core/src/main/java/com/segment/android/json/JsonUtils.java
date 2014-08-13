@@ -36,6 +36,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 
+import static com.segment.android.internal.util.Utils.isNullOrEmpty;
+
 class JsonUtils {
 
   /**
@@ -129,8 +131,10 @@ class JsonUtils {
         stringer.key(key);
         writeTo((Map) value, stringer);
       } else if (value instanceof Collection) {
+        stringer.key(key);
         writeTo((Collection) value, stringer);
       } else if (value.getClass().isArray()) {
+        stringer.key(key);
         writeTo(toList(value), stringer);
       } else {
         stringer.key(key).value(value);
@@ -154,11 +158,13 @@ class JsonUtils {
   private static void writeTo(Collection<?> collection, JSONStringer stringer)
       throws JSONException {
     stringer.array();
-    for (Object value : collection) {
-      if (value instanceof Map) {
-        writeTo((Map) value, stringer);
-      } else {
-        stringer.value(value);
+    if (!isNullOrEmpty(collection)) {
+      for (Object value : collection) {
+        if (value instanceof Map) {
+          writeTo((Map) value, stringer);
+        } else {
+          stringer.value(value);
+        }
       }
     }
     stringer.endArray();

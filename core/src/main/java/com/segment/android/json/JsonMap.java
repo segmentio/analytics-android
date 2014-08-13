@@ -27,7 +27,7 @@ import org.json.JSONObject;
  * <code>Map<String, Object> map = JsonMap.wrap(new HashMap<String, Object>);</code>
  * <p>
  * Although it lets you use custom objects for values, note that type information is lost during
- * serialization. For a custom class Person using the default <code>toString</code> implementation.
+ * serialization. e.g A custom class Person using the default <code>toString</code> implementation.
  * {@code
  * JsonMap<Object> map = JsonMap.decode();
  * map.put("person", new Person("john", "doe", 32));

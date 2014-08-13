@@ -176,7 +176,9 @@ public class Segment {
 
       SegmentHTTPApi segmentHTTPApi = SegmentHTTPApi.create(writeKey);
       Dispatcher dispatcher = Dispatcher.create(application, HANDLER, queueSize, segmentHTTPApi);
-      return new Segment(application, dispatcher, debugging);
+      IntegrationManager integrationManager =
+          IntegrationManager.create(application, HANDLER, segmentHTTPApi);
+      return new Segment(application, dispatcher, integrationManager, debugging);
     }
   }
 
@@ -191,12 +193,15 @@ public class Segment {
 
   final Application application;
   final Dispatcher dispatcher;
+  final IntegrationManager integrationManager;
   volatile boolean debugging;
   final String anonymousId;
 
-  Segment(Application application, Dispatcher dispatcher, boolean debugging) {
+  Segment(Application application, Dispatcher dispatcher, IntegrationManager integrationManager,
+      boolean debugging) {
     this.application = application;
     this.dispatcher = dispatcher;
+    this.integrationManager = integrationManager;
     setDebugging(debugging);
     anonymousId = getDeviceId(application);
     AnalyticsContext.with(application);
