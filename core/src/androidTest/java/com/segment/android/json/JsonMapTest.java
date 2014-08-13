@@ -27,7 +27,7 @@ public class JsonMapTest extends BaseAndroidTestCase {
     assertThat(map.get("double_pi")).isEqualTo(Math.PI);
 
     assertThat(map.getInteger("string_pi")).isNull();
-    assertThat(map.getInteger("double_pi")).isNull();
+    assertThat(map.getInteger("double_pi")).isEqualTo(3);
   }
 
   public void testSettings() throws Exception {

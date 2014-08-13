@@ -69,8 +69,8 @@ public class SegmentBuilderTest extends BaseAndroidTestCase {
         Manifest.permission.ACCESS_NETWORK_STATE)).thenReturn(PackageManager.PERMISSION_DENIED);
     try {
       new Segment.Builder(application);
-      fail("Missing access state permission should throw exception.");
     } catch (IllegalArgumentException expected) {
+      fail("Missing access state permission should not throw exception.");
     }
   }
 
