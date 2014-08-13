@@ -31,6 +31,8 @@ import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import com.segment.android.internal.Dispatcher;
+import com.segment.android.internal.IntegrationManager;
 import com.segment.android.internal.SegmentHTTPApi;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.BasePayload;
@@ -40,10 +42,10 @@ import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
 import com.segment.android.internal.util.Logger;
 
-import static com.segment.android.Asserts.assertOnMainThread;
-import static com.segment.android.ResourceUtils.getBooleanOrThrow;
-import static com.segment.android.ResourceUtils.getIntegerOrThrow;
-import static com.segment.android.ResourceUtils.getString;
+import static com.segment.android.internal.Asserts.assertOnMainThread;
+import static com.segment.android.internal.util.ResourceUtils.getBooleanOrThrow;
+import static com.segment.android.internal.util.ResourceUtils.getIntegerOrThrow;
+import static com.segment.android.internal.util.ResourceUtils.getString;
 import static com.segment.android.internal.util.Utils.getDeviceId;
 import static com.segment.android.internal.util.Utils.hasPermission;
 import static com.segment.android.internal.util.Utils.isNullOrEmpty;
@@ -179,7 +181,7 @@ public class Segment {
     }
   }
 
-  static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
+  public static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
     @Override public void handleMessage(Message msg) {
       switch (msg.what) {
         default:

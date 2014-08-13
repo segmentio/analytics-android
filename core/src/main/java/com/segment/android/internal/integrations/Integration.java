@@ -3,7 +3,7 @@ package com.segment.android.internal.integrations;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import com.segment.android.IntegrationManager;
+import com.segment.android.internal.IntegrationManager;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;

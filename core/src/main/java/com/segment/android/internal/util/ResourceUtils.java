@@ -22,17 +22,17 @@
  * SOFTWARE.
  */
 
-package com.segment.android;
+package com.segment.android.internal.util;
 
 import android.content.Context;
 import android.content.res.Resources;
 
-final class ResourceUtils {
+public final class ResourceUtils {
   private ResourceUtils() {
     throw new AssertionError("No instances");
   }
 
-  static String getString(Context context, String key) {
+  public static String getString(Context context, String key) {
     int id = getIdentifier(context, "string", key);
     if (id != 0) {
       return context.getResources().getString(id);
@@ -41,7 +41,7 @@ final class ResourceUtils {
     }
   }
 
-  static boolean getBooleanOrThrow(Context context, String key) {
+  public static boolean getBooleanOrThrow(Context context, String key) {
     int id = getIdentifier(context, "bool", key);
     if (id != 0) {
       return context.getResources().getBoolean(id);
@@ -51,7 +51,7 @@ final class ResourceUtils {
     }
   }
 
-  static int getIntegerOrThrow(Context context, String key) {
+  public static int getIntegerOrThrow(Context context, String key) {
     int id = getIdentifier(context, "integer", key);
     if (id != 0) {
       return context.getResources().getInteger(id);

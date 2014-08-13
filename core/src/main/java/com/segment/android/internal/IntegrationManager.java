@@ -1,4 +1,4 @@
-package com.segment.android;
+package com.segment.android.internal;
 
 import android.app.Activity;
 import android.content.Context;
@@ -7,7 +7,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
-import com.segment.android.internal.SegmentHTTPApi;
+import com.segment.android.Segment;
 import com.segment.android.internal.integrations.AmplitudeIntegration;
 import com.segment.android.internal.integrations.Integration;
 import com.segment.android.internal.payload.AliasPayload;
@@ -58,7 +58,7 @@ public class IntegrationManager {
   final IntegrationManagerThread integrationManagerThread;
   final IntegrationManagerHandler integrationManagerThreadHandler;
 
-  static IntegrationManager create(Context context, Handler mainThreadHandler,
+  public static IntegrationManager create(Context context, Handler mainThreadHandler,
       SegmentHTTPApi segmentHTTPApi) {
     return new IntegrationManager(context, mainThreadHandler, segmentHTTPApi);
   }

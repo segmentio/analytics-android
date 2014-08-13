@@ -22,22 +22,22 @@
  * SOFTWARE.
  */
 
-package com.segment.android;
+package com.segment.android.internal;
 
 import android.os.Looper;
 
-final class Asserts {
+public final class Asserts {
   private Asserts() {
     throw new AssertionError("No instances");
   }
 
-  static void assertNotOnMainThread() {
+  public static void assertNotOnMainThread() {
     if (isMain()) {
       throw new IllegalStateException("Method should not be called from the main thread.");
     }
   }
 
-  static void assertOnMainThread() {
+  public static void assertOnMainThread() {
     if (!isMain()) {
       throw new IllegalStateException("Method should be called from the main thread.");
     }

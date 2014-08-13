@@ -22,14 +22,14 @@
  * SOFTWARE.
  */
 
-package com.segment.android;
+package com.segment.android.internal;
 
 import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
-import com.segment.android.internal.SegmentHTTPApi;
+import com.segment.android.Segment;
 import com.segment.android.internal.payload.BasePayload;
 import com.segment.android.internal.queue.PayloadUploadTask;
 import com.segment.android.internal.queue.PayloadUploadTaskConverter;
@@ -42,7 +42,7 @@ import java.io.IOException;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
-class Dispatcher {
+public class Dispatcher {
   private static final String DISPATCHER_THREAD_NAME = "Dispatcher";
 
   static final int REQUEST_ENQUEUE = 1;
@@ -57,7 +57,7 @@ class Dispatcher {
 
   private static final String TASK_QUEUE_FILE_NAME = "payload_task_queue";
 
-  static Dispatcher create(Context context, Handler mainThreadHandler, int queueSize,
+  public static Dispatcher create(Context context, Handler mainThreadHandler, int queueSize,
       SegmentHTTPApi segmentHTTPApi) {
     FileObjectQueue.Converter converter = new PayloadUploadTaskConverter();
     File queueFile = new File(context.getFilesDir(), TASK_QUEUE_FILE_NAME);
@@ -82,7 +82,7 @@ class Dispatcher {
     this.queue = queue;
   }
 
-  void dispatchEnqueue(BasePayload payload) {
+  public void dispatchEnqueue(BasePayload payload) {
     handler.sendMessage(handler.obtainMessage(REQUEST_ENQUEUE, payload));
   }
 

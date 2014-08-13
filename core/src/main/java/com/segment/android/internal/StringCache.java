@@ -22,38 +22,38 @@
  * SOFTWARE.
  */
 
-package com.segment.android;
+package com.segment.android.internal;
 
 import android.content.SharedPreferences;
 
-class StringCache {
+public class StringCache {
   private final SharedPreferences preferences;
   private final String key;
   private final String defaultValue;
 
-  StringCache(SharedPreferences preferences, String key) {
+  public StringCache(SharedPreferences preferences, String key) {
     this(preferences, key, null);
   }
 
-  StringCache(SharedPreferences preferences, String key, String defaultValue) {
+  public StringCache(SharedPreferences preferences, String key, String defaultValue) {
     this.preferences = preferences;
     this.key = key;
     this.defaultValue = defaultValue;
   }
 
-  String get() {
+  public String get() {
     return preferences.getString(key, defaultValue);
   }
 
-  boolean isSet() {
+  public boolean isSet() {
     return preferences.contains(key);
   }
 
-  void set(String value) {
+  public void set(String value) {
     preferences.edit().putString(key, value).apply();
   }
 
-  void delete() {
+  public void delete() {
     preferences.edit().remove(key).apply();
   }
 }
