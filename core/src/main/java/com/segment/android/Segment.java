@@ -84,7 +84,7 @@ public class Segment {
     private Boolean debugging;
 
     // Defaults
-    public static final int DEFAULT_QUEUE_SIZE = 3;
+    public static final int DEFAULT_QUEUE_SIZE = 20;
     public static final boolean DEFAULT_DEBUGGING = false;
 
     // Resource identifier to define options in xml
@@ -99,10 +99,6 @@ public class Segment {
       }
       if (!hasPermission(context, Manifest.permission.INTERNET)) {
         throw new IllegalArgumentException("INTERNET permission is required.");
-      }
-      if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
-        // todo: do we really need this permission?
-        throw new IllegalArgumentException("ACCESS_NETWORK_STATE permission is required.");
       }
 
       application = (Application) context.getApplicationContext();
