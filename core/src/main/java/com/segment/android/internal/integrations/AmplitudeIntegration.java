@@ -9,6 +9,7 @@ import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
+import com.segment.android.internal.util.Logger;
 import com.segment.android.json.JsonMap;
 
 import static com.segment.android.internal.util.Utils.isNullOrEmpty;
@@ -27,14 +28,18 @@ public class AmplitudeIntegration extends Integration {
    * Create an integration with the given settings. Check for any specific permissions or features
    * that the integration needs. Also check for any required values in your settings.
    */
-  public AmplitudeIntegration(Context context, JsonMap settings)
+  public AmplitudeIntegration(Context context) {
+    super(context, AMPLITUDE_KEY);
+  }
+
+  @Override public void initialize(JsonMap integrationSettings)
       throws InvalidConfigurationException {
-    super(context, settings);
-    String apiKey = (String) settings.get(API_KEY);
+    String apiKey = (String) integrationSettings.get(API_KEY);
     if (isNullOrEmpty(apiKey)) {
-      throw new InvalidConfigurationException("Amplitude requires the apiKey setting.");
+      Logger.e("Amplitude requires the apiKey setting");
+      disable();
     }
-    Amplitude.initialize(context, apiKey);
+    Amplitude.initialize(getContext(), apiKey);
   }
 
   @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {

@@ -9,7 +9,6 @@ import android.os.Looper;
 import android.os.Message;
 import com.segment.android.internal.integrations.AmplitudeIntegration;
 import com.segment.android.internal.integrations.Integration;
-import com.segment.android.internal.integrations.InvalidConfigurationException;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
@@ -19,15 +18,23 @@ import com.segment.android.internal.util.Logger;
 import com.segment.android.internal.util.Utils;
 import com.segment.android.json.JsonMap;
 import java.io.IOException;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
 public class IntegrationManager {
-  static final int REQUEST_FETCH = 1;
+  static final int REQUEST_FETCH_SETTINGS = 1;
+
+  public enum State {
+    // Default state, has not been initialized from the server
+    DEFAULT,
+    // Integration is disabled - either the user has not enabled it, or it could not be enabled due
+    // to missing settings/permissions
+    DISABLED,
+    // Integration is ready to receive events
+    ENABLED
+  }
 
   @SuppressWarnings("SpellCheckingInspection")
   public enum BundledProvider {
@@ -43,29 +50,12 @@ public class IntegrationManager {
     TAPSTREAM
   }
 
-  private static final Map<String, BundledProvider> providers;
-
-  static {
-    // A Map of all providers that can be bundled.
-    providers = new LinkedHashMap<String, BundledProvider>();
-    providers.put("AMPLITUDE", BundledProvider.AMPLITUDE);
-    providers.put("BUGSNAG", BundledProvider.BUGSNAG);
-    providers.put("COUNTLY", BundledProvider.COUNTLY);
-    providers.put("CRITTERCISM", BundledProvider.CRITTERCISM);
-    providers.put("FLURRY", BundledProvider.FLURRY);
-    providers.put("GOOGLE_ANALYTICS", BundledProvider.GOOGLE_ANALYTICS);
-    providers.put("LOCALYTICS", BundledProvider.LOCALYTICS);
-    providers.put("MIXPANEL", BundledProvider.MIXPANEL);
-    providers.put("QUANTCAST", BundledProvider.QUANTCAST);
-    providers.put("TAPSTREAM", BundledProvider.TAPSTREAM);
-  }
-
   private final List<Integration> integrations = new LinkedList<Integration>();
   final Context context;
   final SegmentHTTPApi segmentHTTPApi;
   final Handler mainThreadHandler;
-  final FetcherThread fetcherThread;
-  final FetcherHandler fetcherHandler;
+  final IntegrationManagerThread integrationManagerThread;
+  final IntegrationManagerHandler integrationManagerThreadHandler;
 
   static IntegrationManager create(Context context, Handler mainThreadHandler,
       SegmentHTTPApi segmentHTTPApi) {
@@ -76,16 +66,30 @@ public class IntegrationManager {
     this.context = context;
     this.segmentHTTPApi = segmentHTTPApi;
     this.mainThreadHandler = mainThreadHandler;
-    this.fetcherThread = new FetcherThread();
-    this.fetcherThread.start();
-    this.fetcherHandler = new FetcherHandler(fetcherThread.getLooper(), this);
+    this.integrationManagerThread = new IntegrationManagerThread();
+    this.integrationManagerThread.start();
+    this.integrationManagerThreadHandler =
+        new IntegrationManagerHandler(integrationManagerThread.getLooper(), this);
 
+    // todo: check cache value
     dispatchFetch();
+
+    try {
+      Class.forName("com.amplitude.api.Amplitude");
+      Integration integration = new AmplitudeIntegration(context);
+      integrations.add(integration);
+    } catch (ClassNotFoundException e) {
+      Logger.w("Amplitude is not bundled in the app.");
+    }
   }
 
+  // Dispatch Actions - These are called from the main thread and dispatched to a background thread
   void dispatchFetch() {
-    fetcherHandler.sendMessage(fetcherHandler.obtainMessage(REQUEST_FETCH));
+    integrationManagerThreadHandler.sendMessage(
+        integrationManagerThreadHandler.obtainMessage(REQUEST_FETCH_SETTINGS));
   }
+
+  // Perform Actions - These are called on a bakcground thread
 
   void performFetch() {
     try {
@@ -99,32 +103,31 @@ public class IntegrationManager {
       Logger.e(e, "Failed to fetch settings");
       Segment.HANDLER.post(new Runnable() {
         @Override public void run() {
-          // retry
-          dispatchFetch();
+          dispatchFetch(); // retry
         }
       });
     }
   }
 
-  private static final String FETCHER_THREAD_NAME = "Fetcher";
+  private static final String INTEGRATION_MANAGER_THREAD_NAME = "IntegrationManager";
 
-  static class FetcherThread extends HandlerThread {
-    FetcherThread() {
-      super(Utils.THREAD_PREFIX + FETCHER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
+  static class IntegrationManagerThread extends HandlerThread {
+    IntegrationManagerThread() {
+      super(Utils.THREAD_PREFIX + INTEGRATION_MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     }
   }
 
-  static class FetcherHandler extends Handler {
+  static class IntegrationManagerHandler extends Handler {
     private final IntegrationManager integrationManager;
 
-    FetcherHandler(Looper looper, IntegrationManager integrationManager) {
+    IntegrationManagerHandler(Looper looper, IntegrationManager integrationManager) {
       super(looper);
       this.integrationManager = integrationManager;
     }
 
     @Override public void handleMessage(final Message msg) {
       switch (msg.what) {
-        case REQUEST_FETCH: {
+        case REQUEST_FETCH_SETTINGS: {
           integrationManager.performFetch();
           break;
         }
@@ -139,35 +142,18 @@ public class IntegrationManager {
   }
 
   private void initialize(JsonMap projectSettings) {
-    // todo: SLOWWWWWW. Probably not, but profile this and optimise it if needed
-    for (String key : projectSettings.keySet()) {
-      BundledProvider provider = providers.get(key);
-      if (provider == null) continue;
-
-      JsonMap integrationSettings = projectSettings.getJsonMap(key);
-      switch (provider) {
-        case AMPLITUDE:
-          try {
-            Class.forName("com.amplitude.api.Amplitude");
-            Integration integration = new AmplitudeIntegration(context, integrationSettings);
-            integrations.add(integration);
-          } catch (ClassNotFoundException e) {
-            Logger.w("Amplitude is not bundled in the app.");
-          } catch (InvalidConfigurationException e) {
-            Logger.e(e, "Could not initialize Amplitude's SDK.");
-          }
-          break;
-        case BUGSNAG:
-        case COUNTLY:
-        case CRITTERCISM:
-        case FLURRY:
-        case GOOGLE_ANALYTICS:
-        case LOCALYTICS:
-        case MIXPANEL:
-        case QUANTCAST:
-        case TAPSTREAM:
-        default:
-          throw new IllegalArgumentException("provider is not available as a bundled integration");
+    for (Integration integration : integrations) {
+      JsonMap integrationSettings = projectSettings.getJsonMap(integration.getKey());
+      if (JsonMap.isNullOrEmpty(integrationSettings)) {
+        integration.disable();
+      } else {
+        try {
+          integration.initialize(integrationSettings);
+          integration.enable();
+        } catch (Exception e) {
+          Logger.e(e, "Could not initialize integration %s", integration.getKey());
+          integration.disable();
+        }
       }
     }
   }
