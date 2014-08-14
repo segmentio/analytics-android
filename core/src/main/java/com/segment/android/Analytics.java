@@ -1107,6 +1107,7 @@ public final class Analytics {
    * @param optOut true to stop sending any more analytics.
    */
   public static void optOut(boolean optOut) {
+    checkInitialized();
     boolean toggled = Analytics.optedOut != optOut;
     Analytics.optedOut = optOut;
     if (toggled) integrationManager.toggleOptOut(optOut);
