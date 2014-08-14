@@ -230,6 +230,10 @@ public class Segment {
       throw new IllegalArgumentException("userId must be null or empty.");
     }
 
+    if (options == null) {
+      options = new Options();
+    }
+
     Traits.with(application).putId(userId);
 
     submit(new IdentifyPayload(anonymousId,
@@ -239,6 +243,10 @@ public class Segment {
 
   public void group(String groupId, Options options) {
     assertOnMainThread();
+
+    if (options == null) {
+      options = new Options();
+    }
 
     if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException("groupId must be null or empty.");
@@ -254,8 +262,12 @@ public class Segment {
     if (isNullOrEmpty(event)) {
       throw new IllegalArgumentException("event must be null or empty.");
     }
+
     if (properties == null) {
       properties = new Properties();
+    }
+    if (options == null) {
+      options = new Options();
     }
 
     submit(new TrackPayload(anonymousId,
@@ -270,8 +282,12 @@ public class Segment {
       throw new IllegalArgumentException(
           "either one of category or name must not be null or empty.");
     }
+
     if (properties == null) {
       properties = new Properties();
+    }
+    if (options == null) {
+      options = new Options();
     }
 
     submit(new ScreenPayload(anonymousId,
@@ -289,6 +305,10 @@ public class Segment {
     if (isNullOrEmpty(previousId)) {
       previousId = Traits.with(application).getId(); // copy the previousId
     }
+    if (options == null) {
+      options = new Options();
+    }
+
     Traits.with(application).putId(newId); // update the new id
 
     submit(new AliasPayload(anonymousId,
