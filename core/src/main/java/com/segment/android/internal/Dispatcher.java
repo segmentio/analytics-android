@@ -41,6 +41,8 @@ import com.squareup.tape.TaskInjector;
 import com.squareup.tape.TaskQueue;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
@@ -56,6 +58,8 @@ public class Dispatcher {
   final ObjectQueue<PayloadUploadTask> queue;
   final SegmentHTTPApi segmentHTTPApi;
   final int maxQueueSize;
+  final ExecutorService service;
+  volatile boolean flushing;
 
   private static final String TASK_QUEUE_FILE_NAME = "payload_task_queue";
 
@@ -71,6 +75,7 @@ public class Dispatcher {
     }
     PayloadUploadTaskInjector injector = new PayloadUploadTaskInjector(segmentHTTPApi);
     TaskQueue<PayloadUploadTask> taskQueue = new TaskQueue<PayloadUploadTask>(delegate, injector);
+
     return new Dispatcher(mainThreadHandler, queueSize, segmentHTTPApi, taskQueue);
   }
 
@@ -95,6 +100,7 @@ public class Dispatcher {
     this.maxQueueSize = maxQueueSize;
     this.segmentHTTPApi = segmentHTTPApi;
     this.queue = queue;
+    service = Executors.newSingleThreadExecutor(Executors.defaultThreadFactory());
   }
 
   public void dispatchEnqueue(BasePayload payload) {
@@ -116,19 +122,30 @@ public class Dispatcher {
   }
 
   void performFlush() {
-    executeNext();
+    flushing = true;
+    service.submit(new Runnable() {
+      @Override public void run() {
+        executeNext();
+      }
+    });
   }
 
   private void executeNext() {
+
     final PayloadUploadTask task = queue.peek();
+
     if (task != null) {
       try {
+        Logger.d("Queue Size is %d", queue.size());
         task.execute(null);
         queue.remove();
         executeNext();
       } catch (Exception e) {
-        Logger.e("Failed to upload payload");
+        Logger.e(e, "Failed to upload payload");
+        flushing = false;
       }
+    } else {
+      flushing = false;
     }
   }
 

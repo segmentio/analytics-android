@@ -84,7 +84,7 @@ public class SegmentHTTPApi {
 
     payload.setSentAt(ISO8601Time.now());
     String json = payload.toString();
-    Logger.d("Uploading payload: %s", json);
+    //  Logger.d("Uploading payload: %s", json);
     byte[] bytes = json.getBytes();
 
     OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
@@ -130,7 +130,7 @@ public class SegmentHTTPApi {
   private static String readFully(InputStream in) throws IOException {
     BufferedReader r = new BufferedReader(new InputStreamReader(in));
     StringBuilder response = new StringBuilder();
-    for (String line; (line = r.readLine()) != null;) {
+    for (String line; (line = r.readLine()) != null; ) {
       response.append(line);
     }
     return response.toString();
