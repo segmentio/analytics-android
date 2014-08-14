@@ -54,7 +54,6 @@ public class Dispatcher {
   final Handler mainThreadHandler;
   final DispatcherHandler handler;
   final ObjectQueue<PayloadUploadTask> queue;
-  final Context context;
   final SegmentHTTPApi segmentHTTPApi;
   final int maxQueueSize;
 
@@ -72,7 +71,7 @@ public class Dispatcher {
     }
     PayloadUploadTaskInjector injector = new PayloadUploadTaskInjector(segmentHTTPApi);
     TaskQueue<PayloadUploadTask> taskQueue = new TaskQueue<PayloadUploadTask>(delegate, injector);
-    return new Dispatcher(context, mainThreadHandler, queueSize, segmentHTTPApi, taskQueue);
+    return new Dispatcher(mainThreadHandler, queueSize, segmentHTTPApi, taskQueue);
   }
 
   static class PayloadUploadTaskInjector implements TaskInjector<PayloadUploadTask> {
@@ -87,9 +86,8 @@ public class Dispatcher {
     }
   }
 
-  Dispatcher(Context context, Handler mainThreadHandler, int maxQueueSize,
-      SegmentHTTPApi segmentHTTPApi, ObjectQueue<PayloadUploadTask> queue) {
-    this.context = context;
+  Dispatcher(Handler mainThreadHandler, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
+      ObjectQueue<PayloadUploadTask> queue) {
     this.dispatcherThread = new DispatcherThread();
     this.dispatcherThread.start();
     this.handler = new DispatcherHandler(dispatcherThread.getLooper(), this);
