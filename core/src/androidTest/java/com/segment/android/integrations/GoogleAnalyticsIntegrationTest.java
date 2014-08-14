@@ -63,8 +63,8 @@ public class GoogleAnalyticsIntegrationTest extends BaseIntegrationTest {
     ((GoogleAnalyticsIntegration) integration).tracker = mockTracker;
 
     Props props = new Props();
-    props.put("id", "507f1f77bcf86cd799439011");
-    props.put("revenue", 23.41);
+    props.put("orderId", "507f1f77bcf86cd799439011");
+    props.put("total", 23.41);
     props.put("shipping", 29.99);
     props.put("tax", 18.99d);
     props.put("affiliation", "A fake store name");
@@ -92,8 +92,8 @@ public class GoogleAnalyticsIntegrationTest extends BaseIntegrationTest {
     Props product5 = new Props();
 
     Props props = new Props();
-    props.put("id", "507f1f77bcf86cd799439011");
-    props.put("revenue", 23.41);
+    props.put("orderId", "507f1f77bcf86cd799439011");
+    props.put("total", 23.41);
     props.put("shipping", 29.99);
     props.put("tax", 18.99d);
     props.put("affiliation", "A fake store name");

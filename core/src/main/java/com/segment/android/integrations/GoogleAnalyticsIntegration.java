@@ -240,9 +240,9 @@ public class GoogleAnalyticsIntegration extends SimpleIntegration {
   }
 
   static Map<String, String> transactionToMap(EasyJSONObject props) {
-    String id = props.getString("id");
-    // skip total
-    double revenue = props.getDouble("revenue", 0d);
+    String id = props.getString("orderId");
+    double revenue = props.getDouble("total", 0d);
+    // skip subtotal
     double shipping = props.getDouble("shipping", 0d);
     double tax = props.getDouble("tax", 0d);
 
