@@ -58,7 +58,7 @@ public class Dispatcher {
   final ObjectQueue<PayloadUploadTask> queue;
   final SegmentHTTPApi segmentHTTPApi;
   final int maxQueueSize;
-  final ExecutorService service;
+  final ExecutorService flushService;
   volatile boolean flushing;
 
   private static final String TASK_QUEUE_FILE_NAME = "payload_task_queue";
@@ -76,7 +76,10 @@ public class Dispatcher {
     PayloadUploadTaskInjector injector = new PayloadUploadTaskInjector(segmentHTTPApi);
     TaskQueue<PayloadUploadTask> taskQueue = new TaskQueue<PayloadUploadTask>(delegate, injector);
 
-    return new Dispatcher(mainThreadHandler, queueSize, segmentHTTPApi, taskQueue);
+    ExecutorService flushService =
+        Executors.newSingleThreadExecutor(Executors.defaultThreadFactory());
+
+    return new Dispatcher(mainThreadHandler, flushService, queueSize, segmentHTTPApi, taskQueue);
   }
 
   static class PayloadUploadTaskInjector implements TaskInjector<PayloadUploadTask> {
@@ -91,8 +94,8 @@ public class Dispatcher {
     }
   }
 
-  Dispatcher(Handler mainThreadHandler, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
-      ObjectQueue<PayloadUploadTask> queue) {
+  Dispatcher(Handler mainThreadHandler, ExecutorService flushService, int maxQueueSize,
+      SegmentHTTPApi segmentHTTPApi, ObjectQueue<PayloadUploadTask> queue) {
     this.dispatcherThread = new DispatcherThread();
     this.dispatcherThread.start();
     this.handler = new DispatcherHandler(dispatcherThread.getLooper(), this);
@@ -100,7 +103,7 @@ public class Dispatcher {
     this.maxQueueSize = maxQueueSize;
     this.segmentHTTPApi = segmentHTTPApi;
     this.queue = queue;
-    service = Executors.newSingleThreadExecutor(Executors.defaultThreadFactory());
+    this.flushService = flushService;
   }
 
   public void dispatchEnqueue(BasePayload payload) {
@@ -123,7 +126,7 @@ public class Dispatcher {
 
   void performFlush() {
     flushing = true;
-    service.submit(new Runnable() {
+    flushService.submit(new Runnable() {
       @Override public void run() {
         executeNext();
       }
