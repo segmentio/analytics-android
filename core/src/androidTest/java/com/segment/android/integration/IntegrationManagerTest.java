@@ -67,7 +67,7 @@ public class IntegrationManagerTest extends BaseTest {
   @Test
   public void testInitialization() {
     SettingsCache settingsCache = new SettingsCache(context, layer, Defaults.SETTINGS_CACHE_EXPIRY);
-    IntegrationManager integrationManager = new IntegrationManager(settingsCache);
+    IntegrationManager integrationManager = new IntegrationManager(settingsCache, context);
     assertThat(integrationManager.isInitialized()).isFalse();
 
     integrationManager.refresh();
@@ -95,7 +95,7 @@ public class IntegrationManagerTest extends BaseTest {
     // make the sure the settings cache has nothing in it right now
     settingsCache.reset();
 
-    IntegrationManager integrationManager = new IntegrationManager(settingsCache);
+    IntegrationManager integrationManager = new IntegrationManager(settingsCache, context);
 
     // removes all the providers
     integrationManager.getIntegrations().clear();

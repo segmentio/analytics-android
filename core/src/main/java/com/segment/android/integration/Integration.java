@@ -34,7 +34,7 @@ import static com.segment.android.utils.Utils.hasPermission;
 public abstract class Integration implements IIntegration {
 
   private EasyJSONObject settings;
-  private IntegrationState state = IntegrationState.NOT_INITIALIZED;
+  private volatile IntegrationState state = IntegrationState.NOT_INITIALIZED;
   protected boolean hasPermission = true;
 
   /**

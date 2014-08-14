@@ -392,7 +392,7 @@ public final class Analytics {
 
     settingsCache = new SettingsCache(context, settingsLayer, options.getSettingsCacheExpiry());
 
-    integrationManager = new IntegrationManager(settingsCache);
+    integrationManager = new IntegrationManager(settingsCache, context);
 
     globalContext = generateContext(context);
     bundledIntegrations = generateBundledIntegrations();

@@ -56,9 +56,11 @@ public class IntegrationManager implements IIntegration {
   private final SettingsCache settingsCache;
   private final List<Integration> integrations;
   private boolean initialized;
+  private final Context context;
 
-  public IntegrationManager(SettingsCache settingsCache) {
+  public IntegrationManager(SettingsCache settingsCache, Context context) {
     this.settingsCache = settingsCache;
+    this.context = context.getApplicationContext();
     integrations = new LinkedList<Integration>();
 
     /**
@@ -165,6 +167,7 @@ public class IntegrationManager implements IIntegration {
             // enable the integration
             integration.enable();
             Logger.d("Initialized and enabled integration %s", integration.getKey());
+            integration.onCreate(context);
           } catch (InvalidSettingsException e) {
             Logger.e(e, "Could not initialize integration %s", integration);
           }
@@ -340,12 +343,10 @@ public class IntegrationManager implements IIntegration {
 
   @Override
   public void identify(final Identify identify) {
-
     runOperation("Identify", IntegrationState.READY, new IntegrationOperation() {
 
       @Override
       public void run(Integration integration) {
-
         if (isIntegrationEnabled(integration, identify)) integration.identify(identify);
       }
     });
@@ -353,12 +354,10 @@ public class IntegrationManager implements IIntegration {
 
   @Override
   public void group(final Group group) {
-
     runOperation("Group", IntegrationState.READY, new IntegrationOperation() {
 
       @Override
       public void run(Integration integration) {
-
         if (isIntegrationEnabled(integration, group)) integration.group(group);
       }
     });
@@ -366,12 +365,9 @@ public class IntegrationManager implements IIntegration {
 
   @Override
   public void track(final Track track) {
-
     runOperation("Track", IntegrationState.READY, new IntegrationOperation() {
-
       @Override
       public void run(Integration integration) {
-
         if (isIntegrationEnabled(integration, track)) integration.track(track);
       }
     });
