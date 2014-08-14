@@ -37,6 +37,8 @@ import com.segment.android.internal.util.Logger;
 import com.segment.android.internal.util.Utils;
 import com.squareup.tape.FileObjectQueue;
 import com.squareup.tape.ObjectQueue;
+import com.squareup.tape.TaskInjector;
+import com.squareup.tape.TaskQueue;
 import java.io.File;
 import java.io.IOException;
 
@@ -59,7 +61,7 @@ public class Dispatcher {
 
   public static Dispatcher create(Context context, Handler mainThreadHandler, int queueSize,
       SegmentHTTPApi segmentHTTPApi) {
-    FileObjectQueue.Converter converter = new PayloadUploadTaskConverter();
+    FileObjectQueue.Converter<PayloadUploadTask> converter = new PayloadUploadTaskConverter();
     File queueFile = new File(context.getFilesDir(), TASK_QUEUE_FILE_NAME);
     FileObjectQueue<PayloadUploadTask> delegate;
     try {
@@ -67,7 +69,21 @@ public class Dispatcher {
     } catch (IOException e) {
       throw new RuntimeException("Unable to create file queue.", e);
     }
-    return new Dispatcher(context, mainThreadHandler, queueSize, segmentHTTPApi, delegate);
+    PayloadUploadTaskInjector injector = new PayloadUploadTaskInjector(segmentHTTPApi);
+    TaskQueue<PayloadUploadTask> taskQueue = new TaskQueue<PayloadUploadTask>(delegate, injector);
+    return new Dispatcher(context, mainThreadHandler, queueSize, segmentHTTPApi, taskQueue);
+  }
+
+  static class PayloadUploadTaskInjector implements TaskInjector<PayloadUploadTask> {
+    private final SegmentHTTPApi segmentHTTPApi;
+
+    public PayloadUploadTaskInjector(SegmentHTTPApi segmentHTTPApi) {
+      this.segmentHTTPApi = segmentHTTPApi;
+    }
+
+    @Override public void injectMembers(PayloadUploadTask task) {
+      task.setSegmentHTTPApi(segmentHTTPApi);
+    }
   }
 
   Dispatcher(Context context, Handler mainThreadHandler, int maxQueueSize,
@@ -87,9 +103,11 @@ public class Dispatcher {
   }
 
   void performEnqueue(BasePayload payload) {
+    Logger.v("Enqueing %s", payload);
     queue.add(new PayloadUploadTask(payload));
 
     if (queue.size() >= maxQueueSize) {
+      Logger.v("queue size %s > %s; flushing", queue.size(), maxQueueSize);
       performFlush();
     }
   }
@@ -99,9 +117,8 @@ public class Dispatcher {
   }
 
   private void executeNext() {
-    PayloadUploadTask task = queue.peek();
+    final PayloadUploadTask task = queue.peek();
     if (task != null) {
-      task.setSegmentHTTPApi(segmentHTTPApi);
       try {
         task.execute(null);
         queue.remove();
