@@ -88,6 +88,7 @@ public class MainActivity extends Activity {
     });
     findViewById(R.id.action_flush).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
+        Segment.with(MainActivity.this).flush();
         // Analytics.flush(true);
       }
     });

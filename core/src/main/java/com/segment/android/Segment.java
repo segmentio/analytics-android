@@ -296,6 +296,11 @@ public class Segment {
         Traits.with(application).getId(), previousId, options));
   }
 
+  public void flush() {
+    dispatcher.dispatchFlush();
+    // todo: flush integration manager
+  }
+
   void submit(BasePayload payload) {
     dispatcher.dispatchEnqueue(payload);
   }

@@ -48,6 +48,7 @@ public class Dispatcher {
   private static final String DISPATCHER_THREAD_NAME = "Dispatcher";
 
   static final int REQUEST_ENQUEUE = 1;
+  static final int REQUEST_FLUSH = 2;
 
   final DispatcherThread dispatcherThread;
   final Handler mainThreadHandler;
@@ -102,6 +103,10 @@ public class Dispatcher {
     handler.sendMessage(handler.obtainMessage(REQUEST_ENQUEUE, payload));
   }
 
+  public void dispatchFlush() {
+    handler.sendMessage(handler.obtainMessage(REQUEST_FLUSH));
+  }
+
   void performEnqueue(BasePayload payload) {
     Logger.v("Enqueing %s", payload);
     queue.add(new PayloadUploadTask(payload));
@@ -142,6 +147,10 @@ public class Dispatcher {
         case REQUEST_ENQUEUE: {
           BasePayload payload = (BasePayload) msg.obj;
           dispatcher.performEnqueue(payload);
+          break;
+        }
+        case REQUEST_FLUSH: {
+          dispatcher.performFlush();
           break;
         }
         default:
