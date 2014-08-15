@@ -74,10 +74,9 @@ public class Segment {
       }
       synchronized (Segment.class) {
         if (singleton == null) {
-          Builder builder = new Builder(context);
-
           String writeKey = getString(context, WRITE_KEY_RESOURCE_IDENTIFIER);
-          builder.writeKey(writeKey);
+
+          Builder builder = new Builder(context, writeKey);
 
           try {
             // We need the exception to be able to tell if this was not defined, or if it was
@@ -119,7 +118,7 @@ public class Segment {
     private boolean debugging = DEFAULT_DEBUGGING;
 
     /** Start building a new {@link Segment} instance. */
-    public Builder(Context context) {
+    public Builder(Context context, String writeKey) {
       if (context == null) {
         throw new IllegalArgumentException("Context must not be null.");
       }
@@ -127,19 +126,12 @@ public class Segment {
         throw new IllegalArgumentException("INTERNET permission is required.");
       }
 
-      application = (Application) context.getApplicationContext();
-    }
-
-    /** Set the write api key for Segment.io */
-    public Builder writeKey(String writeKey) {
       if (isNullOrEmpty(writeKey)) {
-        throw new IllegalArgumentException("writeKey must not be null.");
+        throw new IllegalArgumentException("writeKey must not be null or empty.");
       }
-      if (this.writeKey != null) {
-        throw new IllegalStateException("writeKey is already set.");
-      }
+
+      application = (Application) context.getApplicationContext();
       this.writeKey = writeKey;
-      return this;
     }
 
     /** Set the size of the queue to batch events. */
@@ -162,10 +154,6 @@ public class Segment {
 
     /** Create Segment {@link Segment} instance. */
     public Segment build() {
-      if (isNullOrEmpty(writeKey)) {
-        throw new IllegalStateException("apiKey must be provided defined in analytics.xml");
-      }
-
       if (maxQueueSize == -1) {
         maxQueueSize = DEFAULT_QUEUE_SIZE;
       }

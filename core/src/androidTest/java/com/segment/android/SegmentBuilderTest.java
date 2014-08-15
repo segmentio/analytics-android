@@ -28,11 +28,13 @@ import android.Manifest;
 import android.app.Application;
 import android.content.pm.PackageManager;
 
+import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
 
 public class SegmentBuilderTest extends BaseAndroidTestCase {
   @Mock Application application;
+  String mockKey;
 
   @Override protected void setUp() throws Exception {
     super.setUp();
@@ -42,13 +44,23 @@ public class SegmentBuilderTest extends BaseAndroidTestCase {
         PackageManager.PERMISSION_GRANTED);
     when(application.checkCallingOrSelfPermission(
         Manifest.permission.ACCESS_NETWORK_STATE)).thenReturn(PackageManager.PERMISSION_GRANTED);
+
+    mockKey = "a_mock_key";
   }
 
-  public void testInvalidContextThrowsException() throws Exception {
+  public void testNullContextThrowsException() throws Exception {
     try {
-      new Segment.Builder(null);
+      new Segment.Builder(null, null);
       fail("Null context should throw exception.");
     } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("Context must not be null.");
+    }
+
+    try {
+      new Segment.Builder(null, mockKey);
+      fail("Null context should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("Context must not be null.");
     }
   }
 
@@ -58,9 +70,10 @@ public class SegmentBuilderTest extends BaseAndroidTestCase {
     when(application.checkCallingOrSelfPermission(
         Manifest.permission.ACCESS_NETWORK_STATE)).thenReturn(PackageManager.PERMISSION_GRANTED);
     try {
-      new Segment.Builder(application);
+      new Segment.Builder(application, mockKey);
       fail("Missing internet permission should throw exception.");
     } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("INTERNET permission is required.");
     }
 
     when(application.checkCallingOrSelfPermission(Manifest.permission.INTERNET)).thenReturn(
@@ -68,7 +81,7 @@ public class SegmentBuilderTest extends BaseAndroidTestCase {
     when(application.checkCallingOrSelfPermission(
         Manifest.permission.ACCESS_NETWORK_STATE)).thenReturn(PackageManager.PERMISSION_DENIED);
     try {
-      new Segment.Builder(application);
+      new Segment.Builder(application, mockKey);
     } catch (IllegalArgumentException expected) {
       fail("Missing access state permission should not throw exception.");
     }
@@ -76,35 +89,48 @@ public class SegmentBuilderTest extends BaseAndroidTestCase {
 
   public void testInvalidApiKeyThrowsException() throws Exception {
     try {
-      new Segment.Builder(application).writeKey(null);
+      new Segment.Builder(application, null);
       fail("Null apiKey should throw exception.");
     } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("writeKey must not be null or empty.");
     }
 
     try {
-      new Segment.Builder(application).writeKey("");
+      new Segment.Builder(application, "");
       fail("Empty apiKey should throw exception.");
     } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("writeKey must not be null or empty.");
     }
 
     try {
-      new Segment.Builder(application).writeKey("   ");
+      new Segment.Builder(application, "    ");
       fail("Blank apiKey should throw exception.");
     } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("writeKey must not be null or empty.");
     }
   }
 
   public void testInvalidQueueSizeThrowsException() throws Exception {
     try {
-      new Segment.Builder(application).maxQueueSize(-1);
+      new Segment.Builder(application, mockKey).maxQueueSize(-1);
       fail("maxQueueSize < 0 should throw exception.");
     } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("maxQueueSize must be greater than or equal to zero.");
     }
 
     try {
-      new Segment.Builder(application).maxQueueSize(0);
+      new Segment.Builder(application, mockKey).maxQueueSize(0);
       fail("maxQueueSize = 0 should throw exception.");
     } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("maxQueueSize must be greater than or equal to zero.");
+    }
+
+    Segment.Builder builder = new Segment.Builder(application, mockKey).maxQueueSize(10);
+    try {
+      builder.maxQueueSize(20);
+      fail("setting maxQueueSize again should throw exception.");
+    } catch (IllegalStateException expected) {
+      assertThat(expected).hasMessage("maxQueueSize is already set.");
     }
   }
 }
