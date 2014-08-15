@@ -51,6 +51,11 @@ import static com.segment.android.internal.util.Utils.hasPermission;
 import static com.segment.android.internal.util.Utils.isNullOrEmpty;
 
 public class Segment {
+  // Resource identifiers to define options in xml
+  public static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
+  public static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
+  public static final String DEBUGGING_RESOURCE_IDENTIFIER = "analytics_debug";
+
   static Segment singleton = null;
 
   /**
@@ -69,7 +74,32 @@ public class Segment {
       }
       synchronized (Segment.class) {
         if (singleton == null) {
-          singleton = new Builder(context).build();
+          Builder builder = new Builder(context);
+
+          String writeKey = getString(context, WRITE_KEY_RESOURCE_IDENTIFIER);
+          builder.writeKey(writeKey);
+
+          try {
+            // We need the exception to be able to tell if this was not defined, or if it was
+            // incorrectly defined - something we shouldn't ignore
+            int maxQueueSize = getIntegerOrThrow(context, QUEUE_SIZE_RESOURCE_IDENTIFIER);
+            if (maxQueueSize <= 0) {
+              throw new IllegalStateException(
+                  "maxQueueSize(" + maxQueueSize + ") may not be zero or negative.");
+            }
+            builder.maxQueueSize(maxQueueSize);
+          } catch (Resources.NotFoundException e) {
+            // when maxQueueSize is not defined in xml, we'll use a default option in the builder
+          }
+
+          try {
+            boolean debugging = getBooleanOrThrow(context, DEBUGGING_RESOURCE_IDENTIFIER);
+            builder.debugging(debugging);
+          } catch (Resources.NotFoundException e) {
+            // when debugging is not defined in xml, we'll use a default value from the builder
+          }
+
+          singleton = builder.build();
         }
       }
     }
@@ -79,20 +109,14 @@ public class Segment {
   /** Fluent API for creating {@link Segment} instances. */
   @SuppressWarnings("UnusedDeclaration") // Public API.
   public static class Builder {
-    private final Application application;
-    private String writeKey;
-    // Use Boxed types to be able to see what has been defined and what has not
-    private Integer maxQueueSize;
-    private Boolean debugging;
-
     // Defaults
     public static final int DEFAULT_QUEUE_SIZE = 20;
     public static final boolean DEFAULT_DEBUGGING = false;
 
-    // Resource identifier to define options in xml
-    public static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
-    public static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
-    public static final String DEBUGGING_RESOURCE_IDENTIFIER = "analytics_debug";
+    private final Application application;
+    private String writeKey;
+    private int maxQueueSize = -1;
+    private boolean debugging = DEFAULT_DEBUGGING;
 
     /** Start building a new {@link Segment} instance. */
     public Builder(Context context) {
@@ -106,9 +130,7 @@ public class Segment {
       application = (Application) context.getApplicationContext();
     }
 
-    /**
-     * Set the write api key for Segment.io.
-     */
+    /** Set the write api key for Segment.io */
     public Builder writeKey(String writeKey) {
       if (isNullOrEmpty(writeKey)) {
         throw new IllegalArgumentException("writeKey must not be null.");
@@ -120,23 +142,19 @@ public class Segment {
       return this;
     }
 
-    /**
-     * Set the size of the queue to batch events.
-     */
+    /** Set the size of the queue to batch events. */
     public Builder maxQueueSize(int maxQueueSize) {
       if (maxQueueSize <= 0) {
         throw new IllegalArgumentException("maxQueueSize must be greater than or equal to zero.");
       }
-      if (this.maxQueueSize != null) {
+      if (this.maxQueueSize != -1) {
         throw new IllegalStateException("maxQueueSize is already set.");
       }
       this.maxQueueSize = maxQueueSize;
       return this;
     }
 
-    /**
-     * Whether debugging is enabled or not.
-     */
+    /** Whether debugging is enabled or not. */
     public Builder debugging(boolean debugging) {
       this.debugging = debugging;
       return this;
@@ -144,33 +162,12 @@ public class Segment {
 
     /** Create Segment {@link Segment} instance. */
     public Segment build() {
-      if (writeKey == null) {
-        writeKey = getString(application, WRITE_KEY_RESOURCE_IDENTIFIER);
-        if (isNullOrEmpty(writeKey)) {
-          throw new IllegalStateException("apiKey must be provided defined in analytics.xml");
-        }
+      if (isNullOrEmpty(writeKey)) {
+        throw new IllegalStateException("apiKey must be provided defined in analytics.xml");
       }
 
-      if (maxQueueSize == null) {
-        try {
-          maxQueueSize = getIntegerOrThrow(application, QUEUE_SIZE_RESOURCE_IDENTIFIER);
-          if (maxQueueSize <= 0) {
-            throw new IllegalStateException(
-                "maxQueueSize(" + maxQueueSize + ") may not be zero or negative.");
-          }
-        } catch (Resources.NotFoundException e) {
-          // when maxQueueSize is not defined in xml, we'll use a default option
-          maxQueueSize = DEFAULT_QUEUE_SIZE;
-        }
-      }
-
-      if (debugging == null) {
-        try {
-          debugging = getBooleanOrThrow(application, DEBUGGING_RESOURCE_IDENTIFIER);
-        } catch (Resources.NotFoundException e) {
-          // when debugging is not defined in xml, we'll use a default option
-          debugging = DEFAULT_DEBUGGING;
-        }
+      if (maxQueueSize == -1) {
+        maxQueueSize = DEFAULT_QUEUE_SIZE;
       }
 
       SegmentHTTPApi segmentHTTPApi = SegmentHTTPApi.create(writeKey);
