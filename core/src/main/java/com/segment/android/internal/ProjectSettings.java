@@ -22,27 +22,11 @@
  * SOFTWARE.
  */
 
-package com.segment.android.internal.payload;
+package com.segment.android.internal;
 
-import com.segment.android.AnalyticsContext;
-import com.segment.android.Options;
-import com.segment.android.Properties;
 
-public class ScreenPayload extends BasePayload {
-  /** The category of the page or screen. We recommend using title case, like Docs. */
-  private final String category;
+public class ProjectSettings {
+  static class Amplitude {
 
-  /** The name of the page or screen. We recommend using title case, like About. */
-  private final String name;
-
-  /** The page and screen methods also take a properties dictionary, just like track. */
-  private final Properties properties;
-
-  public ScreenPayload(String anonymousId, AnalyticsContext context, String userId, String category,
-      String name, Properties properties, Options options) {
-    super(Type.screen, anonymousId, context, userId, options);
-    this.category = category;
-    this.name = name;
-    this.properties = properties;
   }
 }

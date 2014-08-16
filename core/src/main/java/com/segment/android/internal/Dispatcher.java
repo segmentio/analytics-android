@@ -29,10 +29,11 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import com.google.gson.Gson;
 import com.segment.android.Segment;
 import com.segment.android.internal.payload.BasePayload;
+import com.segment.android.internal.queue.GsonConverter;
 import com.segment.android.internal.queue.PayloadUploadTask;
-import com.segment.android.internal.queue.PayloadUploadTaskConverter;
 import com.segment.android.internal.util.Logger;
 import com.segment.android.internal.util.Utils;
 import com.squareup.tape.FileObjectQueue;
@@ -64,8 +65,9 @@ public class Dispatcher {
   private static final String TASK_QUEUE_FILE_NAME = "payload_task_queue";
 
   public static Dispatcher create(Context context, Handler mainThreadHandler, int queueSize,
-      SegmentHTTPApi segmentHTTPApi) {
-    FileObjectQueue.Converter<PayloadUploadTask> converter = new PayloadUploadTaskConverter();
+      Gson gson, SegmentHTTPApi segmentHTTPApi) {
+    FileObjectQueue.Converter<PayloadUploadTask> converter =
+        new GsonConverter<PayloadUploadTask>(gson, PayloadUploadTask.class);
     File queueFile = new File(context.getFilesDir(), TASK_QUEUE_FILE_NAME);
     FileObjectQueue<PayloadUploadTask> delegate;
     try {

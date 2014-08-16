@@ -22,27 +22,36 @@
  * SOFTWARE.
  */
 
-package com.segment.android.internal.payload;
+package com.segment.android.internal.queue;
 
-import com.segment.android.AnalyticsContext;
-import com.segment.android.Options;
-import com.segment.android.Properties;
+import com.google.gson.Gson;
+import com.squareup.tape.FileObjectQueue;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
 
-public class ScreenPayload extends BasePayload {
-  /** The category of the page or screen. We recommend using title case, like Docs. */
-  private final String category;
+/** Converter which uses GSON to serialize instances of class T to disk. */
+public class GsonConverter<T> implements FileObjectQueue.Converter<T> {
+  private final Gson gson;
+  private final Class<T> type;
 
-  /** The name of the page or screen. We recommend using title case, like About. */
-  private final String name;
+  public GsonConverter(Gson gson, Class<T> type) {
+    this.gson = gson;
+    this.type = type;
+  }
 
-  /** The page and screen methods also take a properties dictionary, just like track. */
-  private final Properties properties;
+  @Override public T from(byte[] bytes) {
+    Reader reader = new InputStreamReader(new ByteArrayInputStream(bytes));
+    return gson.fromJson(reader, type);
+  }
 
-  public ScreenPayload(String anonymousId, AnalyticsContext context, String userId, String category,
-      String name, Properties properties, Options options) {
-    super(Type.screen, anonymousId, context, userId, options);
-    this.category = category;
-    this.name = name;
-    this.properties = properties;
+  @Override public void toStream(T object, OutputStream bytes) throws IOException {
+    Writer writer = new OutputStreamWriter(bytes);
+    gson.toJson(object, writer);
+    writer.close();
   }
 }

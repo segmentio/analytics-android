@@ -4,12 +4,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import com.segment.android.internal.IntegrationManager;
+import com.segment.android.internal.ProjectSettings;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import com.segment.android.json.JsonMap;
 
 /**
  * A base class for Integrations. An integration will only be created if the server sends us
@@ -46,7 +46,8 @@ public abstract class Integration {
     return state;
   }
 
-  public abstract void initialize(JsonMap integrationSettings) throws InvalidConfigurationException;
+  public abstract void initialize(ProjectSettings integrationSettings)
+      throws InvalidConfigurationException;
 
   // Application Callbacks, same as Application$ActivityLifecycleCallbacks
   public abstract void onActivityCreated(Activity activity, Bundle savedInstanceState);

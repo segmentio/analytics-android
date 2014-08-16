@@ -60,6 +60,10 @@ public class ISO8601Time {
     return new ISO8601Time(new Date(timestamp));
   }
 
+  public long time() {
+    return date.getTime();
+  }
+
   @Override public String toString() {
     return ISO_8601_DATE_FORMAT.format(date);
   }

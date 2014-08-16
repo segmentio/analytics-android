@@ -17,7 +17,6 @@ import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
 import com.segment.android.internal.util.Logger;
 import com.segment.android.internal.util.Utils;
-import com.segment.android.json.JsonMap;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -94,11 +93,10 @@ public class IntegrationManager {
 
   void performFetch() {
     try {
-      final JsonMap jsonMap = segmentHTTPApi.fetchSettings();
+      final ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
       Segment.HANDLER.post(new Runnable() {
         @Override public void run() {
-          initialize(jsonMap);
-          Logger.d("Fetched %s", jsonMap.toString());
+          initialize(projectSettings);
         }
       });
     } catch (IOException e) {
@@ -143,19 +141,14 @@ public class IntegrationManager {
     }
   }
 
-  private void initialize(JsonMap projectSettings) {
+  private void initialize(ProjectSettings projectSettings) {
     for (Integration integration : integrations) {
-      JsonMap integrationSettings = projectSettings.getJsonMap(integration.getKey());
-      if (JsonMap.isNullOrEmpty(integrationSettings)) {
+      try {
+        integration.initialize(projectSettings);
+        integration.enable();
+      } catch (Exception e) {
+        Logger.e(e, "Could not initialize integration %s", integration.getKey());
         integration.disable();
-      } else {
-        try {
-          integration.initialize(integrationSettings);
-          integration.enable();
-        } catch (Exception e) {
-          Logger.e(e, "Could not initialize integration %s", integration.getKey());
-          integration.disable();
-        }
       }
     }
   }

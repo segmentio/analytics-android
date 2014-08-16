@@ -26,10 +26,10 @@ package com.segment.android.internal;
 
 import android.os.Build;
 import android.util.Base64;
+import com.google.gson.Gson;
 import com.segment.android.internal.payload.BasePayload;
 import com.segment.android.internal.util.ISO8601Time;
 import com.segment.android.internal.util.Logger;
-import com.segment.android.json.JsonMap;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -47,18 +47,16 @@ public class SegmentHTTPApi {
   static final String API_URL = "https://api.segment.io/";
 
   private final String writeKey;
+  private final Gson gson;
 
-  public SegmentHTTPApi(String writeKey) {
+  public SegmentHTTPApi(String writeKey, Gson gson) {
     this.writeKey = writeKey;
+    this.gson = gson;
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
       // bug in pre-froyo, http://android-developers.blogspot.com/2011/09/androids-http-clients.html
       System.setProperty("http.keepAlive", "false");
     }
-  }
-
-  public static SegmentHTTPApi create(String writeKey) {
-    return new SegmentHTTPApi(writeKey);
   }
 
   private static URL createUrl(String endpoint) {
@@ -82,9 +80,8 @@ public class SegmentHTTPApi {
         "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP));
     urlConnection.setChunkedStreamingMode(0);
 
-    payload.setSentAt(ISO8601Time.now());
-    String json = payload.toString();
-    //  Logger.d("Uploading payload: %s", json);
+    payload.setSentAt(ISO8601Time.now().time());
+    String json = gson.toJson(payload);
     byte[] bytes = json.getBytes();
 
     OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
@@ -103,7 +100,7 @@ public class SegmentHTTPApi {
     urlConnection.disconnect();
   }
 
-  public JsonMap fetchSettings() throws IOException {
+  public ProjectSettings fetchSettings() throws IOException {
     HttpsURLConnection urlConnection =
         (HttpsURLConnection) createUrl("project/" + writeKey + "/settings").openConnection();
 
@@ -124,13 +121,13 @@ public class SegmentHTTPApi {
     urlConnection.disconnect();
     Logger.d("Response code: %s, json: %s, message: %s", responseCode, json,
         urlConnection.getResponseMessage());
-    return JsonMap.decode(json);
+    return gson.fromJson(json, ProjectSettings.class); // todo: use reader
   }
 
   private static String readFully(InputStream in) throws IOException {
     BufferedReader r = new BufferedReader(new InputStreamReader(in));
     StringBuilder response = new StringBuilder();
-    for (String line; (line = r.readLine()) != null;) {
+    for (String line; (line = r.readLine()) != null; ) {
       response.append(line);
     }
     return response.toString();

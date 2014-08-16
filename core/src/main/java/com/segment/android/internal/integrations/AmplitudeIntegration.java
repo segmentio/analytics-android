@@ -3,16 +3,12 @@ package com.segment.android.internal.integrations;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import com.amplitude.api.Amplitude;
+import com.segment.android.internal.ProjectSettings;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import com.segment.android.internal.util.Logger;
-import com.segment.android.json.JsonMap;
-
-import static com.segment.android.internal.util.Utils.isNullOrEmpty;
 
 public class AmplitudeIntegration extends Integration {
   private static final String AMPLITUDE_KEY = "Amplitude";
@@ -32,14 +28,10 @@ public class AmplitudeIntegration extends Integration {
     super(context, AMPLITUDE_KEY);
   }
 
-  @Override public void initialize(JsonMap integrationSettings)
+  @Override public void initialize(ProjectSettings integrationSettings)
       throws InvalidConfigurationException {
-    String apiKey = (String) integrationSettings.get(API_KEY);
-    if (isNullOrEmpty(apiKey)) {
-      Logger.e("Amplitude requires the apiKey setting");
-      disable();
-    }
-    Amplitude.initialize(getContext(), apiKey);
+    // todo: fetch settings and initialize
+    // Amplitude.initialize(getContext(), apiKey);
   }
 
   @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {

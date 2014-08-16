@@ -27,15 +27,13 @@ package com.segment.android.internal.payload;
 import com.segment.android.AnalyticsContext;
 import com.segment.android.Options;
 import com.segment.android.internal.util.ISO8601Time;
-import com.segment.android.json.JsonMap;
-import java.util.Map;
 
 /**
  * A payload object that will be sent to the server. Clients will not decode instances of this
  * directly, but through one if it's subclasses.
  */
 /* This ignores projectId, receivedAt, messageId, sentAt, version that are set by the server. */
-public class BasePayload extends JsonMap {
+public class BasePayload {
   enum Type {
     alias, group, identify, page, screen, track
   }
@@ -44,24 +42,26 @@ public class BasePayload extends JsonMap {
     browser, mobile, server
   }
 
-  /** The type of message. */
-  private static final String TYPE_KEY = "type";
+  /**
+   * The type of message.
+   */
+  private final Type type;
 
   /**
    * The anonymous ID is an identifier that uniquely (or close enough) identifies the user, but
-   * isn't from your database. This is useful in cases where you are able to uniquely identifier
-   * the user between visits before they signup thanks to a cookie, or session ID or device ID. In
-   * our mobile and browser libraries we will automatically handle sending the anonymous ID.
+   * isn't from your database. This is useful in cases where you are able to uniquely identifier the
+   * user between visits before they signup thanks to a cookie, or session ID or device ID. In our
+   * mobile and browser libraries we will automatically handle sending the anonymous ID.
    */
-  private static final String ANONYMOUS_ID_KEY = "anonymousId";
+  private final String anonymousId;
 
   /**
    * The channel where the request originated from: server, browser or mobile. In the future we may
    * add additional channels as we add libraries, for example console.
    * <p/>
-   * This is always {@link Channel#mobile} for us.
+   * This is always {@link Channel#MOBILE} for us.
    */
-  private static final String CHANNEL_KEY = "channel";
+  private final Channel channel = Channel.mobile;
 
   /**
    * The context is a dictionary of extra information that provides useful context about a message,
@@ -69,72 +69,44 @@ public class BasePayload extends JsonMap {
    * own context, for example app.name or app.version. Check out the existing spec'ed properties in
    * the context before adding your own.
    */
-  private static final String CONTEXT_KEY = "context";
-
-  /**
-   * A dictionary of integration names that the message should be proxied to. 'All' is a special
-   * name that applies when no key for a specific integration is found, and is case-insensitive.
-   */
-  private static final String INTEGRATIONS_KEY = "integrations";
+  private final AnalyticsContext context;
 
   /**
    * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can be used
    * to correct the original timestamp in situations where the local clock cannot be trusted, for
    * example in our mobile libraries. The sentAt and receivedAt timestamps will be assumed to have
    * occurred at the same time, and therefore the difference is the local clock skew.
+   * <p/>
+   * Mutable in case of upload failures.
    */
-  private static final String SENT_AT_KEY = "sentAt";
+  private long sentAt;
 
   /** The timestamp when the message took place. This should be an ISO-8601-formatted string. */
-  private static final String TIMESTAMP_KEY = "timestamp";
+  private final long timestamp;
 
   /**
    * The user ID is an identifier that unique identifies the user in your database. Ideally it
    * should not be an email address, because emails can change, whereas a database ID can't.
    */
-  private static final String USER_ID_KEY = "userId";
+  private final String userId;
 
-  // Options will be serialized, but not for the json payload
-  private Options options;
+  // todo: integrations
 
   public BasePayload(Type type, String anonymousId, AnalyticsContext context, String userId,
       Options options) {
-    put(TYPE_KEY, type.toString());
-    put(CHANNEL_KEY, Channel.mobile.toString());
-    put(ANONYMOUS_ID_KEY, anonymousId);
-    put(CONTEXT_KEY, context);
-    put(USER_ID_KEY, userId);
-    this.options = options;
-    put(TIMESTAMP_KEY, options.getTimestamp() == null ? ISO8601Time.now().toString()
-        : ISO8601Time.from(options.getTimestamp()).toString());
+    this.type = type;
+    this.anonymousId = anonymousId;
+    this.context = context;
+    this.userId = userId;
+    this.timestamp = options.getTimestamp() == null ? ISO8601Time.now().time()
+        : ISO8601Time.from(options.getTimestamp()).time();
   }
 
-  public BasePayload(String json) {
-    super(json);
+  public Type getType() {
+    return type;
   }
 
-  public String getType() {
-    return getString(TYPE_KEY);
-  }
-
-  public String getUserId() {
-    return getString(USER_ID_KEY);
-  }
-
-  public Options getOptions() {
-    return options;
-  }
-
-  public void setSentAt(ISO8601Time time) {
-    put(SENT_AT_KEY, time.toString());
-  }
-
-  public void setServerIntegrations(Map<String, Boolean> integrations) {
-    put(INTEGRATIONS_KEY, integrations);
-  }
-
-  @Override public BasePayload putValue(String key, Object value) {
-    super.putValue(key, value);
-    return this;
+  public void setSentAt(long sentAt) {
+    this.sentAt = sentAt;
   }
 }

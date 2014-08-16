@@ -31,6 +31,7 @@ import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import com.google.gson.Gson;
 import com.segment.android.internal.Dispatcher;
 import com.segment.android.internal.IntegrationManager;
 import com.segment.android.internal.SegmentHTTPApi;
@@ -115,6 +116,8 @@ public class Segment {
     private final Application application;
     private String writeKey;
     private int maxQueueSize = -1;
+    private Gson gson;
+
     private boolean debugging = DEFAULT_DEBUGGING;
 
     /** Start building a new {@link Segment} instance. */
@@ -152,14 +155,27 @@ public class Segment {
       return this;
     }
 
+    /** Whether debugging is enabled or not. */
+    public Builder gson(Gson gson) {
+      if (gson == null) {
+        throw new IllegalArgumentException("gson must not be null.");
+      }
+      if (this.gson != null) {
+        throw new IllegalStateException("gson is already set.");
+      }
+      this.gson = gson;
+      return this;
+    }
+
     /** Create Segment {@link Segment} instance. */
     public Segment build() {
       if (maxQueueSize == -1) {
         maxQueueSize = DEFAULT_QUEUE_SIZE;
       }
 
-      SegmentHTTPApi segmentHTTPApi = SegmentHTTPApi.create(writeKey);
-      Dispatcher dispatcher = Dispatcher.create(application, HANDLER, maxQueueSize, segmentHTTPApi);
+      SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey, gson);
+      Dispatcher dispatcher =
+          Dispatcher.create(application, HANDLER, maxQueueSize, gson, segmentHTTPApi);
       IntegrationManager integrationManager =
           IntegrationManager.create(application, HANDLER, segmentHTTPApi);
       return new Segment(application, dispatcher, integrationManager, debugging);
@@ -219,10 +235,9 @@ public class Segment {
       options = new Options();
     }
 
-    Traits.with(application).putId(userId);
+    Traits.with(application).setId(userId);
 
-    submit(new IdentifyPayload(anonymousId,
-        AnalyticsContext.with(application).putTraits(Traits.with(application)), userId,
+    submit(new IdentifyPayload(anonymousId, AnalyticsContext.with(application), userId,
         Traits.with(application), options));
   }
 
@@ -236,8 +251,7 @@ public class Segment {
     if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException("groupId must be null or empty.");
     }
-    submit(new GroupPayload(anonymousId,
-        AnalyticsContext.with(application).putTraits(Traits.with(application)),
+    submit(new GroupPayload(anonymousId, AnalyticsContext.with(application),
         Traits.with(application).getId(), groupId, Traits.with(application), options));
   }
 
@@ -255,8 +269,7 @@ public class Segment {
       options = new Options();
     }
 
-    submit(new TrackPayload(anonymousId,
-        AnalyticsContext.with(application).putTraits(Traits.with(application)),
+    submit(new TrackPayload(anonymousId, AnalyticsContext.with(application),
         Traits.with(application).getId(), event, properties, options));
   }
 
@@ -275,8 +288,7 @@ public class Segment {
       options = new Options();
     }
 
-    submit(new ScreenPayload(anonymousId,
-        AnalyticsContext.with(application).putTraits(Traits.with(application)),
+    submit(new ScreenPayload(anonymousId, AnalyticsContext.with(application),
         Traits.with(application).getId(), category, name, properties, options));
   }
 
@@ -294,10 +306,9 @@ public class Segment {
       options = new Options();
     }
 
-    Traits.with(application).putId(newId); // update the new id
+    Traits.with(application).setId(newId); // update the new id
 
-    submit(new AliasPayload(anonymousId,
-        AnalyticsContext.with(application).putTraits(Traits.with(application)),
+    submit(new AliasPayload(anonymousId, AnalyticsContext.with(application),
         Traits.with(application).getId(), previousId, options));
   }
 
