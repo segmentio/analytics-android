@@ -35,6 +35,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
+import com.segment.android.AnalyticsContext;
 import com.segment.android.Options;
 import com.segment.android.Properties;
 import com.segment.android.Segment;
@@ -52,6 +53,7 @@ public class MainActivity extends Activity {
   private void initViews() {
     findViewById(R.id.action_track_a).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
+        AnalyticsContext.with(MainActivity.this).put("test", "hello");
         Segment.with(MainActivity.this).track("Button A clicked", new Properties(), new Options());
       }
     });

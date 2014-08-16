@@ -31,5 +31,5 @@
   <bool name="analytics_debug">true</bool>
 
   <!--Size of the queue.-->
-  <integer name="analytics_queue_size">20</integer>
+  <integer name="analytics_queue_size">5</integer>
 </resources>

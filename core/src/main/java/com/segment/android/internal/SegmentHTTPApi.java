@@ -28,6 +28,7 @@ import android.os.Build;
 import android.util.Base64;
 import com.google.gson.Gson;
 import com.segment.android.internal.payload.BasePayload;
+import com.segment.android.internal.payload.BatchPayload;
 import com.segment.android.internal.util.ISO8601Time;
 import com.segment.android.internal.util.Logger;
 import java.io.BufferedInputStream;
@@ -68,9 +69,8 @@ public class SegmentHTTPApi {
     }
   }
 
-  public void upload(BasePayload payload) throws IOException {
-    HttpsURLConnection urlConnection =
-        (HttpsURLConnection) createUrl("v1/" + payload.getType()).openConnection();
+  public void upload(BatchPayload payload) throws IOException {
+    HttpsURLConnection urlConnection = (HttpsURLConnection) createUrl("v1/import").openConnection();
 
     urlConnection.setDoOutput(true);
     urlConnection.setDoInput(true);
@@ -80,9 +80,10 @@ public class SegmentHTTPApi {
         "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP));
     urlConnection.setChunkedStreamingMode(0);
 
-    payload.setSentAt(ISO8601Time.now().time());
     String json = gson.toJson(payload);
     byte[] bytes = json.getBytes();
+
+    Logger.d("Json: %s", json);
 
     OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
     out.write(bytes);

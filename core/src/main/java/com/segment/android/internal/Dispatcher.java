@@ -32,20 +32,22 @@ import android.os.Message;
 import com.google.gson.Gson;
 import com.segment.android.Segment;
 import com.segment.android.internal.payload.BasePayload;
+import com.segment.android.internal.payload.BatchPayload;
 import com.segment.android.internal.queue.GsonConverter;
-import com.segment.android.internal.queue.PayloadUploadTask;
+import com.segment.android.internal.util.ISO8601Time;
 import com.segment.android.internal.util.Logger;
 import com.segment.android.internal.util.Utils;
 import com.squareup.tape.FileObjectQueue;
 import com.squareup.tape.ObjectQueue;
-import com.squareup.tape.TaskInjector;
-import com.squareup.tape.TaskQueue;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
+import static com.segment.android.internal.util.Utils.isNullOrEmpty;
 
 public class Dispatcher {
   private static final String DISPATCHER_THREAD_NAME = "Dispatcher";
@@ -56,48 +58,31 @@ public class Dispatcher {
   final DispatcherThread dispatcherThread;
   final Handler mainThreadHandler;
   final DispatcherHandler handler;
-  final ObjectQueue<PayloadUploadTask> queue;
+  final ObjectQueue<BasePayload> queue;
   final SegmentHTTPApi segmentHTTPApi;
   final int maxQueueSize;
   final ExecutorService flushService;
-  volatile boolean flushing;
 
   private static final String TASK_QUEUE_FILE_NAME = "payload_task_queue";
 
   public static Dispatcher create(Context context, Handler mainThreadHandler, int queueSize,
       Gson gson, SegmentHTTPApi segmentHTTPApi) {
-    FileObjectQueue.Converter<PayloadUploadTask> converter =
-        new GsonConverter<PayloadUploadTask>(gson, PayloadUploadTask.class);
+    FileObjectQueue.Converter<BasePayload> converter = new GsonConverter<BasePayload>(gson);
     File queueFile = new File(context.getFilesDir(), TASK_QUEUE_FILE_NAME);
-    FileObjectQueue<PayloadUploadTask> delegate;
+    FileObjectQueue<BasePayload> queue;
     try {
-      delegate = new FileObjectQueue<PayloadUploadTask>(queueFile, converter);
+      queue = new FileObjectQueue<BasePayload>(queueFile, converter);
     } catch (IOException e) {
       throw new RuntimeException("Unable to create file queue.", e);
     }
-    PayloadUploadTaskInjector injector = new PayloadUploadTaskInjector(segmentHTTPApi);
-    TaskQueue<PayloadUploadTask> taskQueue = new TaskQueue<PayloadUploadTask>(delegate, injector);
-
     ExecutorService flushService =
         Executors.newSingleThreadExecutor(Executors.defaultThreadFactory());
 
-    return new Dispatcher(mainThreadHandler, flushService, queueSize, segmentHTTPApi, taskQueue);
-  }
-
-  static class PayloadUploadTaskInjector implements TaskInjector<PayloadUploadTask> {
-    private final SegmentHTTPApi segmentHTTPApi;
-
-    public PayloadUploadTaskInjector(SegmentHTTPApi segmentHTTPApi) {
-      this.segmentHTTPApi = segmentHTTPApi;
-    }
-
-    @Override public void injectMembers(PayloadUploadTask task) {
-      task.setSegmentHTTPApi(segmentHTTPApi);
-    }
+    return new Dispatcher(mainThreadHandler, flushService, queueSize, segmentHTTPApi, queue);
   }
 
   Dispatcher(Handler mainThreadHandler, ExecutorService flushService, int maxQueueSize,
-      SegmentHTTPApi segmentHTTPApi, ObjectQueue<PayloadUploadTask> queue) {
+      SegmentHTTPApi segmentHTTPApi, ObjectQueue<BasePayload> queue) {
     this.dispatcherThread = new DispatcherThread();
     this.dispatcherThread.start();
     this.handler = new DispatcherHandler(dispatcherThread.getLooper(), this);
@@ -117,40 +102,44 @@ public class Dispatcher {
   }
 
   void performEnqueue(BasePayload payload) {
-    Logger.v("Enqueing %s", payload);
-    queue.add(new PayloadUploadTask(payload));
+    queue.add(payload);
 
     if (queue.size() >= maxQueueSize) {
-      Logger.v("queue size %s > %s; flushing", queue.size(), maxQueueSize);
+      Logger.d("queue size %s > %s; flushing", queue.size(), maxQueueSize);
       performFlush();
     }
   }
 
   void performFlush() {
-    flushing = true;
     flushService.submit(new Runnable() {
       @Override public void run() {
-        executeNext();
+        flush();
       }
     });
   }
 
-  private void executeNext() {
+  private void flush() {
+    List<BasePayload> payloads = new ArrayList<BasePayload>();
 
-    final PayloadUploadTask task = queue.peek();
+    while (queue.size() > 0) {
+      BasePayload payload = queue.peek();
+      payload.setSentAt(ISO8601Time.now().time());
+      payloads.add(payload);
+      queue.remove();
+    }
 
-    if (task != null) {
-      try {
-        Logger.d("Queue Size is %d", queue.size());
-        task.execute(null);
-        queue.remove();
-        executeNext();
-      } catch (Exception e) {
-        Logger.e(e, "Failed to upload payload");
-        flushing = false;
+    Logger.d("Payload size : %s", payloads.size());
+    if (isNullOrEmpty(payloads)) {
+      return;
+    }
+    try {
+      BatchPayload batchPayload = new BatchPayload(payloads);
+      segmentHTTPApi.upload(batchPayload);
+    } catch (IOException e) {
+      Logger.e(e, "Failed to upload payloads");
+      for (BasePayload payload : payloads) {
+        queue.add(payload);
       }
-    } else {
-      flushing = false;
     }
   }
 

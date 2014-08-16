@@ -172,6 +172,9 @@ public class Segment {
       if (maxQueueSize == -1) {
         maxQueueSize = DEFAULT_QUEUE_SIZE;
       }
+      if (gson == null) {
+        gson = new Gson();
+      }
 
       SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey, gson);
       Dispatcher dispatcher =

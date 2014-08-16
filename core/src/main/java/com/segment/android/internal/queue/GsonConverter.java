@@ -25,6 +25,8 @@
 package com.segment.android.internal.queue;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.segment.android.internal.util.Logger;
 import com.squareup.tape.FileObjectQueue;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -34,24 +36,52 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 
-/** Converter which uses GSON to serialize instances of class T to disk. */
+/**
+ * Use GSON to serialize classes to a bytes.
+ * <p/>
+ * This variant of {@link GsonConverter} works with anything you throw at it. It is however
+ * important for Gson to be able to understand your inner complex objects/entities Use an {@link
+ * InterfaceAdapter} for these purposes.
+ */
 public class GsonConverter<T> implements FileObjectQueue.Converter<T> {
-  private final Gson gson;
-  private final Class<T> type;
 
-  public GsonConverter(Gson gson, Class<T> type) {
-    this.gson = gson;
-    this.type = type;
+  public static final String CONCRETE_CLASS_NAME = "concrete_class_name";
+  public static final String CONCRETE_CLASS_OBJECT = "concrete_class_object";
+  private final Gson _gson;
+
+  public GsonConverter(Gson gson) {
+    _gson = gson;
   }
 
-  @Override public T from(byte[] bytes) {
+  @Override
+  public T from(byte[] bytes) {
     Reader reader = new InputStreamReader(new ByteArrayInputStream(bytes));
-    return gson.fromJson(reader, type);
+    JsonObject completeAbstractClassInfoAsJson = _gson.fromJson(reader, JsonObject.class);
+
+    Class<T> clazz;
+    try {
+      String className = completeAbstractClassInfoAsJson.get(CONCRETE_CLASS_NAME).getAsString();
+      clazz = (Class<T>) Class.forName(className);
+    } catch (ClassNotFoundException e) {
+      Logger.e(e, "Error while deserializing TapeTask to a concrete class");
+      return null;
+    }
+
+    String objectDataAsString =
+        completeAbstractClassInfoAsJson.get(CONCRETE_CLASS_OBJECT).getAsString();
+
+    return _gson.fromJson(objectDataAsString, clazz);
   }
 
-  @Override public void toStream(T object, OutputStream bytes) throws IOException {
+  @Override
+  public void toStream(T object, OutputStream bytes) throws IOException {
     Writer writer = new OutputStreamWriter(bytes);
-    gson.toJson(object, writer);
+
+    JsonObject completeAbstractClassInfoAsJson = new JsonObject();
+    completeAbstractClassInfoAsJson.addProperty(CONCRETE_CLASS_NAME, object.getClass().getName());
+    completeAbstractClassInfoAsJson.addProperty(CONCRETE_CLASS_OBJECT, _gson.toJson(object));
+
+    _gson.toJson(completeAbstractClassInfoAsJson, writer);
     writer.close();
   }
 }

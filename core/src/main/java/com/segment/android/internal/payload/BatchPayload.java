@@ -24,28 +24,12 @@
 
 package com.segment.android.internal.payload;
 
-import com.segment.android.AnalyticsContext;
-import com.segment.android.Options;
-import com.segment.android.Properties;
+import java.util.List;
 
-public class TrackPayload extends BasePayload {
-  /**
-   * The name of the event. We recommend using title case and past tense for event names, like
-   * Signed Up.
-   */
-  public final String event;
+public class BatchPayload {
+  List<BasePayload> batch;
 
-  /**
-   * A dictionary of properties that give more information about the event. We have a collection of
-   * special properties that we recognize with semantic meaning. You can also add your own custom
-   * properties.
-   */
-  public final Properties properties;
-
-  public TrackPayload(String anonymousId, AnalyticsContext context, String userId, String event,
-      Properties properties, Options options) {
-    super(Type.track, anonymousId, context, userId, options);
-    this.event = event;
-    this.properties = properties;
+  public BatchPayload(List<BasePayload> batch) {
+    this.batch = batch;
   }
 }
