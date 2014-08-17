@@ -43,11 +43,11 @@ import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
 import com.segment.android.internal.util.Logger;
 
-import static com.segment.android.internal.Asserts.assertOnMainThread;
-import static com.segment.android.internal.util.ResourceUtils.getBooleanOrThrow;
-import static com.segment.android.internal.util.ResourceUtils.getIntegerOrThrow;
-import static com.segment.android.internal.util.ResourceUtils.getString;
+import static com.segment.android.internal.util.Utils.assertOnMainThread;
 import static com.segment.android.internal.util.Utils.getDeviceId;
+import static com.segment.android.internal.util.Utils.getResourceBooleanOrThrow;
+import static com.segment.android.internal.util.Utils.getResourceIntegerOrThrow;
+import static com.segment.android.internal.util.Utils.getResourceString;
 import static com.segment.android.internal.util.Utils.hasPermission;
 import static com.segment.android.internal.util.Utils.isNullOrEmpty;
 
@@ -75,14 +75,14 @@ public class Segment {
       }
       synchronized (Segment.class) {
         if (singleton == null) {
-          String writeKey = getString(context, WRITE_KEY_RESOURCE_IDENTIFIER);
+          String writeKey = getResourceString(context, WRITE_KEY_RESOURCE_IDENTIFIER);
 
           Builder builder = new Builder(context, writeKey);
 
           try {
             // We need the exception to be able to tell if this was not defined, or if it was
             // incorrectly defined - something we shouldn't ignore
-            int maxQueueSize = getIntegerOrThrow(context, QUEUE_SIZE_RESOURCE_IDENTIFIER);
+            int maxQueueSize = getResourceIntegerOrThrow(context, QUEUE_SIZE_RESOURCE_IDENTIFIER);
             if (maxQueueSize <= 0) {
               throw new IllegalStateException(
                   "maxQueueSize(" + maxQueueSize + ") may not be zero or negative.");
@@ -93,7 +93,7 @@ public class Segment {
           }
 
           try {
-            boolean debugging = getBooleanOrThrow(context, DEBUGGING_RESOURCE_IDENTIFIER);
+            boolean debugging = getResourceBooleanOrThrow(context, DEBUGGING_RESOURCE_IDENTIFIER);
             builder.debugging(debugging);
           } catch (Resources.NotFoundException e) {
             // when debugging is not defined in xml, we'll use a default value from the builder

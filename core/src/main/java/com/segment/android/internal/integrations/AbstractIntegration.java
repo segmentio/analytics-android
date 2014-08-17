@@ -15,7 +15,7 @@ import com.segment.android.internal.payload.TrackPayload;
  * A base class for Integrations. An integration will only be created if the server sends us
  * settings for it.
  */
-public abstract class Integration {
+public abstract class AbstractIntegration {
   private final Context context;
   private final String key;
   private IntegrationManager.State state;
@@ -24,7 +24,7 @@ public abstract class Integration {
    * Create an integration with the given settings. Check for any specific permissions or features
    * that the integration needs. Also check for any required values in your settings.
    */
-  public Integration(Context context, String key) {
+  public AbstractIntegration(Context context, String key) {
     this.context = context;
     this.key = key;
     state = IntegrationManager.State.DEFAULT;

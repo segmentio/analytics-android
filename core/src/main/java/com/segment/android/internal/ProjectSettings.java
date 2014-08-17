@@ -26,6 +26,9 @@ package com.segment.android.internal;
 
 public class ProjectSettings {
   static class Amplitude {
-
+    String apiKey;
+    boolean trackAllPages;
+    boolean trackCategorizedPages;
+    boolean trackNamedPages;
   }
 }

@@ -29,6 +29,10 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.os.Build;
+import android.os.Looper;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import java.util.Collection;
 import java.util.UUID;
@@ -41,6 +45,25 @@ public final class Utils {
 
   private Utils() {
     throw new AssertionError("No instances");
+  }
+
+  /** Throws an {@link IllegalStateException} if called on the main thread. */
+  public static void assertNotOnMainThread() {
+    if (isMain()) {
+      throw new IllegalStateException("Method should not be called from the main thread.");
+    }
+  }
+
+  /** Throws an {@link IllegalStateException} if not called on the main thread. */
+  public static void assertOnMainThread() {
+    if (!isMain()) {
+      throw new IllegalStateException("Method should be called from the main thread.");
+    }
+  }
+
+  /** Returns true if the called from the main thread. */
+  private static boolean isMain() {
+    return Looper.getMainLooper().getThread() == Thread.currentThread();
   }
 
   /** Returns true if the application has the given permission. */
@@ -116,5 +139,48 @@ public final class Utils {
   /** Returns a shared preferences for storing any library preferences. */
   public static SharedPreferences getSharedPreferences(Context context) {
     return context.getSharedPreferences("analytics-android", MODE_PRIVATE);
+  }
+
+  /** Get the string resource for the given key. Returns null if not found. */
+  public static String getResourceString(Context context, String key) {
+    int id = getIdentifier(context, "string", key);
+    if (id != 0) {
+      return context.getResources().getString(id);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Get the boolean resource for the given key. Throws {@link Resources.NotFoundException} if not
+   * found.
+   */
+  public static boolean getResourceBooleanOrThrow(Context context, String key) {
+    int id = getIdentifier(context, "bool", key);
+    if (id != 0) {
+      return context.getResources().getBoolean(id);
+    } else {
+      // We won't ever have an error thrown since we check the id first, so we'll re-throw it up
+      throw new Resources.NotFoundException("boolean with key:" + key + " not found in resources");
+    }
+  }
+
+  /**
+   * Get the integer resource for the given key.Throws {@link Resources.NotFoundException} if not
+   * found.
+   */
+  public static int getResourceIntegerOrThrow(Context context, String key) {
+    int id = getIdentifier(context, "integer", key);
+    if (id != 0) {
+      return context.getResources().getInteger(id);
+    } else {
+      // We won't ever have an error thrown since we check the id first, so we'll re-throw it up
+      throw new Resources.NotFoundException("integer with key:" + key + " not found in resources");
+    }
+  }
+
+  /** Get the identifier for the resource with a given type and key. */
+  private static int getIdentifier(Context context, String type, String key) {
+    return context.getResources().getIdentifier(key, type, context.getPackageName());
   }
 }

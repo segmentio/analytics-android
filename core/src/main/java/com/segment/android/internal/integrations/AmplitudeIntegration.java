@@ -10,9 +10,8 @@ import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
 
-public class AmplitudeIntegration extends Integration {
+public class AmplitudeIntegration extends AbstractIntegration {
   private static final String AMPLITUDE_KEY = "Amplitude";
-  private static final String API_KEY = "apiKey";
 
   private static final String REVENUE_KEY = "revenue";
   private static final String PRODUCT_ID_KEY = "productId";

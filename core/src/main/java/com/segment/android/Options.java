@@ -24,7 +24,6 @@
 
 package com.segment.android;
 
-import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -66,9 +65,8 @@ public class Options {
 
   /**
    * Sets the timestamp of when an analytics call occurred. The timestamp is primarily used for
-   * historical imports or if this event happened in the past. The timestamp is not required, and
-   * if
-   * it's not provided, our servers will timestamp the call as if it just happened.
+   * historical imports or if this event happened in the past. By default, this is set to the
+   * current time.
    *
    * @param timestamp The time when this event happened
    * @return This options object for chaining

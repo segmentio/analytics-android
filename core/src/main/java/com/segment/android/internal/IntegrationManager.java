@@ -8,8 +8,8 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import com.segment.android.Segment;
+import com.segment.android.internal.integrations.AbstractIntegration;
 import com.segment.android.internal.integrations.AmplitudeIntegration;
-import com.segment.android.internal.integrations.Integration;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
@@ -50,7 +50,7 @@ public class IntegrationManager {
     TAPSTREAM
   }
 
-  private final List<Integration> integrations = new LinkedList<Integration>();
+  private final List<AbstractIntegration> integrations = new LinkedList<AbstractIntegration>();
   final Context context;
   final SegmentHTTPApi segmentHTTPApi;
   final Handler mainThreadHandler;
@@ -76,7 +76,7 @@ public class IntegrationManager {
 
     try {
       Class.forName("com.amplitude.api.Amplitude");
-      Integration integration = new AmplitudeIntegration(context);
+      AbstractIntegration integration = new AmplitudeIntegration(context);
       integrations.add(integration);
     } catch (ClassNotFoundException e) {
       Logger.w("Amplitude is not bundled in the app.");
@@ -142,7 +142,7 @@ public class IntegrationManager {
   }
 
   private void initialize(ProjectSettings projectSettings) {
-    for (Integration integration : integrations) {
+    for (AbstractIntegration integration : integrations) {
       try {
         integration.initialize(projectSettings);
         integration.enable();
@@ -154,74 +154,74 @@ public class IntegrationManager {
   }
 
   public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-    for (Integration integration : integrations) {
+    for (AbstractIntegration integration : integrations) {
       integration.onActivityCreated(activity, savedInstanceState);
     }
   }
 
   void onActivityStarted(Activity activity) {
-    for (Integration integration : integrations) {
+    for (AbstractIntegration integration : integrations) {
       integration.onActivityStarted(activity);
     }
   }
 
   void onActivityResumed(Activity activity) {
-    for (Integration integration : integrations) {
+    for (AbstractIntegration integration : integrations) {
       integration.onActivityResumed(activity);
     }
   }
 
   void onActivityPaused(Activity activity) {
-    for (Integration integration : integrations) {
+    for (AbstractIntegration integration : integrations) {
       integration.onActivityPaused(activity);
     }
   }
 
   void onActivityStopped(Activity activity) {
-    for (Integration integration : integrations) {
+    for (AbstractIntegration integration : integrations) {
       integration.onActivityStopped(activity);
     }
   }
 
   void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-    for (Integration integration : integrations) {
+    for (AbstractIntegration integration : integrations) {
       integration.onActivitySaveInstanceState(activity, outState);
     }
   }
 
   void onActivityDestroyed(Activity activity) {
-    for (Integration integration : integrations) {
+    for (AbstractIntegration integration : integrations) {
       integration.onActivityDestroyed(activity);
     }
   }
 
   // Analytics Actions
   void identify(IdentifyPayload identify) {
-    for (Integration integration : integrations) {
+    for (AbstractIntegration integration : integrations) {
       integration.identify(identify);
     }
   }
 
   void group(GroupPayload group) {
-    for (Integration integration : integrations) {
+    for (AbstractIntegration integration : integrations) {
       integration.group(group);
     }
   }
 
   void track(TrackPayload track) {
-    for (Integration integration : integrations) {
+    for (AbstractIntegration integration : integrations) {
       integration.track(track);
     }
   }
 
   void alias(AliasPayload alias) {
-    for (Integration integration : integrations) {
+    for (AbstractIntegration integration : integrations) {
       integration.alias(alias);
     }
   }
 
   void screen(ScreenPayload screen) {
-    for (Integration integration : integrations) {
+    for (AbstractIntegration integration : integrations) {
       integration.screen(screen);
     }
   }

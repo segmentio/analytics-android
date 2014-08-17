@@ -56,30 +56,26 @@ public class GsonConverter<T> implements FileObjectQueue.Converter<T> {
   public T from(byte[] bytes) {
     Reader reader = new InputStreamReader(new ByteArrayInputStream(bytes));
     JsonObject completeAbstractClassInfoAsJson = gson.fromJson(reader, JsonObject.class);
-
     Class<T> clazz;
     try {
       String className = completeAbstractClassInfoAsJson.get(CONCRETE_CLASS_NAME).getAsString();
+      //noinspection unchecked
       clazz = (Class<T>) Class.forName(className);
     } catch (ClassNotFoundException e) {
-      Logger.e(e, "Error while deserializing TapeTask to a concrete class");
+      Logger.e(e, "Error while deserializing entity to a concrete class");
       return null;
     }
-
     String objectDataAsString =
         completeAbstractClassInfoAsJson.get(CONCRETE_CLASS_OBJECT).getAsString();
-
     return gson.fromJson(objectDataAsString, clazz);
   }
 
   @Override
   public void toStream(T object, OutputStream bytes) throws IOException {
     Writer writer = new OutputStreamWriter(bytes);
-
     JsonObject completeAbstractClassInfoAsJson = new JsonObject();
     completeAbstractClassInfoAsJson.addProperty(CONCRETE_CLASS_NAME, object.getClass().getName());
     completeAbstractClassInfoAsJson.addProperty(CONCRETE_CLASS_OBJECT, gson.toJson(object));
-
     gson.toJson(completeAbstractClassInfoAsJson, writer);
     writer.close();
   }
