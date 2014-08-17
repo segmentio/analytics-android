@@ -32,7 +32,6 @@ import android.os.Message;
 import com.google.gson.Gson;
 import com.segment.android.Segment;
 import com.segment.android.internal.payload.BasePayload;
-import com.segment.android.internal.payload.BatchPayload;
 import com.segment.android.internal.queue.GsonConverter;
 import com.segment.android.internal.util.ISO8601Time;
 import com.segment.android.internal.util.Logger;
@@ -133,8 +132,7 @@ public class Dispatcher {
       return;
     }
     try {
-      BatchPayload batchPayload = new BatchPayload(payloads);
-      segmentHTTPApi.upload(batchPayload);
+      segmentHTTPApi.upload(payloads);
     } catch (IOException e) {
       Logger.e(e, "Failed to upload payloads");
       for (BasePayload payload : payloads) {

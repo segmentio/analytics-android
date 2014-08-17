@@ -27,7 +27,7 @@ package com.segment.android.internal;
 import android.os.Build;
 import android.util.Base64;
 import com.google.gson.Gson;
-import com.segment.android.internal.payload.BatchPayload;
+import com.segment.android.internal.payload.BasePayload;
 import com.segment.android.internal.util.Logger;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -38,6 +38,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 import javax.net.ssl.HttpsURLConnection;
 
 import static java.net.HttpURLConnection.HTTP_OK;
@@ -67,7 +68,15 @@ public class SegmentHTTPApi {
     }
   }
 
-  public void upload(BatchPayload payload) throws IOException {
+  static class BatchPayload {
+    List<BasePayload> batch;
+
+    public BatchPayload(List<BasePayload> batch) {
+      this.batch = batch;
+    }
+  }
+
+  public void upload(List<BasePayload> payloads) throws IOException {
     HttpsURLConnection urlConnection = (HttpsURLConnection) createUrl("v1/import").openConnection();
 
     urlConnection.setDoOutput(true);
@@ -78,6 +87,8 @@ public class SegmentHTTPApi {
         "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP));
     urlConnection.setChunkedStreamingMode(0);
 
+    BatchPayload payload = new BatchPayload(payloads);
+    // todo: write dirrectly to writer
     String json = gson.toJson(payload);
     byte[] bytes = json.getBytes();
 

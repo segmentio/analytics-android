@@ -42,4 +42,8 @@ public class IdentifyPayload extends BasePayload {
     super(Type.identify, anonymousId, context, userId, options);
     this.traits = traits;
   }
+
+  public Traits getTraits() {
+    return traits;
+  }
 }

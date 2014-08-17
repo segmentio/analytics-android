@@ -48,4 +48,12 @@ public class TrackPayload extends BasePayload {
     this.event = event;
     this.properties = properties;
   }
+
+  public String getEvent() {
+    return event;
+  }
+
+  public Properties getProperties() {
+    return properties;
+  }
 }

@@ -45,4 +45,16 @@ public class ScreenPayload extends BasePayload {
     this.name = name;
     this.properties = properties;
   }
+
+  public String getCategory() {
+    return category;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public Properties getProperties() {
+    return properties;
+  }
 }

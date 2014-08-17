@@ -39,4 +39,8 @@ public class AliasPayload extends BasePayload {
     super(Type.alias, anonymousId, context, userId, options);
     this.previousId = previousId;
   }
+
+  public String getPreviousId() {
+    return previousId;
+  }
 }

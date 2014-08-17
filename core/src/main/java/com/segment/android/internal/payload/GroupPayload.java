@@ -36,17 +36,21 @@ public class GroupPayload extends BasePayload {
    */
   private final String groupId;
 
-  /**
-   * The group method also takes a traits dictionary, just like identify.
-   */
+  /** The group method also takes a traits dictionary, just like identify. */
   private final Traits traits;
-
-  private static final String TRAITS_KEY = "traits";
 
   public GroupPayload(String anonymousId, AnalyticsContext context, String userId, String groupId,
       Traits traits, Options options) {
     super(Type.group, anonymousId, context, userId, options);
     this.groupId = groupId;
     this.traits = traits;
+  }
+
+  public String getGroupId() {
+    return groupId;
+  }
+
+  public Traits getTraits() {
+    return traits;
   }
 }

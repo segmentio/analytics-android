@@ -26,11 +26,7 @@ package com.segment.android.internal.util;
 
 import android.util.Log;
 
-/**
- * {@link android.util.Log} wrapper.
- * <p/>
- * Generates a tag dynamically,
- */
+/** {@link android.util.Log} wrapper. */
 public final class Logger {
   private static final String TAG_FORMAT = "[%s] %s:%s";
   private static volatile boolean log;

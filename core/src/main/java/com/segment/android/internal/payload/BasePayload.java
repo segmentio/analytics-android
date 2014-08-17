@@ -103,11 +103,19 @@ public class BasePayload {
         : ISO8601Time.from(options.getTimestamp()).time();
   }
 
-  public Type getType() {
-    return type;
-  }
-
   public void setSentAt(long sentAt) {
     this.sentAt = sentAt;
+  }
+
+  public String getAnonymousId() {
+    return anonymousId;
+  }
+
+  public AnalyticsContext getContext() {
+    return context;
+  }
+
+  public String getUserId() {
+    return userId;
   }
 }
