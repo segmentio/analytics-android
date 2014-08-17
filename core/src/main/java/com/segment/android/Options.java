@@ -29,14 +29,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Options {
-  public static final String ALL_INTEGRATIONS_KEY = "all";
+  public static final String ALL_INTEGRATIONS = "all";
 
-  private Calendar timestamp;
   private final Map<String, Boolean> integrations;
+  private long timestamp;
 
   public Options() {
     integrations = new LinkedHashMap<String, Boolean>();
-    integrations.put(ALL_INTEGRATIONS_KEY, true);
+    integrations.put(ALL_INTEGRATIONS, true);
   }
 
   /**
@@ -45,10 +45,9 @@ public class Options {
    * <p/>
    * You can disable integrations for specific payloads. For instance,
    * <code>options.setIntegration("Google Analytics", false).setIntegration("Countly",
-   * false)</code>
-   * will send the event to all integrations except Google Analytic and Countly. If you want to
-   * enable only specific integrations, first override the defaults and then enable specific
-   * integrations. For example, <code>options.setIntegration(Options.ALL_INTEGRATIONS_KEY,
+   * false)</code> will send the event to all integrations except Google Analytic and Countly. If
+   * you want to enable only specific integrations, first override the defaults and then enable
+   * specific integrations. For example, <code>options.setIntegration(Options.ALL_INTEGRATIONS,
    * false).setIntegration("Countly", true).setIntegration("Google Analytics", true)</code> will
    * only send events to Countly and Google Analytics.
    *
@@ -74,12 +73,12 @@ public class Options {
    * @param timestamp The time when this event happened
    * @return This options object for chaining
    */
-  public Options setTimestamp(Calendar timestamp) {
+  public Options setTimestamp(long timestamp) {
     this.timestamp = timestamp;
     return this;
   }
 
-  public Calendar getTimestamp() {
+  public long getTimestamp() {
     return timestamp;
   }
 }

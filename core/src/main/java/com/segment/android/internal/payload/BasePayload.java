@@ -99,7 +99,7 @@ public class BasePayload {
     this.anonymousId = anonymousId;
     this.context = context;
     this.userId = userId;
-    this.timestamp = options.getTimestamp() == null ? ISO8601Time.now().time()
+    this.timestamp = options.getTimestamp() == 0L ? ISO8601Time.now().time()
         : ISO8601Time.from(options.getTimestamp()).time();
   }
 

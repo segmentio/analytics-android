@@ -279,15 +279,11 @@ public class AnalyticsContext {
 
   private AnalyticsContext(Context context) {
     app = new App(context);
-    // todo: campaign
     device = new Device();
-    // todo: ip
     library = new Library(context);
     locale = Locale.getDefault().getLanguage() + "-" + Locale.getDefault().getCountry();
-    // todo: location
     network = new Network(context);
     os = new OS();
-    // todo: referrer
     screen = new Screen(context);
     traits = Traits.with(context);
     // todo: groupId
@@ -310,6 +306,28 @@ public class AnalyticsContext {
 
   public AnalyticsContext put(String key, Object value) {
     other.put(key, value);
+    return this;
+  }
+
+  public AnalyticsContext putCampaign(String name, String source, String medium, String term,
+      String content) {
+    campaign = new Campaign(name, source, medium, term, content);
+    return this;
+  }
+
+  public AnalyticsContext putIp(String ip) {
+    this.ip = ip;
+    return this;
+  }
+
+  public AnalyticsContext putLocation(double latitude, double longitude, double speed) {
+    location = new Location(latitude, longitude, speed);
+    return this;
+  }
+
+  public AnalyticsContext putReferrer(String id, String link, String name, String type,
+      String url) {
+    referrer = new Referrer(id, link, name, type, url);
     return this;
   }
 }
