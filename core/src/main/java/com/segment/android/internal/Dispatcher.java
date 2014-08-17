@@ -24,7 +24,10 @@
 
 package com.segment.android.internal;
 
+import android.Manifest;
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -43,17 +46,21 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
+import static android.content.Context.CONNECTIVITY_SERVICE;
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
-import static com.segment.android.internal.util.Utils.isNullOrEmpty;
+import static com.segment.android.internal.util.Utils.hasPermission;
+import static java.util.concurrent.Executors.defaultThreadFactory;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 public class Dispatcher {
   private static final String DISPATCHER_THREAD_NAME = "Dispatcher";
+  private static final String TASK_QUEUE_FILE_NAME = "payload_task_queue";
 
   static final int REQUEST_ENQUEUE = 1;
   static final int REQUEST_FLUSH = 2;
 
+  final Context context;
   final DispatcherThread dispatcherThread;
   final Handler mainThreadHandler;
   final DispatcherHandler handler;
@@ -62,9 +69,7 @@ public class Dispatcher {
   final int maxQueueSize;
   final ExecutorService flushService;
 
-  private static final String TASK_QUEUE_FILE_NAME = "payload_task_queue";
-
-  public static Dispatcher create(Context context, Handler mainThreadHandler, int queueSize,
+  public static Dispatcher create(Context context, Handler mainThreadHandler, int maxQueueSize,
       Gson gson, SegmentHTTPApi segmentHTTPApi) {
     FileObjectQueue.Converter<BasePayload> converter = new GsonConverter<BasePayload>(gson);
     File queueFile = new File(context.getFilesDir(), TASK_QUEUE_FILE_NAME);
@@ -74,14 +79,14 @@ public class Dispatcher {
     } catch (IOException e) {
       throw new RuntimeException("Unable to create file queue.", e);
     }
-    ExecutorService flushService =
-        Executors.newSingleThreadExecutor(Executors.defaultThreadFactory());
-
-    return new Dispatcher(mainThreadHandler, flushService, queueSize, segmentHTTPApi, queue);
+    ExecutorService flushService = newSingleThreadExecutor(defaultThreadFactory());
+    return new Dispatcher(context, mainThreadHandler, flushService, maxQueueSize, segmentHTTPApi,
+        queue);
   }
 
-  Dispatcher(Handler mainThreadHandler, ExecutorService flushService, int maxQueueSize,
-      SegmentHTTPApi segmentHTTPApi, ObjectQueue<BasePayload> queue) {
+  Dispatcher(Context context, Handler mainThreadHandler, ExecutorService flushService,
+      int maxQueueSize, SegmentHTTPApi segmentHTTPApi, ObjectQueue<BasePayload> queue) {
+    this.context = context;
     this.dispatcherThread = new DispatcherThread();
     this.dispatcherThread.start();
     this.handler = new DispatcherHandler(dispatcherThread.getLooper(), this);
@@ -118,8 +123,14 @@ public class Dispatcher {
   }
 
   private void flush() {
-    List<BasePayload> payloads = new ArrayList<BasePayload>();
+    if (queue.size() <= 0 || !isConnected()) {
+      return; // no-op
+    }
 
+    List<BasePayload> payloads = new ArrayList<BasePayload>();
+    // This causes us to lose the guarantee that events will be delivered, since we could lose
+    // power while adding them to the list and the events would be lost from the queue.
+    // Another operation
     while (queue.size() > 0) {
       BasePayload payload = queue.peek();
       payload.setSentAt(ISO8601Time.now().time());
@@ -127,18 +138,27 @@ public class Dispatcher {
       queue.remove();
     }
 
-    Logger.d("Payload size : %s", payloads.size());
-    if (isNullOrEmpty(payloads)) {
-      return;
-    }
     try {
       segmentHTTPApi.upload(payloads);
     } catch (IOException e) {
       Logger.e(e, "Failed to upload payloads");
       for (BasePayload payload : payloads) {
-        queue.add(payload);
+        queue.add(payload); // re-enqueue the payloads
       }
     }
+  }
+
+  /**
+   * Returns true if the phone is connected to a network, or if we don't have the permission to
+   * find out. False otherwise.
+   */
+  boolean isConnected() {
+    if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
+      return true; // assume we have the connection and try to upload
+    }
+    ConnectivityManager cm = (ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE);
+    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+    return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
   }
 
   private static class DispatcherHandler extends Handler {
