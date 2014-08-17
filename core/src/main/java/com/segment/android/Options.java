@@ -44,7 +44,8 @@ public class Options {
    * sent a payload.
    * <p/>
    * You can disable integrations for specific payloads. For instance,
-   * <code>options.setIntegration("Google Analytics", false).setIntegration("Countly", false)</code>
+   * <code>options.setIntegration("Google Analytics", false).setIntegration("Countly",
+   * false)</code>
    * will send the event to all integrations except Google Analytic and Countly. If you want to
    * enable only specific integrations, first override the defaults and then enable specific
    * integrations. For example, <code>options.setIntegration(Options.ALL_INTEGRATIONS_KEY,
@@ -52,7 +53,7 @@ public class Options {
    * only send events to Countly and Google Analytics.
    *
    * @param integrationKey The integration key
-   * @param enabled        <code>true</code> for enabled, <code>false</code> for disabled
+   * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
    * @return This options object for chaining
    */
   public Options setIntegration(String integrationKey, boolean enabled) {
@@ -66,7 +67,8 @@ public class Options {
 
   /**
    * Sets the timestamp of when an analytics call occurred. The timestamp is primarily used for
-   * historical imports or if this event happened in the past. The timestamp is not required, and if
+   * historical imports or if this event happened in the past. The timestamp is not required, and
+   * if
    * it's not provided, our servers will timestamp the call as if it just happened.
    *
    * @param timestamp The time when this event happened

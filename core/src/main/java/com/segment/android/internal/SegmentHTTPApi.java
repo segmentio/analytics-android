@@ -27,9 +27,7 @@ package com.segment.android.internal;
 import android.os.Build;
 import android.util.Base64;
 import com.google.gson.Gson;
-import com.segment.android.internal.payload.BasePayload;
 import com.segment.android.internal.payload.BatchPayload;
-import com.segment.android.internal.util.ISO8601Time;
 import com.segment.android.internal.util.Logger;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -128,7 +126,7 @@ public class SegmentHTTPApi {
   private static String readFully(InputStream in) throws IOException {
     BufferedReader r = new BufferedReader(new InputStreamReader(in));
     StringBuilder response = new StringBuilder();
-    for (String line; (line = r.readLine()) != null; ) {
+    for (String line; (line = r.readLine()) != null;) {
       response.append(line);
     }
     return response.toString();

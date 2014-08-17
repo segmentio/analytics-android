@@ -44,19 +44,18 @@ import java.io.Writer;
  * InterfaceAdapter} for these purposes.
  */
 public class GsonConverter<T> implements FileObjectQueue.Converter<T> {
-
-  public static final String CONCRETE_CLASS_NAME = "concrete_class_name";
-  public static final String CONCRETE_CLASS_OBJECT = "concrete_class_object";
-  private final Gson _gson;
+  static final String CONCRETE_CLASS_NAME = "concrete_class_name";
+  static final String CONCRETE_CLASS_OBJECT = "concrete_class_object";
+  final Gson gson;
 
   public GsonConverter(Gson gson) {
-    _gson = gson;
+    this.gson = gson;
   }
 
   @Override
   public T from(byte[] bytes) {
     Reader reader = new InputStreamReader(new ByteArrayInputStream(bytes));
-    JsonObject completeAbstractClassInfoAsJson = _gson.fromJson(reader, JsonObject.class);
+    JsonObject completeAbstractClassInfoAsJson = gson.fromJson(reader, JsonObject.class);
 
     Class<T> clazz;
     try {
@@ -70,7 +69,7 @@ public class GsonConverter<T> implements FileObjectQueue.Converter<T> {
     String objectDataAsString =
         completeAbstractClassInfoAsJson.get(CONCRETE_CLASS_OBJECT).getAsString();
 
-    return _gson.fromJson(objectDataAsString, clazz);
+    return gson.fromJson(objectDataAsString, clazz);
   }
 
   @Override
@@ -79,9 +78,9 @@ public class GsonConverter<T> implements FileObjectQueue.Converter<T> {
 
     JsonObject completeAbstractClassInfoAsJson = new JsonObject();
     completeAbstractClassInfoAsJson.addProperty(CONCRETE_CLASS_NAME, object.getClass().getName());
-    completeAbstractClassInfoAsJson.addProperty(CONCRETE_CLASS_OBJECT, _gson.toJson(object));
+    completeAbstractClassInfoAsJson.addProperty(CONCRETE_CLASS_OBJECT, gson.toJson(object));
 
-    _gson.toJson(completeAbstractClassInfoAsJson, writer);
+    gson.toJson(completeAbstractClassInfoAsJson, writer);
     writer.close();
   }
 }

@@ -24,7 +24,6 @@
 
 package com.segment.android.internal;
 
-
 public class ProjectSettings {
   static class Amplitude {
 

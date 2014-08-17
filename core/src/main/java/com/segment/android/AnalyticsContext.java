@@ -53,11 +53,13 @@ import static com.segment.android.internal.util.Utils.hasPermission;
  * any custom data to the context dictionary that you'd like to have access to in the raw logs.
  * <p/>
  * Some keys in the context dictionary have semantic meaning and will be collected for you
- * automatically, depending on the library you send data from.Some keys need to be manually entered,
+ * automatically, depending on the library you send data from.Some keys need to be manually
+ * entered,
  * such as IP Address, speed, etc.
  * <p/>
  * This is not persisted to disk, and is recomputed each time the app starts. If you add your own
- * attributes, you'll have to update it as well for each app start if you want it to persist between
+ * attributes, you'll have to update it as well for each app start if you want it to persist
+ * between
  * sessions.
  */
 public class AnalyticsContext {
