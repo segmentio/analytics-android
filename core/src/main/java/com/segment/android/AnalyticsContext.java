@@ -56,8 +56,8 @@ import static com.segment.android.internal.util.Utils.hasPermission;
  * automatically, depending on the library you send data from.Some keys need to be manually entered,
  * such as IP Address, speed, etc.
  * <p/>
- * This is not persisted to disk, and is recomputed each time the app starts. If you set a key
- * manually, you'll have to update it as well for each app start if you want it to persist between
+ * This is not persisted to disk, and is recomputed each time the app starts. If you add your own
+ * attributes, you'll have to update it as well for each app start if you want it to persist between
  * sessions.
  */
 public class AnalyticsContext {
