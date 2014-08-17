@@ -63,14 +63,14 @@ import static com.segment.android.internal.util.Utils.hasPermission;
  * sessions.
  */
 public class AnalyticsContext {
-  static class App {
-    String name;
-    String version;
-    String build;
+  public static class App {
+    public String name;
+    public String version;
+    public String build;
     // Android Specific
-    String packageName;
-    String versionCode;
-    String versionName;
+    public String packageName;
+    public String versionCode;
+    public String versionName;
 
     App(Context context) {
       try {
@@ -88,12 +88,12 @@ public class AnalyticsContext {
     }
   }
 
-  static class Campaign {
-    String name;
-    String source;
-    String medium;
-    String term;
-    String content;
+  public static class Campaign {
+    public String name;
+    public String source;
+    public String medium;
+    public String term;
+    public String content;
 
     Campaign(String name, String source, String medium, String term, String content) {
       this.name = name;
@@ -104,13 +104,13 @@ public class AnalyticsContext {
     }
   }
 
-  static class Device {
-    String id;
-    String manufacturer;
-    String model;
-    String name;
-    String type;
-    String brand;
+  public static class Device {
+    public String id;
+    public String manufacturer;
+    public String model;
+    public String name;
+    public String type;
+    public String brand;
 
     // Ignored for Android
     // String idfv;
@@ -127,15 +127,15 @@ public class AnalyticsContext {
     }
   }
 
-  static class Library {
-    String name;
-    int version;
+  public static class Library {
+    public String name;
+    public int version;
     // Android Specific
-    String versionName;
-    boolean debug;
-    String buildType;
-    String flavor;
-    boolean logging;
+    public String versionName;
+    public boolean debug;
+    public String buildType;
+    public String flavor;
+    public boolean logging;
 
     public Library(Context context) {
       // This is the library info, not the app's
@@ -149,10 +149,10 @@ public class AnalyticsContext {
     }
   }
 
-  static class Location {
-    double latitude;
-    double longitude;
-    double speed;
+  public static class Location {
+    public double latitude;
+    public double longitude;
+    public double speed;
 
     Location(double latitude, double longitude, double speed) {
       this.latitude = latitude;
@@ -161,11 +161,11 @@ public class AnalyticsContext {
     }
   }
 
-  static class Network {
-    boolean bluetooth;
-    String carrier;
-    boolean cellular;
-    boolean wifi;
+  public static class Network {
+    public boolean bluetooth;
+    public String carrier;
+    public boolean cellular;
+    public boolean wifi;
 
     Network(Context context) {
       if (hasPermission(context, ACCESS_NETWORK_STATE)) {
@@ -185,12 +185,12 @@ public class AnalyticsContext {
     }
   }
 
-  static class OS {
-    String name;
-    String version;
+  public static class OS {
+    public String name;
+    public String version;
 
     // Android Specific
-    int sdk;
+    public int sdk;
 
     OS() {
       name = Build.VERSION.CODENAME;
@@ -199,12 +199,12 @@ public class AnalyticsContext {
     }
   }
 
-  static class Referrer {
-    String id;
-    String link;
-    String name;
-    String type;
-    String url;
+  public static class Referrer {
+    public String id;
+    public String link;
+    public String name;
+    public String type;
+    public String url;
 
     Referrer(String id, String link, String name, String type, String url) {
       this.id = id;
@@ -215,14 +215,14 @@ public class AnalyticsContext {
     }
   }
 
-  static class Screen {
-    float density;
-    int height;
-    int width;
+  public static class Screen {
+    public float density;
+    public int height;
+    public int width;
     // Android Specific
-    int densityDpi;
-    String densityBucket;
-    float scaledDensity;
+    public int densityDpi;
+    public String densityBucket;
+    public float scaledDensity;
 
     Screen(Context context) {
       WindowManager manager = getSystemService(context, Context.WINDOW_SERVICE);
@@ -329,5 +329,65 @@ public class AnalyticsContext {
       String url) {
     referrer = new Referrer(id, link, name, type, url);
     return this;
+  }
+
+  public App getApp() {
+    return app;
+  }
+
+  public Campaign getCampaign() {
+    return campaign;
+  }
+
+  public Device getDevice() {
+    return device;
+  }
+
+  public String getIp() {
+    return ip;
+  }
+
+  public Library getLibrary() {
+    return library;
+  }
+
+  public String getLocale() {
+    return locale;
+  }
+
+  public Location getLocation() {
+    return location;
+  }
+
+  public Network getNetwork() {
+    return network;
+  }
+
+  public OS getOs() {
+    return os;
+  }
+
+  public Referrer getReferrer() {
+    return referrer;
+  }
+
+  public Screen getScreen() {
+    return screen;
+  }
+
+  public Traits getTraits() {
+    return traits;
+  }
+
+  public String getGroupId() {
+    return groupId;
+  }
+
+  public String getUserAgent() {
+    return userAgent;
+  }
+
+  public Map<String, Object> getOther() {
+    return other;
   }
 }

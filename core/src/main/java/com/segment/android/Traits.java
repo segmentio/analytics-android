@@ -41,12 +41,12 @@ import static com.segment.android.internal.util.Utils.getDeviceId;
  * the user traits
  */
 public class Traits {
-  static class Address {
-    String city;
-    String country;
-    String postalCode;
-    String state;
-    String street;
+  public static class Address {
+    public String city;
+    public String country;
+    public String postalCode;
+    public String state;
+    public String street;
 
     Address(String city, String country, String postalCode, String state, String street) {
       this.city = city;
@@ -57,29 +57,29 @@ public class Traits {
     }
   }
 
-  String avatar;
-  String createdAt;
-  String description;
-  String email;
-  String fax;
-  String id;
-  String name;
-  String phone;
-  String website;
-  Map<String, Object> other;
+  public String avatar;
+  public String createdAt;
+  public String description;
+  public String email;
+  public String fax;
+  public String id;
+  public String name;
+  public String phone;
+  public String website;
+  public Map<String, Object> other;
 
   // For Identify Calls
-  short age;
-  ISO8601Time birthday;
-  String firstName;
-  String gender;
-  String lastName;
-  String title;
-  String username;
+  public short age;
+  public ISO8601Time birthday;
+  public String firstName;
+  public String gender;
+  public String lastName;
+  public String title;
+  public String username;
 
   // For Group calls
-  long employees;
-  String industry;
+  public long employees;
+  public String industry;
 
   private Traits(Context context) {
     setId(getDeviceId(context));
@@ -196,5 +196,77 @@ public class Traits {
   public Traits put(String key, Object value) {
     other.put(key, value);
     return this;
+  }
+
+  public String getAvatar() {
+    return avatar;
+  }
+
+  public String getCreatedAt() {
+    return createdAt;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public String getFax() {
+    return fax;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public String getPhone() {
+    return phone;
+  }
+
+  public String getWebsite() {
+    return website;
+  }
+
+  public Map<String, Object> getOther() {
+    return other;
+  }
+
+  public short getAge() {
+    return age;
+  }
+
+  public ISO8601Time getBirthday() {
+    return birthday;
+  }
+
+  public String getFirstName() {
+    return firstName;
+  }
+
+  public String getGender() {
+    return gender;
+  }
+
+  public String getLastName() {
+    return lastName;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public long getEmployees() {
+    return employees;
+  }
+
+  public String getIndustry() {
+    return industry;
   }
 }

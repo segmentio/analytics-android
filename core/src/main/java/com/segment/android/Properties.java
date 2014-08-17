@@ -60,4 +60,20 @@ public class Properties {
     other.put(key, value);
     return this;
   }
+
+  public double getRevenue() {
+    return revenue;
+  }
+
+  public String getCurrency() {
+    return currency;
+  }
+
+  public String getValue() {
+    return value;
+  }
+
+  public Map<String, Object> getOther() {
+    return other;
+  }
 }
