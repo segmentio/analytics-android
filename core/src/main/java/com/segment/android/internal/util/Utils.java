@@ -187,6 +187,7 @@ public final class Utils {
   }
 
   public static ExecutorService defaultSingleThreadedExecutor() {
-    return Executors.newSingleThreadExecutor(Executors.defaultThreadFactory());
+    // Executors.defaultThreadFactory() is automatically used
+    return Executors.newSingleThreadExecutor();
   }
 }
