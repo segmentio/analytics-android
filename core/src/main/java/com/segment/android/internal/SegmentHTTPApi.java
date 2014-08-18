@@ -49,7 +49,7 @@ public class SegmentHTTPApi {
   private final String writeKey;
   private final Gson gson;
 
-  public SegmentHTTPApi(String writeKey, Gson gson) {
+  SegmentHTTPApi(String writeKey, Gson gson) {
     this.writeKey = writeKey;
     this.gson = gson;
 
@@ -66,6 +66,10 @@ public class SegmentHTTPApi {
     } catch (MalformedURLException e) {
       throw new IllegalArgumentException("Could not form url for " + url);
     }
+  }
+
+  public static SegmentHTTPApi create(String writeKey, Gson gson) {
+    return new SegmentHTTPApi(writeKey, gson);
   }
 
   static class BatchPayload {

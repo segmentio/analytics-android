@@ -176,7 +176,7 @@ public class Segment {
         gson = new Gson();
       }
 
-      SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey, gson);
+      SegmentHTTPApi segmentHTTPApi = SegmentHTTPApi.create(writeKey, gson);
       Dispatcher dispatcher =
           Dispatcher.create(application, HANDLER, maxQueueSize, gson, segmentHTTPApi);
       IntegrationManager integrationManager =
