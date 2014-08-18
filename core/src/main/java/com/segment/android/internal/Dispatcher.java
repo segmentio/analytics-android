@@ -29,16 +29,11 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
-import android.os.Message;
 import com.google.gson.Gson;
-import com.segment.android.Segment;
 import com.segment.android.internal.payload.BasePayload;
 import com.segment.android.internal.queue.GsonConverter;
 import com.segment.android.internal.util.ISO8601Time;
 import com.segment.android.internal.util.Logger;
-import com.segment.android.internal.util.Utils;
 import com.squareup.tape.FileObjectQueue;
 import com.squareup.tape.ObjectQueue;
 import java.io.File;
@@ -48,25 +43,19 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import static android.content.Context.CONNECTIVITY_SERVICE;
-import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.android.internal.util.Utils.defaultSingleThreadedExecutor;
 import static com.segment.android.internal.util.Utils.hasPermission;
 
 public class Dispatcher {
-  private static final String DISPATCHER_THREAD_NAME = "Dispatcher";
   private static final String TASK_QUEUE_FILE_NAME = "payload_task_queue";
 
-  static final int REQUEST_ENQUEUE = 1;
-  static final int REQUEST_FLUSH = 2;
-
   final Context context;
-  final DispatcherThread dispatcherThread;
   final Handler mainThreadHandler;
-  final DispatcherHandler handler;
   final ObjectQueue<BasePayload> queue;
   final SegmentHTTPApi segmentHTTPApi;
   final int maxQueueSize;
   final ExecutorService flushService;
+  final ExecutorService queueService;
 
   public static Dispatcher create(Context context, Handler mainThreadHandler, int maxQueueSize,
       Gson gson, SegmentHTTPApi segmentHTTPApi) {
@@ -79,46 +68,46 @@ public class Dispatcher {
       throw new RuntimeException("Unable to create file queue.", e);
     }
     ExecutorService flushService = defaultSingleThreadedExecutor();
+    ExecutorService queueService = defaultSingleThreadedExecutor();
     return new Dispatcher(context, mainThreadHandler, flushService, maxQueueSize, segmentHTTPApi,
-        queue);
+        queue, queueService);
   }
 
   Dispatcher(Context context, Handler mainThreadHandler, ExecutorService flushService,
-      int maxQueueSize, SegmentHTTPApi segmentHTTPApi, ObjectQueue<BasePayload> queue) {
+      int maxQueueSize, SegmentHTTPApi segmentHTTPApi, ObjectQueue<BasePayload> queue,
+      ExecutorService queueService) {
     this.context = context;
-    this.dispatcherThread = new DispatcherThread();
-    this.dispatcherThread.start();
-    this.handler = new DispatcherHandler(dispatcherThread.getLooper(), this);
     this.mainThreadHandler = mainThreadHandler;
     this.maxQueueSize = maxQueueSize;
     this.segmentHTTPApi = segmentHTTPApi;
     this.queue = queue;
     this.flushService = flushService;
+    this.queueService = queueService;
   }
 
-  public void dispatchEnqueue(BasePayload payload) {
-    handler.sendMessage(handler.obtainMessage(REQUEST_ENQUEUE, payload));
+  public void dispatchEnqueue(final BasePayload payload) {
+    queueService.submit(new Runnable() {
+      @Override public void run() {
+        enqueue(payload);
+      }
+    });
   }
 
   public void dispatchFlush() {
-    handler.sendMessage(handler.obtainMessage(REQUEST_FLUSH));
-  }
-
-  void performEnqueue(BasePayload payload) {
-    queue.add(payload);
-
-    if (queue.size() >= maxQueueSize) {
-      Logger.d("queue size %s > %s; flushing", queue.size(), maxQueueSize);
-      performFlush();
-    }
-  }
-
-  void performFlush() {
     flushService.submit(new Runnable() {
       @Override public void run() {
         flush();
       }
     });
+  }
+
+  private void enqueue(BasePayload payload) {
+    queue.add(payload);
+
+    if (queue.size() >= maxQueueSize) {
+      Logger.d("queue size %s > %s; flushing", queue.size(), maxQueueSize);
+      dispatchFlush();
+    }
   }
 
   private void flush() {
@@ -158,40 +147,5 @@ public class Dispatcher {
     ConnectivityManager cm = (ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE);
     NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
     return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
-  }
-
-  private static class DispatcherHandler extends Handler {
-    private final Dispatcher dispatcher;
-
-    DispatcherHandler(Looper looper, Dispatcher dispatcher) {
-      super(looper);
-      this.dispatcher = dispatcher;
-    }
-
-    @Override public void handleMessage(final Message msg) {
-      switch (msg.what) {
-        case REQUEST_ENQUEUE: {
-          BasePayload payload = (BasePayload) msg.obj;
-          dispatcher.performEnqueue(payload);
-          break;
-        }
-        case REQUEST_FLUSH: {
-          dispatcher.performFlush();
-          break;
-        }
-        default:
-          Segment.HANDLER.post(new Runnable() {
-            @Override public void run() {
-              throw new AssertionError("Unknown handler message received: " + msg.what);
-            }
-          });
-      }
-    }
-  }
-
-  static class DispatcherThread extends HandlerThread {
-    DispatcherThread() {
-      super(Utils.THREAD_PREFIX + DISPATCHER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
-    }
   }
 }
