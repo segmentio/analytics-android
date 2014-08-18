@@ -272,8 +272,11 @@ public class Segment {
       options = new Options();
     }
 
-    submit(new TrackPayload(anonymousId, AnalyticsContext.with(application),
-        Traits.with(application).getId(), event, properties, options));
+    TrackPayload payload = new TrackPayload(anonymousId, AnalyticsContext.with(application),
+        Traits.with(application).getId(), event, properties, options);
+
+    submit(payload);
+    integrationManager.track(payload);
   }
 
   public void screen(String category, String name, Properties properties, Options options) {

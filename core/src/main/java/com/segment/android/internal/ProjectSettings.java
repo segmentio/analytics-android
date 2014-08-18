@@ -31,92 +31,92 @@ public class ProjectSettings {
   //CHECKSTYLE:OFF
   // We could use serializedName but easier this way so the configuration is passed to whichever
   // json library is used without needing multiple annotations
-  AmplitudeSettings Amplitude;
-  BugsnagSettings Bugsnag;
-  CrittercismSettings Crittercism;
-  FlurrySettings Flurry;
-  GoogleAnalyticsSettings googleAnalytics;
-  MixpanelSettings Mixpanel;
+  public AmplitudeSettings Amplitude;
+  public BugsnagSettings Bugsnag;
+  public CrittercismSettings Crittercism;
+  public FlurrySettings Flurry;
+  public GoogleAnalyticsSettings googleAnalytics;
+  public MixpanelSettings Mixpanel;
   //CHECKSTYLE:ON
 
-  static class AmplitudeSettings {
-    String apiKey;
-    boolean trackAllPages;
-    boolean trackCategorizedPages;
-    boolean trackNamedPages;
+  public static class AmplitudeSettings {
+    public String apiKey;
+    public boolean trackAllPages;
+    public boolean trackCategorizedPages;
+    public boolean trackNamedPages;
   }
 
-  static class BugsnagSettings {
-    String apiKey;
-    boolean useSSL;
+  public static class BugsnagSettings {
+    public String apiKey;
+    public boolean useSSL;
   }
 
   static class CountlySettings {
-    String apiKey;
-    String serverUrl;
+    public String apiKey;
+    public String serverUrl;
   }
 
-  static class CrittercismSettings {
-    String appId;
-    boolean includeVersionCode;
-    boolean shouldCollectLogcat;
+  public static class CrittercismSettings {
+    public String appId;
+    public boolean includeVersionCode;
+    public boolean shouldCollectLogcat;
   }
 
-  static class FlurrySettings {
-    String apiKey;
-    boolean captureUncaughtExceptions;
-    boolean useHttps;
-    int sessionContinueSeconds;
+  public static class FlurrySettings {
+    public String apiKey;
+    public boolean captureUncaughtExceptions;
+    public boolean useHttps;
+    public int sessionContinueSeconds;
   }
 
-  static class GoogleAnalyticsSettings {
-    boolean sendUserId;
-    boolean reportUncaughtExceptions;
-    boolean anonymizeIp;
-    boolean classic;
-    String domain;
-    boolean doubleClick;
-    boolean enhancedLinkAttribution;
-    List<String> ignoredReferrers;
-    boolean includeSearch;
-    boolean initialPageView;
-    String mobileTrackingId;
-    String serversideTrackingId;
-    boolean serversideClassic;
-    int siteSpeedSampleRate;
-    String trackingId;
-    boolean trackCategorizedPages;
-    boolean trackNamedPages;
-    Map<String, String> dimensions;
-    Map<String, String> metric;
+  public static class GoogleAnalyticsSettings {
+    public boolean sendUserId;
+    public boolean reportUncaughtExceptions;
+    public boolean anonymizeIp;
+    public boolean classic;
+    public String domain;
+    public boolean doubleClick;
+    public boolean enhancedLinkAttribution;
+    public List<String> ignoredReferrers;
+    public boolean includeSearch;
+    public boolean initialPageView;
+    public String mobileTrackingId;
+    public String serversideTrackingId;
+    public boolean serversideClassic;
+    public int siteSpeedSampleRate;
+    public String trackingId;
+    public boolean trackCategorizedPages;
+    public boolean trackNamedPages;
+    public Map<String, String> dimensions;
+    public Map<String, String> metric;
   }
 
-  static class LocalyticsSettings {
-    String appKey;
+  public static class LocalyticsSettings {
+    public String appKey;
   }
 
-  static class MixpanelSettings {
-    String apiKey;
-    boolean people;
-    String token;
-    boolean trackAllPages;
-    boolean trackCategorizedPages;
-    boolean trackNamedPages;
-    List<String> increments;
-    boolean legacySuperProperties;
+  public static class MixpanelSettings {
+    public String apiKey;
+    public boolean people;
+    public String token;
+    public boolean trackAllPages;
+    public boolean trackCategorizedPages;
+    public boolean trackNamedPages;
+    public List<String> increments;
+    public boolean legacySuperProperties;
   }
 
-  static class QuantcastSettings {
-    String apiKey;
-    String pCode;
-    String advertise;
+  public static class QuantcastSettings {
+    public String apiKey;
+    public String pCode;
+    public String advertise;
   }
 
-  static class TapstreamSettings {
-    String accountName;
-    String sdkSecret;
-    boolean trackAllPages;
-    boolean trackCategorizedPages;
-    boolean trackNamedPages;
+  public static class TapstreamSettings {
+    public String accountName;
+    public String sdkSecret;
+    public boolean trackAllPages;
+    public boolean trackCategorizedPages;
+    public boolean trackNamedPages;
   }
 }

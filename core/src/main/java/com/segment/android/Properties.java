@@ -26,6 +26,8 @@ package com.segment.android;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Just like traits, we also imbue some properties with semantic meaning, and you should only ever
@@ -75,5 +77,13 @@ public class Properties {
 
   public Map<String, Object> getOther() {
     return other;
+  }
+
+  public JSONObject asJsonObject() throws JSONException {
+    JSONObject jsonObject = new JSONObject(other);
+    jsonObject.put("revenue", revenue);
+    jsonObject.put("currency", currency);
+    jsonObject.put("value", value);
+    return jsonObject;
   }
 }

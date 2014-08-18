@@ -4,10 +4,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
-import com.google.gson.Gson;
 import com.segment.android.Segment;
 import com.segment.android.internal.integrations.AbstractIntegration;
 import com.segment.android.internal.integrations.AmplitudeIntegration;
+import com.segment.android.internal.integrations.InvalidConfigurationException;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
@@ -21,31 +21,15 @@ import java.util.concurrent.ExecutorService;
 
 import static com.segment.android.internal.util.Utils.defaultSingleThreadedExecutor;
 
+/**
+ * Manages bundled integrations. This class will maintain it's own queue for events to account for
+ * the latency between receiving the first event, fetching remote settings and enabling the
+ * integrations. Once we enable all integrations - we'll replay any events on disk.
+ * This should only affect the first app install, subsequent launches will be use a cached value
+ * from disk.
+ * Note that none of the activity lifecycle events are queued to disk.
+ */
 public class IntegrationManager {
-  public enum State {
-    // Default state, has not been initialized from the server
-    DEFAULT,
-    // Integration is disabled - either the user has not enabled it, or it could not be enabled due
-    // to missing settings/permissions
-    DISABLED,
-    // Integration is ready to receive events
-    ENABLED
-  }
-
-  @SuppressWarnings("SpellCheckingInspection")
-  public enum BundledProvider {
-    AMPLITUDE,
-    BUGSNAG,
-    COUNTLY,
-    CRITTERCISM,
-    FLURRY,
-    GOOGLE_ANALYTICS,
-    LOCALYTICS,
-    MIXPANEL,
-    QUANTCAST,
-    TAPSTREAM
-  }
-
   private final List<AbstractIntegration> integrations = new LinkedList<AbstractIntegration>();
   final Context context;
   final SegmentHTTPApi segmentHTTPApi;
@@ -70,14 +54,6 @@ public class IntegrationManager {
         performFetch();
       }
     });
-
-    try {
-      Class.forName("com.amplitude.api.Amplitude");
-      AbstractIntegration integration = new AmplitudeIntegration(context);
-      integrations.add(integration);
-    } catch (ClassNotFoundException e) {
-      Logger.w("Amplitude is not bundled in the app.");
-    }
   }
 
   void performFetch() {
@@ -85,6 +61,7 @@ public class IntegrationManager {
       final ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
       Segment.HANDLER.post(new Runnable() {
         @Override public void run() {
+          // todo : does this need to be on the main thread?
           initialize(projectSettings);
         }
       });
@@ -95,14 +72,16 @@ public class IntegrationManager {
   }
 
   private void initialize(ProjectSettings projectSettings) {
-    Logger.d("Initializing with settings %s", new Gson().toJson(projectSettings));
-    for (AbstractIntegration integration : integrations) {
+    if (projectSettings.Amplitude != null) {
       try {
-        integration.initialize(projectSettings);
-        integration.enable();
-      } catch (Exception e) {
-        Logger.e(e, "Could not initialize integration %s", integration.getKey());
-        integration.disable();
+        Class.forName("com.amplitude.api.Amplitude");
+        AbstractIntegration integration =
+            new AmplitudeIntegration(context, projectSettings.Amplitude);
+        integrations.add(integration);
+      } catch (ClassNotFoundException e) {
+        Logger.w("Amplitude is not bundled in the app.");
+      } catch (InvalidConfigurationException e) {
+        Logger.e(e, "Amplitude is not bundled in the app.");
       }
     }
   }
@@ -162,7 +141,7 @@ public class IntegrationManager {
     }
   }
 
-  void track(TrackPayload track) {
+  public void track(TrackPayload track) {
     for (AbstractIntegration integration : integrations) {
       integration.track(track);
     }
