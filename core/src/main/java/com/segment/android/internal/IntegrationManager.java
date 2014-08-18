@@ -4,9 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
-import android.os.Message;
+import com.google.gson.Gson;
 import com.segment.android.Segment;
 import com.segment.android.internal.integrations.AbstractIntegration;
 import com.segment.android.internal.integrations.AmplitudeIntegration;
@@ -16,16 +14,14 @@ import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
 import com.segment.android.internal.util.Logger;
-import com.segment.android.internal.util.Utils;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
-import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
+import static com.segment.android.internal.util.Utils.defaultSingleThreadedExecutor;
 
 public class IntegrationManager {
-  static final int REQUEST_FETCH_SETTINGS = 1;
-
   public enum State {
     // Default state, has not been initialized from the server
     DEFAULT,
@@ -54,25 +50,26 @@ public class IntegrationManager {
   final Context context;
   final SegmentHTTPApi segmentHTTPApi;
   final Handler mainThreadHandler;
-  final IntegrationManagerThread integrationManagerThread;
-  final IntegrationManagerHandler integrationManagerThreadHandler;
+  final ExecutorService service;
 
   public static IntegrationManager create(Context context, Handler mainThreadHandler,
       SegmentHTTPApi segmentHTTPApi) {
-    return new IntegrationManager(context, mainThreadHandler, segmentHTTPApi);
+    ExecutorService service = defaultSingleThreadedExecutor();
+    return new IntegrationManager(context, mainThreadHandler, segmentHTTPApi, service);
   }
 
-  IntegrationManager(Context context, Handler mainThreadHandler, SegmentHTTPApi segmentHTTPApi) {
+  IntegrationManager(Context context, Handler mainThreadHandler, SegmentHTTPApi segmentHTTPApi,
+      ExecutorService service) {
     this.context = context;
     this.segmentHTTPApi = segmentHTTPApi;
     this.mainThreadHandler = mainThreadHandler;
-    this.integrationManagerThread = new IntegrationManagerThread();
-    this.integrationManagerThread.start();
-    this.integrationManagerThreadHandler =
-        new IntegrationManagerHandler(integrationManagerThread.getLooper(), this);
+    this.service = service;
 
-    // todo: check cache value
-    dispatchFetch();
+    service.submit(new Runnable() {
+      @Override public void run() {
+        performFetch();
+      }
+    });
 
     try {
       Class.forName("com.amplitude.api.Amplitude");
@@ -82,14 +79,6 @@ public class IntegrationManager {
       Logger.w("Amplitude is not bundled in the app.");
     }
   }
-
-  // Dispatch Actions - These are called from the main thread and dispatched to a background thread
-  void dispatchFetch() {
-    integrationManagerThreadHandler.sendMessage(
-        integrationManagerThreadHandler.obtainMessage(REQUEST_FETCH_SETTINGS));
-  }
-
-  // Perform Actions - These are called on a bakcground thread
 
   void performFetch() {
     try {
@@ -101,47 +90,12 @@ public class IntegrationManager {
       });
     } catch (IOException e) {
       Logger.e(e, "Failed to fetch settings");
-      Segment.HANDLER.post(new Runnable() {
-        @Override public void run() {
-          dispatchFetch(); // retry
-        }
-      });
-    }
-  }
-
-  private static final String INTEGRATION_MANAGER_THREAD_NAME = "IntegrationManager";
-
-  static class IntegrationManagerThread extends HandlerThread {
-    IntegrationManagerThread() {
-      super(Utils.THREAD_PREFIX + INTEGRATION_MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
-    }
-  }
-
-  static class IntegrationManagerHandler extends Handler {
-    private final IntegrationManager integrationManager;
-
-    IntegrationManagerHandler(Looper looper, IntegrationManager integrationManager) {
-      super(looper);
-      this.integrationManager = integrationManager;
-    }
-
-    @Override public void handleMessage(final Message msg) {
-      switch (msg.what) {
-        case REQUEST_FETCH_SETTINGS: {
-          integrationManager.performFetch();
-          break;
-        }
-        default:
-          Segment.HANDLER.post(new Runnable() {
-            @Override public void run() {
-              throw new AssertionError("Unknown handler message received: " + msg.what);
-            }
-          });
-      }
+      performFetch(); // todo: terminate retry
     }
   }
 
   private void initialize(ProjectSettings projectSettings) {
+    Logger.d("Initializing with settings %s", new Gson().toJson(projectSettings));
     for (AbstractIntegration integration : integrations) {
       try {
         integration.initialize(projectSettings);

@@ -49,9 +49,8 @@ import java.util.concurrent.ExecutorService;
 
 import static android.content.Context.CONNECTIVITY_SERVICE;
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
+import static com.segment.android.internal.util.Utils.defaultSingleThreadedExecutor;
 import static com.segment.android.internal.util.Utils.hasPermission;
-import static java.util.concurrent.Executors.defaultThreadFactory;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 public class Dispatcher {
   private static final String DISPATCHER_THREAD_NAME = "Dispatcher";
@@ -79,7 +78,7 @@ public class Dispatcher {
     } catch (IOException e) {
       throw new RuntimeException("Unable to create file queue.", e);
     }
-    ExecutorService flushService = newSingleThreadExecutor(defaultThreadFactory());
+    ExecutorService flushService = defaultSingleThreadedExecutor();
     return new Dispatcher(context, mainThreadHandler, flushService, maxQueueSize, segmentHTTPApi,
         queue);
   }

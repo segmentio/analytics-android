@@ -36,6 +36,8 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import java.util.Collection;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static android.content.Context.MODE_PRIVATE;
 import static android.provider.Settings.System.AIRPLANE_MODE_ON;
@@ -182,5 +184,9 @@ public final class Utils {
   /** Get the identifier for the resource with a given type and key. */
   private static int getIdentifier(Context context, String type, String key) {
     return context.getResources().getIdentifier(key, type, context.getPackageName());
+  }
+
+  public static ExecutorService defaultSingleThreadedExecutor() {
+    return Executors.newSingleThreadExecutor(Executors.defaultThreadFactory());
   }
 }

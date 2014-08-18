@@ -88,7 +88,7 @@ public class SegmentHTTPApi {
     urlConnection.setChunkedStreamingMode(0);
 
     BatchPayload payload = new BatchPayload(payloads);
-    // todo: write dirrectly to writer
+    // todo: write directly to writer
     String json = gson.toJson(payload);
     byte[] bytes = json.getBytes();
 

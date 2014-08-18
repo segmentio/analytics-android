@@ -24,9 +24,97 @@
 
 package com.segment.android.internal;
 
+import java.util.List;
+import java.util.Map;
+
 public class ProjectSettings {
-  static class Amplitude {
+  //CHECKSTYLE:OFF
+  // We could use serializedName but easier this way so the configuration is passed to whichever
+  // json library is used without needing multiple annotations
+  AmplitudeSettings Amplitude;
+  BugsnagSettings Bugsnag;
+  CrittercismSettings Crittercism;
+  FlurrySettings Flurry;
+  GoogleAnalyticsSettings googleAnalytics;
+  MixpanelSettings Mixpanel;
+  //CHECKSTYLE:ON
+
+  static class AmplitudeSettings {
     String apiKey;
+    boolean trackAllPages;
+    boolean trackCategorizedPages;
+    boolean trackNamedPages;
+  }
+
+  static class BugsnagSettings {
+    String apiKey;
+    boolean useSSL;
+  }
+
+  static class CountlySettings {
+    String apiKey;
+    String serverUrl;
+  }
+
+  static class CrittercismSettings {
+    String appId;
+    boolean includeVersionCode;
+    boolean shouldCollectLogcat;
+  }
+
+  static class FlurrySettings {
+    String apiKey;
+    boolean captureUncaughtExceptions;
+    boolean useHttps;
+    int sessionContinueSeconds;
+  }
+
+  static class GoogleAnalyticsSettings {
+    boolean sendUserId;
+    boolean reportUncaughtExceptions;
+    boolean anonymizeIp;
+    boolean classic;
+    String domain;
+    boolean doubleClick;
+    boolean enhancedLinkAttribution;
+    List<String> ignoredReferrers;
+    boolean includeSearch;
+    boolean initialPageView;
+    String mobileTrackingId;
+    String serversideTrackingId;
+    boolean serversideClassic;
+    int siteSpeedSampleRate;
+    String trackingId;
+    boolean trackCategorizedPages;
+    boolean trackNamedPages;
+    Map<String, String> dimensions;
+    Map<String, String> metric;
+  }
+
+  static class LocalyticsSettings {
+    String appKey;
+  }
+
+  static class MixpanelSettings {
+    String apiKey;
+    boolean people;
+    String token;
+    boolean trackAllPages;
+    boolean trackCategorizedPages;
+    boolean trackNamedPages;
+    List<String> increments;
+    boolean legacySuperProperties;
+  }
+
+  static class QuantcastSettings {
+    String apiKey;
+    String pCode;
+    String advertise;
+  }
+
+  static class TapstreamSettings {
+    String accountName;
+    String sdkSecret;
     boolean trackAllPages;
     boolean trackCategorizedPages;
     boolean trackNamedPages;
