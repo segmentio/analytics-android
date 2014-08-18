@@ -3,7 +3,6 @@ apply plugin: 'com.android.library'
 
 dependencies {
   compile 'com.squareup:tape:1.2.2'
-  compile 'com.google.code.gson:gson:2.3'
 
   // Integrations
   provided rootProject.ext.libraries.amplitude

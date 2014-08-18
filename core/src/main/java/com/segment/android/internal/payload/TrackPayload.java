@@ -33,27 +33,27 @@ public class TrackPayload extends BasePayload {
    * The name of the event. We recommend using title case and past tense for event names, like
    * Signed Up.
    */
-  public final String event;
+  private static final String EVENT_KEY = "event";
 
   /**
    * A dictionary of properties that give more information about the event. We have a collection of
    * special properties that we recognize with semantic meaning. You can also add your own custom
    * properties.
    */
-  public final Properties properties;
+  private static final String PROPERTIES_KEY = "properties";
 
   public TrackPayload(String anonymousId, AnalyticsContext context, String userId, String event,
       Properties properties, Options options) {
     super(Type.track, anonymousId, context, userId, options);
-    this.event = event;
-    this.properties = properties;
+    put(EVENT_KEY, event);
+    put(PROPERTIES_KEY, properties);
   }
 
   public String getEvent() {
-    return event;
+    return getString(EVENT_KEY);
   }
 
   public Properties getProperties() {
-    return properties;
+    return (Properties) get(PROPERTIES_KEY);
   }
 }

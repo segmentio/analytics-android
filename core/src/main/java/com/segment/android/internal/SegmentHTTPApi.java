@@ -26,9 +26,9 @@ package com.segment.android.internal;
 
 import android.os.Build;
 import android.util.Base64;
-import com.google.gson.Gson;
 import com.segment.android.internal.payload.BasePayload;
 import com.segment.android.internal.util.Logger;
+import com.segment.android.json.JsonMap;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -47,11 +47,13 @@ public class SegmentHTTPApi {
   static final String API_URL = "https://api.segment.io/";
 
   private final String writeKey;
-  private final Gson gson;
 
-  SegmentHTTPApi(String writeKey, Gson gson) {
+  public static SegmentHTTPApi create(String writeKey) {
+    return new SegmentHTTPApi(writeKey);
+  }
+
+  SegmentHTTPApi(String writeKey) {
     this.writeKey = writeKey;
-    this.gson = gson;
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
       // bug in pre-froyo, http://android-developers.blogspot.com/2011/09/androids-http-clients.html
@@ -68,15 +70,9 @@ public class SegmentHTTPApi {
     }
   }
 
-  public static SegmentHTTPApi create(String writeKey, Gson gson) {
-    return new SegmentHTTPApi(writeKey, gson);
-  }
-
-  static class BatchPayload {
-    List<BasePayload> batch;
-
+  static class BatchPayload extends JsonMap {
     public BatchPayload(List<BasePayload> batch) {
-      this.batch = batch;
+      put("batch", batch);
     }
   }
 
@@ -92,8 +88,7 @@ public class SegmentHTTPApi {
     urlConnection.setChunkedStreamingMode(0);
 
     BatchPayload payload = new BatchPayload(payloads);
-    // todo: write directly to writer
-    String json = gson.toJson(payload);
+    String json = payload.toString();
     byte[] bytes = json.getBytes();
 
     Logger.d("Json: %s", json);
@@ -135,7 +130,7 @@ public class SegmentHTTPApi {
     urlConnection.disconnect();
     Logger.d("Response code: %s, json: %s, message: %s", responseCode, json,
         urlConnection.getResponseMessage());
-    return gson.fromJson(json, ProjectSettings.class); // todo: use reader
+    return new ProjectSettings(json); // todo: use reader
   }
 
   private static String readFully(InputStream in) throws IOException {

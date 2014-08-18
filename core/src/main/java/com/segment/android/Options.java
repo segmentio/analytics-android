@@ -24,31 +24,34 @@
 
 package com.segment.android;
 
+import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Options {
-  public static final String ALL_INTEGRATIONS = "all";
+  public static final String ALL_INTEGRATIONS_KEY = "all";
 
+  private Calendar timestamp;
   private final Map<String, Boolean> integrations;
-  private long timestamp;
 
   public Options() {
     integrations = new LinkedHashMap<String, Boolean>();
-    integrations.put(ALL_INTEGRATIONS, true);
+    integrations.put(ALL_INTEGRATIONS_KEY, true);
   }
 
   /**
-   * Sets whether this call will be sent to the target integration.By default, all integrations are
-   * sent a payload.
-   * <p/>
-   * You can disable integrations for specific payloads. For instance,
+   * Sets whether this call will be sent to the target integration.
+   * <p>
+   * By default, all integrations are sent a payload.
+   * You can disable specific payloads. For instance,
    * <code>options.setIntegration("Google Analytics", false).setIntegration("Countly",
-   * false)</code> will send the event to all integrations except Google Analytic and Countly. If
-   * you want to enable only specific integrations, first override the defaults and then enable
-   * specific integrations. For example, <code>options.setIntegration(Options.ALL_INTEGRATIONS,
-   * false).setIntegration("Countly", true).setIntegration("Google Analytics", true)</code> will
-   * only send events to Countly and Google Analytics.
+   * false)</code> will send the event to all integrations except Google Analytic and Countly.
+   * If you want to enable only specific integrations, first override the defaults and then
+   * enable specific integrations.
+   * For example,
+   * <code>options.setIntegration(Options.ALL_INTEGRATIONS_KEY, false).setIntegration("Countly",
+   * true).setIntegration("Google Analytics", true)</code> will only send events to Countly and
+   * Google Analytics.
    *
    * @param integrationKey The integration key
    * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
@@ -65,18 +68,18 @@ public class Options {
 
   /**
    * Sets the timestamp of when an analytics call occurred. The timestamp is primarily used for
-   * historical imports or if this event happened in the past. By default, this is set to the
-   * current time.
+   * historical imports or if this event happened in the past. The timestamp is not required, and
+   * if it's not provided, our servers will timestamp the call as if it just happened.
    *
    * @param timestamp The time when this event happened
    * @return This options object for chaining
    */
-  public Options setTimestamp(long timestamp) {
+  public Options setTimestamp(Calendar timestamp) {
     this.timestamp = timestamp;
     return this;
   }
 
-  public long getTimestamp() {
+  public Calendar getTimestamp() {
     return timestamp;
   }
 }

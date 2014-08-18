@@ -29,9 +29,8 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
-import com.google.gson.Gson;
 import com.segment.android.internal.payload.BasePayload;
-import com.segment.android.internal.queue.GsonConverter;
+import com.segment.android.internal.queue.PayloadConverter;
 import com.segment.android.internal.util.ISO8601Time;
 import com.segment.android.internal.util.Logger;
 import com.squareup.tape.FileObjectQueue;
@@ -58,8 +57,8 @@ public class Dispatcher {
   final ExecutorService queueService;
 
   public static Dispatcher create(Context context, Handler mainThreadHandler, int maxQueueSize,
-      Gson gson, SegmentHTTPApi segmentHTTPApi) {
-    FileObjectQueue.Converter<BasePayload> converter = new GsonConverter<BasePayload>(gson);
+      SegmentHTTPApi segmentHTTPApi) {
+    FileObjectQueue.Converter<BasePayload> converter = new PayloadConverter();
     File queueFile = new File(context.getFilesDir(), TASK_QUEUE_FILE_NAME);
     FileObjectQueue<BasePayload> queue;
     try {
@@ -121,7 +120,7 @@ public class Dispatcher {
     // Another operation
     while (queue.size() > 0) {
       BasePayload payload = queue.peek();
-      payload.setSentAt(ISO8601Time.now().time());
+      payload.setSentAt(ISO8601Time.now());
       payloads.add(payload);
       queue.remove();
     }

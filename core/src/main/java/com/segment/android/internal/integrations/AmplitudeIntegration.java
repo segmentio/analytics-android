@@ -11,7 +11,6 @@ import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import org.json.JSONException;
 
 import static com.segment.android.internal.util.Utils.isNullOrEmpty;
 
@@ -74,12 +73,7 @@ public class AmplitudeIntegration extends AbstractIntegration<ProjectSettings.Am
 
   @Override public void track(TrackPayload track) {
     Properties properties = track.getProperties();
-    try {
-      Amplitude.logEvent(track.getEvent(), properties.asJsonObject());
-    } catch (JSONException e) {
-      e.printStackTrace();
-    }
-
+    Amplitude.logEvent(track.getEvent(), properties.toJsonObject());
     // todo : commerce stuff
   }
 

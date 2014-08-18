@@ -31,7 +31,6 @@ import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import com.google.gson.Gson;
 import com.segment.android.internal.Dispatcher;
 import com.segment.android.internal.IntegrationManager;
 import com.segment.android.internal.SegmentHTTPApi;
@@ -116,7 +115,6 @@ public class Segment {
     private final Application application;
     private String writeKey;
     private int maxQueueSize = -1;
-    private Gson gson;
 
     private boolean debugging = DEFAULT_DEBUGGING;
 
@@ -155,30 +153,14 @@ public class Segment {
       return this;
     }
 
-    /** Whether debugging is enabled or not. */
-    public Builder gson(Gson gson) {
-      if (gson == null) {
-        throw new IllegalArgumentException("gson must not be null.");
-      }
-      if (this.gson != null) {
-        throw new IllegalStateException("gson is already set.");
-      }
-      this.gson = gson;
-      return this;
-    }
-
     /** Create Segment {@link Segment} instance. */
     public Segment build() {
       if (maxQueueSize == -1) {
         maxQueueSize = DEFAULT_QUEUE_SIZE;
       }
-      if (gson == null) {
-        gson = new Gson();
-      }
 
-      SegmentHTTPApi segmentHTTPApi = SegmentHTTPApi.create(writeKey, gson);
-      Dispatcher dispatcher =
-          Dispatcher.create(application, HANDLER, maxQueueSize, gson, segmentHTTPApi);
+      SegmentHTTPApi segmentHTTPApi = SegmentHTTPApi.create(writeKey);
+      Dispatcher dispatcher = Dispatcher.create(application, HANDLER, maxQueueSize, segmentHTTPApi);
       IntegrationManager integrationManager =
           IntegrationManager.create(application, HANDLER, segmentHTTPApi);
       return new Segment(application, dispatcher, integrationManager, debugging);
@@ -238,7 +220,7 @@ public class Segment {
       options = new Options();
     }
 
-    Traits.with(application).setId(userId);
+    Traits.with(application).putId(userId);
 
     submit(new IdentifyPayload(anonymousId, AnalyticsContext.with(application), userId,
         Traits.with(application), options));
@@ -312,7 +294,7 @@ public class Segment {
       options = new Options();
     }
 
-    Traits.with(application).setId(newId); // update the new id
+    Traits.with(application).putId(newId); // update the new id
 
     submit(new AliasPayload(anonymousId, AnalyticsContext.with(application),
         Traits.with(application).getId(), previousId, options));

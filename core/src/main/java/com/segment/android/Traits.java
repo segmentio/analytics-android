@@ -25,8 +25,10 @@
 package com.segment.android;
 
 import android.content.Context;
+import com.segment.android.json.JsonMap;
 import com.segment.android.internal.util.ISO8601Time;
-import java.util.HashMap;
+import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static com.segment.android.internal.util.Utils.getDeviceId;
@@ -37,53 +39,12 @@ import static com.segment.android.internal.util.Utils.getDeviceId;
  * address. And we'll send this on to integrations that need an email, like Mailchimp. For that
  * reason, you should only use special traits for their intended purpose.
  * <p/>
- * This is persisted to disk, and will be remembered between sessions. todo: document API to clear
- * the user traits
+ * This is persisted to disk, and will be remembered between sessions.
+ * todo: document API to clear the user traits
  */
-public class Traits {
-  public static class Address {
-    public String city;
-    public String country;
-    public String postalCode;
-    public String state;
-    public String street;
-
-    Address(String city, String country, String postalCode, String state, String street) {
-      this.city = city;
-      this.country = country;
-      this.postalCode = postalCode;
-      this.state = state;
-      this.street = street;
-    }
-  }
-
-  public String avatar;
-  public String createdAt;
-  public String description;
-  public String email;
-  public String fax;
-  public String id;
-  public String name;
-  public String phone;
-  public String website;
-  public Map<String, Object> other;
-
-  // For Identify Calls
-  public short age;
-  public ISO8601Time birthday;
-  public String firstName;
-  public String gender;
-  public String lastName;
-  public String title;
-  public String username;
-
-  // For Group calls
-  public long employees;
-  public String industry;
-
+public class Traits extends JsonMap {
   private Traits(Context context) {
-    setId(getDeviceId(context));
-    other = new HashMap<String, Object>();
+    putId(getDeviceId(context));
   }
 
   static Traits singleton = null;
@@ -99,174 +60,125 @@ public class Traits {
     return singleton;
   }
 
-  public Traits setAvatar(String avatar) {
-    this.avatar = avatar;
-    return this;
+  private static final String ADDRESS_KEY = "address";
+  private static final String ADDRESS_CITY_KEY = "city";
+  private static final String ADDRESS_COUNTRY_KEY = "country";
+  private static final String ADDRESS_POSTAL_CODE_KEY = "postalCode";
+  private static final String ADDRESS_STATE_KEY = "state";
+  private static final String ADDRESS_STREET_KEY = "street";
+
+  public Traits putAddress(String city, String country, String postalCode, String state,
+      String street) {
+    Map<String, String> address = new LinkedHashMap<String, String>(5);
+    address.put(ADDRESS_CITY_KEY, city);
+    address.put(ADDRESS_COUNTRY_KEY, country);
+    address.put(ADDRESS_POSTAL_CODE_KEY, postalCode);
+    address.put(ADDRESS_STATE_KEY, state);
+    address.put(ADDRESS_STREET_KEY, street);
+    return putValue(ADDRESS_KEY, address);
   }
 
-  public Traits setCreatedAt(String createdAt) {
-    this.createdAt = createdAt;
-    return this;
+  private static final String AVATAR_KEY = "avatar";
+  private static final String CREATED_AT_KEY = "createdAt";
+  private static final String DESCRIPTION_KEY = "description";
+  private static final String EMAIL_KEY = "email";
+  private static final String FAX_KEY = "fax";
+  private static final String ID_KEY = "id";
+  private static final String NAME_KEY = "name";
+  private static final String PHONE_KEY = "phone";
+  private static final String WEBSITE_KEY = "website";
+
+  // For Identify Calls
+  private static final String AGE_KEY = "age";
+  private static final String BIRTHDAY_KEY = "birthday";
+  private static final String FIRST_NAME_KEY = "firstName";
+  private static final String GENDER_KEY = "gender";
+  private static final String LAST_NAME_KEY = "lastName";
+  private static final String TITLE_KEY = "title";
+  private static final String USERNAME_KEY = "username";
+
+  // For Group calls
+  private static final String EMPLOYEES_KEY = "employees";
+  private static final String INDUSTRY_KEY = "industry";
+
+  public Traits putAvatar(String avatar) {
+    return putValue(AVATAR_KEY, avatar);
   }
 
-  public Traits setDescription(String description) {
-    this.description = description;
-    return this;
+  public Traits putCreatedAt(String createdAt) {
+    return putValue(CREATED_AT_KEY, createdAt);
   }
 
-  public Traits setEmail(String email) {
-    this.email = email;
-    return this;
+  public Traits putDescription(String description) {
+    return putValue(DESCRIPTION_KEY, description);
   }
 
-  public Traits setFax(String fax) {
-    this.fax = fax;
-    return this;
+  public Traits putEmail(String email) {
+    return putValue(EMAIL_KEY, email);
   }
 
-  public Traits setId(String id) {
-    this.id = id;
-    return this;
+  public Traits putFax(String fax) {
+    return putValue(FAX_KEY, fax);
+  }
+
+  public Traits putId(String id) {
+    return putValue(ID_KEY, id);
   }
 
   public String getId() {
-    return id;
+    return (String) get(ID_KEY);
   }
 
-  public Traits setName(String name) {
-    this.name = name;
+  public Traits putName(String name) {
+    return putValue(NAME_KEY, name);
+  }
+
+  public Traits putPhone(String phone) {
+    return putValue(PHONE_KEY, phone);
+  }
+
+  public Traits putWebsite(String website) {
+    return putValue(WEBSITE_KEY, website);
+  }
+
+  public Traits putAge(short age) {
+    return putValue(AGE_KEY, age);
+  }
+
+  public Traits putBirthday(Date birthday) {
+    return putValue(BIRTHDAY_KEY, ISO8601Time.from(birthday).toString());
+  }
+
+  public Traits putFirstName(String firstName) {
+    return putValue(FIRST_NAME_KEY, firstName);
+  }
+
+  public Traits putGender(String gender) {
+    return putValue(GENDER_KEY, gender);
+  }
+
+  public Traits putLastName(String lastName) {
+    return putValue(LAST_NAME_KEY, lastName);
+  }
+
+  public Traits putTitle(String title) {
+    return putValue(TITLE_KEY, title);
+  }
+
+  public Traits putUsername(String username) {
+    return putValue(USERNAME_KEY, username);
+  }
+
+  public Traits putEmployees(long employees) {
+    return putValue(EMPLOYEES_KEY, employees);
+  }
+
+  public Traits putIndustry(String industry) {
+    return putValue(INDUSTRY_KEY, industry);
+  }
+
+  @Override public Traits putValue(String key, Object value) {
+    super.putValue(key, value);
     return this;
-  }
-
-  public Traits setPhone(String phone) {
-    this.phone = phone;
-    return this;
-  }
-
-  public Traits setWebsite(String website) {
-    this.website = website;
-    return this;
-  }
-
-  public Traits setAge(short age) {
-    this.age = age;
-    return this;
-  }
-
-  public Traits setBirthday(ISO8601Time birthday) {
-    this.birthday = birthday;
-    return this;
-  }
-
-  public Traits setFirstName(String firstName) {
-    this.firstName = firstName;
-    return this;
-  }
-
-  public Traits setGender(String gender) {
-    this.gender = gender;
-    return this;
-  }
-
-  public Traits setLastName(String lastName) {
-    this.lastName = lastName;
-    return this;
-  }
-
-  public Traits setTitle(String title) {
-    this.title = title;
-    return this;
-  }
-
-  public Traits setUsername(String username) {
-    this.username = username;
-    return this;
-  }
-
-  public Traits setEmployees(long employees) {
-    this.employees = employees;
-    return this;
-  }
-
-  public Traits setIndustry(String industry) {
-    this.industry = industry;
-    return this;
-  }
-
-  public Traits put(String key, Object value) {
-    other.put(key, value);
-    return this;
-  }
-
-  public String getAvatar() {
-    return avatar;
-  }
-
-  public String getCreatedAt() {
-    return createdAt;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public String getFax() {
-    return fax;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public String getPhone() {
-    return phone;
-  }
-
-  public String getWebsite() {
-    return website;
-  }
-
-  public Map<String, Object> getOther() {
-    return other;
-  }
-
-  public short getAge() {
-    return age;
-  }
-
-  public ISO8601Time getBirthday() {
-    return birthday;
-  }
-
-  public String getFirstName() {
-    return firstName;
-  }
-
-  public String getGender() {
-    return gender;
-  }
-
-  public String getLastName() {
-    return lastName;
-  }
-
-  public String getTitle() {
-    return title;
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  public long getEmployees() {
-    return employees;
-  }
-
-  public String getIndustry() {
-    return industry;
   }
 }

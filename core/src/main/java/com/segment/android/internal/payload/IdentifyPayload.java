@@ -35,15 +35,15 @@ public class IdentifyPayload extends BasePayload {
    * recording that information. You can also add any custom traits that are specific to your
    * project to the dictionary, like friendCount or subscriptionType.
    */
-  private final Traits traits;
+  private static final String TRAITS_KEY = "traits";
 
   public IdentifyPayload(String anonymousId, AnalyticsContext context, String userId, Traits traits,
       Options options) {
     super(Type.identify, anonymousId, context, userId, options);
-    this.traits = traits;
+    put(TRAITS_KEY, traits);
   }
 
   public Traits getTraits() {
-    return traits;
+    return (Traits) get(TRAITS_KEY);
   }
 }

@@ -30,31 +30,31 @@ import com.segment.android.Properties;
 
 public class ScreenPayload extends BasePayload {
   /** The category of the page or screen. We recommend using title case, like Docs. */
-  private final String category;
+  private static final String CATEGORY_KEY = "category";
 
   /** The name of the page or screen. We recommend using title case, like About. */
-  private final String name;
+  private static final String NAME_KEY = "name";
 
   /** The page and screen methods also take a properties dictionary, just like track. */
-  private final Properties properties;
+  private static final String PROPERTIES_KEY = "properties";
 
   public ScreenPayload(String anonymousId, AnalyticsContext context, String userId, String category,
       String name, Properties properties, Options options) {
     super(Type.screen, anonymousId, context, userId, options);
-    this.category = category;
-    this.name = name;
-    this.properties = properties;
+    put(CATEGORY_KEY, category);
+    put(NAME_KEY, name);
+    put(PROPERTIES_KEY, properties);
   }
 
   public String getCategory() {
-    return category;
+    return getString(CATEGORY_KEY);
   }
 
   public String getName() {
-    return name;
+    return getString(NAME_KEY);
   }
 
   public Properties getProperties() {
-    return properties;
+    return (Properties) get(PROPERTIES_KEY);
   }
 }

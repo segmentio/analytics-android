@@ -24,10 +24,11 @@
 
 package com.segment.android.internal;
 
+import com.segment.android.json.JsonMap;
 import java.util.List;
 import java.util.Map;
 
-public class ProjectSettings {
+public class ProjectSettings extends JsonMap {
   //CHECKSTYLE:OFF
   // We could use serializedName but easier this way so the configuration is passed to whichever
   // json library is used without needing multiple annotations
@@ -38,6 +39,10 @@ public class ProjectSettings {
   public GoogleAnalyticsSettings googleAnalytics;
   public MixpanelSettings Mixpanel;
   //CHECKSTYLE:ON
+
+  public ProjectSettings(String json) {
+    super(json);
+  }
 
   public static class AmplitudeSettings {
     public String apiKey;
