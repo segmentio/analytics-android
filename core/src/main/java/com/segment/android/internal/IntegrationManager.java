@@ -98,7 +98,7 @@ public class IntegrationManager {
 
   private void initialize(ProjectSettings projectSettings) {
     for (Iterator<AbstractIntegration> it = availableBundledIntegrations.iterator();
-        it.hasNext(); ) {
+        it.hasNext();) {
       AbstractIntegration integration = it.next();
       try {
         boolean enabled = integration.initialize(context, projectSettings);
@@ -201,9 +201,9 @@ public class IntegrationManager {
   private boolean isBundledIntegrationEnabledForPayload(BasePayload payload,
       AbstractIntegration integration) {
     Boolean enabled = true;
-    // look in the payload.context.integrations to see which Bundled integrations should be disabled.
-    // payload.integrations is reserved for the server, where all bundled integrations are set to
-    // false
+    // look in the payload.context.integrations to see which Bundled integrations should be
+    // disabled. payload.integrations is reserved for the server, where all bundled integrations
+    // are set to false
     JsonMap integrations = payload.context().getIntegrations();
     if (!JsonMap.isNullOrEmpty(integrations)) {
       if (integrations.containsKey(integration.key())) {
