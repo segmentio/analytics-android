@@ -30,6 +30,10 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
     super("Amplitude", "com.amplitude.api.Amplitude");
   }
 
+  @Override public void validate(Context context) throws InvalidConfigurationException {
+    // only needs internet permission
+  }
+
   @Override public boolean initialize(Context context, ProjectSettings projectSettings)
       throws InvalidConfigurationException {
     if (!projectSettings.containsKey(key())) {

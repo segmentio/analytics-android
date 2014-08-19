@@ -57,9 +57,13 @@ public class IntegrationManager {
     // Look up all the integrations available on the device. This is done early so that we can
     // disable sending to these integrations from the server.
     try {
-      availableBundledIntegrations.add(new AmplitudeIntegration());
+      AbstractIntegration integration = new AmplitudeIntegration();
+      integration.validate(context);
+      availableBundledIntegrations.add(integration);
     } catch (ClassNotFoundException e) {
-      e.printStackTrace();
+      Logger.d("Amplitude not bundled");
+    } catch (InvalidConfigurationException e) {
+      Logger.e("Amplitude needs more permissions!");
     }
 
     service.submit(new Runnable() {
@@ -88,10 +92,10 @@ public class IntegrationManager {
     // Amplitude
     for (AbstractIntegration integration : availableBundledIntegrations) {
       try {
-        integration.initialize(context, projectSettings);
-        enabledIntegrations.add(integration);
+        boolean enabled = integration.initialize(context, projectSettings);
+        if (enabled) enabledIntegrations.add(integration);
       } catch (InvalidConfigurationException e) {
-        Logger.d(e, "Could not load %s", integration.key());
+        Logger.e(e, "Could not load %s", integration.key());
       }
     }
   }

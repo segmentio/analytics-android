@@ -21,10 +21,10 @@ public abstract class AbstractIntegration<T> {
   private final String key;
 
   /**
-   * Create an integration with the given settings. Check for any specific permissions or features
-   * that the integration needs.
+   * Create an integration with the given settings.
    */
-  AbstractIntegration(String key, String className) throws ClassNotFoundException {
+  AbstractIntegration(String key, String className)
+      throws ClassNotFoundException {
     this.key = key;
     Class.forName(className);
   }
@@ -33,6 +33,13 @@ public abstract class AbstractIntegration<T> {
     return key;
   }
 
+  /** Check for any specific permissions or features that the integration needs. */
+  public abstract void validate(Context context) throws InvalidConfigurationException;
+
+  /**
+   * Initialize the integration, if an error occurs here, it's probably our fault for not having all
+   * the settings.
+   */
   public abstract boolean initialize(Context context, ProjectSettings projectSettings)
       throws InvalidConfigurationException;
 
