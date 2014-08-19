@@ -1,6 +1,7 @@
 package com.segment.android.json;
 
 import com.segment.android.BaseAndroidTestCase;
+import java.util.Map;
 import org.fest.assertions.data.MapEntry;
 
 import static org.fest.assertions.api.Assertions.assertThat;
@@ -8,7 +9,7 @@ import static org.fest.assertions.api.Assertions.assertThat;
 public class JsonMapTest extends BaseAndroidTestCase {
   public void testDisallowsNullMap() throws Exception {
     try {
-      JsonMap.wrap(null);
+      new JsonMap((Map) null);
       fail("Null Map should throw exception.");
     } catch (IllegalArgumentException e) {
     }
