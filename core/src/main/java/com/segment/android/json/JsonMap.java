@@ -7,58 +7,38 @@ import java.util.Set;
 import org.json.JSONObject;
 
 /**
- * A wrapper around {@link Map} to expose Json functionality. Only the {@link #toString()} method
- * is modified to return a json formatted string. All other methods will be forwarded to another
- * map.
- * <p>
- * The purpose of this class is to not limit clients to a custom implementation of a Json type,
- * they can use existing {@link Map} and {@link java.util.List} implementations as they see fit.
- * It adds some utility methods, including methods to coerce numeric types from Strings, and a
- * {@link #putValue(String, Object)} to be able to chain method calls.
- * <p>
- * To create an instance of this class, use one of the static factory methods.
- * <code>JsonMap<Object> map = JsonMap.create();</code>
- * <code>JsonMap<Object> map = JsonMap.decode(json);</code>
+ * A wrapper around {@link Map} to expose Json functionality. Only the {@link #toString()} method is
+ * modified to return a json formatted string. All other methods will be forwarded to another map.
+ * <p/>
+ * The purpose of this class is to not limit clients to a custom implementation of a Json type, they
+ * can use existing {@link Map} and {@link java.util.List} implementations as they see fit. It adds
+ * some utility methods, including methods to coerce numeric types from Strings, and a {@link
+ * #putValue(String, Object)} to be able to chain method calls.
+ * <p/>
+ * To create an instance of this class, use one of the static factory methods. <code>JsonMap<Object>
+ * map = JsonMap.create();</code> <code>JsonMap<Object> map = JsonMap.decode(json);</code>
  * <code>JsonMap<Object> map = JsonMap.wrap(new HashMap<String, Object>);</code>
- * <p>
- * Since it implements the {@link Map} interface, you could just as simply do:
- * <code>Map<String, Object> map = JsonMap.create();</code>
- * <code>Map<String, Object> map = JsonMap.decode(json);</code>
- * <code>Map<String, Object> map = JsonMap.wrap(new HashMap<String, Object>);</code>
- * <p>
+ * <p/>
+ * Since it implements the {@link Map} interface, you could just as simply do: <code>Map<String,
+ * Object> map = JsonMap.create();</code> <code>Map<String, Object> map =
+ * JsonMap.decode(json);</code> <code>Map<String, Object> map = JsonMap.wrap(new HashMap<String,
+ * Object>);</code>
+ * <p/>
  * Although it lets you use custom objects for values, note that type information is lost during
  * serialization. e.g A custom class Person using the default <code>toString</code> implementation.
- * {@code
- * JsonMap<Object> map = JsonMap.decode();
- * map.put("person", new Person("john", "doe", 32));
- * Person person = (Person) map.get("person"); // no serialization yet
- * String json = map.toString();
- * JsonMap<Object> deserialized = JsonMap.decode(json);
- * // The line below will throw a ClassCastException, since Person was stored as a String
- * Person person = (Person) deserialized.get("person");
- * // You'd actually get back something like 'Person@123132' for the default toString
- * implementation.
- * }
- * <p>
- * Only String, Integer, Double, Long and Boolean types are supported.
- * Short, Byte, Float and char are deserialized to one of the above types.
- * Short -> Integer
- * Byte -> Integer
- * Float -> Double
- * Char -> String
+ * {@code JsonMap<Object> map = JsonMap.decode(); map.put("person", new Person("john", "doe", 32));
+ * Person person = (Person) map.get("person"); // no serialization yet String json = map.toString();
+ * JsonMap<Object> deserialized = JsonMap.decode(json); // The line below will throw a
+ * ClassCastException, since Person was stored as a String Person person = (Person)
+ * deserialized.get("person"); // You'd actually get back something like 'Person@123132' for the
+ * default toString implementation. }
+ * <p/>
+ * Only String, Integer, Double, Long and Boolean types are supported. Short, Byte, Float and char
+ * are deserialized to one of the above types. Short -> Integer Byte -> Integer Float -> Double Char
+ * -> String
  */
 public class JsonMap implements Map<String, Object> {
   final Map<String, Object> delegate;
-
-  /** Create an empty map. */
-  public static JsonMap create() {
-    return new JsonMap();
-  }
-
-  /** Parse a json string into a map. */
-  public static JsonMap decode(String json) {
-    return new JsonMap(json);
-  }
 
   /**
    * Wrap an existing map as a JsonMap. Use this to take advantage of the extra coercion methods
@@ -76,15 +56,15 @@ public class JsonMap implements Map<String, Object> {
     return new JsonMap((Map<String, Object>) map);
   }
 
-  protected JsonMap() {
+  public JsonMap() {
     this.delegate = new LinkedHashMap<String, Object>();
   }
 
-  protected JsonMap(Map<String, Object> delegate) {
+  public JsonMap(Map<String, Object> delegate) {
     this.delegate = delegate;
   }
 
-  protected JsonMap(String json) {
+  public JsonMap(String json) {
     try {
       this.delegate = JsonUtils.toMap(json);
     } catch (JsonConversionException e) {
@@ -168,8 +148,8 @@ public class JsonMap implements Map<String, Object> {
   /* The methods return boxed primitives to be able to return null and keep parity with Map. */
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a byte or
-   * can be coerced to a byte. Returns null otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a byte or can be coerced to a byte.
+   * Returns null otherwise.
    */
   public Byte getByte(Object key) {
     Object value = get(key);
@@ -188,8 +168,8 @@ public class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a short or
-   * can be coerced to a short. Returns null otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a short or can be coerced to a
+   * short. Returns null otherwise.
    */
   public Short getShort(Object key) {
     Object value = get(key);
@@ -210,8 +190,8 @@ public class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a integer or
-   * can be coerced to a integer. Returns null otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a integer or can be coerced to a
+   * integer. Returns null otherwise.
    */
   public Integer getInteger(Object key) {
     Object value = get(key);
@@ -230,8 +210,8 @@ public class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a long or
-   * can be coerced to a long. Returns null otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a long.
+   * Returns null otherwise.
    */
   public Long getLong(Object key) {
     Object value = get(key);
@@ -250,8 +230,8 @@ public class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a integer or
-   * can be coerced to a integer. Returns null otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a integer or can be coerced to a
+   * integer. Returns null otherwise.
    */
   public Float getFloat(Object key) {
     Object value = get(key);
@@ -270,8 +250,8 @@ public class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a double or
-   * can be coerced to a double. Returns null otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a double or can be coerced to a
+   * double. Returns null otherwise.
    */
   public Double getDouble(Object key) {
     Object value = get(key);
@@ -290,8 +270,8 @@ public class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a char or
-   * can be coerced to a char. Returns null otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a char or can be coerced to a char.
+   * Returns null otherwise.
    */
   public Character getChar(Object key) {
     Object value = get(key);
@@ -306,9 +286,9 @@ public class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a string or
-   * can be coerced to a string. Returns null otherwise.
-   *
+   * Returns the value mapped by {@code key} if it exists and is a string or can be coerced to a
+   * string. Returns null otherwise.
+   * <p/>
    * This will return null only if the value does not exist, since all types can have a String
    * representation.
    */
@@ -323,8 +303,8 @@ public class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a boolean or
-   * can be coerced to a boolean. Returns null otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a boolean or can be coerced to a
+   * boolean. Returns null otherwise.
    */
   public Boolean getBoolean(Object key) {
     Object value = get(key);
@@ -342,8 +322,8 @@ public class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a boolean or
-   * can be coerced to a boolean. Returns null otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a boolean or can be coerced to a
+   * boolean. Returns null otherwise.
    */
   public JsonMap getJsonMap(Object key) {
     Object value = get(key);
