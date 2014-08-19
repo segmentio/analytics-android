@@ -12,7 +12,7 @@ import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
 
-import static com.segment.android.internal.util.Utils.isNullOrEmpty;
+import static com.segment.android.internal.Utils.isNullOrEmpty;
 
 public class AmplitudeIntegration extends AbstractIntegration<ProjectSettings.AmplitudeSettings> {
   private static final String REVENUE_KEY = "revenue";

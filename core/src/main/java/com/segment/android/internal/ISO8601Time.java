@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.segment.android.internal.util;
+package com.segment.android.internal;
 
 import java.text.DateFormat;
 import java.text.ParseException;

@@ -13,13 +13,12 @@ import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import com.segment.android.internal.util.Logger;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-import static com.segment.android.internal.util.Utils.defaultSingleThreadedExecutor;
+import static com.segment.android.internal.Utils.defaultSingleThreadedExecutor;
 
 /**
  * Manages bundled integrations. This class will maintain it's own queue for events to account for

@@ -31,8 +31,6 @@ import android.net.NetworkInfo;
 import android.os.Handler;
 import com.segment.android.internal.payload.BasePayload;
 import com.segment.android.internal.queue.PayloadConverter;
-import com.segment.android.internal.util.ISO8601Time;
-import com.segment.android.internal.util.Logger;
 import com.squareup.tape.FileObjectQueue;
 import com.squareup.tape.ObjectQueue;
 import java.io.File;
@@ -42,8 +40,8 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import static android.content.Context.CONNECTIVITY_SERVICE;
-import static com.segment.android.internal.util.Utils.defaultSingleThreadedExecutor;
-import static com.segment.android.internal.util.Utils.hasPermission;
+import static com.segment.android.internal.Utils.defaultSingleThreadedExecutor;
+import static com.segment.android.internal.Utils.hasPermission;
 
 public class Dispatcher {
   private static final String TASK_QUEUE_FILE_NAME = "payload_task_queue";

@@ -40,15 +40,15 @@ import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import com.segment.android.internal.util.Logger;
+import com.segment.android.internal.Logger;
 
-import static com.segment.android.internal.util.Utils.assertOnMainThread;
-import static com.segment.android.internal.util.Utils.getDeviceId;
-import static com.segment.android.internal.util.Utils.getResourceBooleanOrThrow;
-import static com.segment.android.internal.util.Utils.getResourceIntegerOrThrow;
-import static com.segment.android.internal.util.Utils.getResourceString;
-import static com.segment.android.internal.util.Utils.hasPermission;
-import static com.segment.android.internal.util.Utils.isNullOrEmpty;
+import static com.segment.android.internal.Utils.assertOnMainThread;
+import static com.segment.android.internal.Utils.getDeviceId;
+import static com.segment.android.internal.Utils.getResourceBooleanOrThrow;
+import static com.segment.android.internal.Utils.getResourceIntegerOrThrow;
+import static com.segment.android.internal.Utils.getResourceString;
+import static com.segment.android.internal.Utils.hasPermission;
+import static com.segment.android.internal.Utils.isNullOrEmpty;
 
 public class Segment {
   // Resource identifiers to define options in xml

@@ -26,7 +26,7 @@ package com.segment.android.internal.payload;
 
 import com.segment.android.AnalyticsContext;
 import com.segment.android.Options;
-import com.segment.android.internal.util.ISO8601Time;
+import com.segment.android.internal.ISO8601Time;
 import com.segment.android.json.JsonMap;
 import java.util.Map;
 

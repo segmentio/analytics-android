@@ -36,7 +36,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 
-import static com.segment.android.internal.util.Utils.isNullOrEmpty;
+import static com.segment.android.internal.Utils.isNullOrEmpty;
 
 class JsonUtils {
 

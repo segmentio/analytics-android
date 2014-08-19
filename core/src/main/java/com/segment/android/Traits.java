@@ -26,12 +26,12 @@ package com.segment.android;
 
 import android.content.Context;
 import com.segment.android.json.JsonMap;
-import com.segment.android.internal.util.ISO8601Time;
+import com.segment.android.internal.ISO8601Time;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.segment.android.internal.util.Utils.getDeviceId;
+import static com.segment.android.internal.Utils.getDeviceId;
 
 /**
  * Traits can be anything you want, but some of them have semantic meaning and we treat them in
