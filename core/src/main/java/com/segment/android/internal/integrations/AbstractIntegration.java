@@ -14,30 +14,24 @@ import com.segment.android.internal.payload.TrackPayload;
  * settings for it.
  *
  * @param <S> The type of the settings class to provide this integration.
- * @param <T> The backing intance
+ * @param <T> The type of the backing instance
  */
-public abstract class AbstractIntegration<S, T> {
+public abstract class AbstractIntegration<T> {
   private final String key;
   private final Context context;
-  private final S settings;
 
   /**
    * Create an integration with the given settings. Check for any specific permissions or features
-   * that the integration needs. Also check for any required values in your settings.
+   * that the integration needs.
    */
-  AbstractIntegration(String key, Context context, S settings)
+  AbstractIntegration(String key, Context context)
       throws InvalidConfigurationException {
     this.key = key;
     this.context = context;
-    this.settings = settings;
   }
 
   final Context getContext() {
     return context;
-  }
-
-  final S getSettings() {
-    return settings;
   }
 
   final String getKey() {

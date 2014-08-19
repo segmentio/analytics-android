@@ -40,28 +40,19 @@ import org.json.JSONObject;
 public class JsonMap implements Map<String, Object> {
   final Map<String, Object> delegate;
 
-  /**
-   * Wrap an existing map as a JsonMap. Use this to take advantage of the extra coercion methods
-   * exposed by this class.
-   *
-   * @throws IllegalArgumentException if the map is null
-   */
-  public static JsonMap wrap(Map<String, ?> map) {
-    if (map == null) {
-      throw new IllegalArgumentException("Map must not be null.");
-    }
-    if (map instanceof JsonMap) {
-      return (JsonMap) map;
-    }
-    return new JsonMap((Map<String, Object>) map);
-  }
-
   public JsonMap() {
     this.delegate = new LinkedHashMap<String, Object>();
   }
 
   public JsonMap(Map<String, Object> delegate) {
-    this.delegate = delegate;
+    if (delegate == null) {
+      throw new IllegalArgumentException("Map must not be null.");
+    }
+    if (delegate instanceof JsonMap) {
+      this.delegate = ((JsonMap) delegate).delegate;
+    } else {
+      this.delegate = delegate;
+    }
   }
 
   public JsonMap(String json) {
@@ -328,7 +319,7 @@ public class JsonMap implements Map<String, Object> {
   public JsonMap getJsonMap(Object key) {
     Object value = get(key);
     if (value instanceof Map) {
-      return JsonMap.wrap((Map<String, Object>) value);
+      return new JsonMap((Map<String, Object>) value);
     } else {
       return null;
     }
