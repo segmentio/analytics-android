@@ -30,17 +30,11 @@ import com.segment.android.json.JsonMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.segment.android.internal.integrations.AmplitudeIntegration.AMPLITUDE_KEY;
 
 public class ProjectSettings extends JsonMap {
   public ProjectSettings(String json) {
     super(json);
   }
-
-  public AmplitudeSettings getAmplitudeSettings() {
-    return containsKey(AMPLITUDE_KEY) ? new AmplitudeSettings(getJsonMap(AMPLITUDE_KEY)) : null;
-  }
-
 
 
   public static class BugsnagSettings {

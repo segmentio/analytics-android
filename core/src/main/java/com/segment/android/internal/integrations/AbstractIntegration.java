@@ -8,6 +8,7 @@ import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
+import com.segment.android.internal.settings.ProjectSettings;
 
 /**
  * A base class for Integrations. An integration will only be created if the server sends us
@@ -18,25 +19,22 @@ import com.segment.android.internal.payload.TrackPayload;
  */
 public abstract class AbstractIntegration<T> {
   private final String key;
-  private final Context context;
 
   /**
    * Create an integration with the given settings. Check for any specific permissions or features
    * that the integration needs.
    */
-  AbstractIntegration(String key, Context context)
-      throws InvalidConfigurationException {
+  AbstractIntegration(String key, String className) throws ClassNotFoundException {
     this.key = key;
-    this.context = context;
+    Class.forName(className);
   }
 
-  final Context getContext() {
-    return context;
-  }
-
-  final String getKey() {
+  public final String key() {
     return key;
   }
+
+  public abstract boolean initialize(Context context, ProjectSettings projectSettings)
+      throws InvalidConfigurationException;
 
   /**
    * The underlying instance for this provider - used for integration specific actions. This could

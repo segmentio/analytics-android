@@ -13,13 +13,10 @@ import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import com.segment.android.internal.settings.AmplitudeSettings;
 import com.segment.android.internal.settings.ProjectSettings;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import static com.segment.android.internal.Utils.defaultSingleThreadedExecutor;
@@ -32,18 +29,9 @@ import static com.segment.android.internal.Utils.defaultSingleThreadedExecutor;
  * none of the activity lifecycle events are queued to disk.
  */
 public class IntegrationManager {
-  enum Integration {
-    AMPLITUDE("com.amplitude.api.Amplitude");
-
-    private final String className;
-
-    Integration(String className) {
-      this.className = className;
-    }
-  }
-
   // A set of integrations available on the device
-  private final Set<Integration> availableBundledIntegrations = new HashSet<Integration>();
+  private List<AbstractIntegration> availableBundledIntegrations =
+      new LinkedList<AbstractIntegration>();
   // A set of integrations that are available and have been enabled for this project.
   private final List<AbstractIntegration> enabledIntegrations =
       new LinkedList<AbstractIntegration>();
@@ -68,8 +56,10 @@ public class IntegrationManager {
 
     // Look up all the integrations available on the device. This is done early so that we can
     // disable sending to these integrations from the server.
-    for (Integration integration : Integration.values()) {
-      addBundledIntegration(integration);
+    try {
+      availableBundledIntegrations.add(new AmplitudeIntegration());
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
     }
 
     service.submit(new Runnable() {
@@ -77,15 +67,6 @@ public class IntegrationManager {
         performFetch();
       }
     });
-  }
-
-  private void addBundledIntegration(Integration integration) {
-    try {
-      Class.forName(integration.className);
-      availableBundledIntegrations.add(integration);
-    } catch (ClassNotFoundException e) {
-      Logger.d("%s integration not bundled.", integration.className);
-    }
   }
 
   void performFetch() {
@@ -105,15 +86,12 @@ public class IntegrationManager {
 
   private void initialize(ProjectSettings projectSettings) {
     // Amplitude
-    if (availableBundledIntegrations.contains(Integration.AMPLITUDE)) {
-      AmplitudeSettings amplitudeSettings = projectSettings.getAmplitudeSettings();
-      if (amplitudeSettings != null) {
-        try {
-          AbstractIntegration amplitude = new AmplitudeIntegration(context, amplitudeSettings);
-          enabledIntegrations.add(amplitude);
-        } catch (InvalidConfigurationException e) {
-          Logger.e(e, "Could not initialize Amplitude.");
-        }
+    for (AbstractIntegration integration : availableBundledIntegrations) {
+      try {
+        integration.initialize(context, projectSettings);
+        enabledIntegrations.add(integration);
+      } catch (InvalidConfigurationException e) {
+        Logger.d(e, "Could not load %s", integration.key());
       }
     }
   }

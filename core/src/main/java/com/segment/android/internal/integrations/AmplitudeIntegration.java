@@ -11,11 +11,11 @@ import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
 import com.segment.android.internal.settings.AmplitudeSettings;
+import com.segment.android.internal.settings.ProjectSettings;
 
 import static com.segment.android.internal.Utils.isNullOrEmpty;
 
 public class AmplitudeIntegration extends AbstractIntegration<Void> {
-  public static final String AMPLITUDE_KEY = "Amplitude";
   private static final String REVENUE_KEY = "revenue";
   private static final String PRODUCT_ID_KEY = "productId";
   private static final String QUANTITY_KEY = "quantity";
@@ -26,16 +26,22 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
    * Create an integration with the given settings. Check for any specific permissions or features
    * that the integration needs. Also check for any required values in your settings.
    */
-  public AmplitudeIntegration(Context context, AmplitudeSettings settings)
-      throws InvalidConfigurationException {
-    super(AMPLITUDE_KEY, context);
+  public AmplitudeIntegration() throws ClassNotFoundException {
+    super("Amplitude", "com.amplitude.api.Amplitude");
+  }
 
+  @Override public boolean initialize(Context context, ProjectSettings projectSettings)
+      throws InvalidConfigurationException {
+    if (!projectSettings.containsKey(key())) {
+      return false;
+    }
+    AmplitudeSettings settings = new AmplitudeSettings(projectSettings.getJsonMap(key()));
     String apiKey = settings.apiKey();
     if (isNullOrEmpty(apiKey)) {
       throw new InvalidConfigurationException("Amplitude requires the apiKey setting.");
     }
-
-    Amplitude.initialize(getContext(), apiKey);
+    Amplitude.initialize(context, apiKey);
+    return true;
   }
 
   @Override public Void getUnderlyingInstance() {
