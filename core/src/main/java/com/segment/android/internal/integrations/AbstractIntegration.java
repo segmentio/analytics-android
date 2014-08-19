@@ -14,7 +14,6 @@ import com.segment.android.internal.settings.ProjectSettings;
  * A base class for Integrations. An integration will only be created if the server sends us
  * settings for it.
  *
- * @param <S> The type of the settings class to provide this integration.
  * @param <T> The type of the backing instance
  */
 public abstract class AbstractIntegration<T> {
@@ -23,8 +22,7 @@ public abstract class AbstractIntegration<T> {
   /**
    * Create an integration with the given settings.
    */
-  AbstractIntegration(String key, String className)
-      throws ClassNotFoundException {
+  AbstractIntegration(String key, String className) throws ClassNotFoundException {
     this.key = key;
     Class.forName(className);
   }
