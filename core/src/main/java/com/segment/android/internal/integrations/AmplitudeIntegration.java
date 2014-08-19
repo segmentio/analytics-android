@@ -14,7 +14,8 @@ import com.segment.android.internal.payload.TrackPayload;
 
 import static com.segment.android.internal.Utils.isNullOrEmpty;
 
-public class AmplitudeIntegration extends AbstractIntegration<ProjectSettings.AmplitudeSettings> {
+public class AmplitudeIntegration
+    extends AbstractIntegration<ProjectSettings.AmplitudeSettings, Void> {
   private static final String REVENUE_KEY = "revenue";
   private static final String PRODUCT_ID_KEY = "productId";
   private static final String QUANTITY_KEY = "quantity";
@@ -27,12 +28,16 @@ public class AmplitudeIntegration extends AbstractIntegration<ProjectSettings.Am
    */
   public AmplitudeIntegration(Context context, ProjectSettings.AmplitudeSettings settings)
       throws InvalidConfigurationException {
-    super(context, settings);
+    super("Amplitude", context, settings);
     if (isNullOrEmpty(settings.apiKey)) {
       throw new InvalidConfigurationException("Amplitude requires the apiKey setting.");
     }
 
     Amplitude.initialize(context, settings.apiKey);
+  }
+
+  @Override public Void getUnderlyingInstance() {
+    return null;
   }
 
   @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {

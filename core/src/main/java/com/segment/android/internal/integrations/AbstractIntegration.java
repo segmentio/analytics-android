@@ -12,21 +12,43 @@ import com.segment.android.internal.payload.TrackPayload;
 /**
  * A base class for Integrations. An integration will only be created if the server sends us
  * settings for it.
+ *
+ * @param <S> The type of the settings class to provide this integration.
+ * @param <T> The backing intance
  */
-public abstract class AbstractIntegration<T> {
+public abstract class AbstractIntegration<S, T> {
+  private final String key;
   private final Context context;
+  private final S settings;
 
   /**
    * Create an integration with the given settings. Check for any specific permissions or features
    * that the integration needs. Also check for any required values in your settings.
    */
-  public AbstractIntegration(Context context, T settings) throws InvalidConfigurationException {
+  AbstractIntegration(String key, Context context, S settings)
+      throws InvalidConfigurationException {
+    this.key = key;
     this.context = context;
+    this.settings = settings;
   }
 
   final Context getContext() {
     return context;
   }
+
+  final S getSettings() {
+    return settings;
+  }
+
+  final String getKey() {
+    return key;
+  }
+
+  /**
+   * The underlying instance for this provider - used for integration specific actions. This could
+   * be null for SDK's that maintain a shared instance (e.g. Amplitude).
+   */
+  public abstract T getUnderlyingInstance();
 
   // Application Callbacks, same as Application$ActivityLifecycleCallbacks
   public abstract void onActivityCreated(Activity activity, Bundle savedInstanceState);
