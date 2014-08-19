@@ -9,14 +9,20 @@ import com.segment.android.internal.integrations.AbstractIntegration;
 import com.segment.android.internal.integrations.AmplitudeIntegration;
 import com.segment.android.internal.integrations.InvalidConfigurationException;
 import com.segment.android.internal.payload.AliasPayload;
+import com.segment.android.internal.payload.BasePayload;
 import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
 import com.segment.android.internal.settings.ProjectSettings;
+import com.segment.android.json.JsonMap;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import static com.segment.android.internal.Utils.defaultSingleThreadedExecutor;
@@ -30,6 +36,7 @@ import static com.segment.android.internal.Utils.defaultSingleThreadedExecutor;
  */
 public class IntegrationManager {
   // A set of integrations available on the device
+  private Map<String, Boolean> bundledIntegrations = new LinkedHashMap<String, Boolean>();
   private List<AbstractIntegration> availableBundledIntegrations =
       new LinkedList<AbstractIntegration>();
   // A set of integrations that are available and have been enabled for this project.
@@ -60,6 +67,7 @@ public class IntegrationManager {
       AbstractIntegration integration = new AmplitudeIntegration();
       integration.validate(context);
       availableBundledIntegrations.add(integration);
+      bundledIntegrations.put(integration.key(), false);
     } catch (ClassNotFoundException e) {
       Logger.d("Amplitude not bundled");
     } catch (InvalidConfigurationException e) {
@@ -89,15 +97,21 @@ public class IntegrationManager {
   }
 
   private void initialize(ProjectSettings projectSettings) {
-    // Amplitude
-    for (AbstractIntegration integration : availableBundledIntegrations) {
+    for (Iterator<AbstractIntegration> it = availableBundledIntegrations.iterator();
+        it.hasNext(); ) {
+      AbstractIntegration integration = it.next();
       try {
         boolean enabled = integration.initialize(context, projectSettings);
-        if (enabled) enabledIntegrations.add(integration);
+        if (enabled) {
+          enabledIntegrations.add(integration);
+        }
       } catch (InvalidConfigurationException e) {
         Logger.e(e, "Could not load %s", integration.key());
+      } finally {
+        it.remove();
       }
     }
+    availableBundledIntegrations = null; // Help the GC
   }
 
   public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -145,31 +159,67 @@ public class IntegrationManager {
   // Analytics Actions
   void identify(IdentifyPayload identify) {
     for (AbstractIntegration integration : enabledIntegrations) {
-      integration.identify(identify);
+      if (isBundledIntegrationEnabledForPayload(identify, integration)) {
+        integration.identify(identify);
+      }
     }
   }
 
   void group(GroupPayload group) {
     for (AbstractIntegration integration : enabledIntegrations) {
-      integration.group(group);
+      if (isBundledIntegrationEnabledForPayload(group, integration)) {
+        integration.group(group);
+      }
     }
   }
 
   public void track(TrackPayload track) {
     for (AbstractIntegration integration : enabledIntegrations) {
-      integration.track(track);
+      if (isBundledIntegrationEnabledForPayload(track, integration)) {
+        integration.track(track);
+      }
     }
   }
 
   void alias(AliasPayload alias) {
     for (AbstractIntegration integration : enabledIntegrations) {
-      integration.alias(alias);
+      if (isBundledIntegrationEnabledForPayload(alias, integration)) {
+        integration.alias(alias);
+      }
     }
   }
 
   void screen(ScreenPayload screen) {
     for (AbstractIntegration integration : enabledIntegrations) {
       integration.screen(screen);
+      if (isBundledIntegrationEnabledForPayload(screen, integration)) {
+        integration.screen(screen);
+      }
     }
+  }
+
+  private boolean isBundledIntegrationEnabledForPayload(BasePayload payload,
+      AbstractIntegration integration) {
+    Boolean enabled = true;
+    // look in the payload.context.integrations to see which Bundled integrations should be disabled.
+    // payload.integrations is reserved for the server, where all bundled integrations are set to
+    // false
+    JsonMap integrations = payload.context().getIntegrations();
+    if (!JsonMap.isNullOrEmpty(integrations)) {
+      if (integrations.containsKey(integration.key())) {
+        enabled = integrations.getBoolean(integration.key());
+      } else if (integrations.containsKey("All")) {
+        enabled = integrations.getBoolean("All");
+      } else if (integrations.containsKey("all")) {
+        enabled = integrations.getBoolean("all");
+      }
+    }
+    // need this check since users could accidentially put in their own custom values, in which
+    // case the get methods will return null. Ugh mutability
+    return enabled == null ? true : enabled;
+  }
+
+  public Map<String, Boolean> bundledIntegrations() {
+    return Collections.unmodifiableMap(bundledIntegrations);
   }
 }

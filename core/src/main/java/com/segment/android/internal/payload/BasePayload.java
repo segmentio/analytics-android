@@ -28,7 +28,8 @@ import com.segment.android.AnalyticsContext;
 import com.segment.android.Options;
 import com.segment.android.internal.ISO8601Time;
 import com.segment.android.json.JsonMap;
-import java.util.Map;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 /**
  * A payload object that will be sent to the server. Clients will not decode instances of this
@@ -49,9 +50,9 @@ public class BasePayload extends JsonMap {
 
   /**
    * The anonymous ID is an identifier that uniquely (or close enough) identifies the user, but
-   * isn't from your database. This is useful in cases where you are able to uniquely identifier
-   * the user between visits before they signup thanks to a cookie, or session ID or device ID. In
-   * our mobile and browser libraries we will automatically handle sending the anonymous ID.
+   * isn't from your database. This is useful in cases where you are able to uniquely identifier the
+   * user between visits before they signup thanks to a cookie, or session ID or device ID. In our
+   * mobile and browser libraries we will automatically handle sending the anonymous ID.
    */
   private static final String ANONYMOUS_ID_KEY = "anonymousId";
 
@@ -94,17 +95,25 @@ public class BasePayload extends JsonMap {
    */
   private static final String USER_ID_KEY = "userId";
 
-  // Options will be serialized, but not for the json payload
-  private Options options;
-
   public BasePayload(Type type, String anonymousId, AnalyticsContext context, String userId,
       Options options) {
     put(TYPE_KEY, type.toString());
     put(CHANNEL_KEY, Channel.mobile.toString());
     put(ANONYMOUS_ID_KEY, anonymousId);
+
+    // Top level integrations are used by servers, this is a combination of disabled bundled
+    // integrations, and anything the user may have passed in
+    HashMap<String, Boolean> serverIntegrations = new LinkedHashMap<String, Boolean>();
+    serverIntegrations.putAll(options.getIntegrations());
+    serverIntegrations.putAll(options.getBundledIntegrations());
+    put(INTEGRATIONS_KEY, serverIntegrations);
+    // Context level integrations are used by IntegrationManger, this is simply what the user may
+    // have passed in, used to disable integrations for specific events. Could be a bundled one,
+    // which we'll skip locally, or a server one, which we'll pass on to the server
+    context.putIntegrations(options.getIntegrations());
+
     put(CONTEXT_KEY, context);
     put(USER_ID_KEY, userId);
-    this.options = options;
     put(TIMESTAMP_KEY, options.getTimestamp() == null ? ISO8601Time.now().toString()
         : ISO8601Time.from(options.getTimestamp()).toString());
   }
@@ -113,24 +122,20 @@ public class BasePayload extends JsonMap {
     super(json);
   }
 
-  public String getType() {
+  public String type() {
     return getString(TYPE_KEY);
   }
 
-  public String getUserId() {
+  public String userId() {
     return getString(USER_ID_KEY);
   }
 
-  public Options getOptions() {
-    return options;
+  public AnalyticsContext context() {
+    return new AnalyticsContext(getJsonMap(CONTEXT_KEY));
   }
 
   public void setSentAt(ISO8601Time time) {
     put(SENT_AT_KEY, time.toString());
-  }
-
-  public void setServerIntegrations(Map<String, Boolean> integrations) {
-    put(INTEGRATIONS_KEY, integrations);
   }
 
   @Override public BasePayload putValue(String key, Object value) {

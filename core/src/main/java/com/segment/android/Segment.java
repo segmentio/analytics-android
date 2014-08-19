@@ -33,6 +33,7 @@ import android.os.Looper;
 import android.os.Message;
 import com.segment.android.internal.Dispatcher;
 import com.segment.android.internal.IntegrationManager;
+import com.segment.android.internal.Logger;
 import com.segment.android.internal.SegmentHTTPApi;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.BasePayload;
@@ -40,7 +41,6 @@ import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import com.segment.android.internal.Logger;
 
 import static com.segment.android.internal.Utils.assertOnMainThread;
 import static com.segment.android.internal.Utils.getDeviceId;
@@ -219,6 +219,7 @@ public class Segment {
     if (options == null) {
       options = new Options();
     }
+    options.setBundledIntegrations(integrationManager.bundledIntegrations());
 
     Traits.with(application).putId(userId);
 
@@ -229,13 +230,15 @@ public class Segment {
   public void group(String groupId, Options options) {
     assertOnMainThread();
 
-    if (options == null) {
-      options = new Options();
-    }
-
     if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException("groupId must be null or empty.");
     }
+
+    if (options == null) {
+      options = new Options();
+    }
+    options.setBundledIntegrations(integrationManager.bundledIntegrations());
+
     submit(new GroupPayload(anonymousId, AnalyticsContext.with(application),
         Traits.with(application).getId(), groupId, Traits.with(application), options));
   }
@@ -253,6 +256,7 @@ public class Segment {
     if (options == null) {
       options = new Options();
     }
+    options.setBundledIntegrations(integrationManager.bundledIntegrations());
 
     TrackPayload payload = new TrackPayload(anonymousId, AnalyticsContext.with(application),
         Traits.with(application).getId(), event, properties, options);
@@ -275,6 +279,7 @@ public class Segment {
     if (options == null) {
       options = new Options();
     }
+    options.setBundledIntegrations(integrationManager.bundledIntegrations());
 
     submit(new ScreenPayload(anonymousId, AnalyticsContext.with(application),
         Traits.with(application).getId(), category, name, properties, options));
@@ -293,6 +298,7 @@ public class Segment {
     if (options == null) {
       options = new Options();
     }
+    options.setBundledIntegrations(integrationManager.bundledIntegrations());
 
     Traits.with(application).putId(newId); // update the new id
 

@@ -25,6 +25,7 @@
 package com.segment.android;
 
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -32,29 +33,28 @@ public class Options {
   public static final String ALL_INTEGRATIONS_KEY = "all";
 
   private Calendar timestamp;
-  private final Map<String, Boolean> integrations;
+  private final Map<String, Boolean> integrations; // passed in by the user
+  private Map<String, Boolean> bundledIntegrations; // passed in by integrationmanager,
 
   public Options() {
     integrations = new LinkedHashMap<String, Boolean>();
     integrations.put(ALL_INTEGRATIONS_KEY, true);
+    bundledIntegrations = new LinkedHashMap<String, Boolean>();
   }
 
   /**
    * Sets whether this call will be sent to the target integration.
-   * <p>
-   * By default, all integrations are sent a payload.
-   * You can disable specific payloads. For instance,
-   * <code>options.setIntegration("Google Analytics", false).setIntegration("Countly",
-   * false)</code> will send the event to all integrations except Google Analytic and Countly.
-   * If you want to enable only specific integrations, first override the defaults and then
-   * enable specific integrations.
-   * For example,
-   * <code>options.setIntegration(Options.ALL_INTEGRATIONS_KEY, false).setIntegration("Countly",
-   * true).setIntegration("Google Analytics", true)</code> will only send events to Countly and
-   * Google Analytics.
+   * <p/>
+   * By default, all integrations are sent a payload. You can disable specific payloads. For
+   * instance, <code>options.setIntegration("Google Analytics", false).setIntegration("Countly",
+   * false)</code> will send the event to all integrations except Google Analytic and Countly. If
+   * you want to enable only specific integrations, first override the defaults and then enable
+   * specific integrations. For example, <code>options.setIntegration(Options.ALL_INTEGRATIONS_KEY,
+   * false).setIntegration("Countly", true).setIntegration("Google Analytics", true)</code> will
+   * only send events to Countly and Google Analytics.
    *
    * @param integrationKey The integration key
-   * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
+   * @param enabled        <code>true</code> for enabled, <code>false</code> for disabled
    * @return This options object for chaining
    */
   public Options setIntegration(String integrationKey, boolean enabled) {
@@ -62,14 +62,22 @@ public class Options {
     return this;
   }
 
-  Map<String, Boolean> getIntegrations() {
-    return integrations; // todo: wrap in Collections.Unmodifiable?
+  void setBundledIntegrations(Map<String, Boolean> bundledIntegrations) {
+    this.bundledIntegrations = bundledIntegrations;
+  }
+
+  public Map<String, Boolean> getBundledIntegrations() {
+    return Collections.unmodifiableMap(bundledIntegrations);
+  }
+
+  public Map<String, Boolean> getIntegrations() {
+    return Collections.unmodifiableMap(integrations);
   }
 
   /**
    * Sets the timestamp of when an analytics call occurred. The timestamp is primarily used for
-   * historical imports or if this event happened in the past. The timestamp is not required, and
-   * if it's not provided, our servers will timestamp the call as if it just happened.
+   * historical imports or if this event happened in the past. The timestamp is not required, and if
+   * it's not provided, our servers will timestamp the call as if it just happened.
    *
    * @param timestamp The time when this event happened
    * @return This options object for chaining
