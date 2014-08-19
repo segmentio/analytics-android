@@ -1,5 +1,6 @@
 package com.segment.android.json;
 
+import com.segment.android.internal.Utils;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -56,6 +57,9 @@ public class JsonMap implements Map<String, Object> {
   }
 
   public JsonMap(String json) {
+    if (Utils.isNullOrEmpty(json)) {
+      throw new IllegalArgumentException("Map must not be null.");
+    }
     try {
       this.delegate = JsonUtils.toMap(json);
     } catch (JsonConversionException e) {
