@@ -36,16 +36,6 @@ public class ProjectSettings extends JsonMap {
 
 
 
-  public static class MixpanelSettings {
-    public String apiKey;
-    public boolean people;
-    public String token;
-    public boolean trackAllPages;
-    public boolean trackCategorizedPages;
-    public boolean trackNamedPages;
-    public List<String> increments;
-    public boolean legacySuperProperties;
-  }
 
   public static class QuantcastSettings {
     public String apiKey;

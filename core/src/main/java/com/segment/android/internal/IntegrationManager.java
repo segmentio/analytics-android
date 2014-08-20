@@ -14,6 +14,7 @@ import com.segment.android.internal.integrations.FlurryIntegration;
 import com.segment.android.internal.integrations.GoogleAnalyticsIntegration;
 import com.segment.android.internal.integrations.InvalidConfigurationException;
 import com.segment.android.internal.integrations.LocalyticsIntegration;
+import com.segment.android.internal.integrations.MixpanelIntegration;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.BasePayload;
 import com.segment.android.internal.payload.GroupPayload;
@@ -135,6 +136,14 @@ public class IntegrationManager {
       Logger.d("Localytics not bundled");
     } catch (InvalidConfigurationException e) {
       Logger.e(e, "Localytics needs more data!");
+    }
+    try {
+      AbstractIntegration integration = new MixpanelIntegration();
+      add(integration);
+    } catch (ClassNotFoundException e) {
+      Logger.d("Mixpanel not bundled");
+    } catch (InvalidConfigurationException e) {
+      Logger.e(e, "Mixpanel needs more data!");
     }
   }
 
