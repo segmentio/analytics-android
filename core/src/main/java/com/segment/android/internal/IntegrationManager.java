@@ -11,6 +11,7 @@ import com.segment.android.internal.integrations.BugsnagIntegration;
 import com.segment.android.internal.integrations.CountlyIntegration;
 import com.segment.android.internal.integrations.CrittercismIntegration;
 import com.segment.android.internal.integrations.FlurryIntegration;
+import com.segment.android.internal.integrations.GoogleAnalyticsIntegration;
 import com.segment.android.internal.integrations.InvalidConfigurationException;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.BasePayload;
@@ -80,9 +81,7 @@ public class IntegrationManager {
     // disable sending to these integrations from the server and properly fill the payloads.
     try {
       AbstractIntegration integration = new AmplitudeIntegration();
-      integration.validate(context);
-      availableBundledIntegrations.add(integration);
-      bundledIntegrations.put(integration.key(), false);
+      add(integration);
     } catch (ClassNotFoundException e) {
       Logger.d("Amplitude not bundled");
     } catch (InvalidConfigurationException e) {
@@ -90,9 +89,7 @@ public class IntegrationManager {
     }
     try {
       AbstractIntegration integration = new BugsnagIntegration();
-      integration.validate(context);
-      availableBundledIntegrations.add(integration);
-      bundledIntegrations.put(integration.key(), false);
+      add(integration);
     } catch (ClassNotFoundException e) {
       Logger.d("Bugsnag not bundled");
     } catch (InvalidConfigurationException e) {
@@ -100,9 +97,7 @@ public class IntegrationManager {
     }
     try {
       AbstractIntegration integration = new CountlyIntegration();
-      integration.validate(context);
-      availableBundledIntegrations.add(integration);
-      bundledIntegrations.put(integration.key(), false);
+      add(integration);
     } catch (ClassNotFoundException e) {
       Logger.d("Countly not bundled");
     } catch (InvalidConfigurationException e) {
@@ -110,9 +105,7 @@ public class IntegrationManager {
     }
     try {
       AbstractIntegration integration = new CrittercismIntegration();
-      integration.validate(context);
-      availableBundledIntegrations.add(integration);
-      bundledIntegrations.put(integration.key(), false);
+      add(integration);
     } catch (ClassNotFoundException e) {
       Logger.d("Crittercism not bundled");
     } catch (InvalidConfigurationException e) {
@@ -120,14 +113,26 @@ public class IntegrationManager {
     }
     try {
       AbstractIntegration integration = new FlurryIntegration();
-      integration.validate(context);
-      availableBundledIntegrations.add(integration);
-      bundledIntegrations.put(integration.key(), false);
+      add(integration);
     } catch (ClassNotFoundException e) {
       Logger.d("Flurry not bundled");
     } catch (InvalidConfigurationException e) {
       Logger.e(e, "Flurry needs more data!");
     }
+    try {
+      AbstractIntegration integration = new GoogleAnalyticsIntegration();
+      add(integration);
+    } catch (ClassNotFoundException e) {
+      Logger.d("Google Analytics not bundled");
+    } catch (InvalidConfigurationException e) {
+      Logger.e(e, "Google Analytics needs more data!");
+    }
+  }
+
+  void add(AbstractIntegration integration) throws InvalidConfigurationException {
+    integration.validate(context);
+    availableBundledIntegrations.add(integration);
+    bundledIntegrations.put(integration.key(), false);
   }
 
   void performFetch() {

@@ -35,27 +35,6 @@ public class ProjectSettings extends JsonMap {
 
 
 
-  public static class GoogleAnalyticsSettings {
-    public boolean sendUserId;
-    public boolean reportUncaughtExceptions;
-    public boolean anonymizeIp;
-    public boolean classic;
-    public String domain;
-    public boolean doubleClick;
-    public boolean enhancedLinkAttribution;
-    public List<String> ignoredReferrers;
-    public boolean includeSearch;
-    public boolean initialPageView;
-    public String mobileTrackingId;
-    public String serversideTrackingId;
-    public boolean serversideClassic;
-    public int siteSpeedSampleRate;
-    public String trackingId;
-    public boolean trackCategorizedPages;
-    public boolean trackNamedPages;
-    public Map<String, String> dimensions;
-    public Map<String, String> metric;
-  }
 
   public static class LocalyticsSettings {
     public String appKey;

@@ -66,7 +66,7 @@ class JsonUtils {
     }
   }
 
-  /** Converts the given string into a map. */
+  /** Converts the given string into a list. */
   static List<Object> toList(String string) throws JsonConversionException {
     try {
       JSONArray jsonArray = new JSONArray(string);
