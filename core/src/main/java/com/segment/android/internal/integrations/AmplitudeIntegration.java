@@ -12,8 +12,6 @@ import com.segment.android.internal.settings.ProjectSettings;
 import com.segment.android.json.JsonMap;
 import java.util.Map;
 
-import static com.segment.android.internal.Utils.isNullOrEmpty;
-
 public class AmplitudeIntegration extends AbstractIntegration<Void> {
 
   public AmplitudeIntegration() throws ClassNotFoundException {
@@ -30,11 +28,7 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
       return false;
     }
     AmplitudeSettings settings = new AmplitudeSettings(projectSettings.getJsonMap(key()));
-    String apiKey = settings.apiKey();
-    if (isNullOrEmpty(apiKey)) {
-      throw new InvalidConfigurationException("Amplitude requires the apiKey setting.");
-    }
-    Amplitude.initialize(context, apiKey);
+    Amplitude.initialize(context, settings.apiKey());
     return true;
   }
 

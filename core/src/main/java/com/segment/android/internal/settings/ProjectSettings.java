@@ -33,12 +33,7 @@ public class ProjectSettings extends JsonMap {
     super(json);
   }
 
-  public static class FlurrySettings {
-    public String apiKey;
-    public boolean captureUncaughtExceptions;
-    public boolean useHttps;
-    public int sessionContinueSeconds;
-  }
+
 
   public static class GoogleAnalyticsSettings {
     public boolean sendUserId;

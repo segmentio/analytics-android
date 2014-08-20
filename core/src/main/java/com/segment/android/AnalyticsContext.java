@@ -54,7 +54,8 @@ import static com.segment.android.internal.Utils.getSystemService;
  * any custom data to the context dictionary that you'd like to have access to in the raw logs.
  * <p/>
  * Some keys in the context dictionary have semantic meaning and will be collected for you
- * automatically, depending on the library you send data from.Some keys need to be manually entered,
+ * automatically, depending on the library you send data from.Some keys need to be manually
+ * entered,
  * such as IP Address, speed, etc.
  * <p/>
  * This is not persisted to disk, and is recomputed each time the app starts. If you set a key
@@ -151,18 +152,40 @@ public class AnalyticsContext extends JsonMap {
     put(LIBRARY_KEY, library);
   }
 
+  public static class Location extends JsonMap {
+    private static final String LOCATION_LATITUDE_KEY = "latitude";
+    private static final String LOCATION_LONGITUDE_KEY = "longitude";
+    private static final String LOCATION_SPEED_KEY = "speed";
+
+    Location(double latitude, double longitude, double speed) {
+      put(LOCATION_LATITUDE_KEY, latitude);
+      put(LOCATION_LONGITUDE_KEY, longitude);
+      put(LOCATION_SPEED_KEY, speed);
+    }
+
+    public double latitude() {
+      return getDouble(LOCATION_LATITUDE_KEY);
+    }
+
+    public double longitude() {
+      return getDouble(LOCATION_LONGITUDE_KEY);
+    }
+
+    public double speed() {
+      return getDouble(LOCATION_SPEED_KEY);
+    }
+  }
+
   private static final String LOCATION_KEY = "location";
-  private static final String LOCATION_LATITUDE_KEY = "latitude";
-  private static final String LOCATION_LONGITUDE_KEY = "longitude";
-  private static final String LOCATION_SPEED_KEY = "speed";
 
   public AnalyticsContext putLocation(double latitude, double longitude, double speed) {
-    Map<String, Double> location = new LinkedHashMap<String, Double>(3);
-    location.put(LOCATION_LATITUDE_KEY, latitude);
-    location.put(LOCATION_LONGITUDE_KEY, longitude);
-    location.put(LOCATION_SPEED_KEY, speed);
+    Location location = new Location(latitude, longitude, speed);
     put(LOCATION_KEY, location);
     return this;
+  }
+
+  public Location location() {
+    return (Location) get(LOCATION_KEY);
   }
 
   private static final String NETWORK_KEY = "network";
@@ -322,7 +345,8 @@ public class AnalyticsContext extends JsonMap {
     return getJsonMap(INTEGRATIONS_KEY);
   }
 
-  @Override public AnalyticsContext putValue(String key, Object value) {
+  @Override
+  public AnalyticsContext putValue(String key, Object value) {
     super.putValue(key, value);
     return this;
   }

@@ -10,6 +10,7 @@ import com.segment.android.internal.integrations.AmplitudeIntegration;
 import com.segment.android.internal.integrations.BugsnagIntegration;
 import com.segment.android.internal.integrations.CountlyIntegration;
 import com.segment.android.internal.integrations.CrittercismIntegration;
+import com.segment.android.internal.integrations.FlurryIntegration;
 import com.segment.android.internal.integrations.InvalidConfigurationException;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.BasePayload;
@@ -116,6 +117,16 @@ public class IntegrationManager {
       Logger.d("Crittercism not bundled");
     } catch (InvalidConfigurationException e) {
       Logger.e(e, "Crittercism needs more data!");
+    }
+    try {
+      AbstractIntegration integration = new FlurryIntegration();
+      integration.validate(context);
+      availableBundledIntegrations.add(integration);
+      bundledIntegrations.put(integration.key(), false);
+    } catch (ClassNotFoundException e) {
+      Logger.d("Flurry not bundled");
+    } catch (InvalidConfigurationException e) {
+      Logger.e(e, "Flurry needs more data!");
     }
   }
 

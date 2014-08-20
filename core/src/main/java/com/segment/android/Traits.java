@@ -158,6 +158,10 @@ public class Traits extends JsonMap {
     return putValue(AGE_KEY, age);
   }
 
+  public Short age() {
+    return getShort(AGE_KEY);
+  }
+
   public Traits putBirthday(Date birthday) {
     return putValue(BIRTHDAY_KEY, ISO8601Time.from(birthday).toString());
   }
@@ -168,6 +172,10 @@ public class Traits extends JsonMap {
 
   public Traits putGender(String gender) {
     return putValue(GENDER_KEY, gender);
+  }
+
+  public String gender() {
+    return getString(GENDER_KEY);
   }
 
   public Traits putLastName(String lastName) {
