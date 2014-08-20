@@ -2,11 +2,9 @@ package com.segment.android.internal.integrations;
 
 import android.app.Activity;
 import android.content.Context;
-import android.os.Bundle;
 import com.amplitude.api.Amplitude;
 import com.segment.android.Properties;
-import com.segment.android.internal.payload.AliasPayload;
-import com.segment.android.internal.payload.GroupPayload;
+import com.segment.android.Traits;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
@@ -52,53 +50,49 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
     return null;
   }
 
-  @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-
-  }
-
-  @Override public void onActivityStarted(Activity activity) {
-
-  }
-
   @Override public void onActivityResumed(Activity activity) {
-
+    super.onActivityResumed(activity);
+    Amplitude.startSession();
   }
 
   @Override public void onActivityPaused(Activity activity) {
-
-  }
-
-  @Override public void onActivityStopped(Activity activity) {
-
-  }
-
-  @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-
-  }
-
-  @Override public void onActivityDestroyed(Activity activity) {
-
+    super.onActivityPaused(activity);
+    Amplitude.endSession();
   }
 
   @Override public void identify(IdentifyPayload identify) {
-
-  }
-
-  @Override public void group(GroupPayload group) {
-
-  }
-
-  @Override public void track(TrackPayload track) {
-    Properties properties = track.getProperties();
-    Amplitude.logEvent(track.getEvent(), properties.toJsonObject());
-    // todo : commerce stuff
-  }
-
-  @Override public void alias(AliasPayload alias) {
-
+    super.identify(identify);
+    String userId = identify.getUserId();
+    Traits traits = identify.getTraits();
+    Amplitude.setUserId(userId);
+    Amplitude.setUserProperties(traits.toJsonObject());
   }
 
   @Override public void screen(ScreenPayload screen) {
+    super.screen(screen);
+    event("Viewed " + screen.getName() + " Screen", screen.getProperties());
+  }
 
+  @Override public void track(TrackPayload track) {
+    super.track(track);
+    event(track.getEvent(), track.getProperties());
+  }
+
+  private void event(String name, Properties properties) {
+    Amplitude.logEvent(name, properties.toJsonObject());
+
+    if (properties.containsKey(REVENUE_KEY)) {
+      double revenue = properties.getDouble(REVENUE_KEY);
+      String productId = properties.getString(PRODUCT_ID_KEY);
+      int quantity = properties.getInteger(QUANTITY_KEY);
+      String receipt = properties.getString(RECEIPT_KEY);
+      String receiptSignature = properties.getString(RECEIPT_SIGNATURE_KEY);
+      Amplitude.logRevenue(productId, quantity, revenue, receipt, receiptSignature);
+    }
+  }
+
+  @Override public void flush() {
+    super.flush();
+    Amplitude.uploadEvents();
   }
 }

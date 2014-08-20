@@ -8,15 +8,18 @@ import java.util.Set;
 import org.json.JSONObject;
 
 /**
- * A wrapper around {@link Map} to expose Json functionality. Only the {@link #toString()} method is
+ * A wrapper around {@link Map} to expose Json functionality. Only the {@link #toString()} method
+ * is
  * modified to return a json formatted string. All other methods will be forwarded to another map.
  * <p/>
- * The purpose of this class is to not limit clients to a custom implementation of a Json type, they
+ * The purpose of this class is to not limit clients to a custom implementation of a Json type,
+ * they
  * can use existing {@link Map} and {@link java.util.List} implementations as they see fit. It adds
  * some utility methods, including methods to coerce numeric types from Strings, and a {@link
  * #putValue(String, Object)} to be able to chain method calls.
  * <p/>
- * To create an instance of this class, use one of the static factory methods. <code>JsonMap<Object>
+ * To create an instance of this class, use one of the static factory methods.
+ * <code>JsonMap<Object>
  * map = JsonMap.create();</code> <code>JsonMap<Object> map = JsonMap.decode(json);</code>
  * <code>JsonMap<Object> map = JsonMap.wrap(new HashMap<String, Object>);</code>
  * <p/>
@@ -28,14 +31,16 @@ import org.json.JSONObject;
  * Although it lets you use custom objects for values, note that type information is lost during
  * serialization. e.g A custom class Person using the default <code>toString</code> implementation.
  * {@code JsonMap<Object> map = JsonMap.decode(); map.put("person", new Person("john", "doe", 32));
- * Person person = (Person) map.get("person"); // no serialization yet String json = map.toString();
+ * Person person = (Person) map.get("person"); // no serialization yet String json =
+ * map.toString();
  * JsonMap<Object> deserialized = JsonMap.decode(json); // The line below will throw a
  * ClassCastException, since Person was stored as a String Person person = (Person)
  * deserialized.get("person"); // You'd actually get back something like 'Person@123132' for the
  * default toString implementation. }
  * <p/>
  * Only String, Integer, Double, Long and Boolean types are supported. Short, Byte, Float and char
- * are deserialized to one of the above types. Short -> Integer Byte -> Integer Float -> Double Char
+ * are deserialized to one of the above types. Short -> Integer Byte -> Integer Float -> Double
+ * Char
  * -> String
  */
 public class JsonMap implements Map<String, Object> {
@@ -142,8 +147,11 @@ public class JsonMap implements Map<String, Object> {
   // Coercion Methods
   /* The methods return boxed primitives to be able to return null and keep parity with Map. */
 
+  // todo: better null handling
+
   /**
-   * Returns the value mapped by {@code key} if it exists and is a byte or can be coerced to a byte.
+   * Returns the value mapped by {@code key} if it exists and is a byte or can be coerced to a
+   * byte.
    * Returns null otherwise.
    */
   public Byte getByte(Object key) {
@@ -205,7 +213,8 @@ public class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a long.
+   * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a
+   * long.
    * Returns null otherwise.
    */
   public Long getLong(Object key) {
@@ -265,7 +274,8 @@ public class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a char or can be coerced to a char.
+   * Returns the value mapped by {@code key} if it exists and is a char or can be coerced to a
+   * char.
    * Returns null otherwise.
    */
   public Character getChar(Object key) {

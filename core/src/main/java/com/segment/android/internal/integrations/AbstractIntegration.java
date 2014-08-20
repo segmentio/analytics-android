@@ -35,7 +35,8 @@ public abstract class AbstractIntegration<T> {
   public abstract void validate(Context context) throws InvalidConfigurationException;
 
   /**
-   * Initialize the integration, if an error occurs here, it's probably our fault for not having all
+   * Initialize the integration, if an error occurs here, it's probably our fault for not having
+   * all
    * the settings.
    */
   public abstract boolean initialize(Context context, ProjectSettings projectSettings)
@@ -48,28 +49,46 @@ public abstract class AbstractIntegration<T> {
   public abstract T getUnderlyingInstance();
 
   // Application Callbacks, same as Application$ActivityLifecycleCallbacks
-  public abstract void onActivityCreated(Activity activity, Bundle savedInstanceState);
+  public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
 
-  public abstract void onActivityStarted(Activity activity);
+  }
 
-  public abstract void onActivityResumed(Activity activity);
+  public void onActivityStarted(Activity activity) {
 
-  public abstract void onActivityPaused(Activity activity);
+  }
 
-  public abstract void onActivityStopped(Activity activity);
+  public void onActivityResumed(Activity activity) {
+  }
 
-  public abstract void onActivitySaveInstanceState(Activity activity, Bundle outState);
+  public void onActivityPaused(Activity activity) {
+  }
 
-  public abstract void onActivityDestroyed(Activity activity);
+  public void onActivityStopped(Activity activity) {
+  }
+
+  public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+  }
+
+  public void onActivityDestroyed(Activity activity) {
+  }
 
   // Analytics Actions
-  public abstract void identify(IdentifyPayload identify);
+  public void identify(IdentifyPayload identify) {
+  }
 
-  public abstract void group(GroupPayload group);
+  public void group(GroupPayload group) {
+  }
 
-  public abstract void track(TrackPayload track);
+  public void track(TrackPayload track) {
+  }
 
-  public abstract void alias(AliasPayload alias);
+  public void alias(AliasPayload alias) {
+  }
 
-  public abstract void screen(ScreenPayload screen);
+  public void screen(ScreenPayload screen) {
+  }
+
+  public void flush() {
+
+  }
 }
