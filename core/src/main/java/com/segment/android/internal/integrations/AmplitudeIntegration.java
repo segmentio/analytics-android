@@ -8,8 +8,9 @@ import com.segment.android.Traits;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import com.segment.android.internal.settings.AmplitudeSettings;
 import com.segment.android.internal.settings.ProjectSettings;
+import com.segment.android.json.JsonMap;
+import java.util.Map;
 
 import static com.segment.android.internal.Utils.isNullOrEmpty;
 
@@ -20,16 +21,12 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
   private static final String RECEIPT_KEY = "receipt";
   private static final String RECEIPT_SIGNATURE_KEY = "receiptSignature";
 
-  /**
-   * Create an integration with the given settings. Check for any specific permissions or features
-   * that the integration needs. Also check for any required values in your settings.
-   */
   public AmplitudeIntegration() throws ClassNotFoundException {
     super("Amplitude", "com.amplitude.api.Amplitude");
   }
 
   @Override public void validate(Context context) throws InvalidConfigurationException {
-    // only needs internet permission
+    // no extra permissions
   }
 
   @Override public boolean initialize(Context context, ProjectSettings projectSettings)
@@ -94,5 +91,27 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
   @Override public void flush() {
     super.flush();
     Amplitude.uploadEvents();
+  }
+
+  static class AmplitudeSettings extends JsonMap {
+    AmplitudeSettings(Map<String, Object> delegate) {
+      super(delegate);
+    }
+
+    String apiKey() {
+      return getString("apiKey");
+    }
+
+    boolean trackAllPages() {
+      return containsKey("trackAllPages") ? getBoolean("trackAllPages") : false;
+    }
+
+    boolean trackCategorizedPages() {
+      return containsKey("trackAllPages") ? getBoolean("trackAllPages") : false;
+    }
+
+    boolean trackNamedPages() {
+      return containsKey("trackAllPages") ? getBoolean("trackAllPages") : false;
+    }
   }
 }

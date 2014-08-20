@@ -240,7 +240,7 @@ public class Segment {
     options.setBundledIntegrations(integrationManager.bundledIntegrations());
 
     submit(new GroupPayload(anonymousId, AnalyticsContext.with(application),
-        Traits.with(application).getId(), groupId, Traits.with(application), options));
+        Traits.with(application).id(), groupId, Traits.with(application), options));
   }
 
   public void track(String event, Properties properties, Options options) {
@@ -259,7 +259,7 @@ public class Segment {
     options.setBundledIntegrations(integrationManager.bundledIntegrations());
 
     TrackPayload payload = new TrackPayload(anonymousId, AnalyticsContext.with(application),
-        Traits.with(application).getId(), event, properties, options);
+        Traits.with(application).id(), event, properties, options);
 
     submit(payload);
     integrationManager.track(payload);
@@ -282,7 +282,7 @@ public class Segment {
     options.setBundledIntegrations(integrationManager.bundledIntegrations());
 
     submit(new ScreenPayload(anonymousId, AnalyticsContext.with(application),
-        Traits.with(application).getId(), category, name, properties, options));
+        Traits.with(application).id(), category, name, properties, options));
   }
 
   public void alias(String newId, String previousId, Options options) {
@@ -293,7 +293,7 @@ public class Segment {
     }
 
     if (isNullOrEmpty(previousId)) {
-      previousId = Traits.with(application).getId(); // copy the previousId
+      previousId = Traits.with(application).id(); // copy the previousId
     }
     if (options == null) {
       options = new Options();
@@ -303,7 +303,7 @@ public class Segment {
     Traits.with(application).putId(newId); // update the new id
 
     submit(new AliasPayload(anonymousId, AnalyticsContext.with(application),
-        Traits.with(application).getId(), previousId, options));
+        Traits.with(application).id(), previousId, options));
   }
 
   public void flush() {

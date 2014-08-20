@@ -7,6 +7,7 @@ import android.os.Handler;
 import com.segment.android.Segment;
 import com.segment.android.internal.integrations.AbstractIntegration;
 import com.segment.android.internal.integrations.AmplitudeIntegration;
+import com.segment.android.internal.integrations.BugsnagIntegration;
 import com.segment.android.internal.integrations.InvalidConfigurationException;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.BasePayload;
@@ -30,8 +31,10 @@ import static com.segment.android.internal.Utils.defaultSingleThreadedExecutor;
 /**
  * Manages bundled integrations. This class will maintain it's own queue for events to account for
  * the latency between receiving the first event, fetching remote settings and enabling the
- * integrations. Once we enable all integrations - we'll replay any events on disk. This should only
- * affect the first app install, subsequent launches will be use a cached value from disk. Note that
+ * integrations. Once we enable all integrations - we'll replay any events on disk. This should
+ * only
+ * affect the first app install, subsequent launches will be use a cached value from disk. Note
+ * that
  * none of the activity lifecycle events are queued to disk.
  */
 public class IntegrationManager {
@@ -73,6 +76,16 @@ public class IntegrationManager {
     } catch (InvalidConfigurationException e) {
       Logger.e("Amplitude needs more permissions!");
     }
+    try {
+      AbstractIntegration integration = new BugsnagIntegration();
+      integration.validate(context);
+      availableBundledIntegrations.add(integration);
+      bundledIntegrations.put(integration.key(), false);
+    } catch (ClassNotFoundException e) {
+      Logger.d("Bugsnag not bundled");
+    } catch (InvalidConfigurationException e) {
+      Logger.e("Bugsnag needs more permissions!");
+    }
 
     service.submit(new Runnable() {
       @Override public void run() {
@@ -98,7 +111,7 @@ public class IntegrationManager {
 
   private void initialize(ProjectSettings projectSettings) {
     for (Iterator<AbstractIntegration> it = availableBundledIntegrations.iterator();
-        it.hasNext();) {
+        it.hasNext(); ) {
       AbstractIntegration integration = it.next();
       try {
         boolean enabled = integration.initialize(context, projectSettings);

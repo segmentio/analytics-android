@@ -25,8 +25,8 @@
 package com.segment.android;
 
 import android.content.Context;
-import com.segment.android.json.JsonMap;
 import com.segment.android.internal.ISO8601Time;
+import com.segment.android.json.JsonMap;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -105,6 +105,10 @@ public class Traits extends JsonMap {
     return putValue(AVATAR_KEY, avatar);
   }
 
+  public String avatar() {
+    return getString(AVATAR_KEY);
+  }
+
   public Traits putCreatedAt(String createdAt) {
     return putValue(CREATED_AT_KEY, createdAt);
   }
@@ -117,6 +121,10 @@ public class Traits extends JsonMap {
     return putValue(EMAIL_KEY, email);
   }
 
+  public String email() {
+    return getString(EMAIL_KEY);
+  }
+
   public Traits putFax(String fax) {
     return putValue(FAX_KEY, fax);
   }
@@ -125,12 +133,17 @@ public class Traits extends JsonMap {
     return putValue(ID_KEY, id);
   }
 
-  public String getId() {
-    return (String) get(ID_KEY);
+  public String id() {
+    return getString(ID_KEY);
   }
 
   public Traits putName(String name) {
     return putValue(NAME_KEY, name);
+  }
+
+  public String name() {
+    // todo: concat first name/last name if available
+    return getString(NAME_KEY);
   }
 
   public Traits putPhone(String phone) {
