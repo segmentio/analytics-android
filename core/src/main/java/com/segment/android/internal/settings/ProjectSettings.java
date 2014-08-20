@@ -36,10 +36,6 @@ public class ProjectSettings extends JsonMap {
 
 
 
-  public static class LocalyticsSettings {
-    public String appKey;
-  }
-
   public static class MixpanelSettings {
     public String apiKey;
     public boolean people;

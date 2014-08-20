@@ -13,6 +13,7 @@ import com.segment.android.internal.integrations.CrittercismIntegration;
 import com.segment.android.internal.integrations.FlurryIntegration;
 import com.segment.android.internal.integrations.GoogleAnalyticsIntegration;
 import com.segment.android.internal.integrations.InvalidConfigurationException;
+import com.segment.android.internal.integrations.LocalyticsIntegration;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.BasePayload;
 import com.segment.android.internal.payload.GroupPayload;
@@ -126,6 +127,14 @@ public class IntegrationManager {
       Logger.d("Google Analytics not bundled");
     } catch (InvalidConfigurationException e) {
       Logger.e(e, "Google Analytics needs more data!");
+    }
+    try {
+      AbstractIntegration integration = new LocalyticsIntegration();
+      add(integration);
+    } catch (ClassNotFoundException e) {
+      Logger.d("Localytics not bundled");
+    } catch (InvalidConfigurationException e) {
+      Logger.e(e, "Localytics needs more data!");
     }
   }
 

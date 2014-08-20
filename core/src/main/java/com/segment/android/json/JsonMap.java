@@ -3,7 +3,6 @@ package com.segment.android.json;
 import com.segment.android.internal.Utils;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -347,14 +346,9 @@ public class JsonMap implements Map<String, Object> {
 
   public Map<String, String> toStringMap() {
     Map<String, String> map = new HashMap<String, String>();
-
-    Iterator<String> it = keySet().iterator();
-    while (it.hasNext()) {
-      String key = it.next();
-      String value = String.valueOf(get(key));
-      map.put(key, value);
+    for (Map.Entry<String, Object> entry : entrySet()) {
+      map.put(entry.getKey(), String.valueOf(entry.getValue()));
     }
-
     return map;
   }
 
