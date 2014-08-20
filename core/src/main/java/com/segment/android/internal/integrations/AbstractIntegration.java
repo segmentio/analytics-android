@@ -88,4 +88,13 @@ public abstract class AbstractIntegration<T> {
   public void flush() {
 
   }
+
+  /**
+   * This is used only to indicate to the library that the user optedOut. After this has been
+   * called
+   * with 'true', integration won't receive any more events.
+   */
+  public void optOut(boolean optOut) {
+
+  }
 }

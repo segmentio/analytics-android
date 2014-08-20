@@ -93,7 +93,7 @@ public class BasePayload extends JsonMap {
    * The user ID is an identifier that unique identifies the user in your database. Ideally it
    * should not be an email address, because emails can change, whereas a database ID can't.
    */
-  private static final String USER_ID_KEY = "getUserId";
+  private static final String USER_ID_KEY = "userId";
 
   public BasePayload(Type type, String anonymousId, AnalyticsContext context, String userId,
       Options options) {
@@ -126,7 +126,7 @@ public class BasePayload extends JsonMap {
     return getString(TYPE_KEY);
   }
 
-  public String getUserId() {
+  public String userId() {
     return getString(USER_ID_KEY);
   }
 

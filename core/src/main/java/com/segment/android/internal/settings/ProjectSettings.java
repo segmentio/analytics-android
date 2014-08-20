@@ -24,33 +24,13 @@
 
 package com.segment.android.internal.settings;
 
-import com.amplitude.api.Amplitude;
-import com.segment.android.internal.integrations.AmplitudeIntegration;
 import com.segment.android.json.JsonMap;
 import java.util.List;
 import java.util.Map;
 
-
 public class ProjectSettings extends JsonMap {
   public ProjectSettings(String json) {
     super(json);
-  }
-
-
-  public static class BugsnagSettings {
-    public String apiKey;
-    public boolean useSSL;
-  }
-
-  static class CountlySettings {
-    public String apiKey;
-    public String serverUrl;
-  }
-
-  public static class CrittercismSettings {
-    public String appId;
-    public boolean includeVersionCode;
-    public boolean shouldCollectLogcat;
   }
 
   public static class FlurrySettings {

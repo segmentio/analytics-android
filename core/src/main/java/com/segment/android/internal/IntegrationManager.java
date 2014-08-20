@@ -9,6 +9,7 @@ import com.segment.android.internal.integrations.AbstractIntegration;
 import com.segment.android.internal.integrations.AmplitudeIntegration;
 import com.segment.android.internal.integrations.BugsnagIntegration;
 import com.segment.android.internal.integrations.CountlyIntegration;
+import com.segment.android.internal.integrations.CrittercismIntegration;
 import com.segment.android.internal.integrations.InvalidConfigurationException;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.BasePayload;
@@ -65,8 +66,17 @@ public class IntegrationManager {
     this.mainThreadHandler = mainThreadHandler;
     this.service = service;
 
+    service.submit(new Runnable() {
+      @Override public void run() {
+        init();
+        performFetch();
+      }
+    });
+  }
+
+  void init() {
     // Look up all the integrations available on the device. This is done early so that we can
-    // disable sending to these integrations from the server.
+    // disable sending to these integrations from the server and properly fill the payloads.
     try {
       AbstractIntegration integration = new AmplitudeIntegration();
       integration.validate(context);
@@ -97,12 +107,16 @@ public class IntegrationManager {
     } catch (InvalidConfigurationException e) {
       Logger.e(e, "Countly needs more data!");
     }
-
-    service.submit(new Runnable() {
-      @Override public void run() {
-        performFetch();
-      }
-    });
+    try {
+      AbstractIntegration integration = new CrittercismIntegration();
+      integration.validate(context);
+      availableBundledIntegrations.add(integration);
+      bundledIntegrations.put(integration.key(), false);
+    } catch (ClassNotFoundException e) {
+      Logger.d("Crittercism not bundled");
+    } catch (InvalidConfigurationException e) {
+      Logger.e(e, "Crittercism needs more data!");
+    }
   }
 
   void performFetch() {

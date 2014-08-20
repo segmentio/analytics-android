@@ -54,7 +54,7 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
 
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
-    String userId = identify.getUserId();
+    String userId = identify.userId();
     Traits traits = identify.getTraits();
     Amplitude.setUserId(userId);
     Amplitude.setUserProperties(traits.toJsonObject());
