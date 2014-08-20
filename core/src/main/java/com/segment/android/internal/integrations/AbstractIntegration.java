@@ -19,9 +19,6 @@ import com.segment.android.internal.settings.ProjectSettings;
 public abstract class AbstractIntegration<T> {
   private final String key;
 
-  /**
-   * Create an integration with the given settings.
-   */
   AbstractIntegration(String key, String className) throws ClassNotFoundException {
     this.key = key;
     Class.forName(className);

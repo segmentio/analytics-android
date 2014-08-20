@@ -12,7 +12,7 @@ import java.util.Map;
 
 import static com.segment.android.internal.Utils.isNullOrEmpty;
 
-public class BugsnagIntegration extends AbstractIntegration {
+public class BugsnagIntegration extends AbstractIntegration<Void> {
   private static final String USER_KEY = "User";
 
   public BugsnagIntegration() throws ClassNotFoundException {
@@ -35,10 +35,10 @@ public class BugsnagIntegration extends AbstractIntegration {
     }
     Bugsnag.setUseSSL(settings.useSSL());
     Bugsnag.register(context, apiKey);
-    return false;
+    return true;
   }
 
-  @Override public Object getUnderlyingInstance() {
+  @Override public Void getUnderlyingInstance() {
     return null;
   }
 

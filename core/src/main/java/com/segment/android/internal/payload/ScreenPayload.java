@@ -46,15 +46,15 @@ public class ScreenPayload extends BasePayload {
     put(PROPERTIES_KEY, properties);
   }
 
-  public String getCategory() {
+  public String category() {
     return getString(CATEGORY_KEY);
   }
 
-  public String getName() {
+  public String name() {
     return getString(NAME_KEY);
   }
 
-  public Properties getProperties() {
+  public Properties properties() {
     return (Properties) get(PROPERTIES_KEY);
   }
 }

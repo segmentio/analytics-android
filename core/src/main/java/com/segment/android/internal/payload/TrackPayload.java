@@ -49,11 +49,11 @@ public class TrackPayload extends BasePayload {
     put(PROPERTIES_KEY, properties);
   }
 
-  public String getEvent() {
+  public String event() {
     return getString(EVENT_KEY);
   }
 
-  public Properties getProperties() {
+  public Properties properties() {
     return (Properties) get(PROPERTIES_KEY);
   }
 }

@@ -15,11 +15,6 @@ import java.util.Map;
 import static com.segment.android.internal.Utils.isNullOrEmpty;
 
 public class AmplitudeIntegration extends AbstractIntegration<Void> {
-  private static final String REVENUE_KEY = "revenue";
-  private static final String PRODUCT_ID_KEY = "productId";
-  private static final String QUANTITY_KEY = "quantity";
-  private static final String RECEIPT_KEY = "receipt";
-  private static final String RECEIPT_SIGNATURE_KEY = "receiptSignature";
 
   public AmplitudeIntegration() throws ClassNotFoundException {
     super("Amplitude", "com.amplitude.api.Amplitude");
@@ -67,23 +62,23 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
 
   @Override public void screen(ScreenPayload screen) {
     super.screen(screen);
-    event("Viewed " + screen.getName() + " Screen", screen.getProperties());
+    event("Viewed " + screen.name() + " Screen", screen.properties());
   }
 
   @Override public void track(TrackPayload track) {
     super.track(track);
-    event(track.getEvent(), track.getProperties());
+    event(track.event(), track.properties());
   }
 
   private void event(String name, Properties properties) {
     Amplitude.logEvent(name, properties.toJsonObject());
 
-    if (properties.containsKey(REVENUE_KEY)) {
-      double revenue = properties.getDouble(REVENUE_KEY);
-      String productId = properties.getString(PRODUCT_ID_KEY);
-      int quantity = properties.getInteger(QUANTITY_KEY);
-      String receipt = properties.getString(RECEIPT_KEY);
-      String receiptSignature = properties.getString(RECEIPT_SIGNATURE_KEY);
+    if (properties.containsKey("revenue")) {
+      double revenue = properties.getDouble("revenue");
+      String productId = properties.getString("productId");
+      int quantity = properties.getInteger("quantity");
+      String receipt = properties.getString("receipt");
+      String receiptSignature = properties.getString("receiptSignature");
       Amplitude.logRevenue(productId, quantity, revenue, receipt, receiptSignature);
     }
   }

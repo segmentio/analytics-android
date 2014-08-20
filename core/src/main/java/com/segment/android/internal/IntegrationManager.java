@@ -8,6 +8,7 @@ import com.segment.android.Segment;
 import com.segment.android.internal.integrations.AbstractIntegration;
 import com.segment.android.internal.integrations.AmplitudeIntegration;
 import com.segment.android.internal.integrations.BugsnagIntegration;
+import com.segment.android.internal.integrations.CountlyIntegration;
 import com.segment.android.internal.integrations.InvalidConfigurationException;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.BasePayload;
@@ -74,7 +75,7 @@ public class IntegrationManager {
     } catch (ClassNotFoundException e) {
       Logger.d("Amplitude not bundled");
     } catch (InvalidConfigurationException e) {
-      Logger.e("Amplitude needs more permissions!");
+      Logger.e(e, "Amplitude needs more data!");
     }
     try {
       AbstractIntegration integration = new BugsnagIntegration();
@@ -84,7 +85,17 @@ public class IntegrationManager {
     } catch (ClassNotFoundException e) {
       Logger.d("Bugsnag not bundled");
     } catch (InvalidConfigurationException e) {
-      Logger.e("Bugsnag needs more permissions!");
+      Logger.e(e, "Bugsnag needs more data!");
+    }
+    try {
+      AbstractIntegration integration = new CountlyIntegration();
+      integration.validate(context);
+      availableBundledIntegrations.add(integration);
+      bundledIntegrations.put(integration.key(), false);
+    } catch (ClassNotFoundException e) {
+      Logger.d("Countly not bundled");
+    } catch (InvalidConfigurationException e) {
+      Logger.e(e, "Countly needs more data!");
     }
 
     service.submit(new Runnable() {
