@@ -14,7 +14,7 @@ import com.tapstream.sdk.Tapstream;
 import java.util.Map;
 
 public class TapstreamIntegration extends AbstractIntegration<Void> {
-  public TapstreamIntegration(String key, String className) throws ClassNotFoundException {
+  public TapstreamIntegration() throws ClassNotFoundException {
     super("Tapstream", "com.tapstream.sdk.Tapstream");
   }
 

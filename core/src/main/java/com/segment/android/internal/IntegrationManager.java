@@ -16,6 +16,7 @@ import com.segment.android.internal.integrations.InvalidConfigurationException;
 import com.segment.android.internal.integrations.LocalyticsIntegration;
 import com.segment.android.internal.integrations.MixpanelIntegration;
 import com.segment.android.internal.integrations.QuantcastIntegration;
+import com.segment.android.internal.integrations.TapstreamIntegration;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.BasePayload;
 import com.segment.android.internal.payload.GroupPayload;
@@ -152,6 +153,14 @@ public class IntegrationManager {
       Logger.d("Quantcast not bundled");
     } catch (InvalidConfigurationException e) {
       Logger.e(e, "Quantcast needs more data!");
+    }
+    try {
+      AbstractIntegration integration = new TapstreamIntegration();
+      add(integration);
+    } catch (ClassNotFoundException e) {
+      Logger.d("Tapstream not bundled");
+    } catch (InvalidConfigurationException e) {
+      Logger.e(e, "Tapstream needs more data!");
     }
   }
 
