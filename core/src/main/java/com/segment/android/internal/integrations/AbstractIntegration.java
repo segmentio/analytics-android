@@ -8,7 +8,7 @@ import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import com.segment.android.internal.settings.ProjectSettings;
+import com.segment.android.internal.ProjectSettings;
 
 /**
  * A base class for Integrations. An integration will only be created if the server sends us

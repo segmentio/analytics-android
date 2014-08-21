@@ -27,7 +27,6 @@ package com.segment.android.internal;
 import android.os.Build;
 import android.util.Base64;
 import com.segment.android.internal.payload.BasePayload;
-import com.segment.android.internal.settings.ProjectSettings;
 import com.segment.android.json.JsonMap;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

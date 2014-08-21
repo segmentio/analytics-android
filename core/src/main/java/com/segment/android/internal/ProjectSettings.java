@@ -22,20 +22,12 @@
  * SOFTWARE.
  */
 
-package com.segment.android.internal.settings;
+package com.segment.android.internal;
 
 import com.segment.android.json.JsonMap;
 
 public class ProjectSettings extends JsonMap {
   public ProjectSettings(String json) {
     super(json);
-  }
-
-  public static class TapstreamSettings {
-    public String accountName;
-    public String sdkSecret;
-    public boolean trackAllPages;
-    public boolean trackCategorizedPages;
-    public boolean trackNamedPages;
   }
 }

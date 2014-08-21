@@ -8,7 +8,7 @@ import com.segment.android.Traits;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import com.segment.android.internal.settings.ProjectSettings;
+import com.segment.android.internal.ProjectSettings;
 import com.segment.android.json.JsonMap;
 import java.util.Map;
 
