@@ -64,7 +64,7 @@ public class JsonMap implements Map<String, Object> {
 
   public JsonMap(String json) {
     if (Utils.isNullOrEmpty(json)) {
-      throw new IllegalArgumentException("Map must not be null.");
+      throw new IllegalArgumentException("Json must not be null or empty.");
     }
     try {
       this.delegate = JsonUtils.toMap(json);

@@ -25,7 +25,6 @@
 package com.segment.android.json;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -67,7 +66,7 @@ class JsonUtils {
   }
 
   /** Converts the given string into a list. */
-  static List<Object> toList(String string) throws JsonConversionException {
+  static JsonList toList(String string) throws JsonConversionException {
     try {
       JSONArray jsonArray = new JSONArray(string);
       return toList(jsonArray);
@@ -95,8 +94,8 @@ class JsonUtils {
   }
 
   /** Convert an JSONArray to a List recursively. */
-  private static List<Object> toList(JSONArray array) throws JSONException {
-    List<Object> list = new ArrayList<Object>();
+  private static JsonList toList(JSONArray array) throws JSONException {
+    JsonList list = new JsonList();
     for (int i = 0; i < array.length(); i++) {
       Object value = array.get(i);
       if (value instanceof JSONObject) {
@@ -144,9 +143,9 @@ class JsonUtils {
   }
 
   /** Coerce an object which is an array to a List. */
-  private static List<Object> toList(Object array) {
+  private static JsonList toList(Object array) {
     final int length = Array.getLength(array);
-    List<Object> values = new ArrayList<Object>(length);
+    JsonList values = new JsonList();
     for (int i = 0; i < length; ++i) {
       // don't worry about checking types, we'll do that when we write to the stringer
       values.add(Array.get(array, i));
