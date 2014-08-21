@@ -25,22 +25,10 @@
 package com.segment.android.internal.settings;
 
 import com.segment.android.json.JsonMap;
-import java.util.List;
-import java.util.Map;
 
 public class ProjectSettings extends JsonMap {
   public ProjectSettings(String json) {
     super(json);
-  }
-
-
-
-
-
-  public static class QuantcastSettings {
-    public String apiKey;
-    public String pCode;
-    public String advertise;
   }
 
   public static class TapstreamSettings {

@@ -15,6 +15,7 @@ import com.segment.android.internal.integrations.GoogleAnalyticsIntegration;
 import com.segment.android.internal.integrations.InvalidConfigurationException;
 import com.segment.android.internal.integrations.LocalyticsIntegration;
 import com.segment.android.internal.integrations.MixpanelIntegration;
+import com.segment.android.internal.integrations.QuantcastIntegration;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.BasePayload;
 import com.segment.android.internal.payload.GroupPayload;
@@ -145,6 +146,14 @@ public class IntegrationManager {
     } catch (InvalidConfigurationException e) {
       Logger.e(e, "Mixpanel needs more data!");
     }
+    try {
+      AbstractIntegration integration = new QuantcastIntegration();
+      add(integration);
+    } catch (ClassNotFoundException e) {
+      Logger.d("Quantcast not bundled");
+    } catch (InvalidConfigurationException e) {
+      Logger.e(e, "Quantcast needs more data!");
+    }
   }
 
   void add(AbstractIntegration integration) throws InvalidConfigurationException {
@@ -170,7 +179,7 @@ public class IntegrationManager {
 
   private void initialize(ProjectSettings projectSettings) {
     for (Iterator<AbstractIntegration> it = availableBundledIntegrations.iterator();
-        it.hasNext();) {
+        it.hasNext(); ) {
       AbstractIntegration integration = it.next();
       try {
         boolean enabled = integration.initialize(context, projectSettings);
