@@ -32,8 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-
-import static com.segment.android.internal.Utils.defaultSingleThreadedExecutor;
+import java.util.concurrent.Executors;
 
 /**
  * Manages bundled integrations. This class will maintain it's own queue for events to account for
@@ -60,7 +59,7 @@ public class IntegrationManager {
 
   public static IntegrationManager create(Context context, Handler mainThreadHandler,
       SegmentHTTPApi segmentHTTPApi) {
-    ExecutorService service = defaultSingleThreadedExecutor();
+    ExecutorService service = Executors.newSingleThreadExecutor();
     return new IntegrationManager(context, mainThreadHandler, segmentHTTPApi, service);
   }
 
