@@ -186,7 +186,7 @@ public class IntegrationManager {
 
   private void initialize(ProjectSettings projectSettings) {
     for (Iterator<AbstractIntegration> it = availableBundledIntegrations.iterator();
-        it.hasNext(); ) {
+        it.hasNext();) {
       AbstractIntegration integration = it.next();
       try {
         boolean enabled = integration.initialize(context, projectSettings);
