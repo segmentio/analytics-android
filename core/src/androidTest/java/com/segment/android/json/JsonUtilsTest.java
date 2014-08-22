@@ -145,6 +145,17 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
     assertThat(json).contains(item13, Index.atIndex(13));
   }
 
+  public void testPrimitiveArray() throws Exception {
+    List<Object> json = JsonUtils.toList("[0,375,668,5,6]");
+
+    assertThat(json).hasSize(5);
+    assertThat(json).contains(0, Index.atIndex(0))
+        .contains(375, Index.atIndex(1))
+        .contains(668, Index.atIndex(2))
+        .contains(5, Index.atIndex(3))
+        .contains(6, Index.atIndex(4));
+  }
+
   static class Person {
     int age;
     String name;

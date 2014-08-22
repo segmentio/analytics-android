@@ -56,23 +56,15 @@ class JsonUtils {
    * String -> String
    * boolean -> boolean
    */
-  static Map<String, Object> toMap(String json) throws JsonConversionException {
-    try {
-      JSONObject jsonObject = new JSONObject(json);
-      return toMap(jsonObject);
-    } catch (JSONException e) {
-      throw new JsonConversionException("Could not convert json to a map: " + json, e);
-    }
+  static Map<String, Object> toMap(String json) throws JSONException {
+    JSONObject jsonObject = new JSONObject(json);
+    return toMap(jsonObject);
   }
 
   /** Converts the given string into a list. */
-  static JsonList toList(String string) throws JsonConversionException {
-    try {
-      JSONArray jsonArray = new JSONArray(string);
-      return toList(jsonArray);
-    } catch (JSONException e) {
-      throw new JsonConversionException("Could not parse string as json array: " + string, e);
-    }
+  static JsonList toList(String string) throws JSONException {
+    JSONArray jsonArray = new JSONArray(string);
+    return toList(jsonArray);
   }
 
   /** Convert an JSONObject to a Map recursively. */
@@ -93,7 +85,7 @@ class JsonUtils {
     return map;
   }
 
-  /** Convert an JSONArray to a List recursively. */
+  /** recursively Convert an JSONArray to a List. */
   private static JsonList toList(JSONArray array) throws JSONException {
     JsonList list = new JsonList();
     for (int i = 0; i < array.length(); i++) {
@@ -107,15 +99,11 @@ class JsonUtils {
   }
 
   /** Converts the given map to a json formatted string. */
-  static String fromMap(Map<String, ?> map) throws JsonConversionException {
-    try {
-      // Support proper parsing. The default implementation ignores nested Collections
-      JSONStringer stringer = new JSONStringer();
-      writeTo(map, stringer);
-      return stringer.toString();
-    } catch (JSONException e) {
-      throw new JsonConversionException("Could not convert Map to json string", e);
-    }
+  static String fromMap(Map<String, ?> map) throws JSONException {
+    // Support proper parsing. The default implementation ignores nested Collections
+    JSONStringer stringer = new JSONStringer();
+    writeTo(map, stringer);
+    return stringer.toString();
   }
 
   /** Recursively write to the stringer for a given map. */
@@ -170,14 +158,10 @@ class JsonUtils {
   }
 
   /** Converts the given map to a json formatted string. */
-  static String fromList(List<?> list) throws JsonConversionException {
-    try {
-      // Support proper parsing. The default implementation ignores nested Collections
-      JSONStringer stringer = new JSONStringer();
-      writeTo(list, stringer);
-      return stringer.toString();
-    } catch (JSONException e) {
-      throw new JsonConversionException("Could not convert List to json string", e);
-    }
+  static String fromList(List<?> list) throws JSONException {
+    // Support proper parsing. The default implementation ignores nested Collections
+    JSONStringer stringer = new JSONStringer();
+    writeTo(list, stringer);
+    return stringer.toString();
   }
 }

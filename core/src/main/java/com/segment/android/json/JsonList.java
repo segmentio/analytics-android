@@ -6,9 +6,17 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import org.json.JSONException;
 
 public class JsonList implements List<Object> {
   final List<Object> delegate;
+
+  public static JsonList wrap(List<Object> list) {
+    if (list instanceof JsonList) {
+      return (JsonList) list;
+    }
+    return new JsonList(list);
+  }
 
   public JsonList() {
     delegate = new ArrayList<Object>();
@@ -31,7 +39,7 @@ public class JsonList implements List<Object> {
     }
     try {
       this.delegate = JsonUtils.toList(json);
-    } catch (JsonConversionException e) {
+    } catch (JSONException e) {
       throw new RuntimeException(e);
     }
   }
@@ -128,7 +136,6 @@ public class JsonList implements List<Object> {
     return delegate.toArray(array);
   }
 
-
   @Override public boolean equals(Object object) {
     return delegate.equals(object);
   }
@@ -140,7 +147,7 @@ public class JsonList implements List<Object> {
   @Override public String toString() {
     try {
       return JsonUtils.fromList(delegate);
-    } catch (JsonConversionException e) {
+    } catch (JSONException e) {
       throw new RuntimeException(e);
     }
   }

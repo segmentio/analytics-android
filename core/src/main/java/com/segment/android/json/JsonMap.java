@@ -7,12 +7,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
  * A wrapper around {@link Map} to expose Json functionality. Only the {@link #toString()} method
- * is
- * modified to return a json formatted string. All other methods will be forwarded to another map.
+ * is modified to return a json formatted string. All other methods will be forwarded to another
+ * map.
  * <p/>
  * The purpose of this class is to not limit clients to a custom implementation of a Json type,
  * they
@@ -48,6 +49,13 @@ import org.json.JSONObject;
 public class JsonMap implements Map<String, Object> {
   final Map<String, Object> delegate;
 
+  public static JsonMap wrap(Map<String, Object> map) {
+    if (map instanceof JsonMap) {
+      return (JsonMap) map;
+    }
+    return new JsonMap(map);
+  }
+
   public JsonMap() {
     this.delegate = new LinkedHashMap<String, Object>();
   }
@@ -69,7 +77,7 @@ public class JsonMap implements Map<String, Object> {
     }
     try {
       this.delegate = JsonUtils.toMap(json);
-    } catch (JsonConversionException e) {
+    } catch (JSONException e) {
       throw new RuntimeException(e);
     }
   }
@@ -135,7 +143,7 @@ public class JsonMap implements Map<String, Object> {
   @Override public String toString() {
     try {
       return JsonUtils.fromMap(delegate);
-    } catch (JsonConversionException e) {
+    } catch (JSONException e) {
       throw new RuntimeException(e);
     }
   }
