@@ -16,20 +16,9 @@ import org.json.JSONObject;
  * map.
  * <p/>
  * The purpose of this class is to not limit clients to a custom implementation of a Json type,
- * they
- * can use existing {@link Map} and {@link java.util.List} implementations as they see fit. It adds
- * some utility methods, including methods to coerce numeric types from Strings, and a {@link
+ * they can use existing {@link Map} and {@link java.util.List} implementations as they see fit. It
+ * adds some utility methods, including methods to coerce numeric types from Strings, and a {@link
  * #putValue(String, Object)} to be able to chain method calls.
- * <p/>
- * To create an instance of this class, use one of the static factory methods.
- * <code>JsonMap<Object>
- * map = JsonMap.create();</code> <code>JsonMap<Object> map = JsonMap.decode(json);</code>
- * <code>JsonMap<Object> map = JsonMap.wrap(new HashMap<String, Object>);</code>
- * <p/>
- * Since it implements the {@link Map} interface, you could just as simply do: <code>Map<String,
- * Object> map = JsonMap.create();</code> <code>Map<String, Object> map =
- * JsonMap.decode(json);</code> <code>Map<String, Object> map = JsonMap.wrap(new HashMap<String,
- * Object>);</code>
  * <p/>
  * Although it lets you use custom objects for values, note that type information is lost during
  * serialization. e.g A custom class Person using the default <code>toString</code> implementation.
