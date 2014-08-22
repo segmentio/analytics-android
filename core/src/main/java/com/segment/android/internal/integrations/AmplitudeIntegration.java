@@ -3,33 +3,40 @@ package com.segment.android.internal.integrations;
 import android.app.Activity;
 import android.content.Context;
 import com.amplitude.api.Amplitude;
+import com.segment.android.Integration;
 import com.segment.android.Properties;
 import com.segment.android.Traits;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import com.segment.android.internal.ProjectSettings;
 import com.segment.android.json.JsonMap;
-import java.util.Map;
 
+import static com.segment.android.internal.Utils.isNullOrEmpty;
+import static com.segment.android.internal.Utils.nullOrDefault;
+
+/**
+ * Amplitude is an event tracking and segmentation tool for your mobile apps. By analyzing the
+ * actions your users perform you can gain a better understanding of how they use your app.
+ *
+ * @see {@link https://amplitude.com}
+ * @see {@link https://segment.io/docs/integrations/amplitude/}
+ * @see {@link https://github.com/amplitude/Amplitude-Android}
+ */
 public class AmplitudeIntegration extends AbstractIntegration<Void> {
+  boolean trackAllPages;
+  boolean trackCategorizedPages;
+  boolean trackNamedPages;
 
-  public AmplitudeIntegration() throws ClassNotFoundException {
-    super("Amplitude", "com.amplitude.api.Amplitude");
+  @Override public Integration provider() {
+    return Integration.AMPLITUDE;
   }
 
-  @Override public void validate(Context context) throws InvalidConfigurationException {
-    // no extra permissions
-  }
-
-  @Override public boolean initialize(Context context, ProjectSettings projectSettings)
+  @Override public void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
-    if (!projectSettings.containsKey(key())) {
-      return false;
-    }
-    AmplitudeSettings settings = new AmplitudeSettings(projectSettings.getJsonMap(key()));
-    Amplitude.initialize(context, settings.apiKey());
-    return true;
+    trackAllPages = settings.getBoolean("trackAllPages");
+    trackCategorizedPages = settings.getBoolean("trackCategorizedPages");
+    trackNamedPages = settings.getBoolean("trackNamedPages");
+    Amplitude.initialize(context, settings.getString("apiKey"));
   }
 
   @Override public Void getUnderlyingInstance() {
@@ -49,14 +56,20 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
     String userId = identify.userId();
-    Traits traits = identify.getTraits();
+    Traits traits = identify.traits();
     Amplitude.setUserId(userId);
     Amplitude.setUserProperties(traits.toJsonObject());
   }
 
   @Override public void screen(ScreenPayload screen) {
     super.screen(screen);
-    event("Viewed " + screen.name() + " Screen", screen.properties());
+    if (trackAllPages) {
+      event(String.format(VIEWED_EVENT_FORMAT, screen.event()), screen.properties());
+    } else if (trackCategorizedPages && !isNullOrEmpty(screen.category())) {
+      event(String.format(VIEWED_EVENT_FORMAT, screen.category()), screen.properties());
+    } else if (trackNamedPages && !isNullOrEmpty(screen.name())) {
+      event(String.format(VIEWED_EVENT_FORMAT, screen.name()), screen.properties());
+    }
   }
 
   @Override public void track(TrackPayload track) {
@@ -66,41 +79,19 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
 
   private void event(String name, Properties properties) {
     Amplitude.logEvent(name, properties.toJsonObject());
-
-    if (properties.containsKey("revenue")) {
-      double revenue = properties.getDouble("revenue");
+    Double revenue = properties.getDouble("revenue");
+    if (revenue != null) {
       String productId = properties.getString("productId");
-      int quantity = properties.getInteger("quantity");
+      Integer quantity = properties.getInteger("quantity");
       String receipt = properties.getString("receipt");
       String receiptSignature = properties.getString("receiptSignature");
-      Amplitude.logRevenue(productId, quantity, revenue, receipt, receiptSignature);
+      Amplitude.logRevenue(productId, nullOrDefault(quantity, 0), revenue, receipt,
+          receiptSignature);
     }
   }
 
   @Override public void flush() {
     super.flush();
     Amplitude.uploadEvents();
-  }
-
-  static class AmplitudeSettings extends JsonMap {
-    AmplitudeSettings(Map<String, Object> delegate) {
-      super(delegate);
-    }
-
-    String apiKey() {
-      return getString("apiKey");
-    }
-
-    boolean trackAllPages() {
-      return containsKey("trackAllPages") ? getBoolean("trackAllPages") : false;
-    }
-
-    boolean trackCategorizedPages() {
-      return containsKey("trackAllPages") ? getBoolean("trackAllPages") : false;
-    }
-
-    boolean trackNamedPages() {
-      return containsKey("trackAllPages") ? getBoolean("trackAllPages") : false;
-    }
   }
 }

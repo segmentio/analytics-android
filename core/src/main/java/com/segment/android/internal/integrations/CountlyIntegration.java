@@ -2,31 +2,33 @@ package com.segment.android.internal.integrations;
 
 import android.app.Activity;
 import android.content.Context;
+import com.segment.android.Integration;
 import com.segment.android.Properties;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import com.segment.android.internal.ProjectSettings;
 import com.segment.android.json.JsonMap;
-import java.util.Map;
 import ly.count.android.api.Countly;
 
+import static com.segment.android.internal.Utils.nullOrDefault;
+
+/**
+ * Countly is a general-purpose analytics tool for your mobile apps, with reports like traffic
+ * sources, demographics, event tracking and segmentation.
+ *
+ * @see {@link https://count.ly/}
+ * @see {@link https://segment.io/docs/integrations/countly/}
+ * @see {@link https://github.com/Countly/countly-sdk-android}
+ */
 public class CountlyIntegration extends AbstractIntegration<Void> {
-  public CountlyIntegration() throws ClassNotFoundException {
-    super("Countly", "ly.count.android.api.Countly");
+
+  @Override public Integration provider() {
+    return Integration.COUNTLY;
   }
 
-  @Override public void validate(Context context) throws InvalidConfigurationException {
-    // no extra permissions
-  }
-
-  @Override public boolean initialize(Context context, ProjectSettings projectSettings)
+  @Override public void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
-    if (!projectSettings.containsKey(key())) {
-      return false;
-    }
-    CountlySettings settings = new CountlySettings(projectSettings.getJsonMap(key()));
-    Countly.sharedInstance().init(context, settings.serverUrl(), settings.appKey());
-    return true;
+    Countly.sharedInstance()
+        .init(context, settings.getString("serverUrl"), settings.getString("appKey"));
   }
 
   @Override public Void getUnderlyingInstance() {
@@ -50,26 +52,14 @@ public class CountlyIntegration extends AbstractIntegration<Void> {
 
   @Override public void screen(ScreenPayload screen) {
     super.screen(screen);
-    event("Viewed " + screen.name() + " Screen", screen.properties());
+    event(String.format(VIEWED_EVENT_FORMAT, screen.event()), screen.properties());
   }
 
   private void event(String name, Properties properties) {
+    Integer count = properties.getInteger("count");
+    Double sum = properties.getDouble("sum");
     Countly.sharedInstance()
-        .recordEvent(name, properties.toStringMap(), properties.getInteger("count"),
-            properties.getDouble("sum"));
-  }
-
-  static class CountlySettings extends JsonMap {
-    CountlySettings(Map<String, Object> delegate) {
-      super(delegate);
-    }
-
-    String appKey() {
-      return getString("appKey");
-    }
-
-    String serverUrl() {
-      return getString("serverUrl");
-    }
+        .recordEvent(name, properties.toStringMap(), nullOrDefault(count, 1),
+            nullOrDefault(sum, 0d));
   }
 }

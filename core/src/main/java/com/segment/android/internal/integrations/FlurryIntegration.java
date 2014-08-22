@@ -5,43 +5,41 @@ import android.content.Context;
 import com.flurry.android.Constants;
 import com.flurry.android.FlurryAgent;
 import com.segment.android.AnalyticsContext;
-import com.segment.android.Properties;
+import com.segment.android.Integration;
 import com.segment.android.Traits;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import com.segment.android.internal.ProjectSettings;
 import com.segment.android.json.JsonMap;
-import java.util.Map;
 
 import static com.segment.android.internal.Utils.isNullOrEmpty;
 
+/**
+ * Flurry is the most popular analytics tool for mobile apps because it has a wide assortment of
+ * features. It also helps you advertise to the right audiences with your apps.
+ *
+ * @see {@link http://www.flurry.com/}
+ * @see {@link https://segment.io/docs/integrations/flurry/}
+ * @see {@link http://support.flurry.com/index.php?title=Analytics/GettingStarted/Android}
+ */
 public class FlurryIntegration extends AbstractIntegration<Void> {
-  FlurrySettings settings;
+  String apiKey;
 
-  public FlurryIntegration() throws ClassNotFoundException {
-    super("Flurry", "com.flurry.android.FlurryAgent");
+  @Override public Integration provider() {
+    return Integration.FLURRY;
   }
 
-  @Override public void validate(Context context) throws InvalidConfigurationException {
-    // no extra permissions
-  }
-
-  @Override public boolean initialize(Context context, ProjectSettings projectSettings)
+  @Override public void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
-    if (!projectSettings.containsKey(key())) {
-      return false;
-    }
-    settings = new FlurrySettings(projectSettings.getJsonMap(key()));
-    FlurryAgent.setContinueSessionMillis(settings.sessionContinueSeconds());
-    FlurryAgent.setCaptureUncaughtExceptions(settings.captureUncaughtExceptions());
-    FlurryAgent.setUseHttps(settings.useHttps());
-    return true;
+    apiKey = settings.getString("apiKey");
+    FlurryAgent.setContinueSessionMillis(settings.getInteger("sessionContinueSeconds"));
+    FlurryAgent.setCaptureUncaughtExceptions(settings.getBoolean("captureUncaughtExceptions"));
+    FlurryAgent.setUseHttps(settings.getBoolean("useHttps"));
   }
 
   @Override public void onActivityStarted(Activity activity) {
     super.onActivityStarted(activity);
-    FlurryAgent.onStartSession(activity, settings.apiKey());
+    FlurryAgent.onStartSession(activity, apiKey);
   }
 
   @Override public void onActivityStopped(Activity activity) {
@@ -51,22 +49,20 @@ public class FlurryIntegration extends AbstractIntegration<Void> {
 
   @Override public void screen(ScreenPayload screen) {
     super.screen(screen);
-    event(screen.name(), screen.properties());
+    // todo: verify behaviour here, iOS SDK only does pageView, not event
+    FlurryAgent.onPageView();
+    FlurryAgent.logEvent(screen.event(), screen.properties().toStringMap());
   }
 
   @Override public void track(TrackPayload track) {
     super.track(track);
-    event(track.event(), track.properties());
-  }
-
-  void event(String name, Properties properties) {
-    FlurryAgent.logEvent(name, properties.toStringMap());
+    FlurryAgent.logEvent(track.event(), track.properties().toStringMap());
   }
 
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
+    Traits traits = identify.traits();
     FlurryAgent.setUserId(identify.userId());
-    Traits traits = identify.getTraits();
     Short age = traits.age();
     if (age != null) {
       FlurryAgent.setAge(age);
@@ -82,32 +78,12 @@ public class FlurryIntegration extends AbstractIntegration<Void> {
       }
     }
     AnalyticsContext.Location location = identify.context().location();
-    FlurryAgent.setLocation((float) location.latitude(), (float) location.longitude());
+    if (location != null && location.latitude() != null && location.longitude() != null) {
+      FlurryAgent.setLocation(location.latitude().floatValue(), location.longitude().floatValue());
+    }
   }
 
   @Override public Void getUnderlyingInstance() {
     return null;
-  }
-
-  static class FlurrySettings extends JsonMap {
-    FlurrySettings(Map<String, Object> delegate) {
-      super(delegate);
-    }
-
-    String apiKey() {
-      return getString("apiKey");
-    }
-
-    boolean captureUncaughtExceptions() {
-      return getBoolean("captureUncaughtExceptions");
-    }
-
-    boolean useHttps() {
-      return getBoolean("useHttps");
-    }
-
-    int sessionContinueSeconds() {
-      return getInteger("sessionContinueSeconds");
-    }
   }
 }

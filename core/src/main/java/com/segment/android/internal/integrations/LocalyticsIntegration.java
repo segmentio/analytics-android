@@ -3,39 +3,35 @@ package com.segment.android.internal.integrations;
 import android.app.Activity;
 import android.content.Context;
 import com.localytics.android.LocalyticsSession;
+import com.segment.android.Integration;
 import com.segment.android.Traits;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import com.segment.android.internal.ProjectSettings;
 import com.segment.android.json.JsonMap;
 import java.util.Map;
 
 import static com.segment.android.internal.Utils.isNullOrEmpty;
 
 /**
- * @see http://www.localytics.com/docs/android-integration/
+ * Localytics is a general-purpose mobile analytics tool that measures customer acquisition, ad
+ * attribution, retargeting campaigns and user actions in your mobile apps.
+ *
+ * @see {@link http://www.localytics.com/}
+ * @see {@link https://segment.io/docs/integrations/localytics/}
+ * @see {@link http://www.localytics.com/docs/android-integration/}
  */
 public class LocalyticsIntegration extends AbstractIntegration<LocalyticsSession> {
   private LocalyticsSession localyticsSession;
 
-  public LocalyticsIntegration() throws ClassNotFoundException {
-    super("Localytics", "com.localytics.android.LocalyticsSession");
+  @Override public Integration provider() {
+    return Integration.LOCALYTICS;
   }
 
-  @Override public void validate(Context context) throws InvalidConfigurationException {
-    // no extra permissions
-    // todo: docs mentions wake_lock, but not if it is required...
-  }
-
-  @Override public boolean initialize(Context context, ProjectSettings projectSettings)
+  @Override public void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
-    if (!projectSettings.containsKey(key())) {
-      return false;
-    }
-    LocalyticsSettings settings = new LocalyticsSettings(projectSettings.getJsonMap(key()));
-    localyticsSession = new LocalyticsSession(context, settings.appKey());
-    return true;
+    // todo: docs mentions wake_lock, but not if it is required
+    localyticsSession = new LocalyticsSession(context, settings.getString("appKey"));
   }
 
   @Override public LocalyticsSession getUnderlyingInstance() {
@@ -65,7 +61,7 @@ public class LocalyticsIntegration extends AbstractIntegration<LocalyticsSession
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
     localyticsSession.setCustomerId(identify.userId());
-    Traits traits = identify.getTraits();
+    Traits traits = identify.traits();
     String email = traits.email();
     if (!isNullOrEmpty(email)) localyticsSession.setCustomerEmail(email);
     String name = traits.name();
@@ -77,21 +73,11 @@ public class LocalyticsIntegration extends AbstractIntegration<LocalyticsSession
 
   @Override public void screen(ScreenPayload screen) {
     super.screen(screen);
-    localyticsSession.tagScreen(screen.name());
+    localyticsSession.tagScreen(screen.event());
   }
 
   @Override public void track(TrackPayload track) {
     super.track(track);
     localyticsSession.tagEvent(track.event(), track.properties().toStringMap());
-  }
-
-  static class LocalyticsSettings extends JsonMap {
-    LocalyticsSettings(Map<String, Object> delegate) {
-      super(delegate);
-    }
-
-    String appKey() {
-      return getString("appKey");
-    }
   }
 }

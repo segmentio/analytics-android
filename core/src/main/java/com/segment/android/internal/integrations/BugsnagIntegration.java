@@ -3,43 +3,35 @@ package com.segment.android.internal.integrations;
 import android.app.Activity;
 import android.content.Context;
 import com.bugsnag.android.Bugsnag;
+import com.bugsnag.android.Client;
+import com.segment.android.Integration;
 import com.segment.android.Traits;
 import com.segment.android.internal.payload.IdentifyPayload;
-import com.segment.android.internal.ProjectSettings;
 import com.segment.android.json.JsonMap;
-import java.util.Iterator;
 import java.util.Map;
 
-import static com.segment.android.internal.Utils.isNullOrEmpty;
+/**
+ * Bugsnag is an error tracking service for websites and mobile apps. It automatically captures any
+ * errors in your code so that you can find them and resolve them as quickly as possible.
+ *
+ * @see {@link https://bugsnag.com/}
+ * @see {@link https://segment.io/docs/integrations/bugsnag/}
+ * @see {@link https://github.com/bugsnag/bugsnag-android}
+ */
+public class BugsnagIntegration extends AbstractIntegration<Client> {
 
-public class BugsnagIntegration extends AbstractIntegration<Void> {
-  private static final String USER_KEY = "User";
-
-  public BugsnagIntegration() throws ClassNotFoundException {
-    super("Bugsnag", "com.bugsnag.android.Bugsnag");
+  @Override public Integration provider() {
+    return Integration.BUGSNAG;
   }
 
-  @Override public void validate(Context context) throws InvalidConfigurationException {
-    // No extra permissions
-  }
-
-  @Override public boolean initialize(Context context, ProjectSettings projectSettings)
+  @Override public void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
-    if (!projectSettings.containsKey(key())) {
-      return false;
-    }
-    BugsnagSettings settings = new BugsnagSettings(projectSettings.getJsonMap(key()));
-    String apiKey = settings.apiKey();
-    if (isNullOrEmpty(apiKey)) {
-      throw new InvalidConfigurationException("Bugsnag requires the apiKey setting.");
-    }
-    Bugsnag.setUseSSL(settings.useSSL());
-    Bugsnag.register(context, apiKey);
-    return true;
+    Bugsnag.register(context, settings.getString("apiKey"));
+    Bugsnag.setUseSSL(settings.getBoolean("useSSL"));
   }
 
-  @Override public Void getUnderlyingInstance() {
-    return null;
+  @Override public Client getUnderlyingInstance() {
+    return Bugsnag.getClient();
   }
 
   @Override public void onActivityStarted(Activity activity) {
@@ -65,30 +57,10 @@ public class BugsnagIntegration extends AbstractIntegration<Void> {
 
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
-
-    Traits traits = identify.getTraits();
-
+    Traits traits = identify.traits();
     Bugsnag.setUser(traits.id(), traits.email(), traits.name());
-
-    Iterator<String> keys = traits.keySet().iterator();
-    while (keys.hasNext()) {
-      String key = keys.next();
-      Object value = traits.get(key);
-      Bugsnag.addToTab("User", key, value);
-    }
-  }
-
-  static class BugsnagSettings extends JsonMap {
-    BugsnagSettings(Map<String, Object> delegate) {
-      super(delegate);
-    }
-
-    String apiKey() {
-      return getString("apiKey");
-    }
-
-    boolean useSSL() {
-      return containsKey("useSSL") ? getBoolean("useSSL") : false;
+    for (Map.Entry<String, Object> entry : traits.entrySet()) {
+      Bugsnag.addToTab("User", entry.getKey(), entry.getValue());
     }
   }
 }

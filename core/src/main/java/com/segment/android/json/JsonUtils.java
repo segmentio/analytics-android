@@ -143,7 +143,7 @@ class JsonUtils {
   }
 
   /** Coerce an object which is an array to a List. */
-  private static JsonList toList(Object array) {
+  static JsonList toList(Object array) {
     final int length = Array.getLength(array);
     JsonList values = new JsonList();
     for (int i = 0; i < length; ++i) {

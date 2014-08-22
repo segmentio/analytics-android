@@ -19,7 +19,7 @@ public class JsonMapTest extends BaseAndroidTestCase {
     JsonMap map = new JsonMap();
 
     map.put("double_pi", Math.PI);
-    map.put("string_pi", String.valueOf(Math.PI));    // Put a double as a string
+    map.put("string_pi", String.valueOf(Math.PI));
 
     assertThat(map).contains(MapEntry.entry("string_pi", String.valueOf(Math.PI)))
         .contains(MapEntry.entry("double_pi", Math.PI));
@@ -38,9 +38,15 @@ public class JsonMapTest extends BaseAndroidTestCase {
 
     assertThat(jsonMap.getJsonMap("Amplitude")).isNotNull()
         .hasSize(4)
-        .containsKey("trackNamedPages")
-        .containsKey("trackCategorizedPages");
+        .contains(MapEntry.entry("apiKey", "ad3c426eb736d7442a65da8174bc1b1b"))
+        .contains(MapEntry.entry("trackNamedPages", true))
+        .contains(MapEntry.entry("trackCategorizedPages", true))
+        .contains(MapEntry.entry("trackAllPages", false));
+    assertThat(jsonMap.getJsonMap("Flurry")).isNotNull()
+        .hasSize(4)
+        .contains(MapEntry.entry("apiKey", "8DY3D6S7CCWH54RBJ9ZM"))
+        .contains(MapEntry.entry("captureUncaughtExceptions", false))
+        .contains(MapEntry.entry("useHttps", true))
+        .contains(MapEntry.entry("sessionContinueSeconds", 10));
   }
-
-  // todo: test to JsonObject
 }

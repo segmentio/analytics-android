@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import com.segment.android.Integration;
 import com.segment.android.Segment;
 import com.segment.android.internal.integrations.AbstractIntegration;
 import com.segment.android.internal.integrations.AmplitudeIntegration;
@@ -26,11 +27,10 @@ import com.segment.android.internal.payload.TrackPayload;
 import com.segment.android.json.JsonMap;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -38,19 +38,18 @@ import java.util.concurrent.Executors;
  * Manages bundled integrations. This class will maintain it's own queue for events to account for
  * the latency between receiving the first event, fetching remote settings and enabling the
  * integrations. Once we enable all integrations - we'll replay any events on disk. This should
- * only
- * affect the first app install, subsequent launches will be use a cached value from disk. Note
- * that
- * none of the activity lifecycle events are queued to disk.
+ * only affect the first app install, subsequent launches will be use a cached value from disk.
+ * Note  that none of the activity lifecycle events are queued to disk, we only have a memory queue
+ * for them.
  */
 public class IntegrationManager {
   // A set of integrations available on the device
-  private Map<String, Boolean> bundledIntegrations = new LinkedHashMap<String, Boolean>();
-  private List<AbstractIntegration> availableBundledIntegrations =
-      new LinkedList<AbstractIntegration>();
+  private final Set<Integration> bundledIntegrations = new HashSet<Integration>();
+  // Same as above but explicitly used only to generate server integrations, hence with String keys
+  private Map<String, Boolean> serverIntegrations = new LinkedHashMap<String, Boolean>();
   // A set of integrations that are available and have been enabled for this project.
-  private final List<AbstractIntegration> enabledIntegrations =
-      new LinkedList<AbstractIntegration>();
+  private final Map<Integration, AbstractIntegration> enabledIntegrations =
+      new LinkedHashMap<Integration, AbstractIntegration>();
 
   final Context context;
   final SegmentHTTPApi segmentHTTPApi;
@@ -70,103 +69,24 @@ public class IntegrationManager {
     this.mainThreadHandler = mainThreadHandler;
     this.service = service;
 
+    // Look up all the integrations available on the device. This is done early so that we can
+    // disable sending to these integrations from the server and properly fill the payloads.
+    for (Integration integration : Integration.values()) {
+      try {
+        Class.forName(integration.className());
+        bundledIntegrations.add(integration);
+        serverIntegrations.put(integration.key(), false);
+      } catch (ClassNotFoundException e) {
+        Logger.d("%s not bundled", integration.key());
+      }
+    }
+    serverIntegrations = Collections.unmodifiableMap(serverIntegrations);
+
     service.submit(new Runnable() {
       @Override public void run() {
-        init();
         performFetch();
       }
     });
-  }
-
-  void init() {
-    // Look up all the integrations available on the device. This is done early so that we can
-    // disable sending to these integrations from the server and properly fill the payloads.
-    try {
-      AbstractIntegration integration = new AmplitudeIntegration();
-      add(integration);
-    } catch (ClassNotFoundException e) {
-      Logger.d("Amplitude not bundled");
-    } catch (InvalidConfigurationException e) {
-      Logger.e(e, "Amplitude needs more data!");
-    }
-    try {
-      AbstractIntegration integration = new BugsnagIntegration();
-      add(integration);
-    } catch (ClassNotFoundException e) {
-      Logger.d("Bugsnag not bundled");
-    } catch (InvalidConfigurationException e) {
-      Logger.e(e, "Bugsnag needs more data!");
-    }
-    try {
-      AbstractIntegration integration = new CountlyIntegration();
-      add(integration);
-    } catch (ClassNotFoundException e) {
-      Logger.d("Countly not bundled");
-    } catch (InvalidConfigurationException e) {
-      Logger.e(e, "Countly needs more data!");
-    }
-    try {
-      AbstractIntegration integration = new CrittercismIntegration();
-      add(integration);
-    } catch (ClassNotFoundException e) {
-      Logger.d("Crittercism not bundled");
-    } catch (InvalidConfigurationException e) {
-      Logger.e(e, "Crittercism needs more data!");
-    }
-    try {
-      AbstractIntegration integration = new FlurryIntegration();
-      add(integration);
-    } catch (ClassNotFoundException e) {
-      Logger.d("Flurry not bundled");
-    } catch (InvalidConfigurationException e) {
-      Logger.e(e, "Flurry needs more data!");
-    }
-    try {
-      AbstractIntegration integration = new GoogleAnalyticsIntegration();
-      add(integration);
-    } catch (ClassNotFoundException e) {
-      Logger.d("Google Analytics not bundled");
-    } catch (InvalidConfigurationException e) {
-      Logger.e(e, "Google Analytics needs more data!");
-    }
-    try {
-      AbstractIntegration integration = new LocalyticsIntegration();
-      add(integration);
-    } catch (ClassNotFoundException e) {
-      Logger.d("Localytics not bundled");
-    } catch (InvalidConfigurationException e) {
-      Logger.e(e, "Localytics needs more data!");
-    }
-    try {
-      AbstractIntegration integration = new MixpanelIntegration();
-      add(integration);
-    } catch (ClassNotFoundException e) {
-      Logger.d("Mixpanel not bundled");
-    } catch (InvalidConfigurationException e) {
-      Logger.e(e, "Mixpanel needs more data!");
-    }
-    try {
-      AbstractIntegration integration = new QuantcastIntegration();
-      add(integration);
-    } catch (ClassNotFoundException e) {
-      Logger.d("Quantcast not bundled");
-    } catch (InvalidConfigurationException e) {
-      Logger.e(e, "Quantcast needs more data!");
-    }
-    try {
-      AbstractIntegration integration = new TapstreamIntegration();
-      add(integration);
-    } catch (ClassNotFoundException e) {
-      Logger.d("Tapstream not bundled");
-    } catch (InvalidConfigurationException e) {
-      Logger.e(e, "Tapstream needs more data!");
-    }
-  }
-
-  void add(AbstractIntegration integration) throws InvalidConfigurationException {
-    integration.validate(context);
-    availableBundledIntegrations.add(integration);
-    bundledIntegrations.put(integration.key(), false);
   }
 
   void performFetch() {
@@ -185,68 +105,103 @@ public class IntegrationManager {
   }
 
   private void initialize(ProjectSettings projectSettings) {
-    for (Iterator<AbstractIntegration> it = availableBundledIntegrations.iterator();
-        it.hasNext();) {
-      AbstractIntegration integration = it.next();
-      try {
-        boolean enabled = integration.initialize(context, projectSettings);
-        if (enabled) {
-          enabledIntegrations.add(integration);
+    for (Integration integration : bundledIntegrations) {
+      if (projectSettings.containsKey(integration.key())) {
+        JsonMap settings = new JsonMap(projectSettings.getJsonMap(integration.key()));
+        switch (integration) {
+          case AMPLITUDE:
+            enableIntegration(Integration.AMPLITUDE, new AmplitudeIntegration(), settings);
+            break;
+          case BUGSNAG:
+            enableIntegration(Integration.BUGSNAG, new BugsnagIntegration(), settings);
+            break;
+          case COUNTLY:
+            enableIntegration(Integration.COUNTLY, new CountlyIntegration(), settings);
+            break;
+          case CRITTERCISM:
+            enableIntegration(Integration.CRITTERCISM, new CrittercismIntegration(), settings);
+            break;
+          case FLURRY:
+            enableIntegration(Integration.FLURRY, new FlurryIntegration(), settings);
+            break;
+          case GOOGLE_ANALYTICS:
+            enableIntegration(Integration.GOOGLE_ANALYTICS, new GoogleAnalyticsIntegration(),
+                settings);
+            break;
+          case LOCALYTICS:
+            enableIntegration(Integration.LOCALYTICS, new LocalyticsIntegration(), settings);
+            break;
+          case MIXPANEL:
+            enableIntegration(Integration.MIXPANEL, new MixpanelIntegration(), settings);
+            break;
+          case QUANTCAST:
+            enableIntegration(Integration.QUANTCAST, new QuantcastIntegration(), settings);
+            break;
+          case TAPSTREAM:
+            enableIntegration(Integration.TAPSTREAM, new TapstreamIntegration(), settings);
+            break;
+          default:
+            throw new IllegalArgumentException("Unknown integration! " + integration.key());
         }
-      } catch (InvalidConfigurationException e) {
-        Logger.e(e, "Could not load %s", integration.key());
-      } finally {
-        it.remove();
       }
     }
-    availableBundledIntegrations = null; // Help the GC
+  }
+
+  private void enableIntegration(Integration integration, AbstractIntegration abstractIntegration,
+      JsonMap settings) {
+    try {
+      abstractIntegration.initialize(context, settings);
+      enabledIntegrations.put(integration, abstractIntegration);
+    } catch (InvalidConfigurationException e) {
+      Logger.e(e, "Could not initialize integration %s", integration.key());
+    }
   }
 
   public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-    for (AbstractIntegration integration : enabledIntegrations) {
+    for (AbstractIntegration integration : enabledIntegrations.values()) {
       integration.onActivityCreated(activity, savedInstanceState);
     }
   }
 
   void onActivityStarted(Activity activity) {
-    for (AbstractIntegration integration : enabledIntegrations) {
+    for (AbstractIntegration integration : enabledIntegrations.values()) {
       integration.onActivityStarted(activity);
     }
   }
 
   void onActivityResumed(Activity activity) {
-    for (AbstractIntegration integration : enabledIntegrations) {
+    for (AbstractIntegration integration : enabledIntegrations.values()) {
       integration.onActivityResumed(activity);
     }
   }
 
   void onActivityPaused(Activity activity) {
-    for (AbstractIntegration integration : enabledIntegrations) {
+    for (AbstractIntegration integration : enabledIntegrations.values()) {
       integration.onActivityPaused(activity);
     }
   }
 
   void onActivityStopped(Activity activity) {
-    for (AbstractIntegration integration : enabledIntegrations) {
+    for (AbstractIntegration integration : enabledIntegrations.values()) {
       integration.onActivityStopped(activity);
     }
   }
 
   void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-    for (AbstractIntegration integration : enabledIntegrations) {
+    for (AbstractIntegration integration : enabledIntegrations.values()) {
       integration.onActivitySaveInstanceState(activity, outState);
     }
   }
 
   void onActivityDestroyed(Activity activity) {
-    for (AbstractIntegration integration : enabledIntegrations) {
+    for (AbstractIntegration integration : enabledIntegrations.values()) {
       integration.onActivityDestroyed(activity);
     }
   }
 
   // Analytics Actions
   void identify(IdentifyPayload identify) {
-    for (AbstractIntegration integration : enabledIntegrations) {
+    for (AbstractIntegration integration : enabledIntegrations.values()) {
       if (isBundledIntegrationEnabledForPayload(identify, integration)) {
         integration.identify(identify);
       }
@@ -254,7 +209,7 @@ public class IntegrationManager {
   }
 
   void group(GroupPayload group) {
-    for (AbstractIntegration integration : enabledIntegrations) {
+    for (AbstractIntegration integration : enabledIntegrations.values()) {
       if (isBundledIntegrationEnabledForPayload(group, integration)) {
         integration.group(group);
       }
@@ -262,7 +217,7 @@ public class IntegrationManager {
   }
 
   public void track(TrackPayload track) {
-    for (AbstractIntegration integration : enabledIntegrations) {
+    for (AbstractIntegration integration : enabledIntegrations.values()) {
       if (isBundledIntegrationEnabledForPayload(track, integration)) {
         integration.track(track);
       }
@@ -270,7 +225,7 @@ public class IntegrationManager {
   }
 
   void alias(AliasPayload alias) {
-    for (AbstractIntegration integration : enabledIntegrations) {
+    for (AbstractIntegration integration : enabledIntegrations.values()) {
       if (isBundledIntegrationEnabledForPayload(alias, integration)) {
         integration.alias(alias);
       }
@@ -278,7 +233,7 @@ public class IntegrationManager {
   }
 
   void screen(ScreenPayload screen) {
-    for (AbstractIntegration integration : enabledIntegrations) {
+    for (AbstractIntegration integration : enabledIntegrations.values()) {
       integration.screen(screen);
       if (isBundledIntegrationEnabledForPayload(screen, integration)) {
         integration.screen(screen);
@@ -291,23 +246,22 @@ public class IntegrationManager {
     Boolean enabled = true;
     // look in the payload.context.integrations to see which Bundled integrations should be
     // disabled. payload.integrations is reserved for the server, where all bundled integrations
-    // are set to false
+    // have been  set to false
     JsonMap integrations = payload.context().getIntegrations();
     if (!JsonMap.isNullOrEmpty(integrations)) {
-      if (integrations.containsKey(integration.key())) {
-        enabled = integrations.getBoolean(integration.key());
+      String key = integration.provider().key();
+      if (integrations.containsKey(key)) {
+        enabled = integrations.getBoolean(key);
       } else if (integrations.containsKey("All")) {
         enabled = integrations.getBoolean("All");
       } else if (integrations.containsKey("all")) {
         enabled = integrations.getBoolean("all");
       }
     }
-    // need this check since users could accidentially put in their own custom values, in which
-    // case the get methods will return null. Ugh mutability
-    return enabled == null ? true : enabled;
+    return enabled;
   }
 
   public Map<String, Boolean> bundledIntegrations() {
-    return Collections.unmodifiableMap(bundledIntegrations);
+    return serverIntegrations;
   }
 }

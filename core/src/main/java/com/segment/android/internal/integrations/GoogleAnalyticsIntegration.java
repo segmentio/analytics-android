@@ -8,80 +8,76 @@ import com.google.android.gms.analytics.ExceptionReporter;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
+import com.segment.android.Integration;
 import com.segment.android.Properties;
 import com.segment.android.internal.Logger;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import com.segment.android.internal.ProjectSettings;
+import com.segment.android.json.JsonList;
 import com.segment.android.json.JsonMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static com.segment.android.internal.Utils.hasPermission;
 import static com.segment.android.internal.Utils.isNullOrEmpty;
+import static com.segment.android.internal.Utils.nullOrDefault;
 
+/**
+ * Google Analytics is the most popular analytics tool for the web because it’s free and sports a
+ * wide range of features. It’s especially good at measuring traffic sources and ad campaigns.
+ *
+ * @see {@link http://www.google.com/analytics/}
+ * @see {@link https://segment.io/docs/integrations/google-analytics/}
+ * @see {@link https://developers.google.com/analytics/devguides/collection/android/v4/}
+ */
 public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   Tracker tracker;
   GoogleAnalytics googleAnalyticsInstance;
   boolean optedOut;
 
-  private Set<String> itemEventNames; // sends item events
+  private static final Set<String> itemEventNames;
   private static final String COMPLETED_ORDER_EVENT_NAME = "Completed Order";
 
-  Set<String> getItemEventNames() {
-    if (itemEventNames == null) {
-      itemEventNames = new HashSet<String>();
-      itemEventNames.add("Viewed Product");
-      itemEventNames.add("Added Product");
-      itemEventNames.add("Removed Product");
-      itemEventNames.add("Favorited Product");
-      itemEventNames.add("Liked Product");
-      itemEventNames.add("Shared Product");
-      itemEventNames.add("Wishlisted Product");
-      itemEventNames.add("Reviewed Product");
-      itemEventNames.add("Filtered Product");
-      itemEventNames.add("Sorted Product");
-      itemEventNames.add("Searched Product");
-      itemEventNames.add("Viewed Product Image");
-      itemEventNames.add("Viewed Product Reviews");
-      itemEventNames.add("Viewed Sale Page");
-    }
-    return itemEventNames;
+  static {
+    itemEventNames = new HashSet<String>();
+    itemEventNames.add("Viewed Product");
+    itemEventNames.add("Added Product");
+    itemEventNames.add("Removed Product");
+    itemEventNames.add("Favorited Product");
+    itemEventNames.add("Liked Product");
+    itemEventNames.add("Shared Product");
+    itemEventNames.add("Wishlisted Product");
+    itemEventNames.add("Reviewed Product");
+    itemEventNames.add("Filtered Product");
+    itemEventNames.add("Sorted Product");
+    itemEventNames.add("Searched Product");
+    itemEventNames.add("Viewed Product Image");
+    itemEventNames.add("Viewed Product Reviews");
+    itemEventNames.add("Viewed Sale Page");
   }
 
-  public GoogleAnalyticsIntegration() throws ClassNotFoundException {
-    super("Google Analytics", "com.google.android.gms.analytics.GoogleAnalytics");
+  @Override public Integration provider() {
+    return Integration.GOOGLE_ANALYTICS;
   }
 
-  @Override public void validate(Context context) throws InvalidConfigurationException {
+  @Override public void initialize(Context context, JsonMap settings)
+      throws InvalidConfigurationException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new InvalidConfigurationException(
           "Google Analytics requires the access state permission.");
     }
-  }
-
-  @Override public boolean initialize(Context context, ProjectSettings projectSettings)
-      throws InvalidConfigurationException {
-    if (!projectSettings.containsKey(key())) {
-      return false;
-    }
-    GoogleAnalyticsSettings settings =
-        new GoogleAnalyticsSettings(projectSettings.getJsonMap(key()));
 
     googleAnalyticsInstance = GoogleAnalytics.getInstance(context);
     googleAnalyticsInstance.getLogger().setLogLevel(Logger.isLogging() ? Log.VERBOSE : Log.ERROR);
 
-    String trackingId = settings.mobileTrackingId();
-    if (isNullOrEmpty(trackingId)) trackingId = settings.trackingId();
+    String trackingId = settings.getString("mobileTrackingId");
+    if (isNullOrEmpty(trackingId)) trackingId = settings.getString("trackingId");
     tracker = googleAnalyticsInstance.newTracker(trackingId);
-    tracker.setAnonymizeIp(settings.anonymizeIp());
-    tracker.setSampleRate(settings.siteSpeedSampleRate());
-    if (settings.reportUncaughtExceptions()) enableAutomaticExceptionTracking(context);
+    tracker.setAnonymizeIp(settings.getBoolean("anonymizeIp"));
+    tracker.setSampleRate(settings.getInteger("siteSpeedSampleRate"));
+    if (settings.getBoolean("reportUncaughtExceptions")) enableAutomaticExceptionTracking(context);
     tracker.enableAutoActivityTracking(true);
-
-    return true;
   }
 
   private void enableAutomaticExceptionTracking(Context context) {
@@ -112,7 +108,7 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   @Override
   public void screen(ScreenPayload screen) {
     super.screen(screen);
-    String screenName = screen.name();
+    String screenName = screen.event();
     if (checkAndPerformEcommerceEvent(screenName, screen.category(), screen.properties())) {
       return;
     }
@@ -138,12 +134,12 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
         .build());
   }
 
-  boolean checkAndPerformEcommerceEvent(String event, String categoryName, Properties props) {
-    if (getItemEventNames().contains(event)) {
-      sendItem(categoryName, props);
+  boolean checkAndPerformEcommerceEvent(String event, String category, Properties props) {
+    if (itemEventNames.contains(event)) {
+      sendItem(category, props);
       return true;
     } else if (COMPLETED_ORDER_EVENT_NAME.equals(event)) {
-      // Only sent via .track so won't have categoryName
+      // Only sent via .track so won't have category
       sendTransaction(props);
       return true;
     }
@@ -154,8 +150,8 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     String id = props.getString("id");
     // skip total
     Double revenue = props.getDouble("revenue");
-    Double shipping = props.getDouble("shipping");
     Double tax = props.getDouble("tax");
+    Double shipping = props.getDouble("shipping");
 
     // Specific for GA
     String affiliation = props.getString("affiliation");
@@ -164,21 +160,25 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     return new HitBuilders.TransactionBuilder() //
         .setTransactionId(id)
         .setAffiliation(affiliation)
-        .setRevenue(revenue)
-        .setTax(tax)
-        .setShipping(shipping)
+        .setRevenue(nullOrDefault(revenue, 0d))
+        .setTax(nullOrDefault(tax, 0d))
+        .setShipping(nullOrDefault(shipping, 0d))
         .setCurrencyCode(currency)
         .build();
   }
 
   private void sendTransaction(Properties properties) {
-    tracker.send(transactionToMap(properties));
-    List<JsonMap> products = (List<JsonMap>) properties.get("products");
+    JsonList products = properties.getJsonList("products");
     if (!isNullOrEmpty(products)) {
-      for (JsonMap product : products) {
-        tracker.send(productToMap(null, product));
+      for (Object product : products) {
+        try {
+          tracker.send(productToMap(null, (JsonMap) product));
+        } catch (ClassCastException e) {
+          Logger.d(e, "Could not convert product to JsonMap.");
+        }
       }
     }
+    tracker.send(transactionToMap(properties));
   }
 
   private void sendItem(String categoryName, Properties props) {
@@ -191,8 +191,7 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     String name = product.getString("name");
     Double price = product.getDouble("price");
     Long quantity = product.getLong("quantity");
-    String category = product.getString("category");
-    if (isNullOrEmpty(category)) category = categoryName;
+    String category = nullOrDefault(product.getString("category"), categoryName);
     // Specific for GA
     String currency = product.getString("currency");
 
@@ -201,93 +200,10 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
         .setName(name)
         .setSku(sku)
         .setCategory(category)
-        .setPrice(price)
-        .setQuantity(quantity)
+        .setPrice(nullOrDefault(price, 0d))
+        .setQuantity(nullOrDefault(quantity, 1L))
         .setCurrencyCode(currency)
         .build();
-  }
-
-  static class GoogleAnalyticsSettings extends JsonMap {
-    GoogleAnalyticsSettings(Map<String, Object> delegate) {
-      super(delegate);
-    }
-
-    Boolean sendUserId() {
-      return getBoolean("sendUserId");
-    }
-
-    Boolean reportUncaughtExceptions() {
-      return getBoolean("reportUncaughtExceptions");
-    }
-
-    Boolean anonymizeIp() {
-      return getBoolean("anonymizeIp");
-    }
-
-    Boolean classic() {
-      return getBoolean("classic");
-    }
-
-    String domain() {
-      return getString("domain");
-    }
-
-    Boolean doubleClick() {
-      return getBoolean("doubleClick");
-    }
-
-    Boolean enhancedLinkAttribution() {
-      return getBoolean("enhancedLinkAttribution");
-    }
-
-    List<String> ignoredReferrers() {
-      // todo: check if valid
-      return (List<String>) get("ignoredReferrers");
-    }
-
-    Boolean includeSearch() {
-      return getBoolean("includeSearch");
-    }
-
-    Boolean initialPageView() {
-      return getBoolean("initialPageView");
-    }
-
-    String mobileTrackingId() {
-      return getString("mobileTrackingId");
-    }
-
-    String serversideTrackingId() {
-      return getString("serversideTrackingId");
-    }
-
-    Boolean serversideClassic() {
-      return getBoolean("serversideClassic");
-    }
-
-    Integer siteSpeedSampleRate() {
-      return getInteger("siteSpeedSampleRate");
-    }
-
-    String trackingId() {
-      return getString("trackingId");
-    }
-
-    Boolean trackCategorizedPages() {
-      return getBoolean("trackCategorizedPages");
-    }
-
-    Boolean trackNamedPages() {
-      return getBoolean("trackNamedPages");
-    }
-
-    JsonMap dimensions() {
-      return getJsonMap("dimensions");
-    }
-
-    JsonMap metric() {
-      return getJsonMap("metric");
-    }
   }
 
   @Override public Tracker getUnderlyingInstance() {

@@ -3,12 +3,13 @@ package com.segment.android.internal.integrations;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import com.segment.android.Integration;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import com.segment.android.internal.ProjectSettings;
+import com.segment.android.json.JsonMap;
 
 /**
  * A base class for Integrations. An integration will only be created if the server sends us
@@ -17,33 +18,27 @@ import com.segment.android.internal.ProjectSettings;
  * @param <T> The type of the backing instance
  */
 public abstract class AbstractIntegration<T> {
-  private final String key;
-
-  AbstractIntegration(String key, String className) throws ClassNotFoundException {
-    this.key = key;
-    Class.forName(className);
-  }
-
-  public final String key() {
-    return key;
-  }
-
-  /** Check for any specific permissions or features that the integration needs. */
-  public abstract void validate(Context context) throws InvalidConfigurationException;
+  static final String VIEWED_EVENT_FORMAT = "Viewed %s Screen";
 
   /**
-   * Initialize the integration, if an error occurs here, it's probably our fault for not having
-   * all
-   * the settings.
+   * Initialize the integration. Implementations should wrap any errors, including missing settings
+   * and permission in {@link InvalidConfigurationException}. If this method call completes without
+   * an error, the integration is assumed to be initialize and ready.
    */
-  public abstract boolean initialize(Context context, ProjectSettings projectSettings)
+  public abstract void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException;
 
   /**
-   * The underlying instance for this provider - used for integration specific actions. This could
+   * The underlying instance for this provider - used for integration specific actions. This will
    * be null for SDK's that maintain a shared instance (e.g. Amplitude).
    */
-  public abstract T getUnderlyingInstance();
+  public T getUnderlyingInstance() {
+    // Only Mixpanel and GoogleAnalytics don't have shared instances so no need to make all
+    // integrations include this.
+    return null;
+  }
+
+  public abstract Integration provider();
 
   // Application Callbacks, same as Application$ActivityLifecycleCallbacks
   public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -90,9 +85,8 @@ public abstract class AbstractIntegration<T> {
   }
 
   /**
-   * This is used only to indicate to the library that the user optedOut. After this has been
-   * called
-   * with 'true', integration won't receive any more events.
+   * Called to indicate that the user has optedOut. If called with {@code true}true, this
+   * integration won't receive any more events until this method is called with {@code false}.
    */
   public void optOut(boolean optOut) {
 

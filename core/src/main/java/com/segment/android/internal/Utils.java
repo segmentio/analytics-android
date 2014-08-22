@@ -183,4 +183,9 @@ public final class Utils {
   private static int getIdentifier(Context context, String type, String key) {
     return context.getResources().getIdentifier(key, type, context.getPackageName());
   }
+
+  /** Returns {@code def} if {@code value} is {@code null}, {@code value} otherwise. */
+  public static <T> T nullOrDefault(T value, T def) {
+    return value == null ? def : value;
+  }
 }

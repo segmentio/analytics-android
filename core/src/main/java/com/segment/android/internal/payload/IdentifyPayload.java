@@ -43,7 +43,7 @@ public class IdentifyPayload extends BasePayload {
     put(TRAITS_KEY, traits);
   }
 
-  public Traits getTraits() {
+  public Traits traits() {
     return (Traits) get(TRAITS_KEY);
   }
 }

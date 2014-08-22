@@ -4,6 +4,7 @@ import com.segment.android.internal.Utils;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.json.JSONObject;
@@ -335,6 +336,26 @@ public class JsonMap implements Map<String, Object> {
     Object value = get(key);
     if (value instanceof Map) {
       return new JsonMap((Map<String, Object>) value);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Returns the value mapped by {@code key} if it exists and is a boolean or can be coerced to a
+   * boolean. Returns null otherwise.
+   */
+  public JsonList getJsonList(Object key) {
+    Object value = get(key);
+    if (value == null) {
+      return null;
+    }
+    if (value instanceof JsonList) {
+      return (JsonList) value;
+    } else if (value instanceof List) {
+      return new JsonList((List) value);
+    } else if (value.getClass().isArray()) {
+      return JsonUtils.toList(value);
     } else {
       return null;
     }

@@ -27,6 +27,7 @@ package com.segment.android.internal.payload;
 import com.segment.android.AnalyticsContext;
 import com.segment.android.Options;
 import com.segment.android.Properties;
+import com.segment.android.internal.Utils;
 
 public class ScreenPayload extends BasePayload {
   /** The category of the page or screen. We recommend using title case, like Docs. */
@@ -38,12 +39,15 @@ public class ScreenPayload extends BasePayload {
   /** The page and screen methods also take a properties dictionary, just like track. */
   private static final String PROPERTIES_KEY = "properties";
 
+  String nameOrCategory;
+
   public ScreenPayload(String anonymousId, AnalyticsContext context, String userId, String category,
       String name, Properties properties, Options options) {
     super(Type.screen, anonymousId, context, userId, options);
     put(CATEGORY_KEY, category);
     put(NAME_KEY, name);
     put(PROPERTIES_KEY, properties);
+    nameOrCategory = Utils.isNullOrEmpty(name) ? category : name;
   }
 
   public String category() {
@@ -52,6 +56,17 @@ public class ScreenPayload extends BasePayload {
 
   public String name() {
     return getString(NAME_KEY);
+  }
+
+  /**
+   * Convenience method so we can quickly look which one from name or category is defined. Name is
+   * used if available, category otherwise.
+   */
+  public String event() {
+    if (Utils.isNullOrEmpty(nameOrCategory)) {
+      nameOrCategory = Utils.isNullOrEmpty(name()) ? category() : name();
+    }
+    return nameOrCategory;
   }
 
   public Properties properties() {

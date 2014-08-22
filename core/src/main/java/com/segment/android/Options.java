@@ -25,7 +25,6 @@
 package com.segment.android;
 
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -54,7 +53,7 @@ public class Options {
    * only send events to Countly and Google Analytics.
    *
    * @param integrationKey The integration key
-   * @param enabled        <code>true</code> for enabled, <code>false</code> for disabled
+   * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
    * @return This options object for chaining
    */
   public Options setIntegration(String integrationKey, boolean enabled) {
@@ -62,22 +61,35 @@ public class Options {
     return this;
   }
 
+  /**
+   * Same as {@link #setIntegration(String, boolean)} but strongly typed. Use this method if you
+   * want to target a bundled integration since it provides more type safety. You can still use the
+   * other for integrations that aren't bundled and hence not enumerated in {@link Integration}.
+   */
+  public Options setIntegration(Integration integration, boolean enabled) {
+    integrations.put(integration.key(), enabled);
+    return this;
+  }
+
+  /** Non-public API to set a full map of bundled integrations. */
   void setBundledIntegrations(Map<String, Boolean> bundledIntegrations) {
     this.bundledIntegrations = bundledIntegrations;
   }
 
+  // todo: hide from public API
   public Map<String, Boolean> getBundledIntegrations() {
-    return Collections.unmodifiableMap(bundledIntegrations);
+    return bundledIntegrations;
   }
 
+  // todo: hide from public API
   public Map<String, Boolean> getIntegrations() {
-    return Collections.unmodifiableMap(integrations);
+    return integrations;
   }
 
   /**
    * Sets the timestamp of when an analytics call occurred. The timestamp is primarily used for
-   * historical imports or if this event happened in the past. The timestamp is not required, and if
-   * it's not provided, our servers will timestamp the call as if it just happened.
+   * historical imports or if this event happened in the past. The timestamp is not required, and
+   * if it's not provided, our servers will timestamp the call as if it just happened.
    *
    * @param timestamp The time when this event happened
    * @return This options object for chaining

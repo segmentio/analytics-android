@@ -2,37 +2,43 @@ package com.segment.android.internal.integrations;
 
 import android.content.Context;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
+import com.segment.android.Integration;
 import com.segment.android.Properties;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
-import com.segment.android.internal.ProjectSettings;
 import com.segment.android.json.JsonMap;
-import java.util.Map;
 import org.json.JSONObject;
 
+import static com.segment.android.internal.Utils.isNullOrEmpty;
+
+/**
+ * Mixpanel is an event tracking tool targeted at web apps with lots of features: funnel, retention
+ * and people tracking; advanced segmentation; and sending email and notifications.
+ *
+ * @see {@link https://mixpanel.com}
+ * @see {@link https://segment.io/docs/integrations/mixpanel}
+ * @see {@link https://github.com/mixpanel/mixpanel-android}
+ */
 public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   MixpanelAPI mixpanelAPI;
   boolean isPeopleEnabled;
+  boolean trackAllPages;
+  boolean trackCategorizedPages;
+  boolean trackNamedPages;
 
-  public MixpanelIntegration() throws ClassNotFoundException {
-    super("Mixpanel", "com.mixpanel.android.mpmetrics.MixpanelAPI");
+  @Override public Integration provider() {
+    return Integration.MIXPANEL;
   }
 
-  @Override public void validate(Context context) throws InvalidConfigurationException {
-    // no extra permissions
-  }
-
-  @Override public boolean initialize(Context context, ProjectSettings projectSettings)
+  @Override public void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
-    if (!projectSettings.containsKey(key())) {
-      return false;
-    }
-    MixpanelSettings settings = new MixpanelSettings(projectSettings.getJsonMap(key()));
-    mixpanelAPI = MixpanelAPI.getInstance(context, settings.token());
-    isPeopleEnabled = settings.people();
-    return true;
+    trackAllPages = settings.getBoolean("trackAllPages");
+    trackCategorizedPages = settings.getBoolean("trackCategorizedPages");
+    trackNamedPages = settings.getBoolean("trackNamedPages");
+    mixpanelAPI = MixpanelAPI.getInstance(context, settings.getString("token"));
+    isPeopleEnabled = settings.getBoolean("people");
   }
 
   @Override public MixpanelAPI getUnderlyingInstance() {
@@ -43,7 +49,7 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     super.identify(identify);
     String userId = identify.userId();
     mixpanelAPI.identify(userId);
-    JSONObject traits = identify.getTraits().toJsonObject();
+    JSONObject traits = identify.traits().toJsonObject();
     mixpanelAPI.registerSuperProperties(traits);
     if (isPeopleEnabled) {
       MixpanelAPI.People people = mixpanelAPI.getPeople();
@@ -64,7 +70,13 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
 
   @Override
   public void screen(ScreenPayload screen) {
-    event("Viewed " + screen.name() + " Screen", screen.properties());
+    if (trackAllPages) {
+      event(String.format(VIEWED_EVENT_FORMAT, screen.event()), screen.properties());
+    } else if (trackCategorizedPages && !isNullOrEmpty(screen.category())) {
+      event(String.format(VIEWED_EVENT_FORMAT, screen.category()), screen.properties());
+    } else if (trackNamedPages && !isNullOrEmpty(screen.name())) {
+      event(String.format(VIEWED_EVENT_FORMAT, screen.name()), screen.properties());
+    }
   }
 
   @Override
@@ -75,24 +87,11 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   private void event(String name, Properties properties) {
     JSONObject props = properties.toJsonObject();
     mixpanelAPI.track(name, props);
-    if (isPeopleEnabled && properties.containsKey("revenue")) {
-      MixpanelAPI.People people = mixpanelAPI.getPeople();
-      double revenue = properties.getDouble("revenue");
-      people.trackCharge(revenue, props);
-    }
-  }
-
-  static class MixpanelSettings extends JsonMap {
-    MixpanelSettings(Map<String, Object> delegate) {
-      super(delegate);
-    }
-
-    boolean people() {
-      return getBoolean("people");
-    }
-
-    String token() {
-      return getString("token");
+    if (isPeopleEnabled) {
+      Double revenue = properties.getDouble("revenue");
+      if (revenue != null) {
+        mixpanelAPI.getPeople().trackCharge(revenue, props);
+      }
     }
   }
 }

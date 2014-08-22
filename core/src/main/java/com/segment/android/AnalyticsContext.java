@@ -163,15 +163,15 @@ public class AnalyticsContext extends JsonMap {
       put(LOCATION_SPEED_KEY, speed);
     }
 
-    public double latitude() {
+    public Double latitude() {
       return getDouble(LOCATION_LATITUDE_KEY);
     }
 
-    public double longitude() {
+    public Double longitude() {
       return getDouble(LOCATION_LONGITUDE_KEY);
     }
 
-    public double speed() {
+    public Double speed() {
       return getDouble(LOCATION_SPEED_KEY);
     }
   }
