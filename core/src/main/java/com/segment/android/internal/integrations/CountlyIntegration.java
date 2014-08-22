@@ -19,7 +19,7 @@ import static com.segment.android.internal.Utils.nullOrDefault;
  * @see {@link https://segment.io/docs/integrations/countly/}
  * @see {@link https://github.com/Countly/countly-sdk-android}
  */
-public class CountlyIntegration extends AbstractIntegration<Void> {
+public class CountlyIntegration extends AbstractIntegration<Countly> {
 
   @Override public Integration provider() {
     return Integration.COUNTLY;
@@ -31,8 +31,8 @@ public class CountlyIntegration extends AbstractIntegration<Void> {
         .init(context, settings.getString("serverUrl"), settings.getString("appKey"));
   }
 
-  @Override public Void getUnderlyingInstance() {
-    return null;
+  @Override public Countly getUnderlyingInstance() {
+    return Countly.sharedInstance();
   }
 
   @Override public void onActivityStarted(Activity activity) {
