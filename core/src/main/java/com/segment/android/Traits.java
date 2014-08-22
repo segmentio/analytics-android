@@ -44,7 +44,10 @@ import static com.segment.android.internal.Utils.getDeviceId;
  */
 public class Traits extends JsonMap {
   private Traits(Context context) {
-    putId(getDeviceId(context));
+    String id = getDeviceId(context);
+    // todo: kick off task to get AdvertisingId
+    setId(id);
+    setAnonymousId(id);
   }
 
   static Traits singleton = null;
@@ -83,7 +86,8 @@ public class Traits extends JsonMap {
   private static final String DESCRIPTION_KEY = "description";
   private static final String EMAIL_KEY = "email";
   private static final String FAX_KEY = "fax";
-  private static final String ID_KEY = "id";
+  private static final String ANONYMOUS_ID_KEY = "anonymousId";
+  private static final String ID_KEY = "userId";
   private static final String NAME_KEY = "name";
   private static final String PHONE_KEY = "phone";
   private static final String WEBSITE_KEY = "website";
@@ -129,12 +133,25 @@ public class Traits extends JsonMap {
     return putValue(FAX_KEY, fax);
   }
 
-  public Traits putId(String id) {
+  /**
+   * Private API, users should call {@link Segment#identify(String, Options)} instead.
+   * Note that this is unable to enforce it, users can easily do {@code traits.put(id, 1231);}
+   */
+  Traits setId(String id) {
     return putValue(ID_KEY, id);
   }
 
-  public String id() {
+  public String userId() {
     return getString(ID_KEY);
+  }
+
+
+  Traits setAnonymousId(String id) {
+    return putValue(ANONYMOUS_ID_KEY, id);
+  }
+
+  String anonymousId() {
+    return getString(ANONYMOUS_ID_KEY);
   }
 
   public Traits putName(String name) {

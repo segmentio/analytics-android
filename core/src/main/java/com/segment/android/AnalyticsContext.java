@@ -108,7 +108,7 @@ public class AnalyticsContext extends JsonMap {
   }
 
   private static final String DEVICE_KEY = "device";
-  private static final String DEVICE_ID_KEY = "id";
+  private static final String DEVICE_ID_KEY = "userId";
   private static final String DEVICE_MANUFACTURER_KEY = "manufacturer";
   private static final String DEVICE_MODEL_KEY = "model";
   private static final String DEVICE_NAME_KEY = "name";
@@ -233,7 +233,7 @@ public class AnalyticsContext extends JsonMap {
   }
 
   private static final String REFERRER_KEY = "referrer";
-  private static final String REFERRER_ID_KEY = "id";
+  private static final String REFERRER_ID_KEY = "userId";
   private static final String REFERRER_LINK_KEY = "link";
   private static final String REFERRER_NAME_KEY = "name";
   private static final String REFERRER_TYPE_KEY = "type";
@@ -333,7 +333,7 @@ public class AnalyticsContext extends JsonMap {
     super(delegate);
   }
 
-  public AnalyticsContext putTraits(Traits traits) {
+  AnalyticsContext setTraits(Traits traits) {
     return putValue(TRAITS_KEY, traits);
   }
 

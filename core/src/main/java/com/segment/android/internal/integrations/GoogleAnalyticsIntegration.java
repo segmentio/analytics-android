@@ -147,7 +147,7 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   }
 
   static Map<String, String> transactionToMap(Properties props) {
-    String id = props.getString("id");
+    String id = props.getString("userId");
     // skip total
     Double revenue = props.getDouble("revenue");
     Double tax = props.getDouble("tax");
@@ -186,7 +186,7 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   }
 
   static Map<String, String> productToMap(String categoryName, JsonMap product) {
-    String id = product.getString("id");
+    String id = product.getString("userId");
     String sku = product.getString("sku");
     String name = product.getString("name");
     Double price = product.getDouble("price");

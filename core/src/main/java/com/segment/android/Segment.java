@@ -43,7 +43,6 @@ import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
 
 import static com.segment.android.internal.Utils.assertOnMainThread;
-import static com.segment.android.internal.Utils.getDeviceId;
 import static com.segment.android.internal.Utils.getResourceBooleanOrThrow;
 import static com.segment.android.internal.Utils.getResourceIntegerOrThrow;
 import static com.segment.android.internal.Utils.getResourceString;
@@ -184,7 +183,6 @@ public class Segment {
   final Dispatcher dispatcher;
   final IntegrationManager integrationManager;
   volatile boolean debugging;
-  final String anonymousId;
 
   Segment(Application application, Dispatcher dispatcher, IntegrationManager integrationManager,
       boolean debugging) {
@@ -192,7 +190,6 @@ public class Segment {
     this.dispatcher = dispatcher;
     this.integrationManager = integrationManager;
     setDebugging(debugging);
-    anonymousId = getDeviceId(application);
     AnalyticsContext.with(application);
     Traits.with(application);
   }
@@ -213,6 +210,18 @@ public class Segment {
     return debugging;
   }
 
+  /**
+   * Identify lets you tie one of your users and their actions to a recognizable {@code userId}.
+   * It also lets you record {@code traits} about the user, like their email, name, account type,
+   * etc.
+   *
+   * @param userId Unique identifier which you recognize a user by in your own database. Must not
+   * be
+   * null or empty.
+   * @param options To configure the call
+   * @throws IllegalArgumentException if userId is null or an empty string
+   * @see https://segment.io/docs/tracking-api/identify/
+   */
   public void identify(String userId, Options options) {
     assertOnMainThread();
 
@@ -224,28 +233,58 @@ public class Segment {
       options = new Options();
     }
 
-    Traits.with(application).putId(userId);
-
-    submit(new IdentifyPayload(anonymousId, AnalyticsContext.with(application), userId,
+    Traits.with(application).setId(userId);
+    submit(new IdentifyPayload(Traits.with(application).anonymousId(),
+        AnalyticsContext.with(application), Traits.with(application).userId(),
         Traits.with(application), options, integrationManager.bundledIntegrations()));
   }
 
-  public void group(String groupId, Options options) {
+  /**
+   * The group method lets you associate a user with a group. It also lets you record custom traits
+   * about the group, like industry or number of employees.
+   * <p>
+   * If you've called {@link #identify(String, Options)} before, this will automatically remember
+   * the userId. If not, it will fall back to use the anonymousId instead.
+   *
+   * @param userId To match up a user with their associated group.
+   * @param groupId Unique identifier which you recognize a group by in your own database. Must not
+   * be null or empty.
+   * @param options To configure the call
+   * @throws IllegalArgumentException if groupId is null or an empty string
+   * @see https://segment.io/docs/tracking-api/group/
+   */
+  public void group(String userId, String groupId, Options options) {
     assertOnMainThread();
 
     if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException("groupId must be null or empty.");
+    }
+    if (isNullOrEmpty(userId)) {
+      userId = Traits.with(application).userId();
     }
 
     if (options == null) {
       options = new Options();
     }
 
-    submit(new GroupPayload(anonymousId, AnalyticsContext.with(application),
-        Traits.with(application).id(), groupId, Traits.with(application), options,
-        integrationManager.bundledIntegrations()));
+    submit(
+        new GroupPayload(Traits.with(application).anonymousId(), AnalyticsContext.with(application),
+            userId, groupId, Traits.with(application), options,
+            integrationManager.bundledIntegrations())
+    );
   }
 
+  /**
+   * The track method is how you record any actions your users perform. Each action is known by a
+   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
+   * For example a 'Purchased a Shirt' event might have properties like revenue or size.
+   *
+   * @param event Name of the event. Must not be null or empty.
+   * @param properties {@link Properties} to add extra information to this call
+   * @param options To configure the call
+   * @throws IllegalArgumentException if event name is null or an empty string
+   * @see https://segment.io/docs/tracking-api/track/
+   */
   public void track(String event, Properties properties, Options options) {
     assertOnMainThread();
 
@@ -260,14 +299,26 @@ public class Segment {
       options = new Options();
     }
 
-    TrackPayload payload = new TrackPayload(anonymousId, AnalyticsContext.with(application),
-        Traits.with(application).id(), event, properties, options,
-        integrationManager.bundledIntegrations());
+    TrackPayload payload =
+        new TrackPayload(Traits.with(application).anonymousId(), AnalyticsContext.with(application),
+            Traits.with(application).userId(), event, properties, options,
+            integrationManager.bundledIntegrations());
 
     submit(payload);
     integrationManager.track(payload);
   }
 
+  /**
+   * The screen methods let your record whenever a user sees a screen of your mobile app, and
+   * attach a name, category or properties to the  screen.
+   *
+   * @param category A category to describe the screen
+   * @param name A name for the screen
+   * @param properties {@link Properties} to add extra information to this call
+   * @param options To configure the call
+   * @throws IllegalArgumentException if both category and name are not provided
+   * @see https://segment.io/docs/tracking-api/page-and-screen/
+   */
   public void screen(String category, String name, Properties properties, Options options) {
     assertOnMainThread();
 
@@ -283,32 +334,50 @@ public class Segment {
       options = new Options();
     }
 
-    submit(new ScreenPayload(anonymousId, AnalyticsContext.with(application),
-        Traits.with(application).id(), category, name, properties, options,
-        integrationManager.bundledIntegrations()));
+    submit(new ScreenPayload(Traits.with(application).anonymousId(),
+        AnalyticsContext.with(application), Traits.with(application).userId(), category, name,
+        properties, options, integrationManager.bundledIntegrations()));
   }
 
+  /**
+   * The alias method is used to merge two user identities, effectively connecting two sets of user
+   * data as one. This is an advanced method, but it is required to manage user identities
+   * successfully in some of our integrations.
+   * You should still call {@link #identify(String, Options)} with {@code newId} if you want to
+   * use it as the default id.
+   *
+   * @param newId The newId to map the old id to. Must not be null to empty.
+   * @param previousId The old id we want to map. If it is null, the userId we've cached will
+   * automatically used.
+   * @param options To configure the call
+   * @throws IllegalArgumentException if newId is null or empty
+   * @see https://segment.io/docs/tracking-api/alias/
+   */
   public void alias(String newId, String previousId, Options options) {
     assertOnMainThread();
 
     if (isNullOrEmpty(newId)) {
       throw new IllegalArgumentException("newId must not be null or empty.");
     }
-
     if (isNullOrEmpty(previousId)) {
-      previousId = Traits.with(application).id(); // copy the previousId
+      previousId = Traits.with(application).userId();
     }
+
     if (options == null) {
       options = new Options();
     }
 
-    Traits.with(application).putId(newId); // update the new id
-
-    submit(new AliasPayload(anonymousId, AnalyticsContext.with(application),
-        Traits.with(application).id(), previousId, options,
-        integrationManager.bundledIntegrations()));
+    submit(
+        new AliasPayload(Traits.with(application).anonymousId(), AnalyticsContext.with(application),
+            Traits.with(application).userId(), previousId, options,
+            integrationManager.bundledIntegrations())
+    );
   }
 
+  /**
+   * Tries to send all messages from our queue to our server and indicates our bundled integrations
+   * to do the same. Note that not all bundled integrations support this, for which we just no-op.
+   */
   public void flush() {
     dispatcher.dispatchFlush();
     // todo: flush integration manager

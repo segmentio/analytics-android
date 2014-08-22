@@ -29,6 +29,10 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Options let you control behaviour for a specific analytics call, including setting a custom
+ * timestamp and disabling integrations on demand.
+ */
 public class Options {
   public static final String ALL_INTEGRATIONS_KEY = "all";
 

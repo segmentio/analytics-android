@@ -58,9 +58,10 @@ public class BugsnagIntegration extends AbstractIntegration<Client> {
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
     Traits traits = identify.traits();
-    Bugsnag.setUser(traits.id(), traits.email(), traits.name());
+    Bugsnag.setUser(traits.userId(), traits.email(), traits.name());
+    final String userKey = "User";
     for (Map.Entry<String, Object> entry : traits.entrySet()) {
-      Bugsnag.addToTab("User", entry.getKey(), entry.getValue());
+      Bugsnag.addToTab(userKey, entry.getKey(), entry.getValue());
     }
   }
 }
