@@ -30,6 +30,7 @@ import com.segment.android.internal.ISO8601Time;
 import com.segment.android.json.JsonMap;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * A payload object that will be sent to the server. Clients will not decode instances of this
@@ -50,7 +51,8 @@ public class BasePayload extends JsonMap {
 
   /**
    * The anonymous ID is an identifier that uniquely (or close enough) identifies the user, but
-   * isn't from your database. This is useful in cases where you are able to uniquely identifier the
+   * isn't from your database. This is useful in cases where you are able to uniquely identifier
+   * the
    * user between visits before they signup thanks to a cookie, or session ID or device ID. In our
    * mobile and browser libraries we will automatically handle sending the anonymous ID.
    */
@@ -96,7 +98,7 @@ public class BasePayload extends JsonMap {
   private static final String USER_ID_KEY = "userId";
 
   public BasePayload(Type type, String anonymousId, AnalyticsContext context, String userId,
-      Options options) {
+      Options options, Map<String, Boolean> bundledIntegrations) {
     put(TYPE_KEY, type.toString());
     put(CHANNEL_KEY, Channel.mobile.toString());
     put(ANONYMOUS_ID_KEY, anonymousId);
@@ -105,7 +107,7 @@ public class BasePayload extends JsonMap {
     // integrations, and anything the user may have passed in
     HashMap<String, Boolean> serverIntegrations = new LinkedHashMap<String, Boolean>();
     serverIntegrations.putAll(options.getIntegrations());
-    serverIntegrations.putAll(options.getBundledIntegrations());
+    serverIntegrations.putAll(bundledIntegrations);
     put(INTEGRATIONS_KEY, serverIntegrations);
     // Context level integrations are used by IntegrationManger, this is simply what the user may
     // have passed in, used to disable integrations for specific events. Could be a bundled one,

@@ -55,13 +55,13 @@ import java.security.NoSuchAlgorithmException;
    * Cached array of the Android Wi-Fi hardware constant.
    */
   private static final Object[] HARDWARE_WIFI = new Object[] { "android.hardware.wifi" };
-      //$NON-NLS-1$
+  //$NON-NLS-1$
 
   /**
    * Cached array of the Android Wi-Fi hardware constant.
    */
   private static final Object[] HARDWARE_TELEPHONY = new Object[] { "android.hardware.telephony" };
-      //$NON-NLS-1$
+  //$NON-NLS-1$
 
   /**
    * Private constructor prevents instantiation
@@ -102,7 +102,8 @@ import java.security.NoSuchAlgorithmException;
   }
 
   /**
-   * Gets a 1-way hashed value of the device's Android ID. This value is encoded using a SHA-256 one
+   * Gets a 1-way hashed value of the device's Android ID. This value is encoded using a SHA-256
+   * one
    * way hash and therefore
    * cannot be used to determine what device this data came from.
    *
@@ -169,7 +170,8 @@ import java.security.NoSuchAlgorithmException;
    * SHA-256 one way hash and
    * therefore cannot be used to determine what device this data came from.
    * <p>
-   * Note: {@link android.os.Build#SERIAL} was introduced in SDK 9. For older SDKs, this method will
+   * Note: {@link android.os.Build#SERIAL} was introduced in SDK 9. For older SDKs, this method
+   * will
    * return null.
    *
    * @return An 1-way hashed version of the {@link android.os.Build#SERIAL}. May return null if a

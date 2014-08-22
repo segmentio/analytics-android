@@ -28,6 +28,7 @@ import com.segment.android.AnalyticsContext;
 import com.segment.android.Options;
 import com.segment.android.Properties;
 import com.segment.android.internal.Utils;
+import java.util.Map;
 
 public class ScreenPayload extends BasePayload {
   /** The category of the page or screen. We recommend using title case, like Docs. */
@@ -42,8 +43,9 @@ public class ScreenPayload extends BasePayload {
   String nameOrCategory;
 
   public ScreenPayload(String anonymousId, AnalyticsContext context, String userId, String category,
-      String name, Properties properties, Options options) {
-    super(Type.screen, anonymousId, context, userId, options);
+      String name, Properties properties, Options options,
+      Map<String, Boolean> bundledIntegrations) {
+    super(Type.screen, anonymousId, context, userId, options, bundledIntegrations);
     put(CATEGORY_KEY, category);
     put(NAME_KEY, name);
     put(PROPERTIES_KEY, properties);

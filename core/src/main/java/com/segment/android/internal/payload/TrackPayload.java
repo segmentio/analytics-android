@@ -27,6 +27,7 @@ package com.segment.android.internal.payload;
 import com.segment.android.AnalyticsContext;
 import com.segment.android.Options;
 import com.segment.android.Properties;
+import java.util.Map;
 
 public class TrackPayload extends BasePayload {
   /**
@@ -43,8 +44,8 @@ public class TrackPayload extends BasePayload {
   private static final String PROPERTIES_KEY = "properties";
 
   public TrackPayload(String anonymousId, AnalyticsContext context, String userId, String event,
-      Properties properties, Options options) {
-    super(Type.track, anonymousId, context, userId, options);
+      Properties properties, Options options, Map<String, Boolean> bundledIntegrations) {
+    super(Type.track, anonymousId, context, userId, options, bundledIntegrations);
     put(EVENT_KEY, event);
     put(PROPERTIES_KEY, properties);
   }

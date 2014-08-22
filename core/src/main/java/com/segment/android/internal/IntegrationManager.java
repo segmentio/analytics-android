@@ -56,18 +56,12 @@ public class IntegrationManager {
   final Handler mainThreadHandler;
   final ExecutorService service;
 
-  public static IntegrationManager create(Context context, Handler mainThreadHandler,
+  public IntegrationManager(Context context, Handler mainThreadHandler,
       SegmentHTTPApi segmentHTTPApi) {
-    ExecutorService service = Executors.newSingleThreadExecutor();
-    return new IntegrationManager(context, mainThreadHandler, segmentHTTPApi, service);
-  }
-
-  IntegrationManager(Context context, Handler mainThreadHandler, SegmentHTTPApi segmentHTTPApi,
-      ExecutorService service) {
     this.context = context;
     this.segmentHTTPApi = segmentHTTPApi;
     this.mainThreadHandler = mainThreadHandler;
-    this.service = service;
+    this.service = Executors.newSingleThreadExecutor();
 
     // Look up all the integrations available on the device. This is done early so that we can
     // disable sending to these integrations from the server and properly fill the payloads.
@@ -80,7 +74,8 @@ public class IntegrationManager {
         Logger.d("%s not bundled", integration.key());
       }
     }
-    serverIntegrations = Collections.unmodifiableMap(serverIntegrations);
+    serverIntegrations =
+        Collections.unmodifiableMap(serverIntegrations); // don't allow any more modifications
 
     service.submit(new Runnable() {
       @Override public void run() {

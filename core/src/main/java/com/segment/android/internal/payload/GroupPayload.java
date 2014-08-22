@@ -27,6 +27,7 @@ package com.segment.android.internal.payload;
 import com.segment.android.AnalyticsContext;
 import com.segment.android.Options;
 import com.segment.android.Traits;
+import java.util.Map;
 
 public class GroupPayload extends BasePayload {
   /**
@@ -42,8 +43,8 @@ public class GroupPayload extends BasePayload {
   private static final String TRAITS_KEY = "traits";
 
   public GroupPayload(String anonymousId, AnalyticsContext context, String userId, String groupId,
-      Traits traits, Options options) {
-    super(Type.group, anonymousId, context, userId, options);
+      Traits traits, Options options, Map<String, Boolean> bundledIntegrations) {
+    super(Type.group, anonymousId, context, userId, options, bundledIntegrations);
     put(GROUP_ID_KEY, groupId);
     put(TRAITS_KEY, traits);
   }

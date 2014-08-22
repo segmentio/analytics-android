@@ -33,7 +33,8 @@ public final class ReflectionUtils {
    * @param <T> Type that the method should return
    * @param classObject Class on which to invoke {@code methodName}. Cannot be null.
    * @param methodName Name of the method to invoke. Cannot be null.
-   * @param types explicit types for the objects. This is useful if the types are primitives, rather
+   * @param types explicit types for the objects. This is useful if the types are primitives,
+   * rather
    * than objects.
    * @param args arguments for the method. May be null if the method takes no arguments.
    * @return The result of invoking the named method on the given class for the args
@@ -51,7 +52,8 @@ public final class ReflectionUtils {
    * @param <T> Type that the method should return
    * @param className Name of the class on which to invoke {@code methodName}. Cannot be null.
    * @param methodName Name of the method to invoke. Cannot be null.
-   * @param types explicit types for the objects. This is useful if the types are primitives, rather
+   * @param types explicit types for the objects. This is useful if the types are primitives,
+   * rather
    * than objects.
    * @param args arguments for the method. May be null if the method takes no arguments.
    * @return The result of invoking the named method on the given class for the args
@@ -69,7 +71,8 @@ public final class ReflectionUtils {
    * @param <T> Type that the method should return
    * @param target Object instance on which to invoke {@code methodName}. Cannot be null.
    * @param methodName Name of the method to invoke. Cannot be null.
-   * @param types explicit types for the objects. This is useful if the types are primitives, rather
+   * @param types explicit types for the objects. This is useful if the types are primitives,
+   * rather
    * than objects.
    * @param args arguments for the method. May be null if the method takes no arguments.
    * @return The result of invoking the named method on the given class for the args

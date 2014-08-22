@@ -25,6 +25,7 @@
 package com.segment.android;
 
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -33,12 +34,10 @@ public class Options {
 
   private Calendar timestamp;
   private final Map<String, Boolean> integrations; // passed in by the user
-  private Map<String, Boolean> bundledIntegrations; // passed in by integrationmanager,
 
   public Options() {
     integrations = new LinkedHashMap<String, Boolean>();
     integrations.put(ALL_INTEGRATIONS_KEY, true);
-    bundledIntegrations = new LinkedHashMap<String, Boolean>();
   }
 
   /**
@@ -71,19 +70,9 @@ public class Options {
     return this;
   }
 
-  /** Non-public API to set a full map of bundled integrations. */
-  void setBundledIntegrations(Map<String, Boolean> bundledIntegrations) {
-    this.bundledIntegrations = bundledIntegrations;
-  }
-
-  // todo: hide from public API
-  public Map<String, Boolean> getBundledIntegrations() {
-    return bundledIntegrations;
-  }
-
   // todo: hide from public API
   public Map<String, Boolean> getIntegrations() {
-    return integrations;
+    return Collections.unmodifiableMap(integrations);
   }
 
   /**

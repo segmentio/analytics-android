@@ -28,7 +28,8 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Implements the storage mechanism for the Localytics library. The interface and implementation are
+ * Implements the storage mechanism for the Localytics library. The interface and implementation
+ * are
  * similar to a ContentProvider
  * but modified to be better suited to a library. The interface is table-oriented, rather than
  * Uri-oriented.
@@ -47,7 +48,7 @@ import java.util.UUID;
      * avoid collisions with app developers because it is sufficiently long and uses the Localytics package namespace.
      */
     /* package */static final String DATABASE_FILE = "com.localytics.android.%s.sqlite";
-      //$NON-NLS-1$
+  //$NON-NLS-1$
 
   /**
    * Version of the database.
@@ -108,7 +109,8 @@ import java.util.UUID;
    * a single instance will be
    * returned.
    * <p>
-   * Note: if {@code context} is an instance of {@link android.test.RenamingDelegatingContext}, then
+   * Note: if {@code context} is an instance of {@link android.test.RenamingDelegatingContext},
+   * then
    * a new object will be
    * returned every time. This is not a "public" API, but is documented here as it aids unit
    * testing.
@@ -218,7 +220,8 @@ import java.util.UUID;
    * null.
    * @param projection The list of columns to include. If null, then all columns are included by
    * default.
-   * @param selection A filter to apply to all rows, like the SQLite WHERE clause. Passing null will
+   * @param selection A filter to apply to all rows, like the SQLite WHERE clause. Passing null
+   * will
    * query all rows. This param
    * may contain ? symbols, which will be replaced by values from the {@code selectionArgs} param.
    * @param selectionArgs An optional string array of replacements for ? symbols in {@code
@@ -241,8 +244,8 @@ import java.util.UUID;
     if (Constants.IS_LOGGABLE) {
       Log.v(Constants.LOG_TAG,
           String.format("Query table: %s, projection: %s, selection: %s, selectionArgs: %s",
-              tableName, Arrays.toString(projection), selection,
-              Arrays.toString(selectionArgs))); //$NON-NLS-1$
+              tableName, Arrays.toString(projection), selection, Arrays.toString(selectionArgs))
+      ); //$NON-NLS-1$
     }
 
     final SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
@@ -295,7 +298,8 @@ import java.util.UUID;
     if (Constants.IS_LOGGABLE) {
       Log.v(Constants.LOG_TAG,
           String.format("Update table: %s, values: %s, selection: %s, selectionArgs: %s", tableName,
-              values.toString(), selection, Arrays.toString(selectionArgs))); //$NON-NLS-1$
+              values.toString(), selection, Arrays.toString(selectionArgs))
+      ); //$NON-NLS-1$
     }
 
     return mDb.update(tableName, values, selection, selectionArgs);
@@ -332,7 +336,8 @@ import java.util.UUID;
     if (Constants.IS_LOGGABLE) {
       Log.v(Constants.LOG_TAG,
           String.format("Delete table: %s, selection: %s, selectionArgs: %s", tableName, selection,
-              Arrays.toString(selectionArgs))); //$NON-NLS-1$
+              Arrays.toString(selectionArgs))
+      ); //$NON-NLS-1$
     }
 
     final int count;
@@ -638,8 +643,8 @@ import java.util.UUID;
 
       if (Constants.IS_LOGGABLE) {
         Log.v(Constants.LOG_TAG, String.format("SQLite library version is: %s",
-            DatabaseUtils.stringForQuery(db, "select sqlite_version()",
-                null))); //$NON-NLS-1$//$NON-NLS-2$
+            DatabaseUtils.stringForQuery(db, "select sqlite_version()", null)
+        )); //$NON-NLS-1$//$NON-NLS-2$
       }
 
       if (!db.isReadOnly()) {
@@ -709,7 +714,8 @@ import java.util.UUID;
           while (attributesCursor.moveToNext()) {
             tempValues.put(AttributesDbColumns.ATTRIBUTE_KEY,
                 String.format(AttributesDbColumns.ATTRIBUTE_FORMAT, mContext.getPackageName(),
-                    attributesCursor.getString(keyColumnIndex)));
+                    attributesCursor.getString(keyColumnIndex))
+            );
 
             whereArgs[0] = Long.toString(attributesCursor.getLong(idColumnIndex));
             db.update(AttributesDbColumns.TABLE_NAME, tempValues, whereClause, whereArgs);
@@ -1048,70 +1054,70 @@ import java.util.UUID;
      */
         /* package */static final String ATTRIBUTE_CUSTOM_DIMENSION_1 =
         String.format(ATTRIBUTE_FORMAT, Constants.LOCALYTICS_PACKAGE_NAME, "custom_dimension_0");
-        //$NON-NLS-1$
+    //$NON-NLS-1$
 
     /**
      * Format string for the custom dimension attribute
      */
         /* package */static final String ATTRIBUTE_CUSTOM_DIMENSION_2 =
         String.format(ATTRIBUTE_FORMAT, Constants.LOCALYTICS_PACKAGE_NAME, "custom_dimension_1");
-        //$NON-NLS-1$
+    //$NON-NLS-1$
 
     /**
      * Format string for the custom dimension attribute
      */
         /* package */static final String ATTRIBUTE_CUSTOM_DIMENSION_3 =
         String.format(ATTRIBUTE_FORMAT, Constants.LOCALYTICS_PACKAGE_NAME, "custom_dimension_2");
-        //$NON-NLS-1$
+    //$NON-NLS-1$
 
     /**
      * Format string for the custom dimension attribute
      */
         /* package */static final String ATTRIBUTE_CUSTOM_DIMENSION_4 =
         String.format(ATTRIBUTE_FORMAT, Constants.LOCALYTICS_PACKAGE_NAME, "custom_dimension_3");
-        //$NON-NLS-1$
+    //$NON-NLS-1$
 
     /**
      * Format string for the custom dimension attribute
      */
         /* package */static final String ATTRIBUTE_CUSTOM_DIMENSION_5 =
         String.format(ATTRIBUTE_FORMAT, Constants.LOCALYTICS_PACKAGE_NAME, "custom_dimension_4");
-        //$NON-NLS-1$
+    //$NON-NLS-1$
 
     /**
      * Format string for the custom dimension attribute
      */
         /* package */static final String ATTRIBUTE_CUSTOM_DIMENSION_6 =
         String.format(ATTRIBUTE_FORMAT, Constants.LOCALYTICS_PACKAGE_NAME, "custom_dimension_5");
-        //$NON-NLS-1$
+    //$NON-NLS-1$
 
     /**
      * Format string for the custom dimension attribute
      */
         /* package */static final String ATTRIBUTE_CUSTOM_DIMENSION_7 =
         String.format(ATTRIBUTE_FORMAT, Constants.LOCALYTICS_PACKAGE_NAME, "custom_dimension_6");
-        //$NON-NLS-1$
+    //$NON-NLS-1$
 
     /**
      * Format string for the custom dimension attribute
      */
         /* package */static final String ATTRIBUTE_CUSTOM_DIMENSION_8 =
         String.format(ATTRIBUTE_FORMAT, Constants.LOCALYTICS_PACKAGE_NAME, "custom_dimension_7");
-        //$NON-NLS-1$
+    //$NON-NLS-1$
 
     /**
      * Format string for the custom dimension attribute
      */
         /* package */static final String ATTRIBUTE_CUSTOM_DIMENSION_9 =
         String.format(ATTRIBUTE_FORMAT, Constants.LOCALYTICS_PACKAGE_NAME, "custom_dimension_8");
-        //$NON-NLS-1$
+    //$NON-NLS-1$
 
     /**
      * Format string for the custom dimension attribute
      */
         /* package */static final String ATTRIBUTE_CUSTOM_DIMENSION_10 =
         String.format(ATTRIBUTE_FORMAT, Constants.LOCALYTICS_PACKAGE_NAME, "custom_dimension_9");
-        //$NON-NLS-1$
+    //$NON-NLS-1$
   }
 
   /**
@@ -1141,7 +1147,8 @@ import java.util.UUID;
      * <p>
      * A one-to-many relationship with {@link SessionsDbColumns#_ID}.
      * <p>
-     * Constraints: This is a foreign key with the {@link SessionsDbColumns#_ID} column. This cannot
+     * Constraints: This is a foreign key with the {@link SessionsDbColumns#_ID} column. This
+     * cannot
      * be null.
      */
     public static final String SESSION_KEY_REF = "session_key_ref"; //$NON-NLS-1$
@@ -1229,7 +1236,8 @@ import java.util.UUID;
      * <p>
      * A one-to-many relationship with {@link SessionsDbColumns#_ID}.
      * <p>
-     * Constraints: This is a foreign key with the {@link SessionsDbColumns#_ID} column. This cannot
+     * Constraints: This is a foreign key with the {@link SessionsDbColumns#_ID} column. This
+     * cannot
      * be null.
      */
     public static final String SESSION_KEY_REF = "session_key_ref"; //$NON-NLS-1$
@@ -1334,7 +1342,7 @@ import java.util.UUID;
      * @see Constants#LOCALYTICS_CLIENT_LIBRARY_VERSION
      */
     public static final String LOCALYTICS_LIBRARY_VERSION = "localytics_library_version";
-        //$NON-NLS-1$
+    //$NON-NLS-1$
 
     /**
      * Type {@code String}
@@ -1449,18 +1457,20 @@ import java.util.UUID;
     /**
      * TYPE: {@code String}
      * <p>
-     * String representing a hash of the serial number of the device. May be null for some telephony
+     * String representing a hash of the serial number of the device. May be null for some
+     * telephony
      * devices.
      * <p>
      * Constraints: None
      */
     public static final String DEVICE_SERIAL_NUMBER_HASH = "device_serial_number_hash";
-        //$NON-NLS-1$
+    //$NON-NLS-1$
 
     /**
      * TYPE: {@code String}
      * <p>
-     * String representing a hash of the Wi-Fi MAC address of the device. May be null if Wi-Fi isn't
+     * String representing a hash of the Wi-Fi MAC address of the device. May be null if Wi-Fi
+     * isn't
      * available or is disabled.
      * <p>
      * Constraints: None

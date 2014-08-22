@@ -50,6 +50,15 @@ import static com.segment.android.internal.Utils.getResourceString;
 import static com.segment.android.internal.Utils.hasPermission;
 import static com.segment.android.internal.Utils.isNullOrEmpty;
 
+/**
+ * The idea is simple: one pipeline for all your data.
+ *
+ * <p>
+ * Use {@link #with(android.content.Context)} for the global singleton instance or construct your
+ * own instance with {@link Builder}.
+ *
+ * @see {@link https://segment.io/}
+ */
 public class Segment {
   // Resource identifiers to define options in xml
   public static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
@@ -64,8 +73,9 @@ public class Segment {
    * This instance is automatically initialized with defaults that are suitable to most
    * implementations.
    * <p/>
-   * If these settings do not meet the requirements of your application you can construct your own
-   * instance with full control over the configuration by using {@link Builder}.
+   * If these settings do not meet the requirements of your application, you can provide
+   * properties in {@code analytics.xml} or you can construct your own instance with full control
+   * over the configuration by using {@link Builder}.
    */
   public static Segment with(Context context) {
     if (singleton == null) {
@@ -75,29 +85,25 @@ public class Segment {
       synchronized (Segment.class) {
         if (singleton == null) {
           String writeKey = getResourceString(context, WRITE_KEY_RESOURCE_IDENTIFIER);
-
           Builder builder = new Builder(context, writeKey);
-
           try {
             // We need the exception to be able to tell if this was not defined, or if it was
             // incorrectly defined - something we shouldn't ignore
             int maxQueueSize = getResourceIntegerOrThrow(context, QUEUE_SIZE_RESOURCE_IDENTIFIER);
             if (maxQueueSize <= 0) {
               throw new IllegalStateException(
-                  "maxQueueSize(" + maxQueueSize + ") may not be zero or negative.");
+                  "analytics_queue_size(" + maxQueueSize + ") may not be zero or negative.");
             }
             builder.maxQueueSize(maxQueueSize);
           } catch (Resources.NotFoundException e) {
             // when maxQueueSize is not defined in xml, we'll use a default option in the builder
           }
-
           try {
             boolean debugging = getResourceBooleanOrThrow(context, DEBUGGING_RESOURCE_IDENTIFIER);
             builder.debugging(debugging);
           } catch (Resources.NotFoundException e) {
             // when debugging is not defined in xml, we'll use a default value from the builder
           }
-
           singleton = builder.build();
         }
       }
@@ -108,7 +114,6 @@ public class Segment {
   /** Fluent API for creating {@link Segment} instances. */
   @SuppressWarnings("UnusedDeclaration") // Public API.
   public static class Builder {
-    // Defaults
     public static final int DEFAULT_QUEUE_SIZE = 20;
     public static final boolean DEFAULT_DEBUGGING = false;
 
@@ -147,7 +152,7 @@ public class Segment {
       return this;
     }
 
-    /** Whether debugging is enabled or not. */
+    /** Set whether debugging is enabled or not. */
     public Builder debugging(boolean debugging) {
       this.debugging = debugging;
       return this;
@@ -158,11 +163,10 @@ public class Segment {
       if (maxQueueSize == -1) {
         maxQueueSize = DEFAULT_QUEUE_SIZE;
       }
-
-      SegmentHTTPApi segmentHTTPApi = SegmentHTTPApi.create(writeKey);
+      SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
       Dispatcher dispatcher = Dispatcher.create(application, HANDLER, maxQueueSize, segmentHTTPApi);
       IntegrationManager integrationManager =
-          IntegrationManager.create(application, HANDLER, segmentHTTPApi);
+          new IntegrationManager(application, HANDLER, segmentHTTPApi);
       return new Segment(application, dispatcher, integrationManager, debugging);
     }
   }
@@ -219,12 +223,11 @@ public class Segment {
     if (options == null) {
       options = new Options();
     }
-    options.setBundledIntegrations(integrationManager.bundledIntegrations());
 
     Traits.with(application).putId(userId);
 
     submit(new IdentifyPayload(anonymousId, AnalyticsContext.with(application), userId,
-        Traits.with(application), options));
+        Traits.with(application), options, integrationManager.bundledIntegrations()));
   }
 
   public void group(String groupId, Options options) {
@@ -237,10 +240,10 @@ public class Segment {
     if (options == null) {
       options = new Options();
     }
-    options.setBundledIntegrations(integrationManager.bundledIntegrations());
 
     submit(new GroupPayload(anonymousId, AnalyticsContext.with(application),
-        Traits.with(application).id(), groupId, Traits.with(application), options));
+        Traits.with(application).id(), groupId, Traits.with(application), options,
+        integrationManager.bundledIntegrations()));
   }
 
   public void track(String event, Properties properties, Options options) {
@@ -256,10 +259,10 @@ public class Segment {
     if (options == null) {
       options = new Options();
     }
-    options.setBundledIntegrations(integrationManager.bundledIntegrations());
 
     TrackPayload payload = new TrackPayload(anonymousId, AnalyticsContext.with(application),
-        Traits.with(application).id(), event, properties, options);
+        Traits.with(application).id(), event, properties, options,
+        integrationManager.bundledIntegrations());
 
     submit(payload);
     integrationManager.track(payload);
@@ -279,10 +282,10 @@ public class Segment {
     if (options == null) {
       options = new Options();
     }
-    options.setBundledIntegrations(integrationManager.bundledIntegrations());
 
     submit(new ScreenPayload(anonymousId, AnalyticsContext.with(application),
-        Traits.with(application).id(), category, name, properties, options));
+        Traits.with(application).id(), category, name, properties, options,
+        integrationManager.bundledIntegrations()));
   }
 
   public void alias(String newId, String previousId, Options options) {
@@ -298,12 +301,12 @@ public class Segment {
     if (options == null) {
       options = new Options();
     }
-    options.setBundledIntegrations(integrationManager.bundledIntegrations());
 
     Traits.with(application).putId(newId); // update the new id
 
     submit(new AliasPayload(anonymousId, AnalyticsContext.with(application),
-        Traits.with(application).id(), previousId, options));
+        Traits.with(application).id(), previousId, options,
+        integrationManager.bundledIntegrations()));
   }
 
   public void flush() {

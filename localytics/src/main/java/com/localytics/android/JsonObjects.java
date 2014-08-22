@@ -51,7 +51,8 @@ import org.json.JSONArray;
     public static final String VALUE_DATA_TYPE = "h"; //$NON-NLS-1$
 
     /**
-     * Timestamp when the app was first launched and the persistent storage was created. Represented
+     * Timestamp when the app was first launched and the persistent storage was created.
+     * Represented
      * as seconds since the Unix
      * Epoch. (Note: This is SECONDS and not milliseconds. This requires care, because Android
      * represents time as

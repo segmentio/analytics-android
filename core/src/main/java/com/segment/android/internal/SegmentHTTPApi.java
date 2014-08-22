@@ -47,11 +47,7 @@ public class SegmentHTTPApi {
 
   private final String writeKey;
 
-  public static SegmentHTTPApi create(String writeKey) {
-    return new SegmentHTTPApi(writeKey);
-  }
-
-  SegmentHTTPApi(String writeKey) {
+  public SegmentHTTPApi(String writeKey) {
     this.writeKey = writeKey;
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
@@ -135,7 +131,7 @@ public class SegmentHTTPApi {
   private static String readFully(InputStream in) throws IOException {
     BufferedReader r = new BufferedReader(new InputStreamReader(in));
     StringBuilder response = new StringBuilder();
-    for (String line; (line = r.readLine()) != null;) {
+    for (String line; (line = r.readLine()) != null; ) {
       response.append(line);
     }
     return response.toString();

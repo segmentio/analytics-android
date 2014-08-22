@@ -27,6 +27,7 @@ package com.segment.android.internal.payload;
 import com.segment.android.AnalyticsContext;
 import com.segment.android.Options;
 import com.segment.android.Traits;
+import java.util.Map;
 
 public class IdentifyPayload extends BasePayload {
   /**
@@ -38,8 +39,8 @@ public class IdentifyPayload extends BasePayload {
   private static final String TRAITS_KEY = "traits";
 
   public IdentifyPayload(String anonymousId, AnalyticsContext context, String userId, Traits traits,
-      Options options) {
-    super(Type.identify, anonymousId, context, userId, options);
+      Options options, Map<String, Boolean> bundledIntegrations) {
+    super(Type.identify, anonymousId, context, userId, options, bundledIntegrations);
     put(TRAITS_KEY, traits);
   }
 

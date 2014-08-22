@@ -26,6 +26,7 @@ package com.segment.android.internal.payload;
 
 import com.segment.android.AnalyticsContext;
 import com.segment.android.Options;
+import java.util.Map;
 
 public class AliasPayload extends BasePayload {
   /**
@@ -35,8 +36,8 @@ public class AliasPayload extends BasePayload {
   private static final String PREVIOUS_ID_KEY = "previousId";
 
   public AliasPayload(String anonymousId, AnalyticsContext context, String userId,
-      String previousId, Options options) {
-    super(Type.alias, anonymousId, context, userId, options);
+      String previousId, Options options, Map<String, Boolean> bundledIntegrations) {
+    super(Type.alias, anonymousId, context, userId, options, bundledIntegrations);
     put(PREVIOUS_ID_KEY, previousId);
   }
 

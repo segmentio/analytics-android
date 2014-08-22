@@ -104,7 +104,8 @@ import org.json.JSONObject;
  * user entered the Activity.
  * Assuming your application uses multiple Activities for navigation (rather than a single Activity
  * with multiple Fragments}, this
- * will capture the flow of users as they move from Activity to Activity. Don't worry about Activity
+ * will capture the flow of users as they move from Activity to Activity. Don't worry about
+ * Activity
  * re-entrance. Because
  * {@code Activity#onResume()} can be called multiple times for different reasons, the Localytics
  * library manages duplicate
@@ -418,7 +419,8 @@ public class LocalyticsSession {
    * become opted out, and neither will collect any more data. <br>
    * If a session was started while the app was opted out, the session open event has already been
    * lost. For this reason, all
-   * sessions started while opted out will not collect data even after the user opts back in or else
+   * sessions started while opted out will not collect data even after the user opts back in or
+   * else
    * it taints the comparisons
    * of session lengths and other metrics.
    *
@@ -453,7 +455,8 @@ public class LocalyticsSession {
    * {@code customDimensions} for the initial open are kept and dimensions for the second open are
    * ignored.
    * <p>
-   * If for any reason open is called more than once without an intervening call to {@link #close()}
+   * If for any reason open is called more than once without an intervening call to {@link
+   * #close()}
    * or {@link #close(List)},
    * subsequent calls to open will be ignored.
    *
@@ -635,7 +638,8 @@ public class LocalyticsSession {
    * #tagEvent(String)}
    * . The number of dimensions is capped at four. If there are more than four elements, the extra
    * elements are
-   * ignored. This parameter may not contain null or empty elements. This parameter is only used for
+   * ignored. This parameter may not contain null or empty elements. This parameter is only used
+   * for
    * enterprise level
    * accounts. For non-enterprise accounts, custom dimensions will be uploaded but will not be
    * accessible in reports
@@ -660,7 +664,8 @@ public class LocalyticsSession {
    * <p>
    * Attributes: Additional key/value pairs with data related to an event. For example, let's say
    * your app displays a dialog
-   * with two buttons: OK and Cancel. When the user clicks on one of the buttons, the event might be
+   * with two buttons: OK and Cancel. When the user clicks on one of the buttons, the event might
+   * be
    * "button clicked." The
    * attribute key might be "button_label" and the value would either be "OK" or "Cancel" depending
    * on which button was clicked.
@@ -700,12 +705,14 @@ public class LocalyticsSession {
    * #tagEvent(String)}
    * . The number of dimensions is capped at four. If there are more than four elements, the extra
    * elements are
-   * ignored. This parameter may not contain null or empty elements. This parameter is only used for
+   * ignored. This parameter may not contain null or empty elements. This parameter is only used
+   * for
    * enterprise level
    * accounts. For non-enterprise accounts, custom dimensions will be uploaded but will not be
    * accessible in reports
    * until the account is upgraded to enterprise status.
-   * @param customerValueIncrease Added to customer lifetime value. Try to use lowest possible unit,
+   * @param customerValueIncrease Added to customer lifetime value. Try to use lowest possible
+   * unit,
    * such as cents for US currency.
    * @throws IllegalArgumentException if {@code event} is null.
    * @throws IllegalArgumentException if {@code event} is empty.
@@ -836,7 +843,8 @@ public class LocalyticsSession {
 
       mSessionHandler.sendMessage(mSessionHandler.obtainMessage(SessionHandler.MESSAGE_TAG_EVENT,
           new Triple<String, Map<String, String>, Long>(eventString,
-              new TreeMap<String, String>(remappedAttributes), customerValueIncrease)));
+              new TreeMap<String, String>(remappedAttributes), customerValueIncrease)
+      ));
     }
   }
 
@@ -970,9 +978,11 @@ public class LocalyticsSession {
   // }
 
   /**
-   * Sorts an int value into a set of regular intervals as defined by the minimum, maximum, and step
+   * Sorts an int value into a set of regular intervals as defined by the minimum, maximum, and
+   * step
    * size. Both the min and max
-   * values are inclusive, and in the instance where (max - min + 1) is not evenly divisible by step
+   * values are inclusive, and in the instance where (max - min + 1) is not evenly divisible by
+   * step
    * size, the method guarantees
    * only the minimum and the step size to be accurate to specification, with the new maximum will
    * be moved to the next regular
@@ -1016,7 +1026,8 @@ public class LocalyticsSession {
    * representing the new expected value.
    * The array must be sorted in ascending order, with the first element representing the inclusive
    * lower bound and the last
-   * element representing the exclusive upper bound. For instance, the array [0,1,3,10] will provide
+   * element representing the exclusive upper bound. For instance, the array [0,1,3,10] will
+   * provide
    * the following buckets: less
    * than 0, 0, 1-2, 3-9, 10 or greater.
    *
@@ -1122,7 +1133,8 @@ public class LocalyticsSession {
     /**
      * Handler message to open a session.
      * <p>
-     * {@link Message#obj} is either null or a {@code Map<String, String>} containing attributes for
+     * {@link Message#obj} is either null or a {@code Map<String, String>} containing attributes
+     * for
      * the open.
      */
     public static final int MESSAGE_OPEN = 1;
@@ -1130,7 +1142,8 @@ public class LocalyticsSession {
     /**
      * Handler message to close a session.
      * <p>
-     * {@link Message#obj} is either null or a {@code Map<String, String>} containing attributes for
+     * {@link Message#obj} is either null or a {@code Map<String, String>} containing attributes
+     * for
      * the close.
      */
     public static final int MESSAGE_CLOSE = 2;
@@ -1145,7 +1158,8 @@ public class LocalyticsSession {
     /**
      * Handler message to upload all data collected so far
      * <p>
-     * {@link Message#obj} is a {@code Runnable} to execute when upload is complete. The thread that
+     * {@link Message#obj} is a {@code Runnable} to execute when upload is complete. The thread
+     * that
      * this runnable will
      * executed on is undefined.
      */
@@ -1603,8 +1617,8 @@ public class LocalyticsSession {
           // perform first-time initialization of API key
           if (Constants.IS_LOGGABLE) {
             Log.v(Constants.LOG_TAG,
-                String.format("Performing first-time initialization for new API key %s",
-                    mApiKey)); //$NON-NLS-1$
+                String.format("Performing first-time initialization for new API key %s", mApiKey)
+            ); //$NON-NLS-1$
           }
 
           final ContentValues values = new ContentValues();
@@ -1655,7 +1669,8 @@ public class LocalyticsSession {
      * #tagScreen(String)} will be recorded until
      * {@link #close(Map)} is called.
      * <p>
-     * If a session is not already open when an opt-out request is made, a new session is opened and
+     * If a session is not already open when an opt-out request is made, a new session is opened
+     * and
      * closed by this method in
      * order to cause the opt-out event to be uploaded.
      *
@@ -1755,8 +1770,9 @@ public class LocalyticsSession {
         eventsCursor =
             provider.query(EventsDbColumns.TABLE_NAME, PROJECTION_GET_OPEN_SESSION_ID_EVENT_COUNT,
                 SELECTION_GET_OPEN_SESSION_ID_EVENT_COUNT, new String[] {
-                sessionId.toString(), CLOSE_EVENT
-            }, null);
+                    sessionId.toString(), CLOSE_EVENT
+                }, null
+            );
 
         if (eventsCursor.moveToFirst()) {
           if (0 == eventsCursor.getInt(0)) {
@@ -1783,7 +1799,7 @@ public class LocalyticsSession {
      */
     private static final String SELECTION_OPEN =
         String.format("%s = ? AND %s >= ?", EventsDbColumns.EVENT_NAME, EventsDbColumns.WALL_TIME);
-        //$NON-NLS-1$
+    //$NON-NLS-1$
 
     /**
      * Projection for {@link #open(boolean, Map)}.
@@ -1890,7 +1906,8 @@ public class LocalyticsSession {
                   new String[] {
                       CLOSE_EVENT,
                       Long.toString(System.currentTimeMillis() - Constants.SESSION_EXPIRATION)
-                  }, EVENTS_SORT_ORDER);
+                  }, EVENTS_SORT_ORDER
+              );
           blob_eventsCursor =
               mProvider.query(UploadBlobEventsDbColumns.TABLE_NAME, PROJECTION_OPEN_BLOB_EVENTS,
                   null, null, UPLOAD_BLOBS_EVENTS_SORT_ORDER);
@@ -1994,8 +2011,8 @@ public class LocalyticsSession {
                       sessionIdSelection, null);
                   while (eventHistory.moveToNext()) {
                     blobsToDelete.add(Long.valueOf(eventHistory.getLong(
-                        eventHistory.getColumnIndexOrThrow(
-                            EventHistoryDbColumns.PROCESSED_IN_BLOB))));
+                        eventHistory.getColumnIndexOrThrow(EventHistoryDbColumns.PROCESSED_IN_BLOB)
+                    )));
                   }
                 } finally {
                   if (null != eventHistory) {
@@ -2499,7 +2516,8 @@ public class LocalyticsSession {
         String.format("%s DESC", EventHistoryDbColumns._ID); //$NON-NLS-1$
 
     /**
-     * Tag a screen in a session. While this method shouldn't be called unless {@link #open(boolean,
+     * Tag a screen in a session. While this method shouldn't be called unless {@link
+     * #open(boolean,
      * Map)} is called first,
      * this method will simply do nothing if {@link #open(boolean, Map)} hasn't been called.
      * <p>
@@ -2509,7 +2527,8 @@ public class LocalyticsSession {
      * <p>
      * This method must only be called after {@link #init()} is called.
      * <p>
-     * Note: This method is a private implementation detail. It is only made public for unit testing
+     * Note: This method is a private implementation detail. It is only made public for unit
+     * testing
      * purposes. The public
      * interface is to send {@link #MESSAGE_TAG_SCREEN} to the Handler.
      *
@@ -2533,8 +2552,9 @@ public class LocalyticsSession {
       try {
         cursor = mProvider.query(EventHistoryDbColumns.TABLE_NAME, PROJECTION_TAG_SCREEN,
             SELECTION_TAG_SCREEN, new String[] {
-            Integer.toString(EventHistoryDbColumns.TYPE_SCREEN), openSessionId.toString()
-        }, SORT_ORDER_TAG_SCREEN);
+                Integer.toString(EventHistoryDbColumns.TYPE_SCREEN), openSessionId.toString()
+            }, SORT_ORDER_TAG_SCREEN
+        );
 
         if (cursor.moveToFirst()) {
           if (screen.equals(
@@ -2588,8 +2608,9 @@ public class LocalyticsSession {
           if (null == value) {
             mProvider.remove(IdentifiersDbColumns.TABLE_NAME,
                 String.format("%s = ?", IdentifiersDbColumns.KEY), new String[] {
-                cursor.getString(cursor.getColumnIndexOrThrow(IdentifiersDbColumns.KEY))
-            }); //$NON-NLS-1$
+                    cursor.getString(cursor.getColumnIndexOrThrow(IdentifiersDbColumns.KEY))
+                }
+            ); //$NON-NLS-1$
           } else {
             final ContentValues values = new ContentValues();
             values.put(IdentifiersDbColumns.KEY, key);
@@ -2819,7 +2840,8 @@ public class LocalyticsSession {
     /**
      * Initiate upload of all session data currently stored on disk.
      * <p>
-     * This method must only be called after {@link #init()} is called. The session does not need to
+     * This method must only be called after {@link #init()} is called. The session does not need
+     * to
      * be open for an upload to
      * occur.
      * <p>
@@ -2827,7 +2849,8 @@ public class LocalyticsSession {
      * unit testing purposes. The
      * public interface is to send {@link #MESSAGE_UPLOAD} to the Handler.
      *
-     * @param callback An optional callback to perform once the upload completes. May be null for no
+     * @param callback An optional callback to perform once the upload completes. May be null for
+     * no
      * callback.
      * @see #MESSAGE_UPLOAD
      */
@@ -2945,7 +2968,8 @@ public class LocalyticsSession {
     /**
      * Handler message to upload all data collected so far
      * <p>
-     * {@link Message#obj} is a {@code Runnable} to execute when upload is complete. The thread that
+     * {@link Message#obj} is a {@code Runnable} to execute when upload is complete. The thread
+     * that
      * this runnable will
      * executed on is undefined.
      */
@@ -2957,7 +2981,8 @@ public class LocalyticsSession {
      * forwards the request back to {@link LocalyticsSession#mSessionHandler} with {@link
      * SessionHandler#MESSAGE_UPLOAD}.
      * <p>
-     * {@link Message#obj} is a {@code Runnable} to execute when upload is complete. The thread that
+     * {@link Message#obj} is a {@code Runnable} to execute when upload is complete. The thread
+     * that
      * this runnable will
      * executed on is undefined.
      */
@@ -3044,8 +3069,9 @@ public class LocalyticsSession {
                 }
 
                 if (uploadSessions(Constants.USE_HTTPS ? ANALYTICS_URL_HTTPS
-                    : String.format(ANALYTICS_URL_HTTP, apiKey), builder.toString(), mInstallId,
-                    apiKey)) {
+                        : String.format(ANALYTICS_URL_HTTP, apiKey), builder.toString(), mInstallId,
+                    apiKey
+                )) {
                   mProvider.runBatchTransaction(new Runnable() {
                     public void run() {
                       deleteBlobsAndSessions(mProvider);
@@ -3101,7 +3127,7 @@ public class LocalyticsSession {
      * @param body upload body as a string. This should be a plain old string. Cannot be null.
      * @return True on success, false on failure.
      */
-		/* package */
+    /* package */
     static boolean uploadSessions(final String url, final String body, final String installId,
         final String apiKey) {
       if (Constants.IS_PARAMETER_CHECKING_ENABLED) {
@@ -3340,7 +3366,8 @@ public class LocalyticsSession {
             blobHeader.put(JsonObjects.BlobHeader.KEY_UNIQUE_ID, cursor.getString(uuidColumn));
             blobHeader.put(JsonObjects.BlobHeader.KEY_ATTRIBUTES,
                 getAttributesFromSession(provider, apiKey,
-                    getSessionIdForBlobId(provider, cursor.getLong(idColumn))));
+                    getSessionIdForBlobId(provider, cursor.getLong(idColumn)))
+            );
 
             final JSONObject identifiers = getIdentifiers(provider);
             if (null != identifiers) {
@@ -3360,7 +3387,8 @@ public class LocalyticsSession {
                   String.format("%s = ?", UploadBlobEventsDbColumns.UPLOAD_BLOBS_KEY_REF),
                   new String[] //$NON-NLS-1$
                       { Long.toString(cursor.getLong(idColumn)) },
-                  UploadBlobEventsDbColumns.EVENTS_KEY_REF);
+                  UploadBlobEventsDbColumns.EVENTS_KEY_REF
+              );
 
               final int eventIdColumn =
                   blobEvents.getColumnIndexOrThrow(UploadBlobEventsDbColumns.EVENTS_KEY_REF);
@@ -3456,7 +3484,8 @@ public class LocalyticsSession {
                 new String[] //$NON-NLS-1$
                     {
                         Long.toString(eventId), CLOSE_EVENT
-                    }, null);
+                    }, null
+            );
 
             if (eventCursor.moveToFirst()) {
               final long sessionId = eventCursor.getLong(
@@ -3465,7 +3494,8 @@ public class LocalyticsSession {
               provider.remove(EventHistoryDbColumns.TABLE_NAME,
                   String.format("%s = ?", EventHistoryDbColumns.SESSION_KEY_REF),
                   new String[] //$NON-NLS-1$
-                      { Long.toString(sessionId) });
+                      { Long.toString(sessionId) }
+              );
 
               sessionsToDelete.add(Long.valueOf(eventCursor.getLong(
                   eventCursor.getColumnIndexOrThrow(EventsDbColumns.SESSION_KEY_REF))));
@@ -3523,7 +3553,8 @@ public class LocalyticsSession {
         if (cursor.moveToFirst()) {
           return Math.round(
               (float) cursor.getLong(cursor.getColumnIndexOrThrow(ApiKeysDbColumns.CREATED_TIME))
-                  / DateUtils.SECOND_IN_MILLIS);
+                  / DateUtils.SECOND_IN_MILLIS
+          );
         }
 
                 /*
@@ -3585,17 +3616,20 @@ public class LocalyticsSession {
           result.put(JsonObjects.BlobHeader.Attributes.KEY_LOCALYTICS_API_KEY, apiKey);
           result.put(JsonObjects.BlobHeader.Attributes.KEY_LOCALYTICS_CLIENT_LIBRARY_VERSION,
               cursor.getString(
-                  cursor.getColumnIndexOrThrow(SessionsDbColumns.LOCALYTICS_LIBRARY_VERSION)));
+                  cursor.getColumnIndexOrThrow(SessionsDbColumns.LOCALYTICS_LIBRARY_VERSION))
+          );
           result.put(JsonObjects.BlobHeader.Attributes.KEY_LOCALYTICS_DATA_TYPE,
               JsonObjects.BlobHeader.Attributes.VALUE_DATA_TYPE);
           result.put(JsonObjects.BlobHeader.Attributes.KEY_CURRENT_TELEPHONY_ID,
               cursor.isNull(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_TELEPHONY_ID))
                   ? JSONObject.NULL : cursor.getString(
-                  cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_TELEPHONY_ID)));
+                  cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_TELEPHONY_ID))
+          );
           result.put(JsonObjects.BlobHeader.Attributes.KEY_CURRENT_ANDROID_ID,
               cursor.isNull(cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_ANDROID_ID))
                   ? JSONObject.NULL : cursor.getString(
-                  cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_ANDROID_ID)));
+                  cursor.getColumnIndexOrThrow(SessionsDbColumns.DEVICE_ANDROID_ID))
+          );
 
           // This would only be null after an upgrade from an earlier version of the Localytics library
           final String installationID = cursor.getString(
@@ -3722,7 +3756,8 @@ public class LocalyticsSession {
       try {
         cursor = provider.query(EventsDbColumns.TABLE_NAME, null,
             String.format("%s = ?", EventsDbColumns._ID), new String[] //$NON-NLS-1$
-            { Long.toString(eventId) }, EventsDbColumns._ID);
+                { Long.toString(eventId) }, EventsDbColumns._ID
+        );
 
         if (cursor.moveToFirst()) {
           final String eventName =
@@ -3736,7 +3771,8 @@ public class LocalyticsSession {
                 JsonObjects.SessionOpen.VALUE_DATA_TYPE);
             result.put(JsonObjects.SessionOpen.KEY_WALL_TIME_SECONDS, Math.round(
                 (double) cursor.getLong(cursor.getColumnIndex(EventsDbColumns.WALL_TIME))
-                    / DateUtils.SECOND_IN_MILLIS));
+                    / DateUtils.SECOND_IN_MILLIS
+            ));
             result.put(JsonObjects.SessionOpen.KEY_EVENT_UUID, sessionUuid);
 
                         /*
@@ -3813,7 +3849,8 @@ public class LocalyticsSession {
                 Math.round((double) sessionStartTime / DateUtils.SECOND_IN_MILLIS));
             result.put(JsonObjects.SessionClose.KEY_WALL_TIME_SECONDS, Math.round(
                 (double) cursor.getLong(cursor.getColumnIndex(EventsDbColumns.WALL_TIME))
-                    / DateUtils.SECOND_IN_MILLIS));
+                    / DateUtils.SECOND_IN_MILLIS
+            ));
 
                         /*
                          * length is a special case, as it depends on the start time embedded in the session table
@@ -3823,14 +3860,16 @@ public class LocalyticsSession {
               sessionCursor = provider.query(SessionsDbColumns.TABLE_NAME,
                   new String[] { SessionsDbColumns.SESSION_START_WALL_TIME },
                   String.format("%s = ?", SessionsDbColumns._ID), new String[] {
-                  Long.toString(
-                      cursor.getLong(cursor.getColumnIndexOrThrow(EventsDbColumns.SESSION_KEY_REF)))
-              }, null); //$NON-NLS-1$
+                      Long.toString(cursor.getLong(
+                          cursor.getColumnIndexOrThrow(EventsDbColumns.SESSION_KEY_REF)))
+                  }, null
+              ); //$NON-NLS-1$
 
               if (sessionCursor.moveToFirst()) {
                 result.put(JsonObjects.SessionClose.KEY_SESSION_LENGTH_SECONDS, Math.round(
                     (double) cursor.getLong(cursor.getColumnIndex(EventsDbColumns.WALL_TIME))
-                        / DateUtils.SECOND_IN_MILLIS) - Math.round((double) sessionCursor.getLong(
+                        / DateUtils.SECOND_IN_MILLIS
+                ) - Math.round((double) sessionCursor.getLong(
                     sessionCursor.getColumnIndexOrThrow(SessionsDbColumns.SESSION_START_WALL_TIME))
                     / DateUtils.SECOND_IN_MILLIS));
               } else {
@@ -3853,8 +3892,9 @@ public class LocalyticsSession {
                   new String[] { EventHistoryDbColumns.NAME },
                   String.format("%s = ? AND %s = ?", EventHistoryDbColumns.SESSION_KEY_REF,
                       EventHistoryDbColumns.TYPE), new String[] {
-                  Long.toString(sessionId), Integer.toString(EventHistoryDbColumns.TYPE_SCREEN)
-              }, EventHistoryDbColumns._ID); //$NON-NLS-1$
+                      Long.toString(sessionId), Integer.toString(EventHistoryDbColumns.TYPE_SCREEN)
+                  }, EventHistoryDbColumns._ID
+              ); //$NON-NLS-1$
 
               final JSONArray screens = new JSONArray();
               while (eventHistoryCursor.moveToNext()) {
@@ -3935,11 +3975,12 @@ public class LocalyticsSession {
             result.put(JsonObjects.OptEvent.KEY_DATA_TYPE, JsonObjects.OptEvent.VALUE_DATA_TYPE);
             result.put(JsonObjects.OptEvent.KEY_API_KEY, apiKey);
             result.put(JsonObjects.OptEvent.KEY_OPT,
-                OPT_OUT_EVENT.equals(eventName) ? Boolean.TRUE.toString()
-                    : Boolean.FALSE.toString());
+                OPT_OUT_EVENT.equals(eventName) ? Boolean.TRUE.toString() : Boolean.FALSE.toString()
+            );
             result.put(JsonObjects.OptEvent.KEY_WALL_TIME_SECONDS, Math.round(
                 (double) cursor.getLong(cursor.getColumnIndex(EventsDbColumns.WALL_TIME))
-                    / DateUtils.SECOND_IN_MILLIS));
+                    / DateUtils.SECOND_IN_MILLIS
+            ));
           } else if (FLOW_EVENT.equals(eventName)) {
             result.put(JsonObjects.EventFlow.KEY_DATA_TYPE, JsonObjects.EventFlow.VALUE_DATA_TYPE);
             result.put(JsonObjects.EventFlow.KEY_EVENT_UUID,
@@ -3957,12 +3998,13 @@ public class LocalyticsSession {
             Cursor eventHistoryCursor = null;
             try {
               eventHistoryCursor = provider.query(EventHistoryDbColumns.TABLE_NAME, new String[] {
-                  EventHistoryDbColumns.TYPE, EventHistoryDbColumns.PROCESSED_IN_BLOB,
-                  EventHistoryDbColumns.NAME
-              }, String.format("%s = ? AND %s <= ?", EventHistoryDbColumns.SESSION_KEY_REF,
-                  EventHistoryDbColumns.PROCESSED_IN_BLOB),
+                      EventHistoryDbColumns.TYPE, EventHistoryDbColumns.PROCESSED_IN_BLOB,
+                      EventHistoryDbColumns.NAME
+                  }, String.format("%s = ? AND %s <= ?", EventHistoryDbColumns.SESSION_KEY_REF,
+                      EventHistoryDbColumns.PROCESSED_IN_BLOB),
                   new String[] { Long.toString(sessionId), Long.toString(blobId) },
-                  EventHistoryDbColumns._ID); //$NON-NLS-1$
+                  EventHistoryDbColumns._ID
+              ); //$NON-NLS-1$
 
               final JSONArray newScreens = new JSONArray();
               final JSONArray oldScreens = new JSONArray();
@@ -4002,7 +4044,8 @@ public class LocalyticsSession {
                 JsonObjects.SessionEvent.VALUE_DATA_TYPE);
             result.put(JsonObjects.SessionEvent.KEY_WALL_TIME_SECONDS, Math.round(
                 (double) cursor.getLong(cursor.getColumnIndex(EventsDbColumns.WALL_TIME))
-                    / DateUtils.SECOND_IN_MILLIS));
+                    / DateUtils.SECOND_IN_MILLIS
+            ));
             result.put(JsonObjects.SessionEvent.KEY_EVENT_UUID,
                 cursor.getString(cursor.getColumnIndexOrThrow(EventsDbColumns.UUID)));
             result.put(JsonObjects.SessionEvent.KEY_SESSION_UUID, sessionUuid);
@@ -4306,7 +4349,8 @@ public class LocalyticsSession {
               new String[] { UploadBlobEventsDbColumns.EVENTS_KEY_REF },
               String.format("%s = ?", UploadBlobEventsDbColumns.UPLOAD_BLOBS_KEY_REF),
               new String[] //$NON-NLS-1$
-                  { Long.toString(blobId) }, null);
+                  { Long.toString(blobId) }, null
+          );
 
           if (cursor.moveToFirst()) {
             eventId = cursor.getLong(
@@ -4332,7 +4376,8 @@ public class LocalyticsSession {
           cursor = provider.query(EventsDbColumns.TABLE_NAME,
               new String[] { EventsDbColumns.SESSION_KEY_REF },
               String.format("%s = ?", EventsDbColumns._ID), new String[] //$NON-NLS-1$
-              { Long.toString(eventId) }, null);
+                  { Long.toString(eventId) }, null
+          );
 
           if (cursor.moveToFirst()) {
             sessionId =
