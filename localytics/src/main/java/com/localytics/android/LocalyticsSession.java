@@ -1617,8 +1617,8 @@ public class LocalyticsSession {
           // perform first-time initialization of API key
           if (Constants.IS_LOGGABLE) {
             Log.v(Constants.LOG_TAG,
-                String.format("Performing first-time initialization for new API key %s", mApiKey)
-            ); //$NON-NLS-1$
+                String.format("Performing first-time initialization for new API key %s",
+                    mApiKey)); //$NON-NLS-1$
           }
 
           final ContentValues values = new ContentValues();
@@ -2011,8 +2011,8 @@ public class LocalyticsSession {
                       sessionIdSelection, null);
                   while (eventHistory.moveToNext()) {
                     blobsToDelete.add(Long.valueOf(eventHistory.getLong(
-                        eventHistory.getColumnIndexOrThrow(EventHistoryDbColumns.PROCESSED_IN_BLOB)
-                    )));
+                        eventHistory.getColumnIndexOrThrow(
+                            EventHistoryDbColumns.PROCESSED_IN_BLOB))));
                   }
                 } finally {
                   if (null != eventHistory) {
@@ -3975,8 +3975,8 @@ public class LocalyticsSession {
             result.put(JsonObjects.OptEvent.KEY_DATA_TYPE, JsonObjects.OptEvent.VALUE_DATA_TYPE);
             result.put(JsonObjects.OptEvent.KEY_API_KEY, apiKey);
             result.put(JsonObjects.OptEvent.KEY_OPT,
-                OPT_OUT_EVENT.equals(eventName) ? Boolean.TRUE.toString() : Boolean.FALSE.toString()
-            );
+                OPT_OUT_EVENT.equals(eventName) ? Boolean.TRUE.toString()
+                    : Boolean.FALSE.toString());
             result.put(JsonObjects.OptEvent.KEY_WALL_TIME_SECONDS, Math.round(
                 (double) cursor.getLong(cursor.getColumnIndex(EventsDbColumns.WALL_TIME))
                     / DateUtils.SECOND_IN_MILLIS

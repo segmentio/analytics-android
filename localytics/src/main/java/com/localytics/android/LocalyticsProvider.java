@@ -643,8 +643,8 @@ import java.util.UUID;
 
       if (Constants.IS_LOGGABLE) {
         Log.v(Constants.LOG_TAG, String.format("SQLite library version is: %s",
-            DatabaseUtils.stringForQuery(db, "select sqlite_version()", null)
-        )); //$NON-NLS-1$//$NON-NLS-2$
+            DatabaseUtils.stringForQuery(db, "select sqlite_version()",
+                null))); //$NON-NLS-1$//$NON-NLS-2$
       }
 
       if (!db.isReadOnly()) {
