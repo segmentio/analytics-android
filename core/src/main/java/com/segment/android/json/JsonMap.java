@@ -42,9 +42,8 @@ import org.json.JSONObject;
  * default toString implementation. }
  * <p/>
  * Only String, Integer, Double, Long and Boolean types are supported. Short, Byte, Float and char
- * are deserialized to one of the above types. Short -> Integer Byte -> Integer Float -> Double
- * Char
- * -> String
+ * are deserialized to one of the above types. Short -> Integer, Byte -> Integer, Float -> Double,
+ * Char -> String
  */
 public class JsonMap implements Map<String, Object> {
   final Map<String, Object> delegate;
