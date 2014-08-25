@@ -179,8 +179,8 @@ public class IntegrationManager {
   public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
     if (!initialized) {
       activityLifecyclePayloadQueue.add(
-          new ActivityLifecyclePayload(ActivityLifecycleEvent.CREATED, activity,
-              savedInstanceState));
+          new ActivityLifecyclePayload(ActivityLifecycleEvent.CREATED, activity, savedInstanceState)
+      );
       return;
     }
     for (AbstractIntegration integration : enabledIntegrations.values()) {
@@ -313,6 +313,15 @@ public class IntegrationManager {
       if (isBundledIntegrationEnabledForPayload(screen, integration)) {
         integration.screen(screen);
       }
+    }
+  }
+
+  public void flush() {
+    if (!initialized) {
+      return;
+    }
+    for (AbstractIntegration integration : enabledIntegrations.values()) {
+      integration.flush();
     }
   }
 

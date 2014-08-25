@@ -380,7 +380,7 @@ public class Segment {
    */
   public void flush() {
     dispatcher.dispatchFlush();
-    // todo: flush integration manager
+    integrationManager.flush();
   }
 
   void submit(BasePayload payload) {
