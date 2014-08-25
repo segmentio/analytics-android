@@ -24,10 +24,7 @@
 
 package com.segment.android.internal;
 
-import android.Manifest;
 import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Handler;
 import com.segment.android.internal.payload.BasePayload;
 import com.segment.android.internal.queue.PayloadConverter;
@@ -40,9 +37,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static android.content.Context.CONNECTIVITY_SERVICE;
-import static com.segment.android.internal.Utils.getSystemService;
-import static com.segment.android.internal.Utils.hasPermission;
+import static com.segment.android.internal.Utils.isConnected;
 
 public class Dispatcher {
   private static final String TASK_QUEUE_FILE_NAME = "payload_task_queue";
@@ -113,7 +108,7 @@ public class Dispatcher {
       Logger.d("No events in queue, skipping flush.");
       return; // no-op
     }
-    if (!isConnected()) {
+    if (!isConnected(context)) {
       Logger.d("Not connected to network, skipping flush.");
       return;
     }
@@ -138,18 +133,5 @@ public class Dispatcher {
       }
       Logger.d("Re-enqueued %s payloads.", payloads.size());
     }
-  }
-
-  /**
-   * Returns true if the phone is connected to a network, or if we don't have the permission to
-   * find out. False otherwise.
-   */
-  boolean isConnected() {
-    if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
-      return true; // assume we have the connection and try to upload
-    }
-    ConnectivityManager cm = getSystemService(context, CONNECTIVITY_SERVICE);
-    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-    return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
   }
 }

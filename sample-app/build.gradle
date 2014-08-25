@@ -7,7 +7,6 @@ dependencies {
   //   transitive = true
   // }
   compile project(':core')
-  compile rootProject.ext.libraries.amplitude
 }
 
 android {

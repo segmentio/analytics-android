@@ -30,6 +30,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Looper;
 import android.telephony.TelephonyManager;
@@ -37,6 +39,7 @@ import android.text.TextUtils;
 import java.util.Collection;
 import java.util.UUID;
 
+import static android.content.Context.CONNECTIVITY_SERVICE;
 import static android.content.Context.MODE_PRIVATE;
 import static android.provider.Settings.System.AIRPLANE_MODE_ON;
 
@@ -187,5 +190,18 @@ public final class Utils {
   /** Returns {@code def} if {@code value} is {@code null}, {@code value} otherwise. */
   public static <T> T nullOrDefault(T value, T def) {
     return value == null ? def : value;
+  }
+
+  /**
+   * Returns true if the phone is connected to a network, or if we don't have the permission to
+   * find out. False otherwise.
+   */
+  public static boolean isConnected(Context context) {
+    if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
+      return true; // assume we have the connection and try to upload
+    }
+    ConnectivityManager cm = getSystemService(context, CONNECTIVITY_SERVICE);
+    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+    return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
   }
 }

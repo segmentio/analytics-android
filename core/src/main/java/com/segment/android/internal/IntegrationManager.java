@@ -37,6 +37,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.segment.android.internal.Utils.isConnected;
+
 /**
  * Manages bundled integrations. This class will maintain it's own queue for events to account for
  * the latency between receiving the first event, fetching remote settings and enabling the
@@ -88,13 +90,16 @@ public class IntegrationManager {
     // Look up all the integrations available on the device. This is done early so that we can
     // disable sending to these integrations from the server and properly fill the payloads.
     for (Integration integration : Integration.values()) {
+      Logger.d("Checking for integration %s", integration.key());
       try {
         Class.forName(integration.className());
         bundledIntegrations.add(integration);
         serverIntegrations.put(integration.key(), false);
+        Logger.d("Loaded integration %s", integration.key());
       } catch (ClassNotFoundException e) {
-        Logger.d("%s not bundled", integration.key());
+        Logger.d("Integration %s not bundled", integration.key());
       }
+      Logger.d("debug");
     }
     serverIntegrations =
         Collections.unmodifiableMap(serverIntegrations); // don't allow any more modifications
@@ -108,13 +113,15 @@ public class IntegrationManager {
 
   void performFetch() {
     try {
-      final ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
-      Segment.HANDLER.post(new Runnable() {
-        @Override public void run() {
-          // todo : does this need to be on the main thread?
-          initialize(projectSettings);
-        }
-      });
+      if (isConnected(context)) {
+        final ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
+        Segment.HANDLER.post(new Runnable() {
+          @Override public void run() {
+            // todo : does this need to be on the main thread?
+            initialize(projectSettings);
+          }
+        });
+      }
     } catch (IOException e) {
       Logger.e(e, "Failed to fetch settings");
       performFetch(); // todo: terminate retry
@@ -171,6 +178,7 @@ public class IntegrationManager {
     try {
       abstractIntegration.initialize(context, settings);
       enabledIntegrations.put(integration, abstractIntegration);
+      Logger.d("Initialized integration %s", integration.key());
     } catch (InvalidConfigurationException e) {
       Logger.e(e, "Could not initialize integration %s", integration.key());
     }
@@ -179,8 +187,8 @@ public class IntegrationManager {
   public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
     if (!initialized) {
       activityLifecyclePayloadQueue.add(
-          new ActivityLifecyclePayload(ActivityLifecycleEvent.CREATED, activity, savedInstanceState)
-      );
+          new ActivityLifecyclePayload(ActivityLifecycleEvent.CREATED, activity,
+              savedInstanceState));
       return;
     }
     for (AbstractIntegration integration : enabledIntegrations.values()) {
@@ -326,7 +334,6 @@ public class IntegrationManager {
   }
 
   void replay() {
-    Logger.d("Replaying %s activity lifecycle events.", activityLifecyclePayloadQueue.size());
     for (ActivityLifecyclePayload payload : activityLifecyclePayloadQueue) {
       switch (payload.type) {
         case CREATED:
@@ -368,10 +375,10 @@ public class IntegrationManager {
           throw new IllegalArgumentException("Unknown payload type!" + payload.type);
       }
     }
+    Logger.d("Replayed %s activity lifecycle events.", activityLifecyclePayloadQueue.size());
     activityLifecyclePayloadQueue.clear();
     activityLifecyclePayloadQueue = null;
 
-    Logger.d("Replaying %s analytics events.", payloadQueue.size());
     for (BasePayload payload : payloadQueue) {
       switch (payload.type()) {
         case alias:
@@ -396,6 +403,7 @@ public class IntegrationManager {
           throw new IllegalArgumentException("");
       }
     }
+    Logger.d("Replayed %s analytics events.", payloadQueue.size());
     payloadQueue.clear();
     payloadQueue = null;
   }
