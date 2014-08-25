@@ -106,18 +106,18 @@ public class BasePayload extends JsonMap {
     // Top level integrations are used by servers, this is a combination of disabled bundled
     // integrations, and anything the user may have passed in
     HashMap<String, Boolean> serverIntegrations = new LinkedHashMap<String, Boolean>();
-    serverIntegrations.putAll(options.getIntegrations());
+    serverIntegrations.putAll(options.integrations());
     serverIntegrations.putAll(bundledIntegrations);
     put(INTEGRATIONS_KEY, serverIntegrations);
     // Context level integrations are used by IntegrationManger, this is simply what the user may
     // have passed in, used to disable integrations for specific events. Could be a bundled one,
     // which we'll skip locally, or a server one, which we'll pass on to the server
-    context.putIntegrations(options.getIntegrations());
+    context.putIntegrations(options.integrations());
 
     put(CONTEXT_KEY, context);
     put(USER_ID_KEY, userId);
-    put(TIMESTAMP_KEY, options.getTimestamp() == null ? ISO8601Time.now().toString()
-        : ISO8601Time.from(options.getTimestamp()).toString());
+    put(TIMESTAMP_KEY, options.timestamp() == null ? ISO8601Time.now().toString()
+        : ISO8601Time.from(options.timestamp()).toString());
   }
 
   public BasePayload(String json) {

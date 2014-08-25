@@ -75,7 +75,7 @@ public class Options {
   }
 
   // todo: hide from public API
-  public Map<String, Boolean> getIntegrations() {
+  public Map<String, Boolean> integrations() {
     return Collections.unmodifiableMap(integrations);
   }
 
@@ -92,7 +92,7 @@ public class Options {
     return this;
   }
 
-  public Calendar getTimestamp() {
+  public Calendar timestamp() {
     return timestamp;
   }
 }
