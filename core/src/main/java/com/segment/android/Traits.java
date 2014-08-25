@@ -170,12 +170,12 @@ public class Traits extends JsonMap {
     return putValue(WEBSITE_KEY, website);
   }
 
-  public Traits putAge(short age) {
+  public Traits putAge(int age) {
     return putValue(AGE_KEY, age);
   }
 
-  public Short age() {
-    return getShort(AGE_KEY);
+  public Integer age() {
+    return getInteger(AGE_KEY);
   }
 
   public Traits putBirthday(Date birthday) {

@@ -63,7 +63,7 @@ public class FlurryIntegration extends AbstractIntegration<Void> {
     super.identify(identify);
     Traits traits = identify.traits();
     FlurryAgent.setUserId(identify.userId());
-    Short age = traits.age();
+    Integer age = traits.age();
     if (age != null) {
       FlurryAgent.setAge(age);
     }

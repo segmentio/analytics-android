@@ -327,14 +327,11 @@ public class AnalyticsContext extends JsonMap {
     putScreen(context);
     // todo: groupId
     put(USER_AGENT_KEY, System.getProperty("http.agent"));
+    put(TRAITS_KEY, Traits.with(context));
   }
 
   public AnalyticsContext(Map<String, Object> delegate) {
     super(delegate);
-  }
-
-  AnalyticsContext putTraits(Traits traits) {
-    return putValue(TRAITS_KEY, traits);
   }
 
   public AnalyticsContext putIntegrations(Map<String, Boolean> integrations) {
