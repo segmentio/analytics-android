@@ -233,7 +233,7 @@ public class Segment {
       options = new Options();
     }
 
-    Traits.with(application).setId(userId);
+    Traits.with(application).putUserId(userId);
     submit(new IdentifyPayload(Traits.with(application).anonymousId(),
         AnalyticsContext.with(application), Traits.with(application).userId(),
         Traits.with(application), options, integrationManager.bundledIntegrations()));

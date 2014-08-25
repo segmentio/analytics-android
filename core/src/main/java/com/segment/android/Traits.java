@@ -46,8 +46,8 @@ public class Traits extends JsonMap {
   private Traits(Context context) {
     String id = getDeviceId(context);
     // todo: kick off task to get AdvertisingId
-    setId(id);
-    setAnonymousId(id);
+    putUserId(id);
+    putAnonymousId(id);
   }
 
   static Traits singleton = null;
@@ -137,7 +137,7 @@ public class Traits extends JsonMap {
    * Private API, users should call {@link Segment#identify(String, Options)} instead.
    * Note that this is unable to enforce it, users can easily do {@code traits.put(id, 1231);}
    */
-  Traits setId(String id) {
+  Traits putUserId(String id) {
     return putValue(ID_KEY, id);
   }
 
@@ -145,8 +145,7 @@ public class Traits extends JsonMap {
     return getString(ID_KEY);
   }
 
-
-  Traits setAnonymousId(String id) {
+  Traits putAnonymousId(String id) {
     return putValue(ANONYMOUS_ID_KEY, id);
   }
 

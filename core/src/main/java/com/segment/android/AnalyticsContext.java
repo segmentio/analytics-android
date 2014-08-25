@@ -333,7 +333,7 @@ public class AnalyticsContext extends JsonMap {
     super(delegate);
   }
 
-  AnalyticsContext setTraits(Traits traits) {
+  AnalyticsContext putTraits(Traits traits) {
     return putValue(TRAITS_KEY, traits);
   }
 
