@@ -82,24 +82,18 @@ public class SegmentHTTPApi {
         "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP));
     urlConnection.setChunkedStreamingMode(0);
 
-    BatchPayload payload = new BatchPayload(payloads);
-    String json = payload.toString();
-    byte[] bytes = json.getBytes();
-
-    Logger.d("Json: %s", json);
-
     OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-    out.write(bytes);
+    out.write(new BatchPayload(payloads).toString().getBytes());
     out.close();
 
     int responseCode = urlConnection.getResponseCode();
     if (responseCode == HTTP_OK) {
       Logger.d("Response code: %s, message: %s", responseCode, urlConnection.getResponseMessage());
     } else {
-      InputStream in = new BufferedInputStream(urlConnection.getErrorStream());
-      String response = readFully(in);
-      in.close();
-      Logger.d("Response code: %s, response: %s", responseCode, response);
+      throw new IOException("Could not fetch settings. Response code: "
+          + responseCode
+          + ", response message: "
+          + urlConnection.getResponseMessage());
     }
     urlConnection.disconnect();
   }
@@ -117,15 +111,16 @@ public class SegmentHTTPApi {
     if (responseCode == HTTP_OK) {
       in = new BufferedInputStream(urlConnection.getInputStream());
     } else {
-      in = new BufferedInputStream(urlConnection.getErrorStream());
+      throw new IOException("Could not fetch settings. Response code: "
+          + responseCode
+          + ", response message: "
+          + urlConnection.getResponseMessage());
     }
 
     String json = readFully(in);
     in.close();
     urlConnection.disconnect();
-    Logger.d("Response code: %s, json: %s, message: %s", responseCode, json,
-        urlConnection.getResponseMessage());
-    return new ProjectSettings(json); // todo: use reader
+    return new ProjectSettings(json);
   }
 
   private static String readFully(InputStream in) throws IOException {
