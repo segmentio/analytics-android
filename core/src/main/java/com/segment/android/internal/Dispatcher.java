@@ -41,6 +41,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static android.content.Context.CONNECTIVITY_SERVICE;
+import static com.segment.android.internal.Utils.getSystemService;
 import static com.segment.android.internal.Utils.hasPermission;
 
 public class Dispatcher {
@@ -100,22 +101,26 @@ public class Dispatcher {
 
   private void enqueue(BasePayload payload) {
     queue.add(payload);
-
+    Logger.d("Enqueued %s", payload);
     if (queue.size() >= maxQueueSize) {
-      Logger.d("queue size %s > %s; flushing", queue.size(), maxQueueSize);
+      Logger.d("Queue size (%s) > maxQueueSize (%s)", queue.size(), maxQueueSize);
       dispatchFlush();
     }
   }
 
   private void flush() {
-    if (queue.size() <= 0 || !isConnected()) {
+    if (queue.size() <= 0) {
+      Logger.d("No events in queue, skipping flush.");
       return; // no-op
+    }
+    if (!isConnected()) {
+      Logger.d("Not connected to network, skipping flush.");
+      return;
     }
 
     List<BasePayload> payloads = new ArrayList<BasePayload>();
     // This causes us to lose the guarantee that events will be delivered, since we could lose
-    // power while adding them to the list and the events would be lost from the queue.
-    // Another operation
+    // power while adding them to the batch and the events would be lost from disk.
     while (queue.size() > 0) {
       BasePayload payload = queue.peek();
       payload.setSentAt(ISO8601Time.now());
@@ -125,11 +130,13 @@ public class Dispatcher {
 
     try {
       segmentHTTPApi.upload(payloads);
+      Logger.d("Successfully uploaded %s payloads.", payloads.size());
     } catch (IOException e) {
-      Logger.e(e, "Failed to upload payloads");
+      Logger.e(e, "Failed to upload payloads.");
       for (BasePayload payload : payloads) {
-        queue.add(payload); // re-enqueue the payloads
+        queue.add(payload); // re-enqueue the payloads, don't trigger a flush again
       }
+      Logger.d("Re-enqueued %s payloads.", payloads.size());
     }
   }
 
@@ -141,7 +148,7 @@ public class Dispatcher {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       return true; // assume we have the connection and try to upload
     }
-    ConnectivityManager cm = (ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE);
+    ConnectivityManager cm = getSystemService(context, CONNECTIVITY_SERVICE);
     NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
     return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
   }
