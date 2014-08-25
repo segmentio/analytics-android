@@ -26,10 +26,13 @@ import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
 import com.segment.android.json.JsonMap;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -50,6 +53,26 @@ public class IntegrationManager {
   // A set of integrations that are available and have been enabled for this project.
   private final Map<Integration, AbstractIntegration> enabledIntegrations =
       new LinkedHashMap<Integration, AbstractIntegration>();
+  private Queue<BasePayload> payloadQueue = new ArrayDeque<BasePayload>();
+  private Queue<ActivityLifecyclePayload> activityLifecyclePayloadQueue =
+      new ArrayDeque<ActivityLifecyclePayload>();
+  boolean initialized;
+
+  enum ActivityLifecycleEvent {
+    CREATED, STARTED, RESUMED, PAUSED, STOPPED, SAVE_INSTANCE, DESTROYED
+  }
+
+  static class ActivityLifecyclePayload {
+    final ActivityLifecycleEvent type;
+    final WeakReference<Activity> activityWeakReference;
+    final Bundle bundle;
+
+    ActivityLifecyclePayload(ActivityLifecycleEvent type, Activity activity, Bundle bundle) {
+      this.type = type;
+      this.activityWeakReference = new WeakReference<Activity>(activity);
+      this.bundle = bundle;
+    }
+  }
 
   final Context context;
   final SegmentHTTPApi segmentHTTPApi;
@@ -62,7 +85,6 @@ public class IntegrationManager {
     this.segmentHTTPApi = segmentHTTPApi;
     this.mainThreadHandler = mainThreadHandler;
     this.service = Executors.newSingleThreadExecutor();
-
     // Look up all the integrations available on the device. This is done early so that we can
     // disable sending to these integrations from the server and properly fill the payloads.
     for (Integration integration : Integration.values()) {
@@ -76,7 +98,7 @@ public class IntegrationManager {
     }
     serverIntegrations =
         Collections.unmodifiableMap(serverIntegrations); // don't allow any more modifications
-
+    initialized = false;
     service.submit(new Runnable() {
       @Override public void run() {
         performFetch();
@@ -140,6 +162,8 @@ public class IntegrationManager {
         }
       }
     }
+    initialized = true;
+    replay();
   }
 
   private void enableIntegration(Integration integration, AbstractIntegration abstractIntegration,
@@ -153,42 +177,78 @@ public class IntegrationManager {
   }
 
   public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+    if (!initialized) {
+      activityLifecyclePayloadQueue.add(
+          new ActivityLifecyclePayload(ActivityLifecycleEvent.CREATED, activity,
+              savedInstanceState));
+      return;
+    }
     for (AbstractIntegration integration : enabledIntegrations.values()) {
       integration.onActivityCreated(activity, savedInstanceState);
     }
   }
 
   void onActivityStarted(Activity activity) {
+    if (!initialized) {
+      activityLifecyclePayloadQueue.add(
+          new ActivityLifecyclePayload(ActivityLifecycleEvent.STARTED, activity, null));
+      return;
+    }
     for (AbstractIntegration integration : enabledIntegrations.values()) {
       integration.onActivityStarted(activity);
     }
   }
 
   void onActivityResumed(Activity activity) {
+    if (!initialized) {
+      activityLifecyclePayloadQueue.add(
+          new ActivityLifecyclePayload(ActivityLifecycleEvent.RESUMED, activity, null));
+      return;
+    }
     for (AbstractIntegration integration : enabledIntegrations.values()) {
       integration.onActivityResumed(activity);
     }
   }
 
   void onActivityPaused(Activity activity) {
+    if (!initialized) {
+      activityLifecyclePayloadQueue.add(
+          new ActivityLifecyclePayload(ActivityLifecycleEvent.PAUSED, activity, null));
+      return;
+    }
     for (AbstractIntegration integration : enabledIntegrations.values()) {
       integration.onActivityPaused(activity);
     }
   }
 
   void onActivityStopped(Activity activity) {
+    if (!initialized) {
+      activityLifecyclePayloadQueue.add(
+          new ActivityLifecyclePayload(ActivityLifecycleEvent.STOPPED, activity, null));
+      return;
+    }
     for (AbstractIntegration integration : enabledIntegrations.values()) {
       integration.onActivityStopped(activity);
     }
   }
 
   void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+    if (!initialized) {
+      activityLifecyclePayloadQueue.add(
+          new ActivityLifecyclePayload(ActivityLifecycleEvent.SAVE_INSTANCE, activity, outState));
+      return;
+    }
     for (AbstractIntegration integration : enabledIntegrations.values()) {
       integration.onActivitySaveInstanceState(activity, outState);
     }
   }
 
   void onActivityDestroyed(Activity activity) {
+    if (!initialized) {
+      activityLifecyclePayloadQueue.add(
+          new ActivityLifecyclePayload(ActivityLifecycleEvent.DESTROYED, activity, null));
+      return;
+    }
     for (AbstractIntegration integration : enabledIntegrations.values()) {
       integration.onActivityDestroyed(activity);
     }
@@ -196,6 +256,10 @@ public class IntegrationManager {
 
   // Analytics Actions
   void identify(IdentifyPayload identify) {
+    if (!initialized) {
+      payloadQueue.add(identify);
+      return;
+    }
     for (AbstractIntegration integration : enabledIntegrations.values()) {
       if (isBundledIntegrationEnabledForPayload(identify, integration)) {
         integration.identify(identify);
@@ -204,6 +268,10 @@ public class IntegrationManager {
   }
 
   void group(GroupPayload group) {
+    if (!initialized) {
+      payloadQueue.add(group);
+      return;
+    }
     for (AbstractIntegration integration : enabledIntegrations.values()) {
       if (isBundledIntegrationEnabledForPayload(group, integration)) {
         integration.group(group);
@@ -212,6 +280,10 @@ public class IntegrationManager {
   }
 
   public void track(TrackPayload track) {
+    if (!initialized) {
+      payloadQueue.add(track);
+      return;
+    }
     for (AbstractIntegration integration : enabledIntegrations.values()) {
       if (isBundledIntegrationEnabledForPayload(track, integration)) {
         integration.track(track);
@@ -220,6 +292,10 @@ public class IntegrationManager {
   }
 
   void alias(AliasPayload alias) {
+    if (!initialized) {
+      payloadQueue.add(alias);
+      return;
+    }
     for (AbstractIntegration integration : enabledIntegrations.values()) {
       if (isBundledIntegrationEnabledForPayload(alias, integration)) {
         integration.alias(alias);
@@ -228,12 +304,91 @@ public class IntegrationManager {
   }
 
   void screen(ScreenPayload screen) {
+    if (!initialized) {
+      payloadQueue.add(screen);
+      return;
+    }
     for (AbstractIntegration integration : enabledIntegrations.values()) {
       integration.screen(screen);
       if (isBundledIntegrationEnabledForPayload(screen, integration)) {
         integration.screen(screen);
       }
     }
+  }
+
+  void replay() {
+    Logger.d("Replaying %s activity lifecycle events.", activityLifecyclePayloadQueue.size());
+    for (ActivityLifecyclePayload payload : activityLifecyclePayloadQueue) {
+      switch (payload.type) {
+        case CREATED:
+          if (payload.activityWeakReference.get() != null) {
+            onActivityCreated(payload.activityWeakReference.get(), payload.bundle);
+          }
+          break;
+        case STARTED:
+          if (payload.activityWeakReference.get() != null) {
+            onActivityStarted(payload.activityWeakReference.get());
+          }
+          break;
+        case RESUMED:
+          if (payload.activityWeakReference.get() != null) {
+            onActivityResumed(payload.activityWeakReference.get());
+          }
+          break;
+        case PAUSED:
+          if (payload.activityWeakReference.get() != null) {
+            onActivityPaused(payload.activityWeakReference.get());
+          }
+          break;
+        case STOPPED:
+          if (payload.activityWeakReference.get() != null) {
+            onActivityStopped(payload.activityWeakReference.get());
+          }
+          break;
+        case SAVE_INSTANCE:
+          if (payload.activityWeakReference.get() != null) {
+            onActivitySaveInstanceState(payload.activityWeakReference.get(), payload.bundle);
+          }
+          break;
+        case DESTROYED:
+          if (payload.activityWeakReference.get() != null) {
+            onActivityDestroyed(payload.activityWeakReference.get());
+          }
+          break;
+        default:
+          throw new IllegalArgumentException("Unknown payload type!" + payload.type);
+      }
+    }
+    activityLifecyclePayloadQueue.clear();
+    activityLifecyclePayloadQueue = null;
+
+    Logger.d("Replaying %s analytics events.", payloadQueue.size());
+    for (BasePayload payload : payloadQueue) {
+      switch (payload.type()) {
+        case alias:
+          alias((AliasPayload) payload);
+          break;
+        case group:
+          group((GroupPayload) payload);
+          break;
+        case identify:
+          identify((IdentifyPayload) payload);
+          break;
+        case page:
+          screen((ScreenPayload) payload);
+          break;
+        case screen:
+          screen((ScreenPayload) payload);
+          break;
+        case track:
+          track((TrackPayload) payload);
+          break;
+        default:
+          throw new IllegalArgumentException("");
+      }
+    }
+    payloadQueue.clear();
+    payloadQueue = null;
   }
 
   private boolean isBundledIntegrationEnabledForPayload(BasePayload payload,

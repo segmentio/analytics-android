@@ -38,7 +38,7 @@ import java.util.Map;
  */
 /* This ignores projectId, receivedAt, messageId, sentAt, version that are set by the server. */
 public class BasePayload extends JsonMap {
-  enum Type {
+  public enum Type {
     alias, group, identify, page, screen, track
   }
 
@@ -99,8 +99,8 @@ public class BasePayload extends JsonMap {
 
   public BasePayload(Type type, String anonymousId, AnalyticsContext context, String userId,
       Options options, Map<String, Boolean> bundledIntegrations) {
-    put(TYPE_KEY, type.toString());
-    put(CHANNEL_KEY, Channel.mobile.toString());
+    put(TYPE_KEY, type);
+    put(CHANNEL_KEY, Channel.mobile);
     put(ANONYMOUS_ID_KEY, anonymousId);
 
     // Top level integrations are used by servers, this is a combination of disabled bundled
@@ -124,8 +124,8 @@ public class BasePayload extends JsonMap {
     super(json);
   }
 
-  public String type() {
-    return getString(TYPE_KEY);
+  public Type type() {
+    return (Type) get(TYPE_KEY);
   }
 
   public String userId() {
