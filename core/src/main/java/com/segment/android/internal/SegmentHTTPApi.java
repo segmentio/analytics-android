@@ -82,18 +82,24 @@ public class SegmentHTTPApi {
         "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP));
     urlConnection.setChunkedStreamingMode(0);
 
+    String json = new BatchPayload(payloads).toString();
+    Logger.v("Uploading batch %s", json);
+
     OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-    out.write(new BatchPayload(payloads).toString().getBytes());
+    out.write(json.getBytes());
     out.close();
 
     int responseCode = urlConnection.getResponseCode();
     if (responseCode == HTTP_OK) {
       Logger.d("Response code: %s, message: %s", responseCode, urlConnection.getResponseMessage());
     } else {
-      throw new IOException("Could not fetch settings. Response code: "
+      String message = readFully(urlConnection.getErrorStream());
+      throw new IOException("Could not upload payloads. Response code: "
           + responseCode
           + ", response message: "
-          + urlConnection.getResponseMessage());
+          + urlConnection.getResponseMessage()
+          + ", body: "
+          + message);
     }
     urlConnection.disconnect();
   }
@@ -111,10 +117,14 @@ public class SegmentHTTPApi {
     if (responseCode == HTTP_OK) {
       in = new BufferedInputStream(urlConnection.getInputStream());
     } else {
+      String message = readFully(urlConnection.getErrorStream());
+
       throw new IOException("Could not fetch settings. Response code: "
           + responseCode
           + ", response message: "
-          + urlConnection.getResponseMessage());
+          + urlConnection.getResponseMessage()
+          + ", body: "
+          + message);
     }
 
     String json = readFully(in);

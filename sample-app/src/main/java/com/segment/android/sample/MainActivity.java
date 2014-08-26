@@ -54,7 +54,6 @@ public class MainActivity extends Activity {
   }
 
   private void initViews() {
-    Traits.with(this).putAge(22);
     findViewById(R.id.action_track_a).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         AnalyticsContext.with(MainActivity.this).put("test", "hello");

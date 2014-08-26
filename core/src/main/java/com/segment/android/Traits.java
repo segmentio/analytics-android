@@ -25,8 +25,8 @@
 package com.segment.android;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import com.segment.android.internal.ISO8601Time;
+import com.segment.android.internal.StringCache;
 import com.segment.android.internal.Utils;
 import com.segment.android.json.JsonMap;
 import java.util.Date;
@@ -47,16 +47,18 @@ import static com.segment.android.internal.Utils.getSharedPreferences;
  */
 public class Traits extends JsonMap {
   private static final String TRAITS_CACHE_KEY = "traits";
+  private final StringCache cache;
 
-  private Traits(Context context) {
+  private Traits(Context context, StringCache cache) {
+    this.cache = cache;
     String id = getDeviceId(context);
     // todo: kick off task to get AdvertisingId
     putUserId(id);
     putAnonymousId(id);
   }
 
-  private Traits(String string) {
-    super(string);
+  private Traits(StringCache cache) {
+    this.cache = cache;
   }
 
   static Traits singleton = null;
@@ -65,12 +67,12 @@ public class Traits extends JsonMap {
     if (singleton == null) {
       synchronized (Traits.class) {
         if (singleton == null) {
-          SharedPreferences sharedPreferences = getSharedPreferences(context);
-          String cached = sharedPreferences.getString(TRAITS_CACHE_KEY, null);
-          if (!Utils.isNullOrEmpty(cached)) {
-            singleton = new Traits(cached);
+          StringCache cache =
+              new StringCache(getSharedPreferences(context), TRAITS_CACHE_KEY, null);
+          if (!Utils.isNullOrEmpty(cache.get())) {
+            singleton = new Traits(cache);
           } else {
-            singleton = new Traits(context);
+            singleton = new Traits(context, cache);
           }
         }
       }
@@ -231,6 +233,12 @@ public class Traits extends JsonMap {
 
   @Override public Traits putValue(String key, Object value) {
     super.putValue(key, value);
+    cache.set(toString());
     return this;
+  }
+
+  @Override public void clear() {
+    cache.delete();
+    super.clear();
   }
 }
