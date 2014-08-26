@@ -22,6 +22,7 @@ public class Stats {
 
   long eventCount;
   long flushCount;
+  long flushEventCount;
   long integrationOperationCount;
   long integrationOperationTime;
   int replayCount;
@@ -44,8 +45,8 @@ public class Stats {
     handler.sendMessage(handler.obtainMessage(INTEGRATION_OPERATION, duration));
   }
 
-  public void dispatchFlush() {
-    handler.sendMessage(handler.obtainMessage(FLUSH));
+  public void dispatchFlush(int count) {
+    handler.sendMessage(handler.obtainMessage(FLUSH, count, 0));
   }
 
   public void dispatchReplay() {
@@ -61,8 +62,9 @@ public class Stats {
     integrationOperationTime += duration;
   }
 
-  void performFlush() {
+  void performFlush(int count) {
     flushCount++;
+    flushEventCount += count;
   }
 
   void performReplay() {
@@ -83,7 +85,7 @@ public class Stats {
           stats.performEvent();
           break;
         case FLUSH:
-          stats.performFlush();
+          stats.performFlush(msg.arg1);
           break;
         case INTEGRATION_OPERATION:
           stats.performIntegrationOperation((Long) msg.obj);
@@ -102,7 +104,7 @@ public class Stats {
   }
 
   public StatsSnapshot createSnapshot() {
-    return new StatsSnapshot(System.currentTimeMillis(), eventCount, flushCount,
+    return new StatsSnapshot(System.currentTimeMillis(), eventCount, flushCount, flushEventCount,
         integrationOperationCount, integrationOperationTime, replayCount);
   }
 }

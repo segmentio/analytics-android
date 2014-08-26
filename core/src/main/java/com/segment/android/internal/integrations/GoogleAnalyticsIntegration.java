@@ -174,7 +174,7 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
         try {
           tracker.send(productToMap(null, (JsonMap) product));
         } catch (ClassCastException e) {
-          Logger.d(e, "Could not convert product to JsonMap.");
+          Logger.e(e, "Could not convert product to JsonMap.");
         }
       }
     }

@@ -94,9 +94,10 @@ public class Dispatcher {
 
   void performEnqueue(BasePayload payload) {
     queue.add(payload);
-    Logger.d("Enqueued %s", payload);
+    Logger.v("Enqueued %s", payload);
+    Logger.v("Queue size %s", queue.size());
     if (queue.size() >= maxQueueSize) {
-      Logger.d("Queue size (%s) > maxQueueSize (%s)", queue.size(), maxQueueSize);
+      Logger.d("Queue size (%s) > maxQueueSize (%s). Flushing...", queue.size(), maxQueueSize);
       dispatchFlush();
     }
   }
@@ -108,10 +109,9 @@ public class Dispatcher {
     }
     if (!isConnected(context)) {
       Logger.d("Not connected to network, skipping flush.");
-      return;
+      return; // no-op
     }
 
-    stats.dispatchFlush();
     List<BasePayload> payloads = new ArrayList<BasePayload>();
     // This causes us to lose the guarantee that events will be delivered, since we could lose
     // power while adding them to the batch and the events would be lost from disk.
@@ -122,15 +122,18 @@ public class Dispatcher {
       queue.remove();
     }
 
+    int count = payloads.size();
     try {
+      Logger.v("Flushing %s payloads.", count);
       segmentHTTPApi.upload(payloads);
-      Logger.d("Successfully uploaded %s payloads.", payloads.size());
+      Logger.v("Successfully flushed %s payloads.", count);
+      stats.dispatchFlush(count);
     } catch (IOException e) {
-      Logger.e(e, "Failed to upload payloads.");
+      Logger.e(e, "Failed to flush payloads.");
       for (BasePayload payload : payloads) {
         queue.add(payload); // re-enqueue the payloads, don't trigger a flush again
       }
-      Logger.d("Re-enqueued %s payloads.", payloads.size());
+      Logger.v("Re-enqueued %s payloads.", count);
     }
   }
 

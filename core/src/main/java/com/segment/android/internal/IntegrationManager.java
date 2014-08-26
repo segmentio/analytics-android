@@ -120,9 +120,9 @@ public class IntegrationManager {
         Class.forName(integration.className());
         bundledIntegrations.add(integration);
         serverIntegrations.put(integration.key(), false);
-        Logger.d("Loaded integration %s", integration.key());
+        Logger.v("Loaded integration %s", integration.key());
       } catch (ClassNotFoundException e) {
-        Logger.d("Integration %s not bundled", integration.key());
+        Logger.v("Integration %s not bundled", integration.key());
       }
     }
     serverIntegrations =
@@ -199,7 +199,7 @@ public class IntegrationManager {
     try {
       abstractIntegration.initialize(context, settings);
       enabledIntegrations.put(integration, abstractIntegration);
-      Logger.d("Initialized integration %s", integration.key());
+      Logger.v("Initialized integration %s", integration.key());
     } catch (InvalidConfigurationException e) {
       Logger.e(e, "Could not initialize integration %s", integration.key());
     }
@@ -360,7 +360,7 @@ public class IntegrationManager {
 
   void enqueue(IntegrationOperation operation) {
     if (!initialized) {
-      Logger.d("Integrations not yet initialized! Queuing operation.");
+      Logger.v("Integrations not yet initialized! Queuing operation.");
       operationQueue.add(operation);
     } else {
       run(operation);
@@ -379,7 +379,7 @@ public class IntegrationManager {
   }
 
   void replay() {
-    Logger.d("Replaying %s events.", operationQueue.size());
+    Logger.v("Replaying %s events.", operationQueue.size());
     while (operationQueue.size() > 0) {
       IntegrationOperation operation = operationQueue.peek();
       run(operation);
