@@ -37,8 +37,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
+import static com.segment.android.internal.Utils.getSharedPreferences;
 import static com.segment.android.internal.Utils.isConnected;
 
 /**
@@ -50,6 +52,8 @@ import static com.segment.android.internal.Utils.isConnected;
  * for them.
  */
 public class IntegrationManager {
+  private static final String PROJECT_SETTINGS_CACHE_KEY = "project-settings";
+
   static final int REQUEST_LOAD = 0;
   static final int REQUEST_FETCH_SETTINGS = 1;
   static final int REQUEST_INIT = 2;
@@ -67,7 +71,7 @@ public class IntegrationManager {
   private final Map<Integration, AbstractIntegration> enabledIntegrations =
       new LinkedHashMap<Integration, AbstractIntegration>();
   private Queue<IntegrationOperation> operationQueue = new ArrayDeque<IntegrationOperation>();
-  boolean initialized;
+  final AtomicBoolean initialized = new AtomicBoolean();
 
   public enum ActivityLifecycleEvent {
     CREATED, STARTED, RESUMED, PAUSED, STOPPED, SAVE_INSTANCE, DESTROYED
@@ -85,18 +89,24 @@ public class IntegrationManager {
     }
   }
 
+  public static IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi,
+      Stats stats) {
+    StringCache projectSettingsCache =
+        new StringCache(getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
+    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats);
+  }
+
   final Context context;
   final SegmentHTTPApi segmentHTTPApi;
-  final Handler mainThreadHandler;
   final HandlerThread integrationManagerThread;
   final Handler handler;
   final Stats stats;
+  final StringCache projectSettingsCache;
 
-  public IntegrationManager(Context context, Handler mainThreadHandler,
-      SegmentHTTPApi segmentHTTPApi, Stats stats) {
+  private IntegrationManager(Context context, SegmentHTTPApi segmentHTTPApi,
+      StringCache projectSettingsCache, Stats stats) {
     this.context = context;
     this.segmentHTTPApi = segmentHTTPApi;
-    this.mainThreadHandler = mainThreadHandler;
     this.stats = stats;
     integrationManagerThread =
         new HandlerThread(INTEGRATION_MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
@@ -104,7 +114,17 @@ public class IntegrationManager {
     handler = new IntegrationManagerHandler(integrationManagerThread.getLooper(), this);
 
     dispatchLoad();
-    dispatchFetch();
+
+    this.projectSettingsCache = projectSettingsCache;
+    ProjectSettings projectSettings = ProjectSettings.load(projectSettingsCache);
+    if (projectSettings == null) {
+      dispatchFetch();
+    } else {
+      dispatchInit(projectSettings);
+      if (projectSettings.timestamp() + 10800000L < System.currentTimeMillis()) {
+        dispatchFetch();
+      }
+    }
   }
 
   void dispatchLoad() {
@@ -127,7 +147,7 @@ public class IntegrationManager {
     }
     serverIntegrations =
         Collections.unmodifiableMap(serverIntegrations); // don't allow any more modifications
-    initialized = false;
+    initialized.set(false);
   }
 
   void dispatchFetch() {
@@ -150,6 +170,11 @@ public class IntegrationManager {
   }
 
   void performInit(ProjectSettings projectSettings) {
+    projectSettingsCache.set(projectSettings.toString());
+    if (initialized.get()) {
+      Logger.d("Integration already initialized. Skipping.");
+      return;
+    }
     for (Integration integration : bundledIntegrations) {
       if (projectSettings.containsKey(integration.key())) {
         JsonMap settings = new JsonMap(projectSettings.getJsonMap(integration.key()));
@@ -190,7 +215,7 @@ public class IntegrationManager {
         }
       }
     }
-    initialized = true;
+    initialized.set(true);
     replay();
   }
 
@@ -359,7 +384,7 @@ public class IntegrationManager {
   }
 
   void enqueue(IntegrationOperation operation) {
-    if (!initialized) {
+    if (!initialized.get()) {
       Logger.v("Integrations not yet initialized! Queuing operation.");
       operationQueue.add(operation);
     } else {
@@ -408,7 +433,7 @@ public class IntegrationManager {
   }
 
   public Object getInstance(Integration integration) {
-    if (initialized) {
+    if (initialized.get()) {
       AbstractIntegration abstractIntegration = enabledIntegrations.get(integration);
       if (abstractIntegration == null) {
         return Boolean.FALSE;

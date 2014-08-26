@@ -25,9 +25,30 @@
 package com.segment.android.internal;
 
 import com.segment.android.json.JsonMap;
+import java.util.Collections;
+import java.util.Map;
 
 public class ProjectSettings extends JsonMap {
-  public ProjectSettings(String json) {
-    super(json);
+  private static final String TIMESTAMP_KEY = "timestamp";
+
+  public static ProjectSettings load(StringCache cache) {
+    if (cache.get() == null) {
+      return null;
+    }
+    return new ProjectSettings(Collections.unmodifiableMap(new JsonMap(cache.get())));
+  }
+
+  public static ProjectSettings create(String json, long timestamp) {
+    JsonMap map = new JsonMap(json);
+    map.put(TIMESTAMP_KEY, timestamp);
+    return new ProjectSettings(Collections.unmodifiableMap(map));
+  }
+
+  private ProjectSettings(Map<String, Object> map) {
+    super(map);
+  }
+
+  public Long timestamp() {
+    return getLong(TIMESTAMP_KEY);
   }
 }

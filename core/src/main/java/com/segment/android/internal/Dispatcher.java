@@ -49,7 +49,6 @@ public class Dispatcher {
   private static final String TASK_QUEUE_FILE_NAME = "payload_task_queue";
 
   final Context context;
-  final Handler mainThreadHandler;
   final ObjectQueue<BasePayload> queue;
   final SegmentHTTPApi segmentHTTPApi;
   final int maxQueueSize;
@@ -57,8 +56,8 @@ public class Dispatcher {
   final Handler handler;
   final HandlerThread dispatcherThread;
 
-  public static Dispatcher create(Context context, Handler mainThreadHandler, int maxQueueSize,
-      SegmentHTTPApi segmentHTTPApi, Stats stats) {
+  public static Dispatcher create(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
+      Stats stats) {
     FileObjectQueue.Converter<BasePayload> converter = new PayloadConverter();
     File queueFile = new File(context.getFilesDir(), TASK_QUEUE_FILE_NAME);
     FileObjectQueue<BasePayload> queue;
@@ -67,13 +66,12 @@ public class Dispatcher {
     } catch (IOException e) {
       throw new RuntimeException("Unable to create file queue.", e);
     }
-    return new Dispatcher(context, mainThreadHandler, maxQueueSize, segmentHTTPApi, queue, stats);
+    return new Dispatcher(context, maxQueueSize, segmentHTTPApi, queue, stats);
   }
 
-  Dispatcher(Context context, Handler mainThreadHandler, int maxQueueSize,
-      SegmentHTTPApi segmentHTTPApi, ObjectQueue<BasePayload> queue, Stats stats) {
+  Dispatcher(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
+      ObjectQueue<BasePayload> queue, Stats stats) {
     this.context = context;
-    this.mainThreadHandler = mainThreadHandler;
     this.maxQueueSize = maxQueueSize;
     this.segmentHTTPApi = segmentHTTPApi;
     this.queue = queue;
@@ -94,7 +92,7 @@ public class Dispatcher {
 
   void performEnqueue(BasePayload payload) {
     queue.add(payload);
-    Logger.v("Enqueued %s", payload);
+    Logger.v("Enqueued %s payload", payload.type());
     Logger.v("Queue size %s", queue.size());
     if (queue.size() >= maxQueueSize) {
       Logger.d("Queue size (%s) > maxQueueSize (%s). Flushing...", queue.size(), maxQueueSize);

@@ -69,7 +69,7 @@ public class Traits extends JsonMap {
         if (singleton == null) {
           StringCache cache =
               new StringCache(getSharedPreferences(context), TRAITS_CACHE_KEY, null);
-          if (!Utils.isNullOrEmpty(cache.get())) {
+          if (Utils.isNullOrEmpty(cache.get())) {
             singleton = new Traits(cache);
           } else {
             singleton = new Traits(context, cache);

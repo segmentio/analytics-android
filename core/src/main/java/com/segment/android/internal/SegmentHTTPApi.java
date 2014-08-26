@@ -129,7 +129,7 @@ public class SegmentHTTPApi {
     String json = readFully(in);
     in.close();
     urlConnection.disconnect();
-    return new ProjectSettings(json);
+    return ProjectSettings.create(json, System.currentTimeMillis());
   }
 
   private static String readFully(InputStream in) throws IOException {

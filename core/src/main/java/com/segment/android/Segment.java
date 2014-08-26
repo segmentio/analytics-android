@@ -180,10 +180,9 @@ public class Segment {
       }
       Stats stats = new Stats();
       SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
-      Dispatcher dispatcher =
-          Dispatcher.create(application, HANDLER, maxQueueSize, segmentHTTPApi, stats);
+      Dispatcher dispatcher = Dispatcher.create(application, maxQueueSize, segmentHTTPApi, stats);
       IntegrationManager integrationManager =
-          new IntegrationManager(application, HANDLER, segmentHTTPApi, stats);
+          IntegrationManager.create(application, segmentHTTPApi, stats);
       return new Segment(application, dispatcher, integrationManager, stats, debugging);
     }
   }
