@@ -47,7 +47,8 @@ import static com.segment.android.internal.Utils.isConnected;
  * Manages bundled integrations. This class will maintain it's own queue for events to account for
  * the latency between receiving the first event, fetching remote settings and enabling the
  * integrations. Once we enable all integrations - we'll replay any events in the queue. This
- * should only affect the first app install, subsequent launches will be use a cached value from disk.
+ * should only affect the first app install, subsequent launches will be use a cached value from
+ * disk.
  */
 public class IntegrationManager {
   private static final String PROJECT_SETTINGS_CACHE_KEY = "project-settings";
