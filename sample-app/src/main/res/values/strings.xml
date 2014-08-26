@@ -37,5 +37,6 @@
   <string name="test_sequence">Test Custom Sequence</string>
   <string name="identify_button">Identify User</string>
   <string name="identify_user_id">Type in an ID to recognize the user</string>
+  <string name="update_stats">Update Stats</string>
 
 </resources>

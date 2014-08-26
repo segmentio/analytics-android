@@ -37,6 +37,7 @@ import com.segment.android.internal.Dispatcher;
 import com.segment.android.internal.IntegrationManager;
 import com.segment.android.internal.Logger;
 import com.segment.android.internal.SegmentHTTPApi;
+import com.segment.android.internal.Stats;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.BasePayload;
 import com.segment.android.internal.payload.GroupPayload;
@@ -197,6 +198,7 @@ public class Segment {
   final Application application;
   final Dispatcher dispatcher;
   final IntegrationManager integrationManager;
+  final Stats stats;
   volatile boolean debugging;
 
   Segment(Application application, Dispatcher dispatcher, IntegrationManager integrationManager,
@@ -204,6 +206,7 @@ public class Segment {
     this.application = application;
     this.dispatcher = dispatcher;
     this.integrationManager = integrationManager;
+    this.stats = new Stats();
     setDebugging(debugging);
     AnalyticsContext.with(application);
     Traits.with(application);
@@ -396,6 +399,7 @@ public class Segment {
   public void flush() {
     dispatcher.dispatchFlush();
     integrationManager.flush();
+    stats.dispatchFlush();
   }
 
   /**
@@ -411,7 +415,18 @@ public class Segment {
     return integrationManager.getInstance(integration);
   }
 
+  /**
+   * Creates a {@link StatsSnapshot} of the current stats for this instance.
+   * <p>
+   * <b>NOTE:</b> The snapshot may not always be completely up-to-date if requests are still in
+   * progress.
+   */
+  @SuppressWarnings("UnusedDeclaration") public StatsSnapshot getSnapshot() {
+    return stats.createSnapshot();
+  }
+
   void submit(BasePayload payload) {
+    stats.dispatchEvent();
     dispatcher.dispatchEnqueue(payload);
   }
 }

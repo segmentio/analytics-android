@@ -34,11 +34,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.segment.android.AnalyticsContext;
 import com.segment.android.Options;
 import com.segment.android.Properties;
 import com.segment.android.Segment;
+import com.segment.android.StatsSnapshot;
 import com.segment.android.Traits;
 
 public class MainActivity extends Activity {
@@ -101,6 +103,15 @@ public class MainActivity extends Activity {
         Segment.with(MainActivity.this)
             .track("Not for native Amplitude", new Properties(),
                 new Options().setIntegration("Amplitude", false));
+      }
+    });
+    findViewById(R.id.action_update_stats).setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        StatsSnapshot snapshot = Segment.with(MainActivity.this).getSnapshot();
+        ((TextView) findViewById(R.id.stat_event_count)).setText(
+            "Event Count: " + snapshot.eventCount);
+        ((TextView) findViewById(R.id.stat_flush_count)).setText(
+            "Flush Count: " + snapshot.flushCount);
       }
     });
   }
