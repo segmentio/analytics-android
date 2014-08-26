@@ -363,13 +363,18 @@ public class IntegrationManager {
       Logger.d("Integrations not yet initialized! Queuing operation.");
       operationQueue.add(operation);
     } else {
-      for (Map.Entry<Integration, AbstractIntegration> entry : enabledIntegrations.entrySet()) {
-        long startTime = System.currentTimeMillis();
-        operation.run(entry.getValue());
-        long endTime = System.currentTimeMillis();
-        Logger.v("Integration %s took %s ms to run operation", entry.getKey().key());
-        stats.dispatchIntegrationOperation(endTime - startTime);
-      }
+      run(operation);
+    }
+  }
+
+  private void run(IntegrationOperation operation) {
+    for (Map.Entry<Integration, AbstractIntegration> entry : enabledIntegrations.entrySet()) {
+      long startTime = System.currentTimeMillis();
+      operation.run(entry.getValue());
+      long endTime = System.currentTimeMillis();
+      long duration = startTime - endTime;
+      Logger.v("Integration %s took %s ms to run operation", entry.getKey().key(), duration);
+      stats.dispatchIntegrationOperation(duration);
     }
   }
 
@@ -377,13 +382,7 @@ public class IntegrationManager {
     Logger.d("Replaying %s events.", operationQueue.size());
     while (operationQueue.size() > 0) {
       IntegrationOperation operation = operationQueue.peek();
-      for (Map.Entry<Integration, AbstractIntegration> entry : enabledIntegrations.entrySet()) {
-        long startTime = System.currentTimeMillis();
-        operation.run(entry.getValue());
-        long endTime = System.currentTimeMillis();
-        Logger.v("Integration %s took %s ms to run operation", entry.getKey().key());
-        stats.dispatchIntegrationOperation(endTime - startTime);
-      }
+      run(operation);
       operationQueue.remove();
     }
   }
