@@ -372,7 +372,7 @@ public class IntegrationManager {
       long startTime = System.currentTimeMillis();
       operation.run(entry.getValue());
       long endTime = System.currentTimeMillis();
-      long duration = startTime - endTime;
+      long duration = endTime - startTime;
       Logger.v("Integration %s took %s ms to run operation", entry.getKey().key(), duration);
       stats.dispatchIntegrationOperation(duration);
     }
