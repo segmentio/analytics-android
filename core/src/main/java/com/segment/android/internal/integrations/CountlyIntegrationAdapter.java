@@ -19,7 +19,7 @@ import static com.segment.android.internal.Utils.nullOrDefault;
  * @see {@link https://segment.io/docs/integrations/countly/}
  * @see {@link https://github.com/Countly/countly-sdk-android}
  */
-public class CountlyIntegration extends AbstractIntegration<Countly> {
+public class CountlyIntegrationAdapter extends AbstractIntegrationAdapter<Countly> {
 
   @Override public Integration provider() {
     return Integration.COUNTLY;

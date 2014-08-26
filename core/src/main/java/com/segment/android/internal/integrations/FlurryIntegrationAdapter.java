@@ -22,7 +22,7 @@ import static com.segment.android.internal.Utils.isNullOrEmpty;
  * @see {@link https://segment.io/docs/integrations/flurry/}
  * @see {@link http://support.flurry.com/index.php?title=Analytics/GettingStarted/Android}
  */
-public class FlurryIntegration extends AbstractIntegration<Void> {
+public class FlurryIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   String apiKey;
 
   @Override public Integration provider() {

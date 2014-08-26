@@ -21,7 +21,7 @@ import static com.segment.android.internal.Utils.hasPermission;
  * @see {@link https://segment.io/docs/integrations/quantcast/}
  * @see {@link https://github.com/quantcast/android-measurement#quantcast-android-sdk}
  */
-public class QuantcastIntegration extends AbstractIntegration<Void> {
+public class QuantcastIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   String apiKey;
 
   @Override public Integration provider() {

@@ -18,7 +18,7 @@ import com.segment.android.json.JsonMap;
  * @param <T> The type of the backing instance. This isn't strictly necessary, but serves as
  * documentation for what type to expect.
  */
-public abstract class AbstractIntegration<T> {
+public abstract class AbstractIntegrationAdapter<T> {
   static final String VIEWED_EVENT_FORMAT = "Viewed %s Screen";
 
   /**

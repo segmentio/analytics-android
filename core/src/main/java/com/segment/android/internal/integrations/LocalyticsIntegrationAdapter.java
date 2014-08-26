@@ -21,7 +21,7 @@ import static com.segment.android.internal.Utils.isNullOrEmpty;
  * @see {@link https://segment.io/docs/integrations/localytics/}
  * @see {@link http://www.localytics.com/docs/android-integration/}
  */
-public class LocalyticsIntegration extends AbstractIntegration<LocalyticsSession> {
+public class LocalyticsIntegrationAdapter extends AbstractIntegrationAdapter<LocalyticsSession> {
   private LocalyticsSession localyticsSession;
 
   @Override public Integration provider() {

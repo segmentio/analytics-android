@@ -9,18 +9,18 @@ import android.os.Looper;
 import android.os.Message;
 import com.segment.android.Integration;
 import com.segment.android.Segment;
-import com.segment.android.internal.integrations.AbstractIntegration;
-import com.segment.android.internal.integrations.AmplitudeIntegration;
-import com.segment.android.internal.integrations.BugsnagIntegration;
-import com.segment.android.internal.integrations.CountlyIntegration;
-import com.segment.android.internal.integrations.CrittercismIntegration;
-import com.segment.android.internal.integrations.FlurryIntegration;
-import com.segment.android.internal.integrations.GoogleAnalyticsIntegration;
+import com.segment.android.internal.integrations.AbstractIntegrationAdapter;
+import com.segment.android.internal.integrations.AmplitudeIntegrationAdapter;
+import com.segment.android.internal.integrations.BugsnagIntegrationAdapter;
+import com.segment.android.internal.integrations.CountlyIntegrationAdapter;
+import com.segment.android.internal.integrations.CrittercismIntegrationAdapter;
+import com.segment.android.internal.integrations.FlurryIntegrationAdapter;
+import com.segment.android.internal.integrations.GoogleAnalyticsIntegrationAdapter;
 import com.segment.android.internal.integrations.InvalidConfigurationException;
-import com.segment.android.internal.integrations.LocalyticsIntegration;
-import com.segment.android.internal.integrations.MixpanelIntegration;
-import com.segment.android.internal.integrations.QuantcastIntegration;
-import com.segment.android.internal.integrations.TapstreamIntegration;
+import com.segment.android.internal.integrations.LocalyticsIntegrationAdapter;
+import com.segment.android.internal.integrations.MixpanelIntegrationAdapter;
+import com.segment.android.internal.integrations.QuantcastIntegrationAdapter;
+import com.segment.android.internal.integrations.TapstreamIntegrationAdapter;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.BasePayload;
 import com.segment.android.internal.payload.GroupPayload;
@@ -67,8 +67,8 @@ public class IntegrationManager {
   // Same as above but explicitly used only to generate server integrations, hence with String keys
   private Map<String, Boolean> serverIntegrations = new LinkedHashMap<String, Boolean>();
   // A set of integrations that are available and have been enabled for this project.
-  private final Map<Integration, AbstractIntegration> enabledIntegrations =
-      new LinkedHashMap<Integration, AbstractIntegration>();
+  private final Map<Integration, AbstractIntegrationAdapter> enabledIntegrations =
+      new LinkedHashMap<Integration, AbstractIntegrationAdapter>();
   private Queue<IntegrationOperation> operationQueue = new ArrayDeque<IntegrationOperation>();
   final AtomicBoolean initialized = new AtomicBoolean();
 
@@ -182,35 +182,35 @@ public class IntegrationManager {
         JsonMap settings = new JsonMap(projectSettings.getJsonMap(integration.key()));
         switch (integration) {
           case AMPLITUDE:
-            enableIntegration(Integration.AMPLITUDE, new AmplitudeIntegration(), settings);
+            enableIntegration(Integration.AMPLITUDE, new AmplitudeIntegrationAdapter(), settings);
             break;
           case BUGSNAG:
-            enableIntegration(Integration.BUGSNAG, new BugsnagIntegration(), settings);
+            enableIntegration(Integration.BUGSNAG, new BugsnagIntegrationAdapter(), settings);
             break;
           case COUNTLY:
-            enableIntegration(Integration.COUNTLY, new CountlyIntegration(), settings);
+            enableIntegration(Integration.COUNTLY, new CountlyIntegrationAdapter(), settings);
             break;
           case CRITTERCISM:
-            enableIntegration(Integration.CRITTERCISM, new CrittercismIntegration(), settings);
+            enableIntegration(Integration.CRITTERCISM, new CrittercismIntegrationAdapter(), settings);
             break;
           case FLURRY:
-            enableIntegration(Integration.FLURRY, new FlurryIntegration(), settings);
+            enableIntegration(Integration.FLURRY, new FlurryIntegrationAdapter(), settings);
             break;
           case GOOGLE_ANALYTICS:
-            enableIntegration(Integration.GOOGLE_ANALYTICS, new GoogleAnalyticsIntegration(),
+            enableIntegration(Integration.GOOGLE_ANALYTICS, new GoogleAnalyticsIntegrationAdapter(),
                 settings);
             break;
           case LOCALYTICS:
-            enableIntegration(Integration.LOCALYTICS, new LocalyticsIntegration(), settings);
+            enableIntegration(Integration.LOCALYTICS, new LocalyticsIntegrationAdapter(), settings);
             break;
           case MIXPANEL:
-            enableIntegration(Integration.MIXPANEL, new MixpanelIntegration(), settings);
+            enableIntegration(Integration.MIXPANEL, new MixpanelIntegrationAdapter(), settings);
             break;
           case QUANTCAST:
-            enableIntegration(Integration.QUANTCAST, new QuantcastIntegration(), settings);
+            enableIntegration(Integration.QUANTCAST, new QuantcastIntegrationAdapter(), settings);
             break;
           case TAPSTREAM:
-            enableIntegration(Integration.TAPSTREAM, new TapstreamIntegration(), settings);
+            enableIntegration(Integration.TAPSTREAM, new TapstreamIntegrationAdapter(), settings);
             break;
           default:
             throw new IllegalArgumentException("Unknown integration! " + integration.key());
@@ -221,11 +221,11 @@ public class IntegrationManager {
     replay();
   }
 
-  private void enableIntegration(Integration integration, AbstractIntegration abstractIntegration,
+  private void enableIntegration(Integration integration, AbstractIntegrationAdapter abstractIntegrationAdapter,
       JsonMap settings) {
     try {
-      abstractIntegration.initialize(context, settings);
-      enabledIntegrations.put(integration, abstractIntegration);
+      abstractIntegrationAdapter.initialize(context, settings);
+      enabledIntegrations.put(integration, abstractIntegrationAdapter);
       Logger.v("Initialized integration %s", integration.key());
     } catch (InvalidConfigurationException e) {
       Logger.e(e, "Could not initialize integration %s", integration.key());
@@ -244,7 +244,7 @@ public class IntegrationManager {
       case CREATED:
         if (payload.activityWeakReference.get() != null) {
           enqueue(new IntegrationOperation() {
-            @Override public void run(AbstractIntegration integration) {
+            @Override public void run(AbstractIntegrationAdapter integration) {
               integration.onActivityCreated(payload.activityWeakReference.get(), payload.bundle);
             }
           });
@@ -253,7 +253,7 @@ public class IntegrationManager {
       case STARTED:
         if (payload.activityWeakReference.get() != null) {
           enqueue(new IntegrationOperation() {
-            @Override public void run(AbstractIntegration integration) {
+            @Override public void run(AbstractIntegrationAdapter integration) {
               integration.onActivityStarted(payload.activityWeakReference.get());
             }
           });
@@ -262,7 +262,7 @@ public class IntegrationManager {
       case RESUMED:
         if (payload.activityWeakReference.get() != null) {
           enqueue(new IntegrationOperation() {
-            @Override public void run(AbstractIntegration integration) {
+            @Override public void run(AbstractIntegrationAdapter integration) {
               integration.onActivityResumed(payload.activityWeakReference.get());
             }
           });
@@ -271,7 +271,7 @@ public class IntegrationManager {
       case PAUSED:
         if (payload.activityWeakReference.get() != null) {
           enqueue(new IntegrationOperation() {
-            @Override public void run(AbstractIntegration integration) {
+            @Override public void run(AbstractIntegrationAdapter integration) {
               integration.onActivityPaused(payload.activityWeakReference.get());
             }
           });
@@ -280,7 +280,7 @@ public class IntegrationManager {
       case STOPPED:
         if (payload.activityWeakReference.get() != null) {
           enqueue(new IntegrationOperation() {
-            @Override public void run(AbstractIntegration integration) {
+            @Override public void run(AbstractIntegrationAdapter integration) {
               integration.onActivityStopped(payload.activityWeakReference.get());
             }
           });
@@ -289,7 +289,7 @@ public class IntegrationManager {
       case SAVE_INSTANCE:
         if (payload.activityWeakReference.get() != null) {
           enqueue(new IntegrationOperation() {
-            @Override public void run(AbstractIntegration integration) {
+            @Override public void run(AbstractIntegrationAdapter integration) {
               integration.onActivitySaveInstanceState(payload.activityWeakReference.get(),
                   payload.bundle);
             }
@@ -299,7 +299,7 @@ public class IntegrationManager {
       case DESTROYED:
         if (payload.activityWeakReference.get() != null) {
           enqueue(new IntegrationOperation() {
-            @Override public void run(AbstractIntegration integration) {
+            @Override public void run(AbstractIntegrationAdapter integration) {
               integration.onActivityDestroyed(payload.activityWeakReference.get());
             }
           });
@@ -318,7 +318,7 @@ public class IntegrationManager {
     switch (payload.type()) {
       case alias:
         enqueue(new IntegrationOperation() {
-          @Override public void run(AbstractIntegration integration) {
+          @Override public void run(AbstractIntegrationAdapter integration) {
             if (isBundledIntegrationEnabledForPayload(payload, integration)) {
               integration.alias((AliasPayload) payload);
             }
@@ -327,7 +327,7 @@ public class IntegrationManager {
         break;
       case group:
         enqueue(new IntegrationOperation() {
-          @Override public void run(AbstractIntegration integration) {
+          @Override public void run(AbstractIntegrationAdapter integration) {
             if (isBundledIntegrationEnabledForPayload(payload, integration)) {
               integration.group((GroupPayload) payload);
             }
@@ -336,7 +336,7 @@ public class IntegrationManager {
         break;
       case identify:
         enqueue(new IntegrationOperation() {
-          @Override public void run(AbstractIntegration integration) {
+          @Override public void run(AbstractIntegrationAdapter integration) {
             if (isBundledIntegrationEnabledForPayload(payload, integration)) {
 
               integration.identify((IdentifyPayload) payload);
@@ -347,7 +347,7 @@ public class IntegrationManager {
       case page:
       case screen:
         enqueue(new IntegrationOperation() {
-          @Override public void run(AbstractIntegration integration) {
+          @Override public void run(AbstractIntegrationAdapter integration) {
             if (isBundledIntegrationEnabledForPayload(payload, integration)) {
               integration.screen((ScreenPayload) payload);
             }
@@ -356,7 +356,7 @@ public class IntegrationManager {
         break;
       case track:
         enqueue(new IntegrationOperation() {
-          @Override public void run(AbstractIntegration integration) {
+          @Override public void run(AbstractIntegrationAdapter integration) {
             if (isBundledIntegrationEnabledForPayload(payload, integration)) {
               integration.track((TrackPayload) payload);
             }
@@ -374,7 +374,7 @@ public class IntegrationManager {
 
   void performFlush() {
     enqueue(new IntegrationOperation() {
-      @Override public void run(AbstractIntegration integration) {
+      @Override public void run(AbstractIntegrationAdapter integration) {
         integration.flush();
       }
     });
@@ -382,7 +382,7 @@ public class IntegrationManager {
 
   private interface IntegrationOperation {
     // todo: enumerate operations to avoid inn
-    void run(AbstractIntegration integration);
+    void run(AbstractIntegrationAdapter integration);
   }
 
   void enqueue(IntegrationOperation operation) {
@@ -395,7 +395,7 @@ public class IntegrationManager {
   }
 
   private void run(IntegrationOperation operation) {
-    for (Map.Entry<Integration, AbstractIntegration> entry : enabledIntegrations.entrySet()) {
+    for (Map.Entry<Integration, AbstractIntegrationAdapter> entry : enabledIntegrations.entrySet()) {
       long startTime = System.currentTimeMillis();
       operation.run(entry.getValue());
       long endTime = System.currentTimeMillis();
@@ -416,7 +416,7 @@ public class IntegrationManager {
   }
 
   private boolean isBundledIntegrationEnabledForPayload(BasePayload payload,
-      AbstractIntegration integration) {
+      AbstractIntegrationAdapter integration) {
     Boolean enabled = true;
     // look in the payload.context.integrations to see which Bundled integrations should be
     // disabled. payload.integrations is reserved for the server, where all bundled integrations
@@ -437,11 +437,11 @@ public class IntegrationManager {
 
   public Object getInstance(Integration integration) {
     if (initialized.get()) {
-      AbstractIntegration abstractIntegration = enabledIntegrations.get(integration);
-      if (abstractIntegration == null) {
+      AbstractIntegrationAdapter abstractIntegrationAdapter = enabledIntegrations.get(integration);
+      if (abstractIntegrationAdapter == null) {
         return Boolean.FALSE;
       }
-      Object instance = abstractIntegration.getUnderlyingInstance();
+      Object instance = abstractIntegrationAdapter.getUnderlyingInstance();
       return instance == null ? Boolean.TRUE : instance;
     } else {
       return Boolean.FALSE;

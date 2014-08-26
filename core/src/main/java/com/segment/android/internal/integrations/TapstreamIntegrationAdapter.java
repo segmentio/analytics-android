@@ -23,7 +23,7 @@ import static com.segment.android.internal.Utils.isNullOrEmpty;
  * @see {@link https://segment.io/docs/integrations/tapstream/}
  * @see {@link https://tapstream.com/developer/android-sdk-documentation/}
  */
-public class TapstreamIntegration extends AbstractIntegration<Tapstream> {
+public class TapstreamIntegrationAdapter extends AbstractIntegrationAdapter<Tapstream> {
   boolean trackAllPages;
   boolean trackCategorizedPages;
   boolean trackNamedPages;

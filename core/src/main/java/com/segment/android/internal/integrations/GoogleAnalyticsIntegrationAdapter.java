@@ -31,7 +31,7 @@ import static com.segment.android.internal.Utils.nullOrDefault;
  * @see {@link https://segment.io/docs/integrations/google-analytics/}
  * @see {@link https://developers.google.com/analytics/devguides/collection/android/v4/}
  */
-public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
+public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Tracker> {
   Tracker tracker;
   GoogleAnalytics googleAnalyticsInstance;
   boolean optedOut;

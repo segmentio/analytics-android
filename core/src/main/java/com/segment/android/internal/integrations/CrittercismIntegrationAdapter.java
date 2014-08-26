@@ -17,7 +17,7 @@ import com.segment.android.json.JsonMap;
  * @see {@link https://segment.io/docs/integrations/crittercism}
  * @see {@link http://docs.crittercism.com/android/android.html}
  */
-public class CrittercismIntegration extends AbstractIntegration<Void> {
+public class CrittercismIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   @Override public Integration provider() {
     return Integration.CRITTERCISM;
   }

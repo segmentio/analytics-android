@@ -22,7 +22,7 @@ import static com.segment.android.internal.Utils.nullOrDefault;
  * @see {@link https://segment.io/docs/integrations/amplitude/}
  * @see {@link https://github.com/amplitude/Amplitude-Android}
  */
-public class AmplitudeIntegration extends AbstractIntegration<Void> {
+public class AmplitudeIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   boolean trackAllPages;
   boolean trackCategorizedPages;
   boolean trackNamedPages;

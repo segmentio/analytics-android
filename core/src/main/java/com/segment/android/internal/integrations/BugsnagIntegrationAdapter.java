@@ -18,7 +18,7 @@ import java.util.Map;
  * @see {@link https://segment.io/docs/integrations/bugsnag/}
  * @see {@link https://github.com/bugsnag/bugsnag-android}
  */
-public class BugsnagIntegration extends AbstractIntegration<Client> {
+public class BugsnagIntegrationAdapter extends AbstractIntegrationAdapter<Client> {
 
   @Override public Integration provider() {
     return Integration.BUGSNAG;

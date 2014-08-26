@@ -21,7 +21,7 @@ import static com.segment.android.internal.Utils.isNullOrEmpty;
  * @see {@link https://segment.io/docs/integrations/mixpanel}
  * @see {@link https://github.com/mixpanel/mixpanel-android}
  */
-public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
+public class MixpanelIntegrationAdapter extends AbstractIntegrationAdapter<MixpanelAPI> {
   MixpanelAPI mixpanelAPI;
   boolean isPeopleEnabled;
   boolean trackAllPages;
