@@ -1,4 +1,4 @@
-package com.segment.android.internal.queue;
+package com.segment.android.internal;
 
 import com.segment.android.internal.payload.BasePayload;
 import com.squareup.tape.FileObjectQueue;

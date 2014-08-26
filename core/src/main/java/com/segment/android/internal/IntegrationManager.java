@@ -187,8 +187,8 @@ public class IntegrationManager {
   public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
     if (!initialized) {
       activityLifecyclePayloadQueue.add(
-          new ActivityLifecyclePayload(ActivityLifecycleEvent.CREATED, activity,
-              savedInstanceState));
+          new ActivityLifecyclePayload(ActivityLifecycleEvent.CREATED, activity, savedInstanceState)
+      );
       return;
     }
     for (AbstractIntegration integration : enabledIntegrations.values()) {
@@ -426,6 +426,19 @@ public class IntegrationManager {
       }
     }
     return enabled;
+  }
+
+  public Object getInstance(Integration integration) {
+    if (initialized) {
+      AbstractIntegration abstractIntegration = enabledIntegrations.get(integration);
+      if (abstractIntegration == null) {
+        return Boolean.FALSE;
+      }
+      Object instance = abstractIntegration.getUnderlyingInstance();
+      return instance == null ? Boolean.TRUE : instance;
+    } else {
+      return Boolean.FALSE;
+    }
   }
 
   public Map<String, Boolean> bundledIntegrations() {

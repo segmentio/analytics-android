@@ -15,7 +15,8 @@ import com.segment.android.json.JsonMap;
  * A base class for Integrations. An integration will only be created if the server sends us
  * settings for it.
  *
- * @param <T> The type of the backing instance
+ * @param <T> The type of the backing instance. This isn't strictly necessary, but serves as
+ * documentation for what type to expect.
  */
 public abstract class AbstractIntegration<T> {
   static final String VIEWED_EVENT_FORMAT = "Viewed %s Screen";

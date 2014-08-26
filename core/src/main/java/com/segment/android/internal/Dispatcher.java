@@ -27,7 +27,6 @@ package com.segment.android.internal;
 import android.content.Context;
 import android.os.Handler;
 import com.segment.android.internal.payload.BasePayload;
-import com.segment.android.internal.queue.PayloadConverter;
 import com.squareup.tape.FileObjectQueue;
 import com.squareup.tape.ObjectQueue;
 import java.io.File;

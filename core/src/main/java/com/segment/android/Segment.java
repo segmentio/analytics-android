@@ -398,6 +398,19 @@ public class Segment {
     integrationManager.flush();
   }
 
+  /**
+   * Get a reference to the underlying instance for the integration. This should be used to take
+   * advantage of integration specific API's. This method will return null if the integration is
+   * not enabled, or has not yet been initialized. For integrations that maintain a shared
+   * instance, this method will return {@link Boolean#TRUE} if the integration has been
+   * initialized, {@link Boolean#FALSE} otherwise. Clients should check for these conditions before
+   * calling methods on the integration. Do not call into the integration if it has not been
+   * initialized.
+   */
+  public Object getIntegration(Integration integration) {
+    return integrationManager.getInstance(integration);
+  }
+
   void submit(BasePayload payload) {
     dispatcher.dispatchEnqueue(payload);
   }
