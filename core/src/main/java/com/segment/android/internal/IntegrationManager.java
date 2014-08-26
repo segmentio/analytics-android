@@ -407,6 +407,7 @@ public class IntegrationManager {
 
   void replay() {
     Logger.v("Replaying %s events.", operationQueue.size());
+    stats.dispatchReplay();
     while (operationQueue.size() > 0) {
       IntegrationOperation operation = operationQueue.peek();
       run(operation);
