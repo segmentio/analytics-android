@@ -12,6 +12,7 @@ import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 public class Stats {
   private static final int EVENT = 0;
   private static final int FLUSH = 1;
+  private static final int INTEGRATION_OPERATION = 3;
 
   private static final String STATS_THREAD_NAME = Utils.THREAD_PREFIX + "Stats";
 
@@ -20,6 +21,8 @@ public class Stats {
 
   long eventCount;
   long flushCount;
+  long integrationOperationCount;
+  long integrationOperationTime;
 
   public Stats() {
     statsThread = new HandlerThread(STATS_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
@@ -35,12 +38,21 @@ public class Stats {
     handler.sendMessage(handler.obtainMessage(EVENT));
   }
 
+  public void dispatchIntegrationOperation(long duration) {
+    handler.sendMessage(handler.obtainMessage(INTEGRATION_OPERATION, duration));
+  }
+
   public void dispatchFlush() {
     handler.sendMessage(handler.obtainMessage(FLUSH));
   }
 
   void performEvent() {
     eventCount++;
+  }
+
+  void performIntegrationOperation(long duration) {
+    integrationOperationCount++;
+    integrationOperationTime += duration;
   }
 
   void performFlush() {
@@ -63,6 +75,9 @@ public class Stats {
         case FLUSH:
           stats.performFlush();
           break;
+        case INTEGRATION_OPERATION:
+          stats.performIntegrationOperation((Long) msg.obj);
+          break;
         default:
           Segment.HANDLER.post(new Runnable() {
             @Override public void run() {
@@ -74,6 +89,7 @@ public class Stats {
   }
 
   public StatsSnapshot createSnapshot() {
-    return new StatsSnapshot(System.currentTimeMillis(), eventCount, flushCount);
+    return new StatsSnapshot(System.currentTimeMillis(), eventCount, flushCount,
+        integrationOperationCount, integrationOperationTime);
   }
 }

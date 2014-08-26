@@ -183,7 +183,7 @@ public class Segment {
       Dispatcher dispatcher =
           Dispatcher.create(application, HANDLER, maxQueueSize, segmentHTTPApi, stats);
       IntegrationManager integrationManager =
-          new IntegrationManager(application, HANDLER, segmentHTTPApi);
+          new IntegrationManager(application, HANDLER, segmentHTTPApi, stats);
       return new Segment(application, dispatcher, integrationManager, stats, debugging);
     }
   }

@@ -90,12 +90,14 @@ public class IntegrationManager {
   final Handler mainThreadHandler;
   final HandlerThread integrationManagerThread;
   final Handler handler;
+  final Stats stats;
 
   public IntegrationManager(Context context, Handler mainThreadHandler,
-      SegmentHTTPApi segmentHTTPApi) {
+      SegmentHTTPApi segmentHTTPApi, Stats stats) {
     this.context = context;
     this.segmentHTTPApi = segmentHTTPApi;
     this.mainThreadHandler = mainThreadHandler;
+    this.stats = stats;
     integrationManagerThread =
         new HandlerThread(INTEGRATION_MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     integrationManagerThread.start();
@@ -214,7 +216,7 @@ public class IntegrationManager {
     switch (payload.type) {
       case CREATED:
         if (payload.activityWeakReference.get() != null) {
-          perform(new IntegrationOperation() {
+          enqueue(new IntegrationOperation() {
             @Override public void run(AbstractIntegration integration) {
               integration.onActivityCreated(payload.activityWeakReference.get(), payload.bundle);
             }
@@ -223,7 +225,7 @@ public class IntegrationManager {
         break;
       case STARTED:
         if (payload.activityWeakReference.get() != null) {
-          perform(new IntegrationOperation() {
+          enqueue(new IntegrationOperation() {
             @Override public void run(AbstractIntegration integration) {
               integration.onActivityStarted(payload.activityWeakReference.get());
             }
@@ -232,7 +234,7 @@ public class IntegrationManager {
         break;
       case RESUMED:
         if (payload.activityWeakReference.get() != null) {
-          perform(new IntegrationOperation() {
+          enqueue(new IntegrationOperation() {
             @Override public void run(AbstractIntegration integration) {
               integration.onActivityResumed(payload.activityWeakReference.get());
             }
@@ -241,7 +243,7 @@ public class IntegrationManager {
         break;
       case PAUSED:
         if (payload.activityWeakReference.get() != null) {
-          perform(new IntegrationOperation() {
+          enqueue(new IntegrationOperation() {
             @Override public void run(AbstractIntegration integration) {
               integration.onActivityPaused(payload.activityWeakReference.get());
             }
@@ -250,7 +252,7 @@ public class IntegrationManager {
         break;
       case STOPPED:
         if (payload.activityWeakReference.get() != null) {
-          perform(new IntegrationOperation() {
+          enqueue(new IntegrationOperation() {
             @Override public void run(AbstractIntegration integration) {
               integration.onActivityStopped(payload.activityWeakReference.get());
             }
@@ -259,7 +261,7 @@ public class IntegrationManager {
         break;
       case SAVE_INSTANCE:
         if (payload.activityWeakReference.get() != null) {
-          perform(new IntegrationOperation() {
+          enqueue(new IntegrationOperation() {
             @Override public void run(AbstractIntegration integration) {
               integration.onActivitySaveInstanceState(payload.activityWeakReference.get(),
                   payload.bundle);
@@ -269,7 +271,7 @@ public class IntegrationManager {
         break;
       case DESTROYED:
         if (payload.activityWeakReference.get() != null) {
-          perform(new IntegrationOperation() {
+          enqueue(new IntegrationOperation() {
             @Override public void run(AbstractIntegration integration) {
               integration.onActivityDestroyed(payload.activityWeakReference.get());
             }
@@ -288,7 +290,7 @@ public class IntegrationManager {
   void enqueue(final BasePayload payload) {
     switch (payload.type()) {
       case alias:
-        perform(new IntegrationOperation() {
+        enqueue(new IntegrationOperation() {
           @Override public void run(AbstractIntegration integration) {
             if (isBundledIntegrationEnabledForPayload(payload, integration)) {
               integration.alias((AliasPayload) payload);
@@ -297,7 +299,7 @@ public class IntegrationManager {
         });
         break;
       case group:
-        perform(new IntegrationOperation() {
+        enqueue(new IntegrationOperation() {
           @Override public void run(AbstractIntegration integration) {
             if (isBundledIntegrationEnabledForPayload(payload, integration)) {
               integration.group((GroupPayload) payload);
@@ -306,7 +308,7 @@ public class IntegrationManager {
         });
         break;
       case identify:
-        perform(new IntegrationOperation() {
+        enqueue(new IntegrationOperation() {
           @Override public void run(AbstractIntegration integration) {
             if (isBundledIntegrationEnabledForPayload(payload, integration)) {
 
@@ -317,7 +319,7 @@ public class IntegrationManager {
         break;
       case page:
       case screen:
-        perform(new IntegrationOperation() {
+        enqueue(new IntegrationOperation() {
           @Override public void run(AbstractIntegration integration) {
             if (isBundledIntegrationEnabledForPayload(payload, integration)) {
               integration.screen((ScreenPayload) payload);
@@ -326,7 +328,7 @@ public class IntegrationManager {
         });
         break;
       case track:
-        perform(new IntegrationOperation() {
+        enqueue(new IntegrationOperation() {
           @Override public void run(AbstractIntegration integration) {
             if (isBundledIntegrationEnabledForPayload(payload, integration)) {
               integration.track((TrackPayload) payload);
@@ -344,7 +346,7 @@ public class IntegrationManager {
   }
 
   void performFlush() {
-    perform(new IntegrationOperation() {
+    enqueue(new IntegrationOperation() {
       @Override public void run(AbstractIntegration integration) {
         integration.flush();
       }
@@ -355,13 +357,16 @@ public class IntegrationManager {
     void run(AbstractIntegration integration);
   }
 
-  void perform(IntegrationOperation operation) {
+  void enqueue(IntegrationOperation operation) {
     if (!initialized) {
       Logger.d("Integrations not yet initialized! Queuing operation.");
       operationQueue.add(operation);
     } else {
       for (AbstractIntegration integration : enabledIntegrations.values()) {
+        long startTime = System.currentTimeMillis();
         operation.run(integration);
+        long endTime = System.currentTimeMillis();
+        stats.dispatchIntegrationOperation(endTime - startTime);
       }
     }
   }
