@@ -25,13 +25,16 @@
 package com.segment.android;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import com.segment.android.internal.ISO8601Time;
+import com.segment.android.internal.Utils;
 import com.segment.android.json.JsonMap;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static com.segment.android.internal.Utils.getDeviceId;
+import static com.segment.android.internal.Utils.getSharedPreferences;
 
 /**
  * Traits can be anything you want, but some of them have semantic meaning and we treat them in
@@ -43,11 +46,17 @@ import static com.segment.android.internal.Utils.getDeviceId;
  * todo: document API to clear the user traits
  */
 public class Traits extends JsonMap {
+  private static final String TRAITS_CACHE_KEY = "traits";
+
   private Traits(Context context) {
     String id = getDeviceId(context);
     // todo: kick off task to get AdvertisingId
     putUserId(id);
     putAnonymousId(id);
+  }
+
+  private Traits(String string) {
+    super(string);
   }
 
   static Traits singleton = null;
@@ -56,7 +65,13 @@ public class Traits extends JsonMap {
     if (singleton == null) {
       synchronized (Traits.class) {
         if (singleton == null) {
-          singleton = new Traits(context);
+          SharedPreferences sharedPreferences = getSharedPreferences(context);
+          String cached = sharedPreferences.getString(TRAITS_CACHE_KEY, null);
+          if (!Utils.isNullOrEmpty(cached)) {
+            singleton = new Traits(cached);
+          } else {
+            singleton = new Traits(context);
+          }
         }
       }
     }
