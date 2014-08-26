@@ -26,6 +26,10 @@ package com.segment.android.internal;
 
 import android.content.Context;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.Message;
+import com.segment.android.Segment;
 import com.segment.android.internal.payload.BasePayload;
 import com.squareup.tape.FileObjectQueue;
 import com.squareup.tape.ObjectQueue;
@@ -33,12 +37,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
+import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.android.internal.Utils.isConnected;
 
 public class Dispatcher {
+  static final int REQUEST_ENQUEUE = 0;
+  static final int REQUEST_FLUSH = 1;
+
+  private static final String STATS_THREAD_NAME = Utils.THREAD_PREFIX + "Dispatcher";
   private static final String TASK_QUEUE_FILE_NAME = "payload_task_queue";
 
   final Context context;
@@ -46,9 +53,9 @@ public class Dispatcher {
   final ObjectQueue<BasePayload> queue;
   final SegmentHTTPApi segmentHTTPApi;
   final int maxQueueSize;
-  final ExecutorService flushService;
-  final ExecutorService queueService;
   final Stats stats;
+  final Handler handler;
+  final HandlerThread dispatcherThread;
 
   public static Dispatcher create(Context context, Handler mainThreadHandler, int maxQueueSize,
       SegmentHTTPApi segmentHTTPApi, Stats stats) {
@@ -60,43 +67,32 @@ public class Dispatcher {
     } catch (IOException e) {
       throw new RuntimeException("Unable to create file queue.", e);
     }
-    ExecutorService flushService = Executors.newSingleThreadExecutor();
-    ExecutorService queueService = Executors.newSingleThreadExecutor();
-    return new Dispatcher(context, mainThreadHandler, flushService, maxQueueSize, segmentHTTPApi,
-        queue, queueService, stats);
+    return new Dispatcher(context, mainThreadHandler, maxQueueSize, segmentHTTPApi, queue, stats);
   }
 
-  Dispatcher(Context context, Handler mainThreadHandler, ExecutorService flushService,
-      int maxQueueSize, SegmentHTTPApi segmentHTTPApi, ObjectQueue<BasePayload> queue,
-      ExecutorService queueService, Stats stats) {
+  Dispatcher(Context context, Handler mainThreadHandler, int maxQueueSize,
+      SegmentHTTPApi segmentHTTPApi, ObjectQueue<BasePayload> queue, Stats stats) {
     this.context = context;
     this.mainThreadHandler = mainThreadHandler;
     this.maxQueueSize = maxQueueSize;
     this.segmentHTTPApi = segmentHTTPApi;
     this.queue = queue;
-    this.flushService = flushService;
-    this.queueService = queueService;
     this.stats = stats;
+    dispatcherThread = new HandlerThread(STATS_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
+    dispatcherThread.start();
+    handler = new DispatcherHandler(dispatcherThread.getLooper(), this);
   }
 
   public void dispatchEnqueue(final BasePayload payload) {
     stats.dispatchEvent();
-    queueService.submit(new Runnable() {
-      @Override public void run() {
-        enqueue(payload);
-      }
-    });
+    handler.sendMessage(handler.obtainMessage(REQUEST_ENQUEUE, payload));
   }
 
   public void dispatchFlush() {
-    flushService.submit(new Runnable() {
-      @Override public void run() {
-        flush();
-      }
-    });
+    handler.sendMessage(handler.obtainMessage(REQUEST_FLUSH));
   }
 
-  private void enqueue(BasePayload payload) {
+  void performEnqueue(BasePayload payload) {
     queue.add(payload);
     Logger.d("Enqueued %s", payload);
     if (queue.size() >= maxQueueSize) {
@@ -105,7 +101,7 @@ public class Dispatcher {
     }
   }
 
-  private void flush() {
+  void performFlush() {
     if (queue.size() <= 0) {
       Logger.d("No events in queue, skipping flush.");
       return; // no-op
@@ -135,6 +131,33 @@ public class Dispatcher {
         queue.add(payload); // re-enqueue the payloads, don't trigger a flush again
       }
       Logger.d("Re-enqueued %s payloads.", payloads.size());
+    }
+  }
+
+  private static class DispatcherHandler extends Handler {
+    private final Dispatcher dispatcher;
+
+    public DispatcherHandler(Looper looper, Dispatcher dispatcher) {
+      super(looper);
+      this.dispatcher = dispatcher;
+    }
+
+    @Override public void handleMessage(final Message msg) {
+      switch (msg.what) {
+        case REQUEST_ENQUEUE:
+          BasePayload payload = (BasePayload) msg.obj;
+          dispatcher.performEnqueue(payload);
+          break;
+        case REQUEST_FLUSH:
+          dispatcher.performFlush();
+          break;
+        default:
+          Segment.HANDLER.post(new Runnable() {
+            @Override public void run() {
+              throw new AssertionError("Unhandled dispatcher message." + msg.what);
+            }
+          });
+      }
     }
   }
 }

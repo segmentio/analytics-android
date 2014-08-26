@@ -187,8 +187,8 @@ public class IntegrationManager {
   public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
     if (!initialized) {
       activityLifecyclePayloadQueue.add(
-          new ActivityLifecyclePayload(ActivityLifecycleEvent.CREATED, activity, savedInstanceState)
-      );
+          new ActivityLifecyclePayload(ActivityLifecycleEvent.CREATED, activity,
+              savedInstanceState));
       return;
     }
     for (AbstractIntegration integration : enabledIntegrations.values()) {
