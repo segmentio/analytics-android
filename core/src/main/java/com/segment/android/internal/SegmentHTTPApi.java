@@ -83,7 +83,6 @@ public class SegmentHTTPApi {
     urlConnection.setChunkedStreamingMode(0);
 
     String json = new BatchPayload(payloads).toString();
-    Logger.v("Uploading batch %s", json);
 
     OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
     out.write(json.getBytes());
