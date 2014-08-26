@@ -172,7 +172,7 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     if (!isNullOrEmpty(products)) {
       for (Object product : products) {
         try {
-          tracker.send(productToMap(null, (JsonMap) product));
+          tracker.send(productToMap(null, (Map<String, Object>) product));
         } catch (ClassCastException e) {
           Logger.e(e, "Could not convert product to JsonMap.");
         }
@@ -185,7 +185,8 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     tracker.send(productToMap(categoryName, props));
   }
 
-  static Map<String, String> productToMap(String categoryName, JsonMap product) {
+  static Map<String, String> productToMap(String categoryName, Map<String, Object> rawProduct) {
+    JsonMap product = new JsonMap(rawProduct);
     String id = product.getString("userId");
     String sku = product.getString("sku");
     String name = product.getString("name");
