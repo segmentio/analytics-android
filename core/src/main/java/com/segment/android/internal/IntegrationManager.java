@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.Message;
 import com.segment.android.Integration;
 import com.segment.android.Segment;
 import com.segment.android.internal.integrations.AbstractIntegration;
@@ -34,9 +37,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
+import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.android.internal.Utils.isConnected;
 
 /**
@@ -48,6 +50,15 @@ import static com.segment.android.internal.Utils.isConnected;
  * for them.
  */
 public class IntegrationManager {
+  static final int REQUEST_LOAD = 0;
+  static final int REQUEST_FETCH_SETTINGS = 1;
+  static final int REQUEST_INIT = 2;
+  static final int REQUEST_LIFECYCLE_EVENT = 3;
+  static final int REQUEST_ANALYTICS_EVENT = 4;
+  static final int REQUEST_FLUSH = 5;
+
+  private static final String INTEGRATION_MANAGER_THREAD_NAME =
+      Utils.THREAD_PREFIX + "IntegrationManager";
   // A set of integrations available on the device
   private final Set<Integration> bundledIntegrations = new HashSet<Integration>();
   // Same as above but explicitly used only to generate server integrations, hence with String keys
@@ -55,12 +66,10 @@ public class IntegrationManager {
   // A set of integrations that are available and have been enabled for this project.
   private final Map<Integration, AbstractIntegration> enabledIntegrations =
       new LinkedHashMap<Integration, AbstractIntegration>();
-  private Queue<BasePayload> payloadQueue = new ArrayDeque<BasePayload>();
-  private Queue<ActivityLifecyclePayload> activityLifecyclePayloadQueue =
-      new ArrayDeque<ActivityLifecyclePayload>();
+  private Queue<IntegrationOperation> operationQueue = new ArrayDeque<IntegrationOperation>();
   boolean initialized;
 
-  enum ActivityLifecycleEvent {
+  public enum ActivityLifecycleEvent {
     CREATED, STARTED, RESUMED, PAUSED, STOPPED, SAVE_INSTANCE, DESTROYED
   }
 
@@ -79,18 +88,32 @@ public class IntegrationManager {
   final Context context;
   final SegmentHTTPApi segmentHTTPApi;
   final Handler mainThreadHandler;
-  final ExecutorService service;
+  final HandlerThread integrationManagerThread;
+  final Handler handler;
 
   public IntegrationManager(Context context, Handler mainThreadHandler,
       SegmentHTTPApi segmentHTTPApi) {
     this.context = context;
     this.segmentHTTPApi = segmentHTTPApi;
     this.mainThreadHandler = mainThreadHandler;
-    this.service = Executors.newSingleThreadExecutor();
+    integrationManagerThread =
+        new HandlerThread(INTEGRATION_MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
+    integrationManagerThread.start();
+    handler = new IntegrationManagerHandler(integrationManagerThread.getLooper(), this);
+
+    dispatchLoad();
+    dispatchFetch();
+  }
+
+  void dispatchLoad() {
+    handler.sendMessage(handler.obtainMessage(REQUEST_LOAD));
+  }
+
+  void performLoad() {
     // Look up all the integrations available on the device. This is done early so that we can
     // disable sending to these integrations from the server and properly fill the payloads.
     for (Integration integration : Integration.values()) {
-      Logger.d("Checking for integration %s", integration.key());
+      Logger.v("Checking for integration %s", integration.key());
       try {
         Class.forName(integration.className());
         bundledIntegrations.add(integration);
@@ -99,36 +122,32 @@ public class IntegrationManager {
       } catch (ClassNotFoundException e) {
         Logger.d("Integration %s not bundled", integration.key());
       }
-      Logger.d("debug");
     }
     serverIntegrations =
         Collections.unmodifiableMap(serverIntegrations); // don't allow any more modifications
     initialized = false;
-    service.submit(new Runnable() {
-      @Override public void run() {
-        performFetch();
-      }
-    });
+  }
+
+  void dispatchFetch() {
+    handler.sendMessage(handler.obtainMessage(REQUEST_FETCH_SETTINGS));
   }
 
   void performFetch() {
     try {
       if (isConnected(context)) {
-        final ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
-        Segment.HANDLER.post(new Runnable() {
-          @Override public void run() {
-            // todo : does this need to be on the main thread?
-            initialize(projectSettings);
-          }
-        });
+        dispatchInit(segmentHTTPApi.fetchSettings());
       }
     } catch (IOException e) {
-      Logger.e(e, "Failed to fetch settings");
-      performFetch(); // todo: terminate retry
+      Logger.e(e, "Failed to fetch settings. Retrying.");
+      dispatchFetch();
     }
   }
 
-  private void initialize(ProjectSettings projectSettings) {
+  void dispatchInit(ProjectSettings projectSettings) {
+    handler.sendMessage(handler.obtainMessage(REQUEST_INIT, projectSettings));
+  }
+
+  void performInit(ProjectSettings projectSettings) {
     for (Integration integration : bundledIntegrations) {
       if (projectSettings.containsKey(integration.key())) {
         JsonMap settings = new JsonMap(projectSettings.getJsonMap(integration.key()));
@@ -184,228 +203,178 @@ public class IntegrationManager {
     }
   }
 
-  public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-    if (!initialized) {
-      activityLifecyclePayloadQueue.add(
-          new ActivityLifecyclePayload(ActivityLifecycleEvent.CREATED, activity,
-              savedInstanceState));
-      return;
-    }
-    for (AbstractIntegration integration : enabledIntegrations.values()) {
-      integration.onActivityCreated(activity, savedInstanceState);
+  // Activity Lifecycle Events
+  public void dispatchLifecycleEvent(ActivityLifecycleEvent event, Activity activity,
+      Bundle bundle) {
+    handler.sendMessage(handler.obtainMessage(REQUEST_LIFECYCLE_EVENT,
+        new ActivityLifecyclePayload(event, activity, bundle)));
+  }
+
+  void enqueue(final ActivityLifecyclePayload payload) {
+    switch (payload.type) {
+      case CREATED:
+        if (payload.activityWeakReference.get() != null) {
+          perform(new IntegrationOperation() {
+            @Override public void run(AbstractIntegration integration) {
+              integration.onActivityCreated(payload.activityWeakReference.get(), payload.bundle);
+            }
+          });
+        }
+        break;
+      case STARTED:
+        if (payload.activityWeakReference.get() != null) {
+          perform(new IntegrationOperation() {
+            @Override public void run(AbstractIntegration integration) {
+              integration.onActivityStarted(payload.activityWeakReference.get());
+            }
+          });
+        }
+        break;
+      case RESUMED:
+        if (payload.activityWeakReference.get() != null) {
+          perform(new IntegrationOperation() {
+            @Override public void run(AbstractIntegration integration) {
+              integration.onActivityResumed(payload.activityWeakReference.get());
+            }
+          });
+        }
+        break;
+      case PAUSED:
+        if (payload.activityWeakReference.get() != null) {
+          perform(new IntegrationOperation() {
+            @Override public void run(AbstractIntegration integration) {
+              integration.onActivityPaused(payload.activityWeakReference.get());
+            }
+          });
+        }
+        break;
+      case STOPPED:
+        if (payload.activityWeakReference.get() != null) {
+          perform(new IntegrationOperation() {
+            @Override public void run(AbstractIntegration integration) {
+              integration.onActivityStopped(payload.activityWeakReference.get());
+            }
+          });
+        }
+        break;
+      case SAVE_INSTANCE:
+        if (payload.activityWeakReference.get() != null) {
+          perform(new IntegrationOperation() {
+            @Override public void run(AbstractIntegration integration) {
+              integration.onActivitySaveInstanceState(payload.activityWeakReference.get(),
+                  payload.bundle);
+            }
+          });
+        }
+        break;
+      case DESTROYED:
+        if (payload.activityWeakReference.get() != null) {
+          perform(new IntegrationOperation() {
+            @Override public void run(AbstractIntegration integration) {
+              integration.onActivityDestroyed(payload.activityWeakReference.get());
+            }
+          });
+        }
+        break;
+      default:
+        throw new IllegalArgumentException("Unknown payload type!" + payload.type);
     }
   }
 
-  void onActivityStarted(Activity activity) {
-    if (!initialized) {
-      activityLifecyclePayloadQueue.add(
-          new ActivityLifecyclePayload(ActivityLifecycleEvent.STARTED, activity, null));
-      return;
-    }
-    for (AbstractIntegration integration : enabledIntegrations.values()) {
-      integration.onActivityStarted(activity);
+  public void dispatchAnalyticsEvent(BasePayload payload) {
+    handler.sendMessage(handler.obtainMessage(REQUEST_ANALYTICS_EVENT, payload));
+  }
+
+  void enqueue(final BasePayload payload) {
+    switch (payload.type()) {
+      case alias:
+        perform(new IntegrationOperation() {
+          @Override public void run(AbstractIntegration integration) {
+            if (isBundledIntegrationEnabledForPayload(payload, integration)) {
+              integration.alias((AliasPayload) payload);
+            }
+          }
+        });
+        break;
+      case group:
+        perform(new IntegrationOperation() {
+          @Override public void run(AbstractIntegration integration) {
+            if (isBundledIntegrationEnabledForPayload(payload, integration)) {
+              integration.group((GroupPayload) payload);
+            }
+          }
+        });
+        break;
+      case identify:
+        perform(new IntegrationOperation() {
+          @Override public void run(AbstractIntegration integration) {
+            if (isBundledIntegrationEnabledForPayload(payload, integration)) {
+
+              integration.identify((IdentifyPayload) payload);
+            }
+          }
+        });
+        break;
+      case page:
+      case screen:
+        perform(new IntegrationOperation() {
+          @Override public void run(AbstractIntegration integration) {
+            if (isBundledIntegrationEnabledForPayload(payload, integration)) {
+              integration.screen((ScreenPayload) payload);
+            }
+          }
+        });
+        break;
+      case track:
+        perform(new IntegrationOperation() {
+          @Override public void run(AbstractIntegration integration) {
+            if (isBundledIntegrationEnabledForPayload(payload, integration)) {
+              integration.track((TrackPayload) payload);
+            }
+          }
+        });
+        break;
+      default:
+        throw new IllegalArgumentException("Unknown payload type!" + payload.type());
     }
   }
 
-  void onActivityResumed(Activity activity) {
-    if (!initialized) {
-      activityLifecyclePayloadQueue.add(
-          new ActivityLifecyclePayload(ActivityLifecycleEvent.RESUMED, activity, null));
-      return;
-    }
-    for (AbstractIntegration integration : enabledIntegrations.values()) {
-      integration.onActivityResumed(activity);
-    }
+  public void dispatchFlush() {
+    handler.sendMessage(handler.obtainMessage(REQUEST_FLUSH));
   }
 
-  void onActivityPaused(Activity activity) {
-    if (!initialized) {
-      activityLifecyclePayloadQueue.add(
-          new ActivityLifecyclePayload(ActivityLifecycleEvent.PAUSED, activity, null));
-      return;
-    }
-    for (AbstractIntegration integration : enabledIntegrations.values()) {
-      integration.onActivityPaused(activity);
-    }
-  }
-
-  void onActivityStopped(Activity activity) {
-    if (!initialized) {
-      activityLifecyclePayloadQueue.add(
-          new ActivityLifecyclePayload(ActivityLifecycleEvent.STOPPED, activity, null));
-      return;
-    }
-    for (AbstractIntegration integration : enabledIntegrations.values()) {
-      integration.onActivityStopped(activity);
-    }
-  }
-
-  void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-    if (!initialized) {
-      activityLifecyclePayloadQueue.add(
-          new ActivityLifecyclePayload(ActivityLifecycleEvent.SAVE_INSTANCE, activity, outState));
-      return;
-    }
-    for (AbstractIntegration integration : enabledIntegrations.values()) {
-      integration.onActivitySaveInstanceState(activity, outState);
-    }
-  }
-
-  void onActivityDestroyed(Activity activity) {
-    if (!initialized) {
-      activityLifecyclePayloadQueue.add(
-          new ActivityLifecyclePayload(ActivityLifecycleEvent.DESTROYED, activity, null));
-      return;
-    }
-    for (AbstractIntegration integration : enabledIntegrations.values()) {
-      integration.onActivityDestroyed(activity);
-    }
-  }
-
-  // Analytics Actions
-  void identify(IdentifyPayload identify) {
-    if (!initialized) {
-      payloadQueue.add(identify);
-      return;
-    }
-    for (AbstractIntegration integration : enabledIntegrations.values()) {
-      if (isBundledIntegrationEnabledForPayload(identify, integration)) {
-        integration.identify(identify);
+  void performFlush() {
+    perform(new IntegrationOperation() {
+      @Override public void run(AbstractIntegration integration) {
+        integration.flush();
       }
-    }
+    });
   }
 
-  void group(GroupPayload group) {
+  private interface IntegrationOperation {
+    void run(AbstractIntegration integration);
+  }
+
+  void perform(IntegrationOperation operation) {
     if (!initialized) {
-      payloadQueue.add(group);
-      return;
-    }
-    for (AbstractIntegration integration : enabledIntegrations.values()) {
-      if (isBundledIntegrationEnabledForPayload(group, integration)) {
-        integration.group(group);
+      Logger.d("Integrations not yet initialized! Queuing operation.");
+      operationQueue.add(operation);
+    } else {
+      for (AbstractIntegration integration : enabledIntegrations.values()) {
+        operation.run(integration);
       }
-    }
-  }
-
-  public void track(TrackPayload track) {
-    if (!initialized) {
-      payloadQueue.add(track);
-      return;
-    }
-    for (AbstractIntegration integration : enabledIntegrations.values()) {
-      if (isBundledIntegrationEnabledForPayload(track, integration)) {
-        integration.track(track);
-      }
-    }
-  }
-
-  void alias(AliasPayload alias) {
-    if (!initialized) {
-      payloadQueue.add(alias);
-      return;
-    }
-    for (AbstractIntegration integration : enabledIntegrations.values()) {
-      if (isBundledIntegrationEnabledForPayload(alias, integration)) {
-        integration.alias(alias);
-      }
-    }
-  }
-
-  void screen(ScreenPayload screen) {
-    if (!initialized) {
-      payloadQueue.add(screen);
-      return;
-    }
-    for (AbstractIntegration integration : enabledIntegrations.values()) {
-      integration.screen(screen);
-      if (isBundledIntegrationEnabledForPayload(screen, integration)) {
-        integration.screen(screen);
-      }
-    }
-  }
-
-  public void flush() {
-    if (!initialized) {
-      return;
-    }
-    for (AbstractIntegration integration : enabledIntegrations.values()) {
-      integration.flush();
     }
   }
 
   void replay() {
-    for (ActivityLifecyclePayload payload : activityLifecyclePayloadQueue) {
-      switch (payload.type) {
-        case CREATED:
-          if (payload.activityWeakReference.get() != null) {
-            onActivityCreated(payload.activityWeakReference.get(), payload.bundle);
-          }
-          break;
-        case STARTED:
-          if (payload.activityWeakReference.get() != null) {
-            onActivityStarted(payload.activityWeakReference.get());
-          }
-          break;
-        case RESUMED:
-          if (payload.activityWeakReference.get() != null) {
-            onActivityResumed(payload.activityWeakReference.get());
-          }
-          break;
-        case PAUSED:
-          if (payload.activityWeakReference.get() != null) {
-            onActivityPaused(payload.activityWeakReference.get());
-          }
-          break;
-        case STOPPED:
-          if (payload.activityWeakReference.get() != null) {
-            onActivityStopped(payload.activityWeakReference.get());
-          }
-          break;
-        case SAVE_INSTANCE:
-          if (payload.activityWeakReference.get() != null) {
-            onActivitySaveInstanceState(payload.activityWeakReference.get(), payload.bundle);
-          }
-          break;
-        case DESTROYED:
-          if (payload.activityWeakReference.get() != null) {
-            onActivityDestroyed(payload.activityWeakReference.get());
-          }
-          break;
-        default:
-          throw new IllegalArgumentException("Unknown payload type!" + payload.type);
+    Logger.d("Replaying %s events.", operationQueue.size());
+    while (operationQueue.size() > 0) {
+      IntegrationOperation operation = operationQueue.peek();
+      for (AbstractIntegration integration : enabledIntegrations.values()) {
+        operation.run(integration);
       }
+      operationQueue.remove();
     }
-    Logger.d("Replayed %s activity lifecycle events.", activityLifecyclePayloadQueue.size());
-    activityLifecyclePayloadQueue.clear();
-    activityLifecyclePayloadQueue = null;
-
-    for (BasePayload payload : payloadQueue) {
-      switch (payload.type()) {
-        case alias:
-          alias((AliasPayload) payload);
-          break;
-        case group:
-          group((GroupPayload) payload);
-          break;
-        case identify:
-          identify((IdentifyPayload) payload);
-          break;
-        case page:
-          screen((ScreenPayload) payload);
-          break;
-        case screen:
-          screen((ScreenPayload) payload);
-          break;
-        case track:
-          track((TrackPayload) payload);
-          break;
-        default:
-          throw new IllegalArgumentException("");
-      }
-    }
-    Logger.d("Replayed %s analytics events.", payloadQueue.size());
-    payloadQueue.clear();
-    payloadQueue = null;
   }
 
   private boolean isBundledIntegrationEnabledForPayload(BasePayload payload,
@@ -443,5 +412,46 @@ public class IntegrationManager {
 
   public Map<String, Boolean> bundledIntegrations() {
     return serverIntegrations;
+  }
+
+  private static class IntegrationManagerHandler extends Handler {
+    private final IntegrationManager integrationManager;
+
+    public IntegrationManagerHandler(Looper looper, IntegrationManager integrationManager) {
+      super(looper);
+      this.integrationManager = integrationManager;
+    }
+
+    @Override public void handleMessage(final Message msg) {
+      switch (msg.what) {
+        case REQUEST_LOAD:
+          integrationManager.performLoad();
+          break;
+        case REQUEST_FETCH_SETTINGS:
+          integrationManager.performFetch();
+          break;
+        case REQUEST_INIT:
+          ProjectSettings settings = (ProjectSettings) msg.obj;
+          integrationManager.performInit(settings);
+          break;
+        case REQUEST_LIFECYCLE_EVENT:
+          ActivityLifecyclePayload activityLifecyclePayload = (ActivityLifecyclePayload) msg.obj;
+          integrationManager.enqueue(activityLifecyclePayload);
+          break;
+        case REQUEST_ANALYTICS_EVENT:
+          BasePayload basePayload = (BasePayload) msg.obj;
+          integrationManager.enqueue(basePayload);
+          break;
+        case REQUEST_FLUSH:
+          integrationManager.performFlush();
+          break;
+        default:
+          Segment.HANDLER.post(new Runnable() {
+            @Override public void run() {
+              throw new AssertionError("Unhandled dispatcher message." + msg.what);
+            }
+          });
+      }
+    }
   }
 }

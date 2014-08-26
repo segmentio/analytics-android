@@ -45,7 +45,7 @@ public class Dispatcher {
   static final int REQUEST_ENQUEUE = 0;
   static final int REQUEST_FLUSH = 1;
 
-  private static final String STATS_THREAD_NAME = Utils.THREAD_PREFIX + "Dispatcher";
+  private static final String DISPATCHER_THREAD_NAME = Utils.THREAD_PREFIX + "Dispatcher";
   private static final String TASK_QUEUE_FILE_NAME = "payload_task_queue";
 
   final Context context;
@@ -78,7 +78,7 @@ public class Dispatcher {
     this.segmentHTTPApi = segmentHTTPApi;
     this.queue = queue;
     this.stats = stats;
-    dispatcherThread = new HandlerThread(STATS_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
+    dispatcherThread = new HandlerThread(DISPATCHER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     dispatcherThread.start();
     handler = new DispatcherHandler(dispatcherThread.getLooper(), this);
   }

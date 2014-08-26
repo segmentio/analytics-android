@@ -254,9 +254,10 @@ public class Segment {
     }
 
     Traits.with(application).putUserId(userId);
-    submit(new IdentifyPayload(Traits.with(application).anonymousId(),
+    BasePayload payload = new IdentifyPayload(Traits.with(application).anonymousId(),
         AnalyticsContext.with(application), Traits.with(application).userId(),
-        Traits.with(application), options, integrationManager.bundledIntegrations()));
+        Traits.with(application), options, integrationManager.bundledIntegrations());
+    submit(payload);
   }
 
   /**
@@ -287,11 +288,12 @@ public class Segment {
       options = new Options();
     }
 
-    submit(
+    BasePayload payload =
         new GroupPayload(Traits.with(application).anonymousId(), AnalyticsContext.with(application),
             userId, groupId, Traits.with(application), options,
-            integrationManager.bundledIntegrations())
-    );
+            integrationManager.bundledIntegrations());
+
+    submit(payload);
   }
 
   /**
@@ -319,13 +321,11 @@ public class Segment {
       options = new Options();
     }
 
-    TrackPayload payload =
+    BasePayload payload =
         new TrackPayload(Traits.with(application).anonymousId(), AnalyticsContext.with(application),
             Traits.with(application).userId(), event, properties, options,
             integrationManager.bundledIntegrations());
-
     submit(payload);
-    integrationManager.track(payload);
   }
 
   /**
@@ -354,9 +354,10 @@ public class Segment {
       options = new Options();
     }
 
-    submit(new ScreenPayload(Traits.with(application).anonymousId(),
+    BasePayload payload = new ScreenPayload(Traits.with(application).anonymousId(),
         AnalyticsContext.with(application), Traits.with(application).userId(), category, name,
-        properties, options, integrationManager.bundledIntegrations()));
+        properties, options, integrationManager.bundledIntegrations());
+    submit(payload);
   }
 
   /**
@@ -387,11 +388,11 @@ public class Segment {
       options = new Options();
     }
 
-    submit(
+    BasePayload payload =
         new AliasPayload(Traits.with(application).anonymousId(), AnalyticsContext.with(application),
             Traits.with(application).userId(), previousId, options,
-            integrationManager.bundledIntegrations())
-    );
+            integrationManager.bundledIntegrations());
+    submit(payload);
   }
 
   /**
@@ -400,7 +401,7 @@ public class Segment {
    */
   public void flush() {
     dispatcher.dispatchFlush();
-    integrationManager.flush();
+    integrationManager.dispatchFlush();
   }
 
   /**
@@ -412,7 +413,7 @@ public class Segment {
    * calling methods on the integration. Do not call into the integration if it has not been
    * initialized.
    */
-  public Object getIntegration(Integration integration) {
+  public Object getUnderlyingInstance(Integration integration) {
     return integrationManager.getInstance(integration);
   }
 
@@ -428,5 +429,6 @@ public class Segment {
 
   void submit(BasePayload payload) {
     dispatcher.dispatchEnqueue(payload);
+    integrationManager.dispatchAnalyticsEvent(payload);
   }
 }
