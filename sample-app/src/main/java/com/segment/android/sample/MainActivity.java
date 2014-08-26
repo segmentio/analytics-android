@@ -41,7 +41,6 @@ import com.segment.android.Options;
 import com.segment.android.Properties;
 import com.segment.android.Segment;
 import com.segment.android.StatsSnapshot;
-import com.segment.android.Traits;
 
 public class MainActivity extends Activity {
   @Override
