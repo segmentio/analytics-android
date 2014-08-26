@@ -27,6 +27,8 @@ package com.segment.android;
 import android.Manifest;
 import android.app.Application;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Looper;
@@ -90,18 +92,31 @@ public class Segment {
             // incorrectly defined - something we shouldn't ignore
             int maxQueueSize = getResourceIntegerOrThrow(context, QUEUE_SIZE_RESOURCE_IDENTIFIER);
             if (maxQueueSize <= 0) {
-              throw new IllegalStateException(
-                  "analytics_queue_size(" + maxQueueSize + ") may not be zero or negative.");
+              throw new IllegalStateException(QUEUE_SIZE_RESOURCE_IDENTIFIER
+                  + "("
+                  + maxQueueSize
+                  + ") may not be zero or negative.");
             }
             builder.maxQueueSize(maxQueueSize);
           } catch (Resources.NotFoundException e) {
+            Logger.d("%s not defined in xml. Using default value.", QUEUE_SIZE_RESOURCE_IDENTIFIER);
             // when maxQueueSize is not defined in xml, we'll use a default option in the builder
           }
           try {
             boolean debugging = getResourceBooleanOrThrow(context, DEBUGGING_RESOURCE_IDENTIFIER);
             builder.debugging(debugging);
-          } catch (Resources.NotFoundException e) {
-            // when debugging is not defined in xml, we'll use a default value from the builder
+          } catch (Resources.NotFoundException notFoundException) {
+            Logger.d("%s not defined in xml.", DEBUGGING_RESOURCE_IDENTIFIER);
+            String packageName = context.getPackageName();
+            try {
+              final int flags =
+                  context.getPackageManager().getApplicationInfo(packageName, 0).flags;
+              boolean debugging = (flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+              builder.debugging(debugging);
+            } catch (PackageManager.NameNotFoundException nameNotFoundException) {
+              Logger.e(nameNotFoundException,
+                  "Could not look up package flags. Disabling debugging.");
+            }
           }
           singleton = builder.build();
         }
