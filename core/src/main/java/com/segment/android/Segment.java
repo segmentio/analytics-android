@@ -178,11 +178,13 @@ public class Segment {
       if (maxQueueSize == -1) {
         maxQueueSize = DEFAULT_QUEUE_SIZE;
       }
+      Stats stats = new Stats();
       SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
-      Dispatcher dispatcher = Dispatcher.create(application, HANDLER, maxQueueSize, segmentHTTPApi);
+      Dispatcher dispatcher =
+          Dispatcher.create(application, HANDLER, maxQueueSize, segmentHTTPApi, stats);
       IntegrationManager integrationManager =
           new IntegrationManager(application, HANDLER, segmentHTTPApi);
-      return new Segment(application, dispatcher, integrationManager, debugging);
+      return new Segment(application, dispatcher, integrationManager, stats, debugging);
     }
   }
 
@@ -202,11 +204,11 @@ public class Segment {
   volatile boolean debugging;
 
   Segment(Application application, Dispatcher dispatcher, IntegrationManager integrationManager,
-      boolean debugging) {
+      Stats stats, boolean debugging) {
     this.application = application;
     this.dispatcher = dispatcher;
     this.integrationManager = integrationManager;
-    this.stats = new Stats();
+    this.stats = stats;
     setDebugging(debugging);
     AnalyticsContext.with(application);
     Traits.with(application);
@@ -399,7 +401,6 @@ public class Segment {
   public void flush() {
     dispatcher.dispatchFlush();
     integrationManager.flush();
-    stats.dispatchFlush();
   }
 
   /**
@@ -426,7 +427,6 @@ public class Segment {
   }
 
   void submit(BasePayload payload) {
-    stats.dispatchEvent();
     dispatcher.dispatchEnqueue(payload);
   }
 }

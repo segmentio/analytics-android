@@ -48,9 +48,10 @@ public class Dispatcher {
   final int maxQueueSize;
   final ExecutorService flushService;
   final ExecutorService queueService;
+  final Stats stats;
 
   public static Dispatcher create(Context context, Handler mainThreadHandler, int maxQueueSize,
-      SegmentHTTPApi segmentHTTPApi) {
+      SegmentHTTPApi segmentHTTPApi, Stats stats) {
     FileObjectQueue.Converter<BasePayload> converter = new PayloadConverter();
     File queueFile = new File(context.getFilesDir(), TASK_QUEUE_FILE_NAME);
     FileObjectQueue<BasePayload> queue;
@@ -62,12 +63,12 @@ public class Dispatcher {
     ExecutorService flushService = Executors.newSingleThreadExecutor();
     ExecutorService queueService = Executors.newSingleThreadExecutor();
     return new Dispatcher(context, mainThreadHandler, flushService, maxQueueSize, segmentHTTPApi,
-        queue, queueService);
+        queue, queueService, stats);
   }
 
   Dispatcher(Context context, Handler mainThreadHandler, ExecutorService flushService,
       int maxQueueSize, SegmentHTTPApi segmentHTTPApi, ObjectQueue<BasePayload> queue,
-      ExecutorService queueService) {
+      ExecutorService queueService, Stats stats) {
     this.context = context;
     this.mainThreadHandler = mainThreadHandler;
     this.maxQueueSize = maxQueueSize;
@@ -75,9 +76,11 @@ public class Dispatcher {
     this.queue = queue;
     this.flushService = flushService;
     this.queueService = queueService;
+    this.stats = stats;
   }
 
   public void dispatchEnqueue(final BasePayload payload) {
+    stats.dispatchEvent();
     queueService.submit(new Runnable() {
       @Override public void run() {
         enqueue(payload);
@@ -112,6 +115,7 @@ public class Dispatcher {
       return;
     }
 
+    stats.dispatchFlush();
     List<BasePayload> payloads = new ArrayList<BasePayload>();
     // This causes us to lose the guarantee that events will be delivered, since we could lose
     // power while adding them to the batch and the events would be lost from disk.
