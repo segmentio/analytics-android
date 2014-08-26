@@ -13,6 +13,7 @@ public class Stats {
   private static final int EVENT = 0;
   private static final int FLUSH = 1;
   private static final int INTEGRATION_OPERATION = 3;
+  private static final int REPLAY = 4;
 
   private static final String STATS_THREAD_NAME = Utils.THREAD_PREFIX + "Stats";
 
@@ -23,6 +24,7 @@ public class Stats {
   long flushCount;
   long integrationOperationCount;
   long integrationOperationTime;
+  int replayCount;
 
   public Stats() {
     statsThread = new HandlerThread(STATS_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
@@ -46,6 +48,10 @@ public class Stats {
     handler.sendMessage(handler.obtainMessage(FLUSH));
   }
 
+  public void dispatchReplay() {
+    handler.sendMessage(handler.obtainMessage(REPLAY));
+  }
+
   void performEvent() {
     eventCount++;
   }
@@ -57,6 +63,10 @@ public class Stats {
 
   void performFlush() {
     flushCount++;
+  }
+
+  void performReplay() {
+    replayCount++;
   }
 
   private static class StatsHandler extends Handler {
@@ -78,6 +88,9 @@ public class Stats {
         case INTEGRATION_OPERATION:
           stats.performIntegrationOperation((Long) msg.obj);
           break;
+        case REPLAY:
+          stats.performReplay();
+          break;
         default:
           Segment.HANDLER.post(new Runnable() {
             @Override public void run() {
@@ -90,6 +103,6 @@ public class Stats {
 
   public StatsSnapshot createSnapshot() {
     return new StatsSnapshot(System.currentTimeMillis(), eventCount, flushCount,
-        integrationOperationCount, integrationOperationTime);
+        integrationOperationCount, integrationOperationTime, replayCount);
   }
 }

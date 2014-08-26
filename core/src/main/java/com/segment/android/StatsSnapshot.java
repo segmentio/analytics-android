@@ -8,15 +8,17 @@ public class StatsSnapshot {
   // Number of times we've told an integration to do an event, including flushes
   public final long integrationEventTime;
   public final long averageIntegrationEventTime;
+  public final int replayCount;
 
   public StatsSnapshot(long timestamp, long eventCount, long flushCount, long integrationEventCount,
-      long integrationEventTime) {
+      long integrationEventTime, int replayCount) {
     this.timestamp = timestamp;
     this.eventCount = eventCount;
     this.flushCount = flushCount;
     this.integrationEventCount = integrationEventCount;
     this.integrationEventTime = integrationEventTime;
     averageIntegrationEventTime = integrationEventTime / integrationEventCount;
+    this.replayCount = replayCount;
   }
 
   @Override public String toString() {
@@ -33,6 +35,8 @@ public class StatsSnapshot {
         + integrationEventTime
         + ", averageIntegrationEventTime="
         + averageIntegrationEventTime
+        + ", replayCount="
+        + replayCount
         + '}';
   }
 }
