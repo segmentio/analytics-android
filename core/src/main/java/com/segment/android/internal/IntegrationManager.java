@@ -122,6 +122,7 @@ public class IntegrationManager {
     } else {
       dispatchInit(projectSettings);
       if (projectSettings.timestamp() + 10800000L < System.currentTimeMillis()) {
+        Logger.v("Stale settings");
         dispatchFetch();
       }
     }
@@ -151,6 +152,7 @@ public class IntegrationManager {
   }
 
   void dispatchFetch() {
+    Logger.v("Fetching integration settings from server");
     handler.sendMessage(handler.obtainMessage(REQUEST_FETCH_SETTINGS));
   }
 
@@ -172,9 +174,10 @@ public class IntegrationManager {
   void performInit(ProjectSettings projectSettings) {
     projectSettingsCache.set(projectSettings.toString());
     if (initialized.get()) {
-      Logger.d("Integration already initialized. Skipping.");
+      Logger.d("Integrations already initialized. Skipping.");
       return;
     }
+    Logger.v("Initializing integrations with settings %s", projectSettings);
     for (Integration integration : bundledIntegrations) {
       if (projectSettings.containsKey(integration.key())) {
         JsonMap settings = new JsonMap(projectSettings.getJsonMap(integration.key()));

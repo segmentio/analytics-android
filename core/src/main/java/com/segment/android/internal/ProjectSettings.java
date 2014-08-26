@@ -32,7 +32,7 @@ public class ProjectSettings extends JsonMap {
   private static final String TIMESTAMP_KEY = "timestamp";
 
   public static ProjectSettings load(StringCache cache) {
-    if (cache.get() == null) {
+    if (Utils.isNullOrEmpty(cache.get())) {
       return null;
     }
     return new ProjectSettings(Collections.unmodifiableMap(new JsonMap(cache.get())));
