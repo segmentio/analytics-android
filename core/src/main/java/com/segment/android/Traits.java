@@ -58,6 +58,7 @@ public class Traits extends JsonMap {
   }
 
   private Traits(StringCache cache) {
+    super(cache.get());
     this.cache = cache;
   }
 
