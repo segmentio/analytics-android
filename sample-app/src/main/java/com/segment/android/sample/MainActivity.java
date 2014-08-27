@@ -24,6 +24,7 @@
 
 package com.segment.android.sample;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
@@ -33,11 +34,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
-import com.segment.android.Analytics;
-import com.segment.android.TrackedActivity;
+import com.segment.android.AnalyticsContext;
+import com.segment.android.Options;
+import com.segment.android.Properties;
+import com.segment.android.Segment;
+import com.segment.android.StatsSnapshot;
 
-public class MainActivity extends TrackedActivity {
+public class MainActivity extends Activity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -50,17 +55,18 @@ public class MainActivity extends TrackedActivity {
   private void initViews() {
     findViewById(R.id.action_track_a).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
-        Analytics.track("Button A clicked");
+        AnalyticsContext.with(MainActivity.this).put("test", "hello");
+        Segment.with(MainActivity.this).track("Button A clicked", new Properties(), new Options());
       }
     });
     findViewById(R.id.action_track_b).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
-        Analytics.track("Button B clicked");
+        Segment.with(MainActivity.this).track("Button B clicked", new Properties(), new Options());
       }
     });
     findViewById(R.id.action_track_c).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
-        Analytics.track("Button C clicked");
+        Segment.with(MainActivity.this).track("Button C clicked", new Properties(), new Options());
       }
     });
     findViewById(R.id.action_track_custom_event).setOnClickListener(new View.OnClickListener() {
@@ -70,22 +76,40 @@ public class MainActivity extends TrackedActivity {
         if (isNullOrEmpty(event)) {
           Toast.makeText(MainActivity.this, R.string.name_required, Toast.LENGTH_LONG).show();
         } else {
-          Analytics.track(event);
+          Segment.with(MainActivity.this).track(event, new Properties(), new Options());
+        }
+      }
+    });
+    findViewById(R.id.action_identify).setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        String id = ((EditText) findViewById(R.id.action_identify_id)).getText().toString();
+        if (isNullOrEmpty(id)) {
+          Toast.makeText(MainActivity.this, R.string.name_required, Toast.LENGTH_LONG).show();
+        } else {
+          Segment.with(MainActivity.this).identify(id, new Options());
         }
       }
     });
     findViewById(R.id.action_flush).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
-        Analytics.flush(true);
+        Segment.with(MainActivity.this).flush();
+        // Analytics.flush(true);
       }
     });
     findViewById(R.id.action_test_sequence).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
-        Analytics.track("The first test event");
-        Analytics.screen("The first test screen");
-        Analytics.identify("93");
-        Analytics.track("Should have 93 as id");
-        Analytics.screen("Should also have 93 as id");
+        Segment.with(MainActivity.this)
+            .track("Not for native Amplitude", new Properties(),
+                new Options().setIntegration("Amplitude", false));
+      }
+    });
+    findViewById(R.id.action_update_stats).setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        StatsSnapshot snapshot = Segment.with(MainActivity.this).getSnapshot();
+        ((TextView) findViewById(R.id.stat_event_count)).setText(
+            "Event Count: " + snapshot.eventCount);
+        ((TextView) findViewById(R.id.stat_flush_count)).setText(
+            "Flush Count: " + snapshot.flushCount);
       }
     });
   }

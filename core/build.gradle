@@ -1,11 +1,17 @@
+apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
 
 dependencies {
+  compile 'com.squareup:tape:1.2.2'
+
+  // Integrations
   provided rootProject.ext.libraries.amplitude
   provided rootProject.ext.libraries.bugsnag
   provided rootProject.ext.libraries.countly
   provided rootProject.ext.libraries.crittercism
   provided rootProject.ext.libraries.flurry
+  provided rootProject.ext.libraries.supportLib
+  // workaround for https://github.com/JakeWharton/sdk-manager-plugin/issues/14
   provided rootProject.ext.libraries.googleAnalytics
   provided rootProject.ext.libraries.localytics
   provided rootProject.ext.libraries.mixpanel
@@ -31,6 +37,10 @@ android {
 
   lintOptions {
     abortOnError false
+  }
+
+  dexOptions {
+    preDexLibraries = rootProject.ext.preDexLibraries
   }
 
   packagingOptions {

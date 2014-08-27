@@ -13,6 +13,7 @@ android.libraryVariants.all { variant ->
   checkstyle.source variant.javaCompile.source
   checkstyle.classpath = project.fileTree(variant.javaCompile.destinationDir)
   checkstyle.exclude('**/BuildConfig.java')
+  checkstyle.exclude('**/ProjectSettings.java') // todo: quick hack, can't disable in comments
   checkstyle.exclude('**/R.java')
   project.tasks.getByName("check").dependsOn checkstyle
 }

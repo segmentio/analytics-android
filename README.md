@@ -1,9 +1,7 @@
 analytics-android
 =================
 
-analytics-android is an Android client for [Segment.io](https://segment.io).
-
-[![Build Status](https://travis-ci.org/segmentio/analytics-android.svg)](https://travis-ci.org/segmentio/analytics-android)
+analytics-android is an Android client for [Segment.io](https://segment.io)
 
 ## Documentation
 
@@ -57,3 +55,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+[![Build Status](https://travis-ci.org/segmentio/analytics-android.svg?branch=f2prateek%2Fgradle)](https://travis-ci.org/segmentio/analytics-android)
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/segmentio/analytics-android/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
