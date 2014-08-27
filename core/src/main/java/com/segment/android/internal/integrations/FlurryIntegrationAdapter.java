@@ -5,7 +5,7 @@ import android.content.Context;
 import com.flurry.android.Constants;
 import com.flurry.android.FlurryAgent;
 import com.segment.android.AnalyticsContext;
-import com.segment.android.Integration;
+import com.segment.android.internal.Integration;
 import com.segment.android.Traits;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;

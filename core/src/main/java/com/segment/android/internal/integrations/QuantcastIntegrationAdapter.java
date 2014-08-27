@@ -4,7 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import com.quantcast.measurement.service.QuantcastClient;
-import com.segment.android.Integration;
+import com.segment.android.internal.Integration;
 import com.segment.android.internal.Logger;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;

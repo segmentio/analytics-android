@@ -7,7 +7,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
-import com.segment.android.Integration;
 import com.segment.android.Segment;
 import com.segment.android.internal.integrations.AbstractIntegrationAdapter;
 import com.segment.android.internal.integrations.AmplitudeIntegrationAdapter;
@@ -396,7 +395,9 @@ public class IntegrationManager {
   }
 
   private void run(IntegrationOperation operation) {
-    for (Map.Entry<Integration, AbstractIntegrationAdapter> entry : enabledIntegrations.entrySet()) {
+    Set<Map.Entry<Integration, AbstractIntegrationAdapter>> entries =
+        enabledIntegrations.entrySet(); // checkstyle
+    for (Map.Entry<Integration, AbstractIntegrationAdapter> entry : entries) {
       long startTime = System.currentTimeMillis();
       operation.run(entry.getValue());
       long endTime = System.currentTimeMillis();
@@ -436,6 +437,19 @@ public class IntegrationManager {
     return enabled;
   }
 
+  /**
+   * TODO: add to public API. This needs a bit more cleanup before going in.
+   * Get a reference to the underlying instance for the integration. This should be used to take
+   * advantage of integration specific API's. This method will return null if the integration is
+   * not enabled, or {@link Boolean#FALSE} if it has not yet been initialized. For integrations
+   * that maintain a shared instance, this method will return {@link Boolean#TRUE} if the
+   * integration has been initialized, {@link Boolean#FALSE} otherwise. Clients should check for
+   * these conditions before calling methods on the integration. Do not call into the integration
+   * if it has not been initialized.
+   *
+   * {@link Integration#MIXPANEL} will return {@link MixpanelAPI}.
+   * {@link Integration#GOOGLE_ANALYTICS} will return {@link Tracker}.
+   */
   public Object getInstance(Integration integration) {
     if (initialized.get()) {
       AbstractIntegrationAdapter abstractIntegrationAdapter = enabledIntegrations.get(integration);

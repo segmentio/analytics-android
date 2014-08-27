@@ -2,7 +2,7 @@ package com.segment.android.internal.integrations;
 
 import android.content.Context;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
-import com.segment.android.Integration;
+import com.segment.android.internal.Integration;
 import com.segment.android.Properties;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.IdentifyPayload;

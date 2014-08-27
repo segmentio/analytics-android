@@ -1,4 +1,4 @@
-package com.segment.android;
+package com.segment.android.internal;
 
 public enum Integration {
   AMPLITUDE("Amplitude", "com.amplitude.api.Amplitude"),

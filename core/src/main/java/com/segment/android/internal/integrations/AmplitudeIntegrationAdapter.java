@@ -3,7 +3,7 @@ package com.segment.android.internal.integrations;
 import android.app.Activity;
 import android.content.Context;
 import com.amplitude.api.Amplitude;
-import com.segment.android.Integration;
+import com.segment.android.internal.Integration;
 import com.segment.android.Properties;
 import com.segment.android.Traits;
 import com.segment.android.internal.payload.IdentifyPayload;

@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import com.bugsnag.android.Bugsnag;
 import com.bugsnag.android.Client;
-import com.segment.android.Integration;
+import com.segment.android.internal.Integration;
 import com.segment.android.Traits;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.json.JsonMap;

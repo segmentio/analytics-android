@@ -8,7 +8,7 @@ import com.google.android.gms.analytics.ExceptionReporter;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
-import com.segment.android.Integration;
+import com.segment.android.internal.Integration;
 import com.segment.android.Properties;
 import com.segment.android.internal.Logger;
 import com.segment.android.internal.payload.ScreenPayload;

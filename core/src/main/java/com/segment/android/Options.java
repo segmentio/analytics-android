@@ -64,16 +64,6 @@ public class Options {
     return this;
   }
 
-  /**
-   * Same as {@link #setIntegration(String, boolean)} but strongly typed. Use this method if you
-   * want to target a bundled integration since it provides more type safety. You can still use the
-   * other for integrations that aren't bundled and hence not enumerated in {@link Integration}.
-   */
-  public Options setIntegration(Integration integration, boolean enabled) {
-    integrations.put(integration.key(), enabled);
-    return this;
-  }
-
   // todo: hide from public API
   public Map<String, Boolean> integrations() {
     return Collections.unmodifiableMap(integrations);

@@ -2,7 +2,7 @@ package com.segment.android.internal.integrations;
 
 import android.app.Application;
 import android.content.Context;
-import com.segment.android.Integration;
+import com.segment.android.internal.Integration;
 import com.segment.android.Properties;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;

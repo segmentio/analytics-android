@@ -3,7 +3,7 @@ package com.segment.android.internal.integrations;
 import android.content.Context;
 import com.crittercism.app.Crittercism;
 import com.crittercism.app.CrittercismConfig;
-import com.segment.android.Integration;
+import com.segment.android.internal.Integration;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
