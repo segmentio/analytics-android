@@ -191,7 +191,8 @@ public class IntegrationManager {
             enableIntegration(Integration.COUNTLY, new CountlyIntegrationAdapter(), settings);
             break;
           case CRITTERCISM:
-            enableIntegration(Integration.CRITTERCISM, new CrittercismIntegrationAdapter(), settings);
+            enableIntegration(Integration.CRITTERCISM, new CrittercismIntegrationAdapter(),
+                settings);
             break;
           case FLURRY:
             enableIntegration(Integration.FLURRY, new FlurryIntegrationAdapter(), settings);
@@ -221,8 +222,8 @@ public class IntegrationManager {
     replay();
   }
 
-  private void enableIntegration(Integration integration, AbstractIntegrationAdapter abstractIntegrationAdapter,
-      JsonMap settings) {
+  private void enableIntegration(Integration integration,
+      AbstractIntegrationAdapter abstractIntegrationAdapter, JsonMap settings) {
     try {
       abstractIntegrationAdapter.initialize(context, settings);
       enabledIntegrations.put(integration, abstractIntegrationAdapter);

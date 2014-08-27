@@ -404,22 +404,6 @@ public class Segment {
   }
 
   /**
-   * Get a reference to the underlying instance for the integration. This should be used to take
-   * advantage of integration specific API's. This method will return null if the integration is
-   * not enabled, or {@link Boolean#FALSE} if it has not yet been initialized. For integrations
-   * that maintain a shared instance, this method will return {@link Boolean#TRUE} if the
-   * integration has been initialized, {@link Boolean#FALSE} otherwise. Clients should check for
-   * these conditions before calling methods on the integration. Do not call into the integration
-   * if it has not been initialized.
-   *
-   * {@link Integration#MIXPANEL} will return {@link MixpanelAPI}.
-   * {@link Integration#GOOGLE_ANALYTICS} will return {@link Tracker}.
-   */
-  public Object getUnderlyingInstance(Integration integration) {
-    return integrationManager.getInstance(integration);
-  }
-
-  /**
    * Creates a {@link StatsSnapshot} of the current stats for this instance.
    * <p>
    * <b>NOTE:</b> The snapshot may not always be completely up-to-date if requests are still in
