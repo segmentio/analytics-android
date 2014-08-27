@@ -10,8 +10,8 @@ dependencies {
   provided rootProject.ext.libraries.countly
   provided rootProject.ext.libraries.crittercism
   provided rootProject.ext.libraries.flurry
-  provided rootProject.ext.libraries.supportLib
   // workaround for https://github.com/JakeWharton/sdk-manager-plugin/issues/14
+  provided rootProject.ext.libraries.supportLib
   provided rootProject.ext.libraries.googleAnalytics
   provided rootProject.ext.libraries.localytics
   provided rootProject.ext.libraries.mixpanel
