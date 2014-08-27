@@ -205,7 +205,7 @@ public class IntegrationManager {
         new ActivityLifecyclePayload(event, activity, bundle)));
   }
 
-  void enqueue(final ActivityLifecyclePayload payload) {
+  void performEnqueue(final ActivityLifecyclePayload payload) {
     switch (payload.type) {
       case CREATED:
         if (payload.activityWeakReference.get() != null) {
@@ -280,7 +280,7 @@ public class IntegrationManager {
     handler.sendMessage(handler.obtainMessage(REQUEST_ANALYTICS_EVENT, payload));
   }
 
-  void enqueue(final BasePayload payload) {
+  void performEnqueue(final BasePayload payload) {
     switch (payload.type()) {
       case alias:
         enqueue(new IntegrationOperation() {
@@ -424,11 +424,11 @@ public class IntegrationManager {
           break;
         case REQUEST_LIFECYCLE_EVENT:
           ActivityLifecyclePayload activityLifecyclePayload = (ActivityLifecyclePayload) msg.obj;
-          integrationManager.enqueue(activityLifecyclePayload);
+          integrationManager.performEnqueue(activityLifecyclePayload);
           break;
         case REQUEST_ANALYTICS_EVENT:
           BasePayload basePayload = (BasePayload) msg.obj;
-          integrationManager.enqueue(basePayload);
+          integrationManager.performEnqueue(basePayload);
           break;
         case REQUEST_FLUSH:
           integrationManager.performFlush();
