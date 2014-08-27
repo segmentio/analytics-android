@@ -2,7 +2,6 @@ package com.segment.android.internal.integrations;
 
 import android.content.Context;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
-import com.segment.android.internal.Integration;
 import com.segment.android.Properties;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
@@ -28,10 +27,6 @@ public class MixpanelIntegrationAdapter extends AbstractIntegrationAdapter<Mixpa
   boolean trackCategorizedPages;
   boolean trackNamedPages;
 
-  @Override public Integration provider() {
-    return Integration.MIXPANEL;
-  }
-
   @Override public void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     trackAllPages = settings.getBoolean("trackAllPages");
@@ -43,6 +38,14 @@ public class MixpanelIntegrationAdapter extends AbstractIntegrationAdapter<Mixpa
 
   @Override public MixpanelAPI getUnderlyingInstance() {
     return mixpanelAPI;
+  }
+
+  @Override public String className() {
+    return "com.mixpanel.android.mpmetrics.MixpanelAPI";
+  }
+
+  @Override public String key() {
+    return "Mixpanel";
   }
 
   @Override public void identify(IdentifyPayload identify) {

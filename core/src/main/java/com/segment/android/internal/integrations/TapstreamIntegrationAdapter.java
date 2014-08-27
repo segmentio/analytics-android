@@ -2,7 +2,6 @@ package com.segment.android.internal.integrations;
 
 import android.app.Application;
 import android.content.Context;
-import com.segment.android.internal.Integration;
 import com.segment.android.Properties;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
@@ -30,10 +29,6 @@ public class TapstreamIntegrationAdapter extends AbstractIntegrationAdapter<Taps
   Tapstream tapstream;
   Config config;
 
-  @Override public Integration provider() {
-    return Integration.TAPSTREAM;
-  }
-
   @Override public void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     trackAllPages = settings.getBoolean("trackAllPages");
@@ -47,6 +42,14 @@ public class TapstreamIntegrationAdapter extends AbstractIntegrationAdapter<Taps
 
   @Override public Tapstream getUnderlyingInstance() {
     return tapstream;
+  }
+
+  @Override public String className() {
+    return "com.tapstream.sdk.Tapstream";
+  }
+
+  @Override public String key() {
+    return "Tapstream";
   }
 
   @Override public void track(TrackPayload track) {

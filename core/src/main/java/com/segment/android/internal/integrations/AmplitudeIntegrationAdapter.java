@@ -3,7 +3,6 @@ package com.segment.android.internal.integrations;
 import android.app.Activity;
 import android.content.Context;
 import com.amplitude.api.Amplitude;
-import com.segment.android.internal.Integration;
 import com.segment.android.Properties;
 import com.segment.android.Traits;
 import com.segment.android.internal.payload.IdentifyPayload;
@@ -27,10 +26,6 @@ public class AmplitudeIntegrationAdapter extends AbstractIntegrationAdapter<Void
   boolean trackCategorizedPages;
   boolean trackNamedPages;
 
-  @Override public Integration provider() {
-    return Integration.AMPLITUDE;
-  }
-
   @Override public void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     trackAllPages = settings.getBoolean("trackAllPages");
@@ -41,6 +36,14 @@ public class AmplitudeIntegrationAdapter extends AbstractIntegrationAdapter<Void
 
   @Override public Void getUnderlyingInstance() {
     return null;
+  }
+
+  @Override public String className() {
+    return "com.amplitude.api.Amplitude";
+  }
+
+  @Override public String key() {
+    return "Amplitude";
   }
 
   @Override public void onActivityResumed(Activity activity) {

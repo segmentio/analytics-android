@@ -5,7 +5,6 @@ import android.content.Context;
 import com.flurry.android.Constants;
 import com.flurry.android.FlurryAgent;
 import com.segment.android.AnalyticsContext;
-import com.segment.android.internal.Integration;
 import com.segment.android.Traits;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
@@ -24,10 +23,6 @@ import static com.segment.android.internal.Utils.isNullOrEmpty;
  */
 public class FlurryIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   String apiKey;
-
-  @Override public Integration provider() {
-    return Integration.FLURRY;
-  }
 
   @Override public void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
@@ -85,5 +80,13 @@ public class FlurryIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
 
   @Override public Void getUnderlyingInstance() {
     return null;
+  }
+
+  @Override public String className() {
+    return "com.flurry.android.FlurryAgent";
+  }
+
+  @Override public String key() {
+    return "Flurry";
   }
 }

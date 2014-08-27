@@ -8,7 +8,6 @@ import com.google.android.gms.analytics.ExceptionReporter;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
-import com.segment.android.internal.Integration;
 import com.segment.android.Properties;
 import com.segment.android.internal.Logger;
 import com.segment.android.internal.payload.ScreenPayload;
@@ -55,10 +54,6 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
     itemEventNames.add("Viewed Product Image");
     itemEventNames.add("Viewed Product Reviews");
     itemEventNames.add("Viewed Sale Page");
-  }
-
-  @Override public Integration provider() {
-    return Integration.GOOGLE_ANALYTICS;
   }
 
   @Override public void initialize(Context context, JsonMap settings)
@@ -209,5 +204,13 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
 
   @Override public Tracker getUnderlyingInstance() {
     return tracker;
+  }
+
+  @Override public String className() {
+    return "Google Analytics";
+  }
+
+  @Override public String key() {
+    return "com.google.android.gms.analytics.GoogleAnalytics";
   }
 }

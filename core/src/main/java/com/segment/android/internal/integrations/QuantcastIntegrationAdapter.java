@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import com.quantcast.measurement.service.QuantcastClient;
-import com.segment.android.internal.Integration;
 import com.segment.android.internal.Logger;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
@@ -24,10 +23,6 @@ import static com.segment.android.internal.Utils.hasPermission;
 public class QuantcastIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   String apiKey;
 
-  @Override public Integration provider() {
-    return Integration.QUANTCAST;
-  }
-
   @Override public void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
@@ -39,6 +34,14 @@ public class QuantcastIntegrationAdapter extends AbstractIntegrationAdapter<Void
 
   @Override public Void getUnderlyingInstance() {
     return null;
+  }
+
+  @Override public String className() {
+    return "com.quantcast.measurement.service.QuantcastClient";
+  }
+
+  @Override public String key() {
+    return "Quantcast";
   }
 
   @Override public void onActivityStarted(Activity activity) {

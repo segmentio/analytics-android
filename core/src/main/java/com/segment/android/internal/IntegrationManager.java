@@ -30,8 +30,8 @@ import com.segment.android.json.JsonMap;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -52,7 +52,6 @@ import static com.segment.android.internal.Utils.isConnected;
 public class IntegrationManager {
   private static final String PROJECT_SETTINGS_CACHE_KEY = "project-settings";
 
-  static final int REQUEST_LOAD = 0;
   static final int REQUEST_FETCH_SETTINGS = 1;
   static final int REQUEST_INIT = 2;
   static final int REQUEST_LIFECYCLE_EVENT = 3;
@@ -62,12 +61,10 @@ public class IntegrationManager {
   private static final String INTEGRATION_MANAGER_THREAD_NAME =
       Utils.THREAD_PREFIX + "IntegrationManager";
   // A set of integrations available on the device
-  private final Set<Integration> bundledIntegrations = new HashSet<Integration>();
-  // Same as above but explicitly used only to generate server integrations, hence with String keys
+  private final Set<AbstractIntegrationAdapter> bundledIntegrations =
+      new HashSet<AbstractIntegrationAdapter>();
+  // A map of integrations that were found on the device, so that we disable them for servers
   private Map<String, Boolean> serverIntegrations = new LinkedHashMap<String, Boolean>();
-  // A set of integrations that are available and have been enabled for this project.
-  private final Map<Integration, AbstractIntegrationAdapter> enabledIntegrations =
-      new LinkedHashMap<Integration, AbstractIntegrationAdapter>();
   private Queue<IntegrationOperation> operationQueue = new ArrayDeque<IntegrationOperation>();
   final AtomicBoolean initialized = new AtomicBoolean();
 
@@ -111,7 +108,7 @@ public class IntegrationManager {
     integrationManagerThread.start();
     handler = new IntegrationManagerHandler(integrationManagerThread.getLooper(), this);
 
-    dispatchLoad();
+    loadIntegrations();
 
     this.projectSettingsCache = projectSettingsCache;
     ProjectSettings projectSettings = ProjectSettings.load(projectSettingsCache);
@@ -126,27 +123,31 @@ public class IntegrationManager {
     }
   }
 
-  void dispatchLoad() {
-    handler.sendMessage(handler.obtainMessage(REQUEST_LOAD));
-  }
-
-  void performLoad() {
+  void loadIntegrations() {
+    initialized.set(false);
     // Look up all the integrations available on the device. This is done early so that we can
     // disable sending to these integrations from the server and properly fill the payloads.
-    for (Integration integration : Integration.values()) {
-      Logger.v("Checking for integration %s", integration.key());
-      try {
-        Class.forName(integration.className());
-        bundledIntegrations.add(integration);
-        serverIntegrations.put(integration.key(), false);
-        Logger.v("Loaded integration %s", integration.key());
-      } catch (ClassNotFoundException e) {
-        Logger.v("Integration %s not bundled", integration.key());
-      }
+    addToBundledIntegrations(new AmplitudeIntegrationAdapter());
+    addToBundledIntegrations(new BugsnagIntegrationAdapter());
+    addToBundledIntegrations(new CountlyIntegrationAdapter());
+    addToBundledIntegrations(new CrittercismIntegrationAdapter());
+    addToBundledIntegrations(new FlurryIntegrationAdapter());
+    addToBundledIntegrations(new GoogleAnalyticsIntegrationAdapter());
+    addToBundledIntegrations(new LocalyticsIntegrationAdapter());
+    addToBundledIntegrations(new MixpanelIntegrationAdapter());
+    addToBundledIntegrations(new QuantcastIntegrationAdapter());
+    addToBundledIntegrations(new TapstreamIntegrationAdapter());
+  }
+
+  void addToBundledIntegrations(AbstractIntegrationAdapter abstractIntegrationAdapter) {
+    try {
+      Class.forName(abstractIntegrationAdapter.className());
+      bundledIntegrations.add(abstractIntegrationAdapter);
+      serverIntegrations.put(abstractIntegrationAdapter.key(), false);
+      Logger.v("Loaded integration %s", abstractIntegrationAdapter.key());
+    } catch (ClassNotFoundException e) {
+      Logger.v("Integration %s not bundled", abstractIntegrationAdapter.key());
     }
-    serverIntegrations =
-        Collections.unmodifiableMap(serverIntegrations); // don't allow any more modifications
-    initialized.set(false);
   }
 
   void dispatchFetch() {
@@ -176,60 +177,25 @@ public class IntegrationManager {
       return;
     }
     Logger.v("Initializing integrations with settings %s", projectSettings);
-    for (Integration integration : bundledIntegrations) {
+    Iterator<AbstractIntegrationAdapter> iterator = bundledIntegrations.iterator();
+    while (iterator.hasNext()) {
+      AbstractIntegrationAdapter integration = iterator.next();
       if (projectSettings.containsKey(integration.key())) {
         JsonMap settings = new JsonMap(projectSettings.getJsonMap(integration.key()));
-        switch (integration) {
-          case AMPLITUDE:
-            enableIntegration(Integration.AMPLITUDE, new AmplitudeIntegrationAdapter(), settings);
-            break;
-          case BUGSNAG:
-            enableIntegration(Integration.BUGSNAG, new BugsnagIntegrationAdapter(), settings);
-            break;
-          case COUNTLY:
-            enableIntegration(Integration.COUNTLY, new CountlyIntegrationAdapter(), settings);
-            break;
-          case CRITTERCISM:
-            enableIntegration(Integration.CRITTERCISM, new CrittercismIntegrationAdapter(),
-                settings);
-            break;
-          case FLURRY:
-            enableIntegration(Integration.FLURRY, new FlurryIntegrationAdapter(), settings);
-            break;
-          case GOOGLE_ANALYTICS:
-            enableIntegration(Integration.GOOGLE_ANALYTICS, new GoogleAnalyticsIntegrationAdapter(),
-                settings);
-            break;
-          case LOCALYTICS:
-            enableIntegration(Integration.LOCALYTICS, new LocalyticsIntegrationAdapter(), settings);
-            break;
-          case MIXPANEL:
-            enableIntegration(Integration.MIXPANEL, new MixpanelIntegrationAdapter(), settings);
-            break;
-          case QUANTCAST:
-            enableIntegration(Integration.QUANTCAST, new QuantcastIntegrationAdapter(), settings);
-            break;
-          case TAPSTREAM:
-            enableIntegration(Integration.TAPSTREAM, new TapstreamIntegrationAdapter(), settings);
-            break;
-          default:
-            throw new IllegalArgumentException("Unknown integration! " + integration.key());
+        try {
+          integration.initialize(context, settings);
+          Logger.v("Initialized integration %s", integration.key());
+        } catch (InvalidConfigurationException e) {
+          iterator.remove();
+          Logger.e(e, "could not initialize integration " + integration.key());
         }
+      } else {
+        iterator.remove();
+        Logger.v("%s integration not enabled in project settings.", integration.key());
       }
     }
     initialized.set(true);
     replay();
-  }
-
-  private void enableIntegration(Integration integration,
-      AbstractIntegrationAdapter abstractIntegrationAdapter, JsonMap settings) {
-    try {
-      abstractIntegrationAdapter.initialize(context, settings);
-      enabledIntegrations.put(integration, abstractIntegrationAdapter);
-      Logger.v("Initialized integration %s", integration.key());
-    } catch (InvalidConfigurationException e) {
-      Logger.e(e, "Could not initialize integration %s", integration.key());
-    }
   }
 
   // Activity Lifecycle Events
@@ -395,14 +361,12 @@ public class IntegrationManager {
   }
 
   private void run(IntegrationOperation operation) {
-    Set<Map.Entry<Integration, AbstractIntegrationAdapter>> entries =
-        enabledIntegrations.entrySet(); // checkstyle
-    for (Map.Entry<Integration, AbstractIntegrationAdapter> entry : entries) {
+    for (AbstractIntegrationAdapter integration : bundledIntegrations) {
       long startTime = System.currentTimeMillis();
-      operation.run(entry.getValue());
+      operation.run(integration);
       long endTime = System.currentTimeMillis();
       long duration = endTime - startTime;
-      Logger.v("Integration %s took %s ms to run operation", entry.getKey().key(), duration);
+      Logger.v("Integration %s took %s ms to run operation", integration.key(), duration);
       stats.dispatchIntegrationOperation(duration);
     }
   }
@@ -425,7 +389,7 @@ public class IntegrationManager {
     // have been  set to false
     JsonMap integrations = payload.context().getIntegrations();
     if (!JsonMap.isNullOrEmpty(integrations)) {
-      String key = integration.provider().key();
+      String key = integration.key();
       if (integrations.containsKey(key)) {
         enabled = integrations.getBoolean(key);
       } else if (integrations.containsKey("All")) {
@@ -435,32 +399,6 @@ public class IntegrationManager {
       }
     }
     return enabled;
-  }
-
-  /**
-   * TODO: add to public API. This needs a bit more cleanup before going in.
-   * Get a reference to the underlying instance for the integration. This should be used to take
-   * advantage of integration specific API's. This method will return null if the integration is
-   * not enabled, or {@link Boolean#FALSE} if it has not yet been initialized. For integrations
-   * that maintain a shared instance, this method will return {@link Boolean#TRUE} if the
-   * integration has been initialized, {@link Boolean#FALSE} otherwise. Clients should check for
-   * these conditions before calling methods on the integration. Do not call into the integration
-   * if it has not been initialized.
-   *
-   * {@link Integration#MIXPANEL} will return {@link MixpanelAPI}.
-   * {@link Integration#GOOGLE_ANALYTICS} will return {@link Tracker}.
-   */
-  public Object getInstance(Integration integration) {
-    if (initialized.get()) {
-      AbstractIntegrationAdapter abstractIntegrationAdapter = enabledIntegrations.get(integration);
-      if (abstractIntegrationAdapter == null) {
-        return Boolean.FALSE;
-      }
-      Object instance = abstractIntegrationAdapter.getUnderlyingInstance();
-      return instance == null ? Boolean.TRUE : instance;
-    } else {
-      return Boolean.FALSE;
-    }
   }
 
   public Map<String, Boolean> bundledIntegrations() {
@@ -477,9 +415,6 @@ public class IntegrationManager {
 
     @Override public void handleMessage(final Message msg) {
       switch (msg.what) {
-        case REQUEST_LOAD:
-          integrationManager.performLoad();
-          break;
         case REQUEST_FETCH_SETTINGS:
           integrationManager.performFetch();
           break;

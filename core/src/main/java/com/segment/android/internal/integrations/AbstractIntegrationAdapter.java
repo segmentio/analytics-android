@@ -3,7 +3,6 @@ package com.segment.android.internal.integrations;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import com.segment.android.internal.Integration;
 import com.segment.android.internal.payload.AliasPayload;
 import com.segment.android.internal.payload.GroupPayload;
 import com.segment.android.internal.payload.IdentifyPayload;
@@ -39,7 +38,9 @@ public abstract class AbstractIntegrationAdapter<T> {
     return null;
   }
 
-  public abstract Integration provider();
+  public abstract String className();
+
+  public abstract String key();
 
   // Application Callbacks, same as Application$ActivityLifecycleCallbacks
   public void onActivityCreated(Activity activity, Bundle savedInstanceState) {

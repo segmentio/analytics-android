@@ -2,7 +2,6 @@ package com.segment.android.internal.integrations;
 
 import android.app.Activity;
 import android.content.Context;
-import com.segment.android.internal.Integration;
 import com.segment.android.Properties;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
@@ -21,10 +20,6 @@ import static com.segment.android.internal.Utils.nullOrDefault;
  */
 public class CountlyIntegrationAdapter extends AbstractIntegrationAdapter<Countly> {
 
-  @Override public Integration provider() {
-    return Integration.COUNTLY;
-  }
-
   @Override public void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     Countly.sharedInstance()
@@ -33,6 +28,14 @@ public class CountlyIntegrationAdapter extends AbstractIntegrationAdapter<Countl
 
   @Override public Countly getUnderlyingInstance() {
     return Countly.sharedInstance();
+  }
+
+  @Override public String className() {
+    return "ly.count.android.api.Countly";
+  }
+
+  @Override public String key() {
+    return "Countly";
   }
 
   @Override public void onActivityStarted(Activity activity) {

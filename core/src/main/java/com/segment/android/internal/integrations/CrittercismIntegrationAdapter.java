@@ -3,7 +3,6 @@ package com.segment.android.internal.integrations;
 import android.content.Context;
 import com.crittercism.app.Crittercism;
 import com.crittercism.app.CrittercismConfig;
-import com.segment.android.internal.Integration;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
@@ -18,10 +17,6 @@ import com.segment.android.json.JsonMap;
  * @see {@link http://docs.crittercism.com/android/android.html}
  */
 public class CrittercismIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
-  @Override public Integration provider() {
-    return Integration.CRITTERCISM;
-  }
-
   @Override public void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     CrittercismConfig crittercismConfig = new CrittercismConfig();
@@ -33,6 +28,14 @@ public class CrittercismIntegrationAdapter extends AbstractIntegrationAdapter<Vo
 
   @Override public Void getUnderlyingInstance() {
     return null;
+  }
+
+  @Override public String className() {
+    return "com.crittercism.app.Crittercism";
+  }
+
+  @Override public String key() {
+    return "Crittercism";
   }
 
   @Override public void identify(IdentifyPayload identify) {

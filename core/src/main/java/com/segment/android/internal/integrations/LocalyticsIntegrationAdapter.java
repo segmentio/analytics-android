@@ -3,7 +3,6 @@ package com.segment.android.internal.integrations;
 import android.app.Activity;
 import android.content.Context;
 import com.localytics.android.LocalyticsSession;
-import com.segment.android.internal.Integration;
 import com.segment.android.Traits;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
@@ -24,10 +23,6 @@ import static com.segment.android.internal.Utils.isNullOrEmpty;
 public class LocalyticsIntegrationAdapter extends AbstractIntegrationAdapter<LocalyticsSession> {
   private LocalyticsSession localyticsSession;
 
-  @Override public Integration provider() {
-    return Integration.LOCALYTICS;
-  }
-
   @Override public void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     // todo: docs mentions wake_lock, but not if it is required
@@ -36,6 +31,14 @@ public class LocalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Loc
 
   @Override public LocalyticsSession getUnderlyingInstance() {
     return localyticsSession;
+  }
+
+  @Override public String className() {
+    return "com.localytics.android.LocalyticsSession";
+  }
+
+  @Override public String key() {
+    return "Localytics";
   }
 
   @Override public void onActivityResumed(Activity activity) {

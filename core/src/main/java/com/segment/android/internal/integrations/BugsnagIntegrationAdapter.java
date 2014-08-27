@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import com.bugsnag.android.Bugsnag;
 import com.bugsnag.android.Client;
-import com.segment.android.internal.Integration;
 import com.segment.android.Traits;
 import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.json.JsonMap;
@@ -20,10 +19,6 @@ import java.util.Map;
  */
 public class BugsnagIntegrationAdapter extends AbstractIntegrationAdapter<Client> {
 
-  @Override public Integration provider() {
-    return Integration.BUGSNAG;
-  }
-
   @Override public void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     Bugsnag.register(context, settings.getString("apiKey"));
@@ -32,6 +27,14 @@ public class BugsnagIntegrationAdapter extends AbstractIntegrationAdapter<Client
 
   @Override public Client getUnderlyingInstance() {
     return Bugsnag.getClient();
+  }
+
+  @Override public String className() {
+    return "com.bugsnag.android.Bugsnag";
+  }
+
+  @Override public String key() {
+    return "Bugsnag";
   }
 
   @Override public void onActivityStarted(Activity activity) {
