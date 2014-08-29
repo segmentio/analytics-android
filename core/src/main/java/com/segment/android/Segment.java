@@ -25,11 +25,14 @@
 package com.segment.android;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -45,6 +48,7 @@ import com.segment.android.internal.payload.IdentifyPayload;
 import com.segment.android.internal.payload.ScreenPayload;
 import com.segment.android.internal.payload.TrackPayload;
 
+import static com.segment.android.internal.SegmentActivityLifecycleCallbacksAdapter.registerActivityLifecycleCallbacks;
 import static com.segment.android.internal.Utils.assertOnMainThread;
 import static com.segment.android.internal.Utils.getResourceBooleanOrThrow;
 import static com.segment.android.internal.Utils.getResourceIntegerOrThrow;
@@ -210,6 +214,9 @@ public class Segment {
     setDebugging(debugging);
     AnalyticsContext.with(application);
     Traits.with(application);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+      registerActivityLifecycleCallbacks(application, this);
+    }
   }
 
   /**
@@ -223,6 +230,35 @@ public class Segment {
   /** {@code true} if debugging is enabled. */
   public boolean isDebugging() {
     return debugging;
+  }
+
+  // Activity Lifecycle
+  public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+    integrationManager.dispatchOnActivityCreated(activity, savedInstanceState);
+  }
+
+  public void onActivityStarted(Activity activity) {
+    integrationManager.dispatchOnActivityStarted(activity);
+  }
+
+  public void onActivityResumed(Activity activity) {
+    integrationManager.dispatchOnActivityResumed(activity);
+  }
+
+  public void onActivityPaused(Activity activity) {
+    integrationManager.dispatchOnActivityPaused(activity);
+  }
+
+  public void onActivityStopped(Activity activity) {
+    integrationManager.dispatchOnActivityStopped(activity);
+  }
+
+  public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+    integrationManager.dispatchOnActivitySaveInstanceState(activity, outState);
+  }
+
+  public void onActivityDestroyed(Activity activity) {
+    integrationManager.dispatchOnActivityDestroyed(activity);
   }
 
   /**

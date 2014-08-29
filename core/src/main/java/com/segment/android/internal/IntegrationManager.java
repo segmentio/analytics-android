@@ -67,7 +67,7 @@ public class IntegrationManager {
   private Queue<IntegrationOperation> operationQueue = new ArrayDeque<IntegrationOperation>();
   final AtomicBoolean initialized = new AtomicBoolean();
 
-  public enum ActivityLifecycleEvent {
+  enum ActivityLifecycleEvent {
     CREATED, STARTED, RESUMED, PAUSED, STOPPED, SAVE_INSTANCE, DESTROYED
   }
 
@@ -198,7 +198,35 @@ public class IntegrationManager {
   }
 
   // Activity Lifecycle Events
-  public void dispatchLifecycleEvent(ActivityLifecycleEvent event, Activity activity,
+  public void dispatchOnActivityCreated(Activity activity, Bundle bundle) {
+    dispatchLifecycleEvent(ActivityLifecycleEvent.CREATED, activity, bundle);
+  }
+
+  public void dispatchOnActivityStarted(Activity activity) {
+    dispatchLifecycleEvent(ActivityLifecycleEvent.STARTED, activity, null);
+  }
+
+  public void dispatchOnActivityResumed(Activity activity) {
+    dispatchLifecycleEvent(ActivityLifecycleEvent.RESUMED, activity, null);
+  }
+
+  public void dispatchOnActivityPaused(Activity activity) {
+    dispatchLifecycleEvent(ActivityLifecycleEvent.PAUSED, activity, null);
+  }
+
+  public void dispatchOnActivityStopped(Activity activity) {
+    dispatchLifecycleEvent(ActivityLifecycleEvent.STOPPED, activity, null);
+  }
+
+  public void dispatchOnActivitySaveInstanceState(Activity activity, Bundle outState) {
+    dispatchLifecycleEvent(ActivityLifecycleEvent.SAVE_INSTANCE, activity, outState);
+  }
+
+  public void dispatchOnActivityDestroyed(Activity activity) {
+    dispatchLifecycleEvent(ActivityLifecycleEvent.DESTROYED, activity, null);
+  }
+
+  private void dispatchLifecycleEvent(ActivityLifecycleEvent event, Activity activity,
       Bundle bundle) {
     handler.sendMessage(handler.obtainMessage(REQUEST_LIFECYCLE_EVENT,
         new ActivityLifecyclePayload(event, activity, bundle)));
@@ -330,11 +358,11 @@ public class IntegrationManager {
 
   void replay() {
     Logger.v("Replaying %s events.", operationQueue.size());
-    while (operationQueue.size() > 0) {
-      IntegrationOperation operation = operationQueue.peek();
+    for (IntegrationOperation operation : operationQueue) {
       run(operation);
-      operationQueue.remove();
     }
+    operationQueue.clear();
+    operationQueue = null;
   }
 
   private static boolean isBundledIntegrationEnabledForPayload(BasePayload payload,
