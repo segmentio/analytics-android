@@ -23,6 +23,6 @@
   ~ SOFTWARE.
   -->
 
-<manifest package="com.segment.android.all">
+<manifest package="com.segment.analytics.all">
   <application/>
 </manifest>

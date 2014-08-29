@@ -25,7 +25,7 @@
 <menu
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.segment.android.sample.MainActivity">
+    tools:context="com.segment.analytics.sample.MainActivity">
 
   <item android:id="@+id/action_view_docs"
       android:title="@string/action_view_docs"

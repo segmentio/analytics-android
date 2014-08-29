@@ -24,7 +24,7 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.segment.android.test"
+    package="com.segment.analytics.test"
     android:versionCode="1"
     android:versionName="1.0">
 
@@ -32,7 +32,7 @@
 
   <instrumentation
       android:name="android.test.InstrumentationTestRunner"
-      android:targetPackage="com.segment.android.test"/>
+      android:targetPackage="com.segment.analytics.test"/>
 
   <application
       android:icon="@drawable/ic_launcher"
