@@ -17,9 +17,9 @@ import static com.segment.analytics.internal.Utils.nullOrDefault;
  * Amplitude is an event tracking and segmentation tool for your mobile apps. By analyzing the
  * actions your users perform you can gain a better understanding of how they use your app.
  *
- * @see {@link https://amplitude.com}
- * @see {@link https://segment.io/docs/integrations/amplitude/}
- * @see {@link https://github.com/amplitude/Amplitude-Android}
+ * @see <a href="https://amplitude.com">Amplitude</a>
+ * @see <a href="https://segment.io/docs/integrations/amplitude/">Amplitude Integration</a>
+ * @see <a href="https://github.com/amplitude/Amplitude-Android">Amplitude Android SDK</a>
  */
 public class AmplitudeIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   boolean trackAllPages;

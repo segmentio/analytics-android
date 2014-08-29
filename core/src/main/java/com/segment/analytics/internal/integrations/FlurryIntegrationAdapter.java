@@ -17,9 +17,10 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * Flurry is the most popular analytics tool for mobile apps because it has a wide assortment of
  * features. It also helps you advertise to the right audiences with your apps.
  *
- * @see {@link http://www.flurry.com/}
- * @see {@link https://segment.io/docs/integrations/flurry/}
- * @see {@link http://support.flurry.com/index.php?title=Analytics/GettingStarted/Android}
+ * @see <a href="http://www.flurry.com/">Flurry</a>
+ * @see <a href="https://segment.io/docs/integrations/flurry/">Flurry Integration</a>
+ * @see <a href="http://support.flurry.com/index.php?title=Analytics/GettingStarted/Android">Flurry
+ * Android SDK</a>
  */
 public class FlurryIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   String apiKey;

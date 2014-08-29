@@ -18,9 +18,10 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * Tapstream is a mobile attribution tool that lets you attribute app installs to individual users
  * who have visited your website, so your marketing team can know what's working.
  *
- * @see {@link https://tapstream.com}
- * @see {@link https://segment.io/docs/integrations/tapstream/}
- * @see {@link https://tapstream.com/developer/android-sdk-documentation/}
+ * @see <a href="https://tapstream.com">Tapstream</a>
+ * @see <a href="https://segment.io/docs/integrations/tapstream/">Tapstream Integration</a>
+ * @see <a href="https://tapstream.com/developer/android-sdk-documentation/">Tapstream Android
+ * SDK</a>
  */
 public class TapstreamIntegrationAdapter extends AbstractIntegrationAdapter<Tapstream> {
   boolean trackAllPages;

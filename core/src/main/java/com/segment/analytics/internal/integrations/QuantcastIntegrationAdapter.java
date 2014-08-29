@@ -16,9 +16,10 @@ import static com.segment.analytics.internal.Utils.hasPermission;
  * Quantcast is an audience measurement tool that captures demographic and traffic data about the
  * visitors to your site, to make sure your ads are targeted at the right people.
  *
- * @see {@link https://www.quantcast.com/}
- * @see {@link https://segment.io/docs/integrations/quantcast/}
- * @see {@link https://github.com/quantcast/android-measurement#quantcast-android-sdk}
+ * @see <a href="https://www.quantcast.com/">Quantcast</a>
+ * @see <a href="https://segment.io/docs/integrations/quantcast/">Quantcast Integration</a>
+ * @see <a href="https://github.com/quantcast/android-measurement#quantcast-android-sdk">Quantcast
+ * Android SDK</a>
  */
 public class QuantcastIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   String apiKey;

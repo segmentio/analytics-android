@@ -26,9 +26,11 @@ import static com.segment.analytics.internal.Utils.nullOrDefault;
  * Google Analytics is the most popular analytics tool for the web because it’s free and sports a
  * wide range of features. It’s especially good at measuring traffic sources and ad campaigns.
  *
- * @see {@link http://www.google.com/analytics/}
- * @see {@link https://segment.io/docs/integrations/google-analytics/}
- * @see {@link https://developers.google.com/analytics/devguides/collection/android/v4/}
+ * @see <a href="http://www.google.com/analytics/">Google Analytics</a>
+ * @see <a href="https://segment.io/docs/integrations/google-analytics/">Google Analytics
+ * Integration</a>
+ * @see <a href="https://developers.google.com/analytics/devguides/collection/android/v4/">Google
+ * Analyitcs Android SDK</a>
  */
 public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Tracker> {
   Tracker tracker;

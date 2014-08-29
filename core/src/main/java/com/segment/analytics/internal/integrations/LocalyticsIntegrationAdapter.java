@@ -16,9 +16,9 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * Localytics is a general-purpose mobile analytics tool that measures customer acquisition, ad
  * attribution, retargeting campaigns and user actions in your mobile apps.
  *
- * @see {@link http://www.localytics.com/}
- * @see {@link https://segment.io/docs/integrations/localytics/}
- * @see {@link http://www.localytics.com/docs/android-integration/}
+ * @see <a href="http://www.localytics.com/">Localytics</a>
+ * @see <a href="https://segment.io/docs/integrations/localytics/">Localytics Integration</a>
+ * @see <a href="http://www.localytics.com/docs/android-integration/">Localytics Android SDK</a>
  */
 public class LocalyticsIntegrationAdapter extends AbstractIntegrationAdapter<LocalyticsSession> {
   private LocalyticsSession localyticsSession;

@@ -9,12 +9,12 @@ import com.segment.analytics.internal.payload.TrackPayload;
 import com.segment.analytics.json.JsonMap;
 
 /**
- * Crittercism is an error reporting tool for your mobile apps. Any time your app crashes or
- * errors. Crittercism will collect logs that will help you debug the problem and fix your app.
+ * Crittercism is an error reporting tool for your mobile apps. Any time your app crashes or errors.
+ * Crittercism will collect logs that will help you debug the problem and fix your app.
  *
- * @see {@link http://crittercism.com}
- * @see {@link https://segment.io/docs/integrations/crittercism}
- * @see {@link http://docs.crittercism.com/android/android.html}
+ * @see <a href="http://crittercism.com">Crittercism</a>
+ * @see <a href="https://segment.io/docs/integrations/crittercism">Crittercism Integration</a>
+ * @see <a href="http://docs.crittercism.com/android/android.html">Crittercism Android SDK</a>
  */
 public class CrittercismIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   @Override public void initialize(Context context, JsonMap settings)

@@ -13,9 +13,9 @@ import java.util.Map;
  * Bugsnag is an error tracking service for websites and mobile apps. It automatically captures any
  * errors in your code so that you can find them and resolve them as quickly as possible.
  *
- * @see {@link https://bugsnag.com/}
- * @see {@link https://segment.io/docs/integrations/bugsnag/}
- * @see {@link https://github.com/bugsnag/bugsnag-android}
+ * @see <a href="https://bugsnag.com/">Bugsnag</a>
+ * @see <a href="https://segment.io/docs/integrations/bugsnag/">Bugsnag Integration</a>
+ * @see <a href="https://github.com/bugsnag/bugsnag-android">Bugsnag Android SDK</a>
  */
 public class BugsnagIntegrationAdapter extends AbstractIntegrationAdapter<Client> {
 

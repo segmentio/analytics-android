@@ -14,9 +14,9 @@ import static com.segment.analytics.internal.Utils.nullOrDefault;
  * Countly is a general-purpose analytics tool for your mobile apps, with reports like traffic
  * sources, demographics, event tracking and segmentation.
  *
- * @see {@link https://count.ly/}
- * @see {@link https://segment.io/docs/integrations/countly/}
- * @see {@link https://github.com/Countly/countly-sdk-android}
+ * @see <a href="https://count.ly/">Countly</a>
+ * @see <a href="https://segment.io/docs/integrations/countly/">Countly Integration</a>
+ * @see <a href="https://github.com/Countly/countly-sdk-android">Countly Android SDK</a>
  */
 public class CountlyIntegrationAdapter extends AbstractIntegrationAdapter<Countly> {
 

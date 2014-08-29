@@ -16,9 +16,9 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * Mixpanel is an event tracking tool targeted at web apps with lots of features: funnel, retention
  * and people tracking; advanced segmentation; and sending email and notifications.
  *
- * @see {@link https://mixpanel.com}
- * @see {@link https://segment.io/docs/integrations/mixpanel}
- * @see {@link https://github.com/mixpanel/mixpanel-android}
+ * @see <a href="https://mixpanel.com">Mixpanel</a>
+ * @see <a href="https://segment.io/docs/integrations/mixpanel">Mixpanel Integration</a>
+ * @see <a href="https://github.com/mixpanel/mixpanel-android">Mixpanel Android SDK</a>
  */
 public class MixpanelIntegrationAdapter extends AbstractIntegrationAdapter<MixpanelAPI> {
   MixpanelAPI mixpanelAPI;
