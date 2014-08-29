@@ -215,9 +215,6 @@ public class Segment {
 
   /**
    * Toggle whether debugging is enabled.
-   * <p/>
-   * <b>WARNING:</b>This should be only be used for debugging behavior. Do NOT pass {@code
-   * BuildConfig.DEBUG}.
    */
   public void setDebugging(boolean enabled) {
     debugging = enabled;
@@ -227,6 +224,15 @@ public class Segment {
   /** {@code true} if debugging is enabled. */
   public boolean isDebugging() {
     return debugging;
+  }
+
+  /**
+   * Same as <code>identify(userId, new Options());</code>.
+   *
+   * @see {@link #identify(String, Options)}
+   */
+  public void identify(String userId) {
+    identify(userId, new Options());
   }
 
   /**
@@ -245,11 +251,10 @@ public class Segment {
     assertOnMainThread();
 
     if (isNullOrEmpty(userId)) {
-      throw new IllegalArgumentException("userId must be null or empty.");
+      throw new IllegalArgumentException("userId must not be null or empty.");
     }
-
     if (options == null) {
-      options = new Options();
+      throw new IllegalArgumentException("options must not be null.");
     }
 
     Traits.with(application).putUserId(userId);
@@ -257,6 +262,15 @@ public class Segment {
         AnalyticsContext.with(application), Traits.with(application).userId(),
         Traits.with(application), options, integrationManager.bundledIntegrations());
     submit(payload);
+  }
+
+  /**
+   * Same as <code>group(userId, groupId, new Options());</code>.
+   *
+   * @see {@link #group(String, String, Options)}
+   */
+  public void group(String userId, String groupId) {
+    group(userId, groupId, new Options());
   }
 
   /**
@@ -282,9 +296,8 @@ public class Segment {
     if (isNullOrEmpty(userId)) {
       userId = Traits.with(application).userId();
     }
-
     if (options == null) {
-      options = new Options();
+      throw new IllegalArgumentException("options must not be null.");
     }
 
     BasePayload payload =
@@ -293,6 +306,24 @@ public class Segment {
             integrationManager.bundledIntegrations());
 
     submit(payload);
+  }
+
+  /**
+   * Same as <code>track(event, new Properties(), new Options());</code>.
+   *
+   * @see {@link #track(String, Properties, Options)}
+   */
+  public void track(String event) {
+    track(event, new Properties(), new Options());
+  }
+
+  /**
+   * Same as <code>track(event, properties, new Options());</code>.
+   *
+   * @see {@link #track(String, Properties, Options)}
+   */
+  public void track(String event, Properties properties) {
+    track(event, properties, new Options());
   }
 
   /**
@@ -312,12 +343,11 @@ public class Segment {
     if (isNullOrEmpty(event)) {
       throw new IllegalArgumentException("event must be null or empty.");
     }
-
     if (properties == null) {
-      properties = new Properties();
+      throw new IllegalArgumentException("properties must not be null.");
     }
     if (options == null) {
-      options = new Options();
+      throw new IllegalArgumentException("options must not be null.");
     }
 
     BasePayload payload =
@@ -328,14 +358,33 @@ public class Segment {
   }
 
   /**
+   * Same as <code>screen(category, name, new Properties(), new Options());</code>.
+   *
+   * @see {@link #screen(String, String, Properties, Options)}
+   */
+  public void screen(String category, String name) {
+    screen(category, name, new Properties(), new Options());
+  }
+
+  /**
+   * Same as <code>screen(category, name, properties, new Options());</code>.
+   *
+   * @see {@link #screen(String, String, Properties, Options)}
+   */
+  public void screen(String category, String name, Properties properties) {
+    screen(category, name, properties, new Options());
+  }
+
+  /**
    * The screen methods let your record whenever a user sees a screen of your mobile app, and
-   * attach a name, category or properties to the  screen.
+   * attach a name, category or properties to the screen.
+   * <p>
+   * Either category or name must be provided.
    *
    * @param category A category to describe the screen
    * @param name A name for the screen
    * @param properties {@link Properties} to add extra information to this call
    * @param options To configure the call
-   * @throws IllegalArgumentException if both category and name are not provided
    * @see https://segment.io/docs/tracking-api/page-and-screen/
    */
   public void screen(String category, String name, Properties properties, Options options) {
@@ -343,20 +392,28 @@ public class Segment {
 
     if (isNullOrEmpty(category) && isNullOrEmpty(name)) {
       throw new IllegalArgumentException(
-          "either one of category or name must not be null or empty.");
+          "either category or name must be provided.");
     }
-
     if (properties == null) {
-      properties = new Properties();
+      throw new IllegalArgumentException("properties must not be null.");
     }
     if (options == null) {
-      options = new Options();
+      throw new IllegalArgumentException("options must not be null.");
     }
 
     BasePayload payload = new ScreenPayload(Traits.with(application).anonymousId(),
         AnalyticsContext.with(application), Traits.with(application).userId(), category, name,
         properties, options, integrationManager.bundledIntegrations());
     submit(payload);
+  }
+
+  /**
+   * Same as <code>alias(newId, previousId, new Options());</code>.
+   *
+   * @see {@link #alias(String, String, Options)}
+   */
+  public void alias(String newId, String previousId) {
+    alias(newId, previousId, new Options());
   }
 
   /**
