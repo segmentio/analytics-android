@@ -54,8 +54,7 @@ import static com.segment.android.internal.Utils.getSystemService;
  * any custom data to the context dictionary that you'd like to have access to in the raw logs.
  * <p/>
  * Some keys in the context dictionary have semantic meaning and will be collected for you
- * automatically, depending on the library you send data from.Some keys need to be manually
- * entered,
+ * automatically, depending on the library you send data from.Some keys need to be manually entered,
  * such as IP Address, speed, etc.
  * <p/>
  * This is not persisted to disk, and is recomputed each time the app starts. If you set a key
@@ -300,20 +299,7 @@ public class AnalyticsContext extends JsonMap {
   private static final String USER_AGENT_KEY = "userAgent";
   private static final String INTEGRATIONS_KEY = "integrations";
 
-  static AnalyticsContext singleton = null;
-
-  public static AnalyticsContext with(Context context) {
-    if (singleton == null) {
-      synchronized (AnalyticsContext.class) {
-        if (singleton == null) {
-          singleton = new AnalyticsContext(context);
-        }
-      }
-    }
-    return singleton;
-  }
-
-  private AnalyticsContext(Context context) {
+  AnalyticsContext(Context context, Traits traits) {
     putApp(context);
     // todo: campaign
     putDevice();
@@ -327,7 +313,7 @@ public class AnalyticsContext extends JsonMap {
     putScreen(context);
     // todo: groupId
     put(USER_AGENT_KEY, System.getProperty("http.agent"));
-    put(TRAITS_KEY, Traits.with(context));
+    put(TRAITS_KEY, traits);
   }
 
   public AnalyticsContext(Map<String, Object> delegate) {

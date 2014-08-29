@@ -137,6 +137,7 @@ public class Segment {
 
     private final Application application;
     private String writeKey;
+    private String tag;
     private int maxQueueSize = -1;
 
     private boolean debugging = DEFAULT_DEBUGGING;
@@ -170,6 +171,24 @@ public class Segment {
       return this;
     }
 
+    /**
+     * Set a tag for this instance. The tag is used to generate keys for caching. By default the
+     * writeKey is used, but you may want to specify an alternative one, if you want the instances
+     * to share different caches. For example, without this tag, all instances will share the same
+     * traits. By specifying a custom tag for each instance of the client, all instance will have a
+     * different traits instance.
+     */
+    public Builder tag(String tag) {
+      if (isNullOrEmpty(tag)) {
+        throw new IllegalArgumentException("tag must not be null or empty.");
+      }
+      if (this.tag != null) {
+        throw new IllegalStateException("tag is already set.");
+      }
+      this.tag = tag;
+      return this;
+    }
+
     /** Set whether debugging is enabled or not. */
     public Builder debugging(boolean debugging) {
       this.debugging = debugging;
@@ -181,12 +200,16 @@ public class Segment {
       if (maxQueueSize == -1) {
         maxQueueSize = DEFAULT_QUEUE_SIZE;
       }
+      if (isNullOrEmpty(tag)) tag = writeKey;
       Stats stats = new Stats();
       SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
       Dispatcher dispatcher = Dispatcher.create(application, maxQueueSize, segmentHTTPApi, stats);
       IntegrationManager integrationManager =
           IntegrationManager.create(application, segmentHTTPApi, stats);
-      return new Segment(application, dispatcher, integrationManager, stats, debugging);
+      Traits traits = Traits.forContext(application, tag);
+      AnalyticsContext analyticsContext = new AnalyticsContext(application, traits);
+      return new Segment(application, dispatcher, integrationManager, stats, traits,
+          analyticsContext, debugging);
     }
   }
 
@@ -203,17 +226,19 @@ public class Segment {
   final Dispatcher dispatcher;
   final IntegrationManager integrationManager;
   final Stats stats;
+  final Traits traits;
+  final AnalyticsContext analyticsContext;
   volatile boolean debugging;
 
   Segment(Application application, Dispatcher dispatcher, IntegrationManager integrationManager,
-      Stats stats, boolean debugging) {
+      Stats stats, Traits traits, AnalyticsContext analyticsContext, boolean debugging) {
     this.application = application;
     this.dispatcher = dispatcher;
     this.integrationManager = integrationManager;
     this.stats = stats;
+    this.traits = traits;
+    this.analyticsContext = analyticsContext;
     setDebugging(debugging);
-    AnalyticsContext.with(application);
-    Traits.with(application);
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
       registerActivityLifecycleCallbacks(application, this);
     }
@@ -290,10 +315,10 @@ public class Segment {
       throw new IllegalArgumentException("options must not be null.");
     }
 
-    Traits.with(application).putUserId(userId);
-    BasePayload payload = new IdentifyPayload(Traits.with(application).anonymousId(),
-        AnalyticsContext.with(application), Traits.with(application).userId(),
-        Traits.with(application), options, integrationManager.bundledIntegrations());
+    traits.putUserId(userId);
+    BasePayload payload =
+        new IdentifyPayload(traits.anonymousId(), analyticsContext, traits.userId(), traits,
+            options, integrationManager.bundledIntegrations());
     submit(payload);
     stats.dispatchIdentify();
   }
@@ -328,15 +353,14 @@ public class Segment {
       throw new IllegalArgumentException("groupId must be null or empty.");
     }
     if (isNullOrEmpty(userId)) {
-      userId = Traits.with(application).userId();
+      userId = traits.userId();
     }
     if (options == null) {
       throw new IllegalArgumentException("options must not be null.");
     }
 
     BasePayload payload =
-        new GroupPayload(Traits.with(application).anonymousId(), AnalyticsContext.with(application),
-            userId, groupId, Traits.with(application), options,
+        new GroupPayload(traits.anonymousId(), analyticsContext, userId, groupId, traits, options,
             integrationManager.bundledIntegrations());
 
     submit(payload);
@@ -386,9 +410,8 @@ public class Segment {
     }
 
     BasePayload payload =
-        new TrackPayload(Traits.with(application).anonymousId(), AnalyticsContext.with(application),
-            Traits.with(application).userId(), event, properties, options,
-            integrationManager.bundledIntegrations());
+        new TrackPayload(traits.anonymousId(), analyticsContext, traits.userId(), event, properties,
+            options, integrationManager.bundledIntegrations());
     submit(payload);
     stats.dispatchTrack();
   }
@@ -436,9 +459,9 @@ public class Segment {
       throw new IllegalArgumentException("options must not be null.");
     }
 
-    BasePayload payload = new ScreenPayload(Traits.with(application).anonymousId(),
-        AnalyticsContext.with(application), Traits.with(application).userId(), category, name,
-        properties, options, integrationManager.bundledIntegrations());
+    BasePayload payload =
+        new ScreenPayload(traits.anonymousId(), analyticsContext, traits.userId(), category, name,
+            properties, options, integrationManager.bundledIntegrations());
     submit(payload);
     stats.dispatchScreen();
   }
@@ -472,16 +495,15 @@ public class Segment {
       throw new IllegalArgumentException("newId must not be null or empty.");
     }
     if (isNullOrEmpty(previousId)) {
-      previousId = Traits.with(application).userId();
+      previousId = traits.userId();
     }
     if (options == null) {
       throw new IllegalArgumentException("options must not be null.");
     }
 
     BasePayload payload =
-        new AliasPayload(Traits.with(application).anonymousId(), AnalyticsContext.with(application),
-            Traits.with(application).userId(), previousId, options,
-            integrationManager.bundledIntegrations());
+        new AliasPayload(traits.anonymousId(), analyticsContext, traits.userId(), previousId,
+            options, integrationManager.bundledIntegrations());
     submit(payload);
     stats.dispatchAlias();
   }
@@ -493,6 +515,16 @@ public class Segment {
   public void flush() {
     dispatcher.dispatchFlush();
     integrationManager.dispatchFlush();
+  }
+
+  /** Get the {@link Traits} used by this instance. */
+  public Traits getTraits() {
+    return traits;
+  }
+
+  /** Get the {@link AnalyticsContext} used by this instance. */
+  public AnalyticsContext getAnalyticsContext() {
+    return analyticsContext;
   }
 
   /**

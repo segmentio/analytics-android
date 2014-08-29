@@ -43,10 +43,9 @@ import static com.segment.android.internal.Utils.getSharedPreferences;
  * reason, you should only use special traits for their intended purpose.
  * <p/>
  * This is persisted to disk, and will be remembered between sessions.
- * todo: document API to clear the user traits
  */
 public class Traits extends JsonMap {
-  private static final String TRAITS_CACHE_KEY = "traits";
+  private static final String TRAITS_CACHE_PREFIX = "traits-";
   private final StringCache cache;
 
   private Traits(Context context, StringCache cache) {
@@ -62,22 +61,13 @@ public class Traits extends JsonMap {
     this.cache = cache;
   }
 
-  static Traits singleton = null;
-
-  public static Traits with(Context context) {
-    if (singleton == null) {
-      synchronized (Traits.class) {
-        if (singleton == null) {
-          StringCache cache = new StringCache(getSharedPreferences(context), TRAITS_CACHE_KEY);
-          if (!Utils.isNullOrEmpty(cache.get())) {
-            singleton = new Traits(cache);
-          } else {
-            singleton = new Traits(context, cache);
-          }
-        }
-      }
+  static Traits forContext(Context context, String tag) {
+    StringCache cache = new StringCache(getSharedPreferences(context), TRAITS_CACHE_PREFIX + tag);
+    if (!Utils.isNullOrEmpty(cache.get())) {
+      return new Traits(cache);
+    } else {
+      return new Traits(context, cache);
     }
-    return singleton;
   }
 
   private static final String ADDRESS_KEY = "address";
@@ -151,8 +141,8 @@ public class Traits extends JsonMap {
   }
 
   /**
-   * Private API, users should call {@link Segment#identify(String, Options)} instead.
-   * Note that this is unable to enforce it, users can easily do {@code traits.put(id, 1231);}
+   * Private API, users should call {@link Segment#identify(String, Options)} instead. Note that
+   * this is unable to enforce it, users can easily do {@code traits.put(id, 1231);}
    */
   Traits putUserId(String id) {
     return putValue(ID_KEY, id);
