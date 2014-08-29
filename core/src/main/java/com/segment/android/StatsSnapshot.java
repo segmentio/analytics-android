@@ -2,45 +2,66 @@ package com.segment.android;
 
 public class StatsSnapshot {
   public final long timestamp;
-  public final long eventCount; // Number of events we've tracked any event
-  public final long flushCount; // Number of times we've flushed to the server
-  public final long flushEventCount; // Number of events we've flushed to the server
-  public final long integrationEventCount;
-  // Number of times we've told an integration to do an event, including flushes
-  public final long integrationEventTime;
-  public final long averageIntegrationEventTime;
-  public final int replayCount;
+  public final long identifyCount;
+  public final long groupCount;
+  public final long trackCount;
+  public final long screenCount;
+  public final long flushCount;
+  public final long flushEventCount;
+  public final long integrationOperationCount;
+  public final long integrationOperationDuration;
+  public final long integrationOperationAverageDuration;
+  public final long totalEventsCount;
 
-  public StatsSnapshot(long timestamp, long eventCount, long flushCount, long flushEventCount,
-      long integrationEventCount, long integrationEventTime, int replayCount) {
+  public StatsSnapshot(long timestamp, long identifyCount, long groupCount, long trackCount,
+      long screenCount, long flushCount, long flushEventCount, long integrationOperationCount,
+      long integrationOperationDuration) {
     this.timestamp = timestamp;
-    this.eventCount = eventCount;
+    this.identifyCount = identifyCount;
+    this.groupCount = groupCount;
+    this.trackCount = trackCount;
+    this.screenCount = screenCount;
     this.flushCount = flushCount;
     this.flushEventCount = flushEventCount;
-    this.integrationEventCount = integrationEventCount;
-    this.integrationEventTime = integrationEventTime;
-    averageIntegrationEventTime = integrationEventTime / integrationEventCount;
-    this.replayCount = replayCount;
+    this.integrationOperationCount = integrationOperationCount;
+    this.integrationOperationDuration = integrationOperationDuration;
+    integrationOperationAverageDuration = integrationOperationDuration / integrationOperationCount;
+    totalEventsCount = identifyCount + groupCount + trackCount + screenCount + flushCount;
   }
 
   @Override public String toString() {
     return "StatsSnapshot{"
         + "timestamp="
         + timestamp
-        + ", eventCount="
-        + eventCount
-        + ", flushCount="
+        + ", identifyCount="
+        + identifyCount
+        + ", groupCount="
+        + groupCount
+        +
+        ", trackCount="
+        + trackCount
+        +
+        ", screenCount="
+        + screenCount
+        +
+        ", flushCount="
         + flushCount
-        + ", flushEventCount="
+        +
+        ", flushEventCount="
         + flushEventCount
-        + ", integrationEventCount="
-        + integrationEventCount
-        + ", integrationEventTime="
-        + integrationEventTime
-        + ", averageIntegrationEventTime="
-        + averageIntegrationEventTime
-        + ", replayCount="
-        + replayCount
-        + '}';
+        +
+        ", integrationOperationCount="
+        + integrationOperationCount
+        +
+        ", integrationOperationDuration="
+        + integrationOperationDuration
+        +
+        ", integrationOperationAverageDuration="
+        + integrationOperationAverageDuration
+        +
+        ", totalEventsCount="
+        + totalEventsCount
+        +
+        '}';
   }
 }

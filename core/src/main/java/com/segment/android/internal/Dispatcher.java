@@ -82,7 +82,6 @@ public class Dispatcher {
   }
 
   public void dispatchEnqueue(final BasePayload payload) {
-    stats.dispatchEvent();
     handler.sendMessage(handler.obtainMessage(REQUEST_ENQUEUE, payload));
   }
 

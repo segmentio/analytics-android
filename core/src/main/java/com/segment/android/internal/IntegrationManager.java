@@ -45,9 +45,8 @@ import static com.segment.android.internal.Utils.isConnected;
 /**
  * Manages bundled integrations. This class will maintain it's own queue for events to account for
  * the latency between receiving the first event, fetching remote settings and enabling the
- * integrations. Once we enable all integrations - we'll replay any events in the queue. This
- * should only affect the first app install, subsequent launches will be use a cached value from
- * disk.
+ * integrations. Once we enable all integrations - we'll replay any events in the queue. This should
+ * only affect the first app install, subsequent launches will be use a cached value from disk.
  */
 public class IntegrationManager {
   private static final String PROJECT_SETTINGS_CACHE_KEY = "project-settings";
@@ -205,133 +204,91 @@ public class IntegrationManager {
         new ActivityLifecyclePayload(event, activity, bundle)));
   }
 
-  void performEnqueue(final ActivityLifecyclePayload payload) {
-    switch (payload.type) {
-      case CREATED:
-        if (payload.activityWeakReference.get() != null) {
-          enqueue(new IntegrationOperation() {
-            @Override public void run(AbstractIntegrationAdapter integration) {
-              integration.onActivityCreated(payload.activityWeakReference.get(), payload.bundle);
-            }
-          });
-        }
-        break;
-      case STARTED:
-        if (payload.activityWeakReference.get() != null) {
-          enqueue(new IntegrationOperation() {
-            @Override public void run(AbstractIntegrationAdapter integration) {
-              integration.onActivityStarted(payload.activityWeakReference.get());
-            }
-          });
-        }
-        break;
-      case RESUMED:
-        if (payload.activityWeakReference.get() != null) {
-          enqueue(new IntegrationOperation() {
-            @Override public void run(AbstractIntegrationAdapter integration) {
-              integration.onActivityResumed(payload.activityWeakReference.get());
-            }
-          });
-        }
-        break;
-      case PAUSED:
-        if (payload.activityWeakReference.get() != null) {
-          enqueue(new IntegrationOperation() {
-            @Override public void run(AbstractIntegrationAdapter integration) {
-              integration.onActivityPaused(payload.activityWeakReference.get());
-            }
-          });
-        }
-        break;
-      case STOPPED:
-        if (payload.activityWeakReference.get() != null) {
-          enqueue(new IntegrationOperation() {
-            @Override public void run(AbstractIntegrationAdapter integration) {
-              integration.onActivityStopped(payload.activityWeakReference.get());
-            }
-          });
-        }
-        break;
-      case SAVE_INSTANCE:
-        if (payload.activityWeakReference.get() != null) {
-          enqueue(new IntegrationOperation() {
-            @Override public void run(AbstractIntegrationAdapter integration) {
-              integration.onActivitySaveInstanceState(payload.activityWeakReference.get(),
-                  payload.bundle);
-            }
-          });
-        }
-        break;
-      case DESTROYED:
-        if (payload.activityWeakReference.get() != null) {
-          enqueue(new IntegrationOperation() {
-            @Override public void run(AbstractIntegrationAdapter integration) {
-              integration.onActivityDestroyed(payload.activityWeakReference.get());
-            }
-          });
-        }
-        break;
-      default:
-        throw new IllegalArgumentException("Unknown payload type!" + payload.type);
+  static class ActivityLifecycleOperation implements IntegrationOperation {
+    final ActivityLifecyclePayload payload;
+
+    ActivityLifecycleOperation(ActivityLifecyclePayload payload) {
+      this.payload = payload;
     }
+
+    @Override public void run(AbstractIntegrationAdapter integration) {
+      if (payload.activityWeakReference.get() == null) {
+        Logger.d("No reference to activity available - skipping activity %s operation.",
+            payload.type);
+        return;
+      }
+      switch (payload.type) {
+        case CREATED:
+          integration.onActivityCreated(payload.activityWeakReference.get(), payload.bundle);
+          break;
+        case STARTED:
+          break;
+        case RESUMED:
+          integration.onActivityResumed(payload.activityWeakReference.get());
+          break;
+        case PAUSED:
+          integration.onActivityPaused(payload.activityWeakReference.get());
+          break;
+        case STOPPED:
+          integration.onActivityStopped(payload.activityWeakReference.get());
+          break;
+        case SAVE_INSTANCE:
+          integration.onActivitySaveInstanceState(payload.activityWeakReference.get(),
+              payload.bundle);
+          break;
+        case DESTROYED:
+          integration.onActivityDestroyed(payload.activityWeakReference.get());
+          break;
+        default:
+          throw new IllegalArgumentException("Unknown payload type!" + payload.type);
+      }
+    }
+  }
+
+  void performEnqueueActivityLifecycleEvent(ActivityLifecyclePayload payload) {
+    enqueue(new ActivityLifecycleOperation(payload));
   }
 
   public void dispatchAnalyticsEvent(BasePayload payload) {
     handler.sendMessage(handler.obtainMessage(REQUEST_ANALYTICS_EVENT, payload));
   }
 
-  void performEnqueue(final BasePayload payload) {
-    switch (payload.type()) {
-      case alias:
-        enqueue(new IntegrationOperation() {
-          @Override public void run(AbstractIntegrationAdapter integration) {
-            if (isBundledIntegrationEnabledForPayload(payload, integration)) {
-              integration.alias((AliasPayload) payload);
-            }
-          }
-        });
-        break;
-      case group:
-        enqueue(new IntegrationOperation() {
-          @Override public void run(AbstractIntegrationAdapter integration) {
-            if (isBundledIntegrationEnabledForPayload(payload, integration)) {
-              integration.group((GroupPayload) payload);
-            }
-          }
-        });
-        break;
-      case identify:
-        enqueue(new IntegrationOperation() {
-          @Override public void run(AbstractIntegrationAdapter integration) {
-            if (isBundledIntegrationEnabledForPayload(payload, integration)) {
+  static class AnalyticsOperation implements IntegrationOperation {
+    final BasePayload payload;
 
-              integration.identify((IdentifyPayload) payload);
-            }
-          }
-        });
-        break;
-      case page:
-      case screen:
-        enqueue(new IntegrationOperation() {
-          @Override public void run(AbstractIntegrationAdapter integration) {
-            if (isBundledIntegrationEnabledForPayload(payload, integration)) {
-              integration.screen((ScreenPayload) payload);
-            }
-          }
-        });
-        break;
-      case track:
-        enqueue(new IntegrationOperation() {
-          @Override public void run(AbstractIntegrationAdapter integration) {
-            if (isBundledIntegrationEnabledForPayload(payload, integration)) {
-              integration.track((TrackPayload) payload);
-            }
-          }
-        });
-        break;
-      default:
-        throw new IllegalArgumentException("Unknown payload type!" + payload.type());
+    AnalyticsOperation(BasePayload payload) {
+      this.payload = payload;
     }
+
+    @Override public void run(AbstractIntegrationAdapter integration) {
+      if (!isBundledIntegrationEnabledForPayload(payload, integration)) {
+        Logger.d("Integration %s is disabled for payload %s", integration.key(), payload);
+        return;
+      }
+      switch (payload.type()) {
+        case alias:
+          integration.alias((AliasPayload) payload);
+          break;
+        case group:
+          integration.group((GroupPayload) payload);
+          break;
+        case identify:
+          integration.identify((IdentifyPayload) payload);
+          break;
+        case screen:
+          integration.screen((ScreenPayload) payload);
+          break;
+        case track:
+          integration.track((TrackPayload) payload);
+          break;
+        default:
+          throw new IllegalArgumentException("Unknown payload type!" + payload.type());
+      }
+    }
+  }
+
+  void performEnqueue(BasePayload payload) {
+    enqueue(new AnalyticsOperation(payload));
   }
 
   public void dispatchFlush() {
@@ -373,7 +330,6 @@ public class IntegrationManager {
 
   void replay() {
     Logger.v("Replaying %s events.", operationQueue.size());
-    stats.dispatchReplay();
     while (operationQueue.size() > 0) {
       IntegrationOperation operation = operationQueue.peek();
       run(operation);
@@ -381,7 +337,7 @@ public class IntegrationManager {
     }
   }
 
-  private boolean isBundledIntegrationEnabledForPayload(BasePayload payload,
+  private static boolean isBundledIntegrationEnabledForPayload(BasePayload payload,
       AbstractIntegrationAdapter integration) {
     Boolean enabled = true;
     // look in the payload.context.integrations to see which Bundled integrations should be
@@ -424,7 +380,7 @@ public class IntegrationManager {
           break;
         case REQUEST_LIFECYCLE_EVENT:
           ActivityLifecyclePayload activityLifecyclePayload = (ActivityLifecyclePayload) msg.obj;
-          integrationManager.performEnqueue(activityLifecyclePayload);
+          integrationManager.performEnqueueActivityLifecycleEvent(activityLifecyclePayload);
           break;
         case REQUEST_ANALYTICS_EVENT:
           BasePayload basePayload = (BasePayload) msg.obj;

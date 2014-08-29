@@ -39,7 +39,7 @@ import java.util.Map;
 /* This ignores projectId, receivedAt, messageId, sentAt, version that are set by the server. */
 public class BasePayload extends JsonMap {
   public enum Type {
-    alias, group, identify, page, screen, track
+    alias, group, identify, screen, track
   }
 
   private enum Channel {
@@ -51,8 +51,7 @@ public class BasePayload extends JsonMap {
 
   /**
    * The anonymous ID is an identifier that uniquely (or close enough) identifies the user, but
-   * isn't from your database. This is useful in cases where you are able to uniquely identifier
-   * the
+   * isn't from your database. This is useful in cases where you are able to uniquely identifier the
    * user between visits before they signup thanks to a cookie, or session ID or device ID. In our
    * mobile and browser libraries we will automatically handle sending the anonymous ID.
    */

@@ -10,22 +10,28 @@ import com.segment.android.StatsSnapshot;
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
 public class Stats {
-  private static final int EVENT = 0;
-  private static final int FLUSH = 1;
-  private static final int INTEGRATION_OPERATION = 3;
-  private static final int REPLAY = 4;
+  private static final int IDENTIFY = 1;
+  private static final int GROUP = 2;
+  private static final int TRACK = 3;
+  private static final int SCREEN = 4;
+  private static final int ALIAS = 5;
+  private static final int FLUSH = 6;
+  private static final int INTEGRATION_OPERATION = 7;
 
   private static final String STATS_THREAD_NAME = Utils.THREAD_PREFIX + "Stats";
 
   final HandlerThread statsThread;
   final Handler handler;
 
-  long eventCount;
-  long flushCount;
-  long flushEventCount;
-  long integrationOperationCount;
+  long identifyCount;
+  long groupCount;
+  long trackCount;
+  long screenCount;
+  long aliasCount;
+  long flushCount; // number of times we flushed to server
+  long flushEventCount; // number of events we flush to the server
+  long integrationOperationDuration;
   long integrationOperationTime;
-  int replayCount;
 
   public Stats() {
     statsThread = new HandlerThread(STATS_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
@@ -37,38 +43,62 @@ public class Stats {
     statsThread.quit();
   }
 
-  public void dispatchEvent() {
-    handler.sendMessage(handler.obtainMessage(EVENT));
+  public void dispatchIdentify() {
+    handler.sendMessage(handler.obtainMessage(IDENTIFY));
   }
 
-  public void dispatchIntegrationOperation(long duration) {
-    handler.sendMessage(handler.obtainMessage(INTEGRATION_OPERATION, duration));
+  public void dispatchGroup() {
+    handler.sendMessage(handler.obtainMessage(GROUP));
+  }
+
+  public void dispatchTrack() {
+    handler.sendMessage(handler.obtainMessage(TRACK));
+  }
+
+  public void dispatchScreen() {
+    handler.sendMessage(handler.obtainMessage(SCREEN));
+  }
+
+  public void dispatchAlias() {
+    handler.sendMessage(handler.obtainMessage(ALIAS));
   }
 
   public void dispatchFlush(int count) {
     handler.sendMessage(handler.obtainMessage(FLUSH, count, 0));
   }
 
-  public void dispatchReplay() {
-    handler.sendMessage(handler.obtainMessage(REPLAY));
+  public void dispatchIntegrationOperation(long duration) {
+    handler.sendMessage(handler.obtainMessage(INTEGRATION_OPERATION, duration));
   }
 
-  void performEvent() {
-    eventCount++;
+  void performIdentify() {
+    identifyCount++;
+  }
+
+  void performGroup() {
+    groupCount++;
+  }
+
+  void performTrack() {
+    trackCount++;
+  }
+
+  void performScreen() {
+    screenCount++;
+  }
+
+  void performAlias() {
+    aliasCount++;
   }
 
   void performIntegrationOperation(long duration) {
-    integrationOperationCount++;
+    integrationOperationDuration++;
     integrationOperationTime += duration;
   }
 
   void performFlush(int count) {
     flushCount++;
     flushEventCount += count;
-  }
-
-  void performReplay() {
-    replayCount++;
   }
 
   private static class StatsHandler extends Handler {
@@ -81,17 +111,26 @@ public class Stats {
 
     @Override public void handleMessage(final Message msg) {
       switch (msg.what) {
-        case EVENT:
-          stats.performEvent();
+        case IDENTIFY:
+          stats.performIdentify();
+          break;
+        case GROUP:
+          stats.performGroup();
+          break;
+        case TRACK:
+          stats.performTrack();
+          break;
+        case SCREEN:
+          stats.performScreen();
+          break;
+        case ALIAS:
+          stats.performAlias();
           break;
         case FLUSH:
           stats.performFlush(msg.arg1);
           break;
         case INTEGRATION_OPERATION:
           stats.performIntegrationOperation((Long) msg.obj);
-          break;
-        case REPLAY:
-          stats.performReplay();
           break;
         default:
           Segment.HANDLER.post(new Runnable() {
@@ -104,7 +143,8 @@ public class Stats {
   }
 
   public StatsSnapshot createSnapshot() {
-    return new StatsSnapshot(System.currentTimeMillis(), eventCount, flushCount, flushEventCount,
-        integrationOperationCount, integrationOperationTime, replayCount);
+    return new StatsSnapshot(System.currentTimeMillis(), identifyCount, groupCount, trackCount,
+        screenCount, flushCount, flushEventCount, integrationOperationDuration,
+        integrationOperationTime);
   }
 }

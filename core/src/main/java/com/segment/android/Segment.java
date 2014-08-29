@@ -54,12 +54,11 @@ import static com.segment.android.internal.Utils.isNullOrEmpty;
 
 /**
  * The idea is simple: one pipeline for all your data.
- *
- * <p>
+ * <p/>
  * Use {@link #with(android.content.Context)} for the global singleton instance or construct your
  * own instance with {@link Builder}.
  *
- * @see {@link https://segment.io/}
+ * @see <a href="https://segment.io/">Segment.io</a>
  */
 public class Segment {
   // Resource identifiers to define options in xml
@@ -75,9 +74,9 @@ public class Segment {
    * This instance is automatically initialized with defaults that are suitable to most
    * implementations.
    * <p/>
-   * If these settings do not meet the requirements of your application, you can provide
-   * properties in {@code analytics.xml} or you can construct your own instance with full control
-   * over the configuration by using {@link Builder}.
+   * If these settings do not meet the requirements of your application, you can provide properties
+   * in {@code analytics.xml} or you can construct your own instance with full control over the
+   * configuration by using {@link Builder}.
    */
   public static Segment with(Context context) {
     if (singleton == null) {
@@ -155,7 +154,7 @@ public class Segment {
       this.writeKey = writeKey;
     }
 
-    /** Set the size of the queue to batch events. */
+    /** Set the queue size at which we should flush events. */
     public Builder maxQueueSize(int maxQueueSize) {
       if (maxQueueSize <= 0) {
         throw new IllegalArgumentException("maxQueueSize must be greater than or equal to zero.");
@@ -236,16 +235,14 @@ public class Segment {
   }
 
   /**
-   * Identify lets you tie one of your users and their actions to a recognizable {@code userId}.
-   * It also lets you record {@code traits} about the user, like their email, name, account type,
-   * etc.
+   * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
+   * also lets you record {@code traits} about the user, like their email, name, account type, etc.
    *
-   * @param userId Unique identifier which you recognize a user by in your own database. Must not
-   * be
-   * null or empty.
+   * @param userId  Unique identifier which you recognize a user by in your own database. Must not
+   *                be null or empty.
    * @param options To configure the call
    * @throws IllegalArgumentException if userId is null or an empty string
-   * @see https://segment.io/docs/tracking-api/identify/
+   * @see <a href="https://segment.io/docs/tracking-api/identify/">Identify Documentation</a>
    */
   public void identify(String userId, Options options) {
     assertOnMainThread();
@@ -262,6 +259,7 @@ public class Segment {
         AnalyticsContext.with(application), Traits.with(application).userId(),
         Traits.with(application), options, integrationManager.bundledIntegrations());
     submit(payload);
+    stats.dispatchIdentify();
   }
 
   /**
@@ -276,16 +274,16 @@ public class Segment {
   /**
    * The group method lets you associate a user with a group. It also lets you record custom traits
    * about the group, like industry or number of employees.
-   * <p>
+   * <p/>
    * If you've called {@link #identify(String, Options)} before, this will automatically remember
    * the userId. If not, it will fall back to use the anonymousId instead.
    *
-   * @param userId To match up a user with their associated group.
+   * @param userId  To match up a user with their associated group.
    * @param groupId Unique identifier which you recognize a group by in your own database. Must not
-   * be null or empty.
+   *                be null or empty.
    * @param options To configure the call
    * @throws IllegalArgumentException if groupId is null or an empty string
-   * @see https://segment.io/docs/tracking-api/group/
+   * @see <a href=" https://segment.io/docs/tracking-api/group/">Group Documentation</a>
    */
   public void group(String userId, String groupId, Options options) {
     assertOnMainThread();
@@ -306,6 +304,7 @@ public class Segment {
             integrationManager.bundledIntegrations());
 
     submit(payload);
+    stats.dispatchGroup();
   }
 
   /**
@@ -328,14 +327,14 @@ public class Segment {
 
   /**
    * The track method is how you record any actions your users perform. Each action is known by a
-   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
-   * For example a 'Purchased a Shirt' event might have properties like revenue or size.
+   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions. For
+   * example a 'Purchased a Shirt' event might have properties like revenue or size.
    *
-   * @param event Name of the event. Must not be null or empty.
+   * @param event      Name of the event. Must not be null or empty.
    * @param properties {@link Properties} to add extra information to this call
-   * @param options To configure the call
+   * @param options    To configure the call
    * @throws IllegalArgumentException if event name is null or an empty string
-   * @see https://segment.io/docs/tracking-api/track/
+   * @see <a href="https://segment.io/docs/tracking-api/track/">Track Documentation</a>
    */
   public void track(String event, Properties properties, Options options) {
     assertOnMainThread();
@@ -355,6 +354,7 @@ public class Segment {
             Traits.with(application).userId(), event, properties, options,
             integrationManager.bundledIntegrations());
     submit(payload);
+    stats.dispatchTrack();
   }
 
   /**
@@ -376,23 +376,22 @@ public class Segment {
   }
 
   /**
-   * The screen methods let your record whenever a user sees a screen of your mobile app, and
-   * attach a name, category or properties to the screen.
-   * <p>
+   * The screen methods let your record whenever a user sees a screen of your mobile app, and attach
+   * a name, category or properties to the screen.
+   * <p/>
    * Either category or name must be provided.
    *
-   * @param category A category to describe the screen
-   * @param name A name for the screen
+   * @param category   A category to describe the screen
+   * @param name       A name for the screen
    * @param properties {@link Properties} to add extra information to this call
-   * @param options To configure the call
-   * @see https://segment.io/docs/tracking-api/page-and-screen/
+   * @param options    To configure the call
+   * @see <a href="http://segment.io/docs/tracking-api/page-and-screen/">Screen Documentation</a>
    */
   public void screen(String category, String name, Properties properties, Options options) {
     assertOnMainThread();
 
     if (isNullOrEmpty(category) && isNullOrEmpty(name)) {
-      throw new IllegalArgumentException(
-          "either category or name must be provided.");
+      throw new IllegalArgumentException("either category or name must be provided.");
     }
     if (properties == null) {
       throw new IllegalArgumentException("properties must not be null.");
@@ -405,6 +404,7 @@ public class Segment {
         AnalyticsContext.with(application), Traits.with(application).userId(), category, name,
         properties, options, integrationManager.bundledIntegrations());
     submit(payload);
+    stats.dispatchScreen();
   }
 
   /**
@@ -419,16 +419,15 @@ public class Segment {
   /**
    * The alias method is used to merge two user identities, effectively connecting two sets of user
    * data as one. This is an advanced method, but it is required to manage user identities
-   * successfully in some of our integrations.
-   * You should still call {@link #identify(String, Options)} with {@code newId} if you want to
-   * use it as the default id.
+   * successfully in some of our integrations. You should still call {@link #identify(String,
+   * Options)} with {@code newId} if you want to use it as the default id.
    *
-   * @param newId The newId to map the old id to. Must not be null to empty.
+   * @param newId      The newId to map the old id to. Must not be null to empty.
    * @param previousId The old id we want to map. If it is null, the userId we've cached will
-   * automatically used.
-   * @param options To configure the call
+   *                   automatically used.
+   * @param options    To configure the call
    * @throws IllegalArgumentException if newId is null or empty
-   * @see https://segment.io/docs/tracking-api/alias/
+   * @see <a href="https://segment.io/docs/tracking-api/alias/">Alias Documentation</a>
    */
   public void alias(String newId, String previousId, Options options) {
     assertOnMainThread();
@@ -439,9 +438,8 @@ public class Segment {
     if (isNullOrEmpty(previousId)) {
       previousId = Traits.with(application).userId();
     }
-
     if (options == null) {
-      options = new Options();
+      throw new IllegalArgumentException("options must not be null.");
     }
 
     BasePayload payload =
@@ -449,6 +447,7 @@ public class Segment {
             Traits.with(application).userId(), previousId, options,
             integrationManager.bundledIntegrations());
     submit(payload);
+    stats.dispatchAlias();
   }
 
   /**
@@ -462,7 +461,7 @@ public class Segment {
 
   /**
    * Creates a {@link StatsSnapshot} of the current stats for this instance.
-   * <p>
+   * <p/>
    * <b>NOTE:</b> The snapshot may not always be completely up-to-date if requests are still in
    * progress.
    */

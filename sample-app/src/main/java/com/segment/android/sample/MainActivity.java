@@ -107,7 +107,7 @@ public class MainActivity extends Activity {
       @Override public void onClick(View v) {
         StatsSnapshot snapshot = Segment.with(MainActivity.this).getSnapshot();
         ((TextView) findViewById(R.id.stat_event_count)).setText(
-            "Event Count: " + snapshot.eventCount);
+            "Event Count: " + (snapshot.totalEventsCount));
         ((TextView) findViewById(R.id.stat_flush_count)).setText(
             "Flush Count: " + snapshot.flushCount);
       }
