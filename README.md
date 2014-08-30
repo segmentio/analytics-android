@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/segmentio/analytics-android.png?label=ready&title=Ready)](https://waffle.io/segmentio/analytics-android)
 analytics-android
 =================
 
