@@ -27,58 +27,56 @@ import android.os.Bundle;
  * running ICS or higher, this class will do nothing, since we automatically register {@link
  * android.app.Application.ActivityLifecycleCallbacks} to track the lifecycle instead.
  * <p/>
- * Subclasses may override {@link #getSegmentInstance()} to provide their own instance of {@link
+ * Subclasses may override {@link #getAnalytics()} to provide their own instance of {@link
  * Analytics}. It uses the singleton instance by default.
  */
 public class TrackedActivity extends Activity {
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    if (shouldTrackLifecycleEvent()) {
-      getSegmentInstance().onActivityCreated(this, savedInstanceState);
-    }
+    if (shouldTrackLifecycle()) getAnalytics().onActivityCreated(this, savedInstanceState);
   }
 
   @Override protected void onStart() {
     super.onStart();
-    if (shouldTrackLifecycleEvent()) getSegmentInstance().onActivityStarted(this);
+    if (shouldTrackLifecycle()) getAnalytics().onActivityStarted(this);
   }
 
   @Override protected void onResume() {
     super.onResume();
-    if (shouldTrackLifecycleEvent()) getSegmentInstance().onActivityResumed(this);
+    if (shouldTrackLifecycle()) getAnalytics().onActivityResumed(this);
   }
 
   @Override protected void onPause() {
     super.onPause();
-    if (shouldTrackLifecycleEvent()) getSegmentInstance().onActivityPaused(this);
+    if (shouldTrackLifecycle()) getAnalytics().onActivityPaused(this);
   }
 
   @Override protected void onStop() {
     super.onStop();
-    if (shouldTrackLifecycleEvent()) getSegmentInstance().onActivityStopped(this);
+    if (shouldTrackLifecycle()) getAnalytics().onActivityStopped(this);
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-    if (shouldTrackLifecycleEvent()) {
-      getSegmentInstance().onActivitySaveInstanceState(this, outState);
-    }
+    if (shouldTrackLifecycle()) getAnalytics().onActivitySaveInstanceState(this, outState);
   }
 
   @Override protected void onDestroy() {
     super.onDestroy();
-    if (shouldTrackLifecycleEvent()) getSegmentInstance().onActivityDestroyed(this);
+    if (shouldTrackLifecycle()) getAnalytics().onActivityDestroyed(this);
   }
 
   /**
    * Subclasses may override this to provide their own instance of {@link Analytics}. It uses the
    * singleton instance by default.
    */
-  protected Analytics getSegmentInstance() {
+  protected Analytics getAnalytics() {
     return Analytics.with(this);
   }
 
-  boolean shouldTrackLifecycleEvent() {
+  final boolean shouldTrackLifecycle() {
+    // Don't track lifecycle if we're running ICS or higher, since we register with
+    // Application#ActivityLifecycleCallbacks instead.
     return Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH;
   }
 }
