@@ -287,6 +287,15 @@ public class Analytics {
   }
 
   /**
+   * Same as <code>identify(anonymousId, new Options());</code>.
+   *
+   * @see {@link #identify(String, Options)}
+   */
+  public void identify() {
+    identify(traits.userId(), new Options());
+  }
+
+  /**
    * Same as <code>identify(userId, new Options());</code>.
    *
    * @see {@link #identify(String, Options)}
