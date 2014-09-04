@@ -49,7 +49,6 @@ import com.segment.analytics.internal.payload.IdentifyPayload;
 import com.segment.analytics.internal.payload.ScreenPayload;
 import com.segment.analytics.internal.payload.TrackPayload;
 
-import static com.segment.analytics.internal.Utils.assertOnMainThread;
 import static com.segment.analytics.internal.Utils.getResourceBooleanOrThrow;
 import static com.segment.analytics.internal.Utils.getResourceIntegerOrThrow;
 import static com.segment.analytics.internal.Utils.getResourceString;
@@ -300,15 +299,13 @@ public class Analytics {
    * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
    * also lets you record {@code traits} about the user, like their email, name, account type, etc.
    *
-   * @param userId  Unique identifier which you recognize a user by in your own database. Must not
-   *                be null or empty.
+   * @param userId Unique identifier which you recognize a user by in your own database. Must not
+   * be null or empty.
    * @param options To configure the call
    * @throws IllegalArgumentException if userId is null or an empty string
    * @see <a href="https://segment.io/docs/tracking-api/identify/">Identify Documentation</a>
    */
   public void identify(String userId, Options options) {
-    assertOnMainThread();
-
     if (isNullOrEmpty(userId)) {
       throw new IllegalArgumentException("userId must not be null or empty.");
     }
@@ -340,16 +337,14 @@ public class Analytics {
    * If you've called {@link #identify(String, Options)} before, this will automatically remember
    * the userId. If not, it will fall back to use the anonymousId instead.
    *
-   * @param userId  To match up a user with their associated group.
+   * @param userId To match up a user with their associated group.
    * @param groupId Unique identifier which you recognize a group by in your own database. Must not
-   *                be null or empty.
+   * be null or empty.
    * @param options To configure the call
    * @throws IllegalArgumentException if groupId is null or an empty string
    * @see <a href=" https://segment.io/docs/tracking-api/group/">Group Documentation</a>
    */
   public void group(String userId, String groupId, Options options) {
-    assertOnMainThread();
-
     if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException("groupId must be null or empty.");
     }
@@ -388,18 +383,17 @@ public class Analytics {
 
   /**
    * The track method is how you record any actions your users perform. Each action is known by a
-   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions. For
+   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
+   * For
    * example a 'Purchased a Shirt' event might have properties like revenue or size.
    *
-   * @param event      Name of the event. Must not be null or empty.
+   * @param event Name of the event. Must not be null or empty.
    * @param properties {@link Properties} to add extra information to this call
-   * @param options    To configure the call
+   * @param options To configure the call
    * @throws IllegalArgumentException if event name is null or an empty string
    * @see <a href="https://segment.io/docs/tracking-api/track/">Track Documentation</a>
    */
   public void track(String event, Properties properties, Options options) {
-    assertOnMainThread();
-
     if (isNullOrEmpty(event)) {
       throw new IllegalArgumentException("event must be null or empty.");
     }
@@ -436,20 +430,19 @@ public class Analytics {
   }
 
   /**
-   * The screen methods let your record whenever a user sees a screen of your mobile app, and attach
+   * The screen methods let your record whenever a user sees a screen of your mobile app, and
+   * attach
    * a name, category or properties to the screen.
    * <p/>
    * Either category or name must be provided.
    *
-   * @param category   A category to describe the screen
-   * @param name       A name for the screen
+   * @param category A category to describe the screen
+   * @param name A name for the screen
    * @param properties {@link Properties} to add extra information to this call
-   * @param options    To configure the call
+   * @param options To configure the call
    * @see <a href="http://segment.io/docs/tracking-api/page-and-screen/">Screen Documentation</a>
    */
   public void screen(String category, String name, Properties properties, Options options) {
-    assertOnMainThread();
-
     if (isNullOrEmpty(category) && isNullOrEmpty(name)) {
       throw new IllegalArgumentException("either category or name must be provided.");
     }
@@ -482,16 +475,14 @@ public class Analytics {
    * successfully in some of our integrations. You should still call {@link #identify(String,
    * Options)} with {@code newId} if you want to use it as the default id.
    *
-   * @param newId      The newId to map the old id to. Must not be null to empty.
+   * @param newId The newId to map the old id to. Must not be null to empty.
    * @param previousId The old id we want to map. If it is null, the userId we've cached will
-   *                   automatically used.
-   * @param options    To configure the call
+   * automatically used.
+   * @param options To configure the call
    * @throws IllegalArgumentException if newId is null or empty
    * @see <a href="https://segment.io/docs/tracking-api/alias/">Alias Documentation</a>
    */
   public void alias(String newId, String previousId, Options options) {
-    assertOnMainThread();
-
     if (isNullOrEmpty(newId)) {
       throw new IllegalArgumentException("newId must not be null or empty.");
     }
