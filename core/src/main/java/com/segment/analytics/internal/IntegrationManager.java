@@ -45,7 +45,8 @@ import static com.segment.analytics.internal.Utils.isConnected;
 /**
  * Manages bundled integrations. This class will maintain it's own queue for events to account for
  * the latency between receiving the first event, fetching remote settings and enabling the
- * integrations. Once we enable all integrations - we'll replay any events in the queue. This should
+ * integrations. Once we enable all integrations - we'll replay any events in the queue. This
+ * should
  * only affect the first app install, subsequent launches will be use a cached value from disk.
  */
 public class IntegrationManager {
@@ -424,6 +425,14 @@ public class IntegrationManager {
             }
           });
       }
+    }
+  }
+
+  public void shutdown() {
+    integrationManagerThread.quit();
+    if (operationQueue != null) {
+      operationQueue.clear();
+      operationQueue = null;
     }
   }
 }

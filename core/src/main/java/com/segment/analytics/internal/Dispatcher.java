@@ -134,6 +134,10 @@ public class Dispatcher {
     }
   }
 
+  public void shutdown() {
+    dispatcherThread.quit();
+  }
+
   private static class DispatcherHandler extends Handler {
     private final Dispatcher dispatcher;
 

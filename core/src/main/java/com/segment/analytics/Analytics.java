@@ -254,6 +254,7 @@ public class Analytics {
   final AnalyticsContext analyticsContext;
   final Options defaultOptions;
   volatile boolean debugging;
+  boolean shutdown;
 
   Analytics(Application application, Dispatcher dispatcher, IntegrationManager integrationManager,
       Stats stats, TraitsCache traitsCache, AnalyticsContext analyticsContext,
@@ -555,6 +556,20 @@ public class Analytics {
    */
   public StatsSnapshot getSnapshot() {
     return stats.createSnapshot();
+  }
+
+  /** Stops this instance from accepting further requests. */
+  public void shutdown() {
+    if (this == singleton) {
+      throw new UnsupportedOperationException("Default singleton instance cannot be shutdown.");
+    }
+    if (shutdown) {
+      return;
+    }
+    integrationManager.shutdown();
+    stats.shutdown();
+    dispatcher.shutdown();
+    shutdown = true;
   }
 
   void submit(BasePayload payload) {
