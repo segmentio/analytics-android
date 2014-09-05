@@ -353,6 +353,7 @@ public class Analytics {
     }
     if (!isNullOrEmpty(traits)) {
       traitsCache.get().merge(traits);
+      traitsCache.save();
     }
 
     BasePayload payload = new IdentifyPayload(traitsCache.get().anonymousId(), analyticsContext,
@@ -393,6 +394,7 @@ public class Analytics {
     }
     if (!isNullOrEmpty(traits)) {
       traitsCache.get().merge(traits);
+      traitsCache.save();
     }
     if (options == null) {
       options = defaultOptions;
