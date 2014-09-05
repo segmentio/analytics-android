@@ -138,6 +138,7 @@ public class Analytics {
     private String writeKey;
     private String tag;
     private int maxQueueSize = -1;
+    private Options defaultOptions;
 
     private boolean debugging = DEFAULT_DEBUGGING;
 
@@ -170,6 +171,18 @@ public class Analytics {
       return this;
     }
 
+    /** Set some default options for all calls. */
+    public Builder defaultOptions(Options options) {
+      if (options == null) {
+        throw new IllegalArgumentException("options must not be null.");
+      }
+      if (this.defaultOptions != null) {
+        throw new IllegalStateException("options is already set.");
+      }
+      this.defaultOptions = options;
+      return this;
+    }
+
     /**
      * Set a tag for this instance. The tag is used to generate keys for caching. By default the
      * writeKey is used, but you may want to specify an alternative one, if you want the instances
@@ -199,6 +212,9 @@ public class Analytics {
       if (maxQueueSize == -1) {
         maxQueueSize = DEFAULT_QUEUE_SIZE;
       }
+      if (defaultOptions == null) {
+        defaultOptions = new Options();
+      }
       if (isNullOrEmpty(tag)) tag = writeKey;
       Stats stats = new Stats();
       SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
@@ -208,7 +224,7 @@ public class Analytics {
       Traits traits = Traits.forContext(application, tag);
       AnalyticsContext analyticsContext = new AnalyticsContext(application, traits);
       return new Analytics(application, dispatcher, integrationManager, stats, traits,
-          analyticsContext, debugging);
+          analyticsContext, defaultOptions, debugging);
     }
   }
 
@@ -227,16 +243,19 @@ public class Analytics {
   final Stats stats;
   final Traits traits;
   final AnalyticsContext analyticsContext;
+  final Options defaultOptions;
   volatile boolean debugging;
 
   Analytics(Application application, Dispatcher dispatcher, IntegrationManager integrationManager,
-      Stats stats, Traits traits, AnalyticsContext analyticsContext, boolean debugging) {
+      Stats stats, Traits traits, AnalyticsContext analyticsContext, Options defaultOptions,
+      boolean debugging) {
     this.application = application;
     this.dispatcher = dispatcher;
     this.integrationManager = integrationManager;
     this.stats = stats;
     this.traits = traits;
     this.analyticsContext = analyticsContext;
+    this.defaultOptions = defaultOptions;
     setDebugging(debugging);
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
       AnalyticsActivityLifecycleCallbacksAdapter.registerActivityLifecycleCallbacks(application,
@@ -287,21 +306,17 @@ public class Analytics {
   }
 
   /**
-   * Same as <code>identify(anonymousId, new Options());</code>.
-   *
    * @see {@link #identify(String, Options)}
    */
   public void identify() {
-    identify(traits.userId(), new Options());
+    identify(traits.userId(), defaultOptions);
   }
 
   /**
-   * Same as <code>identify(userId, new Options());</code>.
-   *
    * @see {@link #identify(String, Options)}
    */
   public void identify(String userId) {
-    identify(userId, new Options());
+    identify(userId, defaultOptions);
   }
 
   /**
@@ -331,12 +346,10 @@ public class Analytics {
   }
 
   /**
-   * Same as <code>group(userId, groupId, new Options());</code>.
-   *
    * @see {@link #group(String, String, Options)}
    */
   public void group(String userId, String groupId) {
-    group(userId, groupId, new Options());
+    group(userId, groupId, defaultOptions);
   }
 
   /**
@@ -373,21 +386,17 @@ public class Analytics {
   }
 
   /**
-   * Same as <code>track(event, new Properties(), new Options());</code>.
-   *
    * @see {@link #track(String, Properties, Options)}
    */
   public void track(String event) {
-    track(event, new Properties(), new Options());
+    track(event, new Properties(), defaultOptions);
   }
 
   /**
-   * Same as <code>track(event, properties, new Options());</code>.
-   *
    * @see {@link #track(String, Properties, Options)}
    */
   public void track(String event, Properties properties) {
-    track(event, properties, new Options());
+    track(event, properties, defaultOptions);
   }
 
   /**
@@ -421,21 +430,17 @@ public class Analytics {
   }
 
   /**
-   * Same as <code>screen(category, name, new Properties(), new Options());</code>.
-   *
    * @see {@link #screen(String, String, Properties, Options)}
    */
   public void screen(String category, String name) {
-    screen(category, name, new Properties(), new Options());
+    screen(category, name, new Properties(), defaultOptions);
   }
 
   /**
-   * Same as <code>screen(category, name, properties, new Options());</code>.
-   *
    * @see {@link #screen(String, String, Properties, Options)}
    */
   public void screen(String category, String name, Properties properties) {
-    screen(category, name, properties, new Options());
+    screen(category, name, properties, defaultOptions);
   }
 
   /**
@@ -470,12 +475,10 @@ public class Analytics {
   }
 
   /**
-   * Same as <code>alias(newId, previousId, new Options());</code>.
-   *
    * @see {@link #alias(String, String, Options)}
    */
   public void alias(String newId, String previousId) {
-    alias(newId, previousId, new Options());
+    alias(newId, previousId, defaultOptions);
   }
 
   /**
