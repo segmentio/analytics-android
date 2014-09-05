@@ -27,6 +27,7 @@ package com.segment.analytics;
 import android.Manifest;
 import android.app.Application;
 import android.content.pm.PackageManager;
+import java.util.Calendar;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -39,13 +40,9 @@ public class AnalyticsBuilderTest extends BaseAndroidTestCase {
   @Override protected void setUp() throws Exception {
     super.setUp();
 
-    // Setup Fake Required Permissions
     when(application.checkCallingOrSelfPermission(Manifest.permission.INTERNET)).thenReturn(
         PackageManager.PERMISSION_GRANTED);
-    when(application.checkCallingOrSelfPermission(
-        Manifest.permission.ACCESS_NETWORK_STATE)).thenReturn(PackageManager.PERMISSION_GRANTED);
-
-    mockKey = "a_mock_key";
+    mockKey = "mock";
   }
 
   public void testNullContextThrowsException() throws Exception {
@@ -67,8 +64,6 @@ public class AnalyticsBuilderTest extends BaseAndroidTestCase {
   public void testMissingPermissionsThrowsException() throws Exception {
     when(application.checkCallingOrSelfPermission(Manifest.permission.INTERNET)).thenReturn(
         PackageManager.PERMISSION_DENIED);
-    when(application.checkCallingOrSelfPermission(
-        Manifest.permission.ACCESS_NETWORK_STATE)).thenReturn(PackageManager.PERMISSION_GRANTED);
     try {
       new Analytics.Builder(application, mockKey);
       fail("Missing internet permission should throw exception.");
@@ -131,6 +126,23 @@ public class AnalyticsBuilderTest extends BaseAndroidTestCase {
       fail("setting maxQueueSize again should throw exception.");
     } catch (IllegalStateException expected) {
       assertThat(expected).hasMessage("maxQueueSize is already set.");
+    }
+  }
+
+  public void testInvalidOptionsThrowsException() throws Exception {
+    try {
+      new Analytics.Builder(application, mockKey).defaultOptions(null);
+      fail("null options should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("defaultOptions must not be null.");
+    }
+
+    try {
+      new Analytics.Builder(application, mockKey).defaultOptions(
+          new Options().setTimestamp(Calendar.getInstance()));
+      fail("default options with timestamp should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("default option must not contain timestamp.");
     }
   }
 }

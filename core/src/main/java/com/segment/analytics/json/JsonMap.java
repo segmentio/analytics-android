@@ -145,12 +145,9 @@ public class JsonMap implements Map<String, Object> {
   // Coercion Methods
   /* The methods return boxed primitives to be able to return null and keep parity with Map. */
 
-  // todo: better null handling
-
   /**
    * Returns the value mapped by {@code key} if it exists and is a byte or can be coerced to a
-   * byte.
-   * Returns null otherwise.
+   * byte. Returns null otherwise.
    */
   public Byte getByte(Object key) {
     Object value = get(key);
@@ -212,8 +209,7 @@ public class JsonMap implements Map<String, Object> {
 
   /**
    * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a
-   * long.
-   * Returns null otherwise.
+   * long. Returns null otherwise.
    */
   public Long getLong(Object key) {
     Object value = get(key);

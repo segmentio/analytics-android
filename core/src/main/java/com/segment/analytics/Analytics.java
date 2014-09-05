@@ -173,13 +173,16 @@ public class Analytics {
       return this;
     }
 
-    /** Set some default options for all calls. */
+    /**
+     * Set some default options for all calls. This options should not contain a timestamp. You
+     * won't be able to change the integrations specified in this options object.
+     */
     public Builder defaultOptions(Options defaultOptions) {
       if (defaultOptions == null) {
         throw new IllegalArgumentException("defaultOptions must not be null.");
       }
       if (defaultOptions.timestamp() != null) {
-        throw new IllegalArgumentException("default option must not contain timestamp!");
+        throw new IllegalArgumentException("default option must not contain timestamp.");
       }
       if (this.defaultOptions != null) {
         throw new IllegalStateException("defaultOptions is already set.");
@@ -227,7 +230,8 @@ public class Analytics {
       if (isNullOrEmpty(tag)) tag = writeKey;
       Stats stats = new Stats();
       SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
-      Dispatcher dispatcher = Dispatcher.create(application, maxQueueSize, segmentHTTPApi, stats);
+      Dispatcher dispatcher =
+          Dispatcher.create(application, maxQueueSize, segmentHTTPApi, stats, tag);
       IntegrationManager integrationManager =
           IntegrationManager.create(application, segmentHTTPApi, stats);
       TraitsCache traitsCache = new TraitsCache(application, tag);

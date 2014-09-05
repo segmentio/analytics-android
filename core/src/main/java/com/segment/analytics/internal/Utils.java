@@ -33,7 +33,6 @@ import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
-import android.os.Looper;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import java.util.Collection;
@@ -48,25 +47,6 @@ public final class Utils {
 
   private Utils() {
     throw new AssertionError("No instances");
-  }
-
-  /** Throws an {@link IllegalStateException} if called on the main thread. */
-  public static void assertNotOnMainThread() {
-    if (isMain()) {
-      throw new IllegalStateException("Method should not be called from the main thread.");
-    }
-  }
-
-  /** Throws an {@link IllegalStateException} if not called on the main thread. */
-  public static void assertOnMainThread() {
-    if (!isMain()) {
-      throw new IllegalStateException("Method should be called from the main thread.");
-    }
-  }
-
-  /** Returns true if the called from the main thread. */
-  private static boolean isMain() {
-    return Looper.getMainLooper().getThread() == Thread.currentThread();
   }
 
   /** Returns true if the application has the given permission. */

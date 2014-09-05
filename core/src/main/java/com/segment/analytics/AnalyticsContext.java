@@ -36,7 +36,6 @@ import android.view.Display;
 import android.view.WindowManager;
 import com.mixpanel.android.BuildConfig;
 import com.segment.analytics.internal.Logger;
-import com.segment.analytics.internal.Utils;
 import com.segment.analytics.json.JsonMap;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -49,13 +48,15 @@ import static android.net.ConnectivityManager.TYPE_BLUETOOTH;
 import static android.net.ConnectivityManager.TYPE_MOBILE;
 import static android.net.ConnectivityManager.TYPE_WIFI;
 import static com.segment.analytics.internal.Utils.getSystemService;
+import static com.segment.analytics.internal.Utils.hasPermission;
 
 /**
  * Context is a dictionary of extra, free-form information about a specific API call. You can add
  * any custom data to the context dictionary that you'd like to have access to in the raw logs.
  * <p/>
  * Some keys in the context dictionary have semantic meaning and will be collected for you
- * automatically, depending on the library you send data from.Some keys need to be manually entered,
+ * automatically, depending on the library you send data from.Some keys need to be manually
+ * entered,
  * such as IP Address, speed, etc.
  * <p/>
  * This is not persisted to disk, and is recomputed each time the app starts. If you set a key
@@ -196,7 +197,7 @@ public class AnalyticsContext extends JsonMap {
 
   void putNetwork(Context context) {
     Map<String, Object> network = new LinkedHashMap<String, Object>(4);
-    if (Utils.hasPermission(context, ACCESS_NETWORK_STATE)) {
+    if (hasPermission(context, ACCESS_NETWORK_STATE)) {
       ConnectivityManager connectivityManager = getSystemService(context, CONNECTIVITY_SERVICE);
       if (connectivityManager != null) {
         NetworkInfo wifiInfo = connectivityManager.getNetworkInfo(TYPE_WIFI);

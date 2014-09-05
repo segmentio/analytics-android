@@ -51,7 +51,8 @@ public class BasePayload extends JsonMap {
 
   /**
    * The anonymous ID is an identifier that uniquely (or close enough) identifies the user, but
-   * isn't from your database. This is useful in cases where you are able to uniquely identifier the
+   * isn't from your database. This is useful in cases where you are able to uniquely identifier
+   * the
    * user between visits before they signup thanks to a cookie, or session ID or device ID. In our
    * mobile and browser libraries we will automatically handle sending the anonymous ID.
    */
@@ -101,6 +102,10 @@ public class BasePayload extends JsonMap {
     put(TYPE_KEY, type);
     put(CHANNEL_KEY, Channel.mobile);
     put(ANONYMOUS_ID_KEY, anonymousId);
+    put(CONTEXT_KEY, context);
+    put(USER_ID_KEY, userId);
+    put(TIMESTAMP_KEY, options.timestamp() == null ? ISO8601Time.now().toString()
+        : ISO8601Time.from(options.timestamp()).toString());
 
     // Top level integrations are used by servers, this is a combination of disabled bundled
     // integrations, and anything the user may have passed in
@@ -112,11 +117,6 @@ public class BasePayload extends JsonMap {
     // have passed in, used to disable integrations for specific events. Could be a bundled one,
     // which we'll skip locally, or a server one, which we'll pass on to the server
     context.putIntegrations(options.integrations());
-
-    put(CONTEXT_KEY, context);
-    put(USER_ID_KEY, userId);
-    put(TIMESTAMP_KEY, options.timestamp() == null ? ISO8601Time.now().toString()
-        : ISO8601Time.from(options.timestamp()).toString());
   }
 
   public BasePayload(String json) {
@@ -124,6 +124,7 @@ public class BasePayload extends JsonMap {
   }
 
   public Type type() {
+
     return (Type) get(TYPE_KEY);
   }
 

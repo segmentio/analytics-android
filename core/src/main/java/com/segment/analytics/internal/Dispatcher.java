@@ -46,7 +46,7 @@ public class Dispatcher {
   static final int REQUEST_FLUSH = 1;
 
   private static final String DISPATCHER_THREAD_NAME = Utils.THREAD_PREFIX + "Dispatcher";
-  private static final String TASK_QUEUE_FILE_NAME = "payload_task_queue";
+  private static final String TASK_QUEUE_FILE_NAME = "payload-task-queue-";
 
   final Context context;
   final ObjectQueue<BasePayload> queue;
@@ -57,9 +57,9 @@ public class Dispatcher {
   final HandlerThread dispatcherThread;
 
   public static Dispatcher create(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
-      Stats stats) {
+      Stats stats, String tag) {
     FileObjectQueue.Converter<BasePayload> converter = new PayloadConverter();
-    File queueFile = new File(context.getFilesDir(), TASK_QUEUE_FILE_NAME);
+    File queueFile = new File(context.getFilesDir(), TASK_QUEUE_FILE_NAME + tag);
     FileObjectQueue<BasePayload> queue;
     try {
       queue = new FileObjectQueue<BasePayload>(queueFile, converter);
@@ -109,15 +109,17 @@ public class Dispatcher {
       return; // no-op
     }
 
-    List<BasePayload> payloads = new ArrayList<BasePayload>();
-    // This causes us to lose the guarantee that events will be delivered, since we could lose
-    // power while adding them to the batch and the events would be lost from disk.
-    while (queue.size() > 0) {
-      BasePayload payload = queue.peek();
-      payload.setSentAt(ISO8601Time.now());
-      payloads.add(payload);
-      queue.remove();
-    }
+    final List<BasePayload> payloads = new ArrayList<BasePayload>();
+    queue.setListener(new ObjectQueue.Listener<BasePayload>() {
+      @Override public void onAdd(ObjectQueue<BasePayload> queue, BasePayload entry) {
+        payloads.add(entry);
+      }
+
+      @Override public void onRemove(ObjectQueue<BasePayload> queue) {
+
+      }
+    });
+    queue.setListener(null);
 
     int count = payloads.size();
     try {
@@ -127,10 +129,6 @@ public class Dispatcher {
       stats.dispatchFlush(count);
     } catch (IOException e) {
       Logger.e(e, "Failed to flush payloads.");
-      for (BasePayload payload : payloads) {
-        queue.add(payload); // re-enqueue the payloads, don't trigger a flush again
-      }
-      Logger.v("Re-enqueued %s payloads.", count);
     }
   }
 
