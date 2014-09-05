@@ -26,15 +26,12 @@ package com.segment.analytics;
 
 import android.content.Context;
 import com.segment.analytics.internal.ISO8601Time;
-import com.segment.analytics.internal.StringCache;
-import com.segment.analytics.internal.Utils;
 import com.segment.analytics.json.JsonMap;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static com.segment.analytics.internal.Utils.getDeviceId;
-import static com.segment.analytics.internal.Utils.getSharedPreferences;
 
 /**
  * Traits can be anything you want, but some of them have semantic meaning and we treat them in
@@ -45,29 +42,19 @@ import static com.segment.analytics.internal.Utils.getSharedPreferences;
  * This is persisted to disk, and will be remembered between sessions.
  */
 public class Traits extends JsonMap {
-  private static final String TRAITS_CACHE_PREFIX = "traits-";
-  private final StringCache cache;
 
-  private Traits(Context context, StringCache cache) {
-    this.cache = cache;
+  Traits(Context context) {
     String id = getDeviceId(context);
     // todo: kick off task to get AdvertisingId
     putUserId(id);
     putAnonymousId(id);
   }
 
-  private Traits(StringCache cache) {
-    super(cache.get());
-    this.cache = cache;
+  Traits(String json) {
+    super(json);
   }
 
-  static Traits forContext(Context context, String tag) {
-    StringCache cache = new StringCache(getSharedPreferences(context), TRAITS_CACHE_PREFIX + tag);
-    if (!Utils.isNullOrEmpty(cache.get())) {
-      return new Traits(cache);
-    } else {
-      return new Traits(context, cache);
-    }
+  public Traits() {
   }
 
   private static final String ADDRESS_KEY = "address";
@@ -223,12 +210,6 @@ public class Traits extends JsonMap {
 
   @Override public Traits putValue(String key, Object value) {
     super.putValue(key, value);
-    cache.set(toString());
     return this;
-  }
-
-  @Override public void clear() {
-    cache.delete();
-    super.clear();
   }
 }

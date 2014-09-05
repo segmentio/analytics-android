@@ -369,6 +369,12 @@ public class JsonMap implements Map<String, Object> {
     return map;
   }
 
+  public void merge(Map<String, Object> map) {
+    for (Map.Entry<String, Object> entry : map.entrySet()) {
+      put(entry.getKey(), entry.getValue());
+    }
+  }
+
   /** Returns true if the map is null or empty, false otherwise. */
   public static boolean isNullOrEmpty(JsonMap map) {
     return map == null || map.size() == 0;

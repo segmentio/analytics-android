@@ -48,12 +48,14 @@ import com.segment.analytics.internal.payload.GroupPayload;
 import com.segment.analytics.internal.payload.IdentifyPayload;
 import com.segment.analytics.internal.payload.ScreenPayload;
 import com.segment.analytics.internal.payload.TrackPayload;
+import java.util.Map;
 
 import static com.segment.analytics.internal.Utils.getResourceBooleanOrThrow;
 import static com.segment.analytics.internal.Utils.getResourceIntegerOrThrow;
 import static com.segment.analytics.internal.Utils.getResourceString;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import static com.segment.analytics.json.JsonMap.isNullOrEmpty;
 
 /**
  * The idea is simple: one pipeline for all your data.
@@ -172,14 +174,21 @@ public class Analytics {
     }
 
     /** Set some default options for all calls. */
-    public Builder defaultOptions(Options options) {
-      if (options == null) {
-        throw new IllegalArgumentException("options must not be null.");
+    public Builder defaultOptions(Options defaultOptions) {
+      if (defaultOptions == null) {
+        throw new IllegalArgumentException("defaultOptions must not be null.");
+      }
+      if (defaultOptions.timestamp() != null) {
+        throw new IllegalArgumentException("default option must not contain timestamp!");
       }
       if (this.defaultOptions != null) {
-        throw new IllegalStateException("options is already set.");
+        throw new IllegalStateException("defaultOptions is already set.");
       }
-      this.defaultOptions = options;
+      // Make a defensive copy
+      this.defaultOptions = new Options();
+      for (Map.Entry<String, Boolean> entry : defaultOptions.integrations().entrySet()) {
+        this.defaultOptions.setIntegration(entry.getKey(), entry.getValue());
+      }
       return this;
     }
 
@@ -221,9 +230,9 @@ public class Analytics {
       Dispatcher dispatcher = Dispatcher.create(application, maxQueueSize, segmentHTTPApi, stats);
       IntegrationManager integrationManager =
           IntegrationManager.create(application, segmentHTTPApi, stats);
-      Traits traits = Traits.forContext(application, tag);
-      AnalyticsContext analyticsContext = new AnalyticsContext(application, traits);
-      return new Analytics(application, dispatcher, integrationManager, stats, traits,
+      TraitsCache traitsCache = new TraitsCache(application, tag);
+      AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
+      return new Analytics(application, dispatcher, integrationManager, stats, traitsCache,
           analyticsContext, defaultOptions, debugging);
     }
   }
@@ -241,19 +250,19 @@ public class Analytics {
   final Dispatcher dispatcher;
   final IntegrationManager integrationManager;
   final Stats stats;
-  final Traits traits;
+  final TraitsCache traitsCache;
   final AnalyticsContext analyticsContext;
   final Options defaultOptions;
   volatile boolean debugging;
 
   Analytics(Application application, Dispatcher dispatcher, IntegrationManager integrationManager,
-      Stats stats, Traits traits, AnalyticsContext analyticsContext, Options defaultOptions,
-      boolean debugging) {
+      Stats stats, TraitsCache traitsCache, AnalyticsContext analyticsContext,
+      Options defaultOptions, boolean debugging) {
     this.application = application;
     this.dispatcher = dispatcher;
     this.integrationManager = integrationManager;
     this.stats = stats;
-    this.traits = traits;
+    this.traitsCache = traitsCache;
     this.analyticsContext = analyticsContext;
     this.defaultOptions = defaultOptions;
     setDebugging(debugging);
@@ -306,58 +315,65 @@ public class Analytics {
   }
 
   /**
-   * @see {@link #identify(String, Options)}
+   * Identify a user with an id in your own database without any traits.
+   *
+   * @see {@link #identify(String, Traits, Options)}
    */
-  public void identify() {
-    identify(traits.userId(), defaultOptions);
+  public void identify(String userId) {
+    identify(null, null, defaultOptions);
   }
 
   /**
-   * @see {@link #identify(String, Options)}
+   * Associate traits with the current user, identified or not.
+   *
+   * @see {@link #identify(String, Traits, Options)}
    */
-  public void identify(String userId) {
-    identify(userId, defaultOptions);
+  public void identify(Traits traits) {
+    identify(null, traits, null);
   }
 
   /**
    * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
    * also lets you record {@code traits} about the user, like their email, name, account type, etc.
    *
-   * @param userId Unique identifier which you recognize a user by in your own database. Must not
-   * be null or empty.
+   * @param userId Unique identifier which you recognize a user by in your own database. If this is
+   * null or empty, any previous id we have (could be the anonymous id) will be used.
+   * @param traits Traits about the user
    * @param options To configure the call
    * @throws IllegalArgumentException if userId is null or an empty string
    * @see <a href="https://segment.io/docs/tracking-api/identify/">Identify Documentation</a>
    */
-  public void identify(String userId, Options options) {
-    if (isNullOrEmpty(userId)) {
-      throw new IllegalArgumentException("userId must not be null or empty.");
+  public void identify(String userId, Traits traits, Options options) {
+    if (!isNullOrEmpty(userId)) {
+      traitsCache.get().putUserId(userId);
     }
     if (options == null) {
-      throw new IllegalArgumentException("options must not be null.");
+      options = defaultOptions;
+    }
+    if (!isNullOrEmpty(traits)) {
+      traitsCache.get().merge(traits);
     }
 
-    traits.putUserId(userId);
-    BasePayload payload =
-        new IdentifyPayload(traits.anonymousId(), analyticsContext, traits.userId(), traits,
-            options, integrationManager.bundledIntegrations());
+    BasePayload payload = new IdentifyPayload(traitsCache.get().anonymousId(), analyticsContext,
+        traitsCache.get().userId(), traitsCache.get(), options,
+        integrationManager.bundledIntegrations());
     submit(payload);
     stats.dispatchIdentify();
   }
 
   /**
-   * @see {@link #group(String, String, Options)}
+   * @see {@link #group(String, String, Traits, Options)}
    */
-  public void group(String userId, String groupId) {
-    group(userId, groupId, defaultOptions);
+  public void group(String groupId) {
+    group(null, groupId, null, null);
   }
 
   /**
    * The group method lets you associate a user with a group. It also lets you record custom traits
    * about the group, like industry or number of employees.
    * <p/>
-   * If you've called {@link #identify(String, Options)} before, this will automatically remember
-   * the userId. If not, it will fall back to use the anonymousId instead.
+   * If you've called {@link #identify(String, Traits, Options)} before, this will automatically
+   * remember the user id. If not, it will fall back to use the anonymousId instead.
    *
    * @param userId To match up a user with their associated group.
    * @param groupId Unique identifier which you recognize a group by in your own database. Must not
@@ -366,20 +382,24 @@ public class Analytics {
    * @throws IllegalArgumentException if groupId is null or an empty string
    * @see <a href=" https://segment.io/docs/tracking-api/group/">Group Documentation</a>
    */
-  public void group(String userId, String groupId, Options options) {
+  public void group(String userId, String groupId, Traits traits, Options options) {
     if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException("groupId must be null or empty.");
     }
+
     if (isNullOrEmpty(userId)) {
-      userId = traits.userId();
+      userId = traitsCache.get().userId();
+    }
+    if (!isNullOrEmpty(traits)) {
+      traitsCache.get().merge(traits);
     }
     if (options == null) {
-      throw new IllegalArgumentException("options must not be null.");
+      options = defaultOptions;
     }
 
     BasePayload payload =
-        new GroupPayload(traits.anonymousId(), analyticsContext, userId, groupId, traits, options,
-            integrationManager.bundledIntegrations());
+        new GroupPayload(traitsCache.get().anonymousId(), analyticsContext, userId, groupId,
+            traitsCache.get(), options, integrationManager.bundledIntegrations());
 
     submit(payload);
     stats.dispatchGroup();
@@ -389,14 +409,14 @@ public class Analytics {
    * @see {@link #track(String, Properties, Options)}
    */
   public void track(String event) {
-    track(event, new Properties(), defaultOptions);
+    track(event, null, null);
   }
 
   /**
    * @see {@link #track(String, Properties, Options)}
    */
   public void track(String event, Properties properties) {
-    track(event, properties, defaultOptions);
+    track(event, properties, null);
   }
 
   /**
@@ -416,15 +436,16 @@ public class Analytics {
       throw new IllegalArgumentException("event must be null or empty.");
     }
     if (properties == null) {
-      throw new IllegalArgumentException("properties must not be null.");
+      // todo: re-use an empty properties object
+      properties = new Properties();
     }
     if (options == null) {
-      throw new IllegalArgumentException("options must not be null.");
+      options = defaultOptions;
     }
 
-    BasePayload payload =
-        new TrackPayload(traits.anonymousId(), analyticsContext, traits.userId(), event, properties,
-            options, integrationManager.bundledIntegrations());
+    BasePayload payload = new TrackPayload(traitsCache.get().anonymousId(), analyticsContext,
+        traitsCache.get().userId(), event, properties, options,
+        integrationManager.bundledIntegrations());
     submit(payload);
     stats.dispatchTrack();
   }
@@ -433,20 +454,19 @@ public class Analytics {
    * @see {@link #screen(String, String, Properties, Options)}
    */
   public void screen(String category, String name) {
-    screen(category, name, new Properties(), defaultOptions);
+    screen(category, name, null, null);
   }
 
   /**
    * @see {@link #screen(String, String, Properties, Options)}
    */
   public void screen(String category, String name, Properties properties) {
-    screen(category, name, properties, defaultOptions);
+    screen(category, name, properties, null);
   }
 
   /**
    * The screen methods let your record whenever a user sees a screen of your mobile app, and
-   * attach
-   * a name, category or properties to the screen.
+   * attach a name, category or properties to the screen.
    * <p/>
    * Either category or name must be provided.
    *
@@ -460,16 +480,18 @@ public class Analytics {
     if (isNullOrEmpty(category) && isNullOrEmpty(name)) {
       throw new IllegalArgumentException("either category or name must be provided.");
     }
+
     if (properties == null) {
-      throw new IllegalArgumentException("properties must not be null.");
+      // todo: re-use an empty properties object
+      properties = new Properties();
     }
     if (options == null) {
-      throw new IllegalArgumentException("options must not be null.");
+      options = defaultOptions;
     }
 
-    BasePayload payload =
-        new ScreenPayload(traits.anonymousId(), analyticsContext, traits.userId(), category, name,
-            properties, options, integrationManager.bundledIntegrations());
+    BasePayload payload = new ScreenPayload(traitsCache.get().anonymousId(), analyticsContext,
+        traitsCache.get().userId(), category, name, properties, options,
+        integrationManager.bundledIntegrations());
     submit(payload);
     stats.dispatchScreen();
   }
@@ -478,14 +500,14 @@ public class Analytics {
    * @see {@link #alias(String, String, Options)}
    */
   public void alias(String newId, String previousId) {
-    alias(newId, previousId, defaultOptions);
+    alias(newId, previousId, null);
   }
 
   /**
    * The alias method is used to merge two user identities, effectively connecting two sets of user
    * data as one. This is an advanced method, but it is required to manage user identities
    * successfully in some of our integrations. You should still call {@link #identify(String,
-   * Options)} with {@code newId} if you want to use it as the default id.
+   * Traits, Options)} with {@code newId} if you want to use it as the default id.
    *
    * @param newId The newId to map the old id to. Must not be null to empty.
    * @param previousId The old id we want to map. If it is null, the userId we've cached will
@@ -499,15 +521,14 @@ public class Analytics {
       throw new IllegalArgumentException("newId must not be null or empty.");
     }
     if (isNullOrEmpty(previousId)) {
-      previousId = traits.userId();
+      previousId = traitsCache.get().userId();
     }
     if (options == null) {
-      throw new IllegalArgumentException("options must not be null.");
+      options = defaultOptions;
     }
 
-    BasePayload payload =
-        new AliasPayload(traits.anonymousId(), analyticsContext, traits.userId(), previousId,
-            options, integrationManager.bundledIntegrations());
+    BasePayload payload = new AliasPayload(traitsCache.get().anonymousId(), analyticsContext,
+        traitsCache.get().userId(), previousId, options, integrationManager.bundledIntegrations());
     submit(payload);
     stats.dispatchAlias();
   }
@@ -521,11 +542,6 @@ public class Analytics {
     integrationManager.dispatchFlush();
   }
 
-  /** Get the {@link Traits} used by this instance. */
-  public Traits getTraits() {
-    return traits;
-  }
-
   /** Get the {@link AnalyticsContext} used by this instance. */
   public AnalyticsContext getAnalyticsContext() {
     return analyticsContext;
@@ -537,7 +553,7 @@ public class Analytics {
    * <b>NOTE:</b> The snapshot may not always be completely up-to-date if requests are still in
    * progress.
    */
-  @SuppressWarnings("UnusedDeclaration") public StatsSnapshot getSnapshot() {
+  public StatsSnapshot getSnapshot() {
     return stats.createSnapshot();
   }
 
