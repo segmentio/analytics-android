@@ -46,8 +46,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 /**
  * Manages bundled integrations. This class will maintain it's own queue for events to account for
  * the latency between receiving the first event, fetching remote settings and enabling the
- * integrations. Once we enable all integrations - we'll replay any events in the queue. This
- * should
+ * integrations. Once we enable all integrations - we'll replay any events in the queue. This should
  * only affect the first app install, subsequent launches will be use a cached value from disk.
  */
 public class IntegrationManager {
@@ -162,8 +161,8 @@ public class IntegrationManager {
         dispatchInit(segmentHTTPApi.fetchSettings());
       }
     } catch (IOException e) {
-      Logger.e(e, "Failed to fetch settings. Retrying.");
-      dispatchFetch();
+      Logger.e(e, "Failed to fetch settings. Retrying in one minute.");
+      handler.sendMessageDelayed(handler.obtainMessage(REQUEST_FETCH_SETTINGS), 1000 * 60);
     }
   }
 

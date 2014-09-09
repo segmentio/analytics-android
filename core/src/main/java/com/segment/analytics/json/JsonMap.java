@@ -18,9 +18,9 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * modified to return a json formatted string. All other methods will be forwarded to a delegate
  * map.
  * <p/>
- * The purpose of this class is to not limit clients to a custom implementation of a Json type,
- * they can use existing {@link Map} and {@link java.util.List} implementations as they see fit. It
- * adds some utility methods, including methods to coerce numeric types from Strings, and a {@link
+ * The purpose of this class is to not limit clients to a custom implementation of a Json type, they
+ * can use existing {@link Map} and {@link java.util.List} implementations as they see fit. It adds
+ * some utility methods, including methods to coerce numeric types from Strings, and a {@link
  * #putValue(String, Object)} to be able to chain method calls.
  * <p/>
  * Although it lets you use custom objects for values, note that type information is lost during
@@ -164,8 +164,8 @@ public class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a
-   * long. Returns null otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a long.
+   * Returns null otherwise.
    */
   public Long getLong(String key) {
     Object value = get(key);
@@ -218,8 +218,7 @@ public class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a char or can be coerced to a
-   * char.
+   * Returns the value mapped by {@code key} if it exists and is a char or can be coerced to a char.
    * Returns null otherwise.
    */
   public Character getChar(String key) {
@@ -278,10 +277,10 @@ public class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a enum or can be coerced to a
-   * enum. Returns null otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a enum or can be coerced to a enum.
+   * Returns null otherwise.
    */
-  public <T extends Enum<T>> Enum getEnum(Class<T> enumType, String key) {
+  public <T extends Enum<T>> T getEnum(Class<T> enumType, String key) {
     if (enumType == null) {
       throw new IllegalArgumentException("enumType may not be null");
     }
@@ -318,6 +317,7 @@ public class JsonMap implements Map<String, Object> {
     if (clazz.isInstance(value)) {
       return (T) value;
     } else if (value instanceof Map) {
+      // Try the map constructor, it's more efficient since we've already parsed the json tree
       try {
         Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
         constructor.setAccessible(true);
@@ -329,10 +329,11 @@ public class JsonMap implements Map<String, Object> {
       } catch (InstantiationException e) {
       } catch (IllegalAccessException e) {
       }
+      // Fallback to the String constructor
       try {
         Constructor<T> constructor = clazz.getDeclaredConstructor(String.class);
         constructor.setAccessible(true);
-        String json = JsonMap.wrap((Map<String, Object>) value).toString();
+        String json = JsonMap.wrap((Map) value).toString();
         T typedValue = constructor.newInstance(json);
         put(key, typedValue);
         return typedValue;

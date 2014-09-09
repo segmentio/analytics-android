@@ -1,4 +1,6 @@
 include ':localytics'
 include ':core'
 include ':all'
+include ':wear'
 include ':sample-app'
+include ':wear-sample'
