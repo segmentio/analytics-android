@@ -62,7 +62,7 @@ public class JsonMapTest extends BaseAndroidTestCase {
     jsonMap = new JsonMap("{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}");
     assertThat(jsonMap) //
         .contains(MapEntry.entry("value1", "VALUE1")) //
-        .contains(MapEntry.entry("value1", "VALUE2"));
+        .contains(MapEntry.entry("value2", "VALUE2"));
     assertThat(jsonMap.getEnum(MyEnum.class, "value1")).isEqualTo(MyEnum.VALUE1);
     assertThat(jsonMap.getEnum(MyEnum.class, "value2")).isEqualTo(MyEnum.VALUE2);
     assertThat(jsonMap) //
@@ -80,6 +80,61 @@ public class JsonMapTest extends BaseAndroidTestCase {
 
     jsonMap = new JsonMap("{\"nested\":{\"value\":\"box\"}}");
     assertThat(jsonMap).hasSize(1).contains(MapEntry.entry("nested", nested));
+  }
+
+  static class Settings extends JsonMap {
+    Settings(String json) {
+      super(json);
+    }
+
+    AmplitudeSettings getAmplitudeSettings() {
+      return getJsonMap("Amplitude", AmplitudeSettings.class);
+    }
+
+    MixpanelSettings getMixpanelSettings() {
+      return getJsonMap("Mixpanel", MixpanelSettings.class);
+    }
+  }
+
+  static class AmplitudeSettings extends JsonMap {
+    AmplitudeSettings(String json) {
+      super(json);
+    }
+  }
+
+  static class MixpanelSettings extends JsonMap {
+    MixpanelSettings(Map<String, Object> delegate) {
+      super(delegate);
+    }
+  }
+
+  public void testCustomJsonMaps() throws Exception {
+    String json =
+        "{\"Amplitude\":{\"trackNamedPages\":true,\"trackCategorizedPages\":true,\"trackAllPages\":false,\"apiKey\":\"ad3c426eb736d7442a65da8174bc1b1b\"},\"Flurry\":{\"apiKey\":\"8DY3D6S7CCWH54RBJ9ZM\",\"captureUncaughtExceptions\":false,\"useHttps\":true,\"sessionContinueSeconds\":10},\"Mixpanel\":{\"people\":true,\"token\":\"f7afe0cb436685f61a2b203254779e02\",\"trackAllPages\":false,\"trackCategorizedPages\":true,\"trackNamedPages\":true,\"increments\":[],\"legacySuperProperties\":false},\"Segment.io\":{\"apiKey\":\"l8v1ga655b\"}}";
+
+    Settings settings = new Settings(json);
+    assertThat(settings).hasSize(4)
+        .containsKey("Amplitude")
+        .containsKey("Segment.io")
+        .containsKey("Flurry")
+        .containsKey("Mixpanel");
+
+    // Json Constructor
+    AmplitudeSettings amplitudeSettings = settings.getAmplitudeSettings();
+    assertThat(amplitudeSettings).hasSize(4)
+        .contains(MapEntry.entry("apiKey", "ad3c426eb736d7442a65da8174bc1b1b"))
+        .contains(MapEntry.entry("trackNamedPages", true))
+        .contains(MapEntry.entry("trackCategorizedPages", true))
+        .contains(MapEntry.entry("trackAllPages", false));
+
+    // Map Constructor
+    MixpanelSettings mixpanelSettings = settings.getMixpanelSettings();
+    assertThat(mixpanelSettings) //
+        .contains(MapEntry.entry("token", "f7afe0cb436685f61a2b203254779e02"))
+        .contains(MapEntry.entry("people", true))
+        .contains(MapEntry.entry("trackNamedPages", true))
+        .contains(MapEntry.entry("trackCategorizedPages", true))
+        .contains(MapEntry.entry("trackAllPages", false));
   }
 
   public void testSettings() throws Exception {

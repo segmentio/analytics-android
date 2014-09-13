@@ -1,5 +1,8 @@
 package com.segment.analytics.json;
 
+import com.segment.analytics.internal.Logger;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -304,6 +307,43 @@ public class JsonMap implements Map<String, Object> {
     } else {
       return null;
     }
+  }
+
+  /**
+   * Returns the value mapped by {@code key} if it exists and if it can be coerced to the given
+   * type.
+   */
+  public <T extends JsonMap> T getJsonMap(String key, Class<T> clazz) {
+    Object value = get(key);
+    if (clazz.isInstance(value)) {
+      return (T) value;
+    } else if (value instanceof Map) {
+      try {
+        Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
+        constructor.setAccessible(true);
+        T typedValue = constructor.newInstance(value);
+        put(key, typedValue);
+        return typedValue;
+      } catch (NoSuchMethodException e) {
+      } catch (InvocationTargetException e) {
+      } catch (InstantiationException e) {
+      } catch (IllegalAccessException e) {
+      }
+      try {
+        Constructor<T> constructor = clazz.getDeclaredConstructor(String.class);
+        constructor.setAccessible(true);
+        String json = JsonMap.wrap((Map<String, Object>) value).toString();
+        T typedValue = constructor.newInstance(json);
+        put(key, typedValue);
+        return typedValue;
+      } catch (NoSuchMethodException e) {
+      } catch (InvocationTargetException e) {
+      } catch (InstantiationException e) {
+      } catch (IllegalAccessException e) {
+      }
+      Logger.e("Be sure to declare a constructor that accepts a json or map.");
+    }
+    return null;
   }
 
   /**
