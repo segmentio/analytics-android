@@ -1,8 +1,6 @@
 package com.segment.analytics.json;
 
-import com.segment.analytics.internal.Utils;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,9 +8,11 @@ import java.util.Set;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+
 /**
- * A wrapper around {@link Map} to expose Json functionality. Only the {@link #toString()} method
- * is modified to return a json formatted string. All other methods will be forwarded to another
+ * A {@link Map} wrapper to expose Json functionality. Only the {@link #toString()} method is
+ * modified to return a json formatted string. All other methods will be forwarded to a delegate
  * map.
  * <p/>
  * The purpose of this class is to not limit clients to a custom implementation of a Json type,
@@ -21,22 +21,13 @@ import org.json.JSONObject;
  * #putValue(String, Object)} to be able to chain method calls.
  * <p/>
  * Although it lets you use custom objects for values, note that type information is lost during
- * serialization. e.g A custom class Person using the default <code>toString</code> implementation.
- * {@code JsonMap<Object> map = JsonMap.decode(); map.put("person", new Person("john", "doe", 32));
- * Person person = (Person) map.get("person"); // no serialization yet String json =
- * map.toString();
- * JsonMap<Object> deserialized = JsonMap.decode(json); // The line below will throw a
- * ClassCastException, since Person was stored as a String Person person = (Person)
- * deserialized.get("person"); // You'd actually get back something like 'Person@123132' for the
- * default toString implementation. }
- * <p/>
- * Only String, Integer, Double, Long and Boolean types are supported. Short, Byte, Float and char
- * are deserialized to one of the above types. Short -> Integer, Byte -> Integer, Float -> Double,
- * Char -> String
+ * serialization. You should use one of the coercion methods if you're expecting a type after
+ * serialization.
  */
 public class JsonMap implements Map<String, Object> {
-  final Map<String, Object> delegate;
+  private final Map<String, Object> delegate;
 
+  /** Wrap a map as {@link JsonMap}. */
   public static JsonMap wrap(Map<String, Object> map) {
     if (map instanceof JsonMap) {
       return (JsonMap) map;
@@ -53,14 +44,14 @@ public class JsonMap implements Map<String, Object> {
       throw new IllegalArgumentException("Map must not be null.");
     }
     if (delegate instanceof JsonMap) {
-      this.delegate = ((JsonMap) delegate).delegate;
+      this.delegate = ((JsonMap) delegate).delegate; // avoid allocation
     } else {
       this.delegate = delegate;
     }
   }
 
   public JsonMap(String json) {
-    if (Utils.isNullOrEmpty(json)) {
+    if (isNullOrEmpty(json)) {
       throw new IllegalArgumentException("Json must not be null or empty.");
     }
     try {
@@ -103,9 +94,7 @@ public class JsonMap implements Map<String, Object> {
   }
 
   @Override public void putAll(Map<? extends String, ?> map) {
-    for (Entry<? extends String, ?> entry : map.entrySet()) {
-      put(entry.getKey(), entry.getValue());
-    }
+    delegate.putAll(map);
   }
 
   @Override public Object remove(Object key) {
@@ -142,129 +131,87 @@ public class JsonMap implements Map<String, Object> {
     return this;
   }
 
-  // Coercion Methods
-  /* The methods return boxed primitives to be able to return null and keep parity with Map. */
-
-  /**
-   * Returns the value mapped by {@code key} if it exists and is a byte or can be coerced to a
-   * byte. Returns null otherwise.
-   */
-  public Byte getByte(Object key) {
-    Object value = get(key);
-    if (value instanceof Byte) {
-      return (Byte) value;
-    } else if (value instanceof Number) {
-      return ((Number) value).byteValue();
-    } else if (value instanceof String) {
-      try {
-        return Byte.valueOf((String) value);
-      } catch (NumberFormatException ignored) {
-        // Ignore
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Returns the value mapped by {@code key} if it exists and is a short or can be coerced to a
-   * short. Returns null otherwise.
-   */
-  public Short getShort(Object key) {
-    Object value = get(key);
-    if (value != null) {
-      if (value instanceof Short) {
-        return (Short) value;
-      } else if (value instanceof Number) {
-        return ((Number) value).shortValue();
-      } else if (value instanceof String) {
-        try {
-          return Short.valueOf((String) value);
-        } catch (NumberFormatException ignored) {
-
-        }
-      }
-    }
-    return null;
-  }
+  // The methods return boxed primitives to be able to return null and keep parity with Map#get
 
   /**
    * Returns the value mapped by {@code key} if it exists and is a integer or can be coerced to a
    * integer. Returns null otherwise.
    */
-  public Integer getInteger(Object key) {
+  public Integer getInteger(String key) {
     Object value = get(key);
     if (value instanceof Integer) {
       return (Integer) value;
-    } else if (value instanceof Number) {
-      return ((Number) value).intValue();
+    }
+    Integer integerValue = null;
+    if (value instanceof Number) {
+      integerValue = ((Number) value).intValue();
     } else if (value instanceof String) {
       try {
-        return Integer.valueOf((String) value);
+        integerValue = Integer.valueOf((String) value);
       } catch (NumberFormatException ignored) {
         // ignore
       }
     }
-    return null;
+    if (integerValue == null) {
+      return null;
+    } else {
+      put(key, integerValue);
+      return integerValue;
+    }
   }
 
   /**
    * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a
    * long. Returns null otherwise.
    */
-  public Long getLong(Object key) {
+  public Long getLong(String key) {
     Object value = get(key);
     if (value instanceof Long) {
       return (Long) value;
-    } else if (value instanceof Number) {
-      return ((Number) value).longValue();
+    }
+    Long longValue = null;
+    if (value instanceof Number) {
+      longValue = ((Number) value).longValue();
     } else if (value instanceof String) {
       try {
-        return Long.valueOf((String) value);
+        longValue = Long.valueOf((String) value);
       } catch (NumberFormatException ignored) {
         // ignore
       }
     }
-    return null;
-  }
-
-  /**
-   * Returns the value mapped by {@code key} if it exists and is a integer or can be coerced to a
-   * integer. Returns null otherwise.
-   */
-  public Float getFloat(Object key) {
-    Object value = get(key);
-    if (value instanceof Float) {
-      return (Float) value;
-    } else if (value instanceof Number) {
-      return ((Number) value).floatValue();
-    } else if (value instanceof String) {
-      try {
-        return Float.valueOf((String) value);
-      } catch (NumberFormatException ignored) {
-        // ignore
-      }
+    if (longValue == null) {
+      return null;
+    } else {
+      put(key, longValue);
+      return longValue;
     }
-    return null;
   }
 
   /**
    * Returns the value mapped by {@code key} if it exists and is a double or can be coerced to a
    * double. Returns null otherwise.
    */
-  public Double getDouble(Object key) {
+  public Double getDouble(String key) {
     Object value = get(key);
     if (value instanceof Double) {
       return (Double) value;
-    } else if (value instanceof Number) {
-      return ((Number) value).doubleValue();
+    }
+    Double doubleValue = null;
+    if (value instanceof Number) {
+      doubleValue = ((Number) value).doubleValue();
     } else if (value instanceof String) {
       try {
-        return Double.valueOf((String) value);
+        doubleValue = Double.valueOf((String) value);
       } catch (NumberFormatException ignored) {
         // ignore
       }
     }
-    return null;
+    if (doubleValue == null) {
+      return null;
+    } else {
+      put(key, doubleValue);
+      return doubleValue;
+    }
   }
 
   /**
@@ -272,13 +219,16 @@ public class JsonMap implements Map<String, Object> {
    * char.
    * Returns null otherwise.
    */
-  public Character getChar(Object key) {
+  public Character getChar(String key) {
     Object value = get(key);
     if (value instanceof Character) {
       return (Character) value;
-    } else if (value != null && value instanceof String) {
+    }
+    if (value != null && value instanceof String) {
       if (((String) value).length() == 1) {
-        return ((String) value).charAt(0);
+        Character charValue = ((String) value).charAt(0);
+        put(key, charValue);
+        return charValue;
       }
     }
     return null;
@@ -291,12 +241,14 @@ public class JsonMap implements Map<String, Object> {
    * This will return null only if the value does not exist, since all types can have a String
    * representation.
    */
-  public String getString(Object key) {
+  public String getString(String key) {
     Object value = get(key);
     if (value instanceof String) {
       return (String) value;
     } else if (value != null) {
-      return String.valueOf(value);
+      String stringValue = String.valueOf(value);
+      put(key, stringValue);
+      return stringValue;
     }
     return null;
   }
@@ -305,15 +257,17 @@ public class JsonMap implements Map<String, Object> {
    * Returns the value mapped by {@code key} if it exists and is a boolean or can be coerced to a
    * boolean. Returns null otherwise.
    */
-  public Boolean getBoolean(Object key) {
+  public Boolean getBoolean(String key) {
     Object value = get(key);
     if (value instanceof Boolean) {
       return (Boolean) value;
     } else if (value instanceof String) {
       String stringValue = (String) value;
       if ("false".equalsIgnoreCase(stringValue)) {
+        put(key, false);
         return false;
       } else if ("true".equalsIgnoreCase(stringValue)) {
+        put(key, true);
         return true;
       }
     }
@@ -321,8 +275,27 @@ public class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a boolean or can be coerced to a
-   * boolean. Returns null otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a enum or can be coerced to a
+   * enum. Returns null otherwise.
+   */
+  public <T extends Enum<T>> Enum getEnum(Class<T> enumType, String key) {
+    if (enumType == null) {
+      throw new IllegalArgumentException("enumType may not be null");
+    }
+    Object value = get(key);
+    if (enumType.isInstance(value)) {
+      return (T) value;
+    } else if (value instanceof String) {
+      String stringValue = (String) value;
+      T enumValue = Enum.valueOf(enumType, stringValue);
+      put(key, enumValue);
+      return enumValue;
+    }
+    return null;
+  }
+
+  /**
+   * Returns the value mapped by {@code key} if it exists and is a JsonMap. Returns null otherwise.
    */
   public JsonMap getJsonMap(Object key) {
     Object value = get(key);
@@ -334,8 +307,8 @@ public class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a boolean or can be coerced to a
-   * boolean. Returns null otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a JsonList. Returns null
+   * otherwise.
    */
   public JsonList getJsonList(Object key) {
     Object value = get(key);
@@ -358,21 +331,17 @@ public class JsonMap implements Map<String, Object> {
   }
 
   public Map<String, String> toStringMap() {
-    Map<String, String> map = new HashMap<String, String>();
+    Map<String, String> map = new LinkedHashMap<String, String>();
     for (Map.Entry<String, Object> entry : entrySet()) {
       map.put(entry.getKey(), String.valueOf(entry.getValue()));
     }
     return map;
   }
 
+  /** Shallow merge the given map into this map. */
   public void merge(Map<String, Object> map) {
     for (Map.Entry<String, Object> entry : map.entrySet()) {
       put(entry.getKey(), entry.getValue());
     }
-  }
-
-  /** Returns true if the map is null or empty, false otherwise. */
-  public static boolean isNullOrEmpty(JsonMap map) {
-    return map == null || map.size() == 0;
   }
 }

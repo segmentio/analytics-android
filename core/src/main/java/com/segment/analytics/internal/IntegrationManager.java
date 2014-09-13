@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.internal.Utils.getSharedPreferences;
 import static com.segment.analytics.internal.Utils.isConnected;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
  * Manages bundled integrations. This class will maintain it's own queue for events to account for
@@ -373,7 +374,7 @@ public class IntegrationManager {
     // disabled. payload.integrations is reserved for the server, where all bundled integrations
     // have been  set to false
     JsonMap integrations = payload.context().getIntegrations();
-    if (!JsonMap.isNullOrEmpty(integrations)) {
+    if (!isNullOrEmpty(integrations)) {
       String key = integration.key();
       if (integrations.containsKey(key)) {
         enabled = integrations.getBoolean(key);

@@ -36,6 +36,7 @@ import android.os.Build;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 import static android.content.Context.CONNECTIVITY_SERVICE;
@@ -67,14 +68,18 @@ public final class Utils {
 
   /** Returns true if the string is null, or empty (once trimmed). */
   public static boolean isNullOrEmpty(String text) {
-    // Rather than using text.trim().length() == 0, use getTrimmedLength to avoid allocating an
-    // extra string object
+    // use getTrimmedLength to avoid allocating an extra string object
     return TextUtils.isEmpty(text) || TextUtils.getTrimmedLength(text) == 0;
   }
 
   /** Returns true if the collection or has a size 0. */
   public static boolean isNullOrEmpty(Collection collection) {
     return collection == null || collection.size() == 0;
+  }
+
+  /** Returns true if the map is null or empty, false otherwise. */
+  public static boolean isNullOrEmpty(Map map) {
+    return map == null || map.size() == 0;
   }
 
   /** Returns true the phone is in AirplaneMode. */

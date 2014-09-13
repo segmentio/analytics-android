@@ -194,7 +194,7 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
     Double aBoxedDouble = Double.valueOf(random.nextDouble());
     char aChar = (char) random.nextInt(256);
     Character aBoxedChar = Character.valueOf((char) random.nextInt(256));
-    String aString = UUID.randomUUID().toString(); // good enough
+    String aString = UUID.randomUUID().toString();
     boolean aBoolean = random.nextBoolean();
     Boolean aBoxedBoolean = Boolean.valueOf(random.nextBoolean());
 
@@ -218,10 +218,7 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
     sourceMap.put("aBoxedBoolean", aBoxedBoolean);
 
     String json = JsonUtils.fromMap(sourceMap);
-
     Map<String, Object> retrieved = JsonUtils.toMap(json);
-    sourceMap.put("aFloat", (double) aFloat);
-
     assertThat(retrieved) //
         .contains(MapEntry.entry("aByte", (int) aByte))
         .contains(MapEntry.entry("aBoxedByte", (int) aBoxedByte))

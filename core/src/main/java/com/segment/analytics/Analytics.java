@@ -55,7 +55,6 @@ import static com.segment.analytics.internal.Utils.getResourceIntegerOrThrow;
 import static com.segment.analytics.internal.Utils.getResourceString;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
-import static com.segment.analytics.json.JsonMap.isNullOrEmpty;
 
 /**
  * The idea is simple: one pipeline for all your data.
