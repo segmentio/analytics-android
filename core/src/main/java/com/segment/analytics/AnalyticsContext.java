@@ -34,7 +34,6 @@ import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
-import com.mixpanel.android.BuildConfig;
 import com.segment.analytics.internal.Logger;
 import com.segment.analytics.json.JsonMap;
 import java.util.LinkedHashMap;
@@ -136,9 +135,7 @@ public class AnalyticsContext extends JsonMap {
   private static final String LIBRARY_VERSION_KEY = "version";
   // Android Specific
   private static final String LIBRARY_VERSION_NAME_KEY = "versionName";
-  private static final String LIBRARY_DEBUG_KEY = "debug";
   private static final String LIBRARY_BUILD_TYPE_KEY = "buildType";
-  private static final String LIBRARY_FLAVOR_KEY = "flavor";
   private static final String LIBRARY_LOGGING = "logging";
 
   void putLibrary() {
@@ -146,9 +143,7 @@ public class AnalyticsContext extends JsonMap {
     library.put(LIBRARY_NAME_KEY, "analytics-android");
     library.put(LIBRARY_VERSION_KEY, BuildConfig.VERSION_CODE);
     library.put(LIBRARY_VERSION_NAME_KEY, BuildConfig.VERSION_NAME);
-    library.put(LIBRARY_DEBUG_KEY, BuildConfig.DEBUG);
     library.put(LIBRARY_BUILD_TYPE_KEY, BuildConfig.BUILD_TYPE);
-    library.put(LIBRARY_FLAVOR_KEY, BuildConfig.FLAVOR);
     library.put(LIBRARY_LOGGING, Logger.isLogging());
     put(LIBRARY_KEY, library);
   }
@@ -227,8 +222,8 @@ public class AnalyticsContext extends JsonMap {
 
   void putOs() {
     Map<String, Object> os = new LinkedHashMap<String, Object>(3);
-    os.put(APP_NAME_KEY, Build.VERSION.CODENAME);
-    os.put(APP_VERSION_KEY, Build.VERSION.RELEASE);
+    os.put(OS_NAME_KEY, Build.VERSION.CODENAME);
+    os.put(OS_VERSION_KEY, Build.VERSION.RELEASE);
     os.put(OS_SDK_KEY, Build.VERSION.SDK_INT);
     put(OS_KEY, os);
   }

@@ -439,7 +439,7 @@ public class Analytics {
    */
   public void track(String event, Properties properties, Options options) {
     if (isNullOrEmpty(event)) {
-      throw new IllegalArgumentException("event must be null or empty.");
+      throw new IllegalArgumentException("event must not be null or empty.");
     }
     if (properties == null) {
       // todo: re-use an empty properties object
