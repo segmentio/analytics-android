@@ -17,20 +17,25 @@
 package com.segment.analytics.wear;
 
 import android.content.Context;
-import android.content.Intent;
 import com.segment.analytics.Properties;
 import com.segment.analytics.internal.payload.BasePayload;
-import com.segment.analytics.wear.model.WearPayload;
-import com.segment.analytics.wear.model.WearScreenPayload;
-import com.segment.analytics.wear.model.WearTrackPayload;
 
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
+/**
+ * The counterpart to {@link com.segment.analytics.Analytics} for Android Wear. This class will
+ * simply forward all events to the host. The host app must register {@link
+ * PhoneAnalyticsListenerService} (or a subclass) to be able to receive the events.
+ * <p/>
+ * This class can only send track or screen events. You should `identify`, `group` or `alias` users
+ * through your host app (that runs on an Android phone).
+ */
 public class WearAnalytics {
-  final Context context;
+  static final String ANALYTICS_PATH = "/analytics";
+  final Dispatcher dispatcher;
 
   WearAnalytics(Context context) {
-    this.context = context;
+    this.dispatcher = new Dispatcher(context);
   }
 
   static WearAnalytics singleton;
@@ -51,11 +56,10 @@ public class WearAnalytics {
 
   /**
    * The track method is how you record any actions your users perform. Each action is known by a
-   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
-   * For
+   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions. For
    * example a 'Purchased a Shirt' event might have properties like revenue or size.
    *
-   * @param event Name of the event. Must not be null or empty.
+   * @param event      Name of the event. Must not be null or empty.
    * @param properties {@link Properties} to add extra information to this call
    * @throws IllegalArgumentException if event name is null or an empty string
    * @see <a href="https://segment.io/docs/tracking-api/track/">Track Documentation</a>
@@ -69,20 +73,18 @@ public class WearAnalytics {
       properties = new Properties();
     }
 
-    Intent intent = new Intent("analytics", null, context, WearAnalyticsService.class);
-    intent.putExtra("payload", new WearPayload(BasePayload.Type.track,
-        new WearTrackPayload(event, properties)).toString());
-    context.startService(intent);
+    dispatcher.dispatchPayload(
+        new WearPayload(BasePayload.Type.track, new WearTrackPayload(event, properties)));
   }
 
   /**
-   * The screen methods let your record whenever a user sees a screen of your mobile app, and
-   * attach a name, category or properties to the screen.
+   * The screen methods let your record whenever a user sees a screen of your mobile app, and attach
+   * a name, category or properties to the screen.
    * <p/>
    * Either category or name must be provided.
    *
-   * @param category A category to describe the screen
-   * @param name A name for the screen
+   * @param category   A category to describe the screen
+   * @param name       A name for the screen
    * @param properties {@link Properties} to add extra information to this call
    * @see <a href="http://segment.io/docs/tracking-api/page-and-screen/">Screen Documentation</a>
    */
@@ -95,9 +97,7 @@ public class WearAnalytics {
       properties = new Properties();
     }
 
-    Intent intent = new Intent("analytics", null, context, WearAnalyticsService.class);
-    intent.putExtra("payload", new WearPayload(BasePayload.Type.track,
-        new WearScreenPayload(category, name, properties)).toString());
-    context.startService(intent);
+    dispatcher.dispatchPayload(
+        new WearPayload(BasePayload.Type.track, new WearScreenPayload(category, name, properties)));
   }
 }

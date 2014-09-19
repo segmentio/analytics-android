@@ -25,6 +25,7 @@
 package com.segment.analytics;
 
 import com.segment.analytics.json.JsonMap;
+import java.util.Map;
 
 /**
  * Just like traits, we also imbue some properties with semantic meaning, and you should only ever
@@ -36,6 +37,11 @@ public class Properties extends JsonMap {
   private static final String VALUE_KEY = "value";
 
   public Properties() {
+  }
+
+  // For deserialization
+  Properties(Map<String, Object> delegate) {
+    super(delegate);
   }
 
   @Override public Properties putValue(String key, Object value) {

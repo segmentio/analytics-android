@@ -127,6 +127,10 @@ public class Dispatcher {
       segmentHTTPApi.upload(payloads);
       Logger.v("Successfully flushed %s payloads.", count);
       stats.dispatchFlush(count);
+      for (int i = 0; i < count; i++) {
+        queue.remove();
+      }
+      Logger.v("Cleared queue.");
     } catch (IOException e) {
       Logger.e(e, "Failed to flush payloads.");
     }

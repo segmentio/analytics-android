@@ -19,17 +19,20 @@ package com.segment.analytics.wear;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.WearableListenerService;
 import com.segment.analytics.Analytics;
-import com.segment.analytics.internal.Logger;
-import com.segment.analytics.wear.model.WearPayload;
-import com.segment.analytics.wear.model.WearScreenPayload;
-import com.segment.analytics.wear.model.WearTrackPayload;
 
+/**
+ * A {@link WearableListenerService} that listens for analytics events from a wear device.
+ * <p/>
+ * Clients may subclass this and override {@link #getAnalytics()} to provide custom instances of
+ * {@link Analytics} client. Ideally, it should be the same instance as the client you're using to
+ * track events on the host Android device.
+ */
 public class PhoneAnalyticsListenerService extends WearableListenerService {
 
   @Override public void onMessageReceived(MessageEvent messageEvent) {
     super.onMessageReceived(messageEvent);
 
-    if (messageEvent.getPath().contains("analytics")) {
+    if (WearAnalytics.ANALYTICS_PATH.equals(messageEvent.getPath())) {
       WearPayload wearPayload = new WearPayload(new String(messageEvent.getData()));
 
       switch (wearPayload.type()) {
@@ -43,7 +46,8 @@ public class PhoneAnalyticsListenerService extends WearableListenerService {
               wearScreenPayload.getProperties());
           break;
         default:
-          Logger.d("Only screen and track events are supported for Wear Analytics.");
+          throw new UnsupportedOperationException(
+              "only track and screen calls may be sent from wear.");
       }
     }
   }
