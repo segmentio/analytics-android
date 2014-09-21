@@ -31,12 +31,10 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import com.segment.analytics.internal.AnalyticsActivityLifecycleCallbacksAdapter;
 import com.segment.analytics.internal.Dispatcher;
 import com.segment.analytics.internal.IntegrationManager;
 import com.segment.analytics.internal.Logger;
@@ -64,7 +62,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  *
  * @see <a href="https://segment.io/">Segment.io</a>
  */
-public class Analytics {
+public class Analytics implements Application.ActivityLifecycleCallbacks {
   // Resource identifiers to define options in xml
   public static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
   public static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
@@ -269,11 +267,8 @@ public class Analytics {
     this.traitsCache = traitsCache;
     this.analyticsContext = analyticsContext;
     this.defaultOptions = defaultOptions;
+    application.registerActivityLifecycleCallbacks(this);
     setDebugging(debugging);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-      AnalyticsActivityLifecycleCallbacksAdapter.registerActivityLifecycleCallbacks(application,
-          this);
-    }
   }
 
   /**
@@ -290,31 +285,31 @@ public class Analytics {
   }
 
   // Activity Lifecycle
-  public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+  @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
     integrationManager.dispatchOnActivityCreated(activity, savedInstanceState);
   }
 
-  public void onActivityStarted(Activity activity) {
+  @Override public void onActivityStarted(Activity activity) {
     integrationManager.dispatchOnActivityStarted(activity);
   }
 
-  public void onActivityResumed(Activity activity) {
+  @Override public void onActivityResumed(Activity activity) {
     integrationManager.dispatchOnActivityResumed(activity);
   }
 
-  public void onActivityPaused(Activity activity) {
+  @Override public void onActivityPaused(Activity activity) {
     integrationManager.dispatchOnActivityPaused(activity);
   }
 
-  public void onActivityStopped(Activity activity) {
+  @Override public void onActivityStopped(Activity activity) {
     integrationManager.dispatchOnActivityStopped(activity);
   }
 
-  public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+  @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
     integrationManager.dispatchOnActivitySaveInstanceState(activity, outState);
   }
 
-  public void onActivityDestroyed(Activity activity) {
+  @Override public void onActivityDestroyed(Activity activity) {
     integrationManager.dispatchOnActivityDestroyed(activity);
   }
 
@@ -540,8 +535,8 @@ public class Analytics {
   }
 
   /**
-   * Tries to send all messages from our queue to our server and indicates our bundled integrations
-   * to do the same. Note that not all bundled integrations support this, for which we just no-op.
+   * Flush all the messages in the queue. This wil do nothing for bundled integrations that don't
+   * have an explicit flush method.
    */
   public void flush() {
     dispatcher.dispatchFlush();
