@@ -153,6 +153,6 @@ public class JsonMapTest extends BaseAndroidTestCase {
         .contains(MapEntry.entry("apiKey", "8DY3D6S7CCWH54RBJ9ZM"))
         .contains(MapEntry.entry("captureUncaughtExceptions", false))
         .contains(MapEntry.entry("useHttps", true))
-        .contains(MapEntry.entry("sessionContinueSeconds", 10));
+        .contains(MapEntry.entry("sessionContinueSeconds", 10.0));
   }
 }

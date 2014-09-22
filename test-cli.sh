@@ -5,7 +5,7 @@
 
 set -e
 
-./gradlew assemble assembleDebug assembleDebugTest build
+./gradlew clean build
 
 APK=`\ls core/build/outputs/apk/*.apk`
 java -jar spoon-*-jar-with-dependencies.jar --apk "$APK" --test-apk "$APK" --output core/build/spoon

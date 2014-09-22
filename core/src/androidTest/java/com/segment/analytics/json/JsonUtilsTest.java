@@ -37,32 +37,31 @@ import static org.fest.assertions.api.Assertions.assertThat;
 
 public class JsonUtilsTest extends BaseAndroidTestCase {
   public void testSimpleJsonToMap() throws Exception {
-    Map<String, Object> json = JsonUtils.toMap("{\n"
-            + "  \"glossary\": {\n"
-            + "    \"title\": \"example glossary\",\n"
-            + "    \"GlossDiv\": {\n"
-            + "      \"title\": \"S\",\n"
-            + "      \"GlossList\": {\n"
-            + "        \"GlossEntry\": {\n"
-            + "          \"ID\": \"SGML\",\n"
-            + "          \"SortAs\": \"SGML\",\n"
-            + "          \"GlossTerm\": \"Standard Generalized Markup Language\",\n"
-            + "          \"Acronym\": \"SGML\",\n"
-            + "          \"Abbrev\": \"ISO 8879:1986\",\n"
-            + "          \"GlossDef\": {\n"
-            + "            \"para\": \"A meta-markup language, used to decode markup languages such as DocBook.\",\n"
-            + "            \"GlossSeeAlso\": [\n"
-            + "              \"GML\",\n"
-            + "              \"XML\"\n"
-            + "            ]\n"
-            + "          },\n"
-            + "          \"GlossSee\": \"markup\"\n"
-            + "        }\n"
-            + "      }\n"
-            + "    }\n"
-            + "  }\n"
-            + "}"
-    );
+    Map<String, Object> json = JsonUtils.jsonToMap("{\n"
+        + "  \"glossary\": {\n"
+        + "    \"title\": \"example glossary\",\n"
+        + "    \"GlossDiv\": {\n"
+        + "      \"title\": \"S\",\n"
+        + "      \"GlossList\": {\n"
+        + "        \"GlossEntry\": {\n"
+        + "          \"ID\": \"SGML\",\n"
+        + "          \"SortAs\": \"SGML\",\n"
+        + "          \"GlossTerm\": \"Standard Generalized Markup Language\",\n"
+        + "          \"Acronym\": \"SGML\",\n"
+        + "          \"Abbrev\": \"ISO 8879:1986\",\n"
+        + "          \"GlossDef\": {\n"
+        + "            \"para\": \"A meta-markup language, used to decode markup languages such as DocBook.\",\n"
+        + "            \"GlossSeeAlso\": [\n"
+        + "              \"GML\",\n"
+        + "              \"XML\"\n"
+        + "            ]\n"
+        + "          },\n"
+        + "          \"GlossSee\": \"markup\"\n"
+        + "        }\n"
+        + "      }\n"
+        + "    }\n"
+        + "  }\n"
+        + "}");
 
     assertThat(json).hasSize(1);
     assertThat(json).containsKey("glossary");
@@ -102,31 +101,30 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
   }
 
   public void testArray() throws Exception {
-    List<Object> json = JsonUtils.toList("[\n"
-            + "        {\"id\": \"Open\"},\n"
-            + "        {\"id\": \"OpenNew\", \"label\": \"Open New\"},\n"
-            + "        null,\n"
-            + "        {\"id\": \"ZoomIn\", \"label\": \"Zoom In\"},\n"
-            + "        {\"id\": \"ZoomOut\", \"label\": \"Zoom Out\"},\n"
-            + "        {\"id\": \"OriginalView\", \"label\": \"Original View\"},\n"
-            + "        null,\n"
-            + "        {\"id\": \"Quality\"},\n"
-            + "        {\"id\": \"Pause\"},\n"
-            + "        {\"id\": \"Mute\"},\n"
-            + "        null,\n"
-            + "        {\"id\": \"Find\", \"label\": \"Find...\"},\n"
-            + "        {\"id\": \"FindAgain\", \"label\": \"Find Again\"},\n"
-            + "        {\"id\": \"Copy\"},\n"
-            + "        {\"id\": \"CopyAgain\", \"label\": \"Copy Again\"},\n"
-            + "        {\"id\": \"CopySVG\", \"label\": \"Copy SVG\"},\n"
-            + "        {\"id\": \"ViewSVG\", \"label\": \"View SVG\"},\n"
-            + "        {\"id\": \"ViewSource\", \"label\": \"View Source\"},\n"
-            + "        {\"id\": \"SaveAs\", \"label\": \"Save As\"},\n"
-            + "        null,\n"
-            + "        {\"id\": \"Help\"},\n"
-            + "        {\"id\": \"About\", \"label\": \"About Adobe CVG Viewer...\"}\n"
-            + "    ]"
-    );
+    List<Object> json = JsonUtils.jsonToList("[\n"
+        + "        {\"id\": \"Open\"},\n"
+        + "        {\"id\": \"OpenNew\", \"label\": \"Open New\"},\n"
+        + "        null,\n"
+        + "        {\"id\": \"ZoomIn\", \"label\": \"Zoom In\"},\n"
+        + "        {\"id\": \"ZoomOut\", \"label\": \"Zoom Out\"},\n"
+        + "        {\"id\": \"OriginalView\", \"label\": \"Original View\"},\n"
+        + "        null,\n"
+        + "        {\"id\": \"Quality\"},\n"
+        + "        {\"id\": \"Pause\"},\n"
+        + "        {\"id\": \"Mute\"},\n"
+        + "        null,\n"
+        + "        {\"id\": \"Find\", \"label\": \"Find...\"},\n"
+        + "        {\"id\": \"FindAgain\", \"label\": \"Find Again\"},\n"
+        + "        {\"id\": \"Copy\"},\n"
+        + "        {\"id\": \"CopyAgain\", \"label\": \"Copy Again\"},\n"
+        + "        {\"id\": \"CopySVG\", \"label\": \"Copy SVG\"},\n"
+        + "        {\"id\": \"ViewSVG\", \"label\": \"View SVG\"},\n"
+        + "        {\"id\": \"ViewSource\", \"label\": \"View Source\"},\n"
+        + "        {\"id\": \"SaveAs\", \"label\": \"Save As\"},\n"
+        + "        null,\n"
+        + "        {\"id\": \"Help\"},\n"
+        + "        {\"id\": \"About\", \"label\": \"About Adobe CVG Viewer...\"}\n"
+        + "    ]");
 
     assertThat(json).hasSize(22);
     assertThat(json).contains(null, Index.atIndex(2))
@@ -146,14 +144,15 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
   }
 
   public void testPrimitiveArray() throws Exception {
-    List<Object> json = JsonUtils.toList("[0,375,668,5,6]");
+    List<Object> json = JsonUtils.jsonToList("[0,375,668,5,6]");
 
     assertThat(json).hasSize(5);
-    assertThat(json).contains(0, Index.atIndex(0))
-        .contains(375, Index.atIndex(1))
-        .contains(668, Index.atIndex(2))
-        .contains(5, Index.atIndex(3))
-        .contains(6, Index.atIndex(4));
+    assertThat(json) //
+        .contains(0.0, Index.atIndex(0))
+        .contains(375.0, Index.atIndex(1))
+        .contains(668.0, Index.atIndex(2))
+        .contains(5.0, Index.atIndex(3))
+        .contains(6.0, Index.atIndex(4));
   }
 
   static class Person {
@@ -171,8 +170,8 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
     Map<String, Object> sourceMap = new HashMap<String, Object>();
     sourceMap.put("person", person);
     sourceMap.put("extra", 40.32);
-    String json = JsonUtils.fromMap(sourceMap);
-    Map<String, Object> retrieved = JsonUtils.toMap(json);
+    String json = JsonUtils.mapToJson(sourceMap);
+    Map<String, Object> retrieved = JsonUtils.jsonToMap(json);
     assertThat(retrieved).hasSize(2);
     assertThat(retrieved).contains(MapEntry.entry("person", person.toString()),
         MapEntry.entry("extra", 40.32));
@@ -217,15 +216,15 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
     sourceMap.put("aBoolean", aBoolean);
     sourceMap.put("aBoxedBoolean", aBoxedBoolean);
 
-    String json = JsonUtils.fromMap(sourceMap);
-    Map<String, Object> retrieved = JsonUtils.toMap(json);
+    String json = JsonUtils.mapToJson(sourceMap);
+    Map<String, Object> retrieved = JsonUtils.jsonToMap(json);
     assertThat(retrieved) //
-        .contains(MapEntry.entry("aByte", (int) aByte))
-        .contains(MapEntry.entry("aBoxedByte", (int) aBoxedByte))
-        .contains(MapEntry.entry("aShort", (int) aShort))
-        .contains(MapEntry.entry("aBoxedShort", (int) aBoxedShort))
-        .contains(MapEntry.entry("anInt", anInt))
-        .contains(MapEntry.entry("aBoxedInt", aBoxedInt))
+        .contains(MapEntry.entry("aByte", Double.valueOf(aByte)))
+        .contains(MapEntry.entry("aBoxedByte", Double.valueOf(aBoxedByte)))
+        .contains(MapEntry.entry("aShort", Double.valueOf(aShort)))
+        .contains(MapEntry.entry("aBoxedShort", Double.valueOf(aBoxedShort)))
+        .contains(MapEntry.entry("anInt", Double.valueOf(anInt)))
+        .contains(MapEntry.entry("aBoxedInt", Double.valueOf(aBoxedInt)))
         .contains(MapEntry.entry("aFloat", Double.valueOf(String.valueOf(aFloat))))
         .contains(MapEntry.entry("aBoxedFloat", Double.valueOf(String.valueOf(aBoxedFloat))))
         .contains(MapEntry.entry("aDouble", aDouble))

@@ -24,144 +24,143 @@
 
 package com.segment.analytics.json;
 
-import java.lang.reflect.Array;
-import java.util.Collection;
-import java.util.Iterator;
+import android.util.JsonReader;
+import android.util.JsonToken;
+import android.util.JsonWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONStringer;
 
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 class JsonUtils {
-
-  /**
-   * Converts the given json into a map. The Map will contain values for primitive types and
-   * Strings, or recursively Maps and Lists for the same types.
-   *
-   * Some type information is lost during deserialization. See the chart below to see which types
-   * exhibit this behaviour.
-   *
-   * byte -> integer
-   * short -> integer
-   * integer -> integer
-   * long -> long
-   * float -> double
-   * double -> double
-   * char -> String
-   * String -> String
-   * boolean -> boolean
-   */
-  static Map<String, Object> toMap(String json) throws JSONException {
-    JSONObject jsonObject = new JSONObject(json);
-    return toMap(jsonObject);
-  }
-
-  /** Converts the given string into a list. */
-  static JsonList toList(String string) throws JSONException {
-    JSONArray jsonArray = new JSONArray(string);
-    return toList(jsonArray);
-  }
-
-  /** Convert an JSONObject to a Map recursively. */
-  private static Map<String, Object> toMap(JSONObject jsonObject) throws JSONException {
-    Map<String, Object> map = new LinkedHashMap<String, Object>(jsonObject.length());
-
-    Iterator<String> keysItr = jsonObject.keys();
-    while (keysItr.hasNext()) {
-      String key = keysItr.next();
-      Object value = jsonObject.get(key);
-      if (value instanceof JSONArray) {
-        value = toList((JSONArray) value);
-      } else if (value instanceof JSONObject) {
-        value = toMap((JSONObject) value);
-      }
-      map.put(key, value);
+  /** Converts the given json formatted string into a map. */
+  static Map<String, Object> jsonToMap(String json) throws IOException {
+    if (isNullOrEmpty(json)) {
+      throw new IllegalArgumentException("Json must not be null or empty.");
     }
+    JsonReader jsonReader =
+        new JsonReader(new InputStreamReader(new ByteArrayInputStream(json.getBytes())));
+    return readerToMap(jsonReader);
+  }
+
+  /** Converts the given string into a List. */
+  static List<Object> jsonToList(String json) throws IOException {
+    if (isNullOrEmpty(json)) {
+      throw new IllegalArgumentException("Json must not be null or empty.");
+    }
+    JsonReader jsonReader =
+        new JsonReader(new InputStreamReader(new ByteArrayInputStream(json.getBytes())));
+    return readerToList(jsonReader);
+  }
+
+  /** Converts the given map to a json format string. */
+  static String mapToJson(Map<?, ?> map) throws IOException {
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    JsonWriter writer = new JsonWriter(new OutputStreamWriter(bos));
+    mapToWriter(map, writer);
+    writer.close();
+    return bos.toString();
+  }
+
+  /** Converts the given list to a json format string. */
+  static String listToJson(List<?> list) throws IOException {
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    JsonWriter writer = new JsonWriter(new OutputStreamWriter(bos));
+    listToWriter(list, writer);
+    writer.close();
+    return bos.toString();
+  }
+
+  // Private APIs
+
+  /** Parse a json reader into a map. */
+  private static Map<String, Object> readerToMap(JsonReader reader) throws IOException {
+    Map<String, Object> map = new LinkedHashMap<String, Object>();
+    reader.beginObject();
+    while (reader.hasNext()) {
+      String key = reader.nextName();
+      map.put(key, readValue(reader));
+    }
+    reader.endObject();
     return map;
   }
 
-  /** recursively Convert an JSONArray to a List. */
-  private static JsonList toList(JSONArray array) throws JSONException {
-    JsonList list = new JsonList();
-    for (int i = 0; i < array.length(); i++) {
-      Object value = array.get(i);
-      if (value instanceof JSONObject) {
-        value = toMap((JSONObject) value);
-      }
+  /** Parse a json reader into a list. */
+  private static List<Object> readerToList(JsonReader reader) throws IOException {
+    List<Object> list = new ArrayList<Object>();
+
+    reader.beginArray();
+    while (reader.hasNext()) {
+      Object value = readValue(reader);
       list.add(value);
     }
+    reader.endArray();
+
     return list;
   }
 
-  /** Converts the given map to a json formatted string. */
-  static String fromMap(Map<String, ?> map) throws JSONException {
-    // Support proper parsing. The default implementation ignores nested Collections
-    JSONStringer stringer = new JSONStringer();
-    writeTo(map, stringer);
-    return stringer.toString();
-  }
-
-  /** Recursively write to the stringer for a given map. */
-  private static void writeTo(Map<String, ?> map, JSONStringer stringer) throws JSONException {
-    stringer.object();
-    for (Map.Entry<String, ?> entry : map.entrySet()) {
-      String key = entry.getKey();
+  /** Print the json representation of a map to the given writer. */
+  private static void mapToWriter(Map<?, ?> map, JsonWriter writer) throws IOException {
+    writer.beginObject();
+    for (Map.Entry<?, ?> entry : map.entrySet()) {
+      Object key = entry.getKey();
       Object value = entry.getValue();
-      if (value == null) {
-        stringer.key(key).value(value);
-      } else if (value instanceof Map) {
-        stringer.key(key);
-        writeTo((Map) value, stringer);
-      } else if (value instanceof Collection) {
-        stringer.key(key);
-        writeTo((Collection) value, stringer);
-      } else if (value.getClass().isArray()) {
-        stringer.key(key);
-        writeTo(toList(value), stringer);
-      } else {
-        stringer.key(key).value(value);
-      }
+      writer.name(String.valueOf(key));
+      write(value, writer);
     }
-    stringer.endObject();
+    writer.endObject();
   }
 
-  /** Coerce an object which is an array to a List. */
-  static JsonList toList(Object array) {
-    final int length = Array.getLength(array);
-    JsonList values = new JsonList();
-    for (int i = 0; i < length; ++i) {
-      // don't worry about checking types, we'll do that when we write to the stringer
-      values.add(Array.get(array, i));
+  /** Print the json representation of a List to the given writer. */
+  private static void listToWriter(List<?> list, JsonWriter writer) throws IOException {
+    writer.beginArray();
+    for (Object value : list) {
+      write(value, writer);
     }
-    return values;
+    writer.endArray();
   }
 
-  /** Recursively write to the stringer for a given collection. */
-  private static void writeTo(Collection<?> collection, JSONStringer stringer)
-      throws JSONException {
-    stringer.array();
-    if (!isNullOrEmpty(collection)) {
-      for (Object value : collection) {
-        if (value instanceof Map) {
-          writeTo((Map) value, stringer);
-        } else {
-          stringer.value(value);
-        }
-      }
+  private static void write(Object value, JsonWriter writer) throws IOException {
+    if (value == null) {
+      writer.nullValue();
+    } else if (value instanceof Number) {
+      writer.value((Number) value);
+    } else if (value instanceof Boolean) {
+      writer.value((Boolean) value);
+    } else if (value instanceof List) {
+      listToWriter((List) value, writer);
+    } else if (value instanceof Map) {
+      mapToWriter((Map) value, writer);
+    } else {
+      writer.value(String.valueOf(value));
     }
-    stringer.endArray();
   }
 
-  /** Converts the given map to a json formatted string. */
-  static String fromList(List<?> list) throws JSONException {
-    // Support proper parsing. The default implementation ignores nested Collections
-    JSONStringer stringer = new JSONStringer();
-    writeTo(list, stringer);
-    return stringer.toString();
+  private static Object readValue(JsonReader reader) throws IOException {
+    JsonToken token = reader.peek();
+    switch (token) {
+      case BEGIN_OBJECT:
+        return readerToMap(reader);
+      case BEGIN_ARRAY:
+        return readerToList(reader);
+      case NUMBER:
+        return reader.nextDouble();
+      case STRING:
+        return reader.nextString();
+      case BOOLEAN:
+        return reader.nextBoolean();
+      case NULL:
+        reader.nextNull();
+        return null;
+      default:
+        throw new IllegalStateException("Got token " + token);
+    }
   }
 }

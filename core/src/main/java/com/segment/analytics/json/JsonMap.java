@@ -1,17 +1,14 @@
 package com.segment.analytics.json;
 
 import com.segment.analytics.internal.Logger;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.json.JSONException;
 import org.json.JSONObject;
-
-import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
  * A {@link Map} wrapper to expose Json functionality. Only the {@link #toString()} method is
@@ -54,12 +51,9 @@ public class JsonMap implements Map<String, Object> {
   }
 
   public JsonMap(String json) {
-    if (isNullOrEmpty(json)) {
-      throw new IllegalArgumentException("Json must not be null or empty.");
-    }
     try {
-      this.delegate = JsonUtils.toMap(json);
-    } catch (JSONException e) {
+      this.delegate = JsonUtils.jsonToMap(json);
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -122,8 +116,8 @@ public class JsonMap implements Map<String, Object> {
 
   @Override public String toString() {
     try {
-      return JsonUtils.fromMap(delegate);
-    } catch (JSONException e) {
+      return JsonUtils.mapToJson(delegate);
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -345,26 +339,6 @@ public class JsonMap implements Map<String, Object> {
       Logger.e("Be sure to declare a constructor that accepts a json or map.");
     }
     return null;
-  }
-
-  /**
-   * Returns the value mapped by {@code key} if it exists and is a JsonList. Returns null
-   * otherwise.
-   */
-  public JsonList getJsonList(Object key) {
-    Object value = get(key);
-    if (value == null) {
-      return null;
-    }
-    if (value instanceof JsonList) {
-      return (JsonList) value;
-    } else if (value instanceof List) {
-      return new JsonList((List) value);
-    } else if (value.getClass().isArray()) {
-      return JsonUtils.toList(value);
-    } else {
-      return null;
-    }
   }
 
   public JSONObject toJsonObject() {
