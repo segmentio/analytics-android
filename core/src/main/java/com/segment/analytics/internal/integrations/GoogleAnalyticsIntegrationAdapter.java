@@ -12,9 +12,9 @@ import com.segment.analytics.Properties;
 import com.segment.analytics.internal.Logger;
 import com.segment.analytics.internal.payload.ScreenPayload;
 import com.segment.analytics.internal.payload.TrackPayload;
-import com.segment.analytics.json.JsonList;
 import com.segment.analytics.json.JsonMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -165,7 +165,7 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
   }
 
   private void sendTransaction(Properties properties) {
-    JsonList products = properties.getJsonList("products");
+    List<Object> products = (List<Object>) properties.get("products");
     if (!isNullOrEmpty(products)) {
       for (Object product : products) {
         try {

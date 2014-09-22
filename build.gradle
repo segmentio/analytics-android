@@ -27,7 +27,7 @@ ext {
   versionCode = Integer.parseInt(VERSION_CODE)
   versionName = VERSION_NAME
 
-  minSdkVersion = 10
+  minSdkVersion = 11
   minSdkVersionWear = 20
   targetSdkVersion = 20
   compileSdkVersion = 20
