@@ -152,7 +152,7 @@ public class JsonMap implements Map<String, Object> {
     if (integerValue == null) {
       return null;
     } else {
-      put(key, integerValue);
+      putIfSupported(key, integerValue);
       return integerValue;
     }
   }
@@ -179,7 +179,7 @@ public class JsonMap implements Map<String, Object> {
     if (longValue == null) {
       return null;
     } else {
-      put(key, longValue);
+      putIfSupported(key, longValue);
       return longValue;
     }
   }
@@ -206,7 +206,7 @@ public class JsonMap implements Map<String, Object> {
     if (doubleValue == null) {
       return null;
     } else {
-      put(key, doubleValue);
+      putIfSupported(key, doubleValue);
       return doubleValue;
     }
   }
@@ -223,7 +223,7 @@ public class JsonMap implements Map<String, Object> {
     if (value != null && value instanceof String) {
       if (((String) value).length() == 1) {
         Character charValue = ((String) value).charAt(0);
-        put(key, charValue);
+        putIfSupported(key, charValue);
         return charValue;
       }
     }
@@ -243,7 +243,7 @@ public class JsonMap implements Map<String, Object> {
       return (String) value;
     } else if (value != null) {
       String stringValue = String.valueOf(value);
-      put(key, stringValue);
+      putIfSupported(key, stringValue);
       return stringValue;
     }
     return null;
@@ -260,10 +260,10 @@ public class JsonMap implements Map<String, Object> {
     } else if (value instanceof String) {
       String stringValue = (String) value;
       if ("false".equalsIgnoreCase(stringValue)) {
-        put(key, false);
+        putIfSupported(key, false);
         return false;
       } else if ("true".equalsIgnoreCase(stringValue)) {
-        put(key, true);
+        putIfSupported(key, true);
         return true;
       }
     }
@@ -284,7 +284,7 @@ public class JsonMap implements Map<String, Object> {
     } else if (value instanceof String) {
       String stringValue = (String) value;
       T enumValue = Enum.valueOf(enumType, stringValue);
-      put(key, enumValue);
+      putIfSupported(key, enumValue);
       return enumValue;
     }
     return null;
@@ -316,7 +316,7 @@ public class JsonMap implements Map<String, Object> {
         Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
         constructor.setAccessible(true);
         T typedValue = constructor.newInstance(value);
-        put(key, typedValue);
+        putIfSupported(key, typedValue);
         return typedValue;
       } catch (NoSuchMethodException e) {
       } catch (InvocationTargetException e) {
@@ -329,7 +329,7 @@ public class JsonMap implements Map<String, Object> {
         constructor.setAccessible(true);
         String json = JsonMap.wrap((Map) value).toString();
         T typedValue = constructor.newInstance(json);
-        put(key, typedValue);
+        putIfSupported(key, typedValue);
         return typedValue;
       } catch (NoSuchMethodException e) {
       } catch (InvocationTargetException e) {
@@ -357,6 +357,14 @@ public class JsonMap implements Map<String, Object> {
   public void merge(Map<String, Object> map) {
     for (Map.Entry<String, Object> entry : map.entrySet()) {
       put(entry.getKey(), entry.getValue());
+    }
+  }
+
+  private void putIfSupported(String key, Object value) {
+    try {
+      delegate.put(key, value);
+    } catch (UnsupportedOperationException e) {
+      // ignore
     }
   }
 }
