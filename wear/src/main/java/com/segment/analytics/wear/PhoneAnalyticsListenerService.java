@@ -34,7 +34,6 @@ public class PhoneAnalyticsListenerService extends WearableListenerService {
 
     if (WearAnalytics.ANALYTICS_PATH.equals(messageEvent.getPath())) {
       WearPayload wearPayload = new WearPayload(new String(messageEvent.getData()));
-
       switch (wearPayload.type()) {
         case track:
           WearTrackPayload wearTrackPayload = wearPayload.payload(WearTrackPayload.class);

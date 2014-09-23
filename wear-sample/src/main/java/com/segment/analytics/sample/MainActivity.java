@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.wearable.view.WatchViewStub;
 import android.view.View;
-import android.widget.TextView;
 import com.segment.analytics.wear.WearAnalytics;
 
 public class MainActivity extends Activity {
@@ -20,10 +19,11 @@ public class MainActivity extends Activity {
     stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
       @Override
       public void onLayoutInflated(WatchViewStub stub) {
-        TextView textView = (TextView) findViewById(R.id.hello);
-        textView.setOnClickListener(new View.OnClickListener() {
-          @Override public void onClick(View v) {
-            WearAnalytics.with(MainActivity.this).track("Said Hello!", null);
+        View view = findViewById(R.id.logo);
+        view.setOnClickListener(new View.OnClickListener() {
+          @Override public void onClick(View view) {
+            view.animate().rotationBy(360);
+            WearAnalytics.with(MainActivity.this).track("Clicked Logo", null);
           }
         });
       }

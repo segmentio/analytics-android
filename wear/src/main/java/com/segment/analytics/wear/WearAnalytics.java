@@ -63,6 +63,7 @@ public class WearAnalytics {
    * @param properties {@link Properties} to add extra information to this call
    * @throws IllegalArgumentException if event name is null or an empty string
    * @see <a href="https://segment.io/docs/tracking-api/track/">Track Documentation</a>
+   * @see {@link com.segment.analytics.Analytics#track(String, Properties)}
    */
   public void track(String event, Properties properties) {
     if (isNullOrEmpty(event)) {
@@ -87,6 +88,7 @@ public class WearAnalytics {
    * @param name       A name for the screen
    * @param properties {@link Properties} to add extra information to this call
    * @see <a href="http://segment.io/docs/tracking-api/page-and-screen/">Screen Documentation</a>
+   * @see {@link com.segment.analytics.Analytics#screen(String, String, Properties)}
    */
   public void screen(String category, String name, Properties properties) {
     if (isNullOrEmpty(category) && isNullOrEmpty(name)) {
@@ -97,7 +99,7 @@ public class WearAnalytics {
       properties = new Properties();
     }
 
-    dispatcher.dispatchPayload(
-        new WearPayload(BasePayload.Type.track, new WearScreenPayload(category, name, properties)));
+    dispatcher.dispatchPayload(new WearPayload(BasePayload.Type.screen,
+        new WearScreenPayload(category, name, properties)));
   }
 }

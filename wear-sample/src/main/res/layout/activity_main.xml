@@ -25,5 +25,7 @@
     app:rectLayout="@layout/rect_activity_main"
     app:roundLayout="@layout/round_activity_main"
     tools:context=".MainActivity"
+    android:padding="32dp"
+    android:background="@color/white"
     tools:deviceIds="wear">
 </android.support.wearable.view.WatchViewStub>
