@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.wearable.view.WatchViewStub;
 import android.view.View;
-import com.segment.analytics.wear.WearAnalytics;
+import com.segment.analytics.WearAnalytics;
 
 public class MainActivity extends Activity {
 
@@ -15,6 +15,7 @@ public class MainActivity extends Activity {
     WearAnalytics.with(this).screen("Viewed Main Activity (Wear)", null, null);
 
     setContentView(R.layout.activity_main);
+
     final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
     stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
       @Override

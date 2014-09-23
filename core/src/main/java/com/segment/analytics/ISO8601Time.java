@@ -24,39 +24,47 @@
 
 package com.segment.analytics;
 
-import java.util.Map;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
-/**
- * Just like traits, we also imbue some properties with semantic meaning, and you should only ever
- * use these property names for that purpose.
- */
-public class Properties extends JsonMap {
-  private static final String REVENUE_KEY = "revenue";
-  private static final String CURRENCY_KEY = "currency";
-  private static final String VALUE_KEY = "value";
+class ISO8601Time {
+  private static final DateFormat ISO_8601_DATE_FORMAT =
+      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
-  public Properties() {
+  private final Date date;
+
+  private ISO8601Time(Date date) {
+    this.date = date;
   }
 
-  // For deserialization
-  Properties(Map<String, Object> delegate) {
-    super(delegate);
+  static ISO8601Time now() {
+    return new ISO8601Time(Calendar.getInstance().getTime());
   }
 
-  @Override public Properties putValue(String key, Object value) {
-    super.putValue(key, value);
-    return this;
+  static ISO8601Time parse(String time) throws ParseException {
+    return new ISO8601Time(ISO_8601_DATE_FORMAT.parse(time));
   }
 
-  public Properties putRevenue(double revenue) {
-    return putValue(REVENUE_KEY, revenue);
+  static ISO8601Time from(Date date) {
+    return new ISO8601Time(date); // exposes mutability?
   }
 
-  public Properties putCurrency(String currency) {
-    return putValue(CURRENCY_KEY, currency);
+  static ISO8601Time from(Calendar calendar) {
+    return new ISO8601Time(calendar.getTime()); // exposes mutability?
   }
 
-  public Properties putValue(String value) {
-    return putValue(VALUE_KEY, value);
+  static ISO8601Time from(long timestamp) {
+    return new ISO8601Time(new Date(timestamp));
+  }
+
+  long time() {
+    return date.getTime();
+  }
+
+  @Override public String toString() {
+    return ISO_8601_DATE_FORMAT.format(date);
   }
 }

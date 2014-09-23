@@ -36,18 +36,16 @@ ext {
   preDexLibraries = preDexEnabled && !isTravis
 }
 
-ext.libraries = [
-    amplitude: 'com.amplitude:android-sdk:1.4.1',
-    bugsnag: 'com.bugsnag:bugsnag-android:2.2.0',
-    countly: 'ly.count:sdk-android:13.11',
-    crittercism: 'com.crittercism:crittercism-android-agent:4.5.3',
-    flurry: files('libs/FlurryAnalytics-4.1.0.jar'),
-    supportLib: 'com.android.support:support-v4:19.1.0',
-    googleAnalytics: 'com.google.android.gms:play-services:5.0.89',
-    localytics: project(':localytics'),
-    mixpanel: 'com.mixpanel.android:mixpanel-android:4.2.1@aar',
-    quantcast: files('libs/QuantcastAndroidSdk.jar'),
-    tapstream: files('libs/Tapstream-2.7.1.jar'),
-    supportWearable: 'com.google.android.support:wearable:+',
-    playWearable: 'com.google.android.gms:play-services-wearable:+'
-]
+ext.libraries = [amplitude      : 'com.amplitude:android-sdk:1.4.1',
+                 bugsnag        : 'com.bugsnag:bugsnag-android:2.2.0',
+                 countly        : 'ly.count:sdk-android:13.11',
+                 crittercism    : 'com.crittercism:crittercism-android-agent:4.5.3',
+                 flurry         : files('libs/FlurryAnalytics-4.1.0.jar'),
+                 supportLib     : 'com.android.support:support-v4:19.1.0',
+                 googleAnalytics: 'com.google.android.gms:play-services:5.0.89',
+                 localytics     : project(':localytics'),
+                 mixpanel       : 'com.mixpanel.android:mixpanel-android:4.2.1@aar',
+                 quantcast      : files('libs/QuantcastAndroidSdk.jar'),
+                 tapstream      : files('libs/Tapstream-2.7.1.jar'),
+                 supportWearable: 'com.google.android.support:wearable:+',
+                 playWearable   : 'com.google.android.gms:play-services-wearable:+']

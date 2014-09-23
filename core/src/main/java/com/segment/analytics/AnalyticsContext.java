@@ -34,8 +34,6 @@ import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
-import com.segment.analytics.internal.Logger;
-import com.segment.analytics.json.JsonMap;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -46,8 +44,8 @@ import static android.content.Context.TELEPHONY_SERVICE;
 import static android.net.ConnectivityManager.TYPE_BLUETOOTH;
 import static android.net.ConnectivityManager.TYPE_MOBILE;
 import static android.net.ConnectivityManager.TYPE_WIFI;
-import static com.segment.analytics.internal.Utils.getSystemService;
-import static com.segment.analytics.internal.Utils.hasPermission;
+import static com.segment.analytics.Utils.getSystemService;
+import static com.segment.analytics.Utils.hasPermission;
 
 /**
  * Context is a dictionary of extra, free-form information about a specific API call. You can add

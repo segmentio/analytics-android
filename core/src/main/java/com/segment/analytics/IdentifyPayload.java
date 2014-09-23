@@ -26,37 +26,22 @@ package com.segment.analytics;
 
 import java.util.Map;
 
-/**
- * Just like traits, we also imbue some properties with semantic meaning, and you should only ever
- * use these property names for that purpose.
- */
-public class Properties extends JsonMap {
-  private static final String REVENUE_KEY = "revenue";
-  private static final String CURRENCY_KEY = "currency";
-  private static final String VALUE_KEY = "value";
+class IdentifyPayload extends BasePayload {
+  /**
+   * A dictionary of traits you know about a user, for example email or name. We have a collection
+   * of special traits that we recognize with semantic meaning, which you should always use when
+   * recording that information. You can also add any custom traits that are specific to your
+   * project to the dictionary, like friendCount or subscriptionType.
+   */
+  private static final String TRAITS_KEY = "traits";
 
-  public Properties() {
+  IdentifyPayload(String anonymousId, AnalyticsContext context, String userId, Traits traits,
+      Options options, Map<String, Boolean> bundledIntegrations) {
+    super(Type.identify, anonymousId, context, userId, options, bundledIntegrations);
+    put(TRAITS_KEY, traits);
   }
 
-  // For deserialization
-  Properties(Map<String, Object> delegate) {
-    super(delegate);
-  }
-
-  @Override public Properties putValue(String key, Object value) {
-    super.putValue(key, value);
-    return this;
-  }
-
-  public Properties putRevenue(double revenue) {
-    return putValue(REVENUE_KEY, revenue);
-  }
-
-  public Properties putCurrency(String currency) {
-    return putValue(CURRENCY_KEY, currency);
-  }
-
-  public Properties putValue(String value) {
-    return putValue(VALUE_KEY, value);
+  Traits traits() {
+    return (Traits) get(TRAITS_KEY);
   }
 }

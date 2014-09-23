@@ -25,13 +25,11 @@
 package com.segment.analytics;
 
 import android.content.Context;
-import com.segment.analytics.internal.ISO8601Time;
-import com.segment.analytics.json.JsonMap;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.segment.analytics.internal.Utils.getDeviceId;
+import static com.segment.analytics.Utils.getDeviceId;
 
 /**
  * Traits can be anything you want, but some of them have semantic meaning and we treat them in

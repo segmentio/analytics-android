@@ -26,37 +26,20 @@ package com.segment.analytics;
 
 import java.util.Map;
 
-/**
- * Just like traits, we also imbue some properties with semantic meaning, and you should only ever
- * use these property names for that purpose.
- */
-public class Properties extends JsonMap {
-  private static final String REVENUE_KEY = "revenue";
-  private static final String CURRENCY_KEY = "currency";
-  private static final String VALUE_KEY = "value";
+class AliasPayload extends BasePayload {
+  /**
+   * The previous ID for the user that you want to alias from, that you previously called identify
+   * with as their User ID.
+   */
+  private static final String PREVIOUS_ID_KEY = "previousId";
 
-  public Properties() {
+  AliasPayload(String anonymousId, AnalyticsContext context, String userId, String previousId,
+      Options options, Map<String, Boolean> bundledIntegrations) {
+    super(Type.alias, anonymousId, context, userId, options, bundledIntegrations);
+    put(PREVIOUS_ID_KEY, previousId);
   }
 
-  // For deserialization
-  Properties(Map<String, Object> delegate) {
-    super(delegate);
-  }
-
-  @Override public Properties putValue(String key, Object value) {
-    super.putValue(key, value);
-    return this;
-  }
-
-  public Properties putRevenue(double revenue) {
-    return putValue(REVENUE_KEY, revenue);
-  }
-
-  public Properties putCurrency(String currency) {
-    return putValue(CURRENCY_KEY, currency);
-  }
-
-  public Properties putValue(String value) {
-    return putValue(VALUE_KEY, value);
+  String previousId() {
+    return getString(PREVIOUS_ID_KEY);
   }
 }

@@ -26,37 +26,23 @@ package com.segment.analytics;
 
 import java.util.Map;
 
-/**
- * Just like traits, we also imbue some properties with semantic meaning, and you should only ever
- * use these property names for that purpose.
- */
-public class Properties extends JsonMap {
-  private static final String REVENUE_KEY = "revenue";
-  private static final String CURRENCY_KEY = "currency";
-  private static final String VALUE_KEY = "value";
+class GroupPayload extends BasePayload {
+  /**
+   * A unique identifier that refers to the group in your database. For example, if your product
+   * groups people by "organization" you would use the organization's ID in your database as the
+   * group ID.
+   */
+  private static final String GROUP_ID_KEY = "groupId";
 
-  public Properties() {
-  }
+  /**
+   * The group method also takes a traits dictionary, just like identify.
+   */
+  private static final String TRAITS_KEY = "traits";
 
-  // For deserialization
-  Properties(Map<String, Object> delegate) {
-    super(delegate);
-  }
-
-  @Override public Properties putValue(String key, Object value) {
-    super.putValue(key, value);
-    return this;
-  }
-
-  public Properties putRevenue(double revenue) {
-    return putValue(REVENUE_KEY, revenue);
-  }
-
-  public Properties putCurrency(String currency) {
-    return putValue(CURRENCY_KEY, currency);
-  }
-
-  public Properties putValue(String value) {
-    return putValue(VALUE_KEY, value);
+  GroupPayload(String anonymousId, AnalyticsContext context, String userId, String groupId,
+      Traits traits, Options options, Map<String, Boolean> bundledIntegrations) {
+    super(Type.group, anonymousId, context, userId, options, bundledIntegrations);
+    put(GROUP_ID_KEY, groupId);
+    put(TRAITS_KEY, traits);
   }
 }

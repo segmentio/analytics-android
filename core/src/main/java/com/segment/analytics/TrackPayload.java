@@ -26,37 +26,32 @@ package com.segment.analytics;
 
 import java.util.Map;
 
-/**
- * Just like traits, we also imbue some properties with semantic meaning, and you should only ever
- * use these property names for that purpose.
- */
-public class Properties extends JsonMap {
-  private static final String REVENUE_KEY = "revenue";
-  private static final String CURRENCY_KEY = "currency";
-  private static final String VALUE_KEY = "value";
+class TrackPayload extends BasePayload {
+  /**
+   * The name of the event. We recommend using title case and past tense for event names, like
+   * Signed Up.
+   */
+  private static final String EVENT_KEY = "event";
 
-  public Properties() {
+  /**
+   * A dictionary of properties that give more information about the event. We have a collection of
+   * special properties that we recognize with semantic meaning. You can also add your own custom
+   * properties.
+   */
+  private static final String PROPERTIES_KEY = "properties";
+
+  TrackPayload(String anonymousId, AnalyticsContext context, String userId, String event,
+      Properties properties, Options options, Map<String, Boolean> bundledIntegrations) {
+    super(Type.track, anonymousId, context, userId, options, bundledIntegrations);
+    put(EVENT_KEY, event);
+    put(PROPERTIES_KEY, properties);
   }
 
-  // For deserialization
-  Properties(Map<String, Object> delegate) {
-    super(delegate);
+  String event() {
+    return getString(EVENT_KEY);
   }
 
-  @Override public Properties putValue(String key, Object value) {
-    super.putValue(key, value);
-    return this;
-  }
-
-  public Properties putRevenue(double revenue) {
-    return putValue(REVENUE_KEY, revenue);
-  }
-
-  public Properties putCurrency(String currency) {
-    return putValue(CURRENCY_KEY, currency);
-  }
-
-  public Properties putValue(String value) {
-    return putValue(VALUE_KEY, value);
+  Properties properties() {
+    return (Properties) get(PROPERTIES_KEY);
   }
 }

@@ -1,10 +1,8 @@
 package com.segment.analytics;
 
 import android.content.Context;
-import com.segment.analytics.internal.StringCache;
-import com.segment.analytics.internal.Utils;
 
-import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import static com.segment.analytics.Utils.isNullOrEmpty;
 
 class TraitsCache {
   private static final String TRAITS_CACHE_PREFIX = "traits-";

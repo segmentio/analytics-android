@@ -24,39 +24,36 @@
 
 package com.segment.analytics;
 
-import java.util.Map;
+import android.content.SharedPreferences;
 
-/**
- * Just like traits, we also imbue some properties with semantic meaning, and you should only ever
- * use these property names for that purpose.
- */
-public class Properties extends JsonMap {
-  private static final String REVENUE_KEY = "revenue";
-  private static final String CURRENCY_KEY = "currency";
-  private static final String VALUE_KEY = "value";
+class StringCache {
+  private final SharedPreferences preferences;
+  private final String key;
+  private final String defaultValue;
 
-  public Properties() {
+  StringCache(SharedPreferences preferences, String key) {
+    this(preferences, key, null);
   }
 
-  // For deserialization
-  Properties(Map<String, Object> delegate) {
-    super(delegate);
+  StringCache(SharedPreferences preferences, String key, String defaultValue) {
+    this.preferences = preferences;
+    this.key = key;
+    this.defaultValue = defaultValue;
   }
 
-  @Override public Properties putValue(String key, Object value) {
-    super.putValue(key, value);
-    return this;
+  String get() {
+    return preferences.getString(key, defaultValue);
   }
 
-  public Properties putRevenue(double revenue) {
-    return putValue(REVENUE_KEY, revenue);
+  boolean isSet() {
+    return preferences.contains(key);
   }
 
-  public Properties putCurrency(String currency) {
-    return putValue(CURRENCY_KEY, currency);
+  void set(String value) {
+    preferences.edit().putString(key, value).apply();
   }
 
-  public Properties putValue(String value) {
-    return putValue(VALUE_KEY, value);
+  void delete() {
+    preferences.edit().remove(key).apply();
   }
 }

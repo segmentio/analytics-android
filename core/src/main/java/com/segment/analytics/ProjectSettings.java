@@ -24,39 +24,30 @@
 
 package com.segment.analytics;
 
+import java.util.Collections;
 import java.util.Map;
 
-/**
- * Just like traits, we also imbue some properties with semantic meaning, and you should only ever
- * use these property names for that purpose.
- */
-public class Properties extends JsonMap {
-  private static final String REVENUE_KEY = "revenue";
-  private static final String CURRENCY_KEY = "currency";
-  private static final String VALUE_KEY = "value";
+class ProjectSettings extends JsonMap {
+  private static final String TIMESTAMP_KEY = "timestamp";
 
-  public Properties() {
+  static ProjectSettings load(StringCache cache) {
+    if (Utils.isNullOrEmpty(cache.get())) {
+      return null;
+    }
+    return new ProjectSettings(Collections.unmodifiableMap(new JsonMap(cache.get())));
   }
 
-  // For deserialization
-  Properties(Map<String, Object> delegate) {
-    super(delegate);
+  static ProjectSettings create(String json, long timestamp) {
+    JsonMap map = new JsonMap(json);
+    map.put(TIMESTAMP_KEY, timestamp);
+    return new ProjectSettings(Collections.unmodifiableMap(map));
   }
 
-  @Override public Properties putValue(String key, Object value) {
-    super.putValue(key, value);
-    return this;
+  private ProjectSettings(Map<String, Object> map) {
+    super(map);
   }
 
-  public Properties putRevenue(double revenue) {
-    return putValue(REVENUE_KEY, revenue);
-  }
-
-  public Properties putCurrency(String currency) {
-    return putValue(CURRENCY_KEY, currency);
-  }
-
-  public Properties putValue(String value) {
-    return putValue(VALUE_KEY, value);
+  Long timestamp() {
+    return getLong(TIMESTAMP_KEY);
   }
 }

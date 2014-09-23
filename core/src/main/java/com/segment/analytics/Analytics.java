@@ -35,24 +35,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import com.segment.analytics.internal.Dispatcher;
-import com.segment.analytics.internal.IntegrationManager;
-import com.segment.analytics.internal.Logger;
-import com.segment.analytics.internal.SegmentHTTPApi;
-import com.segment.analytics.internal.Stats;
-import com.segment.analytics.internal.payload.AliasPayload;
-import com.segment.analytics.internal.payload.BasePayload;
-import com.segment.analytics.internal.payload.GroupPayload;
-import com.segment.analytics.internal.payload.IdentifyPayload;
-import com.segment.analytics.internal.payload.ScreenPayload;
-import com.segment.analytics.internal.payload.TrackPayload;
 import java.util.Map;
 
-import static com.segment.analytics.internal.Utils.getResourceBooleanOrThrow;
-import static com.segment.analytics.internal.Utils.getResourceIntegerOrThrow;
-import static com.segment.analytics.internal.Utils.getResourceString;
-import static com.segment.analytics.internal.Utils.hasPermission;
-import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import static com.segment.analytics.Utils.getResourceBooleanOrThrow;
+import static com.segment.analytics.Utils.getResourceIntegerOrThrow;
+import static com.segment.analytics.Utils.getResourceString;
+import static com.segment.analytics.Utils.hasPermission;
+import static com.segment.analytics.Utils.isNullOrEmpty;
 
 /**
  * The idea is simple: one pipeline for all your data.
@@ -64,9 +53,9 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  */
 public class Analytics implements Application.ActivityLifecycleCallbacks {
   // Resource identifiers to define options in xml
-  public static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
-  public static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
-  public static final String DEBUGGING_RESOURCE_IDENTIFIER = "analytics_debug";
+  static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
+  static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
+  static final String DEBUGGING_RESOURCE_IDENTIFIER = "analytics_debug";
 
   static Analytics singleton = null;
 
@@ -130,8 +119,8 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
   /** Fluent API for creating {@link Analytics} instances. */
   @SuppressWarnings("UnusedDeclaration") // Public API.
   public static class Builder {
-    public static final int DEFAULT_QUEUE_SIZE = 20;
-    public static final boolean DEFAULT_DEBUGGING = false;
+    static final int DEFAULT_QUEUE_SIZE = 20;
+    static final boolean DEFAULT_DEBUGGING = false;
 
     private final Application application;
     private String writeKey;
@@ -238,7 +227,7 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
     }
   }
 
-  public static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
+  static final Handler MAIN_LOOPER = new Handler(Looper.getMainLooper()) {
     @Override public void handleMessage(Message msg) {
       switch (msg.what) {
         default:
@@ -271,15 +260,13 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
     setDebugging(debugging);
   }
 
-  /**
-   * Toggle whether debugging is enabled.
-   */
+  /** Toggle whether debugging is enabled. */
   public void setDebugging(boolean enabled) {
     debugging = enabled;
     Logger.setLog(enabled);
   }
 
-  /** {@code true} if debugging is enabled. */
+  /** Returns {@code true} if debugging is enabled. */
   public boolean isDebugging() {
     return debugging;
   }
@@ -548,12 +535,7 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
     return analyticsContext;
   }
 
-  /**
-   * Creates a {@link StatsSnapshot} of the current stats for this instance.
-   * <p/>
-   * <b>NOTE:</b> The snapshot may not always be completely up-to-date if requests are still in
-   * progress.
-   */
+  /** Creates a {@link StatsSnapshot} of the current stats for this instance. */
   public StatsSnapshot getSnapshot() {
     return stats.createSnapshot();
   }
