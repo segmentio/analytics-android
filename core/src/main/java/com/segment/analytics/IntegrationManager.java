@@ -180,7 +180,7 @@ class IntegrationManager {
           integration.track((TrackPayload) payload);
           break;
         default:
-          panic(new IllegalArgumentException("unknown payload type!" + payload.type()));
+          panic(new IllegalArgumentException("Unknown payload type!" + payload.type()));
       }
     }
 

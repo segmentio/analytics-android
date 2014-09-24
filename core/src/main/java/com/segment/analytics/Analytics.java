@@ -221,6 +221,7 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
         defaultOptions = new Options();
       }
       if (isNullOrEmpty(tag)) tag = writeKey;
+
       Stats stats = new Stats();
       Logger logger = new Logger(logging);
       SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
@@ -230,6 +231,7 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
           IntegrationManager.create(application, segmentHTTPApi, stats, logger);
       TraitsCache traitsCache = new TraitsCache(application, tag);
       AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
+
       return new Analytics(application, dispatcher, integrationManager, stats, traitsCache,
           analyticsContext, defaultOptions, logger);
     }
@@ -330,9 +332,10 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
    * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
    * also lets you record {@code traits} about the user, like their email, name, account type, etc.
    *
-   * @param userId Unique identifier which you recognize a user by in your own database. If this is
-   * null or empty, any previous id we have (could be the anonymous id) will be used.
-   * @param traits Traits about the user
+   * @param userId  Unique identifier which you recognize a user by in your own database. If this is
+   *                null or empty, any previous id we have (could be the anonymous id) will be
+   *                used.
+   * @param traits  Traits about the user
    * @param options To configure the call
    * @throws IllegalArgumentException if userId is null or an empty string
    * @see <a href="https://segment.io/docs/tracking-api/identify/">Identify Documentation</a>
@@ -369,9 +372,9 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
    * If you've called {@link #identify(String, Traits, Options)} before, this will automatically
    * remember the user id. If not, it will fall back to use the anonymousId instead.
    *
-   * @param userId To match up a user with their associated group.
+   * @param userId  To match up a user with their associated group.
    * @param groupId Unique identifier which you recognize a group by in your own database. Must not
-   * be null or empty.
+   *                be null or empty.
    * @param options To configure the call
    * @throws IllegalArgumentException if groupId is null or an empty string
    * @see <a href=" https://segment.io/docs/tracking-api/group/">Group Documentation</a>
@@ -415,13 +418,12 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
 
   /**
    * The track method is how you record any actions your users perform. Each action is known by a
-   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
-   * For
+   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions. For
    * example a 'Purchased a Shirt' event might have properties like revenue or size.
    *
-   * @param event Name of the event. Must not be null or empty.
+   * @param event      Name of the event. Must not be null or empty.
    * @param properties {@link Properties} to add extra information to this call
-   * @param options To configure the call
+   * @param options    To configure the call
    * @throws IllegalArgumentException if event name is null or an empty string
    * @see <a href="https://segment.io/docs/tracking-api/track/">Track Documentation</a>
    */
@@ -458,15 +460,15 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
   }
 
   /**
-   * The screen methods let your record whenever a user sees a screen of your mobile app, and
-   * attach a name, category or properties to the screen.
+   * The screen methods let your record whenever a user sees a screen of your mobile app, and attach
+   * a name, category or properties to the screen.
    * <p/>
    * Either category or name must be provided.
    *
-   * @param category A category to describe the screen
-   * @param name A name for the screen
+   * @param category   A category to describe the screen
+   * @param name       A name for the screen
    * @param properties {@link Properties} to add extra information to this call
-   * @param options To configure the call
+   * @param options    To configure the call
    * @see <a href="http://segment.io/docs/tracking-api/page-and-screen/">Screen Documentation</a>
    */
   public void screen(String category, String name, Properties properties, Options options) {
@@ -501,10 +503,10 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
    * successfully in some of our integrations. You should still call {@link #identify(String,
    * Traits, Options)} with {@code newId} if you want to use it as the default id.
    *
-   * @param newId The newId to map the old id to. Must not be null to empty.
+   * @param newId      The newId to map the old id to. Must not be null to empty.
    * @param previousId The old id we want to map. If it is null, the userId we've cached will
-   * automatically used.
-   * @param options To configure the call
+   *                   automatically used.
+   * @param options    To configure the call
    * @throws IllegalArgumentException if newId is null or empty
    * @see <a href="https://segment.io/docs/tracking-api/alias/">Alias Documentation</a>
    */

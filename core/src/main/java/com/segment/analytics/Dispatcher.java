@@ -163,7 +163,7 @@ class Dispatcher {
           dispatcher.performFlush();
           break;
         default:
-          panic(new AssertionError("Unhandled dispatcher message." + msg.what));
+          panic(new AssertionError("Unknown dispatcher message." + msg.what));
       }
     }
   }
