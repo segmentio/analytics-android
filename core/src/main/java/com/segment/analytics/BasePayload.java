@@ -27,12 +27,13 @@ package com.segment.analytics;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * A payload object that will be sent to the server. Clients will not decode instances of this
  * directly, but through one if it's subclasses.
  */
-/* This ignores projectId, receivedAt, messageId, sentAt, version that are set by the server. */
+/* This ignores projectId, receivedAt, sentAt, version that are set by the server. */
 class BasePayload extends JsonMap {
   enum Type {
     alias, group, identify, screen, track
@@ -61,6 +62,11 @@ class BasePayload extends JsonMap {
    * This is always {@link Channel#mobile} for us.
    */
   private static final String CHANNEL_KEY = "channel";
+
+  /**
+   * A randomly generated unique id for this message. Used to track payload lifecycle.
+   */
+  private static final String MESSAGE_ID = "messageId";
 
   /**
    * The context is a dictionary of extra information that provides useful context about a message,
@@ -95,6 +101,7 @@ class BasePayload extends JsonMap {
 
   BasePayload(Type type, String anonymousId, AnalyticsContext context, String userId,
       Options options, Map<String, Boolean> bundledIntegrations) {
+    put(MESSAGE_ID, UUID.randomUUID()); // todo: confirm type matches spec
     put(TYPE_KEY, type);
     put(CHANNEL_KEY, Channel.mobile);
     put(ANONYMOUS_ID_KEY, anonymousId);
@@ -119,8 +126,12 @@ class BasePayload extends JsonMap {
     super(json);
   }
 
+  String messageId() {
+    return getString(MESSAGE_ID);
+  }
+
   Type type() {
-    return (Type) get(TYPE_KEY);
+    return getEnum(Type.class, TYPE_KEY);
   }
 
   String userId() {

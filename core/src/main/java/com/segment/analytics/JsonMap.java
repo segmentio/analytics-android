@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import org.json.JSONObject;
 
+import static com.segment.analytics.Utils.panic;
+
 /**
  * A {@link Map} wrapper to expose Json functionality. Only the {@link #toString()} method is
  * modified to return a json formatted string. All other methods will be forwarded to a delegate
@@ -261,13 +263,8 @@ class JsonMap implements Map<String, Object> {
       return (Boolean) value;
     } else if (value instanceof String) {
       String stringValue = (String) value;
-      if ("false".equalsIgnoreCase(stringValue)) {
-        putIfSupported(key, false);
-        return false;
-      } else if ("true".equalsIgnoreCase(stringValue)) {
-        putIfSupported(key, true);
-        return true;
-      }
+      boolean bool = Boolean.valueOf(stringValue);
+      putIfSupported(key, bool);
     }
     return null;
   }
@@ -339,7 +336,7 @@ class JsonMap implements Map<String, Object> {
       } catch (InstantiationException e) {
       } catch (IllegalAccessException e) {
       }
-      Logger.e("Be sure to declare a constructor that accepts a json or map.");
+      panic(new AssertionError("Could not find constructor for " + clazz.getCanonicalName()));
     }
     return null;
   }

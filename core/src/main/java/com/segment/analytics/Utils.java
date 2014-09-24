@@ -102,8 +102,7 @@ final class Utils {
       return androidId;
     }
 
-    // Serial number
-    // Guaranteed to be on all non phones in 2.3+
+    // Serial number, guaranteed to be on all non phones in 2.3+
     if (!isNullOrEmpty(Build.SERIAL)) {
       return Build.SERIAL;
     }
@@ -119,8 +118,7 @@ final class Utils {
       }
     }
 
-    // If this still fails, generate random identifier that does not persist
-    // across installations
+    // If this still fails, generate random identifier that does not persist across installations
     return UUID.randomUUID().toString();
   }
 
@@ -188,5 +186,14 @@ final class Utils {
     ConnectivityManager cm = getSystemService(context, CONNECTIVITY_SERVICE);
     NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
     return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+  }
+
+  /** Panic from an unrecoverable error. */
+  static void panic(final Throwable throwable) {
+    Analytics.MAIN_LOOPER.post(new Runnable() {
+      @Override public void run() {
+        throw new RuntimeException(throwable);
+      }
+    });
   }
 }

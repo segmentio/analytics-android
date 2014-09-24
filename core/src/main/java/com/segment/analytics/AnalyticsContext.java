@@ -82,7 +82,7 @@ public class AnalyticsContext extends JsonMap {
       app.put(APP_BUILD_KEY, packageInfo.packageName + '@' + packageInfo.versionCode);
       put(APP_KEY, app);
     } catch (PackageManager.NameNotFoundException e) {
-      Logger.e(e, "Could not retrieve package for name %s", context.getPackageName());
+      // ignore
     }
   }
 
@@ -134,7 +134,6 @@ public class AnalyticsContext extends JsonMap {
   // Android Specific
   private static final String LIBRARY_VERSION_NAME_KEY = "versionName";
   private static final String LIBRARY_BUILD_TYPE_KEY = "buildType";
-  private static final String LIBRARY_LOGGING = "logging";
 
   void putLibrary() {
     Map<String, Object> library = new LinkedHashMap<String, Object>(6);
@@ -142,7 +141,6 @@ public class AnalyticsContext extends JsonMap {
     library.put(LIBRARY_VERSION_KEY, BuildConfig.VERSION_CODE);
     library.put(LIBRARY_VERSION_NAME_KEY, BuildConfig.VERSION_NAME);
     library.put(LIBRARY_BUILD_TYPE_KEY, BuildConfig.BUILD_TYPE);
-    library.put(LIBRARY_LOGGING, Logger.isLogging());
     put(LIBRARY_KEY, library);
   }
 

@@ -87,9 +87,7 @@ public class SegmentHTTPApi {
     out.close();
 
     int responseCode = urlConnection.getResponseCode();
-    if (responseCode == HTTP_OK) {
-      Logger.v("Response code: %s, message: %s", responseCode, urlConnection.getResponseMessage());
-    } else {
+    if (responseCode != HTTP_OK) {
       String message = readFully(urlConnection.getErrorStream());
       throw new IOException("Could not upload payloads. Response code: "
           + responseCode
@@ -112,7 +110,6 @@ public class SegmentHTTPApi {
     int responseCode = urlConnection.getResponseCode();
     InputStream in;
     if (responseCode == HTTP_OK) {
-      Logger.v("Response code: %s, message: %s", responseCode, urlConnection.getResponseMessage());
       in = new BufferedInputStream(urlConnection.getInputStream());
     } else {
       String message = readFully(urlConnection.getErrorStream());

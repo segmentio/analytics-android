@@ -27,8 +27,8 @@
   <!--Your Segment.io f2prateek/android-sample-app write key-->
   <string name="analytics_write_key">l8v1ga655b</string>
 
-  <!--Whether to print additional debug information as you develop.-->
-  <bool name="analytics_debug">true</bool>
+  <!--Whether to print additional log information as you develop.-->
+  <bool name="analytics_logging">true</bool>
 
   <!--Size of the queue.-->
   <integer name="analytics_queue_size">5</integer>

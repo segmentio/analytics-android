@@ -3,7 +3,6 @@ package com.segment.analytics;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.util.Log;
 import com.google.android.gms.analytics.ExceptionReporter;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
@@ -61,7 +60,7 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
     }
 
     googleAnalyticsInstance = GoogleAnalytics.getInstance(context);
-    googleAnalyticsInstance.getLogger().setLogLevel(Logger.isLogging() ? Log.VERBOSE : Log.ERROR);
+    // todo: set logger level googleAnalyticsInstance.getLogger().setLogLevel();
 
     String trackingId = settings.getString("mobileTrackingId");
     if (isNullOrEmpty(trackingId)) trackingId = settings.getString("trackingId");
@@ -166,7 +165,7 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
         try {
           tracker.send(productToMap(null, (Map<String, Object>) product));
         } catch (ClassCastException e) {
-          Logger.e(e, "Could not convert product to JsonMap.");
+          // todo, log error
         }
       }
     }

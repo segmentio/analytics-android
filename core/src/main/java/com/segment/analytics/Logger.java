@@ -1,118 +1,40 @@
-/*
- * The MIT License (MIT)
- *
- * Copyright (c) 2014 Segment.io, Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
 package com.segment.analytics;
 
 import android.util.Log;
 
-/** {@link android.util.Log} wrapper. */
-public final class Logger {
-  private static final String TAG_FORMAT = "[%s] %s:%s";
-  private static volatile boolean log;
+public class Logger {
+  volatile boolean loggingEnabled;
 
-  private Logger() {
-    throw new AssertionError("No instances");
+  public Logger(boolean loggingEnabled) {
+    this.loggingEnabled = loggingEnabled;
   }
 
-  /** Enable({@link Boolean#TRUE}) or disable({@link Boolean#FALSE}) logging. */
-  public static void setLog(boolean enabled) {
-    log = enabled;
+  final static String THREAD_MAIN = "Main";
+  final static String THREAD_DISPATCHER = "Dispatcher";
+  final static String THREAD_INTEGRATION_MANAGER = "IntegrationManager";
+
+  final static String VERB_CREATED = "created";
+  final static String VERB_DISPATCHING = "dispatching";
+  final static String VERB_DISPATCHED = "dispatched";
+  final static String VERB_SKIPPED = "skipped";
+  final static String VERB_INITIALIZING = "initializing";
+  final static String VERB_INITIALIZED = "initialized";
+
+  final static String TAG = "Segment";
+  // [thread] [verb] [id] [extras]
+  final static String FORMAT = "%1$-20s %2$-12s %3$-36s %4$s";
+  final static String EMPTY = "";
+
+  /** Call only if loggingEnabled is true */
+  void debug(String owner, String verb, String id, String extras) {
+    Log.d(TAG, String.format(FORMAT, owner, verb, id == null ? EMPTY : id,
+        extras == null ? EMPTY : extras));
   }
 
-  /** Get whether this logger logs (true to log) */
-  public static boolean isLogging() {
-    return log;
-  }
-
-  public static void v(String format, Object... args) {
-    println(Log.VERBOSE, format, args);
-  }
-
-  public static void v(Throwable throwable, String format, Object... args) {
-    println(Log.VERBOSE, throwable, format, args);
-  }
-
-  public static void d(String format, Object... args) {
-    println(Log.DEBUG, format, args);
-  }
-
-  public static void d(Throwable throwable, String format, Object... args) {
-    println(Log.DEBUG, throwable, format, args);
-  }
-
-  public static void i(String format, Object... args) {
-    println(Log.INFO, format, args);
-  }
-
-  public static void i(Throwable throwable, String format, Object... args) {
-    println(Log.INFO, throwable, format, args);
-  }
-
-  public static void w(String format, Object... args) {
-    println(Log.WARN, format, args);
-  }
-
-  public static void w(Throwable throwable, String format, Object... args) {
-    println(Log.WARN, throwable, format, args);
-  }
-
-  public static void e(String format, Object... args) {
-    println(Log.ERROR, format, args);
-  }
-
-  public static void e(Throwable throwable, String format, Object... args) {
-    println(Log.ERROR, throwable, format, args);
-  }
-
-  /**
-   * Print the log message to {@link android.util.Log} if logging is enabled, otherwise this does
-   * nothing.
-   */
-  private static void println(int priority, String format, Object... args) {
-    if (!log) return;
-    final String message = String.format(format, args);
-    Log.println(priority, processTag(), message);
-  }
-
-  /**
-   * Print the log message to {@link android.util.Log} if logging is enabled, otherwise this does
-   * nothing.
-   */
-  private static void println(int priority, Throwable throwable, String format, Object... args) {
-    if (!log) return;
-    final String message = String.format(format, args) + '\n' + Log.getStackTraceString(throwable);
-    Log.println(priority, processTag(), message);
-  }
-
-  /**
-   * Returns a string suitable for tagging log messages. It includes the current thread's name, and
-   * where the code was called from.
-   */
-  private static String processTag() {
-    final Thread thread = Thread.currentThread();
-    final StackTraceElement trace =
-        thread.getStackTrace()[6]; // skip 6 stackframes to find the location where this was called
-    return String.format(TAG_FORMAT, thread.getName(), trace.getFileName(), trace.getLineNumber());
+  /** Call only if loggingEnabled is true */
+  void error(String owner, String verb, String id, Throwable throwable, String extras) {
+    Log.e(TAG, String.format(FORMAT, owner, verb + " (error)", id == null ? EMPTY : id,
+            extras == null ? EMPTY : extras) + Log.getStackTraceString(throwable)
+    );
   }
 }
