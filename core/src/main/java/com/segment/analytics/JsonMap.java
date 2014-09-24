@@ -9,15 +9,12 @@ import java.util.Map;
 import java.util.Set;
 import org.json.JSONObject;
 
-import static com.segment.analytics.Utils.panic;
-
 /**
  * A {@link Map} wrapper to expose Json functionality. Only the {@link #toString()} method is
  * modified to return a json formatted string. All other methods will be forwarded to a delegate
  * map.
  * <p/>
- * The purpose of this class is to not limit clients to a custom implementation of a Json type,
- * they
+ * The purpose of this class is to not limit clients to a custom implementation of a Json type, they
  * can use existing {@link Map} and {@link java.util.List} implementations as they see fit. It adds
  * some utility methods, including methods to coerce numeric types from Strings, and a {@link
  * #putValue(String, Object)} to be able to chain method calls.
@@ -160,8 +157,7 @@ class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a
-   * long.
+   * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a long.
    * Returns null otherwise.
    */
   Long getLong(String key) {
@@ -215,8 +211,7 @@ class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a char or can be coerced to a
-   * char.
+   * Returns the value mapped by {@code key} if it exists and is a char or can be coerced to a char.
    * Returns null otherwise.
    */
   Character getChar(String key) {
@@ -270,8 +265,7 @@ class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a enum or can be coerced to a
-   * enum.
+   * Returns the value mapped by {@code key} if it exists and is a enum or can be coerced to a enum.
    * Returns null otherwise.
    */
   <T extends Enum<T>> T getEnum(Class<T> enumType, String key) {
@@ -304,7 +298,7 @@ class JsonMap implements Map<String, Object> {
 
   /**
    * Returns the value mapped by {@code key} if it exists and if it can be coerced to the given
-   * type.
+   * type. The JsonMap subclass MUST have a map constructor.
    */
   <T extends JsonMap> T getJsonMap(String key, Class<T> clazz) {
     Object value = get(key);
@@ -323,20 +317,7 @@ class JsonMap implements Map<String, Object> {
       } catch (InstantiationException e) {
       } catch (IllegalAccessException e) {
       }
-      // Fallback to the String constructor
-      try {
-        Constructor<T> constructor = clazz.getDeclaredConstructor(String.class);
-        constructor.setAccessible(true);
-        String json = JsonMap.wrap((Map) value).toString();
-        T typedValue = constructor.newInstance(json);
-        putIfSupported(key, typedValue);
-        return typedValue;
-      } catch (NoSuchMethodException e) {
-      } catch (InvocationTargetException e) {
-      } catch (InstantiationException e) {
-      } catch (IllegalAccessException e) {
-      }
-      panic(new AssertionError("Could not find constructor for " + clazz.getCanonicalName()));
+      throw new AssertionError("Could not find map constructor for " + clazz.getCanonicalName());
     }
     return null;
   }
