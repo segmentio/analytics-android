@@ -37,6 +37,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
+import static com.segment.analytics.Logger.THREAD_DISPATCHER;
+import static com.segment.analytics.Logger.VERB_DISPATCHED;
+import static com.segment.analytics.Logger.VERB_DISPATCHING;
+import static com.segment.analytics.Utils.panic;
 
 class Dispatcher {
   static final int REQUEST_ENQUEUE = 0;
@@ -52,9 +56,10 @@ class Dispatcher {
   final Stats stats;
   final Handler handler;
   final HandlerThread dispatcherThread;
+  final Logger logger;
 
   static Dispatcher create(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
-      Stats stats, String tag) {
+      Stats stats, String tag, Logger logger) {
     FileObjectQueue.Converter<BasePayload> converter = new PayloadConverter();
     File queueFile = new File(context.getFilesDir(), TASK_QUEUE_FILE_NAME + tag);
     FileObjectQueue<BasePayload> queue;
@@ -63,16 +68,17 @@ class Dispatcher {
     } catch (IOException e) {
       throw new RuntimeException("Unable to create file queue.", e);
     }
-    return new Dispatcher(context, maxQueueSize, segmentHTTPApi, queue, stats);
+    return new Dispatcher(context, maxQueueSize, segmentHTTPApi, queue, stats, logger);
   }
 
   Dispatcher(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
-      ObjectQueue<BasePayload> queue, Stats stats) {
+      ObjectQueue<BasePayload> queue, Stats stats, Logger logger) {
     this.context = context;
     this.maxQueueSize = maxQueueSize;
     this.segmentHTTPApi = segmentHTTPApi;
     this.queue = queue;
     this.stats = stats;
+    this.logger = logger;
     dispatcherThread = new HandlerThread(DISPATCHER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     dispatcherThread.start();
     handler = new DispatcherHandler(dispatcherThread.getLooper(), this);
@@ -88,28 +94,27 @@ class Dispatcher {
 
   void performEnqueue(BasePayload payload) {
     queue.add(payload);
-    Logger.v("Enqueued %s payload", payload.type());
-    Logger.v("Queue size %s", queue.size());
-    if (queue.size() >= maxQueueSize) {
-      Logger.d("Queue size (%s) > maxQueueSize (%s). Flushing...", queue.size(), maxQueueSize);
+    int queueSize = queue.size();
+    if (logger.loggingEnabled) {
+      logger.debug(THREAD_DISPATCHER, VERB_DISPATCHED, payload.messageId(),
+          String.format("{type: %s, queueSize: %s}", payload.type(), queueSize));
+    }
+    if (queueSize >= maxQueueSize) {
       dispatchFlush();
     }
   }
 
   void performFlush() {
-    if (queue.size() <= 0) {
-      Logger.d("No events in queue, skipping flush.");
-      return; // no-op
-    }
-    if (!Utils.isConnected(context)) {
-      Logger.d("Not connected to network, skipping flush.");
-      return; // no-op
-    }
+    if (queue.size() <= 0 || !Utils.isConnected(context)) return;
 
     final List<BasePayload> payloads = new ArrayList<BasePayload>();
     queue.setListener(new ObjectQueue.Listener<BasePayload>() {
-      @Override public void onAdd(ObjectQueue<BasePayload> queue, BasePayload entry) {
-        payloads.add(entry);
+      @Override public void onAdd(ObjectQueue<BasePayload> queue, BasePayload payload) {
+        if (logger.loggingEnabled) {
+          logger.debug(THREAD_DISPATCHER, VERB_DISPATCHING, payload.messageId(),
+              "{type: " + payload.type() + '}');
+        }
+        payloads.add(payload);
       }
 
       @Override public void onRemove(ObjectQueue<BasePayload> queue) {
@@ -120,16 +125,19 @@ class Dispatcher {
 
     int count = payloads.size();
     try {
-      Logger.v("Flushing %s payloads.", count);
       segmentHTTPApi.upload(payloads);
-      Logger.v("Successfully flushed %s payloads.", count);
+      if (logger.loggingEnabled) {
+        logger.debug(THREAD_DISPATCHER, VERB_DISPATCHED, null, "{events: " + count + '}');
+      }
       stats.dispatchFlush(count);
+      //noinspection ForLoopReplaceableByForEach
       for (int i = 0; i < count; i++) {
         queue.remove();
       }
-      Logger.v("Cleared queue.");
     } catch (IOException e) {
-      Logger.e(e, "Failed to flush payloads.");
+      if (logger.loggingEnabled) {
+        logger.error(THREAD_DISPATCHER, VERB_DISPATCHING, null, e, "{events: " + count + '}');
+      }
     }
   }
 
@@ -155,11 +163,7 @@ class Dispatcher {
           dispatcher.performFlush();
           break;
         default:
-          Analytics.MAIN_LOOPER.post(new Runnable() {
-            @Override public void run() {
-              throw new AssertionError("Unhandled dispatcher message." + msg.what);
-            }
-          });
+          panic(new AssertionError("Unknown dispatcher message." + msg.what));
       }
     }
   }

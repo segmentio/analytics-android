@@ -6,30 +6,20 @@ import android.os.Looper;
 import android.os.Message;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
+import static com.segment.analytics.Utils.panic;
 
 class Stats {
-  private static final int IDENTIFY = 1;
-  private static final int GROUP = 2;
-  private static final int TRACK = 3;
-  private static final int SCREEN = 4;
-  private static final int ALIAS = 5;
-  private static final int FLUSH = 6;
-  private static final int INTEGRATION_OPERATION = 7;
-
   private static final String STATS_THREAD_NAME = Utils.THREAD_PREFIX + "Stats";
+  private static final int FLUSH = 1;
+  private static final int INTEGRATION_OPERATION = 2;
 
   final HandlerThread statsThread;
   final Handler handler;
 
-  long identifyCount;
-  long groupCount;
-  long trackCount;
-  long screenCount;
-  long aliasCount;
   long flushCount; // number of times we flushed to server
-  long flushEventCount; // number of events we flush to the server
-  long integrationOperationDuration;
-  long integrationOperationTime;
+  long flushEventCount; // number of events we flushed to server
+  long integrationOperationCount; // number of events sent to integrations
+  long integrationOperationTime; // total time to run integrations
 
   Stats() {
     statsThread = new HandlerThread(STATS_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
@@ -41,26 +31,6 @@ class Stats {
     statsThread.quit();
   }
 
-  void dispatchIdentify() {
-    handler.sendMessage(handler.obtainMessage(IDENTIFY));
-  }
-
-  void dispatchGroup() {
-    handler.sendMessage(handler.obtainMessage(GROUP));
-  }
-
-  void dispatchTrack() {
-    handler.sendMessage(handler.obtainMessage(TRACK));
-  }
-
-  void dispatchScreen() {
-    handler.sendMessage(handler.obtainMessage(SCREEN));
-  }
-
-  void dispatchAlias() {
-    handler.sendMessage(handler.obtainMessage(ALIAS));
-  }
-
   void dispatchFlush(int count) {
     handler.sendMessage(handler.obtainMessage(FLUSH, count, 0));
   }
@@ -69,28 +39,8 @@ class Stats {
     handler.sendMessage(handler.obtainMessage(INTEGRATION_OPERATION, duration));
   }
 
-  void performIdentify() {
-    identifyCount++;
-  }
-
-  void performGroup() {
-    groupCount++;
-  }
-
-  void performTrack() {
-    trackCount++;
-  }
-
-  void performScreen() {
-    screenCount++;
-  }
-
-  void performAlias() {
-    aliasCount++;
-  }
-
   void performIntegrationOperation(long duration) {
-    integrationOperationDuration++;
+    integrationOperationCount++;
     integrationOperationTime += duration;
   }
 
@@ -109,21 +59,6 @@ class Stats {
 
     @Override public void handleMessage(final Message msg) {
       switch (msg.what) {
-        case IDENTIFY:
-          stats.performIdentify();
-          break;
-        case GROUP:
-          stats.performGroup();
-          break;
-        case TRACK:
-          stats.performTrack();
-          break;
-        case SCREEN:
-          stats.performScreen();
-          break;
-        case ALIAS:
-          stats.performAlias();
-          break;
         case FLUSH:
           stats.performFlush(msg.arg1);
           break;
@@ -131,18 +66,13 @@ class Stats {
           stats.performIntegrationOperation((Long) msg.obj);
           break;
         default:
-          Analytics.MAIN_LOOPER.post(new Runnable() {
-            @Override public void run() {
-              throw new AssertionError("Unhandled stats message." + msg.what);
-            }
-          });
+          panic(new AssertionError("Unhandled stats message." + msg.what));
       }
     }
   }
 
   StatsSnapshot createSnapshot() {
-    return new StatsSnapshot(System.currentTimeMillis(), identifyCount, groupCount, trackCount,
-        screenCount, flushCount, flushEventCount, integrationOperationDuration,
-        integrationOperationTime);
+    return new StatsSnapshot(System.currentTimeMillis(), flushCount, flushEventCount,
+        integrationOperationCount, integrationOperationTime);
   }
 }

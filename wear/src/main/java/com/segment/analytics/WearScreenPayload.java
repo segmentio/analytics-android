@@ -1,12 +1,15 @@
 package com.segment.analytics;
 
+import java.util.Map;
+
 class WearScreenPayload extends JsonMap {
   private static final String CATEGORY_KEY = "category";
   private static final String NAME_KEY = "name";
   private static final String PROPERTIES_KEY = "properties";
 
-  WearScreenPayload(String json) {
-    super(json);
+  // For deserialization
+  WearScreenPayload(Map<String, Object> delegate) {
+    super(delegate);
   }
 
   WearScreenPayload(String category, String name, Properties properties) {

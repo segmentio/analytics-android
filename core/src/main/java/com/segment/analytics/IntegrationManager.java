@@ -16,9 +16,17 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
+import static com.segment.analytics.Logger.THREAD_INTEGRATION_MANAGER;
+import static com.segment.analytics.Logger.VERB_DISPATCHED;
+import static com.segment.analytics.Logger.VERB_DISPATCHING;
+import static com.segment.analytics.Logger.VERB_INITIALIZED;
+import static com.segment.analytics.Logger.VERB_INITIALIZING;
+import static com.segment.analytics.Logger.VERB_SKIPPED;
+import static com.segment.analytics.Utils.panic;
 
 /**
  * Manages bundled integrations. This class will maintain it's own queue for events to account for
@@ -46,26 +54,150 @@ class IntegrationManager {
   private Queue<IntegrationOperation> operationQueue = new ArrayDeque<IntegrationOperation>();
   final AtomicBoolean initialized = new AtomicBoolean();
 
-  enum ActivityLifecycleEvent {
-    CREATED, STARTED, RESUMED, PAUSED, STOPPED, SAVE_INSTANCE, DESTROYED
-  }
-
   static class ActivityLifecyclePayload {
-    final ActivityLifecycleEvent type;
+    enum Type {
+      CREATED, STARTED, RESUMED, PAUSED, STOPPED, SAVE_INSTANCE, DESTROYED
+    }
+
+    final Type type;
     final WeakReference<Activity> activityWeakReference;
     final Bundle bundle;
+    final String id;
 
-    ActivityLifecyclePayload(ActivityLifecycleEvent type, Activity activity, Bundle bundle) {
+    ActivityLifecyclePayload(Type type, Activity activity, Bundle bundle) {
       this.type = type;
       this.activityWeakReference = new WeakReference<Activity>(activity);
       this.bundle = bundle;
+      this.id = UUID.randomUUID().toString();
     }
   }
 
-  static IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi, Stats stats) {
+  interface IntegrationOperation {
+    void run(AbstractIntegrationAdapter integration);
+
+    String id();
+
+    String type();
+  }
+
+  static class ActivityLifecycleOperation implements IntegrationOperation {
+    final ActivityLifecyclePayload payload;
+    final Logger logger;
+
+    ActivityLifecycleOperation(ActivityLifecyclePayload payload, Logger logger) {
+      this.payload = payload;
+      this.logger = logger;
+    }
+
+    @Override public void run(AbstractIntegrationAdapter integration) {
+      Activity activity = payload.activityWeakReference.get();
+      if (activity == null) {
+        if (logger.loggingEnabled) {
+          logger.debug(THREAD_INTEGRATION_MANAGER, VERB_SKIPPED, payload.id,
+              "{type: " + payload.type + '}');
+        }
+        return;
+      }
+      switch (payload.type) {
+        case CREATED:
+          integration.onActivityCreated(activity, payload.bundle);
+          break;
+        case STARTED:
+          break;
+        case RESUMED:
+          integration.onActivityResumed(activity);
+          break;
+        case PAUSED:
+          integration.onActivityPaused(activity);
+          break;
+        case STOPPED:
+          integration.onActivityStopped(activity);
+          break;
+        case SAVE_INSTANCE:
+          integration.onActivitySaveInstanceState(activity, payload.bundle);
+          break;
+        case DESTROYED:
+          integration.onActivityDestroyed(activity);
+          break;
+        default:
+          panic(new IllegalArgumentException("Unknown payload type!" + payload.type));
+      }
+    }
+
+    @Override public String id() {
+      return payload.id;
+    }
+
+    @Override public String type() {
+      return payload.type.toString();
+    }
+  }
+
+  static class FlushOperation implements IntegrationOperation {
+    final String id;
+
+    FlushOperation() {
+      this.id = UUID.randomUUID().toString();
+    }
+
+    @Override public void run(AbstractIntegrationAdapter integration) {
+      integration.flush();
+    }
+
+    @Override public String id() {
+      return id;
+    }
+
+    @Override public String type() {
+      return "flush";
+    }
+  }
+
+  static class AnalyticsOperation implements IntegrationOperation {
+    final BasePayload payload;
+
+    AnalyticsOperation(BasePayload payload) {
+      this.payload = payload;
+    }
+
+    @Override public void run(AbstractIntegrationAdapter integration) {
+      if (!isBundledIntegrationEnabledForPayload(payload, integration)) return;
+
+      switch (payload.type()) {
+        case alias:
+          integration.alias((AliasPayload) payload);
+          break;
+        case group:
+          integration.group((GroupPayload) payload);
+          break;
+        case identify:
+          integration.identify((IdentifyPayload) payload);
+          break;
+        case screen:
+          integration.screen((ScreenPayload) payload);
+          break;
+        case track:
+          integration.track((TrackPayload) payload);
+          break;
+        default:
+          panic(new IllegalArgumentException("Unknown payload type!" + payload.type()));
+      }
+    }
+
+    @Override public String id() {
+      return payload.messageId();
+    }
+
+    @Override public String type() {
+      return payload.type().toString();
+    }
+  }
+
+  static IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi, Stats stats,
+      Logger logger) {
     StringCache projectSettingsCache =
         new StringCache(Utils.getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
-    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats);
+    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logger);
   }
 
   final Context context;
@@ -73,13 +205,15 @@ class IntegrationManager {
   final HandlerThread integrationManagerThread;
   final Handler handler;
   final Stats stats;
+  final Logger logger;
   final StringCache projectSettingsCache;
 
   private IntegrationManager(Context context, SegmentHTTPApi segmentHTTPApi,
-      StringCache projectSettingsCache, Stats stats) {
+      StringCache projectSettingsCache, Stats stats, Logger logger) {
     this.context = context;
     this.segmentHTTPApi = segmentHTTPApi;
     this.stats = stats;
+    this.logger = logger;
     integrationManagerThread =
         new HandlerThread(INTEGRATION_MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     integrationManagerThread.start();
@@ -93,8 +227,8 @@ class IntegrationManager {
       dispatchFetch();
     } else {
       dispatchInit(projectSettings);
+      // todo: stash staleness factor in a constant
       if (projectSettings.timestamp() + 10800000L < System.currentTimeMillis()) {
-        Logger.v("Stale settings");
         dispatchFetch();
       }
     }
@@ -121,24 +255,33 @@ class IntegrationManager {
       Class.forName(abstractIntegrationAdapter.className());
       bundledIntegrations.add(abstractIntegrationAdapter);
       serverIntegrations.put(abstractIntegrationAdapter.key(), false);
-      Logger.v("Loaded integration %s", abstractIntegrationAdapter.key());
     } catch (ClassNotFoundException e) {
-      Logger.v("Integration %s not bundled", abstractIntegrationAdapter.key());
+      // ignored
     }
   }
 
   void dispatchFetch() {
-    Logger.v("Fetching integration settings from server");
     handler.sendMessage(handler.obtainMessage(REQUEST_FETCH_SETTINGS));
   }
 
   void performFetch() {
+    logger.debug(THREAD_INTEGRATION_MANAGER, VERB_DISPATCHING, "fetch settings", null);
     try {
       if (Utils.isConnected(context)) {
-        dispatchInit(segmentHTTPApi.fetchSettings());
+        ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
+        if (logger.loggingEnabled) {
+          logger.debug(THREAD_INTEGRATION_MANAGER, VERB_DISPATCHED, "fetch settings", null);
+        }
+        performInit(projectSettings);
+      } else {
+        // re-schedule in a minute, todo: move to constant, same as below
+        handler.sendMessageDelayed(handler.obtainMessage(REQUEST_FETCH_SETTINGS), 1000 * 60);
       }
     } catch (IOException e) {
-      Logger.e(e, "Failed to fetch settings. Retrying in one minute.");
+      if (logger.loggingEnabled) {
+        logger.error(THREAD_INTEGRATION_MANAGER, VERB_DISPATCHING, "fetch settings", e, null);
+      }
+      // re-schedule in a minute, todo: move to constant
       handler.sendMessageDelayed(handler.obtainMessage(REQUEST_FETCH_SETTINGS), 1000 * 60);
     }
   }
@@ -148,12 +291,11 @@ class IntegrationManager {
   }
 
   void performInit(ProjectSettings projectSettings) {
-    projectSettingsCache.set(projectSettings.toString());
-    if (initialized.get()) {
-      Logger.d("Integrations already initialized. Skipping.");
-      return;
-    }
-    Logger.v("Initializing integrations with settings %s", projectSettings);
+    String projectSettingsJson = projectSettings.toString();
+    projectSettingsCache.set(projectSettingsJson);
+
+    if (initialized.get()) return; // skip if already initialized
+
     Iterator<AbstractIntegrationAdapter> iterator = bundledIntegrations.iterator();
     while (iterator.hasNext()) {
       AbstractIntegrationAdapter integration = iterator.next();
@@ -161,136 +303,39 @@ class IntegrationManager {
         JsonMap settings = new JsonMap(projectSettings.getJsonMap(integration.key()));
         try {
           integration.initialize(context, settings);
-          Logger.v("Initialized integration %s", integration.key());
+          if (logger.loggingEnabled) {
+            logger.debug(THREAD_INTEGRATION_MANAGER, VERB_INITIALIZED, integration.key(),
+                settings.toString());
+          }
         } catch (InvalidConfigurationException e) {
           iterator.remove();
-          Logger.e(e, "could not initialize integration " + integration.key());
+          if (logger.loggingEnabled) {
+            logger.error(THREAD_INTEGRATION_MANAGER, VERB_INITIALIZING, integration.key(), e,
+                settings.toString());
+          }
         }
       } else {
         iterator.remove();
-        Logger.v("%s integration not enabled in project settings.", integration.key());
+        if (logger.loggingEnabled) {
+          logger.debug(THREAD_INTEGRATION_MANAGER, VERB_SKIPPED, integration.key(), null);
+        }
       }
     }
     initialized.set(true);
     replay();
   }
 
-  // Activity Lifecycle Events
-  void dispatchOnActivityCreated(Activity activity, Bundle bundle) {
-    dispatchLifecycleEvent(ActivityLifecycleEvent.CREATED, activity, bundle);
+  void dispatch(ActivityLifecyclePayload payload) {
+    handler.sendMessage(handler.obtainMessage(REQUEST_LIFECYCLE_EVENT, payload));
   }
 
-  void dispatchOnActivityStarted(Activity activity) {
-    dispatchLifecycleEvent(ActivityLifecycleEvent.STARTED, activity, null);
+  void performEnqueue(ActivityLifecyclePayload payload) {
+    ActivityLifecycleOperation operation = new ActivityLifecycleOperation(payload, logger);
+    enqueue(operation);
   }
 
-  void dispatchOnActivityResumed(Activity activity) {
-    dispatchLifecycleEvent(ActivityLifecycleEvent.RESUMED, activity, null);
-  }
-
-  void dispatchOnActivityPaused(Activity activity) {
-    dispatchLifecycleEvent(ActivityLifecycleEvent.PAUSED, activity, null);
-  }
-
-  void dispatchOnActivityStopped(Activity activity) {
-    dispatchLifecycleEvent(ActivityLifecycleEvent.STOPPED, activity, null);
-  }
-
-  void dispatchOnActivitySaveInstanceState(Activity activity, Bundle outState) {
-    dispatchLifecycleEvent(ActivityLifecycleEvent.SAVE_INSTANCE, activity, outState);
-  }
-
-  void dispatchOnActivityDestroyed(Activity activity) {
-    dispatchLifecycleEvent(ActivityLifecycleEvent.DESTROYED, activity, null);
-  }
-
-  private void dispatchLifecycleEvent(ActivityLifecycleEvent event, Activity activity,
-      Bundle bundle) {
-    handler.sendMessage(handler.obtainMessage(REQUEST_LIFECYCLE_EVENT,
-        new ActivityLifecyclePayload(event, activity, bundle)));
-  }
-
-  static class ActivityLifecycleOperation implements IntegrationOperation {
-    final ActivityLifecyclePayload payload;
-
-    ActivityLifecycleOperation(ActivityLifecyclePayload payload) {
-      this.payload = payload;
-    }
-
-    @Override public void run(AbstractIntegrationAdapter integration) {
-      if (payload.activityWeakReference.get() == null) {
-        Logger.d("No reference to activity available - skipping activity %s operation.",
-            payload.type);
-        return;
-      }
-      switch (payload.type) {
-        case CREATED:
-          integration.onActivityCreated(payload.activityWeakReference.get(), payload.bundle);
-          break;
-        case STARTED:
-          break;
-        case RESUMED:
-          integration.onActivityResumed(payload.activityWeakReference.get());
-          break;
-        case PAUSED:
-          integration.onActivityPaused(payload.activityWeakReference.get());
-          break;
-        case STOPPED:
-          integration.onActivityStopped(payload.activityWeakReference.get());
-          break;
-        case SAVE_INSTANCE:
-          integration.onActivitySaveInstanceState(payload.activityWeakReference.get(),
-              payload.bundle);
-          break;
-        case DESTROYED:
-          integration.onActivityDestroyed(payload.activityWeakReference.get());
-          break;
-        default:
-          throw new IllegalArgumentException("Unknown payload type!" + payload.type);
-      }
-    }
-  }
-
-  void performEnqueueActivityLifecycleEvent(ActivityLifecyclePayload payload) {
-    enqueue(new ActivityLifecycleOperation(payload));
-  }
-
-  void dispatchAnalyticsEvent(BasePayload payload) {
+  void dispatch(BasePayload payload) {
     handler.sendMessage(handler.obtainMessage(REQUEST_ANALYTICS_EVENT, payload));
-  }
-
-  static class AnalyticsOperation implements IntegrationOperation {
-    final BasePayload payload;
-
-    AnalyticsOperation(BasePayload payload) {
-      this.payload = payload;
-    }
-
-    @Override public void run(AbstractIntegrationAdapter integration) {
-      if (!isBundledIntegrationEnabledForPayload(payload, integration)) {
-        Logger.d("Integration %s is disabled for payload %s", integration.key(), payload);
-        return;
-      }
-      switch (payload.type()) {
-        case alias:
-          integration.alias((AliasPayload) payload);
-          break;
-        case group:
-          integration.group((GroupPayload) payload);
-          break;
-        case identify:
-          integration.identify((IdentifyPayload) payload);
-          break;
-        case screen:
-          integration.screen((ScreenPayload) payload);
-          break;
-        case track:
-          integration.track((TrackPayload) payload);
-          break;
-        default:
-          throw new IllegalArgumentException("Unknown payload type!" + payload.type());
-      }
-    }
   }
 
   void performEnqueue(BasePayload payload) {
@@ -302,21 +347,11 @@ class IntegrationManager {
   }
 
   void performFlush() {
-    enqueue(new IntegrationOperation() {
-      @Override public void run(AbstractIntegrationAdapter integration) {
-        integration.flush();
-      }
-    });
+    enqueue(new FlushOperation());
   }
 
-  interface IntegrationOperation {
-    // todo: enumerate operations to avoid inn
-    void run(AbstractIntegrationAdapter integration);
-  }
-
-  void enqueue(IntegrationOperation operation) {
+  private void enqueue(IntegrationOperation operation) {
     if (!initialized.get()) {
-      Logger.v("Integrations not yet initialized! Queuing operation.");
       operationQueue.add(operation);
     } else {
       run(operation);
@@ -329,13 +364,17 @@ class IntegrationManager {
       operation.run(integration);
       long endTime = System.currentTimeMillis();
       long duration = endTime - startTime;
-      Logger.v("Integration %s took %s ms to run operation", integration.key(), duration);
+      if (logger.loggingEnabled) {
+        logger.debug(THREAD_INTEGRATION_MANAGER, VERB_DISPATCHED, operation.id(),
+            String.format("{integration: %s, type: %s, duration: %s}", integration.key(),
+                operation.type(), duration)
+        );
+      }
       stats.dispatchIntegrationOperation(duration);
     }
   }
 
   void replay() {
-    Logger.v("Replaying %s events.", operationQueue.size());
     for (IntegrationOperation operation : operationQueue) {
       run(operation);
     }
@@ -381,12 +420,11 @@ class IntegrationManager {
           integrationManager.performFetch();
           break;
         case REQUEST_INIT:
-          ProjectSettings settings = (ProjectSettings) msg.obj;
-          integrationManager.performInit(settings);
+          integrationManager.performInit((ProjectSettings) msg.obj);
           break;
         case REQUEST_LIFECYCLE_EVENT:
           ActivityLifecyclePayload activityLifecyclePayload = (ActivityLifecyclePayload) msg.obj;
-          integrationManager.performEnqueueActivityLifecycleEvent(activityLifecyclePayload);
+          integrationManager.performEnqueue(activityLifecyclePayload);
           break;
         case REQUEST_ANALYTICS_EVENT:
           BasePayload basePayload = (BasePayload) msg.obj;

@@ -1,7 +1,5 @@
 package com.segment.analytics;
 
-import com.segment.analytics.BaseAndroidTestCase;
-import com.segment.analytics.JsonMap;
 import java.util.Map;
 import org.fest.assertions.data.MapEntry;
 
@@ -97,15 +95,15 @@ public class JsonMapTest extends BaseAndroidTestCase {
     }
   }
 
-  static class AmplitudeSettings extends JsonMap {
-    AmplitudeSettings(String json) {
-      super(json);
-    }
-  }
-
   static class MixpanelSettings extends JsonMap {
     MixpanelSettings(Map<String, Object> delegate) {
       super(delegate);
+    }
+  }
+
+  static class AmplitudeSettings extends JsonMap {
+    AmplitudeSettings(String json) {
+      super(json);
     }
   }
 
@@ -120,14 +118,6 @@ public class JsonMapTest extends BaseAndroidTestCase {
         .containsKey("Flurry")
         .containsKey("Mixpanel");
 
-    // Json Constructor
-    AmplitudeSettings amplitudeSettings = settings.getAmplitudeSettings();
-    assertThat(amplitudeSettings).hasSize(4)
-        .contains(MapEntry.entry("apiKey", "ad3c426eb736d7442a65da8174bc1b1b"))
-        .contains(MapEntry.entry("trackNamedPages", true))
-        .contains(MapEntry.entry("trackCategorizedPages", true))
-        .contains(MapEntry.entry("trackAllPages", false));
-
     // Map Constructor
     MixpanelSettings mixpanelSettings = settings.getMixpanelSettings();
     assertThat(mixpanelSettings) //
@@ -136,6 +126,12 @@ public class JsonMapTest extends BaseAndroidTestCase {
         .contains(MapEntry.entry("trackNamedPages", true))
         .contains(MapEntry.entry("trackCategorizedPages", true))
         .contains(MapEntry.entry("trackAllPages", false));
+
+    try {
+      settings.getAmplitudeSettings();
+    } catch (AssertionError error) {
+      assertThat(error).hasMessageContaining("Could not find map constructor for");
+    }
   }
 
   public void testSettings() throws Exception {

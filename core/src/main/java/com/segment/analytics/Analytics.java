@@ -37,6 +37,16 @@ import android.os.Looper;
 import android.os.Message;
 import java.util.Map;
 
+import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload;
+import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.CREATED;
+import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.DESTROYED;
+import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.PAUSED;
+import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.RESUMED;
+import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.SAVE_INSTANCE;
+import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.STARTED;
+import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.STOPPED;
+import static com.segment.analytics.Logger.THREAD_MAIN;
+import static com.segment.analytics.Logger.VERB_CREATED;
 import static com.segment.analytics.Utils.getResourceBooleanOrThrow;
 import static com.segment.analytics.Utils.getResourceIntegerOrThrow;
 import static com.segment.analytics.Utils.getResourceString;
@@ -55,7 +65,7 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
   // Resource identifiers to define options in xml
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
   static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
-  static final String DEBUGGING_RESOURCE_IDENTIFIER = "analytics_debug";
+  static final String LOGGING_RESOURCE_IDENTIFIER = "analytics_logging";
 
   static Analytics singleton = null;
 
@@ -90,23 +100,21 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
             }
             builder.maxQueueSize(maxQueueSize);
           } catch (Resources.NotFoundException e) {
-            Logger.d("%s not defined in xml. Using default value.", QUEUE_SIZE_RESOURCE_IDENTIFIER);
             // when maxQueueSize is not defined in xml, we'll use a default option in the builder
           }
           try {
-            boolean debugging = getResourceBooleanOrThrow(context, DEBUGGING_RESOURCE_IDENTIFIER);
-            builder.debugging(debugging);
+            boolean logging = getResourceBooleanOrThrow(context, LOGGING_RESOURCE_IDENTIFIER);
+            builder.logging(logging);
           } catch (Resources.NotFoundException notFoundException) {
-            Logger.d("%s not defined in xml.", DEBUGGING_RESOURCE_IDENTIFIER);
+            // when debugging is not defined in xml, we'll try to figure it out from package flags
             String packageName = context.getPackageName();
             try {
               final int flags =
                   context.getPackageManager().getApplicationInfo(packageName, 0).flags;
-              boolean debugging = (flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
-              builder.debugging(debugging);
+              boolean logging = (flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+              builder.logging(logging);
             } catch (PackageManager.NameNotFoundException nameNotFoundException) {
-              Logger.e(nameNotFoundException,
-                  "Could not look up package flags. Disabling debugging.");
+              // if we still can't figure it out, we'll use the default options in the builder
             }
           }
           singleton = builder.build();
@@ -120,15 +128,14 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
   @SuppressWarnings("UnusedDeclaration") // Public API.
   public static class Builder {
     static final int DEFAULT_QUEUE_SIZE = 20;
-    static final boolean DEFAULT_DEBUGGING = false;
+    static final boolean DEFAULT_LOGGING = false;
 
     private final Application application;
     private String writeKey;
     private String tag;
     private int maxQueueSize = -1;
     private Options defaultOptions;
-
-    private boolean debugging = DEFAULT_DEBUGGING;
+    private boolean logging = DEFAULT_LOGGING;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -200,8 +207,8 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
     }
 
     /** Set whether debugging is enabled or not. */
-    public Builder debugging(boolean debugging) {
-      this.debugging = debugging;
+    public Builder logging(boolean logging) {
+      this.logging = logging;
       return this;
     }
 
@@ -214,16 +221,19 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
         defaultOptions = new Options();
       }
       if (isNullOrEmpty(tag)) tag = writeKey;
+
       Stats stats = new Stats();
+      Logger logger = new Logger(logging);
       SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
       Dispatcher dispatcher =
-          Dispatcher.create(application, maxQueueSize, segmentHTTPApi, stats, tag);
+          Dispatcher.create(application, maxQueueSize, segmentHTTPApi, stats, tag, logger);
       IntegrationManager integrationManager =
-          IntegrationManager.create(application, segmentHTTPApi, stats);
+          IntegrationManager.create(application, segmentHTTPApi, stats, logger);
       TraitsCache traitsCache = new TraitsCache(application, tag);
       AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
+
       return new Analytics(application, dispatcher, integrationManager, stats, traitsCache,
-          analyticsContext, defaultOptions, debugging);
+          analyticsContext, defaultOptions, logger);
     }
   }
 
@@ -243,12 +253,12 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
   final TraitsCache traitsCache;
   final AnalyticsContext analyticsContext;
   final Options defaultOptions;
-  volatile boolean debugging;
+  final Logger logger;
   boolean shutdown;
 
   Analytics(Application application, Dispatcher dispatcher, IntegrationManager integrationManager,
       Stats stats, TraitsCache traitsCache, AnalyticsContext analyticsContext,
-      Options defaultOptions, boolean debugging) {
+      Options defaultOptions, Logger logger) {
     this.application = application;
     this.dispatcher = dispatcher;
     this.integrationManager = integrationManager;
@@ -257,47 +267,47 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
     this.analyticsContext = analyticsContext;
     this.defaultOptions = defaultOptions;
     application.registerActivityLifecycleCallbacks(this);
-    setDebugging(debugging);
+    this.logger = logger;
   }
 
   /** Toggle whether debugging is enabled. */
-  public void setDebugging(boolean enabled) {
-    debugging = enabled;
-    Logger.setLog(enabled);
+  public void setLogging(boolean enabled) {
+    logger.loggingEnabled = enabled;
   }
 
-  /** Returns {@code true} if debugging is enabled. */
-  public boolean isDebugging() {
-    return debugging;
+  /** Returns {@code true} if logging is enabled. */
+  public boolean isLogging() {
+    return logger.loggingEnabled;
   }
 
   // Activity Lifecycle
   @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-    integrationManager.dispatchOnActivityCreated(activity, savedInstanceState);
+    integrationManager.dispatch(
+        new ActivityLifecyclePayload(CREATED, activity, savedInstanceState));
   }
 
   @Override public void onActivityStarted(Activity activity) {
-    integrationManager.dispatchOnActivityStarted(activity);
+    integrationManager.dispatch(new ActivityLifecyclePayload(STARTED, null, null));
   }
 
   @Override public void onActivityResumed(Activity activity) {
-    integrationManager.dispatchOnActivityResumed(activity);
+    integrationManager.dispatch(new ActivityLifecyclePayload(RESUMED, null, null));
   }
 
   @Override public void onActivityPaused(Activity activity) {
-    integrationManager.dispatchOnActivityPaused(activity);
+    integrationManager.dispatch(new ActivityLifecyclePayload(PAUSED, null, null));
   }
 
   @Override public void onActivityStopped(Activity activity) {
-    integrationManager.dispatchOnActivityStopped(activity);
+    integrationManager.dispatch(new ActivityLifecyclePayload(STOPPED, null, null));
   }
 
   @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-    integrationManager.dispatchOnActivitySaveInstanceState(activity, outState);
+    integrationManager.dispatch(new ActivityLifecyclePayload(SAVE_INSTANCE, activity, outState));
   }
 
   @Override public void onActivityDestroyed(Activity activity) {
-    integrationManager.dispatchOnActivityDestroyed(activity);
+    integrationManager.dispatch(new ActivityLifecyclePayload(DESTROYED, null, null));
   }
 
   /**
@@ -322,9 +332,10 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
    * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
    * also lets you record {@code traits} about the user, like their email, name, account type, etc.
    *
-   * @param userId Unique identifier which you recognize a user by in your own database. If this is
-   * null or empty, any previous id we have (could be the anonymous id) will be used.
-   * @param traits Traits about the user
+   * @param userId  Unique identifier which you recognize a user by in your own database. If this is
+   *                null or empty, any previous id we have (could be the anonymous id) will be
+   *                used.
+   * @param traits  Traits about the user
    * @param options To configure the call
    * @throws IllegalArgumentException if userId is null or an empty string
    * @see <a href="https://segment.io/docs/tracking-api/identify/">Identify Documentation</a>
@@ -345,7 +356,6 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
         traitsCache.get().userId(), traitsCache.get(), options,
         integrationManager.bundledIntegrations());
     submit(payload);
-    stats.dispatchIdentify();
   }
 
   /**
@@ -362,9 +372,9 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
    * If you've called {@link #identify(String, Traits, Options)} before, this will automatically
    * remember the user id. If not, it will fall back to use the anonymousId instead.
    *
-   * @param userId To match up a user with their associated group.
+   * @param userId  To match up a user with their associated group.
    * @param groupId Unique identifier which you recognize a group by in your own database. Must not
-   * be null or empty.
+   *                be null or empty.
    * @param options To configure the call
    * @throws IllegalArgumentException if groupId is null or an empty string
    * @see <a href=" https://segment.io/docs/tracking-api/group/">Group Documentation</a>
@@ -390,7 +400,6 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
             traitsCache.get(), options, integrationManager.bundledIntegrations());
 
     submit(payload);
-    stats.dispatchGroup();
   }
 
   /**
@@ -409,13 +418,12 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
 
   /**
    * The track method is how you record any actions your users perform. Each action is known by a
-   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
-   * For
+   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions. For
    * example a 'Purchased a Shirt' event might have properties like revenue or size.
    *
-   * @param event Name of the event. Must not be null or empty.
+   * @param event      Name of the event. Must not be null or empty.
    * @param properties {@link Properties} to add extra information to this call
-   * @param options To configure the call
+   * @param options    To configure the call
    * @throws IllegalArgumentException if event name is null or an empty string
    * @see <a href="https://segment.io/docs/tracking-api/track/">Track Documentation</a>
    */
@@ -435,7 +443,6 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
         traitsCache.get().userId(), event, properties, options,
         integrationManager.bundledIntegrations());
     submit(payload);
-    stats.dispatchTrack();
   }
 
   /**
@@ -453,15 +460,15 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
   }
 
   /**
-   * The screen methods let your record whenever a user sees a screen of your mobile app, and
-   * attach a name, category or properties to the screen.
+   * The screen methods let your record whenever a user sees a screen of your mobile app, and attach
+   * a name, category or properties to the screen.
    * <p/>
    * Either category or name must be provided.
    *
-   * @param category A category to describe the screen
-   * @param name A name for the screen
+   * @param category   A category to describe the screen
+   * @param name       A name for the screen
    * @param properties {@link Properties} to add extra information to this call
-   * @param options To configure the call
+   * @param options    To configure the call
    * @see <a href="http://segment.io/docs/tracking-api/page-and-screen/">Screen Documentation</a>
    */
   public void screen(String category, String name, Properties properties, Options options) {
@@ -481,7 +488,6 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
         traitsCache.get().userId(), category, name, properties, options,
         integrationManager.bundledIntegrations());
     submit(payload);
-    stats.dispatchScreen();
   }
 
   /**
@@ -497,10 +503,10 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
    * successfully in some of our integrations. You should still call {@link #identify(String,
    * Traits, Options)} with {@code newId} if you want to use it as the default id.
    *
-   * @param newId The newId to map the old id to. Must not be null to empty.
+   * @param newId      The newId to map the old id to. Must not be null to empty.
    * @param previousId The old id we want to map. If it is null, the userId we've cached will
-   * automatically used.
-   * @param options To configure the call
+   *                   automatically used.
+   * @param options    To configure the call
    * @throws IllegalArgumentException if newId is null or empty
    * @see <a href="https://segment.io/docs/tracking-api/alias/">Alias Documentation</a>
    */
@@ -518,7 +524,6 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
     BasePayload payload = new AliasPayload(traitsCache.get().anonymousId(), analyticsContext,
         traitsCache.get().userId(), previousId, options, integrationManager.bundledIntegrations());
     submit(payload);
-    stats.dispatchAlias();
   }
 
   /**
@@ -555,7 +560,11 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
   }
 
   void submit(BasePayload payload) {
+    if (logger.loggingEnabled) {
+      logger.debug(THREAD_MAIN, VERB_CREATED, payload.messageId(),
+          "{type: " + payload.type() + '}');
+    }
     dispatcher.dispatchEnqueue(payload);
-    integrationManager.dispatchAnalyticsEvent(payload);
+    integrationManager.dispatch(payload);
   }
 }

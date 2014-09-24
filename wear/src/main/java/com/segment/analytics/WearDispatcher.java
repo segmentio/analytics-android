@@ -42,7 +42,7 @@ class WearDispatcher {
           Wearable.MessageApi.sendMessage(googleApiClient, node, WearAnalytics.ANALYTICS_PATH,
               payload.toString().getBytes()).await();
       if (!result.getStatus().isSuccess()) {
-        Logger.e("Failed to send message: " + result.getStatus());
+        // todo: log error
       }
     }
   }
