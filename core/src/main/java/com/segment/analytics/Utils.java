@@ -177,8 +177,8 @@ final class Utils {
   }
 
   /**
-   * Returns true if the phone is connected to a network, or if we don't have the permission to find
-   * out. False otherwise.
+   * Returns true if the phone is connected to a network, or if we don't have the permission to
+   * find out. False otherwise.
    */
   static boolean isConnected(Context context) {
     if (!hasPermission(context, ACCESS_NETWORK_STATE)) {
@@ -187,14 +187,5 @@ final class Utils {
     ConnectivityManager cm = getSystemService(context, CONNECTIVITY_SERVICE);
     NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
     return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
-  }
-
-  /** Panic from an unrecoverable error. */
-  static void panic(final Throwable throwable) {
-    Analytics.MAIN_LOOPER.post(new Runnable() {
-      @Override public void run() {
-        throw new RuntimeException(throwable);
-      }
-    });
   }
 }

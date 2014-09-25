@@ -40,7 +40,6 @@ import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Logger.THREAD_DISPATCHER;
 import static com.segment.analytics.Logger.VERB_DISPATCHED;
 import static com.segment.analytics.Logger.VERB_DISPATCHING;
-import static com.segment.analytics.Utils.panic;
 
 class Dispatcher {
   static final int REQUEST_ENQUEUE = 0;
@@ -163,7 +162,7 @@ class Dispatcher {
           dispatcher.performFlush();
           break;
         default:
-          panic(new AssertionError("Unknown dispatcher message." + msg.what));
+          throw new AssertionError("Unknown dispatcher message." + msg.what);
       }
     }
   }

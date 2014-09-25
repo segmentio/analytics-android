@@ -26,7 +26,6 @@ import static com.segment.analytics.Logger.VERB_DISPATCHING;
 import static com.segment.analytics.Logger.VERB_INITIALIZED;
 import static com.segment.analytics.Logger.VERB_INITIALIZING;
 import static com.segment.analytics.Logger.VERB_SKIPPED;
-import static com.segment.analytics.Utils.panic;
 
 /**
  * Manages bundled integrations. This class will maintain it's own queue for events to account for
@@ -120,7 +119,7 @@ class IntegrationManager {
           integration.onActivityDestroyed(activity);
           break;
         default:
-          panic(new IllegalArgumentException("Unknown payload type!" + payload.type));
+          throw new IllegalArgumentException("Unknown payload type!" + payload.type);
       }
     }
 
@@ -180,7 +179,7 @@ class IntegrationManager {
           integration.track((TrackPayload) payload);
           break;
         default:
-          panic(new IllegalArgumentException("Unknown payload type!" + payload.type()));
+          throw new IllegalArgumentException("Unknown payload type!" + payload.type());
       }
     }
 
@@ -434,11 +433,7 @@ class IntegrationManager {
           integrationManager.performFlush();
           break;
         default:
-          Analytics.MAIN_LOOPER.post(new Runnable() {
-            @Override public void run() {
-              throw new AssertionError("Unhandled dispatcher message." + msg.what);
-            }
-          });
+          throw new AssertionError("Unhandled dispatcher message." + msg.what);
       }
     }
   }
