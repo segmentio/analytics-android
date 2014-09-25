@@ -16,6 +16,7 @@
 
 package com.segment.analytics;
 
+import android.annotation.SuppressLint;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.WearableListenerService;
 
@@ -26,8 +27,8 @@ import com.google.android.gms.wearable.WearableListenerService;
  * {@link Analytics} client. Ideally, it should be the same instance as the client you're using to
  * track events on the host Android device.
  */
+@SuppressLint("Registered")
 public class PhoneAnalyticsListenerService extends WearableListenerService {
-
   @Override public void onMessageReceived(MessageEvent messageEvent) {
     super.onMessageReceived(messageEvent);
 

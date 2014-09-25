@@ -26,14 +26,6 @@ import org.json.JSONObject;
 class JsonMap implements Map<String, Object> {
   private final Map<String, Object> delegate;
 
-  /** Wrap a map as {@link JsonMap}. */
-  static JsonMap wrap(Map<String, Object> map) {
-    if (map instanceof JsonMap) {
-      return (JsonMap) map;
-    }
-    return new JsonMap(map);
-  }
-
   JsonMap() {
     this.delegate = new LinkedHashMap<String, Object>();
   }
@@ -43,7 +35,7 @@ class JsonMap implements Map<String, Object> {
       throw new IllegalArgumentException("Map must not be null.");
     }
     if (delegate instanceof JsonMap) {
-      this.delegate = ((JsonMap) delegate).delegate; // avoid allocation
+      this.delegate = ((JsonMap) delegate).delegate; // avoid indirection
     } else {
       this.delegate = delegate;
     }
@@ -151,13 +143,14 @@ class JsonMap implements Map<String, Object> {
     if (integerValue == null) {
       return null;
     } else {
-      putIfSupported(key, integerValue);
+      cache(key, integerValue);
       return integerValue;
     }
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a long.
+   * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a
+   * long.
    * Returns null otherwise.
    */
   Long getLong(String key) {
@@ -178,7 +171,7 @@ class JsonMap implements Map<String, Object> {
     if (longValue == null) {
       return null;
     } else {
-      putIfSupported(key, longValue);
+      cache(key, longValue);
       return longValue;
     }
   }
@@ -205,13 +198,14 @@ class JsonMap implements Map<String, Object> {
     if (doubleValue == null) {
       return null;
     } else {
-      putIfSupported(key, doubleValue);
+      cache(key, doubleValue);
       return doubleValue;
     }
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a char or can be coerced to a char.
+   * Returns the value mapped by {@code key} if it exists and is a char or can be coerced to a
+   * char.
    * Returns null otherwise.
    */
   Character getChar(String key) {
@@ -222,7 +216,7 @@ class JsonMap implements Map<String, Object> {
     if (value != null && value instanceof String) {
       if (((String) value).length() == 1) {
         Character charValue = ((String) value).charAt(0);
-        putIfSupported(key, charValue);
+        cache(key, charValue);
         return charValue;
       }
     }
@@ -242,7 +236,7 @@ class JsonMap implements Map<String, Object> {
       return (String) value;
     } else if (value != null) {
       String stringValue = String.valueOf(value);
-      putIfSupported(key, stringValue);
+      cache(key, stringValue);
       return stringValue;
     }
     return null;
@@ -259,13 +253,14 @@ class JsonMap implements Map<String, Object> {
     } else if (value instanceof String) {
       String stringValue = (String) value;
       boolean bool = Boolean.valueOf(stringValue);
-      putIfSupported(key, bool);
+      cache(key, bool);
     }
     return null;
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a enum or can be coerced to a enum.
+   * Returns the value mapped by {@code key} if it exists and is a enum or can be coerced to a
+   * enum.
    * Returns null otherwise.
    */
   <T extends Enum<T>> T getEnum(Class<T> enumType, String key) {
@@ -278,7 +273,7 @@ class JsonMap implements Map<String, Object> {
     } else if (value instanceof String) {
       String stringValue = (String) value;
       T enumValue = Enum.valueOf(enumType, stringValue);
-      putIfSupported(key, enumValue);
+      cache(key, enumValue);
       return enumValue;
     }
     return null;
@@ -303,6 +298,7 @@ class JsonMap implements Map<String, Object> {
   <T extends JsonMap> T getJsonMap(String key, Class<T> clazz) {
     Object value = get(key);
     if (clazz.isInstance(value)) {
+      //noinspection unchecked
       return (T) value;
     } else if (value instanceof Map) {
       // Try the map constructor, it's more efficient since we've already parsed the json tree
@@ -310,12 +306,12 @@ class JsonMap implements Map<String, Object> {
         Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
         constructor.setAccessible(true);
         T typedValue = constructor.newInstance(value);
-        putIfSupported(key, typedValue);
+        cache(key, typedValue);
         return typedValue;
-      } catch (NoSuchMethodException e) {
-      } catch (InvocationTargetException e) {
-      } catch (InstantiationException e) {
-      } catch (IllegalAccessException e) {
+      } catch (NoSuchMethodException ignored) {
+      } catch (InvocationTargetException ignored) {
+      } catch (InstantiationException ignored) {
+      } catch (IllegalAccessException ignored) {
       }
       throw new AssertionError("Could not find map constructor for " + clazz.getCanonicalName());
     }
@@ -341,7 +337,7 @@ class JsonMap implements Map<String, Object> {
     }
   }
 
-  private void putIfSupported(String key, Object value) {
+  private void cache(String key, Object value) {
     try {
       delegate.put(key, value);
     } catch (UnsupportedOperationException e) {

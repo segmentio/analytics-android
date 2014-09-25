@@ -17,7 +17,7 @@ public class JsonMapTest extends BaseAndroidTestCase {
     try {
       new JsonMap((Map) null);
       fail("Null Map should throw exception.");
-    } catch (IllegalArgumentException e) {
+    } catch (IllegalArgumentException ignored) {
     }
   }
 

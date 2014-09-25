@@ -28,4 +28,5 @@
       android:id="@+id/logo"
       android:src="@drawable/icon"
       android:scaleType="center"/>
+  
 </RelativeLayout>
