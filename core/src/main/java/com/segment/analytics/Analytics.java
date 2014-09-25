@@ -282,32 +282,31 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
 
   // Activity Lifecycle
   @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-    integrationManager.dispatch(
-        new ActivityLifecyclePayload(CREATED, activity, savedInstanceState));
+    submit(new ActivityLifecyclePayload(CREATED, activity, savedInstanceState));
   }
 
   @Override public void onActivityStarted(Activity activity) {
-    integrationManager.dispatch(new ActivityLifecyclePayload(STARTED, null, null));
+    submit(new ActivityLifecyclePayload(STARTED, null, null));
   }
 
   @Override public void onActivityResumed(Activity activity) {
-    integrationManager.dispatch(new ActivityLifecyclePayload(RESUMED, null, null));
+    submit(new ActivityLifecyclePayload(RESUMED, null, null));
   }
 
   @Override public void onActivityPaused(Activity activity) {
-    integrationManager.dispatch(new ActivityLifecyclePayload(PAUSED, null, null));
+    submit(new ActivityLifecyclePayload(PAUSED, null, null));
   }
 
   @Override public void onActivityStopped(Activity activity) {
-    integrationManager.dispatch(new ActivityLifecyclePayload(STOPPED, null, null));
+    submit(new ActivityLifecyclePayload(STOPPED, null, null));
   }
 
   @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-    integrationManager.dispatch(new ActivityLifecyclePayload(SAVE_INSTANCE, activity, outState));
+    submit(new ActivityLifecyclePayload(SAVE_INSTANCE, activity, outState));
   }
 
   @Override public void onActivityDestroyed(Activity activity) {
-    integrationManager.dispatch(new ActivityLifecyclePayload(DESTROYED, null, null));
+    submit(new ActivityLifecyclePayload(DESTROYED, null, null));
   }
 
   /**
@@ -571,6 +570,10 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
           "{type: " + payload.type() + '}');
     }
     dispatcher.dispatchEnqueue(payload);
+    integrationManager.dispatch(payload);
+  }
+
+  void submit(ActivityLifecyclePayload payload) {
     integrationManager.dispatch(payload);
   }
 }

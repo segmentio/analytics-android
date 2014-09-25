@@ -26,7 +26,6 @@ package com.segment.analytics;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -46,6 +45,7 @@ import static android.content.Context.CONNECTIVITY_SERVICE;
 import static android.content.Context.MODE_PRIVATE;
 import static android.content.Context.TELEPHONY_SERVICE;
 import static android.content.pm.PackageManager.FEATURE_TELEPHONY;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static android.provider.Settings.Secure.ANDROID_ID;
 import static android.provider.Settings.Secure.getString;
 
@@ -68,7 +68,7 @@ final class Utils {
 
   /** Returns true if the application has the given permission. */
   static boolean hasPermission(Context context, String permission) {
-    return context.checkCallingOrSelfPermission(permission) == PackageManager.PERMISSION_GRANTED;
+    return context.checkCallingOrSelfPermission(permission) == PERMISSION_GRANTED;
   }
 
   /** Returns true if the application has the given feature. */
