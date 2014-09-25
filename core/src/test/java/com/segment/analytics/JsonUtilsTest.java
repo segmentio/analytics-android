@@ -24,8 +24,6 @@
 
 package com.segment.analytics;
 
-import com.segment.analytics.BaseAndroidTestCase;
-import com.segment.analytics.JsonUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,36 +31,17 @@ import java.util.Random;
 import java.util.UUID;
 import org.fest.assertions.data.Index;
 import org.fest.assertions.data.MapEntry;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
-public class JsonUtilsTest extends BaseAndroidTestCase {
-  public void testSimpleJsonToMap() throws Exception {
-    Map<String, Object> json = JsonUtils.jsonToMap("{\n"
-        + "  \"glossary\": {\n"
-        + "    \"title\": \"example glossary\",\n"
-        + "    \"GlossDiv\": {\n"
-        + "      \"title\": \"S\",\n"
-        + "      \"GlossList\": {\n"
-        + "        \"GlossEntry\": {\n"
-        + "          \"ID\": \"SGML\",\n"
-        + "          \"SortAs\": \"SGML\",\n"
-        + "          \"GlossTerm\": \"Standard Generalized Markup Language\",\n"
-        + "          \"Acronym\": \"SGML\",\n"
-        + "          \"Abbrev\": \"ISO 8879:1986\",\n"
-        + "          \"GlossDef\": {\n"
-        + "            \"para\": \"A meta-markup language, used to decode markup languages such as DocBook.\",\n"
-        + "            \"GlossSeeAlso\": [\n"
-        + "              \"GML\",\n"
-        + "              \"XML\"\n"
-        + "            ]\n"
-        + "          },\n"
-        + "          \"GlossSee\": \"markup\"\n"
-        + "        }\n"
-        + "      }\n"
-        + "    }\n"
-        + "  }\n"
-        + "}");
+@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18)
+public class JsonUtilsTest {
+  @Test public void simpleJsonToMap() throws Exception {
+    Map<String, Object> json = JsonUtils.jsonToMap(TestUtils.SAMPLE_JSON);
 
     assertThat(json).hasSize(1);
     assertThat(json).containsKey("glossary");
@@ -73,19 +52,19 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
     assertThat((String) glossary.get("title")).isEqualTo("example glossary");
     assertThat(glossary).containsKey("GlossDiv");
 
-    Map<String, Object> GlossDiv = (Map<String, Object>) glossary.get("GlossDiv");
-    assertThat(GlossDiv).hasSize(2);
-    assertThat(GlossDiv).containsKey("title");
-    assertThat((String) GlossDiv.get("title")).isEqualTo("S");
-    assertThat(GlossDiv).containsKey("GlossList");
+    Map<String, Object> glossDiv = (Map<String, Object>) glossary.get("GlossDiv");
+    assertThat(glossDiv).hasSize(2);
+    assertThat(glossDiv).containsKey("title");
+    assertThat((String) glossDiv.get("title")).isEqualTo("S");
+    assertThat(glossDiv).containsKey("GlossList");
 
-    Map<String, Object> GlossList = (Map<String, Object>) GlossDiv.get("GlossList");
-    assertThat(GlossList).hasSize(1);
-    assertThat(GlossList).containsKey("GlossEntry");
+    Map<String, Object> glossList = (Map<String, Object>) glossDiv.get("GlossList");
+    assertThat(glossList).hasSize(1);
+    assertThat(glossList).containsKey("GlossEntry");
 
-    Map<String, Object> GlossEntry = (Map<String, Object>) GlossList.get("GlossEntry");
-    assertThat(GlossEntry).hasSize(7);
-    assertThat(GlossEntry).containsKey("ID")
+    Map<String, Object> glossEntry = (Map<String, Object>) glossList.get("GlossEntry");
+    assertThat(glossEntry).hasSize(7);
+    assertThat(glossEntry).containsKey("ID")
         .containsKey("SortAs")
         .containsKey("GlossTerm")
         .containsKey("Acronym")
@@ -93,39 +72,16 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
         .containsKey("GlossDef")
         .containsKey("GlossSee");
 
-    Map<String, Object> GlossDef = (Map<String, Object>) GlossEntry.get("GlossDef");
-    assertThat(GlossDef).hasSize(2);
-    assertThat(GlossDef).containsKey("para").containsKey("GlossSeeAlso");
+    Map<String, Object> glossDef = (Map<String, Object>) glossEntry.get("GlossDef");
+    assertThat(glossDef).hasSize(2);
+    assertThat(glossDef).containsKey("para").containsKey("GlossSeeAlso");
 
-    List<Object> GlossSeeAlso = (List<Object>) GlossDef.get("GlossSeeAlso");
-    assertThat(GlossSeeAlso).hasSize(2).contains("GML", "XML");
+    List<Object> glossSeeAlso = (List<Object>) glossDef.get("GlossSeeAlso");
+    assertThat(glossSeeAlso).hasSize(2).contains("GML", "XML");
   }
 
-  public void testArray() throws Exception {
-    List<Object> json = JsonUtils.jsonToList("[\n"
-        + "        {\"id\": \"Open\"},\n"
-        + "        {\"id\": \"OpenNew\", \"label\": \"Open New\"},\n"
-        + "        null,\n"
-        + "        {\"id\": \"ZoomIn\", \"label\": \"Zoom In\"},\n"
-        + "        {\"id\": \"ZoomOut\", \"label\": \"Zoom Out\"},\n"
-        + "        {\"id\": \"OriginalView\", \"label\": \"Original View\"},\n"
-        + "        null,\n"
-        + "        {\"id\": \"Quality\"},\n"
-        + "        {\"id\": \"Pause\"},\n"
-        + "        {\"id\": \"Mute\"},\n"
-        + "        null,\n"
-        + "        {\"id\": \"Find\", \"label\": \"Find...\"},\n"
-        + "        {\"id\": \"FindAgain\", \"label\": \"Find Again\"},\n"
-        + "        {\"id\": \"Copy\"},\n"
-        + "        {\"id\": \"CopyAgain\", \"label\": \"Copy Again\"},\n"
-        + "        {\"id\": \"CopySVG\", \"label\": \"Copy SVG\"},\n"
-        + "        {\"id\": \"ViewSVG\", \"label\": \"View SVG\"},\n"
-        + "        {\"id\": \"ViewSource\", \"label\": \"View Source\"},\n"
-        + "        {\"id\": \"SaveAs\", \"label\": \"Save As\"},\n"
-        + "        null,\n"
-        + "        {\"id\": \"Help\"},\n"
-        + "        {\"id\": \"About\", \"label\": \"About Adobe CVG Viewer...\"}\n"
-        + "    ]");
+  @Test public void array() throws Exception {
+    List<Object> json = JsonUtils.jsonToList(TestUtils.SAMPLE_JSON_LIST);
 
     assertThat(json).hasSize(22);
     assertThat(json).contains(null, Index.atIndex(2))
@@ -144,7 +100,7 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
     assertThat(json).contains(item13, Index.atIndex(13));
   }
 
-  public void testPrimitiveArray() throws Exception {
+  @Test public void primitiveArray() throws Exception {
     List<Object> json = JsonUtils.jsonToList("[0,375,668,5,6]");
 
     assertThat(json).hasSize(5);
@@ -156,17 +112,7 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
         .contains(6.0, Index.atIndex(4));
   }
 
-  static class Person {
-    int age;
-    String name;
-
-    Person(int age, String name) {
-      this.age = age;
-      this.name = name;
-    }
-  }
-
-  public void testObjectSerialization() throws Exception {
+  @Test public void objectSerialization() throws Exception {
     Person person = new Person(21, "Prateek");
     Map<String, Object> sourceMap = new HashMap<String, Object>();
     sourceMap.put("person", person);
@@ -178,7 +124,7 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
         MapEntry.entry("extra", 40.32));
   }
 
-  @SuppressWarnings("UnnecessaryBoxing") public void testAllTypes() throws Exception {
+  @SuppressWarnings("UnnecessaryBoxing") @Test public void allTypes() throws Exception {
     Random random = new Random();
     byte aByte = (byte) random.nextInt();
     Byte aBoxedByte = Byte.valueOf((byte) random.nextInt());
@@ -235,5 +181,15 @@ public class JsonUtilsTest extends BaseAndroidTestCase {
         .contains(MapEntry.entry("aString", aString))
         .contains(MapEntry.entry("aBoolean", aBoolean))
         .contains(MapEntry.entry("aBoxedBoolean", aBoxedBoolean));
+  }
+
+  static class Person {
+    int age;
+    String name;
+
+    Person(int age, String name) {
+      this.age = age;
+      this.name = name;
+    }
   }
 }

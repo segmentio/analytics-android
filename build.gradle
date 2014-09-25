@@ -9,6 +9,7 @@ subprojects {
     dependencies {
       classpath 'com.android.tools.build:gradle:0.12.+'
       classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.+'
+      classpath 'org.robolectric:robolectric-gradle-plugin:0.12.+'
     }
   }
 

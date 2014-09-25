@@ -2,18 +2,25 @@ package com.segment.analytics;
 
 import java.util.Map;
 import org.fest.assertions.data.MapEntry;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.TestUtils.PROJECT_SETTINGS_JSON_SAMPLE;
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.fail;
 
-public class JsonMapTest extends BaseAndroidTestCase {
+@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18)
+public class JsonMapTest {
   JsonMap jsonMap;
 
-  @Override public void setUp() throws Exception {
-    super.setUp();
+  @Before public void setUp() {
     jsonMap = new JsonMap();
   }
 
-  public void testDisallowsNullMap() throws Exception {
+  @Test public void disallowsNullMap() throws Exception {
     try {
       new JsonMap((Map) null);
       fail("Null Map should throw exception.");
@@ -21,7 +28,7 @@ public class JsonMapTest extends BaseAndroidTestCase {
     }
   }
 
-  public void testEmptyMap() throws Exception {
+  @Test public void emptyMap() throws Exception {
     assertThat(jsonMap).hasSize(0).isEmpty();
 
     assertThat(jsonMap.get("foo")).isNull();
@@ -34,7 +41,7 @@ public class JsonMapTest extends BaseAndroidTestCase {
     assertThat(jsonMap.getEnum(MyEnum.class, "foo")).isNull();
   }
 
-  public void testConversionsAreCached() throws Exception {
+  @Test public void conversionsAreCached() throws Exception {
     String stringPi = String.valueOf(Math.PI);
 
     jsonMap.put("double_pi", Math.PI);
@@ -48,11 +55,7 @@ public class JsonMapTest extends BaseAndroidTestCase {
     assertThat(jsonMap).contains(MapEntry.entry("string_pi", Math.PI));
   }
 
-  private static enum MyEnum {
-    VALUE1, VALUE2
-  }
-
-  public void testEnums() throws Exception {
+  @Test public void enumDeserialization() throws Exception {
     jsonMap.put("value1", MyEnum.VALUE1);
     jsonMap.put("value2", MyEnum.VALUE2);
     String json = jsonMap.toString();
@@ -69,7 +72,7 @@ public class JsonMapTest extends BaseAndroidTestCase {
         .contains(MapEntry.entry("value2", MyEnum.VALUE2));
   }
 
-  public void testNestedMaps() throws Exception {
+  @Test public void nestedMaps() throws Exception {
     JsonMap nested = new JsonMap();
     nested.put("value", "box");
     jsonMap.put("nested", nested);
@@ -79,6 +82,52 @@ public class JsonMapTest extends BaseAndroidTestCase {
 
     jsonMap = new JsonMap("{\"nested\":{\"value\":\"box\"}}");
     assertThat(jsonMap).hasSize(1).contains(MapEntry.entry("nested", nested));
+  }
+
+  @Test public void customJsonMapDeserialization() throws Exception {
+    Settings settings = new Settings(PROJECT_SETTINGS_JSON_SAMPLE);
+    assertThat(settings).hasSize(4)
+        .containsKey("Amplitude")
+        .containsKey("Segment.io")
+        .containsKey("Flurry")
+        .containsKey("Mixpanel");
+
+    // Map Constructor
+    MixpanelSettings mixpanelSettings = settings.getMixpanelSettings();
+    assertThat(mixpanelSettings) //
+        .contains(MapEntry.entry("token", "f7afe0cb436685f61a2b203254779e02"))
+        .contains(MapEntry.entry("people", true))
+        .contains(MapEntry.entry("trackNamedPages", true))
+        .contains(MapEntry.entry("trackCategorizedPages", true))
+        .contains(MapEntry.entry("trackAllPages", false));
+
+    try {
+      settings.getAmplitudeSettings();
+    } catch (AssertionError error) {
+      assertThat(error).hasMessageContaining("Could not find map constructor for");
+    }
+  }
+
+  @Test public void projectSettings() throws Exception {
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection") JsonMap jsonMap =
+        new JsonMap(PROJECT_SETTINGS_JSON_SAMPLE);
+
+    assertThat(jsonMap.getJsonMap("Amplitude")).isNotNull()
+        .hasSize(4)
+        .contains(MapEntry.entry("apiKey", "ad3c426eb736d7442a65da8174bc1b1b"))
+        .contains(MapEntry.entry("trackNamedPages", true))
+        .contains(MapEntry.entry("trackCategorizedPages", true))
+        .contains(MapEntry.entry("trackAllPages", false));
+    assertThat(jsonMap.getJsonMap("Flurry")).isNotNull()
+        .hasSize(4)
+        .contains(MapEntry.entry("apiKey", "8DY3D6S7CCWH54RBJ9ZM"))
+        .contains(MapEntry.entry("captureUncaughtExceptions", false))
+        .contains(MapEntry.entry("useHttps", true))
+        .contains(MapEntry.entry("sessionContinueSeconds", 10.0));
+  }
+
+  private static enum MyEnum {
+    VALUE1, VALUE2
   }
 
   static class Settings extends JsonMap {
@@ -105,51 +154,5 @@ public class JsonMapTest extends BaseAndroidTestCase {
     AmplitudeSettings(String json) {
       super(json);
     }
-  }
-
-  public void testCustomJsonMaps() throws Exception {
-    String json =
-        "{\"Amplitude\":{\"trackNamedPages\":true,\"trackCategorizedPages\":true,\"trackAllPages\":false,\"apiKey\":\"ad3c426eb736d7442a65da8174bc1b1b\"},\"Flurry\":{\"apiKey\":\"8DY3D6S7CCWH54RBJ9ZM\",\"captureUncaughtExceptions\":false,\"useHttps\":true,\"sessionContinueSeconds\":10},\"Mixpanel\":{\"people\":true,\"token\":\"f7afe0cb436685f61a2b203254779e02\",\"trackAllPages\":false,\"trackCategorizedPages\":true,\"trackNamedPages\":true,\"increments\":[],\"legacySuperProperties\":false},\"Segment.io\":{\"apiKey\":\"l8v1ga655b\"}}";
-
-    Settings settings = new Settings(json);
-    assertThat(settings).hasSize(4)
-        .containsKey("Amplitude")
-        .containsKey("Segment.io")
-        .containsKey("Flurry")
-        .containsKey("Mixpanel");
-
-    // Map Constructor
-    MixpanelSettings mixpanelSettings = settings.getMixpanelSettings();
-    assertThat(mixpanelSettings) //
-        .contains(MapEntry.entry("token", "f7afe0cb436685f61a2b203254779e02"))
-        .contains(MapEntry.entry("people", true))
-        .contains(MapEntry.entry("trackNamedPages", true))
-        .contains(MapEntry.entry("trackCategorizedPages", true))
-        .contains(MapEntry.entry("trackAllPages", false));
-
-    try {
-      settings.getAmplitudeSettings();
-    } catch (AssertionError error) {
-      assertThat(error).hasMessageContaining("Could not find map constructor for");
-    }
-  }
-
-  public void testSettings() throws Exception {
-    String json =
-        "{\"Amplitude\":{\"trackNamedPages\":true,\"trackCategorizedPages\":true,\"trackAllPages\":false,\"apiKey\":\"ad3c426eb736d7442a65da8174bc1b1b\"},\"Flurry\":{\"apiKey\":\"8DY3D6S7CCWH54RBJ9ZM\",\"captureUncaughtExceptions\":false,\"useHttps\":true,\"sessionContinueSeconds\":10},\"Mixpanel\":{\"people\":true,\"token\":\"f7afe0cb436685f61a2b203254779e02\",\"trackAllPages\":false,\"trackCategorizedPages\":true,\"trackNamedPages\":true,\"increments\":[],\"legacySuperProperties\":false},\"Segment.io\":{\"apiKey\":\"l8v1ga655b\"}}";
-    JsonMap jsonMap = new JsonMap(json);
-
-    assertThat(jsonMap.getJsonMap("Amplitude")).isNotNull()
-        .hasSize(4)
-        .contains(MapEntry.entry("apiKey", "ad3c426eb736d7442a65da8174bc1b1b"))
-        .contains(MapEntry.entry("trackNamedPages", true))
-        .contains(MapEntry.entry("trackCategorizedPages", true))
-        .contains(MapEntry.entry("trackAllPages", false));
-    assertThat(jsonMap.getJsonMap("Flurry")).isNotNull()
-        .hasSize(4)
-        .contains(MapEntry.entry("apiKey", "8DY3D6S7CCWH54RBJ9ZM"))
-        .contains(MapEntry.entry("captureUncaughtExceptions", false))
-        .contains(MapEntry.entry("useHttps", true))
-        .contains(MapEntry.entry("sessionContinueSeconds", 10.0));
   }
 }

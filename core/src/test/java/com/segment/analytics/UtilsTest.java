@@ -21,6 +21,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
@@ -29,11 +34,17 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
+import static org.mockito.MockitoAnnotations.initMocks;
 
-public class UtilsTest extends BaseAndroidTestCase {
+@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18)
+public class UtilsTest {
   @Mock Context context;
 
-  public void testEmptiness() throws Exception {
+  @Before public void setUp() {
+    initMocks(this);
+  }
+
+  @Test public void emptiness() throws Exception {
     assertThat(isNullOrEmpty((String) null)).isTrue();
     assertThat(isNullOrEmpty("")).isTrue();
     assertThat(isNullOrEmpty("    ")).isTrue();
@@ -57,7 +68,7 @@ public class UtilsTest extends BaseAndroidTestCase {
     assertThat(isNullOrEmpty(collection)).isTrue();
   }
 
-  public void testReturnsConnectedIfMissingPermission() throws Exception {
+  @Test public void returnsConnectedIfMissingPermission() throws Exception {
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
     assertThat(isConnected(context)).isTrue();
   }

@@ -1,30 +1,36 @@
 package com.segment.analytics;
 
 import org.fest.assertions.data.MapEntry;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
-public class TraitsTest extends BaseAndroidTestCase {
+@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18)
+public class TraitsTest {
   Traits traits;
 
-  @Override public void setUp() throws Exception {
-    super.setUp();
-    traits = new Traits(getContext());
+  @Before public void setUp() {
+    traits = new Traits(Robolectric.application);
   }
 
-  public void testNewInvocationHasUniqueId() throws Exception {
-    assertThat(traits).isNotSameAs(new Traits(getContext()));
+  @Test public void newInvocationHasUniqueId() throws Exception {
+    assertThat(traits).isNotSameAs(new Traits(Robolectric.application));
   }
 
-  public void testNewInvocationHasSameAnonymousAndUserId() throws Exception {
+  @Test public void newInvocationHasSameAnonymousAndUserId() throws Exception {
     assertThat(traits.userId()).isEqualTo(traits.anonymousId());
   }
 
-  public void testPublicConstructorGivesEmptyTraits() throws Exception {
+  @Test public void publicConstructorGivesEmptyTraits() throws Exception {
     assertThat(new Traits()).hasSize(0);
   }
 
-  public void testTraitsMerged() throws Exception {
+  @Test public void traitsAreMergedCorrectly() throws Exception {
     Traits traits1 = new Traits() //
         .putAge(20)
         .putAvatar("f2prateek")
@@ -47,7 +53,7 @@ public class TraitsTest extends BaseAndroidTestCase {
     assertThat(traits1.name()).isEqualTo("Prateek Srivastava");
   }
 
-  public void testFirstAndLastNameSetGivesFullName() throws Exception {
+  @Test public void firstAndLastNameSetGivesFullName() throws Exception {
     traits.putFirstName("prateek");
     traits.putLastName("srivastava");
     assertThat(traits.name()).isEqualTo("prateek srivastava");

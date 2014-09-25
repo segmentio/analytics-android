@@ -68,6 +68,99 @@ public class AnalyticsContext extends JsonMap {
   private static final String APP_VERSION_CODE_KEY = "versionCode";
   private static final String APP_VERSION_NAME_KEY = "versionName";
   private static final String APP_BUILD_KEY = "build";
+  private static final String CAMPAIGN_KEY = "campaign";
+  private static final String CAMPAIGN_NAME_KEY = "name";
+  private static final String CAMPAIGN_SOURCE_KEY = "source";
+  private static final String CAMPAIGN_MEDIUM_KEY = "medium";
+  private static final String CAMPAIGN_TERM_KEY = "term";
+  private static final String CAMPAIGN_CONTENT_KEY = "content";
+  private static final String DEVICE_KEY = "device";
+  private static final String DEVICE_ID_KEY = "userId";
+  private static final String DEVICE_MANUFACTURER_KEY = "manufacturer";
+  private static final String DEVICE_MODEL_KEY = "model";
+  private static final String DEVICE_NAME_KEY = "name";
+  private static final String DEVICE_TYPE_KEY = "type";
+  private static final String DEVICE_BRAND_KEY = "brand";
+  private static final String LIBRARY_KEY = "library";
+  private static final String LIBRARY_NAME_KEY = "name";
+  // Ignored for Android
+  // String idfv;
+  // String idfa;
+  // String adTrackingEnabled;
+  private static final String LIBRARY_VERSION_KEY = "version";
+  // Android Specific
+  private static final String LIBRARY_VERSION_NAME_KEY = "versionName";
+  private static final String LIBRARY_BUILD_TYPE_KEY = "buildType";
+  private static final String LOCATION_KEY = "location";
+  private static final String NETWORK_KEY = "network";
+  private static final String NETWORK_BLUETOOTH_KEY = "bluetooth";
+  private static final String NETWORK_CARRIER_KEY = "carrier";
+  private static final String NETWORK_CELLULAR_KEY = "cellular";
+  private static final String NETWORK_WIFI_KEY = "wifi";
+  private static final String OS_KEY = "os";
+  private static final String OS_NAME_KEY = "name";
+  private static final String OS_VERSION_KEY = "version";
+  // Android Specific
+  private static final String OS_SDK_KEY = "sdk";
+  private static final String REFERRER_KEY = "referrer";
+  private static final String REFERRER_ID_KEY = "userId";
+  private static final String REFERRER_LINK_KEY = "link";
+  private static final String REFERRER_NAME_KEY = "name";
+  private static final String REFERRER_TYPE_KEY = "type";
+  private static final String REFERRER_URL_KEY = "url";
+  private static final String SCREEN_KEY = "screen";
+  private static final String SCREEN_DENSITY_KEY = "density";
+  private static final String SCREEN_HEIGHT_KEY = "height";
+  private static final String SCREEN_WIDTH_KEY = "width";
+  private static final String SCREEN_DENSITY_DPI_KEY = "densityDpi";
+  private static final String SCREEN_DENSITY_BUCKET_KEY = "densityBucket";
+  private static final String SCREEN_SCALED_DENSITY_KEY = "scaledDensity";
+  private static final String LOCALE_KEY = "locale";
+  private static final String TRAITS_KEY = "traits";
+  private static final String USER_AGENT_KEY = "userAgent";
+  private static final String INTEGRATIONS_KEY = "integrations";
+
+  public AnalyticsContext(Context context, Traits traits) {
+    putApp(context);
+    // todo: campaign
+    putDevice();
+    // todo: ip
+    putLibrary();
+    put(LOCALE_KEY, Locale.getDefault().getLanguage() + "-" + Locale.getDefault().getCountry());
+    // todo: location
+    putNetwork(context);
+    putOs();
+    // todo: referrer
+    putScreen(context);
+    // todo: groupId
+    put(USER_AGENT_KEY, System.getProperty("http.agent"));
+    putTraits(traits);
+  }
+
+  AnalyticsContext(Map<String, Object> delegate) {
+    super(delegate);
+  }
+
+  private static String getDensityString(DisplayMetrics displayMetrics) {
+    switch (displayMetrics.densityDpi) {
+      case DisplayMetrics.DENSITY_LOW:
+        return "ldpi";
+      case DisplayMetrics.DENSITY_MEDIUM:
+        return "mdpi";
+      case DisplayMetrics.DENSITY_HIGH:
+        return "hdpi";
+      case DisplayMetrics.DENSITY_XHIGH:
+        return "xhdpi";
+      case DisplayMetrics.DENSITY_XXHIGH:
+        return "xxhdpi";
+      case DisplayMetrics.DENSITY_XXXHIGH:
+        return "xxxhdpi";
+      case DisplayMetrics.DENSITY_TV:
+        return "tvdpi";
+      default:
+        return "unknown";
+    }
+  }
 
   void putApp(Context context) {
     try {
@@ -86,12 +179,9 @@ public class AnalyticsContext extends JsonMap {
     }
   }
 
-  private static final String CAMPAIGN_KEY = "campaign";
-  private static final String CAMPAIGN_NAME_KEY = "name";
-  private static final String CAMPAIGN_SOURCE_KEY = "source";
-  private static final String CAMPAIGN_MEDIUM_KEY = "medium";
-  private static final String CAMPAIGN_TERM_KEY = "term";
-  private static final String CAMPAIGN_CONTENT_KEY = "content";
+  void putTraits(Traits traits) {
+    put(TRAITS_KEY, traits);
+  }
 
   public AnalyticsContext putCampaign(String name, String source, String medium, String term,
       String content) {
@@ -105,35 +195,15 @@ public class AnalyticsContext extends JsonMap {
     return this;
   }
 
-  private static final String DEVICE_KEY = "device";
-  private static final String DEVICE_ID_KEY = "userId";
-  private static final String DEVICE_MANUFACTURER_KEY = "manufacturer";
-  private static final String DEVICE_MODEL_KEY = "model";
-  private static final String DEVICE_NAME_KEY = "name";
-  private static final String DEVICE_TYPE_KEY = "type";
-  private static final String DEVICE_BRAND_KEY = "brand";
-  // Ignored for Android
-  // String idfv;
-  // String idfa;
-  // String adTrackingEnabled;
-
   void putDevice() {
     Map<String, Object> device = new LinkedHashMap<String, Object>(5);
     device.put(DEVICE_ID_KEY, Build.ID);
     device.put(DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);
     device.put(DEVICE_MODEL_KEY, Build.MODEL);
     device.put(DEVICE_NAME_KEY, Build.DEVICE);
-    // device.put(DEVICE_TYPE_KEY, Build.ID);
     device.put(DEVICE_BRAND_KEY, Build.BRAND);
     put(DEVICE_KEY, device);
   }
-
-  private static final String LIBRARY_KEY = "library";
-  private static final String LIBRARY_NAME_KEY = "name";
-  private static final String LIBRARY_VERSION_KEY = "version";
-  // Android Specific
-  private static final String LIBRARY_VERSION_NAME_KEY = "versionName";
-  private static final String LIBRARY_BUILD_TYPE_KEY = "buildType";
 
   void putLibrary() {
     Map<String, Object> library = new LinkedHashMap<String, Object>(6);
@@ -144,47 +214,15 @@ public class AnalyticsContext extends JsonMap {
     put(LIBRARY_KEY, library);
   }
 
-  public static class Location extends JsonMap {
-    private static final String LOCATION_LATITUDE_KEY = "latitude";
-    private static final String LOCATION_LONGITUDE_KEY = "longitude";
-    private static final String LOCATION_SPEED_KEY = "speed";
-
-    Location(double latitude, double longitude, double speed) {
-      put(LOCATION_LATITUDE_KEY, latitude);
-      put(LOCATION_LONGITUDE_KEY, longitude);
-      put(LOCATION_SPEED_KEY, speed);
-    }
-
-    public Double latitude() {
-      return getDouble(LOCATION_LATITUDE_KEY);
-    }
-
-    public Double longitude() {
-      return getDouble(LOCATION_LONGITUDE_KEY);
-    }
-
-    public Double speed() {
-      return getDouble(LOCATION_SPEED_KEY);
-    }
-  }
-
-  private static final String LOCATION_KEY = "location";
-
   public AnalyticsContext putLocation(double latitude, double longitude, double speed) {
     Location location = new Location(latitude, longitude, speed);
     put(LOCATION_KEY, location);
     return this;
   }
 
-  public Location location() {
-    return (Location) get(LOCATION_KEY);
+  Location location() {
+    return getJsonMap(LOCATION_KEY, Location.class);
   }
-
-  private static final String NETWORK_KEY = "network";
-  private static final String NETWORK_BLUETOOTH_KEY = "bluetooth";
-  private static final String NETWORK_CARRIER_KEY = "carrier";
-  private static final String NETWORK_CELLULAR_KEY = "cellular";
-  private static final String NETWORK_WIFI_KEY = "wifi";
 
   void putNetwork(Context context) {
     Map<String, Object> network = new LinkedHashMap<String, Object>(4);
@@ -210,12 +248,6 @@ public class AnalyticsContext extends JsonMap {
     put(NETWORK_KEY, network);
   }
 
-  private static final String OS_KEY = "os";
-  private static final String OS_NAME_KEY = "name";
-  private static final String OS_VERSION_KEY = "version";
-  // Android Specific
-  private static final String OS_SDK_KEY = "sdk";
-
   void putOs() {
     Map<String, Object> os = new LinkedHashMap<String, Object>(3);
     os.put(OS_NAME_KEY, Build.VERSION.CODENAME);
@@ -223,13 +255,6 @@ public class AnalyticsContext extends JsonMap {
     os.put(OS_SDK_KEY, Build.VERSION.SDK_INT);
     put(OS_KEY, os);
   }
-
-  private static final String REFERRER_KEY = "referrer";
-  private static final String REFERRER_ID_KEY = "userId";
-  private static final String REFERRER_LINK_KEY = "link";
-  private static final String REFERRER_NAME_KEY = "name";
-  private static final String REFERRER_TYPE_KEY = "type";
-  private static final String REFERRER_URL_KEY = "url";
 
   public AnalyticsContext putReferrer(String id, String link, String name, String type,
       String url) {
@@ -242,14 +267,6 @@ public class AnalyticsContext extends JsonMap {
     put(REFERRER_KEY, referrer);
     return this;
   }
-
-  private static final String SCREEN_KEY = "screen";
-  private static final String SCREEN_DENSITY_KEY = "density";
-  private static final String SCREEN_HEIGHT_KEY = "height";
-  private static final String SCREEN_WIDTH_KEY = "width";
-  private static final String SCREEN_DENSITY_DPI_KEY = "densityDpi";
-  private static final String SCREEN_DENSITY_BUCKET_KEY = "densityBucket";
-  private static final String SCREEN_SCALED_DENSITY_KEY = "scaledDensity";
 
   void putScreen(Context context) {
     Map<String, Object> screen = new LinkedHashMap<String, Object>(6);
@@ -266,58 +283,11 @@ public class AnalyticsContext extends JsonMap {
     put(SCREEN_KEY, screen);
   }
 
-  private static String getDensityString(DisplayMetrics displayMetrics) {
-    switch (displayMetrics.densityDpi) {
-      case DisplayMetrics.DENSITY_LOW:
-        return "ldpi";
-      case DisplayMetrics.DENSITY_MEDIUM:
-        return "mdpi";
-      case DisplayMetrics.DENSITY_HIGH:
-        return "hdpi";
-      case DisplayMetrics.DENSITY_XHIGH:
-        return "xhdpi";
-      case DisplayMetrics.DENSITY_XXHIGH:
-        return "xxhdpi";
-      case DisplayMetrics.DENSITY_XXXHIGH:
-        return "xxxhdpi";
-      case DisplayMetrics.DENSITY_TV:
-        return "tvdpi";
-      default:
-        return "unknown";
-    }
-  }
-
-  private static final String LOCALE_KEY = "locale";
-  private static final String TRAITS_KEY = "traits";
-  private static final String USER_AGENT_KEY = "userAgent";
-  private static final String INTEGRATIONS_KEY = "integrations";
-
-  public AnalyticsContext(Context context, Traits traits) {
-    putApp(context);
-    // todo: campaign
-    putDevice();
-    // todo: ip
-    putLibrary();
-    put(LOCALE_KEY, Locale.getDefault().getLanguage() + "-" + Locale.getDefault().getCountry());
-    // todo: location
-    putNetwork(context);
-    putOs();
-    // todo: referrer
-    putScreen(context);
-    // todo: groupId
-    put(USER_AGENT_KEY, System.getProperty("http.agent"));
-    put(TRAITS_KEY, traits);
-  }
-
-  public AnalyticsContext(Map<String, Object> delegate) {
-    super(delegate);
-  }
-
-  public AnalyticsContext putIntegrations(Map<String, Boolean> integrations) {
+  AnalyticsContext putIntegrations(Map<String, Boolean> integrations) {
     return putValue(INTEGRATIONS_KEY, integrations);
   }
 
-  public JsonMap getIntegrations() {
+  JsonMap getIntegrations() {
     return getJsonMap(INTEGRATIONS_KEY);
   }
 
@@ -325,5 +295,29 @@ public class AnalyticsContext extends JsonMap {
   public AnalyticsContext putValue(String key, Object value) {
     super.putValue(key, value);
     return this;
+  }
+
+  static class Location extends JsonMap {
+    private static final String LOCATION_LATITUDE_KEY = "latitude";
+    private static final String LOCATION_LONGITUDE_KEY = "longitude";
+    private static final String LOCATION_SPEED_KEY = "speed";
+
+    Location(double latitude, double longitude, double speed) {
+      put(LOCATION_LATITUDE_KEY, latitude);
+      put(LOCATION_LONGITUDE_KEY, longitude);
+      put(LOCATION_SPEED_KEY, speed);
+    }
+
+    Double latitude() {
+      return getDouble(LOCATION_LATITUDE_KEY);
+    }
+
+    Double longitude() {
+      return getDouble(LOCATION_LONGITUDE_KEY);
+    }
+
+    Double speed() {
+      return getDouble(LOCATION_SPEED_KEY);
+    }
   }
 }

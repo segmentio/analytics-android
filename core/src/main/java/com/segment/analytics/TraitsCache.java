@@ -9,7 +9,7 @@ class TraitsCache {
   private static final String TRAITS_CACHE_PREFIX = "traits-";
 
   private final StringCache stringCache;
-  private final Traits traits;
+  private Traits traits;
 
   TraitsCache(Context context, String tag) {
     stringCache = new StringCache(getSharedPreferences(context), TRAITS_CACHE_PREFIX + tag);
@@ -26,5 +26,10 @@ class TraitsCache {
 
   void save() {
     stringCache.set(traits.toString());
+  }
+
+  void delete(Context context) {
+    stringCache.delete();
+    traits = new Traits(context);
   }
 }

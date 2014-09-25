@@ -26,27 +26,34 @@ package com.segment.analytics;
 
 import android.content.Context;
 import java.util.Calendar;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.Manifest.permission.INTERNET;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
+import static org.mockito.MockitoAnnotations.initMocks;
 
-public class AnalyticsBuilderTest extends BaseAndroidTestCase {
+@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18)
+public class AnalyticsBuilderTest {
+  final String stubbedKey = "stub";
   @Mock Context context;
-  String stubbedKey;
 
-  @Override protected void setUp() throws Exception {
-    super.setUp();
-
+  @Before
+  public void setUp() {
+    initMocks(this);
     when(context.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_GRANTED);
-    stubbedKey = "stub";
   }
 
-  public void testNullContextThrowsException() throws Exception {
+  @Test public void nullContextThrowsException() throws Exception {
     try {
       new Analytics.Builder(null, null);
       fail("Null context should throw exception.");
@@ -62,7 +69,7 @@ public class AnalyticsBuilderTest extends BaseAndroidTestCase {
     }
   }
 
-  public void testMissingPermissionsThrowsException() throws Exception {
+  @Test public void missingPermissionsThrowsException() throws Exception {
     when(context.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_DENIED);
     try {
       new Analytics.Builder(context, stubbedKey);
@@ -80,7 +87,7 @@ public class AnalyticsBuilderTest extends BaseAndroidTestCase {
     }
   }
 
-  public void testInvalidApiKeyThrowsException() throws Exception {
+  @Test public void invalidApiKeyThrowsException() throws Exception {
     try {
       new Analytics.Builder(context, null);
       fail("Null apiKey should throw exception.");
@@ -103,7 +110,7 @@ public class AnalyticsBuilderTest extends BaseAndroidTestCase {
     }
   }
 
-  public void testInvalidQueueSizeThrowsException() throws Exception {
+  @Test public void invalidQueueSizeThrowsException() throws Exception {
     try {
       new Analytics.Builder(context, stubbedKey).maxQueueSize(-1);
       fail("maxQueueSize < 0 should throw exception.");
@@ -127,7 +134,7 @@ public class AnalyticsBuilderTest extends BaseAndroidTestCase {
     }
   }
 
-  public void testInvalidOptionsThrowsException() throws Exception {
+  @Test public void invalidOptionsThrowsException() throws Exception {
     try {
       new Analytics.Builder(context, stubbedKey).defaultOptions(null);
       fail("null options should throw exception.");
@@ -147,12 +154,12 @@ public class AnalyticsBuilderTest extends BaseAndroidTestCase {
       new Analytics.Builder(context, stubbedKey).defaultOptions(new Options())
           .defaultOptions(new Options());
       fail("setting options twice should throw exception.");
-    } catch (IllegalArgumentException expected) {
+    } catch (IllegalStateException expected) {
       assertThat(expected).hasMessage("defaultOptions is already set.");
     }
   }
 
-  public void testInvalidTagThrowsException() throws Exception {
+  @Test public void invalidTagThrowsException() throws Exception {
     try {
       new Analytics.Builder(context, stubbedKey).tag(null);
       fail("Null apiKey should throw exception.");

@@ -1,5 +1,6 @@
 apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
+apply plugin: 'robolectric'
 
 dependencies {
   compile 'com.squareup:tape:1.2.2'
@@ -20,8 +21,8 @@ dependencies {
 
   androidTestCompile 'junit:junit:4.11'
   androidTestCompile 'com.squareup:fest-android:1.0.8'
-  androidTestCompile 'org.mockito:mockito-core:1.9.5'
-  androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.1'
+  androidTestCompile 'org.mockito:mockito-all:1.9.5'
+  androidTestCompile 'org.robolectric:robolectric:2.3'
 }
 
 android {

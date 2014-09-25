@@ -98,7 +98,7 @@ class JsonMap implements Map<String, Object> {
   }
 
   @Override public boolean equals(Object object) {
-    return delegate.equals(object);
+    return object == this || delegate.equals(object);
   }
 
   @Override public int hashCode() {
