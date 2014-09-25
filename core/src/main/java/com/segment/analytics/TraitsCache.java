@@ -2,6 +2,7 @@ package com.segment.analytics;
 
 import android.content.Context;
 
+import static com.segment.analytics.Utils.getSharedPreferences;
 import static com.segment.analytics.Utils.isNullOrEmpty;
 
 class TraitsCache {
@@ -11,7 +12,7 @@ class TraitsCache {
   private final Traits traits;
 
   TraitsCache(Context context, String tag) {
-    stringCache = new StringCache(Utils.getSharedPreferences(context), TRAITS_CACHE_PREFIX + tag);
+    stringCache = new StringCache(getSharedPreferences(context), TRAITS_CACHE_PREFIX + tag);
     if (isNullOrEmpty(stringCache.get())) {
       traits = new Traits(context);
     } else {

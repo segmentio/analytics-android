@@ -28,8 +28,9 @@ import android.content.Context;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
-import static com.segment.analytics.Utils.getDeviceId;
+import static com.segment.analytics.Utils.isNullOrEmpty;
 
 /**
  * Traits can be anything you want, but some of them have semantic meaning and we treat them in
@@ -40,9 +41,36 @@ import static com.segment.analytics.Utils.getDeviceId;
  * This is persisted to disk, and will be remembered between sessions.
  */
 public class Traits extends JsonMap {
+  private static final String ADDRESS_KEY = "address";
+  private static final String ADDRESS_CITY_KEY = "city";
+  private static final String ADDRESS_COUNTRY_KEY = "country";
+  private static final String ADDRESS_POSTAL_CODE_KEY = "postalCode";
+  private static final String ADDRESS_STATE_KEY = "state";
+  private static final String ADDRESS_STREET_KEY = "street";
+  private static final String AVATAR_KEY = "avatar";
+  private static final String CREATED_AT_KEY = "createdAt";
+  private static final String DESCRIPTION_KEY = "description";
+  private static final String EMAIL_KEY = "email";
+  private static final String FAX_KEY = "fax";
+  private static final String ANONYMOUS_ID_KEY = "anonymousId";
+  private static final String ID_KEY = "userId";
+  private static final String NAME_KEY = "name";
+  private static final String PHONE_KEY = "phone";
+  private static final String WEBSITE_KEY = "website";
+  // For Identify Calls
+  private static final String AGE_KEY = "age";
+  private static final String BIRTHDAY_KEY = "birthday";
+  private static final String FIRST_NAME_KEY = "firstName";
+  private static final String GENDER_KEY = "gender";
+  private static final String LAST_NAME_KEY = "lastName";
+  private static final String TITLE_KEY = "title";
+  private static final String USERNAME_KEY = "username";
+  // For Group calls
+  private static final String EMPLOYEES_KEY = "employees";
+  private static final String INDUSTRY_KEY = "industry";
 
   Traits(Context context) {
-    String id = getDeviceId(context);
+    String id = UUID.randomUUID().toString(); // only done when creating a new traits object
     // todo: kick off task to get AdvertisingId
     putUserId(id);
     putAnonymousId(id);
@@ -55,12 +83,25 @@ public class Traits extends JsonMap {
   public Traits() {
   }
 
-  private static final String ADDRESS_KEY = "address";
-  private static final String ADDRESS_CITY_KEY = "city";
-  private static final String ADDRESS_COUNTRY_KEY = "country";
-  private static final String ADDRESS_POSTAL_CODE_KEY = "postalCode";
-  private static final String ADDRESS_STATE_KEY = "state";
-  private static final String ADDRESS_STREET_KEY = "street";
+  /**
+   * Private API, users should call {@link com.segment.analytics.Analytics#identify(String)}
+   * instead. Note that this is unable to enforce it, users can easily do traits.put(id, ..);
+   */
+  Traits putUserId(String id) {
+    return putValue(ID_KEY, id);
+  }
+
+  String userId() {
+    return getString(ID_KEY);
+  }
+
+  Traits putAnonymousId(String id) {
+    return putValue(ANONYMOUS_ID_KEY, id);
+  }
+
+  String anonymousId() {
+    return getString(ANONYMOUS_ID_KEY);
+  }
 
   public Traits putAddress(String city, String country, String postalCode, String state,
       String street) {
@@ -73,35 +114,11 @@ public class Traits extends JsonMap {
     return putValue(ADDRESS_KEY, address);
   }
 
-  private static final String AVATAR_KEY = "avatar";
-  private static final String CREATED_AT_KEY = "createdAt";
-  private static final String DESCRIPTION_KEY = "description";
-  private static final String EMAIL_KEY = "email";
-  private static final String FAX_KEY = "fax";
-  private static final String ANONYMOUS_ID_KEY = "anonymousId";
-  private static final String ID_KEY = "userId";
-  private static final String NAME_KEY = "name";
-  private static final String PHONE_KEY = "phone";
-  private static final String WEBSITE_KEY = "website";
-
-  // For Identify Calls
-  private static final String AGE_KEY = "age";
-  private static final String BIRTHDAY_KEY = "birthday";
-  private static final String FIRST_NAME_KEY = "firstName";
-  private static final String GENDER_KEY = "gender";
-  private static final String LAST_NAME_KEY = "lastName";
-  private static final String TITLE_KEY = "title";
-  private static final String USERNAME_KEY = "username";
-
-  // For Group calls
-  private static final String EMPLOYEES_KEY = "employees";
-  private static final String INDUSTRY_KEY = "industry";
-
   public Traits putAvatar(String avatar) {
     return putValue(AVATAR_KEY, avatar);
   }
 
-  public String avatar() {
+  String avatar() {
     return getString(AVATAR_KEY);
   }
 
@@ -117,7 +134,7 @@ public class Traits extends JsonMap {
     return putValue(EMAIL_KEY, email);
   }
 
-  public String email() {
+  String email() {
     return getString(EMAIL_KEY);
   }
 
@@ -125,33 +142,30 @@ public class Traits extends JsonMap {
     return putValue(FAX_KEY, fax);
   }
 
-  /**
-   * Private API, users should call {@link Analytics#identify(String, Options)} instead. Note that
-   * this is unable to enforce it, users can easily do {@code traits.put(id, 1231);}
-   */
-  Traits putUserId(String id) {
-    return putValue(ID_KEY, id);
-  }
-
-  public String userId() {
-    return getString(ID_KEY);
-  }
-
-  Traits putAnonymousId(String id) {
-    return putValue(ANONYMOUS_ID_KEY, id);
-  }
-
-  String anonymousId() {
-    return getString(ANONYMOUS_ID_KEY);
-  }
-
   public Traits putName(String name) {
     return putValue(NAME_KEY, name);
   }
 
-  public String name() {
-    // todo: concat first name/last name if available
-    return getString(NAME_KEY);
+  String name() {
+    String name = getString(NAME_KEY);
+    if (isNullOrEmpty(name)) {
+      StringBuilder stringBuilder = new StringBuilder();
+      String firstName = getString(FIRST_NAME_KEY);
+      boolean appendSpace = false;
+      if (!isNullOrEmpty(firstName)) {
+        appendSpace = true;
+        stringBuilder.append(firstName);
+      }
+
+      String lastName = getString(LAST_NAME_KEY);
+      if (!isNullOrEmpty(lastName)) {
+        if (appendSpace) stringBuilder.append(' ');
+        stringBuilder.append(lastName);
+      }
+      return stringBuilder.toString();
+    } else {
+      return name;
+    }
   }
 
   public Traits putPhone(String phone) {
@@ -166,7 +180,7 @@ public class Traits extends JsonMap {
     return putValue(AGE_KEY, age);
   }
 
-  public Integer age() {
+  Integer age() {
     return getInteger(AGE_KEY);
   }
 
@@ -182,7 +196,7 @@ public class Traits extends JsonMap {
     return putValue(GENDER_KEY, gender);
   }
 
-  public String gender() {
+  String gender() {
     return getString(GENDER_KEY);
   }
 
