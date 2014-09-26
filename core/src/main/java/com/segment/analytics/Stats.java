@@ -6,6 +6,7 @@ import android.os.Looper;
 import android.os.Message;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
+import static com.segment.analytics.Utils.panic;
 import static com.segment.analytics.Utils.quitThread;
 
 class Stats {
@@ -66,7 +67,7 @@ class Stats {
           stats.performIntegrationOperation((Long) msg.obj);
           break;
         default:
-          throw new AssertionError("Unhandled stats message." + msg.what);
+          panic("Unhandled stats message." + msg.what);
       }
     }
   }

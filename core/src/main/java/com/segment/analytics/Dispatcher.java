@@ -42,6 +42,7 @@ import static com.segment.analytics.Logger.VERB_DISPATCHED;
 import static com.segment.analytics.Logger.VERB_FLUSHED;
 import static com.segment.analytics.Logger.VERB_FLUSHING;
 import static com.segment.analytics.Utils.isConnected;
+import static com.segment.analytics.Utils.panic;
 import static com.segment.analytics.Utils.quitThread;
 
 class Dispatcher {
@@ -160,7 +161,7 @@ class Dispatcher {
           dispatcher.performFlush();
           break;
         default:
-          throw new AssertionError("Unknown dispatcher message." + msg.what);
+          panic("Unknown dispatcher message." + msg.what);
       }
     }
   }

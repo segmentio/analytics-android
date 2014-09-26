@@ -27,6 +27,7 @@ import static com.segment.analytics.Logger.VERB_INITIALIZED;
 import static com.segment.analytics.Logger.VERB_INITIALIZING;
 import static com.segment.analytics.Logger.VERB_SKIPPED;
 import static com.segment.analytics.Utils.isConnected;
+import static com.segment.analytics.Utils.panic;
 import static com.segment.analytics.Utils.quitThread;
 
 /**
@@ -121,7 +122,7 @@ class IntegrationManager {
           integration.onActivityDestroyed(activity);
           break;
         default:
-          throw new IllegalArgumentException("Unknown payload type!" + payload.type);
+          panic("Unknown payload type!" + payload.type);
       }
     }
 
@@ -181,7 +182,7 @@ class IntegrationManager {
           integration.track((TrackPayload) payload);
           break;
         default:
-          throw new IllegalArgumentException("Unknown payload type!" + payload.type());
+          panic("Unknown payload type!" + payload.type());
       }
     }
 
@@ -440,7 +441,11 @@ class IntegrationManager {
           integrationManager.performFlush();
           break;
         default:
-          throw new AssertionError("Unhandled dispatcher message." + msg.what);
+          Analytics.MAIN_LOOPER.post(new Runnable() {
+            @Override public void run() {
+              throw new AssertionError("Unhandled dispatcher message." + msg.what);
+            }
+          });
       }
     }
   }

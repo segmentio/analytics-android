@@ -166,7 +166,8 @@ final class Utils {
 
   /**
    * Returns true if the phone is connected to a network, or if we don't have the permission to
-   * find out. False otherwise.
+   * find
+   * out. False otherwise.
    */
   static boolean isConnected(Context context) {
     if (!hasPermission(context, ACCESS_NETWORK_STATE)) {
@@ -177,11 +178,21 @@ final class Utils {
     return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
   }
 
+  /** Quit a thread safely if possible. */
   static void quitThread(HandlerThread thread) {
     if (Build.VERSION.SDK_INT < 18) {
       thread.quit();
     } else {
       thread.quitSafely();
     }
+  }
+
+  /** Panic from an unrecoverable error. */
+  static void panic(final String string) {
+    Analytics.MAIN_LOOPER.post(new Runnable() {
+      @Override public void run() {
+        throw new RuntimeException(string);
+      }
+    });
   }
 }
