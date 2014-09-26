@@ -22,8 +22,6 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.NoSuchElementException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static java.lang.Math.min;
 
@@ -52,8 +50,6 @@ import static java.lang.Math.min;
  * @author Bob Lee (bob@squareup.com)
  */
 class QueueFile {
-  private static final Logger LOGGER = Logger.getLogger(QueueFile.class.getName());
-
   /** Initial file size in bytes. */
   private static final int INITIAL_LENGTH = 4096; // one file system block
 
@@ -549,8 +545,7 @@ class QueueFile {
           builder.append(length);
         }
       });
-    } catch (IOException e) {
-      LOGGER.log(Level.WARNING, "read error", e);
+    } catch (IOException ignored) {
     }
     builder.append("]]");
     return builder.toString();

@@ -70,4 +70,20 @@ public class DispatcherTest {
     verify(stats).dispatchFlush(4);
     assertThat(queue).hasSize(0);
   }
+
+  @Test public void flushesWhenQueueHitsMax() {
+    dispatcher = createDispatcher(3);
+    assertThat(queue).hasSize(0);
+    dispatcher.performEnqueue(mock(BasePayload.class));
+    dispatcher.performEnqueue(mock(BasePayload.class));
+    dispatcher.performEnqueue(mock(BasePayload.class));
+
+    try {
+      verify(segmentHTTPApi).upload((java.util.List<BasePayload>) any());
+    } catch (IOException e) {
+      fail("should not throw exception");
+    }
+    verify(stats).dispatchFlush(3);
+    assertThat(queue).hasSize(0);
+  }
 }

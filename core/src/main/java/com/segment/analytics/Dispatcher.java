@@ -39,7 +39,8 @@ import java.util.Queue;
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Logger.THREAD_DISPATCHER;
 import static com.segment.analytics.Logger.VERB_DISPATCHED;
-import static com.segment.analytics.Logger.VERB_DISPATCHING;
+import static com.segment.analytics.Logger.VERB_FLUSHED;
+import static com.segment.analytics.Logger.VERB_FLUSHING;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.quitThread;
 
@@ -101,7 +102,7 @@ class Dispatcher {
           String.format("{type: %s, queueSize: %s}", payload.type(), queueSize));
     }
     if (queueSize >= maxQueueSize) {
-      dispatchFlush();
+      performFlush();
     }
   }
 
@@ -113,7 +114,7 @@ class Dispatcher {
     while (iterator.hasNext()) {
       BasePayload payload = iterator.next();
       if (logger.loggingEnabled) {
-        logger.debug(THREAD_DISPATCHER, VERB_DISPATCHING, payload.messageId(),
+        logger.debug(THREAD_DISPATCHER, VERB_FLUSHING, payload.messageId(),
             "{type: " + payload.type() + '}');
       }
       payloads.add(payload);
@@ -123,7 +124,7 @@ class Dispatcher {
     try {
       segmentHTTPApi.upload(payloads);
       if (logger.loggingEnabled) {
-        logger.debug(THREAD_DISPATCHER, VERB_DISPATCHED, null, "{events: " + count + '}');
+        logger.debug(THREAD_DISPATCHER, VERB_FLUSHED, null, "{events: " + count + '}');
       }
       stats.dispatchFlush(count);
       //noinspection ForLoopReplaceableByForEach
@@ -132,7 +133,7 @@ class Dispatcher {
       }
     } catch (IOException e) {
       if (logger.loggingEnabled) {
-        logger.error(THREAD_DISPATCHER, VERB_DISPATCHING, null, e, "{events: " + count + '}');
+        logger.error(THREAD_DISPATCHER, VERB_FLUSHING, null, e, "{events: " + count + '}');
       }
     }
   }

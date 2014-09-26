@@ -15,5 +15,6 @@ android.libraryVariants.all { variant ->
   checkstyle.exclude('**/BuildConfig.java')
   checkstyle.exclude('**/ProjectSettings.java') // todo: quick hack, can't disable in comments
   checkstyle.exclude('**/R.java')
+  checkstyle.exclude('**/QueueFile.java')
   project.tasks.getByName("check").dependsOn checkstyle
 }

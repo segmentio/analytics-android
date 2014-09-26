@@ -14,8 +14,10 @@ public class Logger {
   final static String THREAD_INTEGRATION_MANAGER = "IntegrationManager";
 
   final static String VERB_CREATED = "created";
-  final static String VERB_DISPATCHING = "dispatching";
   final static String VERB_DISPATCHED = "dispatched";
+  final static String VERB_DISPATCHING = "dispatching";
+  final static String VERB_FLUSHING = "flushing";
+  final static String VERB_FLUSHED = "flushed";
   final static String VERB_SKIPPED = "skipped";
   final static String VERB_INITIALIZING = "initializing";
   final static String VERB_INITIALIZED = "initialized";

@@ -315,7 +315,7 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
    * @see {@link #identify(String, Traits, Options)}
    */
   public void identify(String userId) {
-    identify(null, null, defaultOptions);
+    identify(userId, null, defaultOptions);
   }
 
   /**

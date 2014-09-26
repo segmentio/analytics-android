@@ -26,6 +26,7 @@ import static com.segment.analytics.Logger.VERB_DISPATCHING;
 import static com.segment.analytics.Logger.VERB_INITIALIZED;
 import static com.segment.analytics.Logger.VERB_INITIALIZING;
 import static com.segment.analytics.Logger.VERB_SKIPPED;
+import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.quitThread;
 
 /**
@@ -265,9 +266,11 @@ class IntegrationManager {
   }
 
   void performFetch() {
-    logger.debug(THREAD_INTEGRATION_MANAGER, VERB_DISPATCHING, "fetch settings", null);
+    if (logger.loggingEnabled) {
+      logger.debug(THREAD_INTEGRATION_MANAGER, VERB_DISPATCHING, "fetch settings", null);
+    }
     try {
-      if (Utils.isConnected(context)) {
+      if (isConnected(context)) {
         ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
         if (logger.loggingEnabled) {
           logger.debug(THREAD_INTEGRATION_MANAGER, VERB_DISPATCHED, "fetch settings", null);
@@ -276,6 +279,9 @@ class IntegrationManager {
       } else {
         // re-schedule in a minute, todo: move to constant, same as below
         handler.sendMessageDelayed(handler.obtainMessage(REQUEST_FETCH_SETTINGS), 1000 * 60);
+        if (logger.loggingEnabled) {
+          logger.debug(THREAD_INTEGRATION_MANAGER, VERB_SKIPPED, "fetch settings", null);
+        }
       }
     } catch (IOException e) {
       if (logger.loggingEnabled) {
