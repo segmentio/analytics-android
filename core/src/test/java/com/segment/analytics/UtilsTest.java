@@ -36,7 +36,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18)
+@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 public class UtilsTest {
   @Mock Context context;
 

@@ -12,7 +12,7 @@ import static com.segment.analytics.TestUtils.PROJECT_SETTINGS_JSON_SAMPLE;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.fail;
 
-@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18)
+@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 public class JsonMapTest {
   JsonMap jsonMap;
 

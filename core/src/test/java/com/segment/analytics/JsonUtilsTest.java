@@ -38,7 +38,7 @@ import org.robolectric.annotation.Config;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
-@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18)
+@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 public class JsonUtilsTest {
   @Test public void simpleJsonToMap() throws Exception {
     Map<String, Object> json = JsonUtils.jsonToMap(TestUtils.SAMPLE_JSON);

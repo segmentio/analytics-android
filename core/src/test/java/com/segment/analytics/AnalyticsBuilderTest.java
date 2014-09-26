@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18)
+@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 public class AnalyticsBuilderTest {
   final String stubbedKey = "stub";
   @Mock Context context;
