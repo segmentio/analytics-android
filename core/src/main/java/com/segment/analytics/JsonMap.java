@@ -14,7 +14,8 @@ import org.json.JSONObject;
  * modified to return a json formatted string. All other methods will be forwarded to a delegate
  * map.
  * <p/>
- * The purpose of this class is to not limit clients to a custom implementation of a Json type, they
+ * The purpose of this class is to not limit clients to a custom implementation of a Json type,
+ * they
  * can use existing {@link Map} and {@link java.util.List} implementations as they see fit. It adds
  * some utility methods, including methods to coerce numeric types from Strings, and a {@link
  * #putValue(String, Object)} to be able to chain method calls.
@@ -284,7 +285,9 @@ class JsonMap implements Map<String, Object> {
    */
   JsonMap getJsonMap(Object key) {
     Object value = get(key);
-    if (value instanceof Map) {
+    if (value instanceof JsonMap) {
+      return (JsonMap) value;
+    } else if (value instanceof Map) {
       return new JsonMap((Map<String, Object>) value);
     } else {
       return null;

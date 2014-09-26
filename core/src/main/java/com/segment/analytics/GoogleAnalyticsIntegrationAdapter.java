@@ -7,14 +7,13 @@ import com.google.android.gms.analytics.ExceptionReporter;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.segment.analytics.Utils.getDefaultValueIfNull;
 import static com.segment.analytics.Utils.hasPermission;
 import static com.segment.analytics.Utils.isNullOrEmpty;
-import static com.segment.analytics.Utils.nullOrDefault;
 
 /**
  * Google Analytics is the most popular analytics tool for the web because it’s free and sports a
@@ -27,29 +26,58 @@ import static com.segment.analytics.Utils.nullOrDefault;
  * Analyitcs Android SDK</a>
  */
 public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Tracker> {
+  private static final String COMPLETED_ORDER_EVENT_NAME = "Completed Order";
+  private static final Set<String> ITEM_EVENT_NAMES =
+      Utils.asSet("Viewed Product", "Added Product", "Removed Product", "Favorited Product",
+          "Liked Product", "Shared Product", "Wishlisted Product", "Reviewed Product",
+          "Filtered Product", "Sorted Product", "Searched Product", "Viewed Product Image",
+          "Viewed Product Reviews", "Viewed Sale Page");
   Tracker tracker;
   GoogleAnalytics googleAnalyticsInstance;
   boolean optedOut;
+  boolean sendUserId;
 
-  private static final Set<String> itemEventNames;
-  private static final String COMPLETED_ORDER_EVENT_NAME = "Completed Order";
+  static Map<String, String> transactionToMap(Properties props) {
+    String id = props.getString("userId");
+    // skip total
+    Double revenue = props.getDouble("revenue");
+    Double tax = props.getDouble("tax");
+    Double shipping = props.getDouble("shipping");
 
-  static {
-    itemEventNames = new HashSet<String>();
-    itemEventNames.add("Viewed Product");
-    itemEventNames.add("Added Product");
-    itemEventNames.add("Removed Product");
-    itemEventNames.add("Favorited Product");
-    itemEventNames.add("Liked Product");
-    itemEventNames.add("Shared Product");
-    itemEventNames.add("Wishlisted Product");
-    itemEventNames.add("Reviewed Product");
-    itemEventNames.add("Filtered Product");
-    itemEventNames.add("Sorted Product");
-    itemEventNames.add("Searched Product");
-    itemEventNames.add("Viewed Product Image");
-    itemEventNames.add("Viewed Product Reviews");
-    itemEventNames.add("Viewed Sale Page");
+    // Specific for GA
+    String affiliation = props.getString("affiliation");
+    String currency = props.getString("currency");
+
+    return new HitBuilders.TransactionBuilder() //
+        .setTransactionId(id)
+        .setAffiliation(affiliation)
+        .setRevenue(getDefaultValueIfNull(revenue, 0d))
+        .setTax(getDefaultValueIfNull(tax, 0d))
+        .setShipping(getDefaultValueIfNull(shipping, 0d))
+        .setCurrencyCode(currency)
+        .build();
+  }
+
+  static Map<String, String> productToMap(String categoryName, Map<String, Object> rawProduct) {
+    JsonMap product = new JsonMap(rawProduct);
+    String id = product.getString("id");
+    String sku = product.getString("sku");
+    String name = product.getString("name");
+    Double price = product.getDouble("price");
+    Long quantity = product.getLong("quantity");
+    String category = getDefaultValueIfNull(product.getString("category"), categoryName);
+    // Specific for GA
+    String currency = product.getString("currency");
+
+    return new HitBuilders.ItemBuilder() //
+        .setTransactionId(id)
+        .setName(name)
+        .setSku(sku)
+        .setCategory(category)
+        .setPrice(getDefaultValueIfNull(price, 0d))
+        .setQuantity(getDefaultValueIfNull(quantity, 1L))
+        .setCurrencyCode(currency)
+        .build();
   }
 
   @Override public void initialize(Context context, JsonMap settings)
@@ -62,13 +90,23 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
     googleAnalyticsInstance = GoogleAnalytics.getInstance(context);
     // todo: set logger level googleAnalyticsInstance.getLogger().setLogLevel();
 
+    // Look up the mobileTrackingId, if unavailable, fallback to the trackingId
     String trackingId = settings.getString("mobileTrackingId");
     if (isNullOrEmpty(trackingId)) trackingId = settings.getString("trackingId");
+
     tracker = googleAnalyticsInstance.newTracker(trackingId);
-    tracker.setAnonymizeIp(settings.getBoolean("anonymizeIp"));
-    tracker.setSampleRate(settings.getInteger("siteSpeedSampleRate"));
-    if (settings.getBoolean("reportUncaughtExceptions")) enableAutomaticExceptionTracking(context);
-    tracker.enableAutoActivityTracking(true);
+    initTracker(context, tracker, settings);
+  }
+
+  void initTracker(Context context, Tracker tracker, JsonMap settings) {
+    if (settings.containsKey("anonymizeIp")) {
+      tracker.setAnonymizeIp(settings.getBoolean("anonymizeIp"));
+    }
+    if (getDefaultValueIfNull(settings.getBoolean("reportUncaughtExceptions"), false)) {
+      enableAutomaticExceptionTracking(context);
+    }
+    tracker.setSampleRate(getDefaultValueIfNull(settings.getDouble("siteSpeedSampleRate"), 1.0d));
+    sendUserId = getDefaultValueIfNull(settings.getBoolean("sendUserId"), false);
   }
 
   private void enableAutomaticExceptionTracking(Context context) {
@@ -108,6 +146,16 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
     tracker.setScreenName(null);
   }
 
+  @Override void identify(IdentifyPayload identify) {
+    super.identify(identify);
+    if (sendUserId) {
+      tracker.set("&uid", identify.userId());
+    }
+    for (Map.Entry<String, Object> entry : identify.traits().entrySet()) {
+      tracker.set(entry.getKey(), String.valueOf(entry.getValue()));
+    }
+  }
+
   @Override
   public void track(TrackPayload track) {
     Properties properties = track.properties();
@@ -117,7 +165,7 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
     }
     String category = properties.getString("category");
     String label = properties.getString("label");
-    Integer value = properties.getInteger("value");
+    int value = getDefaultValueIfNull(properties.getInteger("value"), 0);
     tracker.send(new HitBuilders.EventBuilder().setCategory(category)
         .setAction(event)
         .setLabel(label)
@@ -125,37 +173,17 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
         .build());
   }
 
+  /** Check if event is an ecommerce event, if it is, do it and return true, or return false. */
   boolean checkAndPerformEcommerceEvent(String event, String category, Properties props) {
-    if (itemEventNames.contains(event)) {
+    if (ITEM_EVENT_NAMES.contains(event)) {
       sendItem(category, props);
       return true;
     } else if (COMPLETED_ORDER_EVENT_NAME.equals(event)) {
-      // Only sent via .track so won't have category
+      // COMPLETED_ORDER_EVENT_NAME is only sent via .track so won't have category
       sendTransaction(props);
       return true;
     }
     return false;
-  }
-
-  static Map<String, String> transactionToMap(Properties props) {
-    String id = props.getString("userId");
-    // skip total
-    Double revenue = props.getDouble("revenue");
-    Double tax = props.getDouble("tax");
-    Double shipping = props.getDouble("shipping");
-
-    // Specific for GA
-    String affiliation = props.getString("affiliation");
-    String currency = props.getString("currency");
-
-    return new HitBuilders.TransactionBuilder() //
-        .setTransactionId(id)
-        .setAffiliation(affiliation)
-        .setRevenue(nullOrDefault(revenue, 0d))
-        .setTax(nullOrDefault(tax, 0d))
-        .setShipping(nullOrDefault(shipping, 0d))
-        .setCurrencyCode(currency)
-        .build();
   }
 
   private void sendTransaction(Properties properties) {
@@ -176,37 +204,15 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
     tracker.send(productToMap(categoryName, props));
   }
 
-  static Map<String, String> productToMap(String categoryName, Map<String, Object> rawProduct) {
-    JsonMap product = new JsonMap(rawProduct);
-    String id = product.getString("userId");
-    String sku = product.getString("sku");
-    String name = product.getString("name");
-    Double price = product.getDouble("price");
-    Long quantity = product.getLong("quantity");
-    String category = nullOrDefault(product.getString("category"), categoryName);
-    // Specific for GA
-    String currency = product.getString("currency");
-
-    return new HitBuilders.ItemBuilder() //
-        .setTransactionId(id)
-        .setName(name)
-        .setSku(sku)
-        .setCategory(category)
-        .setPrice(nullOrDefault(price, 0d))
-        .setQuantity(nullOrDefault(quantity, 1L))
-        .setCurrencyCode(currency)
-        .build();
-  }
-
   @Override public Tracker getUnderlyingInstance() {
     return tracker;
   }
 
   @Override public String className() {
-    return "Google Analytics";
+    return "com.google.android.gms.analytics.GoogleAnalytics";
   }
 
   @Override public String key() {
-    return "com.google.android.gms.analytics.GoogleAnalytics";
+    return "Google Analytics";
   }
 }

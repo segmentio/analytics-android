@@ -5,7 +5,7 @@ import android.content.Context;
 import com.amplitude.api.Amplitude;
 
 import static com.segment.analytics.Utils.isNullOrEmpty;
-import static com.segment.analytics.Utils.nullOrDefault;
+import static com.segment.analytics.Utils.getDefaultValueIfNull;
 
 /**
  * Amplitude is an event tracking and segmentation tool for your mobile apps. By analyzing the
@@ -82,7 +82,7 @@ class AmplitudeIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
       Integer quantity = properties.getInteger("quantity");
       String receipt = properties.getString("receipt");
       String receiptSignature = properties.getString("receiptSignature");
-      Amplitude.logRevenue(productId, nullOrDefault(quantity, 0), revenue, receipt,
+      Amplitude.logRevenue(productId, getDefaultValueIfNull(quantity, 0), revenue, receipt,
           receiptSignature);
     }
   }

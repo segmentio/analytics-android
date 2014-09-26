@@ -42,6 +42,6 @@ class IdentifyPayload extends BasePayload {
   }
 
   Traits traits() {
-    return (Traits) get(TRAITS_KEY);
+    return getJsonMap(TRAITS_KEY, Traits.class);
   }
 }

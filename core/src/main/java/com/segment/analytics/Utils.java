@@ -34,7 +34,10 @@ import android.os.HandlerThread;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
@@ -52,6 +55,13 @@ final class Utils {
 
   private Utils() {
     throw new AssertionError("No instances");
+  }
+
+  /** Returns a {@code Set} of the objects in the specified array. */
+  static <T> Set<T> asSet(T... array) {
+    Set<T> set = new HashSet<T>();
+    Collections.addAll(set, array);
+    return set;
   }
 
   /** Returns true if the application has the given permission. */
@@ -160,7 +170,7 @@ final class Utils {
   }
 
   /** Returns {@code def} if {@code value} is {@code null}, {@code value} otherwise. */
-  static <T> T nullOrDefault(T value, T def) {
+  static <T> T getDefaultValueIfNull(T value, T def) {
     return value == null ? def : value;
   }
 

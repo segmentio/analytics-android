@@ -82,6 +82,7 @@ abstract class AbstractIntegrationAdapter<T> {
   /**
    * Called to indicate that the user has optedOut. If called with {@code true}true, this
    * integration won't receive any more events until this method is called with {@code false}.
+   * todo: this isn't exposed to the public API yet
    */
   void optOut(boolean optOut) {
 

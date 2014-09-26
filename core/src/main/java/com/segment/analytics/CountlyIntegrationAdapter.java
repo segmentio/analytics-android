@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import ly.count.android.api.Countly;
 
-import static com.segment.analytics.Utils.nullOrDefault;
+import static com.segment.analytics.Utils.getDefaultValueIfNull;
 
 /**
  * Countly is a general-purpose analytics tool for your mobile apps, with reports like traffic
@@ -58,7 +58,7 @@ class CountlyIntegrationAdapter extends AbstractIntegrationAdapter<Countly> {
     Integer count = properties.getInteger("count");
     Double sum = properties.getDouble("sum");
     Countly.sharedInstance()
-        .recordEvent(name, properties.toStringMap(), nullOrDefault(count, 1),
-            nullOrDefault(sum, 0d));
+        .recordEvent(name, properties.toStringMap(), getDefaultValueIfNull(count, 1),
+            getDefaultValueIfNull(sum, 0d));
   }
 }
