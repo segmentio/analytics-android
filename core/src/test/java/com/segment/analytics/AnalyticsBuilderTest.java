@@ -36,21 +36,21 @@ import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.Manifest.permission.INTERNET;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static com.segment.analytics.TestUtils.mockApplication;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.fail;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 public class AnalyticsBuilderTest {
   final String stubbedKey = "stub";
-  @Mock Context context;
+  Context context;
 
   @Before
   public void setUp() {
     initMocks(this);
-    when(context.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_GRANTED);
+    context = mockApplication();
   }
 
   @Test public void nullContextThrowsException() throws Exception {

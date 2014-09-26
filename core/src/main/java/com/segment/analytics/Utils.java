@@ -30,6 +30,7 @@ import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
+import android.os.HandlerThread;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import java.util.Collection;
@@ -187,5 +188,13 @@ final class Utils {
     ConnectivityManager cm = getSystemService(context, CONNECTIVITY_SERVICE);
     NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
     return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+  }
+
+  static void quitThread(HandlerThread thread) {
+    if (Build.VERSION.SDK_INT < 18) {
+      thread.quit();
+    } else {
+      thread.quitSafely();
+    }
   }
 }

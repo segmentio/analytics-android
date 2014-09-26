@@ -40,6 +40,8 @@ import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Logger.THREAD_DISPATCHER;
 import static com.segment.analytics.Logger.VERB_DISPATCHED;
 import static com.segment.analytics.Logger.VERB_DISPATCHING;
+import static com.segment.analytics.Utils.isConnected;
+import static com.segment.analytics.Utils.quitThread;
 
 class Dispatcher {
   static final int REQUEST_ENQUEUE = 0;
@@ -104,7 +106,7 @@ class Dispatcher {
   }
 
   void performFlush() {
-    if (queue.size() <= 0 || !Utils.isConnected(context)) return;
+    if (queue.size() <= 0 || !isConnected(context)) return;
 
     final List<BasePayload> payloads = new ArrayList<BasePayload>();
     queue.setListener(new ObjectQueue.Listener<BasePayload>() {
@@ -141,7 +143,7 @@ class Dispatcher {
   }
 
   void shutdown() {
-    dispatcherThread.quit();
+    quitThread(dispatcherThread);
   }
 
   private static class DispatcherHandler extends Handler {

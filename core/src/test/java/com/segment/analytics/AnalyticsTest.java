@@ -8,6 +8,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload;
+import static com.segment.analytics.TestUtils.createLogger;
+import static com.segment.analytics.TestUtils.mockApplication;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -17,7 +19,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 public class AnalyticsTest {
-  @Mock Application application;
+  Application application;
   @Mock Dispatcher dispatcher;
   @Mock IntegrationManager integrationManager;
   @Mock Stats stats;
@@ -30,9 +32,10 @@ public class AnalyticsTest {
 
   @Before public void setUp() {
     initMocks(this);
+    application = mockApplication();
     Traits traits = new Traits();
     when(traitsCache.get()).thenReturn(traits);
-    logger = new Logger(true);
+    logger = createLogger();
     analytics = new Analytics(application, dispatcher, integrationManager, stats, traitsCache,
         analyticsContext, defaultOptions, logger);
   }

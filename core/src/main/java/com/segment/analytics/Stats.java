@@ -6,6 +6,7 @@ import android.os.Looper;
 import android.os.Message;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
+import static com.segment.analytics.Utils.quitThread;
 
 class Stats {
   private static final String STATS_THREAD_NAME = Utils.THREAD_PREFIX + "Stats";
@@ -27,7 +28,7 @@ class Stats {
   }
 
   void shutdown() {
-    statsThread.quit();
+    quitThread(statsThread);
   }
 
   void dispatchFlush(int count) {
