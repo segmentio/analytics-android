@@ -29,12 +29,12 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
-import com.squareup.tape.FileObjectQueue;
-import com.squareup.tape.ObjectQueue;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Queue;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Logger.THREAD_DISPATCHER;
@@ -51,7 +51,7 @@ class Dispatcher {
   private static final String TASK_QUEUE_FILE_NAME = "payload-task-queue-";
 
   final Context context;
-  final ObjectQueue<BasePayload> queue;
+  final Queue<BasePayload> queue;
   final SegmentHTTPApi segmentHTTPApi;
   final int maxQueueSize;
   final Stats stats;
@@ -61,11 +61,11 @@ class Dispatcher {
 
   static Dispatcher create(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
       Stats stats, String tag, Logger logger) {
-    FileObjectQueue.Converter<BasePayload> converter = new PayloadConverter();
+    Tape.Converter<BasePayload> converter = new PayloadConverter();
     File queueFile = new File(context.getFilesDir(), TASK_QUEUE_FILE_NAME + tag);
-    FileObjectQueue<BasePayload> queue;
+    Tape<BasePayload> queue;
     try {
-      queue = new FileObjectQueue<BasePayload>(queueFile, converter);
+      queue = new Tape<BasePayload>(queueFile, converter);
     } catch (IOException e) {
       throw new RuntimeException("Unable to create file queue.", e);
     }
@@ -73,7 +73,7 @@ class Dispatcher {
   }
 
   Dispatcher(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
-      ObjectQueue<BasePayload> queue, Stats stats, Logger logger) {
+      Queue<BasePayload> queue, Stats stats, Logger logger) {
     this.context = context;
     this.maxQueueSize = maxQueueSize;
     this.segmentHTTPApi = segmentHTTPApi;
@@ -109,20 +109,15 @@ class Dispatcher {
     if (queue.size() <= 0 || !isConnected(context)) return;
 
     final List<BasePayload> payloads = new ArrayList<BasePayload>();
-    queue.setListener(new ObjectQueue.Listener<BasePayload>() {
-      @Override public void onAdd(ObjectQueue<BasePayload> queue, BasePayload payload) {
-        if (logger.loggingEnabled) {
-          logger.debug(THREAD_DISPATCHER, VERB_DISPATCHING, payload.messageId(),
-              "{type: " + payload.type() + '}');
-        }
-        payloads.add(payload);
+    Iterator<BasePayload> iterator = queue.iterator();
+    while (iterator.hasNext()) {
+      BasePayload payload = iterator.next();
+      if (logger.loggingEnabled) {
+        logger.debug(THREAD_DISPATCHER, VERB_DISPATCHING, payload.messageId(),
+            "{type: " + payload.type() + '}');
       }
-
-      @Override public void onRemove(ObjectQueue<BasePayload> queue) {
-
-      }
-    });
-    queue.setListener(null);
+      payloads.add(payload);
+    }
 
     int count = payloads.size();
     try {

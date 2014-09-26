@@ -7,7 +7,7 @@ import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public final class TestUtils {
+final class TestUtils {
   static final String PROJECT_SETTINGS_JSON_SAMPLE = "{\n"
       + "  \"Amplitude\": {\n"
       + "    \"trackNamedPages\": true,\n"

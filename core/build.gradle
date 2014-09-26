@@ -3,8 +3,6 @@ apply plugin: 'com.android.library'
 apply plugin: 'robolectric'
 
 dependencies {
-  compile 'com.squareup:tape:1.2.2'
-
   // Integrations
   provided rootProject.ext.libraries.amplitude
   provided rootProject.ext.libraries.bugsnag

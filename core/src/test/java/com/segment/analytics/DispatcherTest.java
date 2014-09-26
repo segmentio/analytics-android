@@ -1,9 +1,9 @@
 package com.segment.analytics;
 
 import android.content.Context;
-import com.squareup.tape.InMemoryObjectQueue;
-import com.squareup.tape.ObjectQueue;
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Queue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +29,7 @@ public class DispatcherTest {
   @Mock Stats stats;
   Context context;
   Logger logger;
-  ObjectQueue<BasePayload> queue;
+  Queue<BasePayload> queue;
   Dispatcher dispatcher;
 
   @Before public void setUp() {
@@ -37,7 +37,7 @@ public class DispatcherTest {
     context = mockApplication();
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
     logger = createLogger();
-    queue = new InMemoryObjectQueue<BasePayload>();
+    queue = new ArrayDeque<BasePayload>();
     dispatcher = createDispatcher(20);
   }
 
@@ -47,11 +47,11 @@ public class DispatcherTest {
 
   @Test public void addsToQueueCorrectly() {
     dispatcher = createDispatcher(20);
-    assertThat(queue.size()).isEqualTo(0);
+    assertThat(queue).hasSize(0);
     dispatcher.performEnqueue(mock(BasePayload.class));
-    assertThat(queue.size()).isEqualTo(1);
+    assertThat(queue).hasSize(1);
     dispatcher.performEnqueue(mock(BasePayload.class));
-    assertThat(queue.size()).isEqualTo(2);
+    assertThat(queue).hasSize(2);
   }
 
   @Test public void flushesQueueCorrectly() {
@@ -68,6 +68,6 @@ public class DispatcherTest {
       fail("should not throw exception");
     }
     verify(stats).dispatchFlush(4);
-    assertThat(queue.size()).isEqualTo(0);
+    assertThat(queue).hasSize(0);
   }
 }
