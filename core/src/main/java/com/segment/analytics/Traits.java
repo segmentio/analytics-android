@@ -71,7 +71,6 @@ public class Traits extends JsonMap {
 
   Traits(Context context) {
     String id = UUID.randomUUID().toString(); // only done when creating a new traits object
-    // todo: kick off task to get AdvertisingId
     putUserId(id);
     putAnonymousId(id);
   }

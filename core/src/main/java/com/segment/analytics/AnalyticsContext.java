@@ -44,6 +44,7 @@ import static android.content.Context.TELEPHONY_SERVICE;
 import static android.net.ConnectivityManager.TYPE_BLUETOOTH;
 import static android.net.ConnectivityManager.TYPE_MOBILE;
 import static android.net.ConnectivityManager.TYPE_WIFI;
+import static com.segment.analytics.Utils.getDeviceId;
 import static com.segment.analytics.Utils.getSystemService;
 import static com.segment.analytics.Utils.hasPermission;
 
@@ -121,9 +122,10 @@ public class AnalyticsContext extends JsonMap {
   private static final String INTEGRATIONS_KEY = "integrations";
 
   public AnalyticsContext(Context context, Traits traits) {
+    // todo: kick off task to get AdvertisingId
     putApp(context);
     // todo: campaign
-    putDevice();
+    putDevice(context);
     // todo: ip
     putLibrary();
     put(LOCALE_KEY, Locale.getDefault().getLanguage() + "-" + Locale.getDefault().getCountry());
@@ -195,9 +197,9 @@ public class AnalyticsContext extends JsonMap {
     return this;
   }
 
-  void putDevice() {
+  void putDevice(Context context) {
     Map<String, Object> device = new LinkedHashMap<String, Object>(5);
-    device.put(DEVICE_ID_KEY, Build.ID);
+    device.put(DEVICE_ID_KEY, getDeviceId(context));
     device.put(DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);
     device.put(DEVICE_MODEL_KEY, Build.MODEL);
     device.put(DEVICE_NAME_KEY, Build.DEVICE);

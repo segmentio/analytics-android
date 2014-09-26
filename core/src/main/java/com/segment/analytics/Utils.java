@@ -34,10 +34,7 @@ import android.os.HandlerThread;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
@@ -55,16 +52,6 @@ final class Utils {
 
   private Utils() {
     throw new AssertionError("No instances");
-  }
-
-  private final static Set<String> INVALID_IDS =
-      asSet("9774d56d682e549c", "unknown", "000000000000000");
-
-  /** Returns a {@code Set} of the objects in the specified array. */
-  static <T> Set<T> asSet(T... array) {
-    Set<T> set = new HashSet<T>();
-    Collections.addAll(set, array);
-    return set;
   }
 
   /** Returns true if the application has the given permission. */
@@ -102,10 +89,10 @@ final class Utils {
   /** Creates a unique device id to anonymously identify a user. */
   static String getDeviceId(Context context) {
     String androidId = getString(context.getContentResolver(), ANDROID_ID);
-    if (!isNullOrEmpty(androidId) && !INVALID_IDS.contains(androidId)) {
+    if (!isNullOrEmpty(androidId) && !"9774d56d682e549c".equals(androidId) && !"unknown".equals(
+        androidId) && !"000000000000000".equals(androidId)) {
       return androidId;
     }
-
     // Serial number, guaranteed to be on all non phones in 2.3+
     if (!isNullOrEmpty(Build.SERIAL)) {
       return Build.SERIAL;
