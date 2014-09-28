@@ -120,13 +120,11 @@ class JsonMap implements Map<String, Object> {
     return this;
   }
 
-  // The methods return boxed primitives to be able to return null and keep parity with Map#get
-
   /**
    * Returns the value mapped by {@code key} if it exists and is a integer or can be coerced to a
-   * integer. Returns null otherwise.
+   * integer. Returns defaultValue otherwise.
    */
-  Integer getInteger(String key) {
+  int getInt(String key, int defaultValue) {
     Object value = get(key);
     if (value instanceof Integer) {
       return (Integer) value;
@@ -142,7 +140,7 @@ class JsonMap implements Map<String, Object> {
       }
     }
     if (integerValue == null) {
-      return null;
+      return defaultValue;
     } else {
       cache(key, integerValue);
       return integerValue;
@@ -151,10 +149,9 @@ class JsonMap implements Map<String, Object> {
 
   /**
    * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a
-   * long.
-   * Returns null otherwise.
+   * long. Returns defaultValue otherwise.
    */
-  Long getLong(String key) {
+  long getLong(String key, long defaultValue) {
     Object value = get(key);
     if (value instanceof Long) {
       return (Long) value;
@@ -170,7 +167,7 @@ class JsonMap implements Map<String, Object> {
       }
     }
     if (longValue == null) {
-      return null;
+      return defaultValue;
     } else {
       cache(key, longValue);
       return longValue;
@@ -179,9 +176,9 @@ class JsonMap implements Map<String, Object> {
 
   /**
    * Returns the value mapped by {@code key} if it exists and is a double or can be coerced to a
-   * double. Returns null otherwise.
+   * double. Returns defaultValue otherwise.
    */
-  Double getDouble(String key) {
+  double getDouble(String key, double defaultValue) {
     Object value = get(key);
     if (value instanceof Double) {
       return (Double) value;
@@ -197,7 +194,7 @@ class JsonMap implements Map<String, Object> {
       }
     }
     if (doubleValue == null) {
-      return null;
+      return defaultValue;
     } else {
       cache(key, doubleValue);
       return doubleValue;
@@ -206,10 +203,9 @@ class JsonMap implements Map<String, Object> {
 
   /**
    * Returns the value mapped by {@code key} if it exists and is a char or can be coerced to a
-   * char.
-   * Returns null otherwise.
+   * char. Returns defaultValue otherwise.
    */
-  Character getChar(String key) {
+  char getChar(String key, char defaultValue) {
     Object value = get(key);
     if (value instanceof Character) {
       return (Character) value;
@@ -221,7 +217,7 @@ class JsonMap implements Map<String, Object> {
         return charValue;
       }
     }
-    return null;
+    return defaultValue;
   }
 
   /**
@@ -245,9 +241,9 @@ class JsonMap implements Map<String, Object> {
 
   /**
    * Returns the value mapped by {@code key} if it exists and is a boolean or can be coerced to a
-   * boolean. Returns null otherwise.
+   * boolean. Returns defaultValue otherwise.
    */
-  Boolean getBoolean(String key) {
+  boolean getBoolean(String key, boolean defaultValue) {
     Object value = get(key);
     if (value instanceof Boolean) {
       return (Boolean) value;
@@ -256,7 +252,7 @@ class JsonMap implements Map<String, Object> {
       boolean bool = Boolean.valueOf(stringValue);
       cache(key, bool);
     }
-    return null;
+    return defaultValue;
   }
 
   /**

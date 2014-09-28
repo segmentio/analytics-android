@@ -27,9 +27,9 @@ class TapstreamIntegrationAdapter extends AbstractIntegrationAdapter<Tapstream> 
 
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
-    trackAllPages = settings.getBoolean("trackAllPages");
-    trackCategorizedPages = settings.getBoolean("trackCategorizedPages");
-    trackNamedPages = settings.getBoolean("trackNamedPages");
+    trackAllPages = settings.getBoolean("trackAllPages", true);
+    trackCategorizedPages = settings.getBoolean("trackCategorizedPages", true);
+    trackNamedPages = settings.getBoolean("trackNamedPages", true);
     config = new Config();
     Tapstream.create((Application) context, settings.getString("accountName"),
         settings.getString("sdkSecret"), config);

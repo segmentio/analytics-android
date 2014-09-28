@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.segment.analytics.Utils.getDefaultValueIfNull;
 import static com.segment.analytics.Utils.hasPermission;
 import static com.segment.analytics.Utils.isNullOrEmpty;
 
@@ -40,9 +39,9 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
   static Map<String, String> transactionToMap(Properties props) {
     String id = props.getString("userId");
     // skip total
-    Double revenue = props.getDouble("revenue");
-    Double tax = props.getDouble("tax");
-    Double shipping = props.getDouble("shipping");
+    double revenue = props.getDouble("revenue", 0);
+    double tax = props.getDouble("tax", 0);
+    double shipping = props.getDouble("shipping", 0);
 
     // Specific for GA
     String affiliation = props.getString("affiliation");
@@ -51,9 +50,9 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
     return new HitBuilders.TransactionBuilder() //
         .setTransactionId(id)
         .setAffiliation(affiliation)
-        .setRevenue(getDefaultValueIfNull(revenue, 0d))
-        .setTax(getDefaultValueIfNull(tax, 0d))
-        .setShipping(getDefaultValueIfNull(shipping, 0d))
+        .setRevenue(revenue)
+        .setTax(tax)
+        .setShipping(shipping)
         .setCurrencyCode(currency)
         .build();
   }
@@ -63,9 +62,10 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
     String id = product.getString("id");
     String sku = product.getString("sku");
     String name = product.getString("name");
-    Double price = product.getDouble("price");
-    Long quantity = product.getLong("quantity");
-    String category = getDefaultValueIfNull(product.getString("category"), categoryName);
+    double price = product.getDouble("price", 0);
+    long quantity = product.getLong("quantity", 1);
+    String category = product.getString("category");
+    if (isNullOrEmpty(category)) category = categoryName;
     // Specific for GA
     String currency = product.getString("currency");
 
@@ -74,8 +74,8 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
         .setName(name)
         .setSku(sku)
         .setCategory(category)
-        .setPrice(getDefaultValueIfNull(price, 0d))
-        .setQuantity(getDefaultValueIfNull(quantity, 1L))
+        .setPrice(price)
+        .setQuantity(quantity)
         .setCurrencyCode(currency)
         .build();
   }
@@ -99,14 +99,12 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
   }
 
   void initTracker(Context context, Tracker tracker, JsonMap settings) {
-    if (settings.containsKey("anonymizeIp")) {
-      tracker.setAnonymizeIp(settings.getBoolean("anonymizeIp"));
-    }
-    if (getDefaultValueIfNull(settings.getBoolean("reportUncaughtExceptions"), false)) {
+    tracker.setAnonymizeIp(settings.getBoolean("anonymizeIp", false));
+    if (settings.getBoolean("reportUncaughtExceptions", false)) {
       enableAutomaticExceptionTracking(context);
     }
-    tracker.setSampleRate(getDefaultValueIfNull(settings.getDouble("siteSpeedSampleRate"), 1.0d));
-    sendUserId = getDefaultValueIfNull(settings.getBoolean("sendUserId"), false);
+    tracker.setSampleRate(settings.getDouble("siteSpeedSampleRate", 1));
+    sendUserId = settings.getBoolean("sendUserId", false);
   }
 
   private void enableAutomaticExceptionTracking(Context context) {
@@ -165,7 +163,7 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
     }
     String category = properties.getString("category");
     String label = properties.getString("label");
-    int value = getDefaultValueIfNull(properties.getInteger("value"), 0);
+    int value = properties.getInt("value", 0);
     tracker.send(new HitBuilders.EventBuilder().setCategory(category)
         .setAction(event)
         .setLabel(label)

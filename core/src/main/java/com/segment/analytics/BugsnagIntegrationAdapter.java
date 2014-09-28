@@ -19,7 +19,7 @@ class BugsnagIntegrationAdapter extends AbstractIntegrationAdapter<Client> {
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     Bugsnag.register(context, settings.getString("apiKey"));
-    Bugsnag.setUseSSL(settings.getBoolean("useSSL"));
+    Bugsnag.setUseSSL(settings.getBoolean("useSSL", true));
   }
 
   @Override Client getUnderlyingInstance() {

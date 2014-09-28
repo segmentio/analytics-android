@@ -5,7 +5,6 @@ import android.content.Context;
 import com.amplitude.api.Amplitude;
 
 import static com.segment.analytics.Utils.isNullOrEmpty;
-import static com.segment.analytics.Utils.getDefaultValueIfNull;
 
 /**
  * Amplitude is an event tracking and segmentation tool for your mobile apps. By analyzing the
@@ -22,9 +21,9 @@ class AmplitudeIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
 
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
-    trackAllPages = settings.getBoolean("trackAllPages");
-    trackCategorizedPages = settings.getBoolean("trackCategorizedPages");
-    trackNamedPages = settings.getBoolean("trackNamedPages");
+    trackAllPages = settings.getBoolean("trackAllPages", false);
+    trackCategorizedPages = settings.getBoolean("trackCategorizedPages", false);
+    trackNamedPages = settings.getBoolean("trackNamedPages", false);
     Amplitude.initialize(context, settings.getString("apiKey"));
   }
 
@@ -76,14 +75,13 @@ class AmplitudeIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
 
   private void event(String name, Properties properties) {
     Amplitude.logEvent(name, properties.toJsonObject());
-    Double revenue = properties.getDouble("revenue");
-    if (revenue != null) {
+    double revenue = properties.getDouble("revenue", -1);
+    if (revenue != -1) {
       String productId = properties.getString("productId");
-      Integer quantity = properties.getInteger("quantity");
+      int quantity = properties.getInt("quantity", 0);
       String receipt = properties.getString("receipt");
       String receiptSignature = properties.getString("receiptSignature");
-      Amplitude.logRevenue(productId, getDefaultValueIfNull(quantity, 0), revenue, receipt,
-          receiptSignature);
+      Amplitude.logRevenue(productId, quantity, revenue, receipt, receiptSignature);
     }
   }
 

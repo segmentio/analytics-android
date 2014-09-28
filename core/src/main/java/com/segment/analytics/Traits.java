@@ -179,8 +179,8 @@ public class Traits extends JsonMap {
     return putValue(AGE_KEY, age);
   }
 
-  Integer age() {
-    return getInteger(AGE_KEY);
+  int age() {
+    return getInt(AGE_KEY, 0);
   }
 
   public Traits putBirthday(Date birthday) {

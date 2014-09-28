@@ -30,15 +30,6 @@ public class JsonMapTest {
 
   @Test public void emptyMap() throws Exception {
     assertThat(jsonMap).hasSize(0).isEmpty();
-
-    assertThat(jsonMap.get("foo")).isNull();
-    assertThat(jsonMap.getDouble("foo")).isNull();
-    assertThat(jsonMap.getString("foo")).isNull();
-    assertThat(jsonMap.getBoolean("foo")).isNull();
-    assertThat(jsonMap.getInteger("foo")).isNull();
-    assertThat(jsonMap.getLong("foo")).isNull();
-    assertThat(jsonMap.getChar("foo")).isNull();
-    assertThat(jsonMap.getEnum(MyEnum.class, "foo")).isNull();
   }
 
   @Test public void conversionsAreCached() throws Exception {
@@ -51,7 +42,7 @@ public class JsonMapTest {
 
     jsonMap.put("string_pi", stringPi);
     assertThat(jsonMap).contains(MapEntry.entry("string_pi", stringPi));
-    assertThat(jsonMap.getDouble("string_pi")).isEqualTo(Math.PI);
+    assertThat(jsonMap.getDouble("string_pi", 0)).isEqualTo(Math.PI);
     assertThat(jsonMap).contains(MapEntry.entry("string_pi", Math.PI));
   }
 

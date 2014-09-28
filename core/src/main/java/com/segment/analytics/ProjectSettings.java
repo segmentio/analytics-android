@@ -48,6 +48,6 @@ class ProjectSettings extends JsonMap {
   }
 
   Long timestamp() {
-    return getLong(TIMESTAMP_KEY);
+    return getLong(TIMESTAMP_KEY, 0L);
   }
 }

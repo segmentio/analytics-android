@@ -22,9 +22,10 @@ class FlurryIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     apiKey = settings.getString("apiKey");
-    FlurryAgent.setContinueSessionMillis(settings.getInteger("sessionContinueSeconds"));
-    FlurryAgent.setCaptureUncaughtExceptions(settings.getBoolean("captureUncaughtExceptions"));
-    FlurryAgent.setUseHttps(settings.getBoolean("useHttps"));
+    FlurryAgent.setContinueSessionMillis(settings.getInt("sessionContinueSeconds", 10));
+    FlurryAgent.setCaptureUncaughtExceptions(
+        settings.getBoolean("captureUncaughtExceptions", false));
+    FlurryAgent.setUseHttps(settings.getBoolean("useHttps", true));
   }
 
   @Override void onActivityStarted(Activity activity) {
@@ -68,8 +69,8 @@ class FlurryIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
       }
     }
     AnalyticsContext.Location location = identify.context().location();
-    if (location != null && location.latitude() != null && location.longitude() != null) {
-      FlurryAgent.setLocation(location.latitude().floatValue(), location.longitude().floatValue());
+    if (location != null) {
+      FlurryAgent.setLocation((float) location.latitude(), (float) location.longitude());
     }
   }
 

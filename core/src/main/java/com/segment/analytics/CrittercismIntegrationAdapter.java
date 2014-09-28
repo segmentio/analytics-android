@@ -17,9 +17,9 @@ public class CrittercismIntegrationAdapter extends AbstractIntegrationAdapter<Vo
   @Override public void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     CrittercismConfig crittercismConfig = new CrittercismConfig();
-    crittercismConfig.setLogcatReportingEnabled(settings.getBoolean("shouldCollectLogcat"));
+    crittercismConfig.setLogcatReportingEnabled(settings.getBoolean("shouldCollectLogcat", false));
     crittercismConfig.setVersionCodeToBeIncludedInVersionString(
-        settings.getBoolean("includeVersionCode"));
+        settings.getBoolean("includeVersionCode", false));
     Crittercism.initialize(context, settings.getString("appId"), crittercismConfig);
   }
 

@@ -169,11 +169,6 @@ final class Utils {
     return context.getResources().getIdentifier(key, type, context.getPackageName());
   }
 
-  /** Returns {@code def} if {@code value} is {@code null}, {@code value} otherwise. */
-  static <T> T getDefaultValueIfNull(T value, T def) {
-    return value == null ? def : value;
-  }
-
   /**
    * Returns true if the phone is connected to a network, or if we don't have the permission to
    * find

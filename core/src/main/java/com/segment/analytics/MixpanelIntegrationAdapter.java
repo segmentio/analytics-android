@@ -23,11 +23,12 @@ class MixpanelIntegrationAdapter extends AbstractIntegrationAdapter<MixpanelAPI>
 
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
-    trackAllPages = settings.getBoolean("trackAllPages");
-    trackCategorizedPages = settings.getBoolean("trackCategorizedPages");
-    trackNamedPages = settings.getBoolean("trackNamedPages");
+    trackAllPages = settings.getBoolean("trackAllPages", false);
+    trackCategorizedPages = settings.getBoolean("trackCategorizedPages", true);
+    trackNamedPages = settings.getBoolean("trackNamedPages", true);
+    isPeopleEnabled = settings.getBoolean("people", false);
+
     mixpanelAPI = MixpanelAPI.getInstance(context, settings.getString("token"));
-    isPeopleEnabled = settings.getBoolean("people");
   }
 
   @Override MixpanelAPI getUnderlyingInstance() {
@@ -83,8 +84,8 @@ class MixpanelIntegrationAdapter extends AbstractIntegrationAdapter<MixpanelAPI>
     JSONObject props = properties.toJsonObject();
     mixpanelAPI.track(name, props);
     if (isPeopleEnabled) {
-      Double revenue = properties.getDouble("revenue");
-      if (revenue != null) {
+      double revenue = properties.getDouble("revenue", 0);
+      if (revenue != 0) {
         mixpanelAPI.getPeople().trackCharge(revenue, props);
       }
     }
