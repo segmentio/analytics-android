@@ -24,8 +24,8 @@
 
 package com.segment.analytics;
 
-import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -36,7 +36,7 @@ import java.util.Map;
 public class Options {
   public static final String ALL_INTEGRATIONS_KEY = "all";
 
-  private Calendar timestamp;
+  private Date timestamp;
   private final Map<String, Boolean> integrations; // passed in by the user
 
   public Options() {
@@ -77,12 +77,12 @@ public class Options {
    * @param timestamp The time when this event happened
    * @return This options object for chaining
    */
-  public Options setTimestamp(Calendar timestamp) {
+  public Options setTimestamp(Date timestamp) {
     this.timestamp = timestamp;
     return this;
   }
 
-  public Calendar timestamp() {
+  Date timestamp() {
     return timestamp;
   }
 }

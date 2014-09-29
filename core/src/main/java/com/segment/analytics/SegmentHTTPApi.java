@@ -35,9 +35,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 import java.util.List;
 import javax.net.ssl.HttpsURLConnection;
 
+import static com.segment.analytics.Utils.toISO8601Date;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 class SegmentHTTPApi {
@@ -64,8 +66,19 @@ class SegmentHTTPApi {
   }
 
   static class BatchPayload extends JsonMap {
+    /**
+     * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can be
+     * used
+     * to correct the original timestamp in situations where the local clock cannot be trusted, for
+     * example in our mobile libraries. The sentAt and receivedAt timestamps will be assumed to
+     * have
+     * occurred at the same time, and therefore the difference is the local clock skew.
+     */
+    private static final String SENT_AT_KEY = "sentAt";
+
     BatchPayload(List<BasePayload> batch) {
       put("batch", batch);
+      put(SENT_AT_KEY, toISO8601Date(new Date()));
     }
   }
 

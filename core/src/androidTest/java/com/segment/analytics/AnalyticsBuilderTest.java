@@ -25,7 +25,7 @@
 package com.segment.analytics;
 
 import android.content.Context;
-import java.util.Calendar;
+import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -144,7 +144,7 @@ public class AnalyticsBuilderTest {
 
     try {
       new Analytics.Builder(context, stubbedKey).defaultOptions(
-          new Options().setTimestamp(Calendar.getInstance()));
+          new Options().setTimestamp(new Date()));
       fail("default options with timestamp should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("default option must not contain timestamp.");

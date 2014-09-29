@@ -33,8 +33,12 @@ import android.os.Build;
 import android.os.HandlerThread;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -52,9 +56,24 @@ import static android.provider.Settings.Secure.getString;
 
 final class Utils {
   static final String THREAD_PREFIX = "SegmentAnalytics-";
+  static final DateFormat ISO_8601_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
   private Utils() {
     throw new AssertionError("No instances");
+  }
+
+  /** Returns the date as a string formatted with {@link ISO_8601_DATE_FORMAT}. */
+  static String toISO8601Date(Date date) {
+    return ISO_8601_DATE_FORMAT.format(date);
+  }
+
+  /** Returns the date parsed with {@link ISO_8601_DATE_FORMAT}. */
+  static Date fromISO8601Date(String date) {
+    try {
+      return ISO_8601_DATE_FORMAT.parse(date);
+    } catch (ParseException e) {
+      return null;
+    }
   }
 
   /** Returns a {@code Set} of the objects in the specified array. */

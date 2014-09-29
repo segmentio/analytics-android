@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.segment.analytics.Utils.isNullOrEmpty;
+import static com.segment.analytics.Utils.toISO8601Date;
 
 /**
  * Traits can be anything you want, but some of them have semantic meaning and we treat them in
@@ -184,7 +185,7 @@ public class Traits extends JsonMap {
   }
 
   public Traits putBirthday(Date birthday) {
-    return putValue(BIRTHDAY_KEY, ISO8601Time.from(birthday).toString());
+    return putValue(BIRTHDAY_KEY, toISO8601Date(birthday));
   }
 
   public Traits putFirstName(String firstName) {

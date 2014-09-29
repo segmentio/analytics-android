@@ -24,16 +24,20 @@
 
 package com.segment.analytics;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.segment.analytics.Utils.toISO8601Date;
+
 /**
  * A payload object that will be sent to the server. Clients will not decode instances of this
  * directly, but through one if it's subclasses.
  */
-/* This ignores projectId, receivedAt, sentAt, version that are set by the server. */
+// This ignores projectId, receivedAt and version that are set by the server.
+// sentAt is set on SegmentHTTPApi#BatchPayload
 class BasePayload extends JsonMap {
   enum Type {
     alias, group, identify, screen, track
@@ -82,14 +86,6 @@ class BasePayload extends JsonMap {
    */
   private static final String INTEGRATIONS_KEY = "integrations";
 
-  /**
-   * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can be used
-   * to correct the original timestamp in situations where the local clock cannot be trusted, for
-   * example in our mobile libraries. The sentAt and receivedAt timestamps will be assumed to have
-   * occurred at the same time, and therefore the difference is the local clock skew.
-   */
-  private static final String SENT_AT_KEY = "sentAt";
-
   /** The timestamp when the message took place. This should be an ISO-8601-formatted string. */
   private static final String TIMESTAMP_KEY = "timestamp";
 
@@ -107,8 +103,8 @@ class BasePayload extends JsonMap {
     put(ANONYMOUS_ID_KEY, anonymousId);
     put(CONTEXT_KEY, context);
     put(USER_ID_KEY, userId);
-    put(TIMESTAMP_KEY, options.timestamp() == null ? ISO8601Time.now().toString()
-        : ISO8601Time.from(options.timestamp()).toString());
+    put(TIMESTAMP_KEY, options.timestamp() == null ? toISO8601Date(new Date())
+        : toISO8601Date(options.timestamp()));
 
     // Top level integrations are used by servers, this is a combination of disabled bundled
     // integrations, and anything the user may have passed in
@@ -140,10 +136,6 @@ class BasePayload extends JsonMap {
 
   AnalyticsContext context() {
     return new AnalyticsContext(getJsonMap(CONTEXT_KEY));
-  }
-
-  void setSentAt(ISO8601Time time) {
-    put(SENT_AT_KEY, time.toString());
   }
 
   @Override BasePayload putValue(String key, Object value) {
