@@ -24,7 +24,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://developers.google.com/analytics/devguides/collection/android/v4/">Google
  * Analyitcs Android SDK</a>
  */
-public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Tracker> {
+class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Tracker> {
   private static final String COMPLETED_ORDER_EVENT_NAME = "Completed Order";
   private static final Set<String> ITEM_EVENT_NAMES =
       Utils.asSet("Viewed Product", "Added Product", "Removed Product", "Favorited Product",
@@ -80,7 +80,7 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
         .build();
   }
 
-  @Override public void initialize(Context context, JsonMap settings)
+  @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new InvalidConfigurationException(
@@ -113,17 +113,17 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
     Thread.setDefaultUncaughtExceptionHandler(myHandler);
   }
 
-  @Override public void onActivityStarted(Activity activity) {
+  @Override void onActivityStarted(Activity activity) {
     super.onActivityStarted(activity);
     applyOptOut(activity);
   }
 
-  @Override public void onActivityStopped(Activity activity) {
+  @Override void onActivityStopped(Activity activity) {
     super.onActivityStopped(activity);
     applyOptOut(activity);
   }
 
-  @Override public void optOut(boolean optOut) {
+  @Override void optOut(boolean optOut) {
     super.optOut(optOut);
     optedOut = optOut;
   }
@@ -132,8 +132,7 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
     GoogleAnalytics.getInstance(activity).setAppOptOut(optedOut);
   }
 
-  @Override
-  public void screen(ScreenPayload screen) {
+  @Override void screen(ScreenPayload screen) {
     super.screen(screen);
     String screenName = screen.event();
     if (checkAndPerformEcommerceEvent(screenName, screen.category(), screen.properties())) {
@@ -154,8 +153,7 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
     }
   }
 
-  @Override
-  public void track(TrackPayload track) {
+  @Override void track(TrackPayload track) {
     Properties properties = track.properties();
     String event = track.event();
     if (checkAndPerformEcommerceEvent(event, null, properties)) {
@@ -202,15 +200,15 @@ public class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapte
     tracker.send(productToMap(categoryName, props));
   }
 
-  @Override public Tracker getUnderlyingInstance() {
+  @Override Tracker getUnderlyingInstance() {
     return tracker;
   }
 
-  @Override public String className() {
+  @Override String className() {
     return "com.google.android.gms.analytics.GoogleAnalytics";
   }
 
-  @Override public String key() {
+  @Override String key() {
     return "Google Analytics";
   }
 }

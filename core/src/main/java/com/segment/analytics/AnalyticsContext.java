@@ -121,7 +121,7 @@ public class AnalyticsContext extends JsonMap {
   private static final String USER_AGENT_KEY = "userAgent";
   private static final String INTEGRATIONS_KEY = "integrations";
 
-  public AnalyticsContext(Context context, Traits traits) {
+  AnalyticsContext(Context context, Traits traits) {
     // todo: kick off task to get AdvertisingId
     putApp(context);
     // todo: campaign

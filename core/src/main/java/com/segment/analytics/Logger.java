@@ -2,10 +2,10 @@ package com.segment.analytics;
 
 import android.util.Log;
 
-public class Logger {
+class Logger {
   volatile boolean loggingEnabled;
 
-  public Logger(boolean loggingEnabled) {
+  Logger(boolean loggingEnabled) {
     this.loggingEnabled = loggingEnabled;
   }
 

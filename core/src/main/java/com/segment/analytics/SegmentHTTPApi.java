@@ -40,12 +40,12 @@ import javax.net.ssl.HttpsURLConnection;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
-public class SegmentHTTPApi {
+class SegmentHTTPApi {
   static final String API_URL = "https://api.segment.io/";
 
   private final String writeKey;
 
-  public SegmentHTTPApi(String writeKey) {
+  SegmentHTTPApi(String writeKey) {
     this.writeKey = writeKey;
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
@@ -64,12 +64,12 @@ public class SegmentHTTPApi {
   }
 
   static class BatchPayload extends JsonMap {
-    public BatchPayload(List<BasePayload> batch) {
+    BatchPayload(List<BasePayload> batch) {
       put("batch", batch);
     }
   }
 
-  public void upload(List<BasePayload> payloads) throws IOException {
+  void upload(List<BasePayload> payloads) throws IOException {
     HttpsURLConnection urlConnection = (HttpsURLConnection) createUrl("v1/import").openConnection();
 
     urlConnection.setDoOutput(true);
@@ -99,7 +99,7 @@ public class SegmentHTTPApi {
     urlConnection.disconnect();
   }
 
-  public ProjectSettings fetchSettings() throws IOException {
+  ProjectSettings fetchSettings() throws IOException {
     HttpsURLConnection urlConnection =
         (HttpsURLConnection) createUrl("project/" + writeKey + "/settings").openConnection();
 

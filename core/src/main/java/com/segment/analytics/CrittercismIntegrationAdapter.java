@@ -13,8 +13,8 @@ import com.crittercism.app.CrittercismConfig;
  * @see <a href="https://segment.io/docs/integrations/crittercism">Crittercism Integration</a>
  * @see <a href="http://docs.crittercism.com/android/android.html">Crittercism Android SDK</a>
  */
-public class CrittercismIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
-  @Override public void initialize(Context context, JsonMap settings)
+class CrittercismIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
+  @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     CrittercismConfig crittercismConfig = new CrittercismConfig();
     crittercismConfig.setLogcatReportingEnabled(settings.getBoolean("shouldCollectLogcat", false));
@@ -23,40 +23,40 @@ public class CrittercismIntegrationAdapter extends AbstractIntegrationAdapter<Vo
     Crittercism.initialize(context, settings.getString("appId"), crittercismConfig);
   }
 
-  @Override public Void getUnderlyingInstance() {
+  @Override Void getUnderlyingInstance() {
     return null;
   }
 
-  @Override public String className() {
+  @Override String className() {
     return "com.crittercism.app.Crittercism";
   }
 
-  @Override public String key() {
+  @Override String key() {
     return "Crittercism";
   }
 
-  @Override public void identify(IdentifyPayload identify) {
+  @Override void identify(IdentifyPayload identify) {
     super.identify(identify);
     Crittercism.setUsername(identify.userId());
     Crittercism.setMetadata(identify.traits().toJsonObject());
   }
 
-  @Override public void screen(ScreenPayload screen) {
+  @Override void screen(ScreenPayload screen) {
     super.screen(screen);
     Crittercism.leaveBreadcrumb(String.format(VIEWED_EVENT_FORMAT, screen.event()));
   }
 
-  @Override public void track(TrackPayload track) {
+  @Override void track(TrackPayload track) {
     super.track(track);
     Crittercism.leaveBreadcrumb(track.event());
   }
 
-  @Override public void flush() {
+  @Override void flush() {
     super.flush();
     Crittercism.sendAppLoadData();
   }
 
-  @Override public void optOut(boolean optOut) {
+  @Override void optOut(boolean optOut) {
     super.optOut(optOut);
     Crittercism.setOptOutStatus(optOut);
   }
