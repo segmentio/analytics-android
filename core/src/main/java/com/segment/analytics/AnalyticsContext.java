@@ -80,18 +80,11 @@ public class AnalyticsContext extends JsonMap {
   private static final String DEVICE_MANUFACTURER_KEY = "manufacturer";
   private static final String DEVICE_MODEL_KEY = "model";
   private static final String DEVICE_NAME_KEY = "name";
-  private static final String DEVICE_TYPE_KEY = "type";
   private static final String DEVICE_BRAND_KEY = "brand";
   private static final String LIBRARY_KEY = "library";
   private static final String LIBRARY_NAME_KEY = "name";
-  // Ignored for Android
-  // String idfv;
-  // String idfa;
-  // String adTrackingEnabled;
   private static final String LIBRARY_VERSION_KEY = "version";
-  // Android Specific
-  private static final String LIBRARY_VERSION_NAME_KEY = "versionName";
-  private static final String LIBRARY_BUILD_TYPE_KEY = "buildType";
+  private static final String LIBRARY_VERSION_NAME_KEY = "versionName";   // Android Specific
   private static final String LOCATION_KEY = "location";
   private static final String NETWORK_KEY = "network";
   private static final String NETWORK_BLUETOOTH_KEY = "bluetooth";
@@ -101,8 +94,7 @@ public class AnalyticsContext extends JsonMap {
   private static final String OS_KEY = "os";
   private static final String OS_NAME_KEY = "name";
   private static final String OS_VERSION_KEY = "version";
-  // Android Specific
-  private static final String OS_SDK_KEY = "sdk";
+  private static final String OS_SDK_KEY = "sdk";  // Android Specific
   private static final String REFERRER_KEY = "referrer";
   private static final String REFERRER_ID_KEY = "userId";
   private static final String REFERRER_LINK_KEY = "link";
@@ -120,21 +112,20 @@ public class AnalyticsContext extends JsonMap {
   private static final String TRAITS_KEY = "traits";
   private static final String USER_AGENT_KEY = "userAgent";
   private static final String INTEGRATIONS_KEY = "integrations";
+  // Ignored for Android
+  // String idfv;
+  // String idfa;
+  // String adTrackingEnabled;
 
   AnalyticsContext(Context context, Traits traits) {
     // todo: kick off task to get AdvertisingId
     putApp(context);
-    // todo: campaign
     putDevice(context);
-    // todo: ip
     putLibrary();
     put(LOCALE_KEY, Locale.getDefault().getLanguage() + "-" + Locale.getDefault().getCountry());
-    // todo: location
     putNetwork(context);
     putOs();
-    // todo: referrer
     putScreen(context);
-    // todo: groupId
     put(USER_AGENT_KEY, System.getProperty("http.agent"));
     putTraits(traits);
   }
@@ -212,7 +203,6 @@ public class AnalyticsContext extends JsonMap {
     library.put(LIBRARY_NAME_KEY, "analytics-android");
     library.put(LIBRARY_VERSION_KEY, BuildConfig.VERSION_CODE);
     library.put(LIBRARY_VERSION_NAME_KEY, BuildConfig.VERSION_NAME);
-    library.put(LIBRARY_BUILD_TYPE_KEY, BuildConfig.BUILD_TYPE);
     put(LIBRARY_KEY, library);
   }
 
