@@ -1,6 +1,1 @@
-include ':localytics'
-include ':core'
-include ':all'
-include ':wear'
-include ':sample-app'
-include ':wear-sample'
+include 'localytics', 'core', 'wear', 'all', 'sample-app', 'wear-sample'

@@ -122,6 +122,7 @@ final class Utils {
         androidId) && !"000000000000000".equals(androidId)) {
       return androidId;
     }
+    
     // Serial number, guaranteed to be on all non phones in 2.3+
     if (!isNullOrEmpty(Build.SERIAL)) {
       return Build.SERIAL;
