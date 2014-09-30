@@ -62,6 +62,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://segment.io/">Segment.io</a>
  */
 public class Analytics implements Application.ActivityLifecycleCallbacks {
+  private static final Properties EMPTY_PROPERTIES = new Properties();
   // Resource identifiers to define options in xml
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
   static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
@@ -431,8 +432,7 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
       throw new IllegalArgumentException("event must not be null or empty.");
     }
     if (properties == null) {
-      // todo: re-use an empty properties object
-      properties = new Properties();
+      properties = EMPTY_PROPERTIES;
     }
     if (options == null) {
       options = defaultOptions;
@@ -477,8 +477,7 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
     }
 
     if (properties == null) {
-      // todo: re-use an empty properties object
-      properties = new Properties();
+      properties = EMPTY_PROPERTIES;
     }
     if (options == null) {
       options = defaultOptions;

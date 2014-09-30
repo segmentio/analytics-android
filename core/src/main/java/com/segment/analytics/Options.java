@@ -64,8 +64,7 @@ public class Options {
     return this;
   }
 
-  // todo: hide from public API
-  public Map<String, Boolean> integrations() {
+  Map<String, Boolean> integrations() {
     return Collections.unmodifiableMap(integrations);
   }
 

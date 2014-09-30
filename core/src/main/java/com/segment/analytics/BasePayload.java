@@ -97,7 +97,7 @@ class BasePayload extends JsonMap {
 
   BasePayload(Type type, String anonymousId, AnalyticsContext context, String userId,
       Options options, Map<String, Boolean> bundledIntegrations) {
-    put(MESSAGE_ID, UUID.randomUUID()); // todo: confirm type matches spec
+    put(MESSAGE_ID, UUID.randomUUID());
     put(TYPE_KEY, type);
     put(CHANNEL_KEY, Channel.mobile);
     put(ANONYMOUS_ID_KEY, anonymousId);
