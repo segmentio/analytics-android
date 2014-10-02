@@ -9,9 +9,9 @@ class Logger {
     this.loggingEnabled = loggingEnabled;
   }
 
-  final static String THREAD_MAIN = "Main";
-  final static String THREAD_DISPATCHER = "Dispatcher";
-  final static String THREAD_INTEGRATION_MANAGER = "IntegrationManager";
+  final static String OWNER_MAIN = "Main";
+  final static String OWNER_DISPATCHER = "Dispatcher";
+  final static String OWNER_INTEGRATION_MANAGER = "IntegrationManager";
 
   final static String VERB_CREATED = "created";
   final static String VERB_DISPATCHED = "dispatched";
@@ -23,8 +23,8 @@ class Logger {
   final static String VERB_INITIALIZED = "initialized";
 
   final static String TAG = "Segment";
-  // [thread] [verb] [id] [extras]
-  final static String FORMAT = "%1$-20s %2$-12s %3$-36s %4$s";
+  // [thread] [verb] [id] {[extras]}
+  final static String FORMAT = "%1$-20s %2$-12s %3$-36s {%4$s}";
   final static String EMPTY = "";
 
   /** Call only if loggingEnabled is true */

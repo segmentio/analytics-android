@@ -45,7 +45,7 @@ import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.SAVE_INSTANCE;
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.STARTED;
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.STOPPED;
-import static com.segment.analytics.Logger.THREAD_MAIN;
+import static com.segment.analytics.Logger.OWNER_MAIN;
 import static com.segment.analytics.Logger.VERB_CREATED;
 import static com.segment.analytics.Utils.getResourceBooleanOrThrow;
 import static com.segment.analytics.Utils.getResourceIntegerOrThrow;
@@ -565,8 +565,7 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
 
   void submit(BasePayload payload) {
     if (logger.loggingEnabled) {
-      logger.debug(THREAD_MAIN, VERB_CREATED, payload.messageId(),
-          "{type: " + payload.type() + '}');
+      logger.debug(OWNER_MAIN, VERB_CREATED, payload.messageId(), "type: " + payload.type());
     }
     dispatcher.dispatchEnqueue(payload);
     integrationManager.dispatch(payload);

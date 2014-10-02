@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Queue;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
-import static com.segment.analytics.Logger.THREAD_DISPATCHER;
+import static com.segment.analytics.Logger.OWNER_DISPATCHER;
 import static com.segment.analytics.Logger.VERB_DISPATCHED;
 import static com.segment.analytics.Logger.VERB_FLUSHED;
 import static com.segment.analytics.Logger.VERB_FLUSHING;
@@ -99,8 +99,8 @@ class Dispatcher {
     queue.add(payload);
     int queueSize = queue.size();
     if (logger.loggingEnabled) {
-      logger.debug(THREAD_DISPATCHER, VERB_DISPATCHED, payload.messageId(),
-          String.format("{type: %s, queueSize: %s}", payload.type(), queueSize));
+      logger.debug(OWNER_DISPATCHER, VERB_DISPATCHED, payload.messageId(),
+          String.format("type: %s, queueSize: %s", payload.type(), queueSize));
     }
     if (queueSize >= maxQueueSize) {
       performFlush();
@@ -115,7 +115,7 @@ class Dispatcher {
     while (iterator.hasNext()) {
       BasePayload payload = iterator.next();
       if (logger.loggingEnabled) {
-        logger.debug(THREAD_DISPATCHER, VERB_FLUSHING, payload.messageId(),
+        logger.debug(OWNER_DISPATCHER, VERB_FLUSHING, payload.messageId(),
             "{type: " + payload.type() + '}');
       }
       payloads.add(payload);
@@ -125,7 +125,7 @@ class Dispatcher {
     try {
       segmentHTTPApi.upload(payloads);
       if (logger.loggingEnabled) {
-        logger.debug(THREAD_DISPATCHER, VERB_FLUSHED, null, "{events: " + count + '}');
+        logger.debug(OWNER_DISPATCHER, VERB_FLUSHED, null, "events: " + count);
       }
       stats.dispatchFlush(count);
       //noinspection ForLoopReplaceableByForEach
@@ -134,7 +134,7 @@ class Dispatcher {
       }
     } catch (IOException e) {
       if (logger.loggingEnabled) {
-        logger.error(THREAD_DISPATCHER, VERB_FLUSHING, null, e, "{events: " + count + '}');
+        logger.error(OWNER_DISPATCHER, VERB_FLUSHING, null, e, "events: " + count);
       }
     }
   }

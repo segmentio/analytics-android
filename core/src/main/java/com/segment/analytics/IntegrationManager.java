@@ -20,7 +20,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
-import static com.segment.analytics.Logger.THREAD_INTEGRATION_MANAGER;
+import static com.segment.analytics.Logger.OWNER_INTEGRATION_MANAGER;
 import static com.segment.analytics.Logger.VERB_DISPATCHED;
 import static com.segment.analytics.Logger.VERB_DISPATCHING;
 import static com.segment.analytics.Logger.VERB_INITIALIZED;
@@ -96,8 +96,8 @@ class IntegrationManager {
       Activity activity = payload.activityWeakReference.get();
       if (activity == null) {
         if (logger.loggingEnabled) {
-          logger.debug(THREAD_INTEGRATION_MANAGER, VERB_SKIPPED, payload.id,
-              "{type: " + payload.type + '}');
+          logger.debug(OWNER_INTEGRATION_MANAGER, VERB_SKIPPED, payload.id,
+              "type: " + payload.type);
         }
         return;
       }
@@ -269,25 +269,25 @@ class IntegrationManager {
 
   void performFetch() {
     if (logger.loggingEnabled) {
-      logger.debug(THREAD_INTEGRATION_MANAGER, VERB_DISPATCHING, "fetch settings", null);
+      logger.debug(OWNER_INTEGRATION_MANAGER, VERB_DISPATCHING, "fetch settings", null);
     }
     try {
       if (isConnected(context)) {
         ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
         if (logger.loggingEnabled) {
-          logger.debug(THREAD_INTEGRATION_MANAGER, VERB_DISPATCHED, "fetch settings", null);
+          logger.debug(OWNER_INTEGRATION_MANAGER, VERB_DISPATCHED, "fetch settings", null);
         }
         performInit(projectSettings);
       } else {
         // re-schedule in a minute, todo: move to constant, same as below
         handler.sendMessageDelayed(handler.obtainMessage(REQUEST_FETCH_SETTINGS), 1000 * 60);
         if (logger.loggingEnabled) {
-          logger.debug(THREAD_INTEGRATION_MANAGER, VERB_SKIPPED, "fetch settings", null);
+          logger.debug(OWNER_INTEGRATION_MANAGER, VERB_SKIPPED, "fetch settings", null);
         }
       }
     } catch (IOException e) {
       if (logger.loggingEnabled) {
-        logger.error(THREAD_INTEGRATION_MANAGER, VERB_DISPATCHING, "fetch settings", e, null);
+        logger.error(OWNER_INTEGRATION_MANAGER, VERB_DISPATCHING, "fetch settings", e, null);
       }
       // re-schedule in a minute, todo: move to constant
       handler.sendMessageDelayed(handler.obtainMessage(REQUEST_FETCH_SETTINGS), 1000 * 60);
@@ -302,7 +302,7 @@ class IntegrationManager {
     String projectSettingsJson = projectSettings.toString();
     projectSettingsCache.set(projectSettingsJson);
 
-    if (initialized.get()) return; // skip if already initialized
+    if (initialized.get()) return; // skip if already initialized, only cache this time
 
     Iterator<AbstractIntegrationAdapter> iterator = bundledIntegrations.iterator();
     while (iterator.hasNext()) {
@@ -312,20 +312,21 @@ class IntegrationManager {
         try {
           integration.initialize(context, settings);
           if (logger.loggingEnabled) {
-            logger.debug(THREAD_INTEGRATION_MANAGER, VERB_INITIALIZED, integration.key(),
+            logger.debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZED, integration.key(),
                 settings.toString());
           }
         } catch (InvalidConfigurationException e) {
           iterator.remove();
           if (logger.loggingEnabled) {
-            logger.error(THREAD_INTEGRATION_MANAGER, VERB_INITIALIZING, integration.key(), e,
+            logger.error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZING, integration.key(), e,
                 settings.toString());
           }
         }
       } else {
         iterator.remove();
         if (logger.loggingEnabled) {
-          logger.debug(THREAD_INTEGRATION_MANAGER, VERB_SKIPPED, integration.key(), null);
+          logger.debug(OWNER_INTEGRATION_MANAGER, VERB_SKIPPED, integration.key(),
+              "not enabled in project settings: " + projectSettingsJson);
         }
       }
     }
@@ -373,8 +374,8 @@ class IntegrationManager {
       long endTime = System.currentTimeMillis();
       long duration = endTime - startTime;
       if (logger.loggingEnabled) {
-        logger.debug(THREAD_INTEGRATION_MANAGER, VERB_DISPATCHED, operation.id(),
-            String.format("{integration: %s, type: %s, duration: %s}", integration.key(),
+        logger.debug(OWNER_INTEGRATION_MANAGER, VERB_DISPATCHED, operation.id(),
+            String.format("integration: %s, type: %s, duration: %s", integration.key(),
                 operation.type(), duration)
         );
       }

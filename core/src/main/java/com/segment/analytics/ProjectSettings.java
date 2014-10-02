@@ -27,11 +27,13 @@ package com.segment.analytics;
 import java.util.Collections;
 import java.util.Map;
 
+import static com.segment.analytics.Utils.isNullOrEmpty;
+
 class ProjectSettings extends JsonMap {
   private static final String TIMESTAMP_KEY = "timestamp";
 
   static ProjectSettings load(StringCache cache) {
-    if (Utils.isNullOrEmpty(cache.get())) {
+    if (isNullOrEmpty(cache.get())) {
       return null;
     }
     return new ProjectSettings(Collections.unmodifiableMap(new JsonMap(cache.get())));
