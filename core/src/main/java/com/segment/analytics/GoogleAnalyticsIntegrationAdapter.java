@@ -9,7 +9,7 @@ import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.regex.Pattern;
 
 import static com.segment.analytics.Utils.hasPermission;
 import static com.segment.analytics.Utils.isNullOrEmpty;
@@ -25,12 +25,10 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * Analyitcs Android SDK</a>
  */
 class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Tracker> {
-  private static final String COMPLETED_ORDER_EVENT_NAME = "Completed Order";
-  private static final Set<String> ITEM_EVENT_NAMES =
-      Utils.asSet("Viewed Product", "Added Product", "Removed Product", "Favorited Product",
-          "Liked Product", "Shared Product", "Wishlisted Product", "Reviewed Product",
-          "Filtered Product", "Sorted Product", "Searched Product", "Viewed Product Image",
-          "Viewed Product Reviews", "Viewed Sale Page");
+  static final Pattern COMPLETED_ORDER_PATTERN =
+      Pattern.compile("completed *order", Pattern.CASE_INSENSITIVE);
+  static final Pattern PRODUCT_EVENT_PATTERN =
+      Pattern.compile("((viewed)|(added)|(removed)) *product *.*", Pattern.CASE_INSENSITIVE);
   Tracker tracker;
   GoogleAnalytics googleAnalyticsInstance;
   boolean optedOut;
@@ -171,11 +169,11 @@ class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Track
 
   /** Check if event is an ecommerce event, if it is, do it and return true, or return false. */
   boolean checkAndPerformEcommerceEvent(String event, String category, Properties props) {
-    if (ITEM_EVENT_NAMES.contains(event)) {
+    if (PRODUCT_EVENT_PATTERN.matcher(event).matches()) {
       sendItem(category, props);
       return true;
-    } else if (COMPLETED_ORDER_EVENT_NAME.equals(event)) {
-      // COMPLETED_ORDER_EVENT_NAME is only sent via .track so won't have category
+    } else if (COMPLETED_ORDER_PATTERN.matcher(event).matches()) {
+      // this is only sent via .track so won't have category
       sendTransaction(props);
       return true;
     }
