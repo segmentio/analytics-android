@@ -1,7 +1,7 @@
 analytics-android
 =================
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.segment.analytics.android/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.segment.analytics.android/core)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.segment.analytics.android/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.segment.analytics.android/core)
 [![Build Status](https://travis-ci.org/segmentio/analytics-android.svg?branch=f2prateek%2Fgradle)](https://travis-ci.org/segmentio/analytics-android)
 
 analytics-android is an Android client for [Segment.io](https://segment.io)
@@ -10,12 +10,11 @@ analytics-android is an Android client for [Segment.io](https://segment.io)
 
 You can find usage documentation at [https://segment.io/libraries/android](https://segment.io/libraries/android).
 
-## Contributing / Adding Providers
-
 #### Build via Gradle
 
-To build the project with [Gradle](http://tools.android.com/tech-docs/new-build-system/user-guide), you will need to install the Android SDK and set a variable `$ANDROID_HOME` to point to its install location.
-You'll also need to open the SDK Manager tool and install the right SDK version of Android (API 19) and the right version of the build tools (19.1.0).
+To build the project with [Gradle](http://tools.android.com/tech-docs/new-build-system/user-guide), you will need to have Java installed, and export a variable `$JAVA_HOME` that points to the installlation directory.
+
+The following steps are automated but, but if you run into any issues, make sure these up. You can install the Android SDK and set a variable `$ANDROID_HOME`, and open the SDK Manager tool and install the right SDK versions of Android (API 19) and the right version of the build tools (19.1.0).
 
 Once you have set all this up, run `./gradlew tasks --all` to see all available tasks.
 Runing `./gradlew clean build connectedTest` will run all the tests. Note that you'll need to have a connected device or emulator for tests.
