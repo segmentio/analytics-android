@@ -32,10 +32,6 @@ class QuantcastIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
     return null;
   }
 
-  @Override String className() {
-    return "com.quantcast.measurement.service.QuantcastClient";
-  }
-
   @Override String key() {
     return "Quantcast";
   }

@@ -78,10 +78,6 @@ class FlurryIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
     return null;
   }
 
-  @Override String className() {
-    return "com.flurry.android.FlurryAgent";
-  }
-
   @Override String key() {
     return "Flurry";
   }

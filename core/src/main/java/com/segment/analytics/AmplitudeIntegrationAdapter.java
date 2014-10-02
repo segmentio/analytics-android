@@ -31,10 +31,6 @@ class AmplitudeIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
     return null;
   }
 
-  @Override String className() {
-    return "com.amplitude.api.Amplitude";
-  }
-
   @Override String key() {
     return "Amplitude";
   }

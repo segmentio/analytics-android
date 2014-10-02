@@ -40,10 +40,6 @@ class TapstreamIntegrationAdapter extends AbstractIntegrationAdapter<Tapstream> 
     return tapstream;
   }
 
-  @Override String className() {
-    return "com.tapstream.sdk.Tapstream";
-  }
-
   @Override String key() {
     return "Tapstream";
   }

@@ -35,10 +35,6 @@ class MixpanelIntegrationAdapter extends AbstractIntegrationAdapter<MixpanelAPI>
     return mixpanelAPI;
   }
 
-  @Override String className() {
-    return "com.mixpanel.android.mpmetrics.MixpanelAPI";
-  }
-
   @Override String key() {
     return "Mixpanel";
   }

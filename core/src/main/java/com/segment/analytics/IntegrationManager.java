@@ -28,6 +28,7 @@ import static com.segment.analytics.Logger.VERB_INITIALIZING;
 import static com.segment.analytics.Logger.VERB_SKIPPED;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.isNullOrEmpty;
+import static com.segment.analytics.Utils.isOnClassPath;
 import static com.segment.analytics.Utils.panic;
 import static com.segment.analytics.Utils.quitThread;
 
@@ -240,27 +241,43 @@ class IntegrationManager {
   void loadIntegrations() {
     initialized.set(false);
     // Look up all the integrations available on the device. This is done early so that we can
-    // disable sending to these integrations from the server and properly fill the payloads.
-    addToBundledIntegrations(new AmplitudeIntegrationAdapter());
-    addToBundledIntegrations(new BugsnagIntegrationAdapter());
-    addToBundledIntegrations(new CountlyIntegrationAdapter());
-    addToBundledIntegrations(new CrittercismIntegrationAdapter());
-    addToBundledIntegrations(new FlurryIntegrationAdapter());
-    addToBundledIntegrations(new GoogleAnalyticsIntegrationAdapter());
-    addToBundledIntegrations(new LocalyticsIntegrationAdapter());
-    addToBundledIntegrations(new MixpanelIntegrationAdapter());
-    addToBundledIntegrations(new QuantcastIntegrationAdapter());
-    addToBundledIntegrations(new TapstreamIntegrationAdapter());
+    // disable sending to these integrations from the server and properly fill the payloads with
+    // this information
+    if (isOnClassPath("com.amplitude.api.Amplitude")) {
+      bundleIntegration(new AmplitudeIntegrationAdapter());
+    }
+    if (isOnClassPath("com.bugsnag.android.Bugsnag")) {
+      bundleIntegration(new BugsnagIntegrationAdapter());
+    }
+    if (isOnClassPath("ly.count.android.api.Countly")) {
+      bundleIntegration(new CountlyIntegrationAdapter());
+    }
+    if (isOnClassPath("com.crittercism.app.Crittercism")) {
+      bundleIntegration(new CrittercismIntegrationAdapter());
+    }
+    if (isOnClassPath("com.flurry.android.FlurryAgent")) {
+      bundleIntegration(new FlurryIntegrationAdapter());
+    }
+    if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
+      bundleIntegration(new GoogleAnalyticsIntegrationAdapter());
+    }
+    if (isOnClassPath("com.localytics.android.LocalyticsSession")) {
+      bundleIntegration(new LocalyticsIntegrationAdapter());
+    }
+    if (isOnClassPath("com.mixpanel.android.mpmetrics.MixpanelAPI")) {
+      bundleIntegration(new MixpanelIntegrationAdapter());
+    }
+    if (isOnClassPath("com.quantcast.measurement.service.QuantcastClient")) {
+      bundleIntegration(new QuantcastIntegrationAdapter());
+    }
+    if (isOnClassPath("com.tapstream.sdk.Tapstream")) {
+      bundleIntegration(new TapstreamIntegrationAdapter());
+    }
   }
 
-  void addToBundledIntegrations(AbstractIntegrationAdapter abstractIntegrationAdapter) {
-    try {
-      Class.forName(abstractIntegrationAdapter.className());
-      bundledIntegrations.add(abstractIntegrationAdapter);
-      serverIntegrations.put(abstractIntegrationAdapter.key(), false);
-    } catch (ClassNotFoundException e) {
-      // ignored
-    }
+  void bundleIntegration(AbstractIntegrationAdapter abstractIntegrationAdapter) {
+    serverIntegrations.put(abstractIntegrationAdapter.key(), false);
+    bundledIntegrations.add(abstractIntegrationAdapter);
   }
 
   void dispatchFetch() {

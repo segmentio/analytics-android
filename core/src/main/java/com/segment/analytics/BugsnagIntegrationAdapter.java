@@ -26,10 +26,6 @@ class BugsnagIntegrationAdapter extends AbstractIntegrationAdapter<Client> {
     return Bugsnag.getClient();
   }
 
-  @Override String className() {
-    return "com.bugsnag.android.Bugsnag";
-  }
-
   @Override String key() {
     return "Bugsnag";
   }

@@ -27,10 +27,6 @@ class CrittercismIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
     return null;
   }
 
-  @Override String className() {
-    return "com.crittercism.app.Crittercism";
-  }
-
   @Override String key() {
     return "Crittercism";
   }

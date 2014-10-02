@@ -31,8 +31,6 @@ abstract class AbstractIntegrationAdapter<T> {
     return null;
   }
 
-  abstract String className();
-
   abstract String key();
 
   // Application Callbacks, same as Application$ActivityLifecycleCallbacks

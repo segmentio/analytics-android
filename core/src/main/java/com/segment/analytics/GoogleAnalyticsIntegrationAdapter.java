@@ -204,10 +204,6 @@ class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Track
     return tracker;
   }
 
-  @Override String className() {
-    return "com.google.android.gms.analytics.GoogleAnalytics";
-  }
-
   @Override String key() {
     return "Google Analytics";
   }

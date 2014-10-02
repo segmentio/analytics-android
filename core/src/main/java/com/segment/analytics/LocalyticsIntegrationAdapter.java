@@ -28,10 +28,6 @@ class LocalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Localytics
     return localyticsSession;
   }
 
-  @Override String className() {
-    return "com.localytics.android.LocalyticsSession";
-  }
-
   @Override String key() {
     return "Localytics";
   }

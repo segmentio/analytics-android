@@ -220,4 +220,14 @@ final class Utils {
       }
     });
   }
+
+  static boolean isOnClassPath(String className) {
+    try {
+      Class.forName(className);
+      return true;
+    } catch (ClassNotFoundException e) {
+      // ignored
+      return false;
+    }
+  }
 }

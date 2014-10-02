@@ -24,10 +24,6 @@ class CountlyIntegrationAdapter extends AbstractIntegrationAdapter<Countly> {
     return Countly.sharedInstance();
   }
 
-  @Override String className() {
-    return "ly.count.android.api.Countly";
-  }
-
   @Override String key() {
     return "Countly";
   }
