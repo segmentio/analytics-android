@@ -157,10 +157,10 @@ public class AnalyticsContext extends JsonMap {
 
   void putApp(Context context) {
     try {
-      PackageInfo packageInfo =
-          context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+      PackageManager packageManager = context.getPackageManager();
+      PackageInfo packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
       Map<String, Object> app = new LinkedHashMap<String, Object>(6);
-      app.put(APP_NAME_KEY, packageInfo.applicationInfo.name);
+      app.put(APP_NAME_KEY, packageInfo.applicationInfo.loadLabel(packageManager));
       app.put(APP_VERSION_KEY, packageInfo.versionName);
       app.put(APP_PACKAGE_NAME_KEY, packageInfo.packageName);
       app.put(APP_VERSION_CODE_KEY, packageInfo.versionCode);
