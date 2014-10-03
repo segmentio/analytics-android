@@ -113,12 +113,14 @@ class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Track
 
   @Override void onActivityStarted(Activity activity) {
     super.onActivityStarted(activity);
-    applyOptOut(activity);
+    googleAnalyticsInstance.reportActivityStart(activity);
+    applyOptOut();
   }
 
   @Override void onActivityStopped(Activity activity) {
     super.onActivityStopped(activity);
-    applyOptOut(activity);
+    googleAnalyticsInstance.reportActivityStop(activity);
+    applyOptOut();
   }
 
   @Override void optOut(boolean optOut) {
@@ -126,8 +128,8 @@ class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Track
     optedOut = optOut;
   }
 
-  private void applyOptOut(Activity activity) {
-    GoogleAnalytics.getInstance(activity).setAppOptOut(optedOut);
+  private void applyOptOut() {
+    googleAnalyticsInstance.setAppOptOut(optedOut);
   }
 
   @Override void screen(ScreenPayload screen) {
