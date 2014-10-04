@@ -56,23 +56,49 @@ class IntegrationManager {
   // A map of integrations that were found on the device, so that we disable them for servers
   private Map<String, Boolean> serverIntegrations = new LinkedHashMap<String, Boolean>();
   private Queue<IntegrationOperation> operationQueue = new ArrayDeque<IntegrationOperation>();
-  final AtomicBoolean initialized = new AtomicBoolean();
+  private final AtomicBoolean initialized = new AtomicBoolean(false);
 
-  static class ActivityLifecyclePayload {
+  static abstract class ActivityLifecyclePayload {
     enum Type {
       CREATED, STARTED, RESUMED, PAUSED, STOPPED, SAVE_INSTANCE, DESTROYED
     }
 
     final Type type;
-    final WeakReference<Activity> activityWeakReference;
     final Bundle bundle;
     final String id;
 
-    ActivityLifecyclePayload(Type type, Activity activity, Bundle bundle) {
+    ActivityLifecyclePayload(Type type, Bundle bundle) {
       this.type = type;
-      this.activityWeakReference = new WeakReference<Activity>(activity);
       this.bundle = bundle;
       this.id = UUID.randomUUID().toString();
+    }
+
+    abstract Activity getActivity();
+  }
+
+  static class WeakActivityLifecyclePayload extends ActivityLifecyclePayload {
+    final WeakReference<Activity> activityWeakReference;
+
+    WeakActivityLifecyclePayload(StrongActivityLifecyclePayload payload) {
+      super(payload.type, payload.bundle);
+      activityWeakReference = new WeakReference<Activity>(payload.activity);
+    }
+
+    @Override Activity getActivity() {
+      return activityWeakReference.get();
+    }
+  }
+
+  static class StrongActivityLifecyclePayload extends ActivityLifecyclePayload {
+    final Activity activity;
+
+    StrongActivityLifecyclePayload(Type type, Activity activity, Bundle bundle) {
+      super(type, bundle);
+      this.activity = activity;
+    }
+
+    @Override Activity getActivity() {
+      return activity;
     }
   }
 
@@ -94,11 +120,11 @@ class IntegrationManager {
     }
 
     @Override public void run(AbstractIntegrationAdapter integration) {
-      Activity activity = payload.activityWeakReference.get();
+      Activity activity = payload.getActivity();
       if (activity == null) {
         if (logger.loggingEnabled) {
           logger.debug(OWNER_INTEGRATION_MANAGER, VERB_SKIPPED, payload.id,
-              "type: " + payload.type);
+              "activity reference GC'ed for type: " + payload.type);
         }
         return;
       }
@@ -239,7 +265,6 @@ class IntegrationManager {
   }
 
   void loadIntegrations() {
-    initialized.set(false);
     // Look up all the integrations available on the device. This is done early so that we can
     // disable sending to these integrations from the server and properly fill the payloads with
     // this information
@@ -347,12 +372,19 @@ class IntegrationManager {
         }
       }
     }
-    initialized.set(true);
+
     replay();
+    initialized.set(true);
   }
 
-  void dispatch(ActivityLifecyclePayload payload) {
-    handler.sendMessage(handler.obtainMessage(REQUEST_LIFECYCLE_EVENT, payload));
+  void submit(StrongActivityLifecyclePayload payload) {
+    if (initialized.get()) {
+      handler.sendMessage(handler.obtainMessage(REQUEST_LIFECYCLE_EVENT, payload));
+    } else {
+      // wrap activity in a weak reference
+      handler.sendMessage(handler.obtainMessage(REQUEST_LIFECYCLE_EVENT,
+          new WeakActivityLifecyclePayload(payload)));
+    }
   }
 
   void performEnqueue(ActivityLifecyclePayload payload) {
@@ -377,10 +409,10 @@ class IntegrationManager {
   }
 
   private void enqueue(IntegrationOperation operation) {
-    if (!initialized.get()) {
-      operationQueue.add(operation);
-    } else {
+    if (initialized.get()) {
       run(operation);
+    } else {
+      operationQueue.add(operation);
     }
   }
 

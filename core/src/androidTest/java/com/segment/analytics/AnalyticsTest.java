@@ -7,7 +7,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload;
 import static com.segment.analytics.TestUtils.createLogger;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,12 +62,6 @@ public class AnalyticsTest {
     BasePayload payload = mock(BasePayload.class);
     analytics.submit(payload);
     verify(dispatcher).dispatchEnqueue(payload);
-    verify(integrationManager).dispatch(payload);
-  }
-
-  @Test public void submitInvokesIntegrationManagerDispatch() throws Exception {
-    ActivityLifecyclePayload payload = mock(ActivityLifecyclePayload.class);
-    analytics.submit(payload);
     verify(integrationManager).dispatch(payload);
   }
 

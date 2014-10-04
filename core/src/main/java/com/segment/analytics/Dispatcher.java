@@ -116,7 +116,7 @@ class Dispatcher {
       BasePayload payload = iterator.next();
       if (logger.loggingEnabled) {
         logger.debug(OWNER_DISPATCHER, VERB_FLUSHING, payload.messageId(),
-            "{type: " + payload.type() + '}');
+            "type: " + payload.type());
       }
       payloads.add(payload);
     }

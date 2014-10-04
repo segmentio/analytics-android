@@ -37,7 +37,6 @@ import android.os.Looper;
 import android.os.Message;
 import java.util.Map;
 
-import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload;
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.CREATED;
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.DESTROYED;
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.PAUSED;
@@ -45,6 +44,7 @@ import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.SAVE_INSTANCE;
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.STARTED;
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.STOPPED;
+import static com.segment.analytics.IntegrationManager.StrongActivityLifecyclePayload;
 import static com.segment.analytics.Logger.OWNER_MAIN;
 import static com.segment.analytics.Logger.VERB_CREATED;
 import static com.segment.analytics.Utils.getResourceBooleanOrThrow;
@@ -283,31 +283,31 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
 
   // Activity Lifecycle
   @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-    submit(new ActivityLifecyclePayload(CREATED, activity, savedInstanceState));
+    submit(new StrongActivityLifecyclePayload(CREATED, activity, savedInstanceState));
   }
 
   @Override public void onActivityStarted(Activity activity) {
-    submit(new ActivityLifecyclePayload(STARTED, null, null));
+    submit(new StrongActivityLifecyclePayload(STARTED, activity, null));
   }
 
   @Override public void onActivityResumed(Activity activity) {
-    submit(new ActivityLifecyclePayload(RESUMED, null, null));
+    submit(new StrongActivityLifecyclePayload(RESUMED, activity, null));
   }
 
   @Override public void onActivityPaused(Activity activity) {
-    submit(new ActivityLifecyclePayload(PAUSED, null, null));
+    submit(new StrongActivityLifecyclePayload(PAUSED, activity, null));
   }
 
   @Override public void onActivityStopped(Activity activity) {
-    submit(new ActivityLifecyclePayload(STOPPED, null, null));
+    submit(new StrongActivityLifecyclePayload(STOPPED, activity, null));
   }
 
   @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-    submit(new ActivityLifecyclePayload(SAVE_INSTANCE, activity, outState));
+    submit(new StrongActivityLifecyclePayload(SAVE_INSTANCE, activity, outState));
   }
 
   @Override public void onActivityDestroyed(Activity activity) {
-    submit(new ActivityLifecyclePayload(DESTROYED, null, null));
+    submit(new StrongActivityLifecyclePayload(DESTROYED, activity, null));
   }
 
   /**
@@ -571,7 +571,7 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
     integrationManager.dispatch(payload);
   }
 
-  void submit(ActivityLifecyclePayload payload) {
-    integrationManager.dispatch(payload);
+  void submit(StrongActivityLifecyclePayload payload) {
+    integrationManager.submit(payload);
   }
 }
