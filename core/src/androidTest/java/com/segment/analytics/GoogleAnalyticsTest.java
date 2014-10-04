@@ -10,7 +10,7 @@ import static com.segment.analytics.GoogleAnalyticsIntegrationAdapter.PRODUCT_EV
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class GoogleAnalyticsIntegrationAdapterTest {
+public class GoogleAnalyticsTest {
 
   @Test public void completedOrderEventsAreDetectedCorrectly() {
     assertThat(COMPLETED_ORDER_PATTERN.matcher("Completed Order").matches()).isTrue();

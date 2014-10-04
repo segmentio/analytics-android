@@ -91,24 +91,16 @@ class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Track
     // Look up the mobileTrackingId, if unavailable, fallback to the trackingId
     String trackingId = settings.getString("mobileTrackingId");
     if (isNullOrEmpty(trackingId)) trackingId = settings.getString("trackingId");
-
     tracker = googleAnalyticsInstance.newTracker(trackingId);
-    initTracker(context, tracker, settings);
-  }
 
-  void initTracker(Context context, Tracker tracker, JsonMap settings) {
     tracker.setAnonymizeIp(settings.getBoolean("anonymizeIp", false));
     if (settings.getBoolean("reportUncaughtExceptions", false)) {
-      enableAutomaticExceptionTracking(context);
+      Thread.UncaughtExceptionHandler myHandler =
+          new ExceptionReporter(tracker, Thread.getDefaultUncaughtExceptionHandler(), context);
+      Thread.setDefaultUncaughtExceptionHandler(myHandler);
     }
     tracker.setSampleRate(settings.getDouble("siteSpeedSampleRate", 1));
     sendUserId = settings.getBoolean("sendUserId", false);
-  }
-
-  private void enableAutomaticExceptionTracking(Context context) {
-    Thread.UncaughtExceptionHandler myHandler =
-        new ExceptionReporter(tracker, Thread.getDefaultUncaughtExceptionHandler(), context);
-    Thread.setDefaultUncaughtExceptionHandler(myHandler);
   }
 
   @Override void onActivityStarted(Activity activity) {
