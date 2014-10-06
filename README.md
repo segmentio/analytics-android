@@ -1,7 +1,7 @@
 analytics-android
 =================
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.segment.analytics.android/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.segment.analytics.android/core)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.segment.analytics.android/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.segment.analytics.android/core)
 [![Build Status](https://travis-ci.org/segmentio/analytics-android.svg?branch=f2prateek%2Fgradle)](https://travis-ci.org/segmentio/analytics-android)
 
 analytics-android is an Android client for [Segment.io](https://segment.io)
