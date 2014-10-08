@@ -26,6 +26,8 @@ package com.segment.analytics;
 
 import java.util.Map;
 
+import static com.segment.analytics.Utils.isNullOrEmpty;
+
 class ScreenPayload extends BasePayload {
   /** The category of the page or screen. We recommend using title case, like Docs. */
   private static final String CATEGORY_KEY = "category";
@@ -45,7 +47,7 @@ class ScreenPayload extends BasePayload {
     put(CATEGORY_KEY, category);
     put(NAME_KEY, name);
     put(PROPERTIES_KEY, properties);
-    nameOrCategory = Utils.isNullOrEmpty(name) ? category : name;
+    nameOrCategory = isNullOrEmpty(name) ? category : name;
   }
 
   String category() {
@@ -61,8 +63,8 @@ class ScreenPayload extends BasePayload {
    * used if available, category otherwise.
    */
   String event() {
-    if (Utils.isNullOrEmpty(nameOrCategory)) {
-      nameOrCategory = Utils.isNullOrEmpty(name()) ? category() : name();
+    if (isNullOrEmpty(nameOrCategory)) {
+      nameOrCategory = isNullOrEmpty(name()) ? category() : name();
     }
     return nameOrCategory;
   }
