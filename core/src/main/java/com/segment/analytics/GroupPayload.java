@@ -24,8 +24,6 @@
 
 package com.segment.analytics;
 
-import java.util.Map;
-
 class GroupPayload extends BasePayload {
   /**
    * A unique identifier that refers to the group in your database. For example, if your product
@@ -40,8 +38,8 @@ class GroupPayload extends BasePayload {
   private static final String TRAITS_KEY = "traits";
 
   GroupPayload(String anonymousId, AnalyticsContext context, String userId, String groupId,
-      Traits traits, Options options, Map<String, Boolean> bundledIntegrations) {
-    super(Type.group, anonymousId, context, userId, options, bundledIntegrations);
+      Traits traits, Options options) {
+    super(Type.group, anonymousId, context, userId, options);
     put(GROUP_ID_KEY, groupId);
     put(TRAITS_KEY, traits);
   }

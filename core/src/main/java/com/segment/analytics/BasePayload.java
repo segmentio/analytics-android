@@ -25,9 +25,6 @@
 package com.segment.analytics;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import static com.segment.analytics.Utils.toISO8601Date;
@@ -96,7 +93,7 @@ class BasePayload extends JsonMap {
   private static final String USER_ID_KEY = "userId";
 
   BasePayload(Type type, String anonymousId, AnalyticsContext context, String userId,
-      Options options, Map<String, Boolean> bundledIntegrations) {
+      Options options) {
     put(MESSAGE_ID, UUID.randomUUID());
     put(TYPE_KEY, type);
     put(CHANNEL_KEY, Channel.mobile);
@@ -105,21 +102,15 @@ class BasePayload extends JsonMap {
     put(USER_ID_KEY, userId);
     put(TIMESTAMP_KEY, options.timestamp() == null ? toISO8601Date(new Date())
         : toISO8601Date(options.timestamp()));
-
-    // Top level integrations are used by servers, this is a combination of disabled bundled
-    // integrations, and anything the user may have passed in
-    HashMap<String, Boolean> serverIntegrations = new LinkedHashMap<String, Boolean>();
-    serverIntegrations.putAll(options.integrations());
-    serverIntegrations.putAll(bundledIntegrations);
-    put(INTEGRATIONS_KEY, serverIntegrations);
-    // Context level integrations are used by IntegrationManger, this is simply what the user may
-    // have passed in, used to disable integrations for specific events. Could be a bundled one,
-    // which we'll skip locally, or a server one, which we'll pass on to the server
-    context.putIntegrations(options.integrations());
+    put(INTEGRATIONS_KEY, options.integrations());
   }
 
   BasePayload(String json) {
     super(json);
+  }
+
+  JsonMap integrations() {
+    return getJsonMap(INTEGRATIONS_KEY);
   }
 
   String messageId() {

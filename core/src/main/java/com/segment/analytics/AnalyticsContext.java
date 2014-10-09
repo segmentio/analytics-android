@@ -111,7 +111,6 @@ public class AnalyticsContext extends JsonMap {
   private static final String LOCALE_KEY = "locale";
   private static final String TRAITS_KEY = "traits";
   private static final String USER_AGENT_KEY = "userAgent";
-  private static final String INTEGRATIONS_KEY = "integrations";
   // Ignored for Android
   // String idfv;
   // String idfa;
@@ -273,14 +272,6 @@ public class AnalyticsContext extends JsonMap {
     screen.put(SCREEN_DENSITY_BUCKET_KEY, getDensityString(displayMetrics));
     screen.put(SCREEN_SCALED_DENSITY_KEY, displayMetrics.scaledDensity);
     put(SCREEN_KEY, screen);
-  }
-
-  AnalyticsContext putIntegrations(Map<String, Boolean> integrations) {
-    return putValue(INTEGRATIONS_KEY, integrations);
-  }
-
-  JsonMap getIntegrations() {
-    return getJsonMap(INTEGRATIONS_KEY);
   }
 
   @Override

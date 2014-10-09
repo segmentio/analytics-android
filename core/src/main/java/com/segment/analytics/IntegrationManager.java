@@ -27,7 +27,6 @@ import static com.segment.analytics.Logger.VERB_INITIALIZED;
 import static com.segment.analytics.Logger.VERB_INITIALIZING;
 import static com.segment.analytics.Logger.VERB_SKIPPED;
 import static com.segment.analytics.Utils.isConnected;
-import static com.segment.analytics.Utils.isNullOrEmpty;
 import static com.segment.analytics.Utils.isOnClassPath;
 import static com.segment.analytics.Utils.panic;
 import static com.segment.analytics.Utils.quitThread;
@@ -446,16 +445,14 @@ class IntegrationManager {
     // look in the payload.context.integrations to see which Bundled integrations should be
     // disabled. payload.integrations is reserved for the server, where all bundled integrations
     // have been  set to false
-    JsonMap integrations = payload.context().getIntegrations();
-    if (!isNullOrEmpty(integrations)) {
-      String key = integration.key();
-      if (integrations.containsKey(key)) {
-        enabled = integrations.getBoolean(key, true);
-      } else if (integrations.containsKey("All")) {
-        enabled = integrations.getBoolean("All", true);
-      } else if (integrations.containsKey("all")) {
-        enabled = integrations.getBoolean("all", true);
-      }
+    JsonMap integrations = payload.integrations();
+    String key = integration.key();
+    if (integrations.containsKey(key)) {
+      enabled = integrations.getBoolean(key, true);
+    } else if (integrations.containsKey("All")) {
+      enabled = integrations.getBoolean("All", true);
+    } else if (integrations.containsKey("all")) {
+      enabled = integrations.getBoolean("all", true);
     }
     return enabled;
   }

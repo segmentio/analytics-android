@@ -24,8 +24,6 @@
 
 package com.segment.analytics;
 
-import java.util.Map;
-
 import static com.segment.analytics.Utils.isNullOrEmpty;
 
 class ScreenPayload extends BasePayload {
@@ -41,9 +39,8 @@ class ScreenPayload extends BasePayload {
   String nameOrCategory;
 
   ScreenPayload(String anonymousId, AnalyticsContext context, String userId, String category,
-      String name, Properties properties, Options options,
-      Map<String, Boolean> bundledIntegrations) {
-    super(Type.screen, anonymousId, context, userId, options, bundledIntegrations);
+      String name, Properties properties, Options options) {
+    super(Type.screen, anonymousId, context, userId, options);
     put(CATEGORY_KEY, category);
     put(NAME_KEY, name);
     put(PROPERTIES_KEY, properties);
