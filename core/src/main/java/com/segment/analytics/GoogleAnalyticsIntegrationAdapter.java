@@ -107,7 +107,6 @@ class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Track
     if (handleProductEvent(event, null, properties)) {
       return;
     }
-
     if (COMPLETED_ORDER_PATTERN.matcher(event).matches()) {
       List<Properties.Product> products = properties.products();
       if (!isNullOrEmpty(products)) {
@@ -136,6 +135,10 @@ class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Track
         .setLabel(label)
         .setValue(value)
         .build());
+  }
+
+  @Override void flush() {
+    googleAnalyticsInstance.dispatchLocalHits();
   }
 
   /** Check if event is an ecommerce event. If it is, do it and return true, else return false. */
