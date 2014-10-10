@@ -129,6 +129,7 @@ public class AnalyticsContext extends JsonMap {
     putTraits(traits);
   }
 
+  // For deserialization
   AnalyticsContext(Map<String, Object> delegate) {
     super(delegate);
   }

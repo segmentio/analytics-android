@@ -126,7 +126,7 @@ class BasePayload extends JsonMap {
   }
 
   AnalyticsContext context() {
-    return new AnalyticsContext(getJsonMap(CONTEXT_KEY));
+    return getJsonMap(CONTEXT_KEY, AnalyticsContext.class);
   }
 
   @Override BasePayload putValue(String key, Object value) {

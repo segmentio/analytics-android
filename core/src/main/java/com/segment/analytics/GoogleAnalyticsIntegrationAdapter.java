@@ -34,50 +34,6 @@ class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Track
   boolean optedOut;
   boolean sendUserId;
 
-  static Map<String, String> transactionToMap(Properties props) {
-    String id = props.getString("userId");
-    // skip total
-    double revenue = props.getDouble("revenue", 0);
-    double tax = props.getDouble("tax", 0);
-    double shipping = props.getDouble("shipping", 0);
-
-    // Specific for GA
-    String affiliation = props.getString("affiliation");
-    String currency = props.getString("currency");
-
-    return new HitBuilders.TransactionBuilder() //
-        .setTransactionId(id)
-        .setAffiliation(affiliation)
-        .setRevenue(revenue)
-        .setTax(tax)
-        .setShipping(shipping)
-        .setCurrencyCode(currency)
-        .build();
-  }
-
-  static Map<String, String> productToMap(String categoryName, Map<String, Object> rawProduct) {
-    JsonMap product = new JsonMap(rawProduct);
-    String id = product.getString("id");
-    String sku = product.getString("sku");
-    String name = product.getString("name");
-    double price = product.getDouble("price", 0);
-    long quantity = product.getLong("quantity", 1);
-    String category = product.getString("category");
-    if (isNullOrEmpty(category)) category = categoryName;
-    // Specific for GA
-    String currency = product.getString("currency");
-
-    return new HitBuilders.ItemBuilder() //
-        .setTransactionId(id)
-        .setName(name)
-        .setSku(sku)
-        .setCategory(category)
-        .setPrice(price)
-        .setQuantity(quantity)
-        .setCurrencyCode(currency)
-        .build();
-  }
-
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
@@ -127,7 +83,7 @@ class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Track
   @Override void screen(ScreenPayload screen) {
     super.screen(screen);
     String screenName = screen.event();
-    if (checkAndPerformEcommerceEvent(screenName, screen.category(), screen.properties())) {
+    if (handleProductEvent(screenName, screen.category(), screen.properties())) {
       return;
     }
     tracker.setScreenName(screenName);
@@ -148,10 +104,31 @@ class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Track
   @Override void track(TrackPayload track) {
     Properties properties = track.properties();
     String event = track.event();
-    if (checkAndPerformEcommerceEvent(event, null, properties)) {
+    if (handleProductEvent(event, null, properties)) {
       return;
     }
-    String category = properties.getString("category");
+
+    if (COMPLETED_ORDER_PATTERN.matcher(event).matches()) {
+      List<Properties.Product> products = properties.products();
+      if (!isNullOrEmpty(products)) {
+        for (Properties.Product product : products) {
+          tracker.send(new HitBuilders.ItemBuilder() //
+              .setTransactionId(product.id())
+              .setName(product.name())
+              .setSku(product.sku())
+              .setPrice(product.price())
+              .setQuantity(product.getLong("quantity", 0))
+              .build());
+        }
+      }
+      tracker.send(new HitBuilders.ItemBuilder() //
+          .setTransactionId(properties.orderId())
+          .setCurrencyCode(properties.currency())
+          .setPrice(properties.total())
+          .build());
+    }
+
+    String category = properties.category();
     String label = properties.getString("label");
     int value = properties.getInt("value", 0);
     tracker.send(new HitBuilders.EventBuilder().setCategory(category)
@@ -161,35 +138,21 @@ class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Track
         .build());
   }
 
-  /** Check if event is an ecommerce event, if it is, do it and return true, or return false. */
-  boolean checkAndPerformEcommerceEvent(String event, String category, Properties props) {
+  /** Check if event is an ecommerce event. If it is, do it and return true, else return false. */
+  boolean handleProductEvent(String event, String category, Properties properties) {
     if (PRODUCT_EVENT_PATTERN.matcher(event).matches()) {
-      sendItem(category, props);
-      return true;
-    } else if (COMPLETED_ORDER_PATTERN.matcher(event).matches()) {
-      // this is only sent via .track so won't have category
-      sendTransaction(props);
+      tracker.send(new HitBuilders.ItemBuilder() //
+          .setTransactionId(properties.id())
+          .setCurrencyCode(properties.currency())
+          .setName(properties.name())
+          .setSku(properties.sku())
+          .setCategory(category)
+          .setPrice(properties.price())
+          .setQuantity(properties.getLong("quantity", 0))
+          .build());
       return true;
     }
     return false;
-  }
-
-  private void sendTransaction(Properties properties) {
-    List<Object> products = (List<Object>) properties.get("products");
-    if (!isNullOrEmpty(products)) {
-      for (Object product : products) {
-        try {
-          tracker.send(productToMap(null, (Map<String, Object>) product));
-        } catch (ClassCastException e) {
-          // todo, log error
-        }
-      }
-    }
-    tracker.send(transactionToMap(properties));
-  }
-
-  private void sendItem(String categoryName, Properties props) {
-    tracker.send(productToMap(categoryName, props));
   }
 
   @Override Tracker getUnderlyingInstance() {
