@@ -3,8 +3,10 @@ package com.segment.analytics;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.json.JSONObject;
@@ -296,16 +298,22 @@ class JsonMap implements Map<String, Object> {
    */
   <T extends JsonMap> T getJsonMap(String key, Class<T> clazz) {
     Object value = get(key);
-    if (clazz.isInstance(value)) {
+    T typedValue = cast(value, clazz);
+    if (typedValue != null) cache(key, typedValue);
+    return typedValue;
+  }
+
+  /** Coerce an object to a JsonMap. */
+  private <T extends JsonMap> T cast(Object object, Class<T> clazz) {
+    if (clazz.isInstance(object)) {
       //noinspection unchecked
-      return (T) value;
-    } else if (value instanceof Map) {
+      return (T) object;
+    } else if (object instanceof Map) {
       // Try the map constructor, it's more efficient since we've already parsed the json tree
       try {
         Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
         constructor.setAccessible(true);
-        T typedValue = constructor.newInstance(value);
-        cache(key, typedValue);
+        T typedValue = constructor.newInstance(object);
         return typedValue;
       } catch (NoSuchMethodException ignored) {
       } catch (InvocationTargetException ignored) {
@@ -313,6 +321,29 @@ class JsonMap implements Map<String, Object> {
       } catch (IllegalAccessException ignored) {
       }
       throw new AssertionError("Could not find map constructor for " + clazz.getCanonicalName());
+    }
+    return null;
+  }
+
+  /**
+   * Returns the value mapped by {@code key} if it exists and is a List of {@code T}. Returns null
+   * otherwise.
+   */
+  <T extends JsonMap> List<T> getJsonList(Object key, Class<T> clazz) {
+    Object value = get(key);
+    if (value instanceof List) {
+      List list = (List) value;
+      try {
+        ArrayList<T> real = new ArrayList<T>();
+        for (Object item : list) {
+          T typedValue = cast(item, clazz);
+          if (typedValue != null) {
+            real.add(typedValue);
+          }
+        }
+        return real;
+      } catch (Exception ignored) {
+      }
     }
     return null;
   }

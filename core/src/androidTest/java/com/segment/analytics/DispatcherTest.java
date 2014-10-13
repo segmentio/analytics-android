@@ -3,10 +3,12 @@ package com.segment.analytics;
 import android.content.Context;
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.Queue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -16,7 +18,6 @@ import static com.segment.analytics.TestUtils.createLogger;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,7 +43,8 @@ public class DispatcherTest {
   }
 
   Dispatcher createDispatcher(int maxQueueSize) {
-    return new Dispatcher(context, maxQueueSize, segmentHTTPApi, queue, stats, logger);
+    return new Dispatcher(context, maxQueueSize, segmentHTTPApi, queue,
+        Collections.<String, Boolean>emptyMap(), stats, logger);
   }
 
   @Test public void addsToQueueCorrectly() {
@@ -63,7 +65,7 @@ public class DispatcherTest {
 
     dispatcher.performFlush();
     try {
-      verify(segmentHTTPApi).upload((java.util.List<BasePayload>) any());
+      verify(segmentHTTPApi).upload(Matchers.<Dispatcher.BatchPayload>any());
     } catch (IOException e) {
       fail("should not throw exception");
     }
@@ -79,7 +81,7 @@ public class DispatcherTest {
     dispatcher.performEnqueue(mock(BasePayload.class));
 
     try {
-      verify(segmentHTTPApi).upload((java.util.List<BasePayload>) any());
+      verify(segmentHTTPApi).upload(Matchers.<Dispatcher.BatchPayload>any());
     } catch (IOException e) {
       fail("should not throw exception");
     }

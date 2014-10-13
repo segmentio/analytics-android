@@ -32,8 +32,9 @@ import android.os.Message;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
@@ -44,6 +45,7 @@ import static com.segment.analytics.Logger.VERB_FLUSHING;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.panic;
 import static com.segment.analytics.Utils.quitThread;
+import static com.segment.analytics.Utils.toISO8601Date;
 
 class Dispatcher {
   static final int REQUEST_ENQUEUE = 0;
@@ -60,9 +62,10 @@ class Dispatcher {
   final Handler handler;
   final HandlerThread dispatcherThread;
   final Logger logger;
+  final Map<String, Boolean> integrations;
 
   static Dispatcher create(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
-      Stats stats, String tag, Logger logger) {
+      Map<String, Boolean> integrations, String tag, Stats stats, Logger logger) {
     Tape.Converter<BasePayload> converter = new PayloadConverter();
     File queueFile = new File(context.getFilesDir(), TASK_QUEUE_FILE_NAME + tag);
     Tape<BasePayload> queue;
@@ -71,17 +74,19 @@ class Dispatcher {
     } catch (IOException e) {
       throw new RuntimeException("Unable to create file queue.", e);
     }
-    return new Dispatcher(context, maxQueueSize, segmentHTTPApi, queue, stats, logger);
+    return new Dispatcher(context, maxQueueSize, segmentHTTPApi, queue, integrations, stats,
+        logger);
   }
 
   Dispatcher(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
-      Queue<BasePayload> queue, Stats stats, Logger logger) {
+      Queue<BasePayload> queue, Map<String, Boolean> integrations, Stats stats, Logger logger) {
     this.context = context;
     this.maxQueueSize = maxQueueSize;
     this.segmentHTTPApi = segmentHTTPApi;
     this.queue = queue;
     this.stats = stats;
     this.logger = logger;
+    this.integrations = integrations;
     dispatcherThread = new HandlerThread(DISPATCHER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     dispatcherThread.start();
     handler = new DispatcherHandler(dispatcherThread.getLooper(), this);
@@ -111,9 +116,7 @@ class Dispatcher {
     if (queue.size() <= 0 || !isConnected(context)) return;
 
     final List<BasePayload> payloads = new ArrayList<BasePayload>();
-    Iterator<BasePayload> iterator = queue.iterator();
-    while (iterator.hasNext()) {
-      BasePayload payload = iterator.next();
+    for (BasePayload payload : queue) {
       if (logger.loggingEnabled) {
         logger.debug(OWNER_DISPATCHER, VERB_FLUSHING, payload.messageId(),
             "type: " + payload.type());
@@ -123,7 +126,7 @@ class Dispatcher {
 
     int count = payloads.size();
     try {
-      segmentHTTPApi.upload(payloads);
+      segmentHTTPApi.upload(new BatchPayload(payloads, integrations));
       if (logger.loggingEnabled) {
         logger.debug(OWNER_DISPATCHER, VERB_FLUSHED, null, "events: " + count);
       }
@@ -136,6 +139,30 @@ class Dispatcher {
       if (logger.loggingEnabled) {
         logger.error(OWNER_DISPATCHER, VERB_FLUSHING, null, e, "events: " + count);
       }
+    }
+  }
+
+  static class BatchPayload extends JsonMap {
+    /**
+     * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can be
+     * used
+     * to correct the original timestamp in situations where the local clock cannot be trusted, for
+     * example in our mobile libraries. The sentAt and receivedAt timestamps will be assumed to
+     * have
+     * occurred at the same time, and therefore the difference is the local clock skew.
+     */
+    private static final String SENT_AT_KEY = "sentAt";
+
+    /**
+     * A dictionary of integration names that the message should be proxied to. 'All' is a special
+     * name that applies when no key for a specific integration is found, and is case-insensitive.
+     */
+    private static final String INTEGRATIONS_KEY = "integrations";
+
+    BatchPayload(List<BasePayload> batch, Map<String, Boolean> integrations) {
+      put("batch", batch);
+      put(INTEGRATIONS_KEY, integrations);
+      put(SENT_AT_KEY, toISO8601Date(new Date()));
     }
   }
 

@@ -226,10 +226,10 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
       Stats stats = new Stats();
       Logger logger = new Logger(logging);
       SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
-      Dispatcher dispatcher =
-          Dispatcher.create(application, maxQueueSize, segmentHTTPApi, stats, tag, logger);
       IntegrationManager integrationManager =
           IntegrationManager.create(application, segmentHTTPApi, stats, logger);
+      Dispatcher dispatcher = Dispatcher.create(application, maxQueueSize, segmentHTTPApi,
+          integrationManager.bundledIntegrations(), tag, stats, logger);
       TraitsCache traitsCache = new TraitsCache(application, tag);
       AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
 
@@ -353,8 +353,7 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
     }
 
     BasePayload payload = new IdentifyPayload(traitsCache.get().anonymousId(), analyticsContext,
-        traitsCache.get().userId(), traitsCache.get(), options,
-        integrationManager.bundledIntegrations());
+        traitsCache.get().userId(), traitsCache.get(), options);
     submit(payload);
   }
 
@@ -397,7 +396,7 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
 
     BasePayload payload =
         new GroupPayload(traitsCache.get().anonymousId(), analyticsContext, userId, groupId,
-            traitsCache.get(), options, integrationManager.bundledIntegrations());
+            traitsCache.get(), options);
 
     submit(payload);
   }
@@ -439,8 +438,7 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
     }
 
     BasePayload payload = new TrackPayload(traitsCache.get().anonymousId(), analyticsContext,
-        traitsCache.get().userId(), event, properties, options,
-        integrationManager.bundledIntegrations());
+        traitsCache.get().userId(), event, properties, options);
     submit(payload);
   }
 
@@ -484,8 +482,7 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
     }
 
     BasePayload payload = new ScreenPayload(traitsCache.get().anonymousId(), analyticsContext,
-        traitsCache.get().userId(), category, name, properties, options,
-        integrationManager.bundledIntegrations());
+        traitsCache.get().userId(), category, name, properties, options);
     submit(payload);
   }
 
@@ -521,7 +518,7 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
     }
 
     BasePayload payload = new AliasPayload(traitsCache.get().anonymousId(), analyticsContext,
-        traitsCache.get().userId(), previousId, options, integrationManager.bundledIntegrations());
+        traitsCache.get().userId(), previousId, options);
     submit(payload);
   }
 

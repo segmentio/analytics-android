@@ -24,7 +24,7 @@
 
 package com.segment.analytics;
 
-import java.util.Map;
+import static com.segment.analytics.Utils.isNullOrEmpty;
 
 class ScreenPayload extends BasePayload {
   /** The category of the page or screen. We recommend using title case, like Docs. */
@@ -39,13 +39,12 @@ class ScreenPayload extends BasePayload {
   String nameOrCategory;
 
   ScreenPayload(String anonymousId, AnalyticsContext context, String userId, String category,
-      String name, Properties properties, Options options,
-      Map<String, Boolean> bundledIntegrations) {
-    super(Type.screen, anonymousId, context, userId, options, bundledIntegrations);
+      String name, Properties properties, Options options) {
+    super(Type.screen, anonymousId, context, userId, options);
     put(CATEGORY_KEY, category);
     put(NAME_KEY, name);
     put(PROPERTIES_KEY, properties);
-    nameOrCategory = Utils.isNullOrEmpty(name) ? category : name;
+    nameOrCategory = isNullOrEmpty(name) ? category : name;
   }
 
   String category() {
@@ -61,8 +60,8 @@ class ScreenPayload extends BasePayload {
    * used if available, category otherwise.
    */
   String event() {
-    if (Utils.isNullOrEmpty(nameOrCategory)) {
-      nameOrCategory = Utils.isNullOrEmpty(name()) ? category() : name();
+    if (isNullOrEmpty(nameOrCategory)) {
+      nameOrCategory = isNullOrEmpty(name()) ? category() : name();
     }
     return nameOrCategory;
   }

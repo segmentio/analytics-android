@@ -24,8 +24,6 @@
 
 package com.segment.analytics;
 
-import java.util.Map;
-
 class TrackPayload extends BasePayload {
   /**
    * The name of the event. We recommend using title case and past tense for event names, like
@@ -41,8 +39,8 @@ class TrackPayload extends BasePayload {
   private static final String PROPERTIES_KEY = "properties";
 
   TrackPayload(String anonymousId, AnalyticsContext context, String userId, String event,
-      Properties properties, Options options, Map<String, Boolean> bundledIntegrations) {
-    super(Type.track, anonymousId, context, userId, options, bundledIntegrations);
+      Properties properties, Options options) {
+    super(Type.track, anonymousId, context, userId, options);
     put(EVENT_KEY, event);
     put(PROPERTIES_KEY, properties);
   }

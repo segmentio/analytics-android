@@ -52,20 +52,17 @@ public class MainActivity extends Activity {
   private void initViews() {
     findViewById(R.id.action_track_a).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
-        Analytics.with(MainActivity.this)
-            .track("Button A clicked", new Properties(), new Options());
+        Analytics.with(MainActivity.this).track("Button A clicked");
       }
     });
     findViewById(R.id.action_track_b).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
-        Analytics.with(MainActivity.this)
-            .track("Button B clicked", new Properties(), new Options());
+        Analytics.with(MainActivity.this).track("Button B clicked");
       }
     });
     findViewById(R.id.action_track_c).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
-        Analytics.with(MainActivity.this)
-            .track("Button C clicked", new Properties(), new Options());
+        Analytics.with(MainActivity.this).track("Button C clicked");
       }
     });
     findViewById(R.id.action_track_custom_event).setOnClickListener(new View.OnClickListener() {
@@ -75,7 +72,7 @@ public class MainActivity extends Activity {
         if (isNullOrEmpty(event)) {
           Toast.makeText(MainActivity.this, R.string.name_required, Toast.LENGTH_LONG).show();
         } else {
-          Analytics.with(MainActivity.this).track(event, new Properties(), new Options());
+          Analytics.with(MainActivity.this).track(event);
         }
       }
     });
@@ -92,7 +89,6 @@ public class MainActivity extends Activity {
     findViewById(R.id.action_flush).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         Analytics.with(MainActivity.this).flush();
-        // Analytics.flush(true);
       }
     });
     findViewById(R.id.action_test_sequence).setOnClickListener(new View.OnClickListener() {

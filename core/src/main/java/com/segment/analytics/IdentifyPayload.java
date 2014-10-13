@@ -24,8 +24,6 @@
 
 package com.segment.analytics;
 
-import java.util.Map;
-
 class IdentifyPayload extends BasePayload {
   /**
    * A dictionary of traits you know about a user, for example email or name. We have a collection
@@ -36,8 +34,8 @@ class IdentifyPayload extends BasePayload {
   private static final String TRAITS_KEY = "traits";
 
   IdentifyPayload(String anonymousId, AnalyticsContext context, String userId, Traits traits,
-      Options options, Map<String, Boolean> bundledIntegrations) {
-    super(Type.identify, anonymousId, context, userId, options, bundledIntegrations);
+      Options options) {
+    super(Type.identify, anonymousId, context, userId, options);
     put(TRAITS_KEY, traits);
   }
 

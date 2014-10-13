@@ -1,3 +1,9 @@
+Version 2.0.4 (October 4th, 2014)
+====================================
+* Improvement: Reduce size of batched payloads
+* New: Added convenience methods for special properties
+* Fix: Forward `analytics.flush()` to Google Analytics
+
 Version 2.0.3 (October 4th, 2014)
 ====================================
 * Improvement: Better detection of ecommerce events for bundled integrations

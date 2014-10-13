@@ -24,8 +24,6 @@
 
 package com.segment.analytics;
 
-import java.util.Map;
-
 class AliasPayload extends BasePayload {
   /**
    * The previous ID for the user that you want to alias from, that you previously called identify
@@ -34,8 +32,8 @@ class AliasPayload extends BasePayload {
   private static final String PREVIOUS_ID_KEY = "previousId";
 
   AliasPayload(String anonymousId, AnalyticsContext context, String userId, String previousId,
-      Options options, Map<String, Boolean> bundledIntegrations) {
-    super(Type.alias, anonymousId, context, userId, options, bundledIntegrations);
+      Options options) {
+    super(Type.alias, anonymousId, context, userId, options);
     put(PREVIOUS_ID_KEY, previousId);
   }
 
