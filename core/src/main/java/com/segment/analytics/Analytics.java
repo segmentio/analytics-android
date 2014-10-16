@@ -61,7 +61,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  *
  * @see <a href="https://segment.io/">Segment.io</a>
  */
-public class Analytics implements Application.ActivityLifecycleCallbacks {
+public class Analytics {
   private static final Properties EMPTY_PROPERTIES = new Properties();
   // Resource identifiers to define options in xml
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
@@ -267,8 +267,36 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
     this.traitsCache = traitsCache;
     this.analyticsContext = analyticsContext;
     this.defaultOptions = defaultOptions;
-    application.registerActivityLifecycleCallbacks(this);
     this.logger = logger;
+    application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+      @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+        submit(new StrongActivityLifecyclePayload(CREATED, activity, savedInstanceState));
+      }
+
+      @Override public void onActivityStarted(Activity activity) {
+        submit(new StrongActivityLifecyclePayload(STARTED, activity, null));
+      }
+
+      @Override public void onActivityResumed(Activity activity) {
+        submit(new StrongActivityLifecyclePayload(RESUMED, activity, null));
+      }
+
+      @Override public void onActivityPaused(Activity activity) {
+        submit(new StrongActivityLifecyclePayload(PAUSED, activity, null));
+      }
+
+      @Override public void onActivityStopped(Activity activity) {
+        submit(new StrongActivityLifecyclePayload(STOPPED, activity, null));
+      }
+
+      @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+        submit(new StrongActivityLifecyclePayload(SAVE_INSTANCE, activity, outState));
+      }
+
+      @Override public void onActivityDestroyed(Activity activity) {
+        submit(new StrongActivityLifecyclePayload(DESTROYED, activity, null));
+      }
+    });
   }
 
   /** Toggle whether debugging is enabled. */
@@ -279,35 +307,6 @@ public class Analytics implements Application.ActivityLifecycleCallbacks {
   /** Returns {@code true} if logging is enabled. */
   public boolean isLogging() {
     return logger.loggingEnabled;
-  }
-
-  // Activity Lifecycle
-  @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-    submit(new StrongActivityLifecyclePayload(CREATED, activity, savedInstanceState));
-  }
-
-  @Override public void onActivityStarted(Activity activity) {
-    submit(new StrongActivityLifecyclePayload(STARTED, activity, null));
-  }
-
-  @Override public void onActivityResumed(Activity activity) {
-    submit(new StrongActivityLifecyclePayload(RESUMED, activity, null));
-  }
-
-  @Override public void onActivityPaused(Activity activity) {
-    submit(new StrongActivityLifecyclePayload(PAUSED, activity, null));
-  }
-
-  @Override public void onActivityStopped(Activity activity) {
-    submit(new StrongActivityLifecyclePayload(STOPPED, activity, null));
-  }
-
-  @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-    submit(new StrongActivityLifecyclePayload(SAVE_INSTANCE, activity, outState));
-  }
-
-  @Override public void onActivityDestroyed(Activity activity) {
-    submit(new StrongActivityLifecyclePayload(DESTROYED, activity, null));
   }
 
   /**
