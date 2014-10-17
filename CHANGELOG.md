@@ -1,3 +1,8 @@
+Version 2.1.1 (October 16th, 2014)
+====================================
+* API Change: Disable toggling logging
+* Improvement: Explicitly create cache directory
+
 Version 2.1.0 (October 16th, 2014)
 ====================================
 * API Change: Hide lifecycle callbacks. We register this automatically so user's shouldn't use these.
