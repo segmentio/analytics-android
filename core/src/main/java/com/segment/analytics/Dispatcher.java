@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Utils.OWNER_DISPATCHER;
@@ -56,7 +55,7 @@ class Dispatcher {
   private static final String TASK_QUEUE_FILE_NAME = "payload-task-queue-";
 
   final Context context;
-  final Queue<BasePayload> queue;
+  final ObjectQueue<BasePayload> queue;
   final SegmentHTTPApi segmentHTTPApi;
   final int maxQueueSize;
   final Stats stats;
@@ -67,12 +66,12 @@ class Dispatcher {
 
   static Dispatcher create(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
       Map<String, Boolean> integrations, String tag, Stats stats, boolean loggingEnabled) {
-    Tape.Converter<BasePayload> converter = new PayloadConverter();
+    FileObjectQueue.Converter<BasePayload> converter = new PayloadConverter();
     try {
       File parent = context.getFilesDir();
       if (!parent.exists()) parent.mkdirs();
       File queueFile = new File(parent, TASK_QUEUE_FILE_NAME + tag);
-      Tape<BasePayload> queue = new Tape<BasePayload>(queueFile, converter);
+      ObjectQueue<BasePayload> queue = new FileObjectQueue<BasePayload>(queueFile, converter);
       return new Dispatcher(context, maxQueueSize, segmentHTTPApi, queue, integrations, stats,
           loggingEnabled);
     } catch (IOException e) {
@@ -81,7 +80,7 @@ class Dispatcher {
   }
 
   Dispatcher(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
-      Queue<BasePayload> queue, Map<String, Boolean> integrations, Stats stats,
+      ObjectQueue<BasePayload> queue, Map<String, Boolean> integrations, Stats stats,
       boolean loggingEnabled) {
     this.context = context;
     this.maxQueueSize = maxQueueSize;
@@ -104,7 +103,14 @@ class Dispatcher {
   }
 
   void performEnqueue(BasePayload payload) {
-    queue.add(payload);
+    try {
+      queue.add(payload);
+    } catch (IOException e) {
+      if (loggingEnabled) {
+        error(OWNER_DISPATCHER, VERB_ENQUEUE, payload.messageId(), e,
+            String.format("payload: %s", payload));
+      }
+    }
     int queueSize = queue.size();
     if (loggingEnabled) {
       debug(OWNER_DISPATCHER, VERB_ENQUEUE, payload.messageId(),
@@ -119,11 +125,25 @@ class Dispatcher {
     if (queue.size() <= 0 || !isConnected(context)) return;
 
     final List<BasePayload> payloads = new ArrayList<BasePayload>();
-    for (BasePayload payload : queue) {
+    try {
+      queue.setListener(new ObjectQueue.Listener<BasePayload>() {
+        @Override public void onAdd(ObjectQueue<BasePayload> queue, BasePayload entry) {
+          if (loggingEnabled) {
+            debug(OWNER_DISPATCHER, VERB_FLUSH, entry.messageId(), null);
+          }
+          payloads.add(entry);
+        }
+
+        @Override public void onRemove(ObjectQueue<BasePayload> queue) {
+
+        }
+      });
+      queue.setListener(null);
+    } catch (IOException e) {
       if (loggingEnabled) {
-        debug(OWNER_DISPATCHER, VERB_FLUSH, payload.messageId(), null);
+        error(OWNER_DISPATCHER, VERB_FLUSH, "could not read queue", e,
+            String.format("queue: %s", queue));
       }
-      payloads.add(payload);
     }
 
     int count = payloads.size();
@@ -143,9 +163,11 @@ class Dispatcher {
 
   static class BatchPayload extends JsonMap {
     /**
-     * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can be used
+     * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can be
+     * used
      * to correct the original timestamp in situations where the local clock cannot be trusted, for
-     * example in our mobile libraries. The sentAt and receivedAt timestamps will be assumed to have
+     * example in our mobile libraries. The sentAt and receivedAt timestamps will be assumed to
+     * have
      * occurred at the same time, and therefore the difference is the local clock skew.
      */
     private static final String SENT_AT_KEY = "sentAt";

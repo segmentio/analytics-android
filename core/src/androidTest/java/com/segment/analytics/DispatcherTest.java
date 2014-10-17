@@ -2,9 +2,7 @@ package com.segment.analytics;
 
 import android.content.Context;
 import java.io.IOException;
-import java.util.ArrayDeque;
 import java.util.Collections;
-import java.util.Queue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,14 +26,14 @@ public class DispatcherTest {
   @Mock SegmentHTTPApi segmentHTTPApi;
   @Mock Stats stats;
   Context context;
-  Queue<BasePayload> queue;
+  ObjectQueue<BasePayload> queue;
   Dispatcher dispatcher;
 
   @Before public void setUp() {
     initMocks(this);
     context = mockApplication();
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
-    queue = new ArrayDeque<BasePayload>();
+    queue = new InMemoryObjectQueue<BasePayload>();
     dispatcher = createDispatcher(20);
   }
 
@@ -46,11 +44,11 @@ public class DispatcherTest {
 
   @Test public void addsToQueueCorrectly() {
     dispatcher = createDispatcher(20);
-    assertThat(queue).hasSize(0);
+    assertThat(queue.size()).isEqualTo(0);
     dispatcher.performEnqueue(mock(BasePayload.class));
-    assertThat(queue).hasSize(1);
+    assertThat(queue.size()).isEqualTo(1);
     dispatcher.performEnqueue(mock(BasePayload.class));
-    assertThat(queue).hasSize(2);
+    assertThat(queue.size()).isEqualTo(2);
   }
 
   @Test public void flushesQueueCorrectly() {
@@ -67,12 +65,12 @@ public class DispatcherTest {
       fail("should not throw exception");
     }
     verify(stats).dispatchFlush(4);
-    assertThat(queue).hasSize(0);
+    assertThat(queue.size()).isEqualTo(0);
   }
 
   @Test public void flushesWhenQueueHitsMax() {
     dispatcher = createDispatcher(3);
-    assertThat(queue).hasSize(0);
+    assertThat(queue.size()).isEqualTo(0);
     dispatcher.performEnqueue(mock(BasePayload.class));
     dispatcher.performEnqueue(mock(BasePayload.class));
     dispatcher.performEnqueue(mock(BasePayload.class));
@@ -83,6 +81,6 @@ public class DispatcherTest {
       fail("should not throw exception");
     }
     verify(stats).dispatchFlush(3);
-    assertThat(queue).hasSize(0);
+    assertThat(queue.size()).isEqualTo(0);
   }
 }

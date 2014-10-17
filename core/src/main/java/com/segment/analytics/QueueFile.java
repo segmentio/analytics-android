@@ -22,6 +22,8 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.NoSuchElementException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static java.lang.Math.min;
 
@@ -49,7 +51,9 @@ import static java.lang.Math.min;
  *
  * @author Bob Lee (bob@squareup.com)
  */
-class QueueFile {
+public class QueueFile {
+  private static final Logger LOGGER = Logger.getLogger(QueueFile.class.getName());
+
   /** Initial file size in bytes. */
   private static final int INITIAL_LENGTH = 4096; // one file system block
 
@@ -107,7 +111,7 @@ class QueueFile {
    * Constructs a new queue backed by the given file. Only one {@code QueueFile}
    * instance should access a given file at a time.
    */
-  QueueFile(File file) throws IOException {
+  public QueueFile(File file) throws IOException {
     if (!file.exists()) initialize(file);
     raf = open(file);
     readHeader();
@@ -278,7 +282,7 @@ class QueueFile {
    *
    * @param data to copy bytes from
    */
-  void add(byte[] data) throws IOException {
+  public void add(byte[] data) throws IOException {
     add(data, 0, data.length);
   }
 
@@ -292,7 +296,7 @@ class QueueFile {
    * offset + count} is
    * bigger than the length of {@code buffer}.
    */
-  synchronized void add(byte[] data, int offset, int count) throws IOException {
+  public synchronized void add(byte[] data, int offset, int count) throws IOException {
     nonNull(data, "buffer");
     if ((offset | count) < 0 || count > data.length - offset) {
       throw new IndexOutOfBoundsException();
@@ -344,7 +348,7 @@ class QueueFile {
   }
 
   /** Returns true if this queue contains no entries. */
-  synchronized boolean isEmpty() {
+  public synchronized boolean isEmpty() {
     return elementCount == 0;
   }
 
@@ -382,6 +386,7 @@ class QueueFile {
       if (channel.transferTo(HEADER_LENGTH, count, channel) != count) {
         throw new AssertionError("Copied insufficient number of bytes!");
       }
+      ringErase(HEADER_LENGTH, count);
     }
 
     // Commit the expansion.
@@ -404,7 +409,7 @@ class QueueFile {
   }
 
   /** Reads the eldest element. Returns null if the queue is empty. */
-  synchronized byte[] peek() throws IOException {
+  public synchronized byte[] peek() throws IOException {
     if (isEmpty()) return null;
     int length = first.length;
     byte[] data = new byte[length];
@@ -413,7 +418,7 @@ class QueueFile {
   }
 
   /** Invokes reader with the eldest element, if an element is available. */
-  synchronized void peek(ElementReader reader) throws IOException {
+  public synchronized void peek(ElementReader reader) throws IOException {
     if (elementCount > 0) {
       reader.read(new ElementInputStream(first), first.length);
     }
@@ -423,7 +428,7 @@ class QueueFile {
    * Invokes the given reader once for each element in the queue, from eldest to
    * most recently added.
    */
-  synchronized void forEach(ElementReader reader) throws IOException {
+  public synchronized void forEach(ElementReader reader) throws IOException {
     int position = first.position;
     for (int i = 0; i < elementCount; i++) {
       Element current = readElement(position);
@@ -479,7 +484,7 @@ class QueueFile {
   }
 
   /** Returns the number of elements in this queue. */
-  synchronized int size() {
+  public synchronized int size() {
     return elementCount;
   }
 
@@ -488,7 +493,7 @@ class QueueFile {
    *
    * @throws java.util.NoSuchElementException if the queue is empty
    */
-  synchronized void remove() throws IOException {
+  public synchronized void remove() throws IOException {
     if (isEmpty()) throw new NoSuchElementException();
     if (elementCount == 1) {
       clear();
@@ -508,7 +513,7 @@ class QueueFile {
   }
 
   /** Clears this queue. Truncates the file to the initial size. */
-  synchronized void clear() throws IOException {
+  public synchronized void clear() throws IOException {
     raf.seek(0);
     raf.write(ZEROES);
     writeHeader(INITIAL_LENGTH, 0, 0, 0);
@@ -520,7 +525,7 @@ class QueueFile {
   }
 
   /** Closes the underlying file. */
-  synchronized void close() throws IOException {
+  public synchronized void close() throws IOException {
     raf.close();
   }
 
@@ -545,7 +550,8 @@ class QueueFile {
           builder.append(length);
         }
       });
-    } catch (IOException ignored) {
+    } catch (IOException e) {
+      LOGGER.log(Level.WARNING, "read error", e);
     }
     builder.append("]]");
     return builder.toString();
@@ -592,7 +598,7 @@ class QueueFile {
    * Reads queue elements. Enables partial reads as opposed to reading all of
    * the bytes into a byte[].
    */
-  interface ElementReader {
+  public interface ElementReader {
 
     /*
      * TODO: Support remove() call from read().
