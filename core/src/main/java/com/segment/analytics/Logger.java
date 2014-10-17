@@ -13,14 +13,11 @@ class Logger {
   final static String OWNER_DISPATCHER = "Dispatcher";
   final static String OWNER_INTEGRATION_MANAGER = "IntegrationManager";
 
-  final static String VERB_CREATED = "created";
-  final static String VERB_DISPATCHED = "dispatched";
-  final static String VERB_DISPATCHING = "dispatching";
-  final static String VERB_FLUSHING = "flushing";
-  final static String VERB_FLUSHED = "flushed";
-  final static String VERB_SKIPPED = "skipped";
-  final static String VERB_INITIALIZING = "initializing";
-  final static String VERB_INITIALIZED = "initialized";
+  final static String VERB_CREATE = "create";
+  final static String VERB_DISPATCH = "dispatch";
+  final static String VERB_FLUSH = "flush";
+  final static String VERB_SKIP = "skip";
+  final static String VERB_INITIALIZE = "initialize";
 
   final static String TAG = "Segment";
   // [thread] [verb] [id] {[extras]}

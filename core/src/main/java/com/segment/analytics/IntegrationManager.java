@@ -8,7 +8,6 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -17,15 +16,15 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
+import static com.segment.analytics.Analytics.OnIntegrationReadyListener;
 import static com.segment.analytics.Logger.OWNER_INTEGRATION_MANAGER;
-import static com.segment.analytics.Logger.VERB_DISPATCHED;
-import static com.segment.analytics.Logger.VERB_DISPATCHING;
-import static com.segment.analytics.Logger.VERB_INITIALIZED;
-import static com.segment.analytics.Logger.VERB_INITIALIZING;
-import static com.segment.analytics.Logger.VERB_SKIPPED;
+import static com.segment.analytics.Logger.VERB_DISPATCH;
+import static com.segment.analytics.Logger.VERB_INITIALIZE;
+import static com.segment.analytics.Logger.VERB_SKIP;
+import static com.segment.analytics.Utils.THREAD_PREFIX;
+import static com.segment.analytics.Utils.getSharedPreferences;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.isOnClassPath;
 import static com.segment.analytics.Utils.panic;
@@ -34,70 +33,243 @@ import static com.segment.analytics.Utils.quitThread;
 /**
  * Manages bundled integrations. This class will maintain it's own queue for events to account for
  * the latency between receiving the first event, fetching remote settings and enabling the
- * integrations. Once we enable all integrations - we'll replay any events in the queue. This
- * should
- * only affect the first app install, subsequent launches will be use a cached value from disk.
+ * integrations. Once we enable all integrations - we'll replay any events in the queue. This will
+ * only affect the first app install, subsequent launches will be use the cached settings on disk.
  */
 class IntegrationManager {
-  private static final String PROJECT_SETTINGS_CACHE_KEY = "project-settings";
-
   static final int REQUEST_FETCH_SETTINGS = 1;
-  static final int REQUEST_INIT = 2;
-  static final int REQUEST_LIFECYCLE_EVENT = 3;
-  static final int REQUEST_ANALYTICS_EVENT = 4;
-  static final int REQUEST_FLUSH = 5;
 
-  private static final String INTEGRATION_MANAGER_THREAD_NAME =
-      Utils.THREAD_PREFIX + "IntegrationManager";
-  // A set of integrations available on the device
-  private final Set<AbstractIntegrationAdapter> bundledIntegrations =
+  private static final String PROJECT_SETTINGS_CACHE_KEY = "project-settings";
+  private static final String MANAGER_THREAD_NAME = THREAD_PREFIX + "IntegrationManager";
+  private static final long SETTINGS_REFRESH_INTERVAL = 1000 * 60 * 60 * 24; // 24 hours
+  private static final long SETTINGS_ERROR_INTERVAL = 1000 * 60; // 1 minute
+
+  final Context context;
+  final SegmentHTTPApi segmentHTTPApi;
+  final HandlerThread integrationManagerThread;
+  final Handler handler;
+  final Stats stats;
+  final Logger logger;
+  final StringCache projectSettingsCache;
+
+  final Set<AbstractIntegrationAdapter> bundledIntegrations =
       new HashSet<AbstractIntegrationAdapter>();
-  // A map of integrations that were found on the device, so that we disable them for servers
-  private Map<String, Boolean> serverIntegrations = new LinkedHashMap<String, Boolean>();
-  private Queue<IntegrationOperation> operationQueue = new ArrayDeque<IntegrationOperation>();
-  private final AtomicBoolean initialized = new AtomicBoolean(false);
+  final Map<String, Boolean> serverIntegrations = new LinkedHashMap<String, Boolean>();
+  Queue<IntegrationOperation> operationQueue = new ArrayDeque<IntegrationOperation>();
+  volatile boolean initialized;
+  OnIntegrationReadyListener listener;
 
-  static abstract class ActivityLifecyclePayload {
-    enum Type {
-      CREATED, STARTED, RESUMED, PAUSED, STOPPED, SAVE_INSTANCE, DESTROYED
+  private IntegrationManager(Context context, SegmentHTTPApi segmentHTTPApi,
+      StringCache projectSettingsCache, Stats stats, Logger logger) {
+    this.context = context;
+    this.segmentHTTPApi = segmentHTTPApi;
+    this.stats = stats;
+    this.logger = logger;
+    integrationManagerThread = new HandlerThread(MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
+    integrationManagerThread.start();
+    handler = new IntegrationManagerHandler(integrationManagerThread.getLooper(), this);
+
+    // Look up all the integrations available on the device. This is done early so that we can
+    // disable sending to these integrations from the server and properly fill the payloads with
+    // this information
+    if (isOnClassPath("com.amplitude.api.Amplitude")) {
+      bundleIntegration(new AmplitudeIntegrationAdapter());
+    }
+    if (isOnClassPath("com.bugsnag.android.Bugsnag")) {
+      bundleIntegration(new BugsnagIntegrationAdapter());
+    }
+    if (isOnClassPath("ly.count.android.api.Countly")) {
+      bundleIntegration(new CountlyIntegrationAdapter());
+    }
+    if (isOnClassPath("com.crittercism.app.Crittercism")) {
+      bundleIntegration(new CrittercismIntegrationAdapter());
+    }
+    if (isOnClassPath("com.flurry.android.FlurryAgent")) {
+      bundleIntegration(new FlurryIntegrationAdapter());
+    }
+    if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
+      bundleIntegration(new GoogleAnalyticsIntegrationAdapter());
+    }
+    if (isOnClassPath("com.localytics.android.LocalyticsSession")) {
+      bundleIntegration(new LocalyticsIntegrationAdapter());
+    }
+    if (isOnClassPath("com.mixpanel.android.mpmetrics.MixpanelAPI")) {
+      bundleIntegration(new MixpanelIntegrationAdapter());
+    }
+    if (isOnClassPath("com.quantcast.measurement.service.QuantcastClient")) {
+      bundleIntegration(new QuantcastIntegrationAdapter());
+    }
+    if (isOnClassPath("com.tapstream.sdk.Tapstream")) {
+      bundleIntegration(new TapstreamIntegrationAdapter());
     }
 
-    final Type type;
-    final Bundle bundle;
-    final String id;
-
-    ActivityLifecyclePayload(Type type, Bundle bundle) {
-      this.type = type;
-      this.bundle = bundle;
-      this.id = UUID.randomUUID().toString();
+    this.projectSettingsCache = projectSettingsCache;
+    ProjectSettings projectSettings = ProjectSettings.load(projectSettingsCache);
+    if (projectSettings == null) {
+      dispatchFetch();
+    } else {
+      initializeIntegrations(projectSettings);
+      if (projectSettings.timestamp() + SETTINGS_REFRESH_INTERVAL < System.currentTimeMillis()) {
+        dispatchFetch();
+      }
     }
-
-    abstract Activity getActivity();
   }
 
-  static class WeakActivityLifecyclePayload extends ActivityLifecyclePayload {
-    final WeakReference<Activity> activityWeakReference;
+  static IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi, Stats stats,
+      Logger logger) {
+    StringCache projectSettingsCache =
+        new StringCache(getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
+    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logger);
+  }
 
-    WeakActivityLifecyclePayload(StrongActivityLifecyclePayload payload) {
-      super(payload.type, payload.bundle);
-      activityWeakReference = new WeakReference<Activity>(payload.activity);
+  private static boolean isBundledIntegrationEnabledForPayload(BasePayload payload,
+      AbstractIntegrationAdapter integration) {
+    boolean enabled = true;
+    JsonMap integrations = payload.integrations();
+    String key = integration.key();
+    if (integrations.containsKey(key)) {
+      enabled = integrations.getBoolean(key, true);
+    } else if (integrations.containsKey("All")) {
+      enabled = integrations.getBoolean("All", true);
+    } else if (integrations.containsKey("all")) {
+      enabled = integrations.getBoolean("all", true);
     }
+    return enabled;
+  }
 
-    @Override Activity getActivity() {
-      return activityWeakReference.get();
+  void bundleIntegration(AbstractIntegrationAdapter abstractIntegrationAdapter) {
+    serverIntegrations.put(abstractIntegrationAdapter.key(), false);
+    bundledIntegrations.add(abstractIntegrationAdapter);
+  }
+
+  void dispatchFetch() {
+    handler.sendMessage(handler.obtainMessage(REQUEST_FETCH_SETTINGS));
+  }
+
+  void retryFetch() {
+    handler.sendMessageDelayed(handler.obtainMessage(REQUEST_FETCH_SETTINGS),
+        SETTINGS_ERROR_INTERVAL);
+  }
+
+  void performFetch() {
+    try {
+      if (isConnected(context)) {
+        if (logger.loggingEnabled) {
+          logger.debug(OWNER_INTEGRATION_MANAGER, "request", "fetch settings", null);
+        }
+
+        ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
+
+        String projectSettingsJson = projectSettings.toString();
+        projectSettingsCache.set(projectSettingsJson);
+
+        if (!initialized) {
+          // Only initialize integrations if not done already
+          initializeIntegrations(projectSettings);
+        }
+      } else {
+        retryFetch();
+      }
+    } catch (IOException e) {
+      if (logger.loggingEnabled) {
+        logger.error(OWNER_INTEGRATION_MANAGER, "request", "fetch settings", e, null);
+      }
+      retryFetch();
     }
   }
 
-  static class StrongActivityLifecyclePayload extends ActivityLifecyclePayload {
-    final Activity activity;
-
-    StrongActivityLifecyclePayload(Type type, Activity activity, Bundle bundle) {
-      super(type, bundle);
-      this.activity = activity;
+  void initializeIntegrations(ProjectSettings projectSettings) {
+    Iterator<AbstractIntegrationAdapter> iterator = bundledIntegrations.iterator();
+    while (iterator.hasNext()) {
+      final AbstractIntegrationAdapter integration = iterator.next();
+      if (projectSettings.containsKey(integration.key())) {
+        JsonMap settings = new JsonMap(projectSettings.getJsonMap(integration.key()));
+        try {
+          integration.initialize(context, settings);
+          if (logger.loggingEnabled) {
+            logger.debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(),
+                settings.toString());
+          }
+          if (listener != null) {
+            listener.onIntegrationReady(integration.key(), integration.getUnderlyingInstance());
+          }
+        } catch (InvalidConfigurationException e) {
+          iterator.remove();
+          if (logger.loggingEnabled) {
+            logger.error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), e,
+                settings.toString());
+          }
+        }
+      } else {
+        iterator.remove();
+        if (logger.loggingEnabled) {
+          logger.debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, integration.key(),
+              "not enabled in project settings: " + projectSettings.keySet());
+        }
+      }
     }
+    replayQueuedEvents();
+    initialized = true;
+  }
 
-    @Override Activity getActivity() {
-      return activity;
+  void submit(ActivityLifecyclePayload payload) {
+    enqueue(payload);
+  }
+
+  void submit(BasePayload payload) {
+    enqueue(new AnalyticsOperation(payload));
+  }
+
+  void flush() {
+    enqueue(new FlushOperation());
+  }
+
+  private void enqueue(IntegrationOperation operation) {
+    if (initialized) {
+      run(operation);
+    } else {
+      operationQueue.add(operation);
+    }
+  }
+
+  private void run(IntegrationOperation operation) {
+    for (AbstractIntegrationAdapter integration : bundledIntegrations) {
+      long startTime = System.currentTimeMillis();
+      operation.run(integration);
+      long endTime = System.currentTimeMillis();
+      long duration = endTime - startTime;
+      if (logger.loggingEnabled) {
+        logger.debug(integration.key(), VERB_DISPATCH, operation.id(),
+            String.format("type: %s, duration: %s", operation.type(), duration));
+      }
+      stats.dispatchIntegrationOperation(duration);
+    }
+  }
+
+  void replayQueuedEvents() {
+    for (IntegrationOperation operation : operationQueue) {
+      run(operation);
+    }
+    operationQueue.clear();
+    operationQueue = null;
+  }
+
+  void registerIntegrationInitializedListener(OnIntegrationReadyListener listener) {
+    this.listener = listener;
+    if (initialized && listener != null) {
+      // Integrations are already ready, notify the listener right away
+      for (AbstractIntegrationAdapter abstractIntegrationAdapter : bundledIntegrations) {
+        listener.onIntegrationReady(abstractIntegrationAdapter.key(),
+            abstractIntegrationAdapter.getUnderlyingInstance());
+      }
+    }
+  }
+
+  void shutdown() {
+    quitThread(integrationManagerThread);
+    if (operationQueue != null) {
+      operationQueue.clear();
+      operationQueue = null;
     }
   }
 
@@ -109,27 +281,27 @@ class IntegrationManager {
     String type();
   }
 
-  static class ActivityLifecycleOperation implements IntegrationOperation {
-    final ActivityLifecyclePayload payload;
-    final Logger logger;
+  static class ActivityLifecyclePayload implements IntegrationOperation {
+    final Type type;
+    final Bundle bundle;
+    final Activity activity;
+    final String id;
 
-    ActivityLifecycleOperation(ActivityLifecyclePayload payload, Logger logger) {
-      this.payload = payload;
-      this.logger = logger;
+    ActivityLifecyclePayload(Type type, Activity activity, Bundle bundle) {
+      this.type = type;
+      this.bundle = bundle;
+      this.id = UUID.randomUUID().toString();
+      this.activity = activity;
+    }
+
+    Activity getActivity() {
+      return activity;
     }
 
     @Override public void run(AbstractIntegrationAdapter integration) {
-      Activity activity = payload.getActivity();
-      if (activity == null) {
-        if (logger.loggingEnabled) {
-          logger.debug(OWNER_INTEGRATION_MANAGER, VERB_SKIPPED, payload.id,
-              "activity reference GC'ed for type: " + payload.type);
-        }
-        return;
-      }
-      switch (payload.type) {
+      switch (type) {
         case CREATED:
-          integration.onActivityCreated(activity, payload.bundle);
+          integration.onActivityCreated(activity, bundle);
           break;
         case STARTED:
           break;
@@ -143,22 +315,26 @@ class IntegrationManager {
           integration.onActivityStopped(activity);
           break;
         case SAVE_INSTANCE:
-          integration.onActivitySaveInstanceState(activity, payload.bundle);
+          integration.onActivitySaveInstanceState(activity, bundle);
           break;
         case DESTROYED:
           integration.onActivityDestroyed(activity);
           break;
         default:
-          panic("Unknown payload type!" + payload.type);
+          panic("Unknown lifecycle event type!" + type);
       }
     }
 
     @Override public String id() {
-      return payload.id;
+      return id;
     }
 
     @Override public String type() {
-      return payload.type.toString();
+      return type.toString();
+    }
+
+    enum Type {
+      CREATED, STARTED, RESUMED, PAUSED, STOPPED, SAVE_INSTANCE, DESTROYED
     }
   }
 
@@ -222,245 +398,6 @@ class IntegrationManager {
     }
   }
 
-  static IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi, Stats stats,
-      Logger logger) {
-    StringCache projectSettingsCache =
-        new StringCache(Utils.getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
-    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logger);
-  }
-
-  final Context context;
-  final SegmentHTTPApi segmentHTTPApi;
-  final HandlerThread integrationManagerThread;
-  final Handler handler;
-  final Stats stats;
-  final Logger logger;
-  final StringCache projectSettingsCache;
-
-  private IntegrationManager(Context context, SegmentHTTPApi segmentHTTPApi,
-      StringCache projectSettingsCache, Stats stats, Logger logger) {
-    this.context = context;
-    this.segmentHTTPApi = segmentHTTPApi;
-    this.stats = stats;
-    this.logger = logger;
-    integrationManagerThread =
-        new HandlerThread(INTEGRATION_MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
-    integrationManagerThread.start();
-    handler = new IntegrationManagerHandler(integrationManagerThread.getLooper(), this);
-
-    loadIntegrations();
-
-    this.projectSettingsCache = projectSettingsCache;
-    ProjectSettings projectSettings = ProjectSettings.load(projectSettingsCache);
-    if (projectSettings == null) {
-      dispatchFetch();
-    } else {
-      dispatchInit(projectSettings);
-      // todo: stash staleness factor in a constant
-      if (projectSettings.timestamp() + 10800000L < System.currentTimeMillis()) {
-        dispatchFetch();
-      }
-    }
-  }
-
-  void loadIntegrations() {
-    // Look up all the integrations available on the device. This is done early so that we can
-    // disable sending to these integrations from the server and properly fill the payloads with
-    // this information
-    if (isOnClassPath("com.amplitude.api.Amplitude")) {
-      bundleIntegration(new AmplitudeIntegrationAdapter());
-    }
-    if (isOnClassPath("com.bugsnag.android.Bugsnag")) {
-      bundleIntegration(new BugsnagIntegrationAdapter());
-    }
-    if (isOnClassPath("ly.count.android.api.Countly")) {
-      bundleIntegration(new CountlyIntegrationAdapter());
-    }
-    if (isOnClassPath("com.crittercism.app.Crittercism")) {
-      bundleIntegration(new CrittercismIntegrationAdapter());
-    }
-    if (isOnClassPath("com.flurry.android.FlurryAgent")) {
-      bundleIntegration(new FlurryIntegrationAdapter());
-    }
-    if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
-      bundleIntegration(new GoogleAnalyticsIntegrationAdapter());
-    }
-    if (isOnClassPath("com.localytics.android.LocalyticsSession")) {
-      bundleIntegration(new LocalyticsIntegrationAdapter());
-    }
-    if (isOnClassPath("com.mixpanel.android.mpmetrics.MixpanelAPI")) {
-      bundleIntegration(new MixpanelIntegrationAdapter());
-    }
-    if (isOnClassPath("com.quantcast.measurement.service.QuantcastClient")) {
-      bundleIntegration(new QuantcastIntegrationAdapter());
-    }
-    if (isOnClassPath("com.tapstream.sdk.Tapstream")) {
-      bundleIntegration(new TapstreamIntegrationAdapter());
-    }
-  }
-
-  void bundleIntegration(AbstractIntegrationAdapter abstractIntegrationAdapter) {
-    serverIntegrations.put(abstractIntegrationAdapter.key(), false);
-    bundledIntegrations.add(abstractIntegrationAdapter);
-  }
-
-  void dispatchFetch() {
-    handler.sendMessage(handler.obtainMessage(REQUEST_FETCH_SETTINGS));
-  }
-
-  void performFetch() {
-    if (logger.loggingEnabled) {
-      logger.debug(OWNER_INTEGRATION_MANAGER, VERB_DISPATCHING, "fetch settings", null);
-    }
-    try {
-      if (isConnected(context)) {
-        ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
-        if (logger.loggingEnabled) {
-          logger.debug(OWNER_INTEGRATION_MANAGER, VERB_DISPATCHED, "fetch settings", null);
-        }
-        performInit(projectSettings);
-      } else {
-        // re-schedule in a minute, todo: move to constant, same as below
-        handler.sendMessageDelayed(handler.obtainMessage(REQUEST_FETCH_SETTINGS), 1000 * 60);
-        if (logger.loggingEnabled) {
-          logger.debug(OWNER_INTEGRATION_MANAGER, VERB_SKIPPED, "fetch settings", null);
-        }
-      }
-    } catch (IOException e) {
-      if (logger.loggingEnabled) {
-        logger.error(OWNER_INTEGRATION_MANAGER, VERB_DISPATCHING, "fetch settings", e, null);
-      }
-      // re-schedule in a minute, todo: move to constant
-      handler.sendMessageDelayed(handler.obtainMessage(REQUEST_FETCH_SETTINGS), 1000 * 60);
-    }
-  }
-
-  void dispatchInit(ProjectSettings projectSettings) {
-    handler.sendMessage(handler.obtainMessage(REQUEST_INIT, projectSettings));
-  }
-
-  void performInit(ProjectSettings projectSettings) {
-    String projectSettingsJson = projectSettings.toString();
-    projectSettingsCache.set(projectSettingsJson);
-
-    if (initialized.get()) return; // skip if already initialized, only cache this time
-
-    Iterator<AbstractIntegrationAdapter> iterator = bundledIntegrations.iterator();
-    while (iterator.hasNext()) {
-      AbstractIntegrationAdapter integration = iterator.next();
-      if (projectSettings.containsKey(integration.key())) {
-        JsonMap settings = new JsonMap(projectSettings.getJsonMap(integration.key()));
-        try {
-          integration.initialize(context, settings);
-          if (logger.loggingEnabled) {
-            logger.debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZED, integration.key(),
-                settings.toString());
-          }
-        } catch (InvalidConfigurationException e) {
-          iterator.remove();
-          if (logger.loggingEnabled) {
-            logger.error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZING, integration.key(), e,
-                settings.toString());
-          }
-        }
-      } else {
-        iterator.remove();
-        if (logger.loggingEnabled) {
-          logger.debug(OWNER_INTEGRATION_MANAGER, VERB_SKIPPED, integration.key(),
-              "not enabled in project settings: " + projectSettingsJson);
-        }
-      }
-    }
-
-    replay();
-    initialized.set(true);
-  }
-
-  void submit(StrongActivityLifecyclePayload payload) {
-    if (initialized.get()) {
-      handler.sendMessage(handler.obtainMessage(REQUEST_LIFECYCLE_EVENT, payload));
-    } else {
-      // wrap activity in a weak reference
-      handler.sendMessage(handler.obtainMessage(REQUEST_LIFECYCLE_EVENT,
-          new WeakActivityLifecyclePayload(payload)));
-    }
-  }
-
-  void performEnqueue(ActivityLifecyclePayload payload) {
-    ActivityLifecycleOperation operation = new ActivityLifecycleOperation(payload, logger);
-    enqueue(operation);
-  }
-
-  void dispatch(BasePayload payload) {
-    handler.sendMessage(handler.obtainMessage(REQUEST_ANALYTICS_EVENT, payload));
-  }
-
-  void performEnqueue(BasePayload payload) {
-    enqueue(new AnalyticsOperation(payload));
-  }
-
-  void dispatchFlush() {
-    handler.sendMessage(handler.obtainMessage(REQUEST_FLUSH));
-  }
-
-  void performFlush() {
-    enqueue(new FlushOperation());
-  }
-
-  private void enqueue(IntegrationOperation operation) {
-    if (initialized.get()) {
-      run(operation);
-    } else {
-      operationQueue.add(operation);
-    }
-  }
-
-  private void run(IntegrationOperation operation) {
-    for (AbstractIntegrationAdapter integration : bundledIntegrations) {
-      long startTime = System.currentTimeMillis();
-      operation.run(integration);
-      long endTime = System.currentTimeMillis();
-      long duration = endTime - startTime;
-      if (logger.loggingEnabled) {
-        logger.debug(OWNER_INTEGRATION_MANAGER, VERB_DISPATCHED, operation.id(),
-            String.format("integration: %s, type: %s, duration: %s", integration.key(),
-                operation.type(), duration)
-        );
-      }
-      stats.dispatchIntegrationOperation(duration);
-    }
-  }
-
-  void replay() {
-    for (IntegrationOperation operation : operationQueue) {
-      run(operation);
-    }
-    operationQueue.clear();
-    operationQueue = null;
-  }
-
-  private static boolean isBundledIntegrationEnabledForPayload(BasePayload payload,
-      AbstractIntegrationAdapter integration) {
-    boolean enabled = true;
-    // look in the payload.context.integrations to see which Bundled integrations should be
-    // disabled. payload.integrations is reserved for the server, where all bundled integrations
-    // have been  set to false
-    JsonMap integrations = payload.integrations();
-    String key = integration.key();
-    if (integrations.containsKey(key)) {
-      enabled = integrations.getBoolean(key, true);
-    } else if (integrations.containsKey("All")) {
-      enabled = integrations.getBoolean("All", true);
-    } else if (integrations.containsKey("all")) {
-      enabled = integrations.getBoolean("all", true);
-    }
-    return enabled;
-  }
-
-  Map<String, Boolean> bundledIntegrations() {
-    return serverIntegrations;
-  }
-
   private static class IntegrationManagerHandler extends Handler {
     private final IntegrationManager integrationManager;
 
@@ -474,35 +411,9 @@ class IntegrationManager {
         case REQUEST_FETCH_SETTINGS:
           integrationManager.performFetch();
           break;
-        case REQUEST_INIT:
-          integrationManager.performInit((ProjectSettings) msg.obj);
-          break;
-        case REQUEST_LIFECYCLE_EVENT:
-          ActivityLifecyclePayload activityLifecyclePayload = (ActivityLifecyclePayload) msg.obj;
-          integrationManager.performEnqueue(activityLifecyclePayload);
-          break;
-        case REQUEST_ANALYTICS_EVENT:
-          BasePayload basePayload = (BasePayload) msg.obj;
-          integrationManager.performEnqueue(basePayload);
-          break;
-        case REQUEST_FLUSH:
-          integrationManager.performFlush();
-          break;
         default:
-          Analytics.MAIN_LOOPER.post(new Runnable() {
-            @Override public void run() {
-              throw new AssertionError("Unhandled dispatcher message." + msg.what);
-            }
-          });
+          panic("Unhandled dispatcher message." + msg.what);
       }
-    }
-  }
-
-  void shutdown() {
-    quitThread(integrationManagerThread);
-    if (operationQueue != null) {
-      operationQueue.clear();
-      operationQueue = null;
     }
   }
 }
