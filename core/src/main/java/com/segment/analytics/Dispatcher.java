@@ -38,9 +38,11 @@ import java.util.Map;
 import java.util.Queue;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
-import static com.segment.analytics.Logger.OWNER_DISPATCHER;
-import static com.segment.analytics.Logger.VERB_ENQUEUE;
-import static com.segment.analytics.Logger.VERB_FLUSH;
+import static com.segment.analytics.Utils.OWNER_DISPATCHER;
+import static com.segment.analytics.Utils.VERB_ENQUEUE;
+import static com.segment.analytics.Utils.VERB_FLUSH;
+import static com.segment.analytics.Utils.debug;
+import static com.segment.analytics.Utils.error;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.panic;
 import static com.segment.analytics.Utils.quitThread;
@@ -60,11 +62,11 @@ class Dispatcher {
   final Stats stats;
   final Handler handler;
   final HandlerThread dispatcherThread;
-  final Logger logger;
+  final boolean loggingEnabled;
   final Map<String, Boolean> integrations;
 
   static Dispatcher create(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
-      Map<String, Boolean> integrations, String tag, Stats stats, Logger logger) {
+      Map<String, Boolean> integrations, String tag, Stats stats, boolean loggingEnabled) {
     Tape.Converter<BasePayload> converter = new PayloadConverter();
     try {
       File parent = context.getFilesDir();
@@ -72,20 +74,21 @@ class Dispatcher {
       File queueFile = new File(parent, TASK_QUEUE_FILE_NAME + tag);
       Tape<BasePayload> queue = new Tape<BasePayload>(queueFile, converter);
       return new Dispatcher(context, maxQueueSize, segmentHTTPApi, queue, integrations, stats,
-          logger);
+          loggingEnabled);
     } catch (IOException e) {
       throw new RuntimeException("Unable to create file queue.", e);
     }
   }
 
   Dispatcher(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
-      Queue<BasePayload> queue, Map<String, Boolean> integrations, Stats stats, Logger logger) {
+      Queue<BasePayload> queue, Map<String, Boolean> integrations, Stats stats,
+      boolean loggingEnabled) {
     this.context = context;
     this.maxQueueSize = maxQueueSize;
     this.segmentHTTPApi = segmentHTTPApi;
     this.queue = queue;
     this.stats = stats;
-    this.logger = logger;
+    this.loggingEnabled = loggingEnabled;
     this.integrations = integrations;
     dispatcherThread = new HandlerThread(DISPATCHER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     dispatcherThread.start();
@@ -103,8 +106,8 @@ class Dispatcher {
   void performEnqueue(BasePayload payload) {
     queue.add(payload);
     int queueSize = queue.size();
-    if (logger.loggingEnabled) {
-      logger.debug(OWNER_DISPATCHER, VERB_ENQUEUE, payload.messageId(),
+    if (loggingEnabled) {
+      debug(OWNER_DISPATCHER, VERB_ENQUEUE, payload.messageId(),
           String.format("queueSize: %s", queueSize));
     }
     if (queueSize >= maxQueueSize) {
@@ -117,8 +120,8 @@ class Dispatcher {
 
     final List<BasePayload> payloads = new ArrayList<BasePayload>();
     for (BasePayload payload : queue) {
-      if (logger.loggingEnabled) {
-        logger.debug(OWNER_DISPATCHER, VERB_FLUSH, payload.messageId(), null);
+      if (loggingEnabled) {
+        debug(OWNER_DISPATCHER, VERB_FLUSH, payload.messageId(), null);
       }
       payloads.add(payload);
     }
@@ -132,8 +135,8 @@ class Dispatcher {
         queue.remove();
       }
     } catch (IOException e) {
-      if (logger.loggingEnabled) {
-        logger.error(OWNER_DISPATCHER, VERB_FLUSH, null, e, "events: " + count);
+      if (loggingEnabled) {
+        error(OWNER_DISPATCHER, VERB_FLUSH, null, e, "events: " + count);
       }
     }
   }

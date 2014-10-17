@@ -45,9 +45,10 @@ import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.SAVE_INSTANCE;
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.STARTED;
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.STOPPED;
-import static com.segment.analytics.Logger.OWNER_MAIN;
-import static com.segment.analytics.Logger.VERB_CREATE;
+import static com.segment.analytics.Utils.OWNER_MAIN;
+import static com.segment.analytics.Utils.VERB_CREATE;
 import static com.segment.analytics.Utils.checkMain;
+import static com.segment.analytics.Utils.debug;
 import static com.segment.analytics.Utils.getResourceBooleanOrThrow;
 import static com.segment.analytics.Utils.getResourceIntegerOrThrow;
 import static com.segment.analytics.Utils.getResourceString;
@@ -137,7 +138,7 @@ public class Analytics {
     private String tag;
     private int maxQueueSize = -1;
     private Options defaultOptions;
-    private boolean logging = DEFAULT_LOGGING;
+    private boolean loggingEnabled = DEFAULT_LOGGING;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -209,8 +210,8 @@ public class Analytics {
     }
 
     /** Set whether debugging is enabled or not. */
-    public Builder logging(boolean logging) {
-      this.logging = logging;
+    public Builder logging(boolean loggingEnabled) {
+      this.loggingEnabled = loggingEnabled;
       return this;
     }
 
@@ -225,17 +226,16 @@ public class Analytics {
       if (isNullOrEmpty(tag)) tag = writeKey;
 
       Stats stats = new Stats();
-      Logger logger = new Logger(logging);
       SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
       IntegrationManager integrationManager =
-          IntegrationManager.create(application, segmentHTTPApi, stats, logger);
+          IntegrationManager.create(application, segmentHTTPApi, stats, loggingEnabled);
       Dispatcher dispatcher = Dispatcher.create(application, maxQueueSize, segmentHTTPApi,
-          integrationManager.serverIntegrations, tag, stats, logger);
+          integrationManager.serverIntegrations, tag, stats, loggingEnabled);
       TraitsCache traitsCache = new TraitsCache(application, tag);
       AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
 
       return new Analytics(application, dispatcher, integrationManager, stats, traitsCache,
-          analyticsContext, defaultOptions, logger);
+          analyticsContext, defaultOptions, loggingEnabled);
     }
   }
 
@@ -255,12 +255,12 @@ public class Analytics {
   final TraitsCache traitsCache;
   final AnalyticsContext analyticsContext;
   final Options defaultOptions;
-  final Logger logger;
+  final boolean loggingEnabled;
   boolean shutdown;
 
   Analytics(Application application, Dispatcher dispatcher, IntegrationManager integrationManager,
       Stats stats, TraitsCache traitsCache, AnalyticsContext analyticsContext,
-      Options defaultOptions, Logger logger) {
+      Options defaultOptions, boolean loggingEnabled) {
     this.application = application;
     this.dispatcher = dispatcher;
     this.integrationManager = integrationManager;
@@ -268,7 +268,7 @@ public class Analytics {
     this.traitsCache = traitsCache;
     this.analyticsContext = analyticsContext;
     this.defaultOptions = defaultOptions;
-    this.logger = logger;
+    this.loggingEnabled = loggingEnabled;
 
     application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
       @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -301,14 +301,9 @@ public class Analytics {
     });
   }
 
-  /** Toggle whether debugging is enabled. */
-  public void setLogging(boolean enabled) {
-    logger.loggingEnabled = enabled;
-  }
-
   /** Returns {@code true} if logging is enabled. */
   public boolean isLogging() {
-    return logger.loggingEnabled;
+    return loggingEnabled;
   }
 
   /**
@@ -333,10 +328,10 @@ public class Analytics {
    * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
    * also lets you record {@code traits} about the user, like their email, name, account type, etc.
    *
-   * @param userId  Unique identifier which you recognize a user by in your own database. If this is
-   *                null or empty, any previous id we have (could be the anonymous id) will be
-   *                used.
-   * @param traits  Traits about the user
+   * @param userId Unique identifier which you recognize a user by in your own database. If this is
+   * null or empty, any previous id we have (could be the anonymous id) will be
+   * used.
+   * @param traits Traits about the user
    * @param options To configure the call
    * @throws IllegalArgumentException if userId is null or an empty string
    * @see <a href="https://segment.io/docs/tracking-api/identify/">Identify Documentation</a>
@@ -372,9 +367,9 @@ public class Analytics {
    * If you've called {@link #identify(String, Traits, Options)} before, this will automatically
    * remember the user id. If not, it will fall back to use the anonymousId instead.
    *
-   * @param userId  To match up a user with their associated group.
+   * @param userId To match up a user with their associated group.
    * @param groupId Unique identifier which you recognize a group by in your own database. Must not
-   *                be null or empty.
+   * be null or empty.
    * @param options To configure the call
    * @throws IllegalArgumentException if groupId is null or an empty string
    * @see <a href=" https://segment.io/docs/tracking-api/group/">Group Documentation</a>
@@ -418,12 +413,13 @@ public class Analytics {
 
   /**
    * The track method is how you record any actions your users perform. Each action is known by a
-   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions. For
+   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
+   * For
    * example a 'Purchased a Shirt' event might have properties like revenue or size.
    *
-   * @param event      Name of the event. Must not be null or empty.
+   * @param event Name of the event. Must not be null or empty.
    * @param properties {@link Properties} to add extra information to this call
-   * @param options    To configure the call
+   * @param options To configure the call
    * @throws IllegalArgumentException if event name is null or an empty string
    * @see <a href="https://segment.io/docs/tracking-api/track/">Track Documentation</a>
    */
@@ -458,15 +454,16 @@ public class Analytics {
   }
 
   /**
-   * The screen methods let your record whenever a user sees a screen of your mobile app, and attach
+   * The screen methods let your record whenever a user sees a screen of your mobile app, and
+   * attach
    * a name, category or properties to the screen.
    * <p/>
    * Either category or name must be provided.
    *
-   * @param category   A category to describe the screen
-   * @param name       A name for the screen
+   * @param category A category to describe the screen
+   * @param name A name for the screen
    * @param properties {@link Properties} to add extra information to this call
-   * @param options    To configure the call
+   * @param options To configure the call
    * @see <a href="http://segment.io/docs/tracking-api/page-and-screen/">Screen Documentation</a>
    */
   public void screen(String category, String name, Properties properties, Options options) {
@@ -499,10 +496,10 @@ public class Analytics {
    * successfully in some of our integrations. You should still call {@link #identify(String,
    * Traits, Options)} with {@code newId} if you want to use it as the default id.
    *
-   * @param newId      The newId to map the old id to. Must not be null to empty.
+   * @param newId The newId to map the old id to. Must not be null to empty.
    * @param previousId The old id we want to map. If it is null, the userId we've cached will
-   *                   automatically used.
-   * @param options    To configure the call
+   * automatically used.
+   * @param options To configure the call
    * @throws IllegalArgumentException if newId is null or empty
    * @see <a href="https://segment.io/docs/tracking-api/alias/">Alias Documentation</a>
    */
@@ -575,16 +572,16 @@ public class Analytics {
   }
 
   void submit(BasePayload payload) {
-    if (logger.loggingEnabled) {
-      logger.debug(OWNER_MAIN, VERB_CREATE, payload.messageId(), "type: " + payload.type());
+    if (loggingEnabled) {
+      debug(OWNER_MAIN, VERB_CREATE, payload.messageId(), "type: " + payload.type());
     }
     dispatcher.dispatchEnqueue(payload);
     integrationManager.submit(payload);
   }
 
   void submit(ActivityLifecyclePayload payload) {
-    if (logger.loggingEnabled) {
-      logger.debug(OWNER_MAIN, VERB_CREATE, payload.id(),
+    if (loggingEnabled) {
+      debug(OWNER_MAIN, VERB_CREATE, payload.id(),
           "type: " + payload.type.toString().toLowerCase());
     }
     integrationManager.submit(payload);
