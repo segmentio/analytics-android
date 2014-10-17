@@ -244,7 +244,7 @@ class IntegrationManager {
       long duration = endTime - startTime;
       if (logger.loggingEnabled) {
         logger.debug(integration.key(), VERB_DISPATCH, operation.id(),
-            String.format("type: %s, duration: %s", operation.type(), duration));
+            String.format("duration: %s", duration));
       }
       stats.dispatchIntegrationOperation(duration);
     }
@@ -281,8 +281,6 @@ class IntegrationManager {
     void run(AbstractIntegrationAdapter integration);
 
     String id();
-
-    String type();
   }
 
   static class ActivityLifecyclePayload implements IntegrationOperation {
@@ -333,10 +331,6 @@ class IntegrationManager {
       return id;
     }
 
-    @Override public String type() {
-      return type.toString();
-    }
-
     enum Type {
       CREATED, STARTED, RESUMED, PAUSED, STOPPED, SAVE_INSTANCE, DESTROYED
     }
@@ -355,10 +349,6 @@ class IntegrationManager {
 
     @Override public String id() {
       return id;
-    }
-
-    @Override public String type() {
-      return "flush";
     }
   }
 
@@ -395,10 +385,6 @@ class IntegrationManager {
 
     @Override public String id() {
       return payload.messageId();
-    }
-
-    @Override public String type() {
-      return payload.type().toString();
     }
   }
 

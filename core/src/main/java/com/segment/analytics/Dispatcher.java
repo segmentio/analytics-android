@@ -117,7 +117,7 @@ class Dispatcher {
     final List<BasePayload> payloads = new ArrayList<BasePayload>();
     for (BasePayload payload : queue) {
       if (logger.loggingEnabled) {
-        logger.debug(OWNER_DISPATCHER, VERB_FLUSH, payload.messageId(), "type: " + payload.type());
+        logger.debug(OWNER_DISPATCHER, VERB_FLUSH, payload.messageId(), null);
       }
       payloads.add(payload);
     }
