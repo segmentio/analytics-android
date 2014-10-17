@@ -66,15 +66,16 @@ class Dispatcher {
   static Dispatcher create(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
       Map<String, Boolean> integrations, String tag, Stats stats, Logger logger) {
     Tape.Converter<BasePayload> converter = new PayloadConverter();
-    File queueFile = new File(context.getFilesDir(), TASK_QUEUE_FILE_NAME + tag);
-    Tape<BasePayload> queue;
     try {
-      queue = new Tape<BasePayload>(queueFile, converter);
+      File parent = context.getFilesDir();
+      if (!parent.exists()) parent.mkdirs();
+      File queueFile = new File(parent, TASK_QUEUE_FILE_NAME + tag);
+      Tape<BasePayload> queue = new Tape<BasePayload>(queueFile, converter);
+      return new Dispatcher(context, maxQueueSize, segmentHTTPApi, queue, integrations, stats,
+          logger);
     } catch (IOException e) {
       throw new RuntimeException("Unable to create file queue.", e);
     }
-    return new Dispatcher(context, maxQueueSize, segmentHTTPApi, queue, integrations, stats,
-        logger);
   }
 
   Dispatcher(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
