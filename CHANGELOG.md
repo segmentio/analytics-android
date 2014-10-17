@@ -1,3 +1,7 @@
+Version 2.1.2 (October 17th, 2014)
+====================================
+* Fix: more resilience to file system errors
+
 Version 2.1.1 (October 16th, 2014)
 ====================================
 * API Change: Disable toggling logging
