@@ -31,6 +31,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import java.text.DateFormat;
@@ -216,7 +217,7 @@ final class Utils {
   static void panic(final String string) {
     Analytics.MAIN_LOOPER.post(new Runnable() {
       @Override public void run() {
-        throw new RuntimeException(string);
+        throw new AssertionError(string);
       }
     });
   }
@@ -229,5 +230,16 @@ final class Utils {
       // ignored
       return false;
     }
+  }
+
+  /** Throw an error if not called on main thread. */
+  static void checkMain() {
+    if (!isMain()) {
+      throw new IllegalStateException("Method call should happen from the main thread.");
+    }
+  }
+
+  private static boolean isMain() {
+    return Looper.getMainLooper().getThread() == Thread.currentThread();
   }
 }

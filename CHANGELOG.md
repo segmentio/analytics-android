@@ -1,3 +1,10 @@
+Version 2.0.5 (In progress)
+====================================
+* API Change: Hide lifecycle callbacks. We register this automatically so user's shouldn't use these.
+* New: Added Integration Listener API
+* Improvement: Better messages in logging
+* Fix: Integrations are now executed on the Main thread
+
 Version 2.0.4 (October 4th, 2014)
 ====================================
 * Improvement: Reduce size of batched payloads
