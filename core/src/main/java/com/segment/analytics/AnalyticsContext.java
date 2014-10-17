@@ -37,6 +37,7 @@ import android.view.WindowManager;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.Context.CONNECTIVITY_SERVICE;
@@ -111,6 +112,7 @@ public class AnalyticsContext extends JsonMap {
   private static final String LOCALE_KEY = "locale";
   private static final String TRAITS_KEY = "traits";
   private static final String USER_AGENT_KEY = "userAgent";
+  private static final String TIMEZONE_KEY = "timezone";
   // Ignored for Android
   // String idfv;
   // String idfa;
@@ -126,6 +128,7 @@ public class AnalyticsContext extends JsonMap {
     putOs();
     putScreen(context);
     put(USER_AGENT_KEY, System.getProperty("http.agent"));
+    put(TIMEZONE_KEY, TimeZone.getDefault().getID());
     putTraits(traits);
   }
 
