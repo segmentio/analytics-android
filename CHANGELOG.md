@@ -1,4 +1,13 @@
-Version 2.0.4 (October 4th, 2014)
+Version 2.1.0 (October 16th, 2014)
+====================================
+* API Change: Hide lifecycle callbacks. We register this automatically so user's shouldn't use these.
+* New: Added Integration Listener API
+* Improvement: Better messages in logging
+* Improvement: Integrations are now executed on the Main thread
+* Fix: Forward `Activity Started` lifecycle event to integrations
+* Fix: Convert seconds to milliseconds for Flurry
+
+Version 2.0.4 (October 10th, 2014)
 ====================================
 * Improvement: Reduce size of batched payloads
 * New: Added convenience methods for special properties

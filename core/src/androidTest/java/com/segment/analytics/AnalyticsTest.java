@@ -62,12 +62,12 @@ public class AnalyticsTest {
     BasePayload payload = mock(BasePayload.class);
     analytics.submit(payload);
     verify(dispatcher).dispatchEnqueue(payload);
-    verify(integrationManager).dispatch(payload);
+    verify(integrationManager).submit(payload);
   }
 
   @Test public void flushInvokesFlushes() throws Exception {
     analytics.flush();
-    verify(integrationManager).dispatchFlush();
+    verify(integrationManager).flush();
     verify(dispatcher).dispatchFlush();
   }
 

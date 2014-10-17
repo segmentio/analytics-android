@@ -39,9 +39,8 @@ import java.util.Queue;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Logger.OWNER_DISPATCHER;
-import static com.segment.analytics.Logger.VERB_DISPATCHED;
-import static com.segment.analytics.Logger.VERB_FLUSHED;
-import static com.segment.analytics.Logger.VERB_FLUSHING;
+import static com.segment.analytics.Logger.VERB_ENQUEUE;
+import static com.segment.analytics.Logger.VERB_FLUSH;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.panic;
 import static com.segment.analytics.Utils.quitThread;
@@ -104,8 +103,8 @@ class Dispatcher {
     queue.add(payload);
     int queueSize = queue.size();
     if (logger.loggingEnabled) {
-      logger.debug(OWNER_DISPATCHER, VERB_DISPATCHED, payload.messageId(),
-          String.format("type: %s, queueSize: %s", payload.type(), queueSize));
+      logger.debug(OWNER_DISPATCHER, VERB_ENQUEUE, payload.messageId(),
+          String.format("queueSize: %s", queueSize));
     }
     if (queueSize >= maxQueueSize) {
       performFlush();
@@ -118,8 +117,7 @@ class Dispatcher {
     final List<BasePayload> payloads = new ArrayList<BasePayload>();
     for (BasePayload payload : queue) {
       if (logger.loggingEnabled) {
-        logger.debug(OWNER_DISPATCHER, VERB_FLUSHING, payload.messageId(),
-            "type: " + payload.type());
+        logger.debug(OWNER_DISPATCHER, VERB_FLUSH, payload.messageId(), null);
       }
       payloads.add(payload);
     }
@@ -127,9 +125,6 @@ class Dispatcher {
     int count = payloads.size();
     try {
       segmentHTTPApi.upload(new BatchPayload(payloads, integrations));
-      if (logger.loggingEnabled) {
-        logger.debug(OWNER_DISPATCHER, VERB_FLUSHED, null, "events: " + count);
-      }
       stats.dispatchFlush(count);
       //noinspection ForLoopReplaceableByForEach
       for (int i = 0; i < count; i++) {
@@ -137,18 +132,16 @@ class Dispatcher {
       }
     } catch (IOException e) {
       if (logger.loggingEnabled) {
-        logger.error(OWNER_DISPATCHER, VERB_FLUSHING, null, e, "events: " + count);
+        logger.error(OWNER_DISPATCHER, VERB_FLUSH, null, e, "events: " + count);
       }
     }
   }
 
   static class BatchPayload extends JsonMap {
     /**
-     * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can be
-     * used
+     * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can be used
      * to correct the original timestamp in situations where the local clock cannot be trusted, for
-     * example in our mobile libraries. The sentAt and receivedAt timestamps will be assumed to
-     * have
+     * example in our mobile libraries. The sentAt and receivedAt timestamps will be assumed to have
      * occurred at the same time, and therefore the difference is the local clock skew.
      */
     private static final String SENT_AT_KEY = "sentAt";
