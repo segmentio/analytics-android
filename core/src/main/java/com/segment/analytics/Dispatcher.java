@@ -39,7 +39,7 @@ import java.util.Queue;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Logger.OWNER_DISPATCHER;
-import static com.segment.analytics.Logger.VERB_DISPATCH;
+import static com.segment.analytics.Logger.VERB_ENQUEUE;
 import static com.segment.analytics.Logger.VERB_FLUSH;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.panic;
@@ -103,8 +103,8 @@ class Dispatcher {
     queue.add(payload);
     int queueSize = queue.size();
     if (logger.loggingEnabled) {
-      logger.debug(OWNER_DISPATCHER, VERB_DISPATCH, payload.messageId(),
-          String.format("type: %s, queueSize: %s", payload.type(), queueSize));
+      logger.debug(OWNER_DISPATCHER, VERB_ENQUEUE, payload.messageId(),
+          String.format("queueSize: %s", queueSize));
     }
     if (queueSize >= maxQueueSize) {
       performFlush();

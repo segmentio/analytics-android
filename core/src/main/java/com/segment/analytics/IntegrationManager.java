@@ -21,6 +21,7 @@ import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Analytics.OnIntegrationReadyListener;
 import static com.segment.analytics.Logger.OWNER_INTEGRATION_MANAGER;
 import static com.segment.analytics.Logger.VERB_DISPATCH;
+import static com.segment.analytics.Logger.VERB_ENQUEUE;
 import static com.segment.analytics.Logger.VERB_INITIALIZE;
 import static com.segment.analytics.Logger.VERB_SKIP;
 import static com.segment.analytics.Utils.THREAD_PREFIX;
@@ -228,6 +229,9 @@ class IntegrationManager {
     if (initialized) {
       run(operation);
     } else {
+      if (logger.loggingEnabled) {
+        logger.debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id(), null);
+      }
       operationQueue.add(operation);
     }
   }

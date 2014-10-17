@@ -15,6 +15,7 @@ class Logger {
 
   final static String VERB_CREATE = "create";
   final static String VERB_DISPATCH = "dispatch";
+  final static String VERB_ENQUEUE = "enqueue";
   final static String VERB_FLUSH = "flush";
   final static String VERB_SKIP = "skip";
   final static String VERB_INITIALIZE = "initialize";
