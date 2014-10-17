@@ -583,6 +583,10 @@ public class Analytics {
   }
 
   void submit(ActivityLifecyclePayload payload) {
+    if (logger.loggingEnabled) {
+      logger.debug(OWNER_MAIN, VERB_CREATE, payload.id(),
+          "type: " + payload.type.toString().toLowerCase());
+    }
     integrationManager.submit(payload);
   }
 }

@@ -306,6 +306,7 @@ class IntegrationManager {
           integration.onActivityCreated(activity, bundle);
           break;
         case STARTED:
+          integration.onActivityStarted(activity);
           break;
         case RESUMED:
           integration.onActivityResumed(activity);

@@ -4,6 +4,8 @@ Version 2.0.5 (In progress)
 * New: Added Integration Listener API
 * Improvement: Better messages in logging
 * Fix: Integrations are now executed on the Main thread
+* Fix: Forward `Activity Started` lifecycle to integrations
+* Fix: Convert seconds to milliseconds for Flurry
 
 Version 2.0.4 (October 4th, 2014)
 ====================================

@@ -22,7 +22,7 @@ class FlurryIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     apiKey = settings.getString("apiKey");
-    FlurryAgent.setContinueSessionMillis(settings.getInt("sessionContinueSeconds", 10));
+    FlurryAgent.setContinueSessionMillis(settings.getInt("sessionContinueSeconds", 10) * 1000);
     FlurryAgent.setCaptureUncaughtExceptions(
         settings.getBoolean("captureUncaughtExceptions", false));
     FlurryAgent.setUseHttps(settings.getBoolean("useHttps", true));
@@ -54,8 +54,8 @@ class FlurryIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
     super.identify(identify);
     Traits traits = identify.traits();
     FlurryAgent.setUserId(identify.userId());
-    Integer age = traits.age();
-    if (age != null) {
+    int age = traits.age();
+    if (age >= 0) {
       FlurryAgent.setAge(age);
     }
     String gender = traits.gender();
