@@ -14,7 +14,6 @@ import org.robolectric.annotation.Config;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
-import static com.segment.analytics.TestUtils.createLogger;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -29,7 +28,6 @@ public class DispatcherTest {
   @Mock SegmentHTTPApi segmentHTTPApi;
   @Mock Stats stats;
   Context context;
-  Logger logger;
   Queue<BasePayload> queue;
   Dispatcher dispatcher;
 
@@ -37,14 +35,13 @@ public class DispatcherTest {
     initMocks(this);
     context = mockApplication();
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
-    logger = createLogger();
     queue = new ArrayDeque<BasePayload>();
     dispatcher = createDispatcher(20);
   }
 
   Dispatcher createDispatcher(int maxQueueSize) {
     return new Dispatcher(context, maxQueueSize, segmentHTTPApi, queue,
-        Collections.<String, Boolean>emptyMap(), stats, logger);
+        Collections.<String, Boolean>emptyMap(), stats, true);
   }
 
   @Test public void addsToQueueCorrectly() {

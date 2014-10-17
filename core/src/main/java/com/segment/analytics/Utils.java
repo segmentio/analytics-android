@@ -34,6 +34,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
+import android.util.Log;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -241,5 +242,34 @@ final class Utils {
 
   private static boolean isMain() {
     return Looper.getMainLooper().getThread() == Thread.currentThread();
+  }
+
+  final static String OWNER_MAIN = "Main";
+  final static String OWNER_DISPATCHER = "Dispatcher";
+  final static String OWNER_INTEGRATION_MANAGER = "IntegrationManager";
+
+  final static String VERB_CREATE = "create";
+  final static String VERB_DISPATCH = "dispatch";
+  final static String VERB_ENQUEUE = "enqueue";
+  final static String VERB_FLUSH = "flush";
+  final static String VERB_SKIP = "skip";
+  final static String VERB_INITIALIZE = "initialize";
+
+  final static String TAG = "Segment";
+  // [thread] [verb] [id] {[extras]}
+  final static String FORMAT = "%1$-20s %2$-12s %3$-36s {%4$s}";
+  final static String EMPTY = "";
+
+  /** Call only if loggingEnabled is true */
+  static void debug(String owner, String verb, String id, String extras) {
+    Log.d(TAG, String.format(FORMAT, owner, verb, id == null ? EMPTY : id,
+        extras == null ? EMPTY : extras));
+  }
+
+  /** Call only if loggingEnabled is true */
+  static void error(String owner, String verb, String id, Throwable throwable, String extras) {
+    Log.e(TAG, String.format(FORMAT, owner, verb + " (error)", id == null ? EMPTY : id,
+            extras == null ? EMPTY : extras) + Log.getStackTraceString(throwable)
+    );
   }
 }

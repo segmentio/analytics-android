@@ -89,10 +89,6 @@ final class TestUtils {
       + "        {\"id\": \"About\", \"label\": \"About Adobe CVG Viewer...\"}\n"
       + "    ]";
 
-  static Logger createLogger() {
-    return new Logger(true);
-  }
-
   static Application mockApplication() {
     Application application = mock(Application.class);
     when(application.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_GRANTED);

@@ -19,12 +19,13 @@ import java.util.UUID;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Analytics.OnIntegrationReadyListener;
-import static com.segment.analytics.Logger.OWNER_INTEGRATION_MANAGER;
-import static com.segment.analytics.Logger.VERB_DISPATCH;
-import static com.segment.analytics.Logger.VERB_ENQUEUE;
-import static com.segment.analytics.Logger.VERB_INITIALIZE;
-import static com.segment.analytics.Logger.VERB_SKIP;
+import static com.segment.analytics.Utils.OWNER_INTEGRATION_MANAGER;
 import static com.segment.analytics.Utils.THREAD_PREFIX;
+import static com.segment.analytics.Utils.VERB_DISPATCH;
+import static com.segment.analytics.Utils.VERB_ENQUEUE;
+import static com.segment.analytics.Utils.VERB_INITIALIZE;
+import static com.segment.analytics.Utils.VERB_SKIP;
+import static com.segment.analytics.Utils.debug;
 import static com.segment.analytics.Utils.getSharedPreferences;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.isOnClassPath;
@@ -50,7 +51,7 @@ class IntegrationManager {
   final HandlerThread integrationManagerThread;
   final Handler handler;
   final Stats stats;
-  final Logger logger;
+  final boolean loggingEnabled;
   final StringCache projectSettingsCache;
 
   final Set<AbstractIntegrationAdapter> bundledIntegrations =
@@ -61,11 +62,11 @@ class IntegrationManager {
   OnIntegrationReadyListener listener;
 
   private IntegrationManager(Context context, SegmentHTTPApi segmentHTTPApi,
-      StringCache projectSettingsCache, Stats stats, Logger logger) {
+      StringCache projectSettingsCache, Stats stats, boolean loggingEnabled) {
     this.context = context;
     this.segmentHTTPApi = segmentHTTPApi;
     this.stats = stats;
-    this.logger = logger;
+    this.loggingEnabled = loggingEnabled;
     integrationManagerThread = new HandlerThread(MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     integrationManagerThread.start();
     handler = new IntegrationManagerHandler(integrationManagerThread.getLooper(), this);
@@ -117,10 +118,10 @@ class IntegrationManager {
   }
 
   static IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi, Stats stats,
-      Logger logger) {
+      boolean logging) {
     StringCache projectSettingsCache =
         new StringCache(getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
-    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logger);
+    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logging);
   }
 
   private static boolean isBundledIntegrationEnabledForPayload(BasePayload payload,
@@ -155,8 +156,8 @@ class IntegrationManager {
   void performFetch() {
     try {
       if (isConnected(context)) {
-        if (logger.loggingEnabled) {
-          logger.debug(OWNER_INTEGRATION_MANAGER, "request", "fetch settings", null);
+        if (loggingEnabled) {
+          debug(OWNER_INTEGRATION_MANAGER, "request", "fetch settings", null);
         }
 
         ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
@@ -172,8 +173,8 @@ class IntegrationManager {
         retryFetch();
       }
     } catch (IOException e) {
-      if (logger.loggingEnabled) {
-        logger.error(OWNER_INTEGRATION_MANAGER, "request", "fetch settings", e, null);
+      if (loggingEnabled) {
+        Utils.error(OWNER_INTEGRATION_MANAGER, "request", "fetch settings", e, null);
       }
       retryFetch();
     }
@@ -187,8 +188,8 @@ class IntegrationManager {
         JsonMap settings = new JsonMap(projectSettings.getJsonMap(integration.key()));
         try {
           integration.initialize(context, settings);
-          if (logger.loggingEnabled) {
-            logger.debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(),
+          if (loggingEnabled) {
+            debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(),
                 settings.toString());
           }
           if (listener != null) {
@@ -196,15 +197,15 @@ class IntegrationManager {
           }
         } catch (InvalidConfigurationException e) {
           iterator.remove();
-          if (logger.loggingEnabled) {
-            logger.error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), e,
+          if (loggingEnabled) {
+            Utils.error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), e,
                 settings.toString());
           }
         }
       } else {
         iterator.remove();
-        if (logger.loggingEnabled) {
-          logger.debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, integration.key(),
+        if (loggingEnabled) {
+          debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, integration.key(),
               "not enabled in project settings: " + projectSettings.keySet());
         }
       }
@@ -229,8 +230,8 @@ class IntegrationManager {
     if (initialized) {
       run(operation);
     } else {
-      if (logger.loggingEnabled) {
-        logger.debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id(), null);
+      if (loggingEnabled) {
+        debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id(), null);
       }
       operationQueue.add(operation);
     }
@@ -242,8 +243,8 @@ class IntegrationManager {
       operation.run(integration);
       long endTime = System.currentTimeMillis();
       long duration = endTime - startTime;
-      if (logger.loggingEnabled) {
-        logger.debug(integration.key(), VERB_DISPATCH, operation.id(),
+      if (loggingEnabled) {
+        debug(integration.key(), VERB_DISPATCH, operation.id(),
             String.format("duration: %s", duration));
       }
       stats.dispatchIntegrationOperation(duration);

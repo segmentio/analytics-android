@@ -7,7 +7,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.TestUtils.createLogger;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -25,7 +24,6 @@ public class AnalyticsTest {
   @Mock TraitsCache traitsCache;
   @Mock AnalyticsContext analyticsContext;
   @Mock Options defaultOptions;
-  Logger logger;
 
   private Analytics analytics;
 
@@ -34,9 +32,8 @@ public class AnalyticsTest {
     application = mockApplication();
     Traits traits = new Traits();
     when(traitsCache.get()).thenReturn(traits);
-    logger = createLogger();
     analytics = new Analytics(application, dispatcher, integrationManager, stats, traitsCache,
-        analyticsContext, defaultOptions, logger);
+        analyticsContext, defaultOptions, true);
   }
 
   @Test public void logoutClearsTraitsAndUpdatesContext() {
