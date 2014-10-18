@@ -208,7 +208,7 @@ public class Properties extends JsonMap {
     return getDouble(PRICE_KEY, 0);
   }
 
-  static class Product extends JsonMap {
+  public static class Product extends JsonMap {
     private static final String ID_KEY = "id";
     private static final String SKU_KEY = "sku";
     private static final String NAME_KEY = "name";
