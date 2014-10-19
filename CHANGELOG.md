@@ -1,5 +1,11 @@
 Version 2.1.2 (October 17th, 2014)
 ====================================
+* Improvement: better logging for serialization errors
+* Fix: Make `Product` class public
+* Improvement: Add timezone in context
+
+Version 2.1.2 (October 17th, 2014)
+====================================
 * Fix: more resilience to file system errors
 
 Version 2.1.1 (October 16th, 2014)
