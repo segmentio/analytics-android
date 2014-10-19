@@ -60,7 +60,6 @@ public class FileObjectQueue<T> implements ObjectQueue<T> {
         public void read(InputStream in, int length) throws IOException {
           byte[] data = new byte[length];
           in.read(data, 0, length);
-
           listener.onAdd(FileObjectQueue.this, converter.from(data));
         }
       });

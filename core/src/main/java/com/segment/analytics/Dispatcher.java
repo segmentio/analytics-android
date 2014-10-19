@@ -111,6 +111,8 @@ class Dispatcher {
             String.format("payload: %s", payload));
       }
     }
+
+    // Check if we've reached the maximum queue size
     int queueSize = queue.size();
     if (loggingEnabled) {
       debug(OWNER_DISPATCHER, VERB_ENQUEUE, payload.messageId(),
@@ -144,6 +146,7 @@ class Dispatcher {
         error(OWNER_DISPATCHER, VERB_FLUSH, "could not read queue", e,
             String.format("queue: %s", queue));
       }
+      return;
     }
 
     int count = payloads.size();
@@ -156,7 +159,7 @@ class Dispatcher {
       }
     } catch (IOException e) {
       if (loggingEnabled) {
-        error(OWNER_DISPATCHER, VERB_FLUSH, null, e, "events: " + count);
+        error(OWNER_DISPATCHER, VERB_FLUSH, "unable to clear queue", e, "events: " + count);
       }
     }
   }
