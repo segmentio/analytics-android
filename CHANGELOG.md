@@ -1,4 +1,4 @@
-Version 2.1.2 (October 17th, 2014)
+Version 2.1.2 (October 19th, 2014)
 ====================================
 * Improvement: better logging for serialization errors
 * Fix: Make `Product` class public
