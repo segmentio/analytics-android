@@ -162,13 +162,13 @@ class IntegrationManager {
         }
 
         final ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
+        String projectSettingsJson = projectSettings.toString();
+        projectSettingsCache.set(projectSettingsJson);
 
         if (!initialized) {
           // Only initialize integrations if not done already
           Analytics.MAIN_LOOPER.post(new Runnable() {
             @Override public void run() {
-              String projectSettingsJson = projectSettings.toString();
-              projectSettingsCache.set(projectSettingsJson);
               initializeIntegrations(projectSettings);
             }
           });
@@ -184,7 +184,7 @@ class IntegrationManager {
     }
   }
 
-  void initializeIntegrations(ProjectSettings projectSettings) {
+  synchronized void initializeIntegrations(ProjectSettings projectSettings) {
     Iterator<AbstractIntegrationAdapter> iterator = bundledIntegrations.iterator();
     while (iterator.hasNext()) {
       final AbstractIntegrationAdapter integration = iterator.next();
@@ -214,30 +214,34 @@ class IntegrationManager {
         }
       }
     }
-    replayQueuedEvents();
+    Iterator<IntegrationOperation> operationIterator = operationQueue.iterator();
+    while (operationIterator.hasNext()) {
+      run(operationIterator.next());
+      operationIterator.remove();
+    }
+    operationQueue = null;
     initialized = true;
   }
 
-  void submit(ActivityLifecyclePayload payload) {
-    enqueue(payload);
-  }
-
-  void submit(BasePayload payload) {
-    enqueue(new AnalyticsOperation(payload));
-  }
-
   void flush() {
-    enqueue(new FlushOperation());
+    submit(new FlushOperation());
   }
 
-  private void enqueue(IntegrationOperation operation) {
+  void submit(IntegrationOperation operation) {
     if (initialized) {
       run(operation);
     } else {
-      if (loggingEnabled) {
-        debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id(), null);
+      // Integrations might be being initialized, so let's wait for the lock
+      synchronized (this) {
+        if (initialized) {
+          run(operation);
+        } else {
+          if (loggingEnabled) {
+            debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id(), null);
+          }
+          operationQueue.add(operation);
+        }
       }
-      operationQueue.add(operation);
     }
   }
 
@@ -253,14 +257,6 @@ class IntegrationManager {
       }
       stats.dispatchIntegrationOperation(duration);
     }
-  }
-
-  void replayQueuedEvents() {
-    for (IntegrationOperation operation : operationQueue) {
-      run(operation);
-    }
-    operationQueue.clear();
-    operationQueue = null;
   }
 
   void registerIntegrationInitializedListener(OnIntegrationReadyListener listener) {
@@ -355,42 +351,6 @@ class IntegrationManager {
 
     @Override public String id() {
       return id;
-    }
-  }
-
-  static class AnalyticsOperation implements IntegrationOperation {
-    final BasePayload payload;
-
-    AnalyticsOperation(BasePayload payload) {
-      this.payload = payload;
-    }
-
-    @Override public void run(AbstractIntegrationAdapter integration) {
-      if (!isBundledIntegrationEnabledForPayload(payload, integration)) return;
-
-      switch (payload.type()) {
-        case alias:
-          integration.alias((AliasPayload) payload);
-          break;
-        case group:
-          integration.group((GroupPayload) payload);
-          break;
-        case identify:
-          integration.identify((IdentifyPayload) payload);
-          break;
-        case screen:
-          integration.screen((ScreenPayload) payload);
-          break;
-        case track:
-          integration.track((TrackPayload) payload);
-          break;
-        default:
-          panic("Unknown payload type!" + payload.type());
-      }
-    }
-
-    @Override public String id() {
-      return payload.messageId();
     }
   }
 

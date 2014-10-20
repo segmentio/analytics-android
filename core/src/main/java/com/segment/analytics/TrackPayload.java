@@ -52,4 +52,8 @@ class TrackPayload extends BasePayload {
   Properties properties() {
     return (Properties) get(PROPERTIES_KEY);
   }
+
+  @Override public void run(AbstractIntegrationAdapter integration) {
+    integration.track(this);
+  }
 }

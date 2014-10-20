@@ -40,4 +40,8 @@ class AliasPayload extends BasePayload {
   String previousId() {
     return getString(PREVIOUS_ID_KEY);
   }
+
+  @Override public void run(AbstractIntegrationAdapter integration) {
+    integration.alias(this);
+  }
 }

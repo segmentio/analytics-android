@@ -69,4 +69,8 @@ class ScreenPayload extends BasePayload {
   Properties properties() {
     return (Properties) get(PROPERTIES_KEY);
   }
+
+  @Override public void run(AbstractIntegrationAdapter integration) {
+    integration.screen(this);
+  }
 }

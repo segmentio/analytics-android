@@ -35,7 +35,7 @@ import static com.segment.analytics.Utils.toISO8601Date;
  */
 // This ignores projectId, receivedAt and version that are set by the server.
 // sentAt is set on SegmentHTTPApi#BatchPayload
-class BasePayload extends JsonMap {
+abstract class BasePayload extends JsonMap implements IntegrationManager.IntegrationOperation {
   enum Type {
     alias, group, identify, screen, track
   }
@@ -94,7 +94,7 @@ class BasePayload extends JsonMap {
 
   BasePayload(Type type, String anonymousId, AnalyticsContext context, String userId,
       Options options) {
-    put(MESSAGE_ID, UUID.randomUUID());
+    put(MESSAGE_ID, UUID.randomUUID().toString());
     put(TYPE_KEY, type);
     put(CHANNEL_KEY, Channel.mobile);
     put(ANONYMOUS_ID_KEY, anonymousId);
@@ -113,10 +113,6 @@ class BasePayload extends JsonMap {
     return getJsonMap(INTEGRATIONS_KEY);
   }
 
-  String messageId() {
-    return getString(MESSAGE_ID);
-  }
-
   Type type() {
     return getEnum(Type.class, TYPE_KEY);
   }
@@ -132,5 +128,9 @@ class BasePayload extends JsonMap {
   @Override BasePayload putValue(String key, Object value) {
     super.putValue(key, value);
     return this;
+  }
+
+  @Override public String id() {
+    return getString(MESSAGE_ID);
   }
 }
