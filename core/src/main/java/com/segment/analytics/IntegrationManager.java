@@ -26,6 +26,7 @@ import static com.segment.analytics.Utils.VERB_ENQUEUE;
 import static com.segment.analytics.Utils.VERB_INITIALIZE;
 import static com.segment.analytics.Utils.VERB_SKIP;
 import static com.segment.analytics.Utils.debug;
+import static com.segment.analytics.Utils.error;
 import static com.segment.analytics.Utils.getSharedPreferences;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.isOnClassPath;
@@ -160,21 +161,24 @@ class IntegrationManager {
           debug(OWNER_INTEGRATION_MANAGER, "request", "fetch settings", null);
         }
 
-        ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
-
-        String projectSettingsJson = projectSettings.toString();
-        projectSettingsCache.set(projectSettingsJson);
+        final ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
 
         if (!initialized) {
           // Only initialize integrations if not done already
-          initializeIntegrations(projectSettings);
+          Analytics.MAIN_LOOPER.post(new Runnable() {
+            @Override public void run() {
+              String projectSettingsJson = projectSettings.toString();
+              projectSettingsCache.set(projectSettingsJson);
+              initializeIntegrations(projectSettings);
+            }
+          });
         }
       } else {
         retryFetch();
       }
     } catch (IOException e) {
       if (loggingEnabled) {
-        Utils.error(OWNER_INTEGRATION_MANAGER, "request", "fetch settings", e, null);
+        error(OWNER_INTEGRATION_MANAGER, "request", "fetch settings", e, null);
       }
       retryFetch();
     }
@@ -198,7 +202,7 @@ class IntegrationManager {
         } catch (InvalidConfigurationException e) {
           iterator.remove();
           if (loggingEnabled) {
-            Utils.error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), e,
+            error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), e,
                 settings.toString());
           }
         }
