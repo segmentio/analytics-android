@@ -1,4 +1,8 @@
-Version 2.1.2 (October 19th, 2014)
+Version 2.1.4 (October 20th, 2014)
+====================================
+* Fix: Initialize bundled integrations on main thread
+
+Version 2.1.3 (October 19th, 2014)
 ====================================
 * Improvement: better logging for serialization errors
 * Fix: Make `Product` class public
