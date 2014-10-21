@@ -31,7 +31,7 @@ Version 2.1.0 (October 16th, 2014)
 * API Change: Hide lifecycle callbacks. We register this automatically so user's shouldn't use these.
 * New: Added Integration Listener API
 * Improvement: Better messages in logging
-* Improvement: Integrations are now executed on the Main thread
+* Improvement: Integrations are now executed synchronously
 * Fix: Forward `Activity Started` lifecycle event to integrations
 * Fix: Convert seconds to milliseconds for Flurry
 
