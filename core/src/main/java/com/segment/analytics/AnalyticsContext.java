@@ -82,6 +82,7 @@ public class AnalyticsContext extends JsonMap {
   private static final String DEVICE_MODEL_KEY = "model";
   private static final String DEVICE_NAME_KEY = "name";
   private static final String DEVICE_BRAND_KEY = "brand";
+  private static final String DEVICE_TOKEN_KEY = "token";
   private static final String LIBRARY_KEY = "library";
   private static final String LIBRARY_NAME_KEY = "name";
   private static final String LIBRARY_VERSION_KEY = "version";
@@ -191,13 +192,19 @@ public class AnalyticsContext extends JsonMap {
     return this;
   }
 
-  void putDevice(Context context) {
+  public void putDevice(Context context) {
     Map<String, Object> device = new LinkedHashMap<String, Object>(5);
     device.put(DEVICE_ID_KEY, getDeviceId(context));
     device.put(DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);
     device.put(DEVICE_MODEL_KEY, Build.MODEL);
     device.put(DEVICE_NAME_KEY, Build.DEVICE);
     device.put(DEVICE_BRAND_KEY, Build.BRAND);
+    put(DEVICE_KEY, device);
+  }
+
+  public void putDeviceToken(String token) {
+    JsonMap device = getJsonMap(DEVICE_KEY);
+    device.put(DEVICE_TOKEN_KEY, token);
     put(DEVICE_KEY, device);
   }
 
