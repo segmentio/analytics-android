@@ -1,5 +1,9 @@
 Version 2.1.6 (October 21th, 2014)
 ====================================
+* New: Setter method for device token, used by Outbound.io for push notifications
+
+Version 2.1.5 (October 21th, 2014)
+====================================
 * Fix: Cache settings every time we request it
 * Fix: Avoid race condition when calling tracking methods on bundled integrations
 
