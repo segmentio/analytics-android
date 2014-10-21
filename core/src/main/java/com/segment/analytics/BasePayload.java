@@ -35,7 +35,7 @@ import static com.segment.analytics.Utils.toISO8601Date;
  */
 // This ignores projectId, receivedAt and version that are set by the server.
 // sentAt is set on SegmentHTTPApi#BatchPayload
-abstract class BasePayload extends JsonMap implements IntegrationManager.IntegrationOperation {
+class BasePayload extends JsonMap implements IntegrationManager.IntegrationOperation {
   enum Type {
     alias, group, identify, screen, track
   }
@@ -128,6 +128,11 @@ abstract class BasePayload extends JsonMap implements IntegrationManager.Integra
   @Override BasePayload putValue(String key, Object value) {
     super.putValue(key, value);
     return this;
+  }
+
+  @Override public void run(AbstractIntegrationAdapter integration) {
+    // needed for deserialization
+    throw new UnsupportedOperationException("must be a subclass to call on an integration");
   }
 
   @Override public String id() {

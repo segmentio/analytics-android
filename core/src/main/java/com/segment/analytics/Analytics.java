@@ -573,7 +573,7 @@ public class Analytics {
 
   void submit(BasePayload payload) {
     if (loggingEnabled) {
-      debug(OWNER_MAIN, VERB_CREATE, payload.messageId(), "type: " + payload.type());
+      debug(OWNER_MAIN, VERB_CREATE, payload.id(), "type: " + payload.type());
     }
     dispatcher.dispatchEnqueue(payload);
     integrationManager.submit(payload);

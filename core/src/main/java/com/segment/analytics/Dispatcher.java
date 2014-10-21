@@ -107,7 +107,7 @@ class Dispatcher {
       queue.add(payload);
     } catch (IOException e) {
       if (loggingEnabled) {
-        error(OWNER_DISPATCHER, VERB_ENQUEUE, payload.messageId(), e,
+        error(OWNER_DISPATCHER, VERB_ENQUEUE, payload.id(), e,
             String.format("payload: %s", payload));
       }
     }
@@ -115,7 +115,7 @@ class Dispatcher {
     // Check if we've reached the maximum queue size
     int queueSize = queue.size();
     if (loggingEnabled) {
-      debug(OWNER_DISPATCHER, VERB_ENQUEUE, payload.messageId(),
+      debug(OWNER_DISPATCHER, VERB_ENQUEUE, payload.id(),
           String.format("queueSize: %s", queueSize));
     }
     if (queueSize >= maxQueueSize) {
@@ -131,7 +131,7 @@ class Dispatcher {
       queue.setListener(new ObjectQueue.Listener<BasePayload>() {
         @Override public void onAdd(ObjectQueue<BasePayload> queue, BasePayload entry) {
           if (loggingEnabled) {
-            debug(OWNER_DISPATCHER, VERB_FLUSH, entry.messageId(), null);
+            debug(OWNER_DISPATCHER, VERB_FLUSH, entry.id(), null);
           }
           payloads.add(entry);
         }

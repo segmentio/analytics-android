@@ -1,3 +1,8 @@
+Version 2.1.6 (October 21th, 2014)
+====================================
+* Fix: Cache settings every time we request it
+* Fix: Avoid race condition when calling tracking methods on bundled integrations
+
 Version 2.1.4 (October 20th, 2014)
 ====================================
 * Fix: Initialize bundled integrations on main thread
