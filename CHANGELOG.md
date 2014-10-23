@@ -1,3 +1,7 @@
+Version 2.1.7 (October 23rd, 2014)
+====================================
+* Fix: Make Tape classes non-public
+
 Version 2.1.6 (October 21th, 2014)
 ====================================
 * New: Setter method for device token, used by Outbound.io for push notifications
