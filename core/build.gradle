@@ -14,6 +14,7 @@ dependencies {
   provided rootProject.ext.libraries.supportLib
   provided rootProject.ext.libraries.googleAnalytics
   provided rootProject.ext.libraries.localytics
+  provided rootProject.ext.libraries.leanplum
   provided rootProject.ext.libraries.mixpanel
   provided rootProject.ext.libraries.quantcast
   provided rootProject.ext.libraries.tapstream

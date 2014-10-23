@@ -96,6 +96,9 @@ class IntegrationManager {
     if (isOnClassPath("com.localytics.android.LocalyticsSession")) {
       bundleIntegration(new LocalyticsIntegrationAdapter());
     }
+    if (isOnClassPath("com.leanplum.Leanplum")) {
+      bundleIntegration(new LeanplumIntegrationAdapter());
+    }
     if (isOnClassPath("com.mixpanel.android.mpmetrics.MixpanelAPI")) {
       bundleIntegration(new MixpanelIntegrationAdapter());
     }
