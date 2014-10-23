@@ -9,8 +9,9 @@ dependencies {
   provided rootProject.ext.libraries.countly
   provided rootProject.ext.libraries.crittercism
   provided rootProject.ext.libraries.flurry
+  // workaround for https://github.com/JakeWharton/sdk-manager-plugin/issues/14 to make sure travis
+  // installs googleAnalytics dependencies
   provided rootProject.ext.libraries.supportLib
-  // workaround for https://github.com/JakeWharton/sdk-manager-plugin/issues/14
   provided rootProject.ext.libraries.googleAnalytics
   provided rootProject.ext.libraries.localytics
   provided rootProject.ext.libraries.mixpanel
@@ -20,7 +21,11 @@ dependencies {
   androidTestCompile 'junit:junit:4.11'
   androidTestCompile 'com.squareup.assertj:assertj-android:1.0.0'
   androidTestCompile 'org.mockito:mockito-all:1.9.5'
-  androidTestCompile 'org.robolectric:robolectric:2.3'
+  androidTestCompile('org.robolectric:robolectric:2.3') {
+    // Workaround for https://github.com/robolectric/robolectric-gradle-plugin/issues/43
+    // and https://github.com/robolectric/robolectric/issues/1175
+    exclude group: 'com.android.support', module: 'support-v4'
+  }
 }
 
 android {
