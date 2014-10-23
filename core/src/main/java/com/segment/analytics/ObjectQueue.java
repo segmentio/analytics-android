@@ -8,7 +8,7 @@ import java.io.IOException;
  *
  * @param <T> The type of queue for the elements.
  */
-public interface ObjectQueue<T> {
+interface ObjectQueue<T> {
 
   /** Returns the number of entries in the queue. */
   int size();
@@ -37,7 +37,7 @@ public interface ObjectQueue<T> {
    *
    * @param <T> The type of elements in the queue.
    */
-  public interface Listener<T> {
+  interface Listener<T> {
 
     /** Called after an entry is added. */
     void onAdd(ObjectQueue<T> queue, T entry);

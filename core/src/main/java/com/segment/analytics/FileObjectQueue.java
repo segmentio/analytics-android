@@ -14,7 +14,7 @@ import java.io.OutputStream;
  *
  * @param <T> The type of elements in the queue.
  */
-public class FileObjectQueue<T> implements ObjectQueue<T> {
+class FileObjectQueue<T> implements ObjectQueue<T> {
   /** Backing storage implementation. */
   private final QueueFile queueFile;
   /** Reusable byte output buffer. */
@@ -22,13 +22,13 @@ public class FileObjectQueue<T> implements ObjectQueue<T> {
   private final Converter<T> converter;
   private Listener<T> listener;
 
-  public FileObjectQueue(File file, Converter<T> converter) throws IOException {
+  FileObjectQueue(File file, Converter<T> converter) throws IOException {
     this.converter = converter;
     this.queueFile = new QueueFile(file);
   }
 
   @Override public int size() {
-    return queueFile.size();
+    return 0;
   }
 
   @Override public final void add(T entry) throws IOException {
@@ -49,7 +49,7 @@ public class FileObjectQueue<T> implements ObjectQueue<T> {
     if (listener != null) listener.onRemove(this);
   }
 
-  public final void close() throws IOException {
+  final void close() throws IOException {
     queueFile.close();
   }
 
@@ -72,7 +72,7 @@ public class FileObjectQueue<T> implements ObjectQueue<T> {
    *
    * @param <T> Object type.
    */
-  public interface Converter<T> {
+  interface Converter<T> {
     /** Converts bytes to an object. */
     T from(byte[] bytes) throws IOException;
 
@@ -82,7 +82,7 @@ public class FileObjectQueue<T> implements ObjectQueue<T> {
 
   /** Enables direct access to the internal array. Avoids unnecessary copying. */
   private static class DirectByteArrayOutputStream extends ByteArrayOutputStream {
-    public DirectByteArrayOutputStream() {
+    DirectByteArrayOutputStream() {
       super();
     }
 
@@ -90,7 +90,7 @@ public class FileObjectQueue<T> implements ObjectQueue<T> {
      * Gets a reference to the internal byte array.  The {@link #size()} method indicates how many
      * bytes contain actual data added since the last {@link #reset()} call.
      */
-    public byte[] getArray() {
+    byte[] getArray() {
       return buf;
     }
   }

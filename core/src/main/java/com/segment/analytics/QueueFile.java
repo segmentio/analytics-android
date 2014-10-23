@@ -51,7 +51,7 @@ import static java.lang.Math.min;
  *
  * @author Bob Lee (bob@squareup.com)
  */
-public class QueueFile {
+class QueueFile {
   private static final Logger LOGGER = Logger.getLogger(QueueFile.class.getName());
 
   /** Initial file size in bytes. */
@@ -111,7 +111,7 @@ public class QueueFile {
    * Constructs a new queue backed by the given file. Only one {@code QueueFile}
    * instance should access a given file at a time.
    */
-  public QueueFile(File file) throws IOException {
+  QueueFile(File file) throws IOException {
     if (!file.exists()) initialize(file);
     raf = open(file);
     readHeader();
@@ -282,7 +282,7 @@ public class QueueFile {
    *
    * @param data to copy bytes from
    */
-  public void add(byte[] data) throws IOException {
+  void add(byte[] data) throws IOException {
     add(data, 0, data.length);
   }
 
@@ -296,7 +296,7 @@ public class QueueFile {
    * offset + count} is
    * bigger than the length of {@code buffer}.
    */
-  public synchronized void add(byte[] data, int offset, int count) throws IOException {
+  synchronized void add(byte[] data, int offset, int count) throws IOException {
     nonNull(data, "buffer");
     if ((offset | count) < 0 || count > data.length - offset) {
       throw new IndexOutOfBoundsException();
@@ -348,7 +348,7 @@ public class QueueFile {
   }
 
   /** Returns true if this queue contains no entries. */
-  public synchronized boolean isEmpty() {
+  synchronized boolean isEmpty() {
     return elementCount == 0;
   }
 
@@ -409,7 +409,7 @@ public class QueueFile {
   }
 
   /** Reads the eldest element. Returns null if the queue is empty. */
-  public synchronized byte[] peek() throws IOException {
+  synchronized byte[] peek() throws IOException {
     if (isEmpty()) return null;
     int length = first.length;
     byte[] data = new byte[length];
@@ -418,7 +418,7 @@ public class QueueFile {
   }
 
   /** Invokes reader with the eldest element, if an element is available. */
-  public synchronized void peek(ElementReader reader) throws IOException {
+  synchronized void peek(ElementReader reader) throws IOException {
     if (elementCount > 0) {
       reader.read(new ElementInputStream(first), first.length);
     }
@@ -428,7 +428,7 @@ public class QueueFile {
    * Invokes the given reader once for each element in the queue, from eldest to
    * most recently added.
    */
-  public synchronized void forEach(ElementReader reader) throws IOException {
+  synchronized void forEach(ElementReader reader) throws IOException {
     int position = first.position;
     for (int i = 0; i < elementCount; i++) {
       Element current = readElement(position);
@@ -484,7 +484,7 @@ public class QueueFile {
   }
 
   /** Returns the number of elements in this queue. */
-  public synchronized int size() {
+  synchronized int size() {
     return elementCount;
   }
 
@@ -493,7 +493,7 @@ public class QueueFile {
    *
    * @throws java.util.NoSuchElementException if the queue is empty
    */
-  public synchronized void remove() throws IOException {
+  synchronized void remove() throws IOException {
     if (isEmpty()) throw new NoSuchElementException();
     if (elementCount == 1) {
       clear();
@@ -513,7 +513,7 @@ public class QueueFile {
   }
 
   /** Clears this queue. Truncates the file to the initial size. */
-  public synchronized void clear() throws IOException {
+  synchronized void clear() throws IOException {
     raf.seek(0);
     raf.write(ZEROES);
     writeHeader(INITIAL_LENGTH, 0, 0, 0);
@@ -525,7 +525,7 @@ public class QueueFile {
   }
 
   /** Closes the underlying file. */
-  public synchronized void close() throws IOException {
+  synchronized void close() throws IOException {
     raf.close();
   }
 
@@ -598,7 +598,7 @@ public class QueueFile {
    * Reads queue elements. Enables partial reads as opposed to reading all of
    * the bytes into a byte[].
    */
-  public interface ElementReader {
+  interface ElementReader {
 
     /*
      * TODO: Support remove() call from read().
