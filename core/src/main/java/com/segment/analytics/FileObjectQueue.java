@@ -28,7 +28,7 @@ class FileObjectQueue<T> implements ObjectQueue<T> {
   }
 
   @Override public int size() {
-    return 0;
+    return queueFile.size();
   }
 
   @Override public final void add(T entry) throws IOException {

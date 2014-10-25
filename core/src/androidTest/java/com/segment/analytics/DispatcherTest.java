@@ -1,12 +1,16 @@
 package com.segment.analytics;
 
 import android.content.Context;
+
+import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -15,7 +19,6 @@ import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
@@ -29,12 +32,16 @@ public class DispatcherTest {
   ObjectQueue<BasePayload> queue;
   Dispatcher dispatcher;
 
+  private static final BasePayload TEST_PAYLOAD =
+          new BasePayload("{\n"
+                  + "\"messageId\":\"ID\",\n"
+                  + "\"type\":\"TYPE\"\n"
+                  + "}");
+
   @Before public void setUp() {
     initMocks(this);
     context = mockApplication();
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
-    queue = new InMemoryObjectQueue<BasePayload>();
-    dispatcher = createDispatcher(20);
   }
 
   Dispatcher createDispatcher(int maxQueueSize) {
@@ -42,21 +49,30 @@ public class DispatcherTest {
         Collections.<String, Boolean>emptyMap(), stats, true);
   }
 
-  @Test public void addsToQueueCorrectly() {
+  ObjectQueue<BasePayload> createQueue() throws IOException {
+    File parent = Robolectric.getShadowApplication().getFilesDir();
+    File queueFile = new File(parent, "test.queue");
+    queueFile.delete();
+    return new FileObjectQueue<BasePayload>(queueFile, new PayloadConverter());
+  }
+
+  @Test public void addsToQueueCorrectly() throws IOException {
+    queue = createQueue();
     dispatcher = createDispatcher(20);
     assertThat(queue.size()).isEqualTo(0);
-    dispatcher.performEnqueue(mock(BasePayload.class));
+    dispatcher.performEnqueue(TEST_PAYLOAD);
     assertThat(queue.size()).isEqualTo(1);
-    dispatcher.performEnqueue(mock(BasePayload.class));
+    dispatcher.performEnqueue(TEST_PAYLOAD);
     assertThat(queue.size()).isEqualTo(2);
   }
 
-  @Test public void flushesQueueCorrectly() {
+  @Test public void flushesQueueCorrectly() throws IOException {
+    queue = createQueue();
     dispatcher = createDispatcher(20);
-    dispatcher.performEnqueue(mock(BasePayload.class));
-    dispatcher.performEnqueue(mock(BasePayload.class));
-    dispatcher.performEnqueue(mock(BasePayload.class));
-    dispatcher.performEnqueue(mock(BasePayload.class));
+    dispatcher.performEnqueue(TEST_PAYLOAD);
+    dispatcher.performEnqueue(TEST_PAYLOAD);
+    dispatcher.performEnqueue(TEST_PAYLOAD);
+    dispatcher.performEnqueue(TEST_PAYLOAD);
 
     dispatcher.performFlush();
     try {
@@ -68,12 +84,13 @@ public class DispatcherTest {
     assertThat(queue.size()).isEqualTo(0);
   }
 
-  @Test public void flushesWhenQueueHitsMax() {
+  @Test public void flushesWhenQueueHitsMax() throws IOException {
+    queue = createQueue();
     dispatcher = createDispatcher(3);
     assertThat(queue.size()).isEqualTo(0);
-    dispatcher.performEnqueue(mock(BasePayload.class));
-    dispatcher.performEnqueue(mock(BasePayload.class));
-    dispatcher.performEnqueue(mock(BasePayload.class));
+    dispatcher.performEnqueue(TEST_PAYLOAD);
+    dispatcher.performEnqueue(TEST_PAYLOAD);
+    dispatcher.performEnqueue(TEST_PAYLOAD);
 
     try {
       verify(segmentHTTPApi).upload(Matchers.<Dispatcher.BatchPayload>any());
