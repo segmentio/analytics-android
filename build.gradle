@@ -36,18 +36,21 @@ ext {
 
   preDexLibraries = preDexEnabled && !isTravis
 }
-
-ext.libraries = [amplitude      : 'com.amplitude:android-sdk:1.4.1',
-                 bugsnag        : 'com.bugsnag:bugsnag-android:2.2.0',
-                 countly        : 'ly.count:sdk-android:13.11',
-                 crittercism    : 'com.crittercism:crittercism-android-agent:4.5.3',
-                 flurry         : files('libs/FlurryAnalytics-4.1.0.jar'),
-                 supportLib     : 'com.android.support:support-v4:20.0.0',
-                 googleAnalytics: 'com.google.android.gms:play-services:6.1.11',
-                 localytics     : project(':localytics'),
-                 leanplum       : files('libs/Leanplum.jar'),
-                 mixpanel       : 'com.mixpanel.android:mixpanel-android:4.2.1@aar',
-                 quantcast      : files('libs/QuantcastAndroidSdk.jar'),
-                 tapstream      : files('libs/Tapstream-2.7.1.jar'),
-                 supportWearable: 'com.google.android.support:wearable:1.0.0',
-                 playWearable   : 'com.google.android.gms:play-services-wearable:6.1.11']
+// @formatter:off
+ext.libraries = [
+    amplitude      : 'com.amplitude:android-sdk:1.4.1',
+    bugsnag        : 'com.bugsnag:bugsnag-android:2.2.0',
+    countly        : 'ly.count:sdk-android:13.11',
+    crittercism    : 'com.crittercism:crittercism-android-agent:4.5.3',
+    flurry         : files('libs/FlurryAnalytics-4.1.0.jar'),
+    supportLib     : 'com.android.support:support-v4:20.0.0',
+    googleAnalytics: 'com.google.android.gms:play-services:6.1.11',
+    localytics     : project(':localytics'),
+    leanplum       : files('libs/Leanplum.jar'),
+    mixpanel       : 'com.mixpanel.android:mixpanel-android:4.2.1@aar',
+    quantcast      : files('libs/QuantcastAndroidSdk.jar'),
+    tapstream      : files('libs/Tapstream-2.7.1.jar'),
+    supportWearable: 'com.google.android.support:wearable:1.0.0',
+    playWearable   : 'com.google.android.gms:play-services-wearable:6.1.11'
+]
+// @formatter:on
