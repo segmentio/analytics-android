@@ -1,3 +1,7 @@
+Version 2.1.9 (October 25th, 2014)
+====================================
+* Fix: Correctly use size of disk queue
+
 Version 2.1.8 (October 24th, 2014)
 ====================================
 * New: Leanplum integration
