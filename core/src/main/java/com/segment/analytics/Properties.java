@@ -208,6 +208,10 @@ public class Properties extends JsonMap {
     return getDouble(PRICE_KEY, 0);
   }
 
+  public double value() {
+    return getDouble(VALUE_KEY, 0);
+  }
+
   public static class Product extends JsonMap {
     private static final String ID_KEY = "id";
     private static final String SKU_KEY = "sku";
