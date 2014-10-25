@@ -10,14 +10,11 @@ analytics-android is an Android client for [Segment.io](https://segment.io)
 
 You can find usage documentation at [https://segment.io/libraries/android](https://segment.io/libraries/android).
 
-#### Build via Gradle
+#### Building with Gradle
 
-To build the project with [Gradle](http://tools.android.com/tech-docs/new-build-system/user-guide), you will need to have Java installed, and export a variable `$JAVA_HOME` that points to the installlation directory.
+To build the project with [Gradle](http://tools.android.com/tech-docs/new-build-system/user-guide), you will need to have Java 8 installed, and export a variable `$JAVA_HOME` that points to the installation directory.
 
-The following steps are automated but, but if you run into any issues, make sure these up. You can install the Android SDK and set a variable `$ANDROID_HOME`, and open the SDK Manager tool and install the right SDK versions of Android (API 19) and the right version of the build tools (19.1.0).
-
-Once you have set all this up, run `./gradlew tasks --all` to see all available tasks.
-Runing `./gradlew clean build connectedTest` will run all the tests. Note that you'll need to have a connected device or emulator for tests.
+If you have an existing Android SDK installed, make sure to export a variable `$ANDROID_HOME` that point to it. Once you've cloned the repo, simply run `./gradlew clean build`, which will automatically download all dependencies, build the project, and run all tests. Run `./gradlew tasks --all` to see all available tasks.
 
 Check out how to contribute to the library, or add providers here: [https://segment.io/libraries/android#contributing](https://segment.io/libraries/android#contributing).
 
