@@ -1,3 +1,8 @@
+Version 2.1.8 (October 24th, 2014)
+====================================
+* New: Leanplum integration
+* Improvement: Updated Google Analytics
+
 Version 2.1.7 (October 23rd, 2014)
 ====================================
 * Fix: Make Tape classes non-public
