@@ -57,45 +57,41 @@ class Dispatcher {
   final Context context;
   final ObjectQueue<BasePayload> queue;
   final SegmentHTTPApi segmentHTTPApi;
-  final int queueSize;
-  final int flushInterval;
+  final int maxQueueSize;
   final Stats stats;
   final Handler handler;
   final HandlerThread dispatcherThread;
   final boolean loggingEnabled;
   final Map<String, Boolean> integrations;
 
-  static Dispatcher create(Context context, int queueSize, int flushInterval,
-      SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
-      boolean loggingEnabled) {
+  static Dispatcher create(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
+      Map<String, Boolean> integrations, String tag, Stats stats, boolean loggingEnabled) {
     FileObjectQueue.Converter<BasePayload> converter = new PayloadConverter();
     try {
       File parent = context.getFilesDir();
       if (!parent.exists()) parent.mkdirs();
       File queueFile = new File(parent, TASK_QUEUE_FILE_NAME + tag);
       ObjectQueue<BasePayload> queue = new FileObjectQueue<BasePayload>(queueFile, converter);
-      return new Dispatcher(context, queueSize, flushInterval, segmentHTTPApi, queue,
-          integrations, stats, loggingEnabled);
+      return new Dispatcher(context, maxQueueSize, segmentHTTPApi, queue, integrations, stats,
+          loggingEnabled);
     } catch (IOException e) {
       throw new RuntimeException("Unable to create file queue.", e);
     }
   }
 
-  Dispatcher(Context context, int queueSize, int flushInterval, SegmentHTTPApi segmentHTTPApi,
+  Dispatcher(Context context, int maxQueueSize, SegmentHTTPApi segmentHTTPApi,
       ObjectQueue<BasePayload> queue, Map<String, Boolean> integrations, Stats stats,
       boolean loggingEnabled) {
     this.context = context;
-    this.queueSize = queueSize;
+    this.maxQueueSize = maxQueueSize;
     this.segmentHTTPApi = segmentHTTPApi;
     this.queue = queue;
     this.stats = stats;
     this.loggingEnabled = loggingEnabled;
     this.integrations = integrations;
-    this.flushInterval = flushInterval * 1000;
     dispatcherThread = new HandlerThread(DISPATCHER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     dispatcherThread.start();
     handler = new DispatcherHandler(dispatcherThread.getLooper(), this);
-    rescheduleFlush();
   }
 
   void dispatchEnqueue(final BasePayload payload) {
@@ -116,12 +112,13 @@ class Dispatcher {
       }
     }
 
+    // Check if we've reached the maximum queue size
+    int queueSize = queue.size();
     if (loggingEnabled) {
       debug(OWNER_DISPATCHER, VERB_ENQUEUE, payload.id(),
-          String.format("queueSize: %s", queue.size()));
+          String.format("queueSize: %s", queueSize));
     }
-    // Check if we've reached the maximum queue size
-    if (queue.size() >= queueSize) {
+    if (queueSize >= maxQueueSize) {
       performFlush();
     }
   }
@@ -165,21 +162,16 @@ class Dispatcher {
         error(OWNER_DISPATCHER, VERB_FLUSH, "unable to clear queue", e, "events: " + count);
       }
     }
-    rescheduleFlush();
-  }
-
-  private void rescheduleFlush() {
-    handler.removeMessages(REQUEST_FLUSH);
-    handler.sendMessageDelayed(handler.obtainMessage(REQUEST_FLUSH), flushInterval);
   }
 
   static class BatchPayload extends JsonMap {
     /**
      * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can be
-     * used to correct the original timestamp in situations where the local clock cannot be
-     * trusted, for example in our mobile libraries. The sentAt and receivedAt timestamps will be
-     * assumed to have occurred at the same time, and therefore the difference is the local clock
-     * skew.
+     * used
+     * to correct the original timestamp in situations where the local clock cannot be trusted, for
+     * example in our mobile libraries. The sentAt and receivedAt timestamps will be assumed to
+     * have
+     * occurred at the same time, and therefore the difference is the local clock skew.
      */
     private static final String SENT_AT_KEY = "sentAt";
 

@@ -68,7 +68,6 @@ public class Analytics {
   // Resource identifiers to define options in xml
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
   static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
-  static final String FLUSH_INTERVAL_IDENTIFIER = "analytics_flush_interval";
   static final String LOGGING_RESOURCE_IDENTIFIER = "analytics_logging";
 
   static Analytics singleton = null;
@@ -95,30 +94,16 @@ public class Analytics {
           try {
             // We need the exception to be able to tell if this was not defined, or if it was
             // incorrectly defined - something we shouldn't ignore
-            int queueSize = getResourceIntegerOrThrow(context, QUEUE_SIZE_RESOURCE_IDENTIFIER);
-            if (queueSize <= 0) {
+            int maxQueueSize = getResourceIntegerOrThrow(context, QUEUE_SIZE_RESOURCE_IDENTIFIER);
+            if (maxQueueSize <= 0) {
               throw new IllegalStateException(QUEUE_SIZE_RESOURCE_IDENTIFIER
                   + "("
-                  + queueSize
+                  + maxQueueSize
                   + ") may not be zero or negative.");
             }
-            builder.queueSize(queueSize);
+            builder.maxQueueSize(maxQueueSize);
           } catch (Resources.NotFoundException e) {
             // when maxQueueSize is not defined in xml, we'll use a default option in the builder
-          }
-          try {
-            // We need the exception to be able to tell if this was not defined, or if it was
-            // incorrectly defined - something we shouldn't ignore
-            int flushInterval = getResourceIntegerOrThrow(context, FLUSH_INTERVAL_IDENTIFIER);
-            if (flushInterval < 1) {
-              throw new IllegalStateException(FLUSH_INTERVAL_IDENTIFIER
-                  + "("
-                  + flushInterval
-                  + ") may not be zero or negative.");
-            }
-            builder.flushInterval(flushInterval);
-          } catch (Resources.NotFoundException e) {
-            // when flushInterval is not defined in xml, we'll use a default option in the builder
           }
           try {
             boolean logging = getResourceBooleanOrThrow(context, LOGGING_RESOURCE_IDENTIFIER);
@@ -146,14 +131,12 @@ public class Analytics {
   @SuppressWarnings("UnusedDeclaration") // Public API.
   public static class Builder {
     static final int DEFAULT_QUEUE_SIZE = 20;
-    static final int DEFAULT_FLUSH_INTERVAL = 30;
     static final boolean DEFAULT_LOGGING = false;
 
     private final Application application;
     private String writeKey;
     private String tag;
-    private int queueSize = -1;
-    private int flushInterval = -1;
+    private int maxQueueSize = -1;
     private Options defaultOptions;
     private boolean loggingEnabled = DEFAULT_LOGGING;
 
@@ -174,36 +157,15 @@ public class Analytics {
       this.writeKey = writeKey;
     }
 
-    /**
-     * Set the queue size at which the client should flush events.
-     *
-     * @deprecated Use {@link #queueSize(int)} instead.
-     */
+    /** Set the queue size at which we should flush events. */
     public Builder maxQueueSize(int maxQueueSize) {
-      return queueSize(maxQueueSize);
-    }
-
-    /** Set the queue size at which the client should flush events. */
-    public Builder queueSize(int queueSize) {
-      if (queueSize <= 0) {
-        throw new IllegalArgumentException("queueSize must be greater than or equal to zero.");
+      if (maxQueueSize <= 0) {
+        throw new IllegalArgumentException("maxQueueSize must be greater than or equal to zero.");
       }
-      if (this.queueSize != -1) {
-        throw new IllegalStateException("queueSize is already set.");
+      if (this.maxQueueSize != -1) {
+        throw new IllegalStateException("maxQueueSize is already set.");
       }
-      this.queueSize = queueSize;
-      return this;
-    }
-
-    /** Set the interval (in seconds) at which the client should flush events. */
-    public Builder flushInterval(int flushInterval) {
-      if (flushInterval < 1) {
-        throw new IllegalArgumentException("flushInterval must be greater than or equal to 1.");
-      }
-      if (this.flushInterval != -1) {
-        throw new IllegalStateException("flushInterval is already set.");
-      }
-      this.flushInterval = flushInterval;
+      this.maxQueueSize = maxQueueSize;
       return this;
     }
 
@@ -255,11 +217,8 @@ public class Analytics {
 
     /** Create Segment {@link Analytics} instance. */
     public Analytics build() {
-      if (queueSize == -1) {
-        queueSize = DEFAULT_QUEUE_SIZE;
-      }
-      if (flushInterval == -1) {
-        flushInterval = DEFAULT_FLUSH_INTERVAL;
+      if (maxQueueSize == -1) {
+        maxQueueSize = DEFAULT_QUEUE_SIZE;
       }
       if (defaultOptions == null) {
         defaultOptions = new Options();
@@ -270,9 +229,8 @@ public class Analytics {
       SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
       IntegrationManager integrationManager =
           IntegrationManager.create(application, segmentHTTPApi, stats, loggingEnabled);
-      Dispatcher dispatcher =
-          Dispatcher.create(application, queueSize, flushInterval, segmentHTTPApi,
-              integrationManager.serverIntegrations, tag, stats, loggingEnabled);
+      Dispatcher dispatcher = Dispatcher.create(application, maxQueueSize, segmentHTTPApi,
+          integrationManager.serverIntegrations, tag, stats, loggingEnabled);
       TraitsCache traitsCache = new TraitsCache(application, tag);
       AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
 
