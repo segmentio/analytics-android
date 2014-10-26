@@ -8,6 +8,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 final class TestUtils {
+  private TestUtils() {
+    throw new AssertionError("no instances");
+  }
+
   static final String PROJECT_SETTINGS_JSON_SAMPLE = "{\n"
       + "  \"Amplitude\": {\n"
       + "    \"trackNamedPages\": true,\n"
@@ -93,9 +97,5 @@ final class TestUtils {
     Application application = mock(Application.class);
     when(application.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_GRANTED);
     return application;
-  }
-
-  private TestUtils() {
-    throw new AssertionError("no instances");
   }
 }
