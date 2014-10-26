@@ -53,44 +53,44 @@ class LocalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Localytics
 
   @Override void onActivityResumed(Activity activity) {
     super.onActivityResumed(activity);
-    localyticsSession.open();
+    getUnderlyingInstance().open();
   }
 
   @Override void onActivityPaused(Activity activity) {
     super.onActivityPaused(activity);
-    localyticsSession.close();
+    getUnderlyingInstance().close();
   }
 
   @Override void flush() {
     super.flush();
-    localyticsSession.upload();
+    getUnderlyingInstance().upload();
   }
 
   @Override void optOut(boolean optOut) {
     super.optOut(optOut);
-    localyticsSession.setOptOut(optOut);
+    getUnderlyingInstance().setOptOut(optOut);
   }
 
   @Override void identify(IdentifyPayload identify) {
     super.identify(identify);
-    localyticsSession.setCustomerId(identify.userId());
+    getUnderlyingInstance().setCustomerId(identify.userId());
     Traits traits = identify.traits();
     String email = traits.email();
-    if (!isNullOrEmpty(email)) localyticsSession.setCustomerEmail(email);
+    if (!isNullOrEmpty(email)) getUnderlyingInstance().setCustomerEmail(email);
     String name = traits.name();
-    if (!isNullOrEmpty(name)) localyticsSession.setCustomerName(name);
+    if (!isNullOrEmpty(name)) getUnderlyingInstance().setCustomerName(name);
     for (Map.Entry<String, Object> entry : traits.entrySet()) {
-      localyticsSession.setCustomerData(entry.getKey(), String.valueOf(entry.getValue()));
+      getUnderlyingInstance().setCustomerData(entry.getKey(), String.valueOf(entry.getValue()));
     }
   }
 
   @Override void screen(ScreenPayload screen) {
     super.screen(screen);
-    localyticsSession.tagScreen(screen.event());
+    getUnderlyingInstance().tagScreen(screen.event());
   }
 
   @Override void track(TrackPayload track) {
     super.track(track);
-    localyticsSession.tagEvent(track.event(), track.properties().toStringMap());
+    getUnderlyingInstance().tagEvent(track.event(), track.properties().toStringMap());
   }
 }

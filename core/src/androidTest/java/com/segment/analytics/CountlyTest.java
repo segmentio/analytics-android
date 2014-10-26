@@ -1,7 +1,5 @@
 package com.segment.analytics;
 
-import android.app.Activity;
-import android.os.Bundle;
 import ly.count.android.api.Countly;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,18 +11,15 @@ import static com.segment.analytics.AbstractIntegrationAdapter.VIEWED_EVENT_FORM
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.Mock;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class CountlyTest {
-  CountlyIntegrationAdapter countlyIntegrationAdapter;
+public class CountlyTest extends IntegrationExam {
   @Mock Countly countly;
-  @Mock Activity activity;
-  @Mock AnalyticsContext analyticsContext;
+  CountlyIntegrationAdapter countlyIntegrationAdapter;
 
-  @Before
-  public void setUp() {
-    initMocks(this);
+  @Before @Override public void setUp() {
+    super.setUp();
+
     countlyIntegrationAdapter = new CountlyIntegrationAdapter() {
       @Override Countly getUnderlyingInstance() {
         return countly;
@@ -33,77 +28,46 @@ public class CountlyTest {
   }
 
   @Test
-  public void onActivityStartedCalledCorrectly() throws Exception {
+  public void activityLifecycle() {
     countlyIntegrationAdapter.onActivityStarted(activity);
     verify(countly).onStart();
-  }
-
-  @Test
-  public void onActivityStoppedCalledCorrectly() throws Exception {
     countlyIntegrationAdapter.onActivityStopped(activity);
     verify(countly).onStop();
-  }
-
-  @Test
-  public void activityLifecycleEventsIgnored() throws Exception {
-    countlyIntegrationAdapter.onActivityCreated(activity, new Bundle());
+    // Ignored
+    countlyIntegrationAdapter.onActivityCreated(activity, bundle);
     countlyIntegrationAdapter.onActivityDestroyed(activity);
-    countlyIntegrationAdapter.onActivitySaveInstanceState(activity, new Bundle());
+    countlyIntegrationAdapter.onActivitySaveInstanceState(activity, bundle);
     countlyIntegrationAdapter.onActivityResumed(activity);
     countlyIntegrationAdapter.onActivityPaused(activity);
     verifyNoMoreInteractions(countly);
   }
 
   @Test
-  public void initializedCorrectly() throws Exception {
-    countlyIntegrationAdapter.initialize(activity, new JsonMap() {
-      @Override String getString(String key) {
-        if ("serverUrl".equals(key)) {
-          return "serverUrl";
-        } else if ("appKey".equals(key)) {
-          return "appKey";
-        }
-        throw new UnsupportedOperationException("unknown key! " + key);
-      }
-    });
-    verify(countly).init(activity, "serverUrl", "appKey");
+  public void initialize() throws InvalidConfigurationException {
+    countlyIntegrationAdapter.initialize(context,
+        new JsonMap().putValue("serverUrl", "foo").putValue("appKey", "bar"));
+    verify(countly).init(context, "foo", "bar");
   }
 
   @Test
-  public void trackIsTranslatedCorrectly() throws Exception {
-    Properties properties = new Properties();
-    countlyIntegrationAdapter.track(
-        new TrackPayload("anonymousId", analyticsContext, "userId", "test", properties,
-            new Options())
-    );
-    verify(countly).recordEvent("test", properties.toStringMap(), 1, 0);
-
+  public void track() {
+    countlyIntegrationAdapter.track(trackPayload("Button Clicked"));
+    verify(countly).recordEvent("Button Clicked", properties.toStringMap(), 1, 0);
     properties.putValue("count", 10);
     properties.putValue("sum", 20);
-    countlyIntegrationAdapter.track(
-        new TrackPayload("anonymousId", analyticsContext, "userId", "test", properties,
-            new Options())
-    );
-    verify(countly).recordEvent("test", properties.toStringMap(), 10, 20);
+    countlyIntegrationAdapter.track(trackPayload("Button Clicked"));
+    verify(countly).recordEvent("Button Clicked", properties.toStringMap(), 10, 20);
   }
 
   @Test
-  public void screenIsTranslatedCorrectly() throws Exception {
-    Properties properties = new Properties();
-    countlyIntegrationAdapter.screen(
-        new ScreenPayload("anonymousId", analyticsContext, "userId", "category", "test", properties,
-            new Options())
-    );
-    verify(countly).recordEvent(String.format(VIEWED_EVENT_FORMAT, "test"),
+  public void screen() {
+    countlyIntegrationAdapter.screen(screenPayload("Signup", null));
+    verify(countly).recordEvent(String.format(VIEWED_EVENT_FORMAT, "Signup"),
         properties.toStringMap(), 1, 0);
 
-    properties.putValue("count", 10);
-    properties.putValue("sum", 20);
-    countlyIntegrationAdapter.screen(
-        new ScreenPayload("anonymousId", analyticsContext, "userId", "category", "test", properties,
-            new Options())
-    );
-    verify(countly).recordEvent(String.format(VIEWED_EVENT_FORMAT, "test"),
+    properties.putValue("count", 10).putValue("sum", 20);
+    countlyIntegrationAdapter.screen(screenPayload("Signup", null));
+    verify(countly).recordEvent(String.format(VIEWED_EVENT_FORMAT, "Signup"),
         properties.toStringMap(), 10, 20);
   }
 }

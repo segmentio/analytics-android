@@ -1,8 +1,6 @@
 package com.segment.analytics;
 
-import android.app.Activity;
 import android.content.Context;
-import android.os.Bundle;
 import com.localytics.android.LocalyticsSession;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,62 +10,60 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.Mock;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class LocalyticsTest {
-  LocalyticsIntegrationAdapter localyticsIntegrationAdapter;
-  Context context = Robolectric.application;
+public class LocalyticsTest extends IntegrationExam {
   @Mock LocalyticsSession localyticsSession;
-  @Mock AnalyticsContext analyticsContext;
-  @Mock Activity activity;
+  LocalyticsIntegrationAdapter localyticsIntegrationAdapter;
 
   @Before
-  public void setUp() throws Exception {
-    initMocks(this);
+  public void setUp() {
+    super.setUp();
     LocalyticsIntegrationAdapter.LocalyticsSessionFactory factory =
         new LocalyticsIntegrationAdapter.LocalyticsSessionFactory() {
           @Override LocalyticsSession create(Context context, String appKey) {
             return localyticsSession;
           }
         };
-    localyticsIntegrationAdapter = new LocalyticsIntegrationAdapter(factory) {
-      @Override LocalyticsSession getUnderlyingInstance() {
-        return localyticsSession;
-      }
-    };
-    localyticsIntegrationAdapter.initialize(context, new JsonMap());
-    assertThat(localyticsIntegrationAdapter.localyticsSession).isNotNull();
+    localyticsIntegrationAdapter = new LocalyticsIntegrationAdapter(factory);
+    try {
+      localyticsIntegrationAdapter.initialize(context, new JsonMap());
+    } catch (InvalidConfigurationException e) {
+      fail("Must be initialized correctly!");
+    }
   }
 
-  @Test public void onActivityResumedCalledCorrectly() {
+  @Test public void initialize() throws InvalidConfigurationException {
+    LocalyticsIntegrationAdapter adapter = new LocalyticsIntegrationAdapter();
+    adapter.initialize(Robolectric.application, new JsonMap().putValue("appKey", "foo"));
+    assertThat(adapter.localyticsSession).isNotNull();
+  }
+
+  @Test
+  public void activityLifecycle() {
     localyticsIntegrationAdapter.onActivityResumed(activity);
     verify(localyticsSession).open();
-  }
-
-  @Test public void onActivityPausedCalledCorrectly() {
     localyticsIntegrationAdapter.onActivityPaused(activity);
     verify(localyticsSession).close();
-  }
-
-  @Test public void activityLifecycleIgnoredCorrectly() {
-    localyticsIntegrationAdapter.onActivityCreated(activity, new Bundle());
+    // Ignored
+    localyticsIntegrationAdapter.onActivityCreated(activity, bundle);
     localyticsIntegrationAdapter.onActivityStarted(activity);
     localyticsIntegrationAdapter.onActivityDestroyed(activity);
-    localyticsIntegrationAdapter.onActivitySaveInstanceState(activity, new Bundle());
+    localyticsIntegrationAdapter.onActivitySaveInstanceState(activity, bundle);
     localyticsIntegrationAdapter.onActivityStopped(activity);
     verifyNoMoreInteractions(localyticsSession);
   }
 
-  @Test public void flushCalledCorrectly() {
+  @Test public void flush() {
     localyticsIntegrationAdapter.flush();
     verify(localyticsSession).upload();
   }
 
-  @Test public void optOutCalledCorrectly() {
+  @Test public void optOut() {
     localyticsIntegrationAdapter.optOut(false);
     verify(localyticsSession).setOptOut(false);
 
@@ -75,41 +71,20 @@ public class LocalyticsTest {
     verify(localyticsSession).setOptOut(true);
   }
 
-  @Test public void screenCalledCorrectly() {
-    localyticsIntegrationAdapter.screen(
-        new ScreenPayload("anonymousId", analyticsContext, "userId", "category", "name",
-            new Properties(), new Options())
-    );
-    localyticsSession.tagScreen("name");
+  @Test public void screen() {
+    localyticsIntegrationAdapter.screen(screenPayload("Clothes", "Pants"));
+    verify(localyticsSession).tagScreen("Pants");
 
-    localyticsIntegrationAdapter.screen(
-        new ScreenPayload("anonymousId", analyticsContext, "userId", "category", null,
-            new Properties(), new Options())
-    );
-    localyticsSession.tagScreen("category");
+    localyticsIntegrationAdapter.screen(screenPayload(null, "Shirts"));
+    verify(localyticsSession).tagScreen("Shirts");
+
+    localyticsIntegrationAdapter.screen(screenPayload("Games", null));
+    verify(localyticsSession).tagScreen("Games");
   }
 
-  @Test public void trackCalledCorrectly() {
-    Properties properties = new Properties();
-    localyticsIntegrationAdapter.track(
-        new TrackPayload("anonymousId", analyticsContext, "userId", "test", properties,
-            new Options())
-    );
-    verify(localyticsSession).tagEvent("test", properties.toStringMap());
-  }
-
-  @Test public void screenIsTranslatedCorrectly() throws Exception {
-    localyticsIntegrationAdapter.screen(
-        new ScreenPayload("anonymousId", analyticsContext, "userId", "category", "test",
-            new Properties(), new Options())
-    );
-    verify(localyticsSession).tagScreen("test");
-
-    localyticsIntegrationAdapter.screen(
-        new ScreenPayload("anonymousId", analyticsContext, "userId", "category", null,
-            new Properties(), new Options())
-    );
-    verify(localyticsSession).tagScreen("category");
+  @Test public void track() {
+    localyticsIntegrationAdapter.track(trackPayload("Button Clicked"));
+    verify(localyticsSession).tagEvent("Button Clicked", properties.toStringMap());
   }
 }
 
