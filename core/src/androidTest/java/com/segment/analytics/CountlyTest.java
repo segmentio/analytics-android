@@ -8,6 +8,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.AbstractIntegrationAdapter.VIEWED_EVENT_FORMAT;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.Mock;
@@ -25,6 +26,7 @@ public class CountlyTest extends IntegrationExam {
         return countly;
       }
     };
+    assertThat(countlyIntegrationAdapter.getUnderlyingInstance()).isNotNull().isEqualTo(countly);
   }
 
   @Test

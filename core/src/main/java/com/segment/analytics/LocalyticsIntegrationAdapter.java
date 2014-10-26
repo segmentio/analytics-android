@@ -16,31 +16,12 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="http://www.localytics.com/docs/android-integration/">Localytics Android SDK</a>
  */
 class LocalyticsIntegrationAdapter extends AbstractIntegrationAdapter<LocalyticsSession> {
-  final LocalyticsSessionFactory sessionFactory;
   LocalyticsSession localyticsSession;
-
-  static abstract class LocalyticsSessionFactory {
-    abstract LocalyticsSession create(Context context, String appKey);
-
-    static final LocalyticsSessionFactory DEFAULT = new LocalyticsSessionFactory() {
-      @Override LocalyticsSession create(Context context, String appKey) {
-        return new LocalyticsSession(context, appKey);
-      }
-    };
-  }
-
-  LocalyticsIntegrationAdapter() {
-    this(LocalyticsSessionFactory.DEFAULT);
-  }
-
-  LocalyticsIntegrationAdapter(LocalyticsSessionFactory sessionFactory) {
-    this.sessionFactory = sessionFactory;
-  }
 
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     // todo: docs mentions wake_lock, but not if it is required
-    localyticsSession = sessionFactory.create(context, settings.getString("appKey"));
+    localyticsSession = new LocalyticsSession(context, settings.getString("appKey"));
   }
 
   @Override LocalyticsSession getUnderlyingInstance() {
