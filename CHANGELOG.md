@@ -1,23 +1,27 @@
+Version 2.1.10 (October 26th, 2014)
+====================================
+* Fix: Update `context.device.id` and `context.referrer.id` to match spec
+
 Version 2.1.9 (October 25th, 2014)
 ====================================
 * Fix: Correctly use size of disk queue
 
 Version 2.1.8 (October 24th, 2014)
 ====================================
-* New: Leanplum integration
+* New: Added Leanplum Integration
 * Improvement: Updated Google Analytics
 
 Version 2.1.7 (October 23rd, 2014)
 ====================================
-* Fix: Make Tape classes non-public
+* Improvement: Make Tape classes non-public
 
 Version 2.1.6 (October 21th, 2014)
 ====================================
-* New: Setter method for device token, used by Outbound.io for push notifications
+* New: Added `context.setDeviceToken()`, for push notifications e.g. Outbound.io
 
 Version 2.1.5 (October 21th, 2014)
 ====================================
-* Fix: Cache settings every time we request it
+* Fix: Cache settings each time we request it
 * Fix: Avoid race condition when calling tracking methods on bundled integrations
 
 Version 2.1.4 (October 20th, 2014)
@@ -26,18 +30,18 @@ Version 2.1.4 (October 20th, 2014)
 
 Version 2.1.3 (October 19th, 2014)
 ====================================
-* Improvement: better logging for serialization errors
+* Improvement: Better logging for serialization errors
 * Fix: Make `Product` class public
 * Improvement: Add timezone in context
 
 Version 2.1.2 (October 17th, 2014)
 ====================================
-* Fix: more resilience to file system errors
+* Fix: Catch file system errors better
 
 Version 2.1.1 (October 16th, 2014)
 ====================================
-* API Change: Disable toggling logging
-* Improvement: Explicitly create cache directory
+* API Change: Make logging state final
+* Improvement: Explicitly create disk queue directory
 
 Version 2.1.0 (October 16th, 2014)
 ====================================
