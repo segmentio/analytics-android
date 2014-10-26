@@ -63,7 +63,7 @@ public class CountlyTest {
         } else if ("appKey".equals(key)) {
           return "appKey";
         }
-        throw new UnsupportedOperationException("unknown key!");
+        throw new UnsupportedOperationException("unknown key! " + key);
       }
     });
     verify(countly).init(activity, "serverUrl", "appKey");
@@ -71,7 +71,6 @@ public class CountlyTest {
 
   @Test
   public void trackIsTranslatedCorrectly() throws Exception {
-    Options options = new Options();
     Properties properties = new Properties();
     countlyIntegrationAdapter.track(
         new TrackPayload("anonymousId", analyticsContext, "userId", "test", properties,

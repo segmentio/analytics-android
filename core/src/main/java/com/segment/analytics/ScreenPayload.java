@@ -36,7 +36,7 @@ class ScreenPayload extends BasePayload {
   /** The page and screen methods also take a properties dictionary, just like track. */
   private static final String PROPERTIES_KEY = "properties";
 
-  String nameOrCategory;
+  String event;
 
   ScreenPayload(String anonymousId, AnalyticsContext context, String userId, String category,
       String name, Properties properties, Options options) {
@@ -44,7 +44,6 @@ class ScreenPayload extends BasePayload {
     put(CATEGORY_KEY, category);
     put(NAME_KEY, name);
     put(PROPERTIES_KEY, properties);
-    nameOrCategory = isNullOrEmpty(name) ? category : name;
   }
 
   String category() {
@@ -60,10 +59,10 @@ class ScreenPayload extends BasePayload {
    * used if available, category otherwise.
    */
   String event() {
-    if (isNullOrEmpty(nameOrCategory)) {
-      nameOrCategory = isNullOrEmpty(name()) ? category() : name();
+    if (isNullOrEmpty(event)) {
+      event = isNullOrEmpty(name()) ? category() : name();
     }
-    return nameOrCategory;
+    return event;
   }
 
   Properties properties() {
