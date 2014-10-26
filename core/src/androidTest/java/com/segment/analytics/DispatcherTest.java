@@ -45,7 +45,7 @@ public class DispatcherTest {
   }
 
   Dispatcher createDispatcher(int maxQueueSize) {
-    return new Dispatcher(context, maxQueueSize, segmentHTTPApi, queue,
+    return new Dispatcher(context, maxQueueSize, 30, segmentHTTPApi, queue,
         Collections.<String, Boolean>emptyMap(), stats, true);
   }
 

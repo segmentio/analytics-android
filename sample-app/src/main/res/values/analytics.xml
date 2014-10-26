@@ -32,4 +32,7 @@
 
   <!--Size of the queue.-->
   <integer name="analytics_queue_size">5</integer>
+
+  <!--Flush Interval in seconds.-->
+  <integer name="analytics_flush_interval">10</integer>
 </resources>
