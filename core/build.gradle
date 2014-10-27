@@ -60,7 +60,7 @@ android {
 }
 
 robolectric {
-  jvmArgs '-noverify'
+  jvmArgs '-noverify' // https://github.com/robolectric/robolectric/issues/1186
 }
 
 apply from: rootProject.file('gradle/checkstyle-library.gradle')
