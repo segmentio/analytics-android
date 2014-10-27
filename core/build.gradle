@@ -27,6 +27,12 @@ dependencies {
     // and https://github.com/robolectric/robolectric/issues/1175
     exclude group: 'com.android.support', module: 'support-v4'
   }
+  androidTestCompile 'org.powermock:powermock:1.5.6'
+  androidTestCompile 'org.powermock:powermock-module-junit4:1.5.6'
+  androidTestCompile 'org.powermock:powermock-module-junit4-rule:1.5.6'
+  androidTestCompile 'org.powermock:powermock-api-mockito:1.5.6'
+  androidTestCompile 'org.powermock:powermock-classloading-xstream:1.5.6'
+  androidTestCompile 'org.json:json:20140107' // fails to find org.json for some reason
 }
 
 android {
@@ -51,6 +57,10 @@ android {
   packagingOptions {
     exclude 'LICENSE.txt'
   }
+}
+
+robolectric {
+  jvmArgs '-noverify' // https://github.com/robolectric/robolectric/issues/1186
 }
 
 apply from: rootProject.file('gradle/checkstyle-library.gradle')

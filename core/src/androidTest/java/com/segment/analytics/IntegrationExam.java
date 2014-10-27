@@ -9,7 +9,10 @@ import org.robolectric.Robolectric;
 import static org.mockito.MockitoAnnotations.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-// Named Exam so that Junit and Robolectric don't try to run this
+/**
+ * Base class for Integration tests. Named Exam so that Junit and Robolectric don't try to run it
+ * directly.
+ */
 public class IntegrationExam {
   String anonymousId;
   String userId;
@@ -40,5 +43,9 @@ public class IntegrationExam {
   ScreenPayload screenPayload(String category, String name) {
     return new ScreenPayload(anonymousId, analyticsContext, userId, category, name, properties,
         options);
+  }
+
+  IdentifyPayload identifyPayload(String userId) {
+    return new IdentifyPayload(anonymousId, analyticsContext, userId, traits, options);
   }
 }
