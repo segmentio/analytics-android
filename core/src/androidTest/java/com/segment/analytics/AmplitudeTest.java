@@ -125,7 +125,7 @@ public class AmplitudeTest extends IntegrationExam {
     amplitudeIntegrationAdapter.trackNamedPages = true;
 
     amplitudeIntegrationAdapter.screen(screenPayload(null, "bar"));
-    verifyAmplitude("Viewed bar Screen", null);
+    verifyAmplitudeEvent("Viewed bar Screen", null);
 
     amplitudeIntegrationAdapter.screen(screenPayload("foo", null));
     verifyStatic();
@@ -139,7 +139,7 @@ public class AmplitudeTest extends IntegrationExam {
     amplitudeIntegrationAdapter.trackNamedPages = false;
 
     amplitudeIntegrationAdapter.screen(screenPayload("foo", null));
-    verifyAmplitude("Viewed foo Screen", null);
+    verifyAmplitudeEvent("Viewed foo Screen", null);
 
     amplitudeIntegrationAdapter.screen(screenPayload(null, "bar"));
     verifyStatic();
@@ -153,16 +153,23 @@ public class AmplitudeTest extends IntegrationExam {
     amplitudeIntegrationAdapter.trackNamedPages = new Random().nextBoolean();
 
     amplitudeIntegrationAdapter.screen(screenPayload("foo", null));
-    verifyAmplitude("Viewed foo Screen", null);
+    verifyAmplitudeEvent("Viewed foo Screen", null);
 
     amplitudeIntegrationAdapter.screen(screenPayload(null, "bar"));
-    verifyAmplitude("Viewed bar Screen", null);
+    verifyAmplitudeEvent("Viewed bar Screen", null);
 
     amplitudeIntegrationAdapter.screen(screenPayload("bar", "baz"));
-    verifyAmplitude("Viewed baz Screen", null);
+    verifyAmplitudeEvent("Viewed baz Screen", null);
   }
 
-  private void verifyAmplitude(String event, JSONObject jsonObject) {
+  @Test
+  public void flush() {
+    amplitudeIntegrationAdapter.flush();
+    verifyStatic();
+    Amplitude.uploadEvents();
+  }
+
+  private void verifyAmplitudeEvent(String event, JSONObject jsonObject) {
     verifyStatic();
     Amplitude.logEvent(eq(event), any(JSONObject.class));
   }
