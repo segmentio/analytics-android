@@ -5,6 +5,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,18 +31,14 @@ class JsonMap implements Map<String, Object> {
   private final Map<String, Object> delegate;
 
   JsonMap() {
-    this.delegate = new LinkedHashMap<String, Object>();
+    this(new LinkedHashMap<String, Object>());
   }
 
   JsonMap(Map<String, Object> delegate) {
     if (delegate == null) {
       throw new IllegalArgumentException("Map must not be null.");
     }
-    if (delegate instanceof JsonMap) {
-      this.delegate = ((JsonMap) delegate).delegate; // avoid indirection
-    } else {
-      this.delegate = delegate;
-    }
+    this.delegate = Collections.synchronizedMap(delegate);
   }
 
   JsonMap(String json) {

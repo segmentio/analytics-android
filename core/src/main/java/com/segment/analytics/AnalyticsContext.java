@@ -48,6 +48,7 @@ import static android.net.ConnectivityManager.TYPE_WIFI;
 import static com.segment.analytics.Utils.getDeviceId;
 import static com.segment.analytics.Utils.getSystemService;
 import static com.segment.analytics.Utils.hasPermission;
+import static com.segment.analytics.Utils.isOnClassPath;
 
 /**
  * Context is a dictionary of extra, free-form information about a specific API call. You can add
@@ -83,6 +84,8 @@ public class AnalyticsContext extends JsonMap {
   private static final String DEVICE_NAME_KEY = "name";
   private static final String DEVICE_BRAND_KEY = "brand";
   private static final String DEVICE_TOKEN_KEY = "token";
+  private static final String DEVICE_ADVERTISING_ID_KEY = "advertisingId";
+  private static final String DEVICE_AD_TRACKING_ENABLED_KEY = "adTrackingEnabled";
   private static final String LIBRARY_KEY = "library";
   private static final String LIBRARY_NAME_KEY = "name";
   private static final String LIBRARY_VERSION_KEY = "version";
@@ -114,13 +117,12 @@ public class AnalyticsContext extends JsonMap {
   private static final String TRAITS_KEY = "traits";
   private static final String USER_AGENT_KEY = "userAgent";
   private static final String TIMEZONE_KEY = "timezone";
-  // Ignored for Android
-  // String idfv;
-  // String idfa;
-  // String adTrackingEnabled;
 
   AnalyticsContext(Context context, Traits traits) {
-    // todo: kick off task to get AdvertisingId
+    if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
+      // this needs to be done each time since the settings may have been updated
+      new GetAdvertisingIdTask(this).execute(context);
+    }
     putApp(context);
     putDevice(context);
     putLibrary();
@@ -199,6 +201,13 @@ public class AnalyticsContext extends JsonMap {
     device.put(DEVICE_MODEL_KEY, Build.MODEL);
     device.put(DEVICE_NAME_KEY, Build.DEVICE);
     device.put(DEVICE_BRAND_KEY, Build.BRAND);
+    put(DEVICE_KEY, device);
+  }
+
+  void putAdvertisingInfo(String advertisingId, boolean adTrackingEnabled) {
+    JsonMap device = getJsonMap(DEVICE_KEY);
+    device.put(DEVICE_ADVERTISING_ID_KEY, advertisingId);
+    device.put(DEVICE_AD_TRACKING_ENABLED_KEY, adTrackingEnabled);
     put(DEVICE_KEY, device);
   }
 
