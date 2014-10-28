@@ -55,7 +55,7 @@ class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Track
           new ExceptionReporter(tracker, Thread.getDefaultUncaughtExceptionHandler(), context);
       Thread.setDefaultUncaughtExceptionHandler(myHandler);
     }
-    tracker.setSampleRate(settings.getDouble("siteSpeedSampleRate", 1));
+    // tracker.setSampleRate(settings.getDouble("siteSpeedSampleRate", 1));
     sendUserId = settings.getBoolean("sendUserId", false);
   }
 
