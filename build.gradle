@@ -39,6 +39,7 @@ ext {
 // @formatter:off
 ext.libraries = [
     amplitude      : 'com.amplitude:android-sdk:1.4.1',
+    appsFlyer      : files('libs/AF-Android-SDK-v2.3.1.12.jar'),
     bugsnag        : 'com.bugsnag:bugsnag-android:2.2.0',
     countly        : 'ly.count:sdk-android:13.11',
     crittercism    : 'com.crittercism:crittercism-android-agent:4.5.3',

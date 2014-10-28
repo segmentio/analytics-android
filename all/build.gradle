@@ -4,6 +4,7 @@ apply plugin: 'com.android.library'
 dependencies {
   compile project(':core')
   compile rootProject.ext.libraries.amplitude
+  compile rootProject.ext.libraries.appsFlyer
   compile rootProject.ext.libraries.bugsnag
   compile rootProject.ext.libraries.countly
   compile rootProject.ext.libraries.crittercism

@@ -5,6 +5,7 @@ apply plugin: 'robolectric'
 dependencies {
   // Integrations
   provided rootProject.ext.libraries.amplitude
+  provided rootProject.ext.libraries.appsFlyer
   provided rootProject.ext.libraries.bugsnag
   provided rootProject.ext.libraries.countly
   provided rootProject.ext.libraries.crittercism

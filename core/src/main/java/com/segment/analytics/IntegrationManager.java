@@ -78,6 +78,9 @@ class IntegrationManager {
     if (isOnClassPath("com.amplitude.api.Amplitude")) {
       bundleIntegration(new AmplitudeIntegrationAdapter());
     }
+    if (isOnClassPath("com.appsflyer.AppsFlyerLib")) {
+      bundleIntegration(new AppsFlyerIntegrationAdapter());
+    }
     if (isOnClassPath("com.bugsnag.android.Bugsnag")) {
       bundleIntegration(new BugsnagIntegrationAdapter());
     }
