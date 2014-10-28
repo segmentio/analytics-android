@@ -33,7 +33,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -82,7 +83,7 @@ class JsonUtils {
 
   /** Parse a json reader into a map. */
   private static Map<String, Object> readerToMap(JsonReader reader) throws IOException {
-    Map<String, Object> map = new LinkedHashMap<String, Object>();
+    Map<String, Object> map = Collections.synchronizedMap(new HashMap<String, Object>());
     reader.beginObject();
     while (reader.hasNext()) {
       String key = reader.nextName();
@@ -94,15 +95,13 @@ class JsonUtils {
 
   /** Parse a json reader into a list. */
   private static List<Object> readerToList(JsonReader reader) throws IOException {
-    List<Object> list = new ArrayList<Object>();
-
+    List<Object> list = Collections.synchronizedList(new ArrayList<Object>());
     reader.beginArray();
     while (reader.hasNext()) {
       Object value = readValue(reader);
       list.add(value);
     }
     reader.endArray();
-
     return list;
   }
 

@@ -310,8 +310,7 @@ class JsonMap implements Map<String, Object> {
       try {
         Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
         constructor.setAccessible(true);
-        T typedValue = constructor.newInstance(object);
-        return typedValue;
+        return constructor.newInstance(object);
       } catch (NoSuchMethodException ignored) {
       } catch (InvocationTargetException ignored) {
       } catch (InstantiationException ignored) {
