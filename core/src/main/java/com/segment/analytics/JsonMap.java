@@ -295,13 +295,13 @@ class JsonMap implements Map<String, Object> {
    */
   <T extends JsonMap> T getJsonMap(String key, Class<T> clazz) {
     Object value = get(key);
-    T typedValue = cast(value, clazz);
+    T typedValue = castToJsonMap(value, clazz);
     if (typedValue != null) cache(key, typedValue);
     return typedValue;
   }
 
   /** Coerce an object to a JsonMap. */
-  private <T extends JsonMap> T cast(Object object, Class<T> clazz) {
+  private <T extends JsonMap> T castToJsonMap(Object object, Class<T> clazz) {
     if (clazz.isInstance(object)) {
       //noinspection unchecked
       return (T) object;
@@ -332,7 +332,7 @@ class JsonMap implements Map<String, Object> {
       try {
         ArrayList<T> real = new ArrayList<T>();
         for (Object item : list) {
-          T typedValue = cast(item, clazz);
+          T typedValue = castToJsonMap(item, clazz);
           if (typedValue != null) {
             real.add(typedValue);
           }
