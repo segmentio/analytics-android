@@ -2,6 +2,7 @@ package com.segment.analytics;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Bundle;
 import com.bugsnag.android.Bugsnag;
 import com.bugsnag.android.Client;
 import java.util.Map;
@@ -30,8 +31,8 @@ class BugsnagIntegrationAdapter extends AbstractIntegrationAdapter<Client> {
     return "Bugsnag";
   }
 
-  @Override void onActivityStarted(Activity activity) {
-    super.onActivityStarted(activity);
+  @Override void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+    super.onActivityCreated(activity, savedInstanceState);
     Bugsnag.setContext(activity.getLocalClassName());
     Bugsnag.onActivityCreate(activity);
   }
