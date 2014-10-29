@@ -15,7 +15,7 @@ class LeanplumIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
-      throw new InvalidConfigurationException("Leanplum requires ACCESS_NETWORK_STATE");
+      throw new InvalidConfigurationException("Leanplum requires ACCESS_NETWORK_STATE permission");
     }
     Leanplum.setAppIdForProductionMode(settings.getString("appId"),
         settings.getString("clientKey"));
