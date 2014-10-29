@@ -29,6 +29,13 @@ public class BugsnagTest extends IntegrationExam {
     adapter = new BugsnagIntegrationAdapter();
   }
 
+  @Test public void initialize() throws InvalidConfigurationException {
+    adapter.initialize(context, new JsonMap().putValue("apiKey", "foo").putValue("useSSL", true));
+    verifyStatic();
+    Bugsnag.register(context, "foo");
+    Bugsnag.setUseSSL(true);
+  }
+
   @Test
   public void onActivityCreated() {
     when(activity.getLocalClassName()).thenReturn("foo");
