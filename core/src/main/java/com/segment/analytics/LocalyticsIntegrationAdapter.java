@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import com.localytics.android.LocalyticsAmpSession;
 import java.util.Map;
 
@@ -48,12 +47,16 @@ class LocalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Localytics
     super.onActivityResumed(activity);
     session.open();
     session.upload();
-    if (activity instanceof FragmentActivity) session.attach((FragmentActivity) activity);
+    if (activity instanceof android.support.v4.app.FragmentActivity) {
+      session.attach((android.support.v4.app.FragmentActivity) activity);
+    }
   }
 
   @Override void onActivityPaused(Activity activity) {
     super.onActivityPaused(activity);
-    if (activity instanceof FragmentActivity) session.detach();
+    if (activity instanceof android.support.v4.app.FragmentActivity) {
+      session.detach();
+    }
     session.close();
     session.upload();
   }
