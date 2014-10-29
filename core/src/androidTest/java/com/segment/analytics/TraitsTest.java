@@ -61,7 +61,7 @@ public class TraitsTest {
     traits.clear();
     traits.putFirstName("prateek");
     assertThat(traits.name()).isEqualTo("prateek");
-    
+
     traits.clear();
     traits.putLastName("srivastava");
     assertThat(traits.name()).isEqualTo("srivastava");
