@@ -48,14 +48,14 @@ class LeanplumIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
     helper = new LeanplumActivityHelper(activity);
   }
 
-  @Override void onActivityPaused(Activity activity) {
-    super.onActivityPaused(activity);
-    helper.onPause();
-  }
-
   @Override void onActivityResumed(Activity activity) {
     super.onActivityResumed(activity);
     helper.onResume();
+  }
+
+  @Override void onActivityPaused(Activity activity) {
+    super.onActivityPaused(activity);
+    helper.onPause();
   }
 
   @Override void onActivityStopped(Activity activity) {
