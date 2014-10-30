@@ -1,11 +1,9 @@
 #!/bin/bash
 
-# Look up the version in gradle.properties
-releaseVersion=$(grep VERSION_NAME gradle.properties | cut -d= -f2)
+set -e
 
-# Validate that the permission ends with '-SNAPSHOT'
-if [[ $(echo $releaseVersion | rev | cut -c-9 | rev) != "-SNAPSHOT" ]]; then
-  echo "Must be on a snapshot version (found $releaseVersion) to make a release."
+if [[ $# -ne 1 ]]; then
+  echo "Supply v (major), m (minor) or l(revision) to bump version number."
   exit 1
 fi
 
@@ -21,14 +19,12 @@ set -x
 ./gradlew build
 
 # Infer the release version
-newReleaseVersion=$(echo $releaseVersion | rev | cut -c10- | rev)
+newReleaseVersion=$(shtool version release.version)
 newReleaseCode=$(echo $newReleaseVersion | sed -e 's/\.//g')
 
-set -x
-
 # Update the version codes and commit
-sed -i '' '/VERSION_NAME=/s/=.*/=$newReleaseVersion/' gradle.properties
-sed -i '' '/VERSION_CODE=/s/=.*/=$newReleaseCode/' gradle.properties
+sed -i '' "/VERSION_NAME=/s/=.*/=$newReleaseVersion/" gradle.properties
+sed -i '' "/VERSION_CODE=/s/=.*/=$newReleaseCode/" gradle.properties
 git commit -a -m "[gradle-release-task] prepare release"
 
 # Build and upload artifacts
@@ -37,9 +33,11 @@ git commit -a -m "[gradle-release-task] prepare release"
 # Tag the release
 git tag $newReleaseVersion
 
-# Infer the next version
-nextReleaseCode=$(expr $newReleaseCode + 1)
-nextReleaseCode=$(echo $nextReleaseCode | sed 's/\(.\)/\1./g')
+# Prepare for the next version
+shtool version --increase "$1" release.version
+nextReleaseVersion=$(shtool version release.version)
+nextReleaseCode=$(echo $nextReleaseVersion | sed -e 's/\.//g')
 
-sed -i '' '/VERSION_NAME=/s/=.*/=$nextReleaseVersion/' gradle.properties
-sed -i '' '/VERSION_CODE=/s/=.*/=$nextReleaseCode/' gradle.properties
+sed -i '' "/VERSION_NAME=/s/=.*/=$nextReleaseVersion-SNAPSHOT/" gradle.properties
+sed -i '' "/VERSION_CODE=/s/=.*/=$nextReleaseCode/" gradle.properties
+git commit -a -m "[gradle-release-task] prepare for next development iteration"
