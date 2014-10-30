@@ -115,6 +115,7 @@ public class AmplitudeTest extends IntegrationExam {
     amplitudeIntegrationAdapter.trackCategorizedPages = false;
     amplitudeIntegrationAdapter.trackNamedPages = false;
     amplitudeIntegrationAdapter.screen(screenPayload("foo", "bar"));
+    verifyStatic();
     verifyNoMoreInteractions(Amplitude.class);
   }
 
@@ -128,6 +129,7 @@ public class AmplitudeTest extends IntegrationExam {
     verifyAmplitudeEvent("Viewed bar Screen", null);
 
     amplitudeIntegrationAdapter.screen(screenPayload("foo", null));
+    verifyStatic();
     verifyNoMoreInteractions(Amplitude.class);
   }
 
@@ -141,6 +143,7 @@ public class AmplitudeTest extends IntegrationExam {
     verifyAmplitudeEvent("Viewed foo Screen", null);
 
     amplitudeIntegrationAdapter.screen(screenPayload(null, "bar"));
+    verifyStatic();
     verifyNoMoreInteractions(Amplitude.class);
   }
 
