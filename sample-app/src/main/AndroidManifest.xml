@@ -29,6 +29,7 @@
   <!-- Required for internet. -->
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+  <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
   <!-- Allow you to get LOGCAT information when a crash occurs. -->
   <uses-permission android:name="android.permission.READ_LOGS"/>
