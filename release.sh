@@ -2,8 +2,25 @@
 
 set -e
 
+# Validate arguments
 if [[ $# -ne 1 ]]; then
-  echo "Supply v (major), m (minor) or l(revision) to bump version number."
+  echo "Supply v (major), m (minor) or l(revision) to bump version number after release."
+  exit 1
+fi
+
+case $1 in
+  [vml]* ) ;;
+  * ) echo "Supply v (major), m (minor) or l(revision) to bump version number after release."; exit 1;
+esac
+
+if ! which shtool >/dev/null; then
+  echo "shtool is not available. Install it with 'brew install shtool'"
+  exit 1
+fi
+
+# Validate branch
+if [[ $(git name-rev --name-only HEAD) != "master" ]]; then
+  echo "Must be on master to make a release."
   exit 1
 fi
 
@@ -22,7 +39,7 @@ set -x
 newReleaseVersion=$(shtool version release.version)
 newReleaseCode=$(echo $newReleaseVersion | sed -e 's/\.//g')
 
-# Update the version codes and commit
+# Update the versions and commit
 sed -i '' "/VERSION_NAME=/s/=.*/=$newReleaseVersion/" gradle.properties
 sed -i '' "/VERSION_CODE=/s/=.*/=$newReleaseCode/" gradle.properties
 git commit -a -m "[gradle-release-task] prepare release"
@@ -41,3 +58,8 @@ nextReleaseCode=$(echo $nextReleaseVersion | sed -e 's/\.//g')
 sed -i '' "/VERSION_NAME=/s/=.*/=$nextReleaseVersion-SNAPSHOT/" gradle.properties
 sed -i '' "/VERSION_CODE=/s/=.*/=$nextReleaseCode/" gradle.properties
 git commit -a -m "[gradle-release-task] prepare for next development iteration"
+
+git push -u origin master
+git push --tags
+
+echo "Done release! You should deploy the javadocs in a couple of hours."
