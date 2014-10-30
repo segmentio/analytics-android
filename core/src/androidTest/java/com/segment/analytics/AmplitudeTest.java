@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -23,10 +24,8 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(Amplitude.class)
-// todo: verify JSONObject
 public class AmplitudeTest extends IntegrationExam {
-  @Rule
-  public PowerMockRule rule = new PowerMockRule();
+  @Rule public PowerMockRule rule = new PowerMockRule();
 
   AmplitudeIntegrationAdapter amplitudeIntegrationAdapter;
 
@@ -36,8 +35,7 @@ public class AmplitudeTest extends IntegrationExam {
     amplitudeIntegrationAdapter = new AmplitudeIntegrationAdapter();
   }
 
-  @Test
-  public void initialize() throws InvalidConfigurationException {
+  @Test public void initialize() throws InvalidConfigurationException {
     amplitudeIntegrationAdapter.initialize(context, //
         new JsonMap().putValue("apiKey", "foo")
             .putValue("trackAllPages", true)
@@ -78,6 +76,7 @@ public class AmplitudeTest extends IntegrationExam {
     amplitudeIntegrationAdapter.track(trackPayload);
     verifyStatic();
     Amplitude.logEvent(eq("foo"), any(JSONObject.class));
+    verifyStatic();
     Amplitude.logRevenue("bar", 10, 20, "baz", "qux");
   }
 
@@ -106,7 +105,8 @@ public class AmplitudeTest extends IntegrationExam {
     verifyStatic();
     Amplitude.setUserId("michael");
     verifyStatic();
-    Amplitude.setUserProperties(any(JSONObject.class));
+    Amplitude.setUserProperties(Matchers.<JSONObject>any());
+    // todo: verify JSONObject
   }
 
   @Test
@@ -128,7 +128,6 @@ public class AmplitudeTest extends IntegrationExam {
     verifyAmplitudeEvent("Viewed bar Screen", null);
 
     amplitudeIntegrationAdapter.screen(screenPayload("foo", null));
-    verifyStatic();
     verifyNoMoreInteractions(Amplitude.class);
   }
 
@@ -142,7 +141,6 @@ public class AmplitudeTest extends IntegrationExam {
     verifyAmplitudeEvent("Viewed foo Screen", null);
 
     amplitudeIntegrationAdapter.screen(screenPayload(null, "bar"));
-    verifyStatic();
     verifyNoMoreInteractions(Amplitude.class);
   }
 
