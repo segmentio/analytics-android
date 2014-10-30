@@ -1,3 +1,13 @@
+Version 2.2.0 (October 29th, 2014)
+====================================
+* New: `flushInterval` setting, that flushes any events in the queue at a specified interval
+* Fix: Synhronize maps across
+* New: Added AppsFlyer integration
+* Fix: More permissions verification for Leanplum
+* Improvement: Updated Localytics integration (Breaking, Localytics now returns LocalyticsAmpSession)
+* Fix: Ignore `siteSpeedSamplingRate` for Google Analytics
+* New: Collect advertisingId as per spec
+
 Version 2.1.10 (October 26th, 2014)
 ====================================
 * Fix: Update `context.device.id` and `context.referrer.id` to match spec
