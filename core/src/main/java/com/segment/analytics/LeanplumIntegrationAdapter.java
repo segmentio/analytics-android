@@ -17,6 +17,10 @@ class LeanplumIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new InvalidConfigurationException("Leanplum requires ACCESS_NETWORK_STATE permission");
     }
+    if (!hasPermission(context, "com.google.android.c2dm.permission.RECEIVE")) {
+      throw new InvalidConfigurationException(
+          "Leanplum requires com.google.android.c2dm.permission.RECEIVE permission");
+    }
     Leanplum.setAppIdForProductionMode(settings.getString("appId"),
         settings.getString("clientKey"));
     Leanplum.start(context);

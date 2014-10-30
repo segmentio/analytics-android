@@ -36,6 +36,7 @@ import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.Manifest.permission.INTERNET;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static com.segment.analytics.Analytics.Builder;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -55,14 +56,14 @@ public class AnalyticsBuilderTest {
 
   @Test public void nullContextThrowsException() throws Exception {
     try {
-      new Analytics.Builder(null, null);
+      new Builder(null, null);
       fail("Null context should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("Context must not be null.");
     }
 
     try {
-      new Analytics.Builder(null, stubbedKey);
+      new Builder(null, stubbedKey);
       fail("Null context should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("Context must not be null.");
@@ -72,7 +73,7 @@ public class AnalyticsBuilderTest {
   @Test public void missingPermissionsThrowsException() throws Exception {
     when(context.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_DENIED);
     try {
-      new Analytics.Builder(context, stubbedKey);
+      new Builder(context, stubbedKey);
       fail("Missing internet permission should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("INTERNET permission is required.");
@@ -81,7 +82,7 @@ public class AnalyticsBuilderTest {
     when(context.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_GRANTED);
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
     try {
-      new Analytics.Builder(context, stubbedKey);
+      new Builder(context, stubbedKey);
     } catch (IllegalArgumentException expected) {
       fail("Missing access state permission should not throw exception.");
     }
@@ -89,21 +90,21 @@ public class AnalyticsBuilderTest {
 
   @Test public void invalidApiKeyThrowsException() throws Exception {
     try {
-      new Analytics.Builder(context, null);
+      new Builder(context, null);
       fail("Null apiKey should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("writeKey must not be null or empty.");
     }
 
     try {
-      new Analytics.Builder(context, "");
+      new Builder(context, "");
       fail("Empty apiKey should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("writeKey must not be null or empty.");
     }
 
     try {
-      new Analytics.Builder(context, "    ");
+      new Builder(context, "    ");
       fail("Blank apiKey should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("writeKey must not be null or empty.");
@@ -112,47 +113,91 @@ public class AnalyticsBuilderTest {
 
   @Test public void invalidQueueSizeThrowsException() throws Exception {
     try {
-      new Analytics.Builder(context, stubbedKey).maxQueueSize(-1);
-      fail("maxQueueSize < 0 should throw exception.");
+      new Builder(context, stubbedKey).maxQueueSize(-1);
+      fail("queueSize < 0 should throw exception.");
     } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("maxQueueSize must be greater than or equal to zero.");
+      assertThat(expected).hasMessage("queueSize must be greater than or equal to zero.");
     }
 
     try {
-      new Analytics.Builder(context, stubbedKey).maxQueueSize(0);
-      fail("maxQueueSize = 0 should throw exception.");
+      new Builder(context, stubbedKey).maxQueueSize(0);
+      fail("queueSize = 0 should throw exception.");
     } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("maxQueueSize must be greater than or equal to zero.");
+      assertThat(expected).hasMessage("queueSize must be greater than or equal to zero.");
     }
 
-    Analytics.Builder builder = new Analytics.Builder(context, stubbedKey).maxQueueSize(10);
     try {
+      Builder builder = new Builder(context, stubbedKey).maxQueueSize(10);
       builder.maxQueueSize(20);
-      fail("setting maxQueueSize again should throw exception.");
+      fail("setting queueSize again should throw exception.");
     } catch (IllegalStateException expected) {
-      assertThat(expected).hasMessage("maxQueueSize is already set.");
+      assertThat(expected).hasMessage("queueSize is already set.");
+    }
+
+    try {
+      new Builder(context, stubbedKey).queueSize(-1);
+      fail("queueSize < 0 should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("queueSize must be greater than or equal to zero.");
+    }
+
+    try {
+      new Builder(context, stubbedKey).queueSize(0);
+      fail("queueSize = 0 should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("queueSize must be greater than or equal to zero.");
+    }
+
+    try {
+      Builder builder = new Builder(context, stubbedKey).queueSize(10);
+      builder.queueSize(20);
+      fail("setting queueSize again should throw exception.");
+    } catch (IllegalStateException expected) {
+      assertThat(expected).hasMessage("queueSize is already set.");
+    }
+  }
+
+  @Test public void invalidFlushIntervalThrowsException() throws Exception {
+    try {
+      new Builder(context, stubbedKey).flushInterval(-1);
+      fail("flushInterval < 0 should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("flushInterval must be greater than or equal to 1.");
+    }
+
+    try {
+      new Builder(context, stubbedKey).flushInterval(0);
+      fail("flushInterval < 1 should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("flushInterval must be greater than or equal to 1.");
+    }
+
+    try {
+      Builder builder = new Builder(context, stubbedKey).flushInterval(25);
+      builder.flushInterval(10);
+      fail("setting flushInterval again should throw exception.");
+    } catch (IllegalStateException expected) {
+      assertThat(expected).hasMessage("flushInterval is already set.");
     }
   }
 
   @Test public void invalidOptionsThrowsException() throws Exception {
     try {
-      new Analytics.Builder(context, stubbedKey).defaultOptions(null);
+      new Builder(context, stubbedKey).defaultOptions(null);
       fail("null options should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("defaultOptions must not be null.");
     }
 
     try {
-      new Analytics.Builder(context, stubbedKey).defaultOptions(
-          new Options().setTimestamp(new Date()));
+      new Builder(context, stubbedKey).defaultOptions(new Options().setTimestamp(new Date()));
       fail("default options with timestamp should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("default option must not contain timestamp.");
     }
 
     try {
-      new Analytics.Builder(context, stubbedKey).defaultOptions(new Options())
-          .defaultOptions(new Options());
+      new Builder(context, stubbedKey).defaultOptions(new Options()).defaultOptions(new Options());
       fail("setting options twice should throw exception.");
     } catch (IllegalStateException expected) {
       assertThat(expected).hasMessage("defaultOptions is already set.");
@@ -161,28 +206,28 @@ public class AnalyticsBuilderTest {
 
   @Test public void invalidTagThrowsException() throws Exception {
     try {
-      new Analytics.Builder(context, stubbedKey).tag(null);
+      new Builder(context, stubbedKey).tag(null);
       fail("Null apiKey should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("tag must not be null or empty.");
     }
 
     try {
-      new Analytics.Builder(context, stubbedKey).tag("");
+      new Builder(context, stubbedKey).tag("");
       fail("Empty apiKey should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("tag must not be null or empty.");
     }
 
     try {
-      new Analytics.Builder(context, stubbedKey).tag("    ");
+      new Builder(context, stubbedKey).tag("    ");
       fail("Blank apiKey should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("tag must not be null or empty.");
     }
 
     try {
-      new Analytics.Builder(context, stubbedKey).tag(stubbedKey).tag(stubbedKey);
+      new Builder(context, stubbedKey).tag(stubbedKey).tag(stubbedKey);
       fail("Blank apiKey should throw exception.");
     } catch (IllegalStateException expected) {
       assertThat(expected).hasMessage("tag is already set.");
