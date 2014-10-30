@@ -55,7 +55,7 @@ class FlurryIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
     Traits traits = identify.traits();
     FlurryAgent.setUserId(identify.userId());
     int age = traits.age();
-    if (age >= 0) {
+    if (age > 0) {
       FlurryAgent.setAge(age);
     }
     String gender = traits.gender();
