@@ -42,6 +42,7 @@ public class BugsnagTest extends IntegrationExam {
     adapter.onActivityCreated(activity, bundle);
     verifyStatic();
     Bugsnag.setContext("foo");
+    verifyStatic();
     Bugsnag.onActivityCreate(activity);
   }
 
@@ -76,8 +77,11 @@ public class BugsnagTest extends IntegrationExam {
     adapter.identify(identifyPayload("foo"));
     verifyStatic();
     Bugsnag.setUser("foo", "bar", "baz");
+    verifyStatic();
     Bugsnag.addToTab("User", "userId", "foo");
+    verifyStatic();
     Bugsnag.addToTab("User", "email", "bar");
+    verifyStatic();
     Bugsnag.addToTab("User", "name", "baz");
   }
 }
