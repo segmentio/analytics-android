@@ -104,7 +104,7 @@ public class Analytics {
             }
             builder.queueSize(queueSize);
           } catch (Resources.NotFoundException e) {
-            // when maxQueueSize is not defined in xml, we'll use a default option in the builder
+            // when queueSize is not defined in xml, we'll use a default option in the builder
           }
           try {
             // We need the exception to be able to tell if this was not defined, or if it was
@@ -143,19 +143,14 @@ public class Analytics {
   }
 
   /** Fluent API for creating {@link Analytics} instances. */
-  @SuppressWarnings("UnusedDeclaration") // Public API.
   public static class Builder {
-    static final int DEFAULT_QUEUE_SIZE = 20;
-    static final int DEFAULT_FLUSH_INTERVAL = 30;
-    static final boolean DEFAULT_DEBUGGING = false;
-
     private final Application application;
     private String writeKey;
     private String tag;
-    private int queueSize = -1;
-    private int flushInterval = -1;
+    private int queueSize = 20;
+    private int flushInterval = 30;
     private Options defaultOptions;
-    private boolean debuggingEnabled = DEFAULT_DEBUGGING;
+    private boolean debuggingEnabled = false;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -183,25 +178,27 @@ public class Analytics {
       return queueSize(maxQueueSize);
     }
 
-    /** Set the queue size at which the client should flush events. */
+    /**
+     * Set the queue size at which the client should flush events.
+     * The client will automatically flush events every {@code flushInterval} seconds, or when the
+     * queue reaches {@code queueSize}, whichever occurs first.
+     */
     public Builder queueSize(int queueSize) {
       if (queueSize <= 0) {
         throw new IllegalArgumentException("queueSize must be greater than or equal to zero.");
-      }
-      if (this.queueSize != -1) {
-        throw new IllegalStateException("queueSize is already set.");
       }
       this.queueSize = queueSize;
       return this;
     }
 
-    /** Set the interval (in seconds) at which the client should flush events. */
+    /**
+     * Set the interval (in seconds) at which the client should flush events.
+     * The client will automatically flush events every {@code flushInterval} seconds, or when the
+     * queue reaches {@code queueSize}, whichever occurs first.
+     */
     public Builder flushInterval(int flushInterval) {
       if (flushInterval < 1) {
         throw new IllegalArgumentException("flushInterval must be greater than or equal to 1.");
-      }
-      if (this.flushInterval != -1) {
-        throw new IllegalStateException("flushInterval is already set.");
       }
       this.flushInterval = flushInterval;
       return this;
@@ -268,12 +265,6 @@ public class Analytics {
 
     /** Create Segment {@link Analytics} instance. */
     public Analytics build() {
-      if (queueSize == -1) {
-        queueSize = DEFAULT_QUEUE_SIZE;
-      }
-      if (flushInterval == -1) {
-        flushInterval = DEFAULT_FLUSH_INTERVAL;
-      }
       if (defaultOptions == null) {
         defaultOptions = new Options();
       }

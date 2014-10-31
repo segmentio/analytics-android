@@ -129,9 +129,8 @@ public class AnalyticsBuilderTest {
     try {
       Builder builder = new Builder(context, stubbedKey).maxQueueSize(10);
       builder.maxQueueSize(20);
-      fail("setting queueSize again should throw exception.");
-    } catch (IllegalStateException expected) {
-      assertThat(expected).hasMessage("queueSize is already set.");
+    } catch (IllegalStateException unexpected) {
+      fail("maxQueueSize can be set multiple times.");
     }
 
     try {
@@ -151,9 +150,8 @@ public class AnalyticsBuilderTest {
     try {
       Builder builder = new Builder(context, stubbedKey).queueSize(10);
       builder.queueSize(20);
-      fail("setting queueSize again should throw exception.");
-    } catch (IllegalStateException expected) {
-      assertThat(expected).hasMessage("queueSize is already set.");
+    } catch (IllegalStateException unexpected) {
+      fail("queueSize can be set multiple times.");
     }
   }
 
@@ -175,9 +173,8 @@ public class AnalyticsBuilderTest {
     try {
       Builder builder = new Builder(context, stubbedKey).flushInterval(25);
       builder.flushInterval(10);
-      fail("setting flushInterval again should throw exception.");
-    } catch (IllegalStateException expected) {
-      assertThat(expected).hasMessage("flushInterval is already set.");
+    } catch (IllegalStateException unexpected) {
+      fail("flushInterval can be set multiple times.");
     }
   }
 
