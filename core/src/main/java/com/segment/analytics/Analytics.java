@@ -69,7 +69,7 @@ public class Analytics {
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
   static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
   static final String FLUSH_INTERVAL_IDENTIFIER = "analytics_flush_interval";
-  static final String LOGGING_RESOURCE_IDENTIFIER = "analytics_logging";
+  static final String DEBUGGING_RESOURCE_IDENTIFIER = "analytics_debugging";
 
   static Analytics singleton = null;
 
@@ -121,16 +121,16 @@ public class Analytics {
             // when flushInterval is not defined in xml, we'll use a default option in the builder
           }
           try {
-            boolean logging = getResourceBooleanOrThrow(context, LOGGING_RESOURCE_IDENTIFIER);
-            builder.logging(logging);
+            boolean debugging = getResourceBooleanOrThrow(context, DEBUGGING_RESOURCE_IDENTIFIER);
+            builder.debugging(debugging);
           } catch (Resources.NotFoundException notFoundException) {
             // when debugging is not defined in xml, we'll try to figure it out from package flags
             String packageName = context.getPackageName();
             try {
               final int flags =
                   context.getPackageManager().getApplicationInfo(packageName, 0).flags;
-              boolean logging = (flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
-              builder.logging(logging);
+              boolean debugging = (flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+              builder.debugging(debugging);
             } catch (PackageManager.NameNotFoundException nameNotFoundException) {
               // if we still can't figure it out, we'll use the default options in the builder
             }
@@ -147,7 +147,7 @@ public class Analytics {
   public static class Builder {
     static final int DEFAULT_QUEUE_SIZE = 20;
     static final int DEFAULT_FLUSH_INTERVAL = 30;
-    static final boolean DEFAULT_LOGGING = false;
+    static final boolean DEFAULT_DEBUGGING = false;
 
     private final Application application;
     private String writeKey;
@@ -155,7 +155,7 @@ public class Analytics {
     private int queueSize = -1;
     private int flushInterval = -1;
     private Options defaultOptions;
-    private boolean loggingEnabled = DEFAULT_LOGGING;
+    private boolean debuggingEnabled = DEFAULT_DEBUGGING;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -247,9 +247,22 @@ public class Analytics {
       return this;
     }
 
-    /** Set whether debugging is enabled or not. */
-    public Builder logging(boolean loggingEnabled) {
-      this.loggingEnabled = loggingEnabled;
+    /**
+     * Set whether debugging is enabled or not.
+     *
+     * @deprecated Use {@link #debugging(boolean)} instead.
+     */
+    public Builder logging(boolean debuggingEnabled) {
+      return debugging(debuggingEnabled);
+    }
+
+    /**
+     * Set whether debugging is enabled or not.
+     *
+     * @since 2.4
+     */
+    public Builder debugging(boolean debuggingEnabled) {
+      this.debuggingEnabled = debuggingEnabled;
       return this;
     }
 
@@ -269,15 +282,15 @@ public class Analytics {
       Stats stats = new Stats();
       SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
       IntegrationManager integrationManager =
-          IntegrationManager.create(application, segmentHTTPApi, stats, loggingEnabled);
+          IntegrationManager.create(application, segmentHTTPApi, stats, debuggingEnabled);
       Dispatcher dispatcher =
           Dispatcher.create(application, queueSize, flushInterval, segmentHTTPApi,
-              integrationManager.serverIntegrations, tag, stats, loggingEnabled);
+              integrationManager.serverIntegrations, tag, stats, debuggingEnabled);
       TraitsCache traitsCache = new TraitsCache(application, tag);
       AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
 
       return new Analytics(application, dispatcher, integrationManager, stats, traitsCache,
-          analyticsContext, defaultOptions, loggingEnabled);
+          analyticsContext, defaultOptions, debuggingEnabled);
     }
   }
 
@@ -297,12 +310,12 @@ public class Analytics {
   final TraitsCache traitsCache;
   final AnalyticsContext analyticsContext;
   final Options defaultOptions;
-  final boolean loggingEnabled;
+  final boolean debuggingEnabled;
   boolean shutdown;
 
   Analytics(Application application, Dispatcher dispatcher, IntegrationManager integrationManager,
       Stats stats, TraitsCache traitsCache, AnalyticsContext analyticsContext,
-      Options defaultOptions, boolean loggingEnabled) {
+      Options defaultOptions, boolean debuggingEnabled) {
     this.application = application;
     this.dispatcher = dispatcher;
     this.integrationManager = integrationManager;
@@ -310,7 +323,7 @@ public class Analytics {
     this.traitsCache = traitsCache;
     this.analyticsContext = analyticsContext;
     this.defaultOptions = defaultOptions;
-    this.loggingEnabled = loggingEnabled;
+    this.debuggingEnabled = debuggingEnabled;
 
     application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
       @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -343,9 +356,22 @@ public class Analytics {
     });
   }
 
-  /** Returns {@code true} if logging is enabled. */
+  /**
+   * Returns {@code true} if debugging is enabled.
+   *
+   * @deprecated Use {@link #isDebugging()} instead.
+   */
   public boolean isLogging() {
-    return loggingEnabled;
+    return debuggingEnabled;
+  }
+
+  /**
+   * Returns {@code true} if debugging is enabled.
+   *
+   * @since 2.4
+   */
+  public boolean isDebugging() {
+    return debuggingEnabled;
   }
 
   /**
@@ -614,7 +640,7 @@ public class Analytics {
   }
 
   void submit(BasePayload payload) {
-    if (loggingEnabled) {
+    if (debuggingEnabled) {
       debug(OWNER_MAIN, VERB_CREATE, payload.id(), "type: " + payload.type());
     }
     dispatcher.dispatchEnqueue(payload);
@@ -622,7 +648,7 @@ public class Analytics {
   }
 
   void submit(ActivityLifecyclePayload payload) {
-    if (loggingEnabled) {
+    if (debuggingEnabled) {
       debug(OWNER_MAIN, VERB_CREATE, payload.id(),
           "type: " + payload.type.toString().toLowerCase());
     }

@@ -62,20 +62,20 @@ class Dispatcher {
   final Stats stats;
   final Handler handler;
   final HandlerThread dispatcherThread;
-  final boolean loggingEnabled;
+  final boolean debuggingEnabled;
   final Map<String, Boolean> integrations;
 
   static Dispatcher create(Context context, int queueSize, int flushInterval,
       SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
-      boolean loggingEnabled) {
+      boolean debuggingEnabled) {
     FileObjectQueue.Converter<BasePayload> converter = new PayloadConverter();
     try {
       File parent = context.getFilesDir();
       if (!parent.exists()) parent.mkdirs();
       File queueFile = new File(parent, TASK_QUEUE_FILE_NAME + tag);
       ObjectQueue<BasePayload> queue = new FileObjectQueue<BasePayload>(queueFile, converter);
-      return new Dispatcher(context, queueSize, flushInterval, segmentHTTPApi, queue,
-          integrations, stats, loggingEnabled);
+      return new Dispatcher(context, queueSize, flushInterval, segmentHTTPApi, queue, integrations,
+          stats, debuggingEnabled);
     } catch (IOException e) {
       throw new RuntimeException("Unable to create file queue.", e);
     }
@@ -83,13 +83,13 @@ class Dispatcher {
 
   Dispatcher(Context context, int queueSize, int flushInterval, SegmentHTTPApi segmentHTTPApi,
       ObjectQueue<BasePayload> queue, Map<String, Boolean> integrations, Stats stats,
-      boolean loggingEnabled) {
+      boolean debuggingEnabled) {
     this.context = context;
     this.queueSize = queueSize;
     this.segmentHTTPApi = segmentHTTPApi;
     this.queue = queue;
     this.stats = stats;
-    this.loggingEnabled = loggingEnabled;
+    this.debuggingEnabled = debuggingEnabled;
     this.integrations = integrations;
     this.flushInterval = flushInterval * 1000;
     dispatcherThread = new HandlerThread(DISPATCHER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
@@ -110,13 +110,13 @@ class Dispatcher {
     try {
       queue.add(payload);
     } catch (IOException e) {
-      if (loggingEnabled) {
+      if (debuggingEnabled) {
         error(OWNER_DISPATCHER, VERB_ENQUEUE, payload.id(), e,
             String.format("payload: %s", payload));
       }
     }
 
-    if (loggingEnabled) {
+    if (debuggingEnabled) {
       debug(OWNER_DISPATCHER, VERB_ENQUEUE, payload.id(),
           String.format("queueSize: %s", queue.size()));
     }
@@ -136,7 +136,7 @@ class Dispatcher {
     try {
       queue.setListener(new ObjectQueue.Listener<BasePayload>() {
         @Override public void onAdd(ObjectQueue<BasePayload> queue, BasePayload entry) {
-          if (loggingEnabled) {
+          if (debuggingEnabled) {
             debug(OWNER_DISPATCHER, VERB_FLUSH, entry.id(), null);
           }
           payloads.add(entry);
@@ -148,7 +148,7 @@ class Dispatcher {
       });
       queue.setListener(null);
     } catch (IOException e) {
-      if (loggingEnabled) {
+      if (debuggingEnabled) {
         error(OWNER_DISPATCHER, VERB_FLUSH, "could not read queue", e,
             String.format("queue: %s", queue));
       }
@@ -164,7 +164,7 @@ class Dispatcher {
         queue.remove();
       }
     } catch (IOException e) {
-      if (loggingEnabled) {
+      if (debuggingEnabled) {
         error(OWNER_DISPATCHER, VERB_FLUSH, "unable to clear queue", e, "events: " + count);
       }
     }

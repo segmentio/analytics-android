@@ -260,13 +260,13 @@ final class Utils {
   final static String FORMAT = "%1$-20s %2$-12s %3$-36s {%4$s}";
   final static String EMPTY = "";
 
-  /** Call only if loggingEnabled is true */
+  /** Call only if debugging is enabled. */
   static void debug(String owner, String verb, String id, String extras) {
     Log.d(TAG, String.format(FORMAT, owner, verb, id == null ? EMPTY : id,
         extras == null ? EMPTY : extras));
   }
 
-  /** Call only if loggingEnabled is true */
+  /** Call only if debugging is enabled. */
   static void error(String owner, String verb, String id, Throwable throwable, String extras) {
     Log.e(TAG, String.format(FORMAT, owner, verb + " (error)", id == null ? EMPTY : id,
             extras == null ? EMPTY : extras) + Log.getStackTraceString(throwable)
