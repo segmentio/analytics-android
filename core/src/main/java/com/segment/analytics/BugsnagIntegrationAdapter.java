@@ -17,6 +17,10 @@ import java.util.Map;
  */
 class BugsnagIntegrationAdapter extends AbstractIntegrationAdapter<Client> {
 
+  BugsnagIntegrationAdapter(boolean debuggingEnabled) {
+    super(debuggingEnabled);
+  }
+
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     Bugsnag.register(context, settings.getString("apiKey"));

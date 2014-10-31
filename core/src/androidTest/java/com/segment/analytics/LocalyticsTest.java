@@ -28,7 +28,7 @@ public class LocalyticsTest extends IntegrationExam {
 
     grantPermission(Robolectric.application, Manifest.permission.WAKE_LOCK);
 
-    adapter = new LocalyticsIntegrationAdapter();
+    adapter = new LocalyticsIntegrationAdapter(true);
     adapter.session = localytics;
   }
 
@@ -38,7 +38,7 @@ public class LocalyticsTest extends IntegrationExam {
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
-    LocalyticsIntegrationAdapter adapter = new LocalyticsIntegrationAdapter();
+    LocalyticsIntegrationAdapter adapter = new LocalyticsIntegrationAdapter(true);
     adapter.initialize(Robolectric.application, new JsonMap().putValue("appKey", "foo"));
     assertThat(adapter.session).isNotNull();
   }

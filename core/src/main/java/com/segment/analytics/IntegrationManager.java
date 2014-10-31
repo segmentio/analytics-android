@@ -78,40 +78,40 @@ class IntegrationManager {
     // disable sending to these integrations from the server and properly fill the payloads with
     // this information
     if (isOnClassPath("com.amplitude.api.Amplitude")) {
-      bundleIntegration(new AmplitudeIntegrationAdapter());
+      bundleIntegration(new AmplitudeIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.appsflyer.AppsFlyerLib")) {
-      bundleIntegration(new AppsFlyerIntegrationAdapter());
+      bundleIntegration(new AppsFlyerIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.bugsnag.android.Bugsnag")) {
-      bundleIntegration(new BugsnagIntegrationAdapter());
+      bundleIntegration(new BugsnagIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("ly.count.android.api.Countly")) {
-      bundleIntegration(new CountlyIntegrationAdapter());
+      bundleIntegration(new CountlyIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.crittercism.app.Crittercism")) {
-      bundleIntegration(new CrittercismIntegrationAdapter());
+      bundleIntegration(new CrittercismIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.flurry.android.FlurryAgent")) {
-      bundleIntegration(new FlurryIntegrationAdapter());
+      bundleIntegration(new FlurryIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
-      bundleIntegration(new GoogleAnalyticsIntegrationAdapter());
+      bundleIntegration(new GoogleAnalyticsIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.localytics.android.LocalyticsSession")) {
-      bundleIntegration(new LocalyticsIntegrationAdapter());
+      bundleIntegration(new LocalyticsIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.leanplum.Leanplum")) {
-      bundleIntegration(new LeanplumIntegrationAdapter());
+      bundleIntegration(new LeanplumIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.mixpanel.android.mpmetrics.MixpanelAPI")) {
-      bundleIntegration(new MixpanelIntegrationAdapter());
+      bundleIntegration(new MixpanelIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.quantcast.measurement.service.QuantcastClient")) {
-      bundleIntegration(new QuantcastIntegrationAdapter());
+      bundleIntegration(new QuantcastIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.tapstream.sdk.Tapstream")) {
-      bundleIntegration(new TapstreamIntegrationAdapter());
+      bundleIntegration(new TapstreamIntegrationAdapter(debuggingEnabled));
     }
 
     this.projectSettingsCache = projectSettingsCache;

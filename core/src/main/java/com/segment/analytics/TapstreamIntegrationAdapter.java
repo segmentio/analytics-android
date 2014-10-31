@@ -25,6 +25,10 @@ class TapstreamIntegrationAdapter extends AbstractIntegrationAdapter<Tapstream> 
   Tapstream tapstream;
   Config config;
 
+  TapstreamIntegrationAdapter(boolean debuggingEnabled) {
+    super(debuggingEnabled);
+  }
+
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     trackAllPages = settings.getBoolean("trackAllPages", true);

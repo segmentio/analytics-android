@@ -31,7 +31,7 @@ public class FlurryTest extends IntegrationExam {
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(FlurryAgent.class);
-    adapter = new FlurryIntegrationAdapter();
+    adapter = new FlurryIntegrationAdapter(true);
     adapter.apiKey = apiKey;
   }
 

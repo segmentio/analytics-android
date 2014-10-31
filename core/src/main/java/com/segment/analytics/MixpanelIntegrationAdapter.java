@@ -21,6 +21,10 @@ class MixpanelIntegrationAdapter extends AbstractIntegrationAdapter<MixpanelAPI>
   boolean trackCategorizedPages;
   boolean trackNamedPages;
 
+  MixpanelIntegrationAdapter(boolean debuggingEnabled) {
+    super(debuggingEnabled);
+  }
+
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     trackAllPages = settings.getBoolean("trackAllPages", false);

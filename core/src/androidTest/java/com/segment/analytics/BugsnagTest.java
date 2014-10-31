@@ -26,7 +26,7 @@ public class BugsnagTest extends IntegrationExam {
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(Bugsnag.class);
-    adapter = new BugsnagIntegrationAdapter();
+    adapter = new BugsnagIntegrationAdapter(true);
   }
 
   @Test public void initialize() throws InvalidConfigurationException {

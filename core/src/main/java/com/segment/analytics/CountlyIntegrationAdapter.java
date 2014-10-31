@@ -14,6 +14,10 @@ import ly.count.android.api.Countly;
  */
 class CountlyIntegrationAdapter extends AbstractIntegrationAdapter<Countly> {
 
+  CountlyIntegrationAdapter(boolean debuggingEnabled) {
+    super(debuggingEnabled);
+  }
+
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     getUnderlyingInstance().init(context, settings.getString("serverUrl"),
