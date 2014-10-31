@@ -368,7 +368,7 @@ public class Analytics {
   /**
    * Identify a user with an id in your own database without any traits.
    *
-   * @see {@link #identify(String, Traits, Options)}
+   * @see #identify(String, Traits, Options)
    */
   public void identify(String userId) {
     identify(userId, null, defaultOptions);
@@ -377,7 +377,7 @@ public class Analytics {
   /**
    * Associate traits with the current user, identified or not.
    *
-   * @see {@link #identify(String, Traits, Options)}
+   * @see #identify(String, Traits, Options)
    */
   public void identify(Traits traits) {
     identify(null, traits, null);
@@ -413,7 +413,7 @@ public class Analytics {
   }
 
   /**
-   * @see {@link #group(String, String, Traits, Options)}
+   * @see #group(String, String, Traits, Options)
    */
   public void group(String groupId) {
     group(null, groupId, null, null);
@@ -457,14 +457,14 @@ public class Analytics {
   }
 
   /**
-   * @see {@link #track(String, Properties, Options)}
+   * @see #track(String, Properties, Options)
    */
   public void track(String event) {
     track(event, null, null);
   }
 
   /**
-   * @see {@link #track(String, Properties, Options)}
+   * @see #track(String, Properties, Options)
    */
   public void track(String event, Properties properties) {
     track(event, properties, null);
@@ -499,14 +499,14 @@ public class Analytics {
   }
 
   /**
-   * @see {@link #screen(String, String, Properties, Options)}
+   * @see #screen(String, String, Properties, Options)
    */
   public void screen(String category, String name) {
     screen(category, name, null, null);
   }
 
   /**
-   * @see {@link #screen(String, String, Properties, Options)}
+   * @see #screen(String, String, Properties, Options)
    */
   public void screen(String category, String name, Properties properties) {
     screen(category, name, properties, null);
@@ -543,7 +543,7 @@ public class Analytics {
   }
 
   /**
-   * @see {@link #alias(String, String, Options)}
+   * @see #alias(String, String, Options)
    */
   public void alias(String newId, String previousId) {
     alias(newId, previousId, null);
