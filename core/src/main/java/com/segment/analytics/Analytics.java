@@ -56,10 +56,19 @@ import static com.segment.analytics.Utils.hasPermission;
 import static com.segment.analytics.Utils.isNullOrEmpty;
 
 /**
- * The idea is simple: one pipeline for all your data.
- * <p/>
- * Use {@link #with(android.content.Context)} for the global singleton instance or construct your
- * own instance with {@link Builder}.
+ * The idea is simple: one pipeline for all your data. Segment is the single hub to collect,
+ * translate and route your data with the flip of a switch.
+ * <p></p>
+ * Analytics for Android will automatically batch events, queue them to disk, and upload it
+ * periodically to Segment for you. It will also look up your project's settings (that you've
+ * configured in the web interface), specifically looking up settings for bundled integrations, and
+ * then initialize them for you on the user's phone, and mapping our standardized events to formats
+ * they can all understand. You only need to instrument Segment once, then flip a switch to install
+ * new tools.
+ * <p></p>
+ * This class is the main entry point into the client API. Use {@link
+ * #with(android.content.Context)} for the global singleton instance or construct your own instance
+ * with {@link Builder}.
  *
  * @see <a href="https://segment.io/">Segment.io</a>
  */
@@ -135,13 +144,16 @@ public class Analytics {
 
   /**
    * The global default {@link Analytics} instance.
-   * <p/>
+   * <p></p>
    * This instance is automatically initialized with defaults that are suitable to most
    * implementations.
-   * <p/>
-   * If these settings do not meet the requirements of your application, you can provide properties
-   * in {@code analytics.xml} or you can construct your own instance with full control over the
+   * <p></p>
+   * If these settings do not meet the requirements of your application, you can override defaults
+   * in {@code analytics.xml}, or you can construct your own instance with full control over the
    * configuration by using {@link Builder}.
+   * <p></p>
+   * By default, events are uploaded every 30 seconds, or every 20 events (whichever occurs first),
+   * and debugging is disabled.
    */
   public static Analytics with(Context context) {
     if (singleton == null) {
@@ -220,20 +232,12 @@ public class Analytics {
     return debuggingEnabled;
   }
 
-  /**
-   * Identify a user with an id in your own database without any traits.
-   *
-   * @see #identify(String, Traits, Options)
-   */
+  /** @see #identify(String, Traits, Options) */
   public void identify(String userId) {
     identify(userId, null, defaultOptions);
   }
 
-  /**
-   * Associate traits with the current user, identified or not.
-   *
-   * @see #identify(String, Traits, Options)
-   */
+  /** @see #identify(String, Traits, Options) */
   public void identify(Traits traits) {
     identify(null, traits, null);
   }
@@ -241,6 +245,9 @@ public class Analytics {
   /**
    * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
    * also lets you record {@code traits} about the user, like their email, name, account type, etc.
+   * <p></p>
+   * Traits will be automatically cached and available on future sessions for the same user. To
+   * update a trait on the server, simply call identify for the same user again.
    *
    * @param userId Unique identifier which you recognize a user by in your own database. If this is
    * null or empty, any previous id we have (could be the anonymous id) will be
@@ -267,9 +274,7 @@ public class Analytics {
     submit(payload);
   }
 
-  /**
-   * @see #group(String, String, Traits, Options)
-   */
+  /** @see #group(String, String, Traits, Options) */
   public void group(String groupId) {
     group(null, groupId, null, null);
   }
@@ -311,16 +316,12 @@ public class Analytics {
     submit(payload);
   }
 
-  /**
-   * @see #track(String, Properties, Options)
-   */
+  /** @see #track(String, Properties, Options) */
   public void track(String event) {
     track(event, null, null);
   }
 
-  /**
-   * @see #track(String, Properties, Options)
-   */
+  /** @see #track(String, Properties, Options) */
   public void track(String event, Properties properties) {
     track(event, properties, null);
   }
@@ -353,16 +354,12 @@ public class Analytics {
     submit(payload);
   }
 
-  /**
-   * @see #screen(String, String, Properties, Options)
-   */
+  /** @see #screen(String, String, Properties, Options) */
   public void screen(String category, String name) {
     screen(category, name, null, null);
   }
 
-  /**
-   * @see #screen(String, String, Properties, Options)
-   */
+  /** @see #screen(String, String, Properties, Options) */
   public void screen(String category, String name, Properties properties) {
     screen(category, name, properties, null);
   }
@@ -397,9 +394,7 @@ public class Analytics {
     submit(payload);
   }
 
-  /**
-   * @see #alias(String, String, Options)
-   */
+  /** @see #alias(String, String, Options) */
   public void alias(String newId, String previousId) {
     alias(newId, previousId, null);
   }
@@ -501,16 +496,23 @@ public class Analytics {
 
   /**
    * A callback interface that is invoked when the Analytics client initializes bundled
-   * integrations. This method will be invoked once for each integration. The first argument is a
-   * key to uniquely identify each integration (which will the same as the one in our public HTTP
-   * API). The second argument will be the integration object itself, so you can call methods not
-   * exposed as a part of our spec. This is useful if you're doing A/B testing.
+   * integrations.
    * <p></p>
    * In most cases, integrations would have already been initialized, and the callback will be
    * invoked right away. The only time this not invoked immediately is when the application is
    * opened the very first time (right after a fresh install).
    */
   public interface OnIntegrationReadyListener {
+    /**
+     * This method will be invoked once for each integration. The first argument is a
+     * key to uniquely identify each integration (which will the same as the one in our public HTTP
+     * API). The second argument will be the integration object itself, so you can call methods not
+     * exposed as a part of our spec. This is useful if you're doing things like A/B testing.
+     *
+     * @param key A unique string to identify an integration.
+     * @param integration The underlying instance that has been initialized with the settings from
+     * Segment
+     */
     void onIntegrationReady(String key, Object integration);
   }
 
@@ -534,11 +536,9 @@ public class Analytics {
       if (!hasPermission(context, Manifest.permission.INTERNET)) {
         throw new IllegalArgumentException("INTERNET permission is required.");
       }
-
       if (isNullOrEmpty(writeKey)) {
         throw new IllegalArgumentException("writeKey must not be null or empty.");
       }
-
       application = (Application) context.getApplicationContext();
       this.writeKey = writeKey;
     }
@@ -637,7 +637,7 @@ public class Analytics {
       return this;
     }
 
-    /** Create Segment {@link Analytics} instance. */
+    /** Create a {@link Analytics} client. */
     public Analytics build() {
       if (defaultOptions == null) {
         defaultOptions = new Options();
