@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.os.Message;
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -57,7 +58,8 @@ class IntegrationManager {
 
   final Set<AbstractIntegrationAdapter> bundledIntegrations =
       new HashSet<AbstractIntegrationAdapter>();
-  final Map<String, Boolean> serverIntegrations = new LinkedHashMap<String, Boolean>();
+  final Map<String, Boolean> serverIntegrations =
+      Collections.synchronizedMap(new LinkedHashMap<String, Boolean>());
   Queue<IntegrationOperation> operationQueue = new ArrayDeque<IntegrationOperation>();
   volatile boolean initialized;
   OnIntegrationReadyListener listener;
@@ -207,6 +209,7 @@ class IntegrationManager {
             listener.onIntegrationReady(integration.key(), integration.getUnderlyingInstance());
           }
         } catch (InvalidConfigurationException e) {
+          serverIntegrations.remove(integration.key());
           iterator.remove();
           if (debuggingEnabled) {
             error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), e,
