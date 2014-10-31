@@ -36,17 +36,8 @@ import static com.segment.analytics.Utils.toISO8601Date;
 // This ignores projectId, receivedAt and version that are set by the server.
 // sentAt is set on SegmentHTTPApi#BatchPayload
 class BasePayload extends JsonMap implements IntegrationManager.IntegrationOperation {
-  enum Type {
-    alias, group, identify, screen, track
-  }
-
-  private enum Channel {
-    browser, mobile, server
-  }
-
   /** The type of message. */
   private static final String TYPE_KEY = "type";
-
   /**
    * The anonymous ID is an identifier that uniquely (or close enough) identifies the user, but
    * isn't from your database. This is useful in cases where you are able to uniquely identifier
@@ -55,7 +46,6 @@ class BasePayload extends JsonMap implements IntegrationManager.IntegrationOpera
    * mobile and browser libraries we will automatically handle sending the anonymous ID.
    */
   private static final String ANONYMOUS_ID_KEY = "anonymousId";
-
   /**
    * The channel where the request originated from: server, browser or mobile. In the future we may
    * add additional channels as we add libraries, for example console.
@@ -63,12 +53,10 @@ class BasePayload extends JsonMap implements IntegrationManager.IntegrationOpera
    * This is always {@link Channel#mobile} for us.
    */
   private static final String CHANNEL_KEY = "channel";
-
   /**
    * A randomly generated unique id for this message. Used to track payload lifecycle.
    */
   private static final String MESSAGE_ID = "messageId";
-
   /**
    * The context is a dictionary of extra information that provides useful context about a message,
    * for example ip address or locale. This dictionary is loosely speced, but you can also add your
@@ -76,16 +64,13 @@ class BasePayload extends JsonMap implements IntegrationManager.IntegrationOpera
    * the context before adding your own.
    */
   private static final String CONTEXT_KEY = "context";
-
   /**
    * A dictionary of integration names that the message should be proxied to. 'All' is a special
    * name that applies when no key for a specific integration is found, and is case-insensitive.
    */
   private static final String INTEGRATIONS_KEY = "integrations";
-
   /** The timestamp when the message took place. This should be an ISO-8601-formatted string. */
   private static final String TIMESTAMP_KEY = "timestamp";
-
   /**
    * The user ID is an identifier that unique identifies the user in your database. Ideally it
    * should not be an email address, because emails can change, whereas a database ID can't.
@@ -137,5 +122,15 @@ class BasePayload extends JsonMap implements IntegrationManager.IntegrationOpera
 
   @Override public String id() {
     return getString(MESSAGE_ID);
+  }
+
+  /** @see TYPE_KEY */
+  enum Type {
+    alias, group, identify, screen, track
+  }
+
+  /** @see CHANNEL_KEY */
+  private enum Channel {
+    browser, mobile, server
   }
 }

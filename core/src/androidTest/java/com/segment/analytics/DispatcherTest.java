@@ -26,14 +26,14 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 public class DispatcherTest {
+  private static final BasePayload TEST_PAYLOAD =
+      new BasePayload("{\n" + "\"messageId\":\"ID\",\n" + "\"type\":\"TYPE\"\n" + "}");
+
   @Mock SegmentHTTPApi segmentHTTPApi;
   @Mock Stats stats;
   Context context;
   ObjectQueue<BasePayload> queue;
   Dispatcher dispatcher;
-
-  private static final BasePayload TEST_PAYLOAD =
-      new BasePayload("{\n" + "\"messageId\":\"ID\",\n" + "\"type\":\"TYPE\"\n" + "}");
 
   @Before public void setUp() {
     initMocks(this);

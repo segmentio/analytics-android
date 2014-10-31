@@ -35,9 +35,8 @@ import java.util.Map;
  */
 public class Options {
   public static final String ALL_INTEGRATIONS_KEY = "all";
-
-  private Date timestamp;
   private final Map<String, Boolean> integrations; // passed in by the user
+  private Date timestamp;
 
   public Options() {
     integrations = new LinkedHashMap<String, Boolean>();

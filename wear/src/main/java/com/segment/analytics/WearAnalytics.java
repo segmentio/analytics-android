@@ -30,13 +30,12 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  */
 public class WearAnalytics {
   static final String ANALYTICS_PATH = "/analytics";
+  static WearAnalytics singleton;
   final WearDispatcher dispatcher;
 
   WearAnalytics(Context context) {
     this.dispatcher = new WearDispatcher(context);
   }
-
-  static WearAnalytics singleton;
 
   public static WearAnalytics with(Context context) {
     if (singleton == null) {

@@ -29,6 +29,14 @@ class TapstreamIntegrationAdapter extends AbstractIntegrationAdapter<Tapstream> 
     super(debuggingEnabled);
   }
 
+  private static Event makeEvent(String name, Properties properties) {
+    Event event = new Event(name, false);
+    for (Map.Entry<String, Object> entry : properties.entrySet()) {
+      event.addPair(entry.getKey(), entry.getValue());
+    }
+    return event;
+  }
+
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     trackAllPages = settings.getBoolean("trackAllPages", true);
@@ -62,14 +70,6 @@ class TapstreamIntegrationAdapter extends AbstractIntegrationAdapter<Tapstream> 
     } else if (trackNamedPages && !isNullOrEmpty(screen.name())) {
       tapstream.fireEvent(makeEvent("screen-" + screen.name(), screen.properties()));
     }
-  }
-
-  private static Event makeEvent(String name, Properties properties) {
-    Event event = new Event(name, false);
-    for (Map.Entry<String, Object> entry : properties.entrySet()) {
-      event.addPair(entry.getKey(), entry.getValue());
-    }
-    return event;
   }
 
   @Override void identify(IdentifyPayload identify) {

@@ -59,6 +59,19 @@ import static android.provider.Settings.Secure.getString;
 final class Utils {
   static final String THREAD_PREFIX = "SegmentAnalytics-";
   static final DateFormat ISO_8601_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+  final static String OWNER_MAIN = "Main";
+  final static String OWNER_DISPATCHER = "Dispatcher";
+  final static String OWNER_INTEGRATION_MANAGER = "IntegrationManager";
+  final static String VERB_CREATE = "create";
+  final static String VERB_DISPATCH = "dispatch";
+  final static String VERB_ENQUEUE = "enqueue";
+  final static String VERB_FLUSH = "flush";
+  final static String VERB_SKIP = "skip";
+  final static String VERB_INITIALIZE = "initialize";
+  final static String TAG = "Segment";
+  // [thread] [verb] [id] {[extras]}
+  final static String FORMAT = "%1$-20s %2$-12s %3$-36s {%4$s}";
+  final static String EMPTY = "";
 
   private Utils() {
     throw new AssertionError("No instances");
@@ -243,22 +256,6 @@ final class Utils {
   private static boolean isMain() {
     return Looper.getMainLooper().getThread() == Thread.currentThread();
   }
-
-  final static String OWNER_MAIN = "Main";
-  final static String OWNER_DISPATCHER = "Dispatcher";
-  final static String OWNER_INTEGRATION_MANAGER = "IntegrationManager";
-
-  final static String VERB_CREATE = "create";
-  final static String VERB_DISPATCH = "dispatch";
-  final static String VERB_ENQUEUE = "enqueue";
-  final static String VERB_FLUSH = "flush";
-  final static String VERB_SKIP = "skip";
-  final static String VERB_INITIALIZE = "initialize";
-
-  final static String TAG = "Segment";
-  // [thread] [verb] [id] {[extras]}
-  final static String FORMAT = "%1$-20s %2$-12s %3$-36s {%4$s}";
-  final static String EMPTY = "";
 
   /** Call only if debugging is enabled. */
   static void debug(String owner, String verb, String id, String extras) {

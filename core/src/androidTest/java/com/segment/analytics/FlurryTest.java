@@ -23,10 +23,9 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(FlurryAgent.class)
 public class FlurryTest extends IntegrationExam {
-  @Rule public PowerMockRule rule = new PowerMockRule();
-
-  FlurryIntegrationAdapter adapter;
   final String apiKey = "foo";
+  @Rule public PowerMockRule rule = new PowerMockRule();
+  FlurryIntegrationAdapter adapter;
 
   @Before @Override public void setUp() {
     super.setUp();

@@ -67,22 +67,6 @@ class Dispatcher {
   final boolean debuggingEnabled;
   final Map<String, Boolean> integrations;
 
-  static Dispatcher create(Context context, int queueSize, int flushInterval,
-      SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
-      boolean debuggingEnabled) {
-    FileObjectQueue.Converter<BasePayload> converter = new PayloadConverter();
-    try {
-      File parent = context.getFilesDir();
-      if (!parent.exists()) parent.mkdirs();
-      File queueFile = new File(parent, TASK_QUEUE_FILE_NAME + tag);
-      ObjectQueue<BasePayload> queue = new FileObjectQueue<BasePayload>(queueFile, converter);
-      return new Dispatcher(context, queueSize, flushInterval, segmentHTTPApi, queue, integrations,
-          stats, debuggingEnabled);
-    } catch (IOException e) {
-      throw new RuntimeException("Unable to create file queue.", e);
-    }
-  }
-
   Dispatcher(Context context, int queueSize, int flushInterval, SegmentHTTPApi segmentHTTPApi,
       ObjectQueue<BasePayload> queue, Map<String, Boolean> integrations, Stats stats,
       boolean debuggingEnabled) {
@@ -98,6 +82,22 @@ class Dispatcher {
     dispatcherThread.start();
     handler = new DispatcherHandler(dispatcherThread.getLooper(), this);
     rescheduleFlush();
+  }
+
+  static Dispatcher create(Context context, int queueSize, int flushInterval,
+      SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
+      boolean debuggingEnabled) {
+    FileObjectQueue.Converter<BasePayload> converter = new PayloadConverter();
+    try {
+      File parent = context.getFilesDir();
+      if (!parent.exists()) parent.mkdirs();
+      File queueFile = new File(parent, TASK_QUEUE_FILE_NAME + tag);
+      ObjectQueue<BasePayload> queue = new FileObjectQueue<BasePayload>(queueFile, converter);
+      return new Dispatcher(context, queueSize, flushInterval, segmentHTTPApi, queue, integrations,
+          stats, debuggingEnabled);
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to create file queue.", e);
+    }
   }
 
   void dispatchEnqueue(final BasePayload payload) {
@@ -178,6 +178,10 @@ class Dispatcher {
     handler.sendMessageDelayed(handler.obtainMessage(REQUEST_FLUSH), flushInterval);
   }
 
+  void shutdown() {
+    quitThread(dispatcherThread);
+  }
+
   static class BatchPayload extends JsonMap {
     /**
      * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can be
@@ -199,10 +203,6 @@ class Dispatcher {
       put(INTEGRATIONS_KEY, integrations);
       put(SENT_AT_KEY, toISO8601Date(new Date()));
     }
-  }
-
-  void shutdown() {
-    quitThread(dispatcherThread);
   }
 
   private static class DispatcherHandler extends Handler {

@@ -23,6 +23,11 @@ public class LocalyticsTest extends IntegrationExam {
   @Mock LocalyticsAmpSession localytics;
   LocalyticsIntegrationAdapter adapter;
 
+  public static void grantPermission(final Application app, final String permission) {
+    ShadowApplication shadowApp = Robolectric.shadowOf(app);
+    shadowApp.grantPermissions(permission);
+  }
+
   @Before @Override public void setUp() {
     super.setUp();
 
@@ -30,11 +35,6 @@ public class LocalyticsTest extends IntegrationExam {
 
     adapter = new LocalyticsIntegrationAdapter(true);
     adapter.session = localytics;
-  }
-
-  public static void grantPermission(final Application app, final String permission) {
-    ShadowApplication shadowApp = Robolectric.shadowOf(app);
-    shadowApp.grantPermissions(permission);
   }
 
   @Test public void initialize() throws InvalidConfigurationException {

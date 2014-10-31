@@ -63,6 +63,15 @@ class SegmentHTTPApi {
     }
   }
 
+  private static String readFully(InputStream in) throws IOException {
+    BufferedReader r = new BufferedReader(new InputStreamReader(in));
+    StringBuilder response = new StringBuilder();
+    for (String line; (line = r.readLine()) != null; ) {
+      response.append(line);
+    }
+    return response.toString();
+  }
+
   void upload(BatchPayload batchPayload) throws IOException {
     HttpsURLConnection urlConnection = (HttpsURLConnection) createUrl("v1/import").openConnection();
 
@@ -117,14 +126,5 @@ class SegmentHTTPApi {
     in.close();
     urlConnection.disconnect();
     return ProjectSettings.create(json, System.currentTimeMillis());
-  }
-
-  private static String readFully(InputStream in) throws IOException {
-    BufferedReader r = new BufferedReader(new InputStreamReader(in));
-    StringBuilder response = new StringBuilder();
-    for (String line; (line = r.readLine()) != null; ) {
-      response.append(line);
-    }
-    return response.toString();
   }
 }
