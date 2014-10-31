@@ -1,11 +1,11 @@
 package com.segment.analytics;
 
 import android.content.Context;
-
+import com.squareup.tape.FileObjectQueue;
+import com.squareup.tape.ObjectQueue;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,10 +33,7 @@ public class DispatcherTest {
   Dispatcher dispatcher;
 
   private static final BasePayload TEST_PAYLOAD =
-          new BasePayload("{\n"
-                  + "\"messageId\":\"ID\",\n"
-                  + "\"type\":\"TYPE\"\n"
-                  + "}");
+      new BasePayload("{\n" + "\"messageId\":\"ID\",\n" + "\"type\":\"TYPE\"\n" + "}");
 
   @Before public void setUp() {
     initMocks(this);

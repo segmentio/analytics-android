@@ -29,6 +29,8 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import com.squareup.tape.FileObjectQueue;
+import com.squareup.tape.ObjectQueue;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -109,7 +111,7 @@ class Dispatcher {
   void performEnqueue(BasePayload payload) {
     try {
       queue.add(payload);
-    } catch (IOException e) {
+    } catch (Exception e) {
       if (debuggingEnabled) {
         error(OWNER_DISPATCHER, VERB_ENQUEUE, payload.id(), e,
             String.format("payload: %s", payload));
@@ -147,7 +149,7 @@ class Dispatcher {
         }
       });
       queue.setListener(null);
-    } catch (IOException e) {
+    } catch (Exception e) {
       if (debuggingEnabled) {
         error(OWNER_DISPATCHER, VERB_FLUSH, "could not read queue", e,
             String.format("queue: %s", queue));

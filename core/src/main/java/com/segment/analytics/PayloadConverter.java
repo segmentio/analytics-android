@@ -1,5 +1,6 @@
 package com.segment.analytics;
 
+import com.squareup.tape.FileObjectQueue;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
