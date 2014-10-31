@@ -1,10 +1,17 @@
+Version 2.3.0 (In progress)
+====================================
+* Breaking: Add explicit dependency on [Tape](https://github.com/square/tape)
+* New: Deprecate `logging` for `debugging`
+* Fix: If integrations fail to load (e.g. missing permissions), update flags so server can send the event
+* New: (WIP) Debugging will now be forwarded to integrations so they can enable it too
+
 Version 2.2.0 (October 29th, 2014)
 ====================================
+* Breaking: Updated Localytics integration (Breaking, Localytics now returns LocalyticsAmpSession)
 * New: `flushInterval` setting, that flushes any events in the queue at a specified interval
-* Fix: Synhronize maps across
+* Fix: Synchronize maps across threads
 * New: Added AppsFlyer integration
 * Fix: More permissions verification for Leanplum
-* Improvement: Updated Localytics integration (Breaking, Localytics now returns LocalyticsAmpSession)
 * Fix: Ignore `siteSpeedSamplingRate` for Google Analytics
 * New: Collect advertisingId as per spec
 
