@@ -128,7 +128,8 @@ class IntegrationManager {
       boolean debuggingEnabled) {
     StringCache projectSettingsCache =
         new StringCache(getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
-    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, debuggingEnabled);
+    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats,
+        debuggingEnabled);
   }
 
   private static boolean isBundledIntegrationEnabledForPayload(BasePayload payload,
