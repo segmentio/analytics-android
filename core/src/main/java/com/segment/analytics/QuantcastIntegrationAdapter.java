@@ -29,7 +29,6 @@ class QuantcastIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
       throw new InvalidConfigurationException("ACCESS_NETWORK_STATE is required");
     }
     apiKey = settings.getString("apiKey");
-    // todo: set logger
   }
 
   @Override Void getUnderlyingInstance() {
