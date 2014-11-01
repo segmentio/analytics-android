@@ -32,7 +32,7 @@ public class AmplitudeTest extends IntegrationExam {
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(Amplitude.class);
-    amplitudeIntegrationAdapter = new AmplitudeIntegrationAdapter();
+    amplitudeIntegrationAdapter = new AmplitudeIntegrationAdapter(true);
   }
 
   @Test public void initialize() throws InvalidConfigurationException {

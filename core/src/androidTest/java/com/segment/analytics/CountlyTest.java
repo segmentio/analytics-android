@@ -21,7 +21,7 @@ public class CountlyTest extends IntegrationExam {
   @Before @Override public void setUp() {
     super.setUp();
 
-    countlyIntegrationAdapter = new CountlyIntegrationAdapter() {
+    countlyIntegrationAdapter = new CountlyIntegrationAdapter(true) {
       @Override Countly getUnderlyingInstance() {
         return countly;
       }

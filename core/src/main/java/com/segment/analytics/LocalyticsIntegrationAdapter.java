@@ -21,6 +21,10 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
 class LocalyticsIntegrationAdapter extends AbstractIntegrationAdapter<LocalyticsAmpSession> {
   LocalyticsAmpSession session;
 
+  LocalyticsIntegrationAdapter(boolean debuggingEnabled) {
+    super(debuggingEnabled);
+  }
+
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     if (!hasPermission(context, Manifest.permission.WAKE_LOCK)) {

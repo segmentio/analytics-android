@@ -56,231 +56,30 @@ import static com.segment.analytics.Utils.hasPermission;
 import static com.segment.analytics.Utils.isNullOrEmpty;
 
 /**
- * The idea is simple: one pipeline for all your data.
- * <p/>
- * Use {@link #with(android.content.Context)} for the global singleton instance or construct your
- * own instance with {@link Builder}.
+ * The idea is simple: one pipeline for all your data. Segment is the single hub to collect,
+ * translate and route your data with the flip of a switch.
+ * <p></p>
+ * Analytics for Android will automatically batch events, queue them to disk, and upload it
+ * periodically to Segment for you. It will also look up your project's settings (that you've
+ * configured in the web interface), specifically looking up settings for bundled integrations, and
+ * then initialize them for you on the user's phone, and mapping our standardized events to formats
+ * they can all understand. You only need to instrument Segment once, then flip a switch to install
+ * new tools.
+ * <p></p>
+ * This class is the main entry point into the client API. Use {@link
+ * #with(android.content.Context)} for the global singleton instance or construct your own instance
+ * with {@link Builder}.
  *
  * @see <a href="https://segment.io/">Segment.io</a>
  */
 public class Analytics {
-  private static final Properties EMPTY_PROPERTIES = new Properties();
+
   // Resource identifiers to define options in xml
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
   static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
   static final String FLUSH_INTERVAL_IDENTIFIER = "analytics_flush_interval";
-  static final String LOGGING_RESOURCE_IDENTIFIER = "analytics_logging";
-
-  static Analytics singleton = null;
-
-  /**
-   * The global default {@link Analytics} instance.
-   * <p/>
-   * This instance is automatically initialized with defaults that are suitable to most
-   * implementations.
-   * <p/>
-   * If these settings do not meet the requirements of your application, you can provide properties
-   * in {@code analytics.xml} or you can construct your own instance with full control over the
-   * configuration by using {@link Builder}.
-   */
-  public static Analytics with(Context context) {
-    if (singleton == null) {
-      if (context == null) {
-        throw new IllegalArgumentException("Context must not be null.");
-      }
-      synchronized (Analytics.class) {
-        if (singleton == null) {
-          String writeKey = getResourceString(context, WRITE_KEY_RESOURCE_IDENTIFIER);
-          Builder builder = new Builder(context, writeKey);
-          try {
-            // We need the exception to be able to tell if this was not defined, or if it was
-            // incorrectly defined - something we shouldn't ignore
-            int queueSize = getResourceIntegerOrThrow(context, QUEUE_SIZE_RESOURCE_IDENTIFIER);
-            if (queueSize <= 0) {
-              throw new IllegalStateException(QUEUE_SIZE_RESOURCE_IDENTIFIER
-                  + "("
-                  + queueSize
-                  + ") may not be zero or negative.");
-            }
-            builder.queueSize(queueSize);
-          } catch (Resources.NotFoundException e) {
-            // when maxQueueSize is not defined in xml, we'll use a default option in the builder
-          }
-          try {
-            // We need the exception to be able to tell if this was not defined, or if it was
-            // incorrectly defined - something we shouldn't ignore
-            int flushInterval = getResourceIntegerOrThrow(context, FLUSH_INTERVAL_IDENTIFIER);
-            if (flushInterval < 1) {
-              throw new IllegalStateException(FLUSH_INTERVAL_IDENTIFIER
-                  + "("
-                  + flushInterval
-                  + ") may not be zero or negative.");
-            }
-            builder.flushInterval(flushInterval);
-          } catch (Resources.NotFoundException e) {
-            // when flushInterval is not defined in xml, we'll use a default option in the builder
-          }
-          try {
-            boolean logging = getResourceBooleanOrThrow(context, LOGGING_RESOURCE_IDENTIFIER);
-            builder.logging(logging);
-          } catch (Resources.NotFoundException notFoundException) {
-            // when debugging is not defined in xml, we'll try to figure it out from package flags
-            String packageName = context.getPackageName();
-            try {
-              final int flags =
-                  context.getPackageManager().getApplicationInfo(packageName, 0).flags;
-              boolean logging = (flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
-              builder.logging(logging);
-            } catch (PackageManager.NameNotFoundException nameNotFoundException) {
-              // if we still can't figure it out, we'll use the default options in the builder
-            }
-          }
-          singleton = builder.build();
-        }
-      }
-    }
-    return singleton;
-  }
-
-  /** Fluent API for creating {@link Analytics} instances. */
-  @SuppressWarnings("UnusedDeclaration") // Public API.
-  public static class Builder {
-    static final int DEFAULT_QUEUE_SIZE = 20;
-    static final int DEFAULT_FLUSH_INTERVAL = 30;
-    static final boolean DEFAULT_LOGGING = false;
-
-    private final Application application;
-    private String writeKey;
-    private String tag;
-    private int queueSize = -1;
-    private int flushInterval = -1;
-    private Options defaultOptions;
-    private boolean loggingEnabled = DEFAULT_LOGGING;
-
-    /** Start building a new {@link Analytics} instance. */
-    public Builder(Context context, String writeKey) {
-      if (context == null) {
-        throw new IllegalArgumentException("Context must not be null.");
-      }
-      if (!hasPermission(context, Manifest.permission.INTERNET)) {
-        throw new IllegalArgumentException("INTERNET permission is required.");
-      }
-
-      if (isNullOrEmpty(writeKey)) {
-        throw new IllegalArgumentException("writeKey must not be null or empty.");
-      }
-
-      application = (Application) context.getApplicationContext();
-      this.writeKey = writeKey;
-    }
-
-    /**
-     * Set the queue size at which the client should flush events.
-     *
-     * @deprecated Use {@link #queueSize(int)} instead.
-     */
-    public Builder maxQueueSize(int maxQueueSize) {
-      return queueSize(maxQueueSize);
-    }
-
-    /** Set the queue size at which the client should flush events. */
-    public Builder queueSize(int queueSize) {
-      if (queueSize <= 0) {
-        throw new IllegalArgumentException("queueSize must be greater than or equal to zero.");
-      }
-      if (this.queueSize != -1) {
-        throw new IllegalStateException("queueSize is already set.");
-      }
-      this.queueSize = queueSize;
-      return this;
-    }
-
-    /** Set the interval (in seconds) at which the client should flush events. */
-    public Builder flushInterval(int flushInterval) {
-      if (flushInterval < 1) {
-        throw new IllegalArgumentException("flushInterval must be greater than or equal to 1.");
-      }
-      if (this.flushInterval != -1) {
-        throw new IllegalStateException("flushInterval is already set.");
-      }
-      this.flushInterval = flushInterval;
-      return this;
-    }
-
-    /**
-     * Set some default options for all calls. This options should not contain a timestamp. You
-     * won't be able to change the integrations specified in this options object.
-     */
-    public Builder defaultOptions(Options defaultOptions) {
-      if (defaultOptions == null) {
-        throw new IllegalArgumentException("defaultOptions must not be null.");
-      }
-      if (defaultOptions.timestamp() != null) {
-        throw new IllegalArgumentException("default option must not contain timestamp.");
-      }
-      if (this.defaultOptions != null) {
-        throw new IllegalStateException("defaultOptions is already set.");
-      }
-      // Make a defensive copy
-      this.defaultOptions = new Options();
-      for (Map.Entry<String, Boolean> entry : defaultOptions.integrations().entrySet()) {
-        this.defaultOptions.setIntegration(entry.getKey(), entry.getValue());
-      }
-      return this;
-    }
-
-    /**
-     * Set a tag for this instance. The tag is used to generate keys for caching. By default the
-     * writeKey is used, but you may want to specify an alternative one, if you want the instances
-     * to share different caches. For example, without this tag, all instances will share the same
-     * traits. By specifying a custom tag for each instance of the client, all instance will have a
-     * different traits instance.
-     */
-    public Builder tag(String tag) {
-      if (isNullOrEmpty(tag)) {
-        throw new IllegalArgumentException("tag must not be null or empty.");
-      }
-      if (this.tag != null) {
-        throw new IllegalStateException("tag is already set.");
-      }
-      this.tag = tag;
-      return this;
-    }
-
-    /** Set whether debugging is enabled or not. */
-    public Builder logging(boolean loggingEnabled) {
-      this.loggingEnabled = loggingEnabled;
-      return this;
-    }
-
-    /** Create Segment {@link Analytics} instance. */
-    public Analytics build() {
-      if (queueSize == -1) {
-        queueSize = DEFAULT_QUEUE_SIZE;
-      }
-      if (flushInterval == -1) {
-        flushInterval = DEFAULT_FLUSH_INTERVAL;
-      }
-      if (defaultOptions == null) {
-        defaultOptions = new Options();
-      }
-      if (isNullOrEmpty(tag)) tag = writeKey;
-
-      Stats stats = new Stats();
-      SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
-      IntegrationManager integrationManager =
-          IntegrationManager.create(application, segmentHTTPApi, stats, loggingEnabled);
-      Dispatcher dispatcher =
-          Dispatcher.create(application, queueSize, flushInterval, segmentHTTPApi,
-              integrationManager.serverIntegrations, tag, stats, loggingEnabled);
-      TraitsCache traitsCache = new TraitsCache(application, tag);
-      AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
-
-      return new Analytics(application, dispatcher, integrationManager, stats, traitsCache,
-          analyticsContext, defaultOptions, loggingEnabled);
-    }
-  }
-
+  static final String DEBUGGING_RESOURCE_IDENTIFIER = "analytics_debugging";
+  static final Properties EMPTY_PROPERTIES = new Properties();
   static final Handler MAIN_LOOPER = new Handler(Looper.getMainLooper()) {
     @Override public void handleMessage(Message msg) {
       switch (msg.what) {
@@ -297,12 +96,12 @@ public class Analytics {
   final TraitsCache traitsCache;
   final AnalyticsContext analyticsContext;
   final Options defaultOptions;
-  final boolean loggingEnabled;
+  final boolean debuggingEnabled;
   boolean shutdown;
 
   Analytics(Application application, Dispatcher dispatcher, IntegrationManager integrationManager,
       Stats stats, TraitsCache traitsCache, AnalyticsContext analyticsContext,
-      Options defaultOptions, boolean loggingEnabled) {
+      Options defaultOptions, boolean debuggingEnabled) {
     this.application = application;
     this.dispatcher = dispatcher;
     this.integrationManager = integrationManager;
@@ -310,7 +109,7 @@ public class Analytics {
     this.traitsCache = traitsCache;
     this.analyticsContext = analyticsContext;
     this.defaultOptions = defaultOptions;
-    this.loggingEnabled = loggingEnabled;
+    this.debuggingEnabled = debuggingEnabled;
 
     application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
       @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -343,25 +142,102 @@ public class Analytics {
     });
   }
 
-  /** Returns {@code true} if logging is enabled. */
-  public boolean isLogging() {
-    return loggingEnabled;
+  /**
+   * The global default {@link Analytics} instance.
+   * <p></p>
+   * This instance is automatically initialized with defaults that are suitable to most
+   * implementations.
+   * <p></p>
+   * If these settings do not meet the requirements of your application, you can override defaults
+   * in {@code analytics.xml}, or you can construct your own instance with full control over the
+   * configuration by using {@link Builder}.
+   * <p></p>
+   * By default, events are uploaded every 30 seconds, or every 20 events (whichever occurs first),
+   * and debugging is disabled.
+   */
+  public static Analytics with(Context context) {
+    if (singleton == null) {
+      if (context == null) {
+        throw new IllegalArgumentException("Context must not be null.");
+      }
+      synchronized (Analytics.class) {
+        if (singleton == null) {
+          String writeKey = getResourceString(context, WRITE_KEY_RESOURCE_IDENTIFIER);
+          Builder builder = new Builder(context, writeKey);
+          try {
+            // We need the exception to be able to tell if this was not defined, or if it was
+            // incorrectly defined - something we shouldn't ignore
+            int queueSize = getResourceIntegerOrThrow(context, QUEUE_SIZE_RESOURCE_IDENTIFIER);
+            if (queueSize <= 0) {
+              throw new IllegalStateException(QUEUE_SIZE_RESOURCE_IDENTIFIER
+                  + "("
+                  + queueSize
+                  + ") may not be zero or negative.");
+            }
+            builder.queueSize(queueSize);
+          } catch (Resources.NotFoundException e) {
+            // when queueSize is not defined in xml, we'll use a default option in the builder
+          }
+          try {
+            // We need the exception to be able to tell if this was not defined, or if it was
+            // incorrectly defined - something we shouldn't ignore
+            int flushInterval = getResourceIntegerOrThrow(context, FLUSH_INTERVAL_IDENTIFIER);
+            if (flushInterval < 1) {
+              throw new IllegalStateException(FLUSH_INTERVAL_IDENTIFIER
+                  + "("
+                  + flushInterval
+                  + ") may not be zero or negative.");
+            }
+            builder.flushInterval(flushInterval);
+          } catch (Resources.NotFoundException e) {
+            // when flushInterval is not defined in xml, we'll use a default option in the builder
+          }
+          try {
+            boolean debugging = getResourceBooleanOrThrow(context, DEBUGGING_RESOURCE_IDENTIFIER);
+            builder.debugging(debugging);
+          } catch (Resources.NotFoundException notFoundException) {
+            // when debugging is not defined in xml, we'll try to figure it out from package flags
+            String packageName = context.getPackageName();
+            try {
+              final int flags =
+                  context.getPackageManager().getApplicationInfo(packageName, 0).flags;
+              boolean debugging = (flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+              builder.debugging(debugging);
+            } catch (PackageManager.NameNotFoundException nameNotFoundException) {
+              // if we still can't figure it out, we'll use the default options in the builder
+            }
+          }
+          singleton = builder.build();
+        }
+      }
+    }
+    return singleton;
   }
 
   /**
-   * Identify a user with an id in your own database without any traits.
+   * Returns {@code true} if debugging is enabled.
    *
-   * @see {@link #identify(String, Traits, Options)}
+   * @deprecated Use {@link #isDebugging()} instead.
    */
+  public boolean isLogging() {
+    return debuggingEnabled;
+  }
+
+  /**
+   * Returns {@code true} if debugging is enabled.
+   *
+   * @since 2.4
+   */
+  public boolean isDebugging() {
+    return debuggingEnabled;
+  }
+
+  /** @see #identify(String, Traits, Options) */
   public void identify(String userId) {
     identify(userId, null, defaultOptions);
   }
 
-  /**
-   * Associate traits with the current user, identified or not.
-   *
-   * @see {@link #identify(String, Traits, Options)}
-   */
+  /** @see #identify(String, Traits, Options) */
   public void identify(Traits traits) {
     identify(null, traits, null);
   }
@@ -369,6 +245,9 @@ public class Analytics {
   /**
    * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
    * also lets you record {@code traits} about the user, like their email, name, account type, etc.
+   * <p></p>
+   * Traits will be automatically cached and available on future sessions for the same user. To
+   * update a trait on the server, simply call identify for the same user again.
    *
    * @param userId Unique identifier which you recognize a user by in your own database. If this is
    * null or empty, any previous id we have (could be the anonymous id) will be
@@ -395,9 +274,7 @@ public class Analytics {
     submit(payload);
   }
 
-  /**
-   * @see {@link #group(String, String, Traits, Options)}
-   */
+  /** @see #group(String, String, Traits, Options) */
   public void group(String groupId) {
     group(null, groupId, null, null);
   }
@@ -439,16 +316,12 @@ public class Analytics {
     submit(payload);
   }
 
-  /**
-   * @see {@link #track(String, Properties, Options)}
-   */
+  /** @see #track(String, Properties, Options) */
   public void track(String event) {
     track(event, null, null);
   }
 
-  /**
-   * @see {@link #track(String, Properties, Options)}
-   */
+  /** @see #track(String, Properties, Options) */
   public void track(String event, Properties properties) {
     track(event, properties, null);
   }
@@ -481,16 +354,12 @@ public class Analytics {
     submit(payload);
   }
 
-  /**
-   * @see {@link #screen(String, String, Properties, Options)}
-   */
+  /** @see #screen(String, String, Properties, Options) */
   public void screen(String category, String name) {
     screen(category, name, null, null);
   }
 
-  /**
-   * @see {@link #screen(String, String, Properties, Options)}
-   */
+  /** @see #screen(String, String, Properties, Options) */
   public void screen(String category, String name, Properties properties) {
     screen(category, name, properties, null);
   }
@@ -525,9 +394,7 @@ public class Analytics {
     submit(payload);
   }
 
-  /**
-   * @see {@link #alias(String, String, Options)}
-   */
+  /** @see #alias(String, String, Options) */
   public void alias(String newId, String previousId) {
     alias(newId, previousId, null);
   }
@@ -600,21 +467,44 @@ public class Analytics {
     shutdown = true;
   }
 
-  public interface OnIntegrationReadyListener {
-    void onIntegrationReady(String key, Object integration);
+  /**
+   * Register to be notified when a bundled integration is ready. See {@link
+   * OnIntegrationReadyListener} for more information.
+   * <p></p>
+   * This method must be called from the main thread.
+   *
+   * @since 2.1
+   * @deprecated Use {@link #registerOnIntegrationReady(OnIntegrationReadyListener)} instead.
+   */
+  public void onIntegrationReady(OnIntegrationReadyListener onIntegrationReadyListener) {
+    registerOnIntegrationReady(onIntegrationReadyListener);
   }
 
   /**
-   * Register to be notified when a bundled integration is ready. <p></p> This must be called from
-   * the main thread.
+   * Register to be notified when a bundled integration is ready. See {@link
+   * OnIntegrationReadyListener} for more information.
+   * <p></p>
+   * This method must be called from the main thread.
+   * <p></p>
+   * {@code
+   * analytics.registerOnIntegrationReady(new OnIntegrationReadyListener() {
+   *   @Override public void onIntegrationReady(String key, Object integration) {
+   *     if("Mixpanel".equals(key)) {
+   *       ((MixpanelAPI) integration).clearSuperProperties();
+   *     }
+   *   }
+   * });
+   * }
+   *
+   * @since 2.4
    */
-  public void onIntegrationReady(OnIntegrationReadyListener onIntegrationReadyListener) {
+  public void registerOnIntegrationReady(OnIntegrationReadyListener onIntegrationReadyListener) {
     checkMain();
     integrationManager.registerIntegrationInitializedListener(onIntegrationReadyListener);
   }
 
   void submit(BasePayload payload) {
-    if (loggingEnabled) {
+    if (debuggingEnabled) {
       debug(OWNER_MAIN, VERB_CREATE, payload.id(), "type: " + payload.type());
     }
     dispatcher.dispatchEnqueue(payload);
@@ -622,10 +512,175 @@ public class Analytics {
   }
 
   void submit(ActivityLifecyclePayload payload) {
-    if (loggingEnabled) {
+    if (debuggingEnabled) {
       debug(OWNER_MAIN, VERB_CREATE, payload.id(),
           "type: " + payload.type.toString().toLowerCase());
     }
     integrationManager.submit(payload);
+  }
+
+  /**
+   * A callback interface that is invoked when the Analytics client initializes bundled
+   * integrations.
+   * <p></p>
+   * In most cases, integrations would have already been initialized, and the callback will be
+   * invoked right away. The only time this not invoked immediately is when the application is
+   * opened the very first time (right after a fresh install).
+   */
+  public interface OnIntegrationReadyListener {
+    /**
+     * This method will be invoked once for each integration. The first argument is a
+     * key to uniquely identify each integration (which will the same as the one in our public HTTP
+     * API). The second argument will be the integration object itself, so you can call methods not
+     * exposed as a part of our spec. This is useful if you're doing things like A/B testing.
+     *
+     * @param key A unique string to identify an integration.
+     * @param integration The underlying instance that has been initialized with the settings from
+     * Segment
+     */
+    void onIntegrationReady(String key, Object integration);
+  }
+
+  static Analytics singleton = null;
+
+  /** Fluent API for creating {@link Analytics} instances. */
+  public static class Builder {
+    private final Application application;
+    private String writeKey;
+    private String tag;
+    private int queueSize = 20;
+    private int flushInterval = 30;
+    private Options defaultOptions;
+    private boolean debuggingEnabled = false;
+
+    /** Start building a new {@link Analytics} instance. */
+    public Builder(Context context, String writeKey) {
+      if (context == null) {
+        throw new IllegalArgumentException("Context must not be null.");
+      }
+      if (!hasPermission(context, Manifest.permission.INTERNET)) {
+        throw new IllegalArgumentException("INTERNET permission is required.");
+      }
+      if (isNullOrEmpty(writeKey)) {
+        throw new IllegalArgumentException("writeKey must not be null or empty.");
+      }
+      application = (Application) context.getApplicationContext();
+      this.writeKey = writeKey;
+    }
+
+    /**
+     * Set the queue size at which the client should flush events.
+     *
+     * @deprecated Use {@link #queueSize(int)} instead.
+     */
+    public Builder maxQueueSize(int maxQueueSize) {
+      return queueSize(maxQueueSize);
+    }
+
+    /**
+     * Set the queue size at which the client should flush events.
+     * The client will automatically flush events every {@code flushInterval} seconds, or when the
+     * queue reaches {@code queueSize}, whichever occurs first.
+     */
+    public Builder queueSize(int queueSize) {
+      if (queueSize <= 0) {
+        throw new IllegalArgumentException("queueSize must be greater than or equal to zero.");
+      }
+      this.queueSize = queueSize;
+      return this;
+    }
+
+    /**
+     * Set the interval (in seconds) at which the client should flush events.
+     * The client will automatically flush events every {@code flushInterval} seconds, or when the
+     * queue reaches {@code queueSize}, whichever occurs first.
+     */
+    public Builder flushInterval(int flushInterval) {
+      if (flushInterval < 1) {
+        throw new IllegalArgumentException("flushInterval must be greater than or equal to 1.");
+      }
+      this.flushInterval = flushInterval;
+      return this;
+    }
+
+    /**
+     * Set some default options for all calls. This options should not contain a timestamp. You
+     * won't be able to change the integrations specified in this options object.
+     */
+    public Builder defaultOptions(Options defaultOptions) {
+      if (defaultOptions == null) {
+        throw new IllegalArgumentException("defaultOptions must not be null.");
+      }
+      if (defaultOptions.timestamp() != null) {
+        throw new IllegalArgumentException("default option must not contain timestamp.");
+      }
+      if (this.defaultOptions != null) {
+        throw new IllegalStateException("defaultOptions is already set.");
+      }
+      // Make a defensive copy
+      this.defaultOptions = new Options();
+      for (Map.Entry<String, Boolean> entry : defaultOptions.integrations().entrySet()) {
+        this.defaultOptions.setIntegration(entry.getKey(), entry.getValue());
+      }
+      return this;
+    }
+
+    /**
+     * Set a tag for this instance. The tag is used to generate keys for caching. By default the
+     * writeKey is used, but you may want to specify an alternative one, if you want the instances
+     * to share different caches. For example, without this tag, all instances will share the same
+     * traits. By specifying a custom tag for each instance of the client, all instance will have a
+     * different traits instance.
+     */
+    public Builder tag(String tag) {
+      if (isNullOrEmpty(tag)) {
+        throw new IllegalArgumentException("tag must not be null or empty.");
+      }
+      if (this.tag != null) {
+        throw new IllegalStateException("tag is already set.");
+      }
+      this.tag = tag;
+      return this;
+    }
+
+    /**
+     * Set whether debugging is enabled or not.
+     *
+     * @deprecated Use {@link #debugging(boolean)} instead.
+     */
+    public Builder logging(boolean debuggingEnabled) {
+      return debugging(debuggingEnabled);
+    }
+
+    /**
+     * Set whether debugging is enabled or not.
+     *
+     * @since 2.4
+     */
+    public Builder debugging(boolean debuggingEnabled) {
+      this.debuggingEnabled = debuggingEnabled;
+      return this;
+    }
+
+    /** Create a {@link Analytics} client. */
+    public Analytics build() {
+      if (defaultOptions == null) {
+        defaultOptions = new Options();
+      }
+      if (isNullOrEmpty(tag)) tag = writeKey;
+
+      Stats stats = new Stats();
+      SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
+      IntegrationManager integrationManager =
+          IntegrationManager.create(application, segmentHTTPApi, stats, debuggingEnabled);
+      Dispatcher dispatcher =
+          Dispatcher.create(application, queueSize, flushInterval, segmentHTTPApi,
+              integrationManager.serverIntegrations, tag, stats, debuggingEnabled);
+      TraitsCache traitsCache = new TraitsCache(application, tag);
+      AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
+
+      return new Analytics(application, dispatcher, integrationManager, stats, traitsCache,
+          analyticsContext, defaultOptions, debuggingEnabled);
+    }
   }
 }

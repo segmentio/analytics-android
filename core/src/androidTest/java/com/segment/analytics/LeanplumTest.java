@@ -30,7 +30,7 @@ public class LeanplumTest extends IntegrationExam {
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(Leanplum.class);
-    adapter = new LeanplumIntegrationAdapter();
+    adapter = new LeanplumIntegrationAdapter(true);
   }
 
   @Test public void initialize() throws InvalidConfigurationException {

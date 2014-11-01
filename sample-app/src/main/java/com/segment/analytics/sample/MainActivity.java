@@ -42,6 +42,13 @@ import com.segment.analytics.Properties;
 import com.segment.analytics.StatsSnapshot;
 
 public class MainActivity extends Activity {
+  /** Returns true if the string is null, or empty (when trimmed). */
+  public static boolean isNullOrEmpty(String text) {
+    // Rather than using text.trim().length() == 0, use getTrimmedLength to avoid allocating an
+    // extra string object
+    return TextUtils.isEmpty(text) || TextUtils.getTrimmedLength(text) == 0;
+  }
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -134,12 +141,5 @@ public class MainActivity extends Activity {
       return true;
     }
     return super.onOptionsItemSelected(item);
-  }
-
-  /** Returns true if the string is null, or empty (when trimmed). */
-  public static boolean isNullOrEmpty(String text) {
-    // Rather than using text.trim().length() == 0, use getTrimmedLength to avoid allocating an
-    // extra string object
-    return TextUtils.isEmpty(text) || TextUtils.getTrimmedLength(text) == 0;
   }
 }

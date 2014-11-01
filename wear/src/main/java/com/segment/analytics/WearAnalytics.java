@@ -30,13 +30,12 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  */
 public class WearAnalytics {
   static final String ANALYTICS_PATH = "/analytics";
+  static WearAnalytics singleton;
   final WearDispatcher dispatcher;
 
   WearAnalytics(Context context) {
     this.dispatcher = new WearDispatcher(context);
   }
-
-  static WearAnalytics singleton;
 
   public static WearAnalytics with(Context context) {
     if (singleton == null) {
@@ -62,7 +61,7 @@ public class WearAnalytics {
    * @param properties {@link Properties} to add extra information to this call
    * @throws IllegalArgumentException if event name is null or an empty string
    * @see <a href="https://segment.io/docs/tracking-api/track/">Track Documentation</a>
-   * @see {@link com.segment.analytics.Analytics#track(String, Properties)}
+   * @see com.segment.analytics.Analytics#track(String, Properties)
    */
   public void track(String event, Properties properties) {
     if (isNullOrEmpty(event)) {
@@ -88,7 +87,7 @@ public class WearAnalytics {
    * @param name A name for the screen
    * @param properties {@link Properties} to add extra information to this call
    * @see <a href="http://segment.io/docs/tracking-api/page-and-screen/">Screen Documentation</a>
-   * @see {@link com.segment.analytics.Analytics#screen(String, String, Properties)}
+   * @see com.segment.analytics.Analytics#screen(String, String, Properties)
    */
   public void screen(String category, String name, Properties properties) {
     if (isNullOrEmpty(category) && isNullOrEmpty(name)) {

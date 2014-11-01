@@ -14,6 +14,12 @@ import android.os.Bundle;
 abstract class AbstractIntegrationAdapter<T> {
   static final String VIEWED_EVENT_FORMAT = "Viewed %s Screen";
 
+  final boolean debuggingEnabled;
+
+  AbstractIntegrationAdapter(boolean debuggingEnabled) {
+    this.debuggingEnabled = debuggingEnabled;
+  }
+
   /**
    * Initialize the integration. Implementations should wrap any errors, including missing settings
    * and permission in {@link InvalidConfigurationException}. If this method call completes without

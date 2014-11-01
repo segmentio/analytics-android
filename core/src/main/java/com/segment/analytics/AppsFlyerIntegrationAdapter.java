@@ -14,8 +14,12 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://segment.com/docs/integrations/appsflyer/">AppsFlyer Integration</a>
  * @see <a href="http://www.appsflyer.com/">AppsFlyer Website</a>
  */
-public class AppsFlyerIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
+class AppsFlyerIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   Context context;
+
+  AppsFlyerIntegrationAdapter(boolean debuggingEnabled) {
+    super(debuggingEnabled);
+  }
 
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {

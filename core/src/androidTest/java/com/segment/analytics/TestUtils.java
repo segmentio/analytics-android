@@ -8,10 +8,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 final class TestUtils {
-  private TestUtils() {
-    throw new AssertionError("no instances");
-  }
-
   static final String PROJECT_SETTINGS_JSON_SAMPLE = "{\n"
       + "  \"Amplitude\": {\n"
       + "    \"trackNamedPages\": true,\n"
@@ -66,7 +62,6 @@ final class TestUtils {
       + "    }\n"
       + "  }\n"
       + "}";
-
   // from http://json.org/example
   static final String SAMPLE_JSON_LIST = "[\n"
       + "        {\"id\": \"Open\"},\n"
@@ -92,6 +87,10 @@ final class TestUtils {
       + "        {\"id\": \"Help\"},\n"
       + "        {\"id\": \"About\", \"label\": \"About Adobe CVG Viewer...\"}\n"
       + "    ]";
+
+  private TestUtils() {
+    throw new AssertionError("no instances");
+  }
 
   static Application mockApplication() {
     Application application = mock(Application.class);

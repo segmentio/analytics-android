@@ -12,6 +12,10 @@ import static com.segment.analytics.Utils.hasPermission;
 class LeanplumIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   LeanplumActivityHelper helper;
 
+  LeanplumIntegrationAdapter(boolean debuggingEnabled) {
+    super(debuggingEnabled);
+  }
+
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {

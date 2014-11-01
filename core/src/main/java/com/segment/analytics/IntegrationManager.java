@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.os.Message;
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -52,22 +53,23 @@ class IntegrationManager {
   final HandlerThread integrationManagerThread;
   final Handler handler;
   final Stats stats;
-  final boolean loggingEnabled;
+  final boolean debuggingEnabled;
   final StringCache projectSettingsCache;
 
   final Set<AbstractIntegrationAdapter> bundledIntegrations =
       new HashSet<AbstractIntegrationAdapter>();
-  final Map<String, Boolean> serverIntegrations = new LinkedHashMap<String, Boolean>();
+  final Map<String, Boolean> serverIntegrations =
+      Collections.synchronizedMap(new LinkedHashMap<String, Boolean>());
   Queue<IntegrationOperation> operationQueue = new ArrayDeque<IntegrationOperation>();
   volatile boolean initialized;
   OnIntegrationReadyListener listener;
 
   private IntegrationManager(Context context, SegmentHTTPApi segmentHTTPApi,
-      StringCache projectSettingsCache, Stats stats, boolean loggingEnabled) {
+      StringCache projectSettingsCache, Stats stats, boolean debuggingEnabled) {
     this.context = context;
     this.segmentHTTPApi = segmentHTTPApi;
     this.stats = stats;
-    this.loggingEnabled = loggingEnabled;
+    this.debuggingEnabled = debuggingEnabled;
     integrationManagerThread = new HandlerThread(MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     integrationManagerThread.start();
     handler = new IntegrationManagerHandler(integrationManagerThread.getLooper(), this);
@@ -76,40 +78,40 @@ class IntegrationManager {
     // disable sending to these integrations from the server and properly fill the payloads with
     // this information
     if (isOnClassPath("com.amplitude.api.Amplitude")) {
-      bundleIntegration(new AmplitudeIntegrationAdapter());
+      bundleIntegration(new AmplitudeIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.appsflyer.AppsFlyerLib")) {
-      bundleIntegration(new AppsFlyerIntegrationAdapter());
+      bundleIntegration(new AppsFlyerIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.bugsnag.android.Bugsnag")) {
-      bundleIntegration(new BugsnagIntegrationAdapter());
+      bundleIntegration(new BugsnagIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("ly.count.android.api.Countly")) {
-      bundleIntegration(new CountlyIntegrationAdapter());
+      bundleIntegration(new CountlyIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.crittercism.app.Crittercism")) {
-      bundleIntegration(new CrittercismIntegrationAdapter());
+      bundleIntegration(new CrittercismIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.flurry.android.FlurryAgent")) {
-      bundleIntegration(new FlurryIntegrationAdapter());
+      bundleIntegration(new FlurryIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
-      bundleIntegration(new GoogleAnalyticsIntegrationAdapter());
+      bundleIntegration(new GoogleAnalyticsIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.localytics.android.LocalyticsSession")) {
-      bundleIntegration(new LocalyticsIntegrationAdapter());
+      bundleIntegration(new LocalyticsIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.leanplum.Leanplum")) {
-      bundleIntegration(new LeanplumIntegrationAdapter());
+      bundleIntegration(new LeanplumIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.mixpanel.android.mpmetrics.MixpanelAPI")) {
-      bundleIntegration(new MixpanelIntegrationAdapter());
+      bundleIntegration(new MixpanelIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.quantcast.measurement.service.QuantcastClient")) {
-      bundleIntegration(new QuantcastIntegrationAdapter());
+      bundleIntegration(new QuantcastIntegrationAdapter(debuggingEnabled));
     }
     if (isOnClassPath("com.tapstream.sdk.Tapstream")) {
-      bundleIntegration(new TapstreamIntegrationAdapter());
+      bundleIntegration(new TapstreamIntegrationAdapter(debuggingEnabled));
     }
 
     this.projectSettingsCache = projectSettingsCache;
@@ -125,10 +127,11 @@ class IntegrationManager {
   }
 
   static IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi, Stats stats,
-      boolean logging) {
+      boolean debuggingEnabled) {
     StringCache projectSettingsCache =
         new StringCache(getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
-    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logging);
+    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats,
+        debuggingEnabled);
   }
 
   private static boolean isBundledIntegrationEnabledForPayload(BasePayload payload,
@@ -163,7 +166,7 @@ class IntegrationManager {
   void performFetch() {
     try {
       if (isConnected(context)) {
-        if (loggingEnabled) {
+        if (debuggingEnabled) {
           debug(OWNER_INTEGRATION_MANAGER, "request", "fetch settings", null);
         }
 
@@ -183,7 +186,7 @@ class IntegrationManager {
         retryFetch();
       }
     } catch (IOException e) {
-      if (loggingEnabled) {
+      if (debuggingEnabled) {
         error(OWNER_INTEGRATION_MANAGER, "request", "fetch settings", e, null);
       }
       retryFetch();
@@ -198,7 +201,7 @@ class IntegrationManager {
         JsonMap settings = new JsonMap(projectSettings.getJsonMap(integration.key()));
         try {
           integration.initialize(context, settings);
-          if (loggingEnabled) {
+          if (debuggingEnabled) {
             debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(),
                 settings.toString());
           }
@@ -206,15 +209,16 @@ class IntegrationManager {
             listener.onIntegrationReady(integration.key(), integration.getUnderlyingInstance());
           }
         } catch (InvalidConfigurationException e) {
+          serverIntegrations.remove(integration.key());
           iterator.remove();
-          if (loggingEnabled) {
+          if (debuggingEnabled) {
             error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), e,
                 settings.toString());
           }
         }
       } else {
         iterator.remove();
-        if (loggingEnabled) {
+        if (debuggingEnabled) {
           debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, integration.key(),
               "not enabled in project settings: " + projectSettings.keySet());
         }
@@ -242,7 +246,7 @@ class IntegrationManager {
         if (initialized) {
           run(operation);
         } else {
-          if (loggingEnabled) {
+          if (debuggingEnabled) {
             debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id(), null);
           }
           operationQueue.add(operation);
@@ -257,7 +261,7 @@ class IntegrationManager {
       operation.run(integration);
       long endTime = System.currentTimeMillis();
       long duration = endTime - startTime;
-      if (loggingEnabled) {
+      if (debuggingEnabled) {
         debug(integration.key(), VERB_DISPATCH, operation.id(),
             String.format("duration: %s", duration));
       }

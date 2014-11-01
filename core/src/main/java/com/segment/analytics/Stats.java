@@ -50,6 +50,11 @@ class Stats {
     flushEventCount += count;
   }
 
+  StatsSnapshot createSnapshot() {
+    return new StatsSnapshot(System.currentTimeMillis(), flushCount, flushEventCount,
+        integrationOperationCount, integrationOperationTime);
+  }
+
   private static class StatsHandler extends Handler {
     private final Stats stats;
 
@@ -70,10 +75,5 @@ class Stats {
           panic("Unhandled stats message." + msg.what);
       }
     }
-  }
-
-  StatsSnapshot createSnapshot() {
-    return new StatsSnapshot(System.currentTimeMillis(), flushCount, flushEventCount,
-        integrationOperationCount, integrationOperationTime);
   }
 }

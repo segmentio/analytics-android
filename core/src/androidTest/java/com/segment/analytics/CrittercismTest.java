@@ -31,7 +31,7 @@ public class CrittercismTest extends IntegrationExam {
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(Crittercism.class);
-    adapter = new CrittercismIntegrationAdapter();
+    adapter = new CrittercismIntegrationAdapter(true);
   }
 
   @Test public void initialize() throws Exception {

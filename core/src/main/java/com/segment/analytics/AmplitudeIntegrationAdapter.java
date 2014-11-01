@@ -19,6 +19,10 @@ class AmplitudeIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   boolean trackCategorizedPages;
   boolean trackNamedPages;
 
+  AmplitudeIntegrationAdapter(boolean debuggingEnabled) {
+    super(debuggingEnabled);
+  }
+
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     trackAllPages = settings.getBoolean("trackAllPages", false);

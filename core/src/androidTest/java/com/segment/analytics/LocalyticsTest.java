@@ -23,22 +23,22 @@ public class LocalyticsTest extends IntegrationExam {
   @Mock LocalyticsAmpSession localytics;
   LocalyticsIntegrationAdapter adapter;
 
-  @Before @Override public void setUp() {
-    super.setUp();
-
-    grantPermission(Robolectric.application, Manifest.permission.WAKE_LOCK);
-
-    adapter = new LocalyticsIntegrationAdapter();
-    adapter.session = localytics;
-  }
-
   public static void grantPermission(final Application app, final String permission) {
     ShadowApplication shadowApp = Robolectric.shadowOf(app);
     shadowApp.grantPermissions(permission);
   }
 
+  @Before @Override public void setUp() {
+    super.setUp();
+
+    grantPermission(Robolectric.application, Manifest.permission.WAKE_LOCK);
+
+    adapter = new LocalyticsIntegrationAdapter(true);
+    adapter.session = localytics;
+  }
+
   @Test public void initialize() throws InvalidConfigurationException {
-    LocalyticsIntegrationAdapter adapter = new LocalyticsIntegrationAdapter();
+    LocalyticsIntegrationAdapter adapter = new LocalyticsIntegrationAdapter(true);
     adapter.initialize(Robolectric.application, new JsonMap().putValue("appKey", "foo"));
     assertThat(adapter.session).isNotNull();
   }

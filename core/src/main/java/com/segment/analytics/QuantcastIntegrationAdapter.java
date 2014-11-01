@@ -19,13 +19,16 @@ import static com.segment.analytics.Utils.hasPermission;
 class QuantcastIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   String apiKey;
 
+  QuantcastIntegrationAdapter(boolean debuggingEnabled) {
+    super(debuggingEnabled);
+  }
+
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new InvalidConfigurationException("ACCESS_NETWORK_STATE is required");
     }
     apiKey = settings.getString("apiKey");
-    // todo: set logger
   }
 
   @Override Void getUnderlyingInstance() {

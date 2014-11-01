@@ -19,6 +19,10 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
 class FlurryIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
   String apiKey;
 
+  FlurryIntegrationAdapter(boolean debuggingEnabled) {
+    super(debuggingEnabled);
+  }
+
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     apiKey = settings.getString("apiKey");

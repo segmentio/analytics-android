@@ -14,6 +14,10 @@ import com.crittercism.app.CrittercismConfig;
  * @see <a href="http://docs.crittercism.com/android/android.html">Crittercism Android SDK</a>
  */
 class CrittercismIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
+  CrittercismIntegrationAdapter(boolean debuggingEnabled) {
+    super(debuggingEnabled);
+  }
+
   @Override void initialize(Context context, JsonMap settings)
       throws InvalidConfigurationException {
     CrittercismConfig crittercismConfig = new CrittercismConfig();
