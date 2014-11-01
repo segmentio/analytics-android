@@ -1,7 +1,7 @@
 package com.segment.analytics;
 
 import android.app.Activity;
-import android.content.Context;
+import android.app.Application;
 import android.os.Bundle;
 import java.util.UUID;
 import org.robolectric.Robolectric;
@@ -23,7 +23,7 @@ public class IntegrationExam {
   Bundle bundle;
 
   @Mock Activity activity;
-  @Mock Context context;
+  @Mock Application context;
 
   public void setUp() {
     anonymousId = UUID.randomUUID().toString();
