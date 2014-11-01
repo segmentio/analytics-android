@@ -472,8 +472,33 @@ public class Analytics {
    * OnIntegrationReadyListener} for more information.
    * <p></p>
    * This method must be called from the main thread.
+   *
+   * @since 2.1
+   * @deprecated Use {@link #registerOnIntegrationReady(OnIntegrationReadyListener)} instead.
    */
   public void onIntegrationReady(OnIntegrationReadyListener onIntegrationReadyListener) {
+    registerOnIntegrationReady(onIntegrationReadyListener);
+  }
+
+  /**
+   * Register to be notified when a bundled integration is ready. See {@link
+   * OnIntegrationReadyListener} for more information.
+   * <p></p>
+   * This method must be called from the main thread.
+   * <p></p>
+   * {@code
+   * analytics.registerOnIntegrationReady(new OnIntegrationReadyListener() {
+   *   @Override public void onIntegrationReady(String key, Object integration) {
+   *     if("Mixpanel".equals(key)) {
+   *       ((MixpanelAPI) integration).clearSuperProperties();
+   *     }
+   *   }
+   * });
+   * }
+   *
+   * @since 2.4
+   */
+  public void registerOnIntegrationReady(OnIntegrationReadyListener onIntegrationReadyListener) {
     checkMain();
     integrationManager.registerIntegrationInitializedListener(onIntegrationReadyListener);
   }
