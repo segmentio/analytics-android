@@ -72,7 +72,7 @@ class WearDispatcher {
           wearDispatcher.performDispatch(payload);
           break;
         default:
-          Analytics.MAIN_LOOPER.post(new Runnable() {
+          Analytics.HANDLER.post(new Runnable() {
             @Override public void run() {
               throw new AssertionError("Unhandled dispatcher message." + msg.what);
             }

@@ -80,7 +80,7 @@ public class Analytics {
   static final String FLUSH_INTERVAL_IDENTIFIER = "analytics_flush_interval";
   static final String DEBUGGING_RESOURCE_IDENTIFIER = "analytics_debugging";
   static final Properties EMPTY_PROPERTIES = new Properties();
-  static final Handler MAIN_LOOPER = new Handler(Looper.getMainLooper()) {
+  static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
     @Override public void handleMessage(Message msg) {
       switch (msg.what) {
         default:

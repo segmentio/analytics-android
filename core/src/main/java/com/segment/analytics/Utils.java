@@ -229,7 +229,7 @@ final class Utils {
 
   /** Panic from an unrecoverable error. */
   static void panic(final String string) {
-    Analytics.MAIN_LOOPER.post(new Runnable() {
+    Analytics.HANDLER.post(new Runnable() {
       @Override public void run() {
         throw new AssertionError(string);
       }
