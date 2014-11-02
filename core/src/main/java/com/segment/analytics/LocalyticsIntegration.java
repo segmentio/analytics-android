@@ -18,10 +18,10 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://segment.io/docs/integrations/localytics/">Localytics Integration</a>
  * @see <a href="http://www.localytics.com/docs/android-integration/">Localytics Android SDK</a>
  */
-class LocalyticsIntegrationAdapter extends AbstractIntegrationAdapter<LocalyticsAmpSession> {
+class LocalyticsIntegration extends AbstractIntegration<LocalyticsAmpSession> {
   LocalyticsAmpSession session;
 
-  LocalyticsIntegrationAdapter(boolean debuggingEnabled) {
+  LocalyticsIntegration(boolean debuggingEnabled) {
     super(debuggingEnabled);
   }
 

@@ -24,7 +24,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://developers.google.com/analytics/devguides/collection/android/v4/">Google
  * Analyitcs Android SDK</a>
  */
-class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Tracker> {
+class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   static final Pattern COMPLETED_ORDER_PATTERN =
       Pattern.compile("completed *order", Pattern.CASE_INSENSITIVE);
   static final Pattern PRODUCT_EVENT_PATTERN =
@@ -34,7 +34,7 @@ class GoogleAnalyticsIntegrationAdapter extends AbstractIntegrationAdapter<Track
   boolean optedOut;
   boolean sendUserId;
 
-  GoogleAnalyticsIntegrationAdapter(boolean debuggingEnabled) {
+  GoogleAnalyticsIntegration(boolean debuggingEnabled) {
     super(debuggingEnabled);
   }
 

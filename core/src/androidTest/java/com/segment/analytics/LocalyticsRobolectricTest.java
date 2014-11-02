@@ -21,7 +21,7 @@ import static org.mockito.MockitoAnnotations.Mock;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 public class LocalyticsRobolectricTest extends IntegrationRobolectricExam {
   @Mock LocalyticsAmpSession localytics;
-  LocalyticsIntegrationAdapter adapter;
+  LocalyticsIntegration integration;
 
   public static void grantPermission(final Application app, final String permission) {
     ShadowApplication shadowApp = Robolectric.shadowOf(app);
@@ -33,19 +33,19 @@ public class LocalyticsRobolectricTest extends IntegrationRobolectricExam {
 
     grantPermission(Robolectric.application, Manifest.permission.WAKE_LOCK);
 
-    adapter = new LocalyticsIntegrationAdapter(true);
-    adapter.session = localytics;
+    integration = new LocalyticsIntegration(true);
+    integration.session = localytics;
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
-    LocalyticsIntegrationAdapter adapter = new LocalyticsIntegrationAdapter(true);
+    LocalyticsIntegration adapter = new LocalyticsIntegration(true);
     adapter.initialize(Robolectric.application, new JsonMap().putValue("appKey", "foo"));
     assertThat(adapter.session).isNotNull();
   }
 
   @Test
   public void onActivityResumed() {
-    adapter.onActivityResumed(activity);
+    integration.onActivityResumed(activity);
     verify(localytics).open();
     verify(localytics).upload();
     verifyNoMoreInteractions(localytics);
@@ -54,7 +54,7 @@ public class LocalyticsRobolectricTest extends IntegrationRobolectricExam {
   @Test
   public void onActivityResumedCompat() {
     FragmentActivity activity = mock(FragmentActivity.class);
-    adapter.onActivityResumed(activity);
+    integration.onActivityResumed(activity);
     verify(localytics).open();
     verify(localytics).upload();
     verify(localytics).attach(activity);
@@ -62,7 +62,7 @@ public class LocalyticsRobolectricTest extends IntegrationRobolectricExam {
 
   @Test
   public void onActivityPaused() {
-    adapter.onActivityPaused(activity);
+    integration.onActivityPaused(activity);
     verify(localytics).close();
     verify(localytics).upload();
     verifyNoMoreInteractions(localytics);
@@ -71,7 +71,7 @@ public class LocalyticsRobolectricTest extends IntegrationRobolectricExam {
   @Test
   public void onActivityPausedCompat() {
     activity = mock(FragmentActivity.class);
-    adapter.onActivityPaused(activity);
+    integration.onActivityPaused(activity);
     verify(localytics).detach();
     verify(localytics).close();
     verify(localytics).upload();
@@ -79,7 +79,7 @@ public class LocalyticsRobolectricTest extends IntegrationRobolectricExam {
 
   @Test
   public void onActivityCreated() {
-    adapter.onActivityCreated(activity, bundle);
+    integration.onActivityCreated(activity, bundle);
     verify(localytics).open();
     verify(localytics).upload();
     verifyNoMoreInteractions(localytics);
@@ -87,39 +87,39 @@ public class LocalyticsRobolectricTest extends IntegrationRobolectricExam {
 
   @Test
   public void activityLifecycle() {
-    adapter.onActivityStarted(activity);
-    adapter.onActivityDestroyed(activity);
-    adapter.onActivitySaveInstanceState(activity, bundle);
-    adapter.onActivityStopped(activity);
+    integration.onActivityStarted(activity);
+    integration.onActivityDestroyed(activity);
+    integration.onActivitySaveInstanceState(activity, bundle);
+    integration.onActivityStopped(activity);
     verifyNoMoreInteractions(localytics);
   }
 
   @Test public void flush() {
-    adapter.flush();
+    integration.flush();
     verify(localytics).upload();
   }
 
   @Test public void optOut() {
-    adapter.optOut(false);
+    integration.optOut(false);
     verify(localytics).setOptOut(false);
 
-    adapter.optOut(true);
+    integration.optOut(true);
     verify(localytics).setOptOut(true);
   }
 
   @Test public void screen() {
-    adapter.screen(screenPayload("Clothes", "Pants"));
+    integration.screen(screenPayload("Clothes", "Pants"));
     verify(localytics).tagScreen("Pants");
 
-    adapter.screen(screenPayload(null, "Shirts"));
+    integration.screen(screenPayload(null, "Shirts"));
     verify(localytics).tagScreen("Shirts");
 
-    adapter.screen(screenPayload("Games", null));
+    integration.screen(screenPayload("Games", null));
     verify(localytics).tagScreen("Games");
   }
 
   @Test public void track() {
-    adapter.track(trackPayload("Button Clicked"));
+    integration.track(trackPayload("Button Clicked"));
     verify(localytics).tagEvent("Button Clicked", properties.toStringMap());
   }
 }

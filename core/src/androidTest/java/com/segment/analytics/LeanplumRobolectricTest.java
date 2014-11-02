@@ -25,17 +25,17 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 public class LeanplumRobolectricTest extends IntegrationRobolectricExam {
   @Rule public PowerMockRule rule = new PowerMockRule();
 
-  LeanplumIntegrationAdapter adapter;
+  LeanplumIntegration integration;
 
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(Leanplum.class);
-    adapter = new LeanplumIntegrationAdapter(true);
+    integration = new LeanplumIntegration(true);
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
-    adapter.initialize(context,
-        new JsonMap().putValue("appId", "foo").putValue("clientKey", "bar"));
+    integration.initialize(context,
+            new JsonMap().putValue("appId", "foo").putValue("clientKey", "bar"));
     verifyStatic();
     Leanplum.setAppIdForProductionMode("foo", "bar");
     verifyStatic();
@@ -43,48 +43,48 @@ public class LeanplumRobolectricTest extends IntegrationRobolectricExam {
   }
 
   @Test public void onActivityCreated() {
-    assertThat(adapter.helper).isNull();
-    adapter.onActivityCreated(activity, bundle);
+    assertThat(integration.helper).isNull();
+    integration.onActivityCreated(activity, bundle);
     // todo: mock helper constructor
-    assertThat(adapter.helper).isNotNull();
+    assertThat(integration.helper).isNotNull();
   }
 
   @Test public void activityLifecycle() {
-    adapter.helper = mock(LeanplumActivityHelper.class);
+    integration.helper = mock(LeanplumActivityHelper.class);
 
-    adapter.onActivityResumed(activity);
-    verify(adapter.helper).onResume();
-    adapter.onActivityPaused(activity);
-    verify(adapter.helper).onPause();
-    adapter.onActivityStopped(activity);
-    verify(adapter.helper).onStop();
+    integration.onActivityResumed(activity);
+    verify(integration.helper).onResume();
+    integration.onActivityPaused(activity);
+    verify(integration.helper).onPause();
+    integration.onActivityStopped(activity);
+    verify(integration.helper).onStop();
 
-    adapter.onActivityDestroyed(activity);
-    adapter.onActivitySaveInstanceState(activity, bundle);
-    adapter.onActivityStarted(activity);
-    verifyNoMoreInteractions(adapter.helper);
+    integration.onActivityDestroyed(activity);
+    integration.onActivitySaveInstanceState(activity, bundle);
+    integration.onActivityStarted(activity);
+    verifyNoMoreInteractions(integration.helper);
   }
 
   @Test public void track() {
-    adapter.track(trackPayload("foo"));
+    integration.track(trackPayload("foo"));
     verifyStatic();
     Leanplum.track("foo", 0, properties);
   }
 
   @Test public void screen() {
-    adapter.screen(screenPayload("foo", "bar"));
+    integration.screen(screenPayload("foo", "bar"));
     verifyStatic();
     Leanplum.advanceTo("bar", "foo", properties);
   }
 
   @Test public void identify() {
-    adapter.identify(identifyPayload("foo"));
+    integration.identify(identifyPayload("foo"));
     verifyStatic();
     Leanplum.setUserAttributes("foo", traits);
   }
 
   @Test public void flush() {
-    adapter.flush();
+    integration.flush();
     verifyStatic();
     Leanplum.forceContentUpdate();
   }

@@ -53,7 +53,7 @@ class TrackPayload extends BasePayload {
     return (Properties) get(PROPERTIES_KEY);
   }
 
-  @Override public void run(AbstractIntegrationAdapter integration) {
+  @Override public void run(AbstractIntegration integration) {
     integration.track(this);
   }
 }

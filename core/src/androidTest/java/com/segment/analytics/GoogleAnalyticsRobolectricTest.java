@@ -5,8 +5,8 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.GoogleAnalyticsIntegrationAdapter.COMPLETED_ORDER_PATTERN;
-import static com.segment.analytics.GoogleAnalyticsIntegrationAdapter.PRODUCT_EVENT_PATTERN;
+import static com.segment.analytics.GoogleAnalyticsIntegration.COMPLETED_ORDER_PATTERN;
+import static com.segment.analytics.GoogleAnalyticsIntegration.PRODUCT_EVENT_PATTERN;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)

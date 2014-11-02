@@ -14,10 +14,10 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://segment.com/docs/integrations/appsflyer/">AppsFlyer Integration</a>
  * @see <a href="http://www.appsflyer.com/">AppsFlyer Website</a>
  */
-class AppsFlyerIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
+class AppsFlyerIntegration extends AbstractIntegration<Void> {
   Context context;
 
-  AppsFlyerIntegrationAdapter(boolean debuggingEnabled) {
+  AppsFlyerIntegration(boolean debuggingEnabled) {
     super(debuggingEnabled);
   }
 

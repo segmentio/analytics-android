@@ -25,21 +25,21 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 public class FlurryRobolectricTest extends IntegrationRobolectricExam {
   final String apiKey = "foo";
   @Rule public PowerMockRule rule = new PowerMockRule();
-  FlurryIntegrationAdapter adapter;
+  FlurryIntegration integration;
 
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(FlurryAgent.class);
-    adapter = new FlurryIntegrationAdapter(true);
-    adapter.apiKey = apiKey;
+    integration = new FlurryIntegration(true);
+    integration.apiKey = apiKey;
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
-    adapter.initialize(context, //
-        new JsonMap().putValue("apiKey", apiKey)
-            .putValue("sessionContinueSeconds", 20)
-            .putValue("captureUncaughtExceptions", true)
-            .putValue("useHttps", false)
+    integration.initialize(context, //
+            new JsonMap().putValue("apiKey", apiKey)
+                    .putValue("sessionContinueSeconds", 20)
+                    .putValue("captureUncaughtExceptions", true)
+                    .putValue("useHttps", false)
     );
     verifyStatic();
     FlurryAgent.setContinueSessionMillis(20000);
@@ -50,25 +50,25 @@ public class FlurryRobolectricTest extends IntegrationRobolectricExam {
   }
 
   @Test public void activityLifecycle() {
-    adapter.onActivityStarted(activity);
+    integration.onActivityStarted(activity);
     verifyStatic();
     FlurryAgent.onStartSession(activity, apiKey);
 
-    adapter.onActivityStopped(activity);
+    integration.onActivityStopped(activity);
     verifyStatic();
     FlurryAgent.onEndSession(activity);
 
-    adapter.onActivityResumed(activity);
-    adapter.onActivityPaused(activity);
-    adapter.onActivityCreated(activity, bundle);
-    adapter.onActivityDestroyed(activity);
-    adapter.onActivitySaveInstanceState(activity, bundle);
+    integration.onActivityResumed(activity);
+    integration.onActivityPaused(activity);
+    integration.onActivityCreated(activity, bundle);
+    integration.onActivityDestroyed(activity);
+    integration.onActivitySaveInstanceState(activity, bundle);
     verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
   @Test public void screen() {
-    adapter.screen(screenPayload("bar", "baz"));
+    integration.screen(screenPayload("bar", "baz"));
     verifyStatic();
     FlurryAgent.onPageView();
     verifyStatic();
@@ -76,13 +76,13 @@ public class FlurryRobolectricTest extends IntegrationRobolectricExam {
   }
 
   @Test public void track() {
-    adapter.track(trackPayload("bar"));
+    integration.track(trackPayload("bar"));
     verifyStatic();
     FlurryAgent.logEvent(eq("bar"), Matchers.<Map<String, String>>any());
   }
 
   @Test public void identify() {
-    adapter.identify(identifyPayload("bar"));
+    integration.identify(identifyPayload("bar"));
     verifyStatic();
     FlurryAgent.setUserId("bar");
     verifyStatic();
@@ -94,7 +94,7 @@ public class FlurryRobolectricTest extends IntegrationRobolectricExam {
     traits.putGender("f");
     analyticsContext.putLocation(20, 20, 20);
     IdentifyPayload identifyPayload = identifyPayload("bar");
-    adapter.identify(identifyPayload);
+    integration.identify(identifyPayload);
     verifyStatic();
     FlurryAgent.setUserId("bar");
     verifyStatic();

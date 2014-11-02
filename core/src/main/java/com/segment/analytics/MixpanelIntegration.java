@@ -14,14 +14,14 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://segment.io/docs/integrations/mixpanel">Mixpanel Integration</a>
  * @see <a href="https://github.com/mixpanel/mixpanel-android">Mixpanel Android SDK</a>
  */
-class MixpanelIntegrationAdapter extends AbstractIntegrationAdapter<MixpanelAPI> {
+class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   MixpanelAPI mixpanelAPI;
   boolean isPeopleEnabled;
   boolean trackAllPages;
   boolean trackCategorizedPages;
   boolean trackNamedPages;
 
-  MixpanelIntegrationAdapter(boolean debuggingEnabled) {
+  MixpanelIntegration(boolean debuggingEnabled) {
     super(debuggingEnabled);
   }
 

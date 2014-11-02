@@ -15,9 +15,9 @@ import java.util.Map;
  * @see <a href="https://segment.io/docs/integrations/bugsnag/">Bugsnag Integration</a>
  * @see <a href="https://github.com/bugsnag/bugsnag-android">Bugsnag Android SDK</a>
  */
-class BugsnagIntegrationAdapter extends AbstractIntegrationAdapter<Client> {
+class BugsnagIntegration extends AbstractIntegration<Client> {
 
-  BugsnagIntegrationAdapter(boolean debuggingEnabled) {
+  BugsnagIntegration(boolean debuggingEnabled) {
     super(debuggingEnabled);
   }
 

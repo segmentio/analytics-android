@@ -14,12 +14,12 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://segment.io/docs/integrations/amplitude/">Amplitude Integration</a>
  * @see <a href="https://github.com/amplitude/Amplitude-Android">Amplitude Android SDK</a>
  */
-class AmplitudeIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
+class AmplitudeIntegration extends AbstractIntegration<Void> {
   boolean trackAllPages;
   boolean trackCategorizedPages;
   boolean trackNamedPages;
 
-  AmplitudeIntegrationAdapter(boolean debuggingEnabled) {
+  AmplitudeIntegration(boolean debuggingEnabled) {
     super(debuggingEnabled);
   }
 

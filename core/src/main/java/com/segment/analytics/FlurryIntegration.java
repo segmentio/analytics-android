@@ -16,10 +16,10 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="http://support.flurry.com/index.php?title=Analytics/GettingStarted/Android">Flurry
  * Android SDK</a>
  */
-class FlurryIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
+class FlurryIntegration extends AbstractIntegration<Void> {
   String apiKey;
 
-  FlurryIntegrationAdapter(boolean debuggingEnabled) {
+  FlurryIntegration(boolean debuggingEnabled) {
     super(debuggingEnabled);
   }
 

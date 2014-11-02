@@ -16,10 +16,10 @@ import static com.segment.analytics.Utils.hasPermission;
  * @see <a href="https://github.com/quantcast/android-measurement#quantcast-android-sdk">Quantcast
  * Android SDK</a>
  */
-class QuantcastIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
+class QuantcastIntegration extends AbstractIntegration<Void> {
   String apiKey;
 
-  QuantcastIntegrationAdapter(boolean debuggingEnabled) {
+  QuantcastIntegration(boolean debuggingEnabled) {
     super(debuggingEnabled);
   }
 

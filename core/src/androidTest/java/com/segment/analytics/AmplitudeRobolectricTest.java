@@ -27,38 +27,38 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 public class AmplitudeRobolectricTest extends IntegrationRobolectricExam {
   @Rule public PowerMockRule rule = new PowerMockRule();
 
-  AmplitudeIntegrationAdapter amplitudeIntegrationAdapter;
+  AmplitudeIntegration integration;
 
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(Amplitude.class);
-    amplitudeIntegrationAdapter = new AmplitudeIntegrationAdapter(true);
+    integration = new AmplitudeIntegration(true);
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
-    amplitudeIntegrationAdapter.initialize(context, //
-        new JsonMap().putValue("apiKey", "foo")
-            .putValue("trackAllPages", true)
-            .putValue("trackCategorizedPages", false)
-            .putValue("trackNamedPages", true)
+    integration.initialize(context, //
+            new JsonMap().putValue("apiKey", "foo")
+                    .putValue("trackAllPages", true)
+                    .putValue("trackCategorizedPages", false)
+                    .putValue("trackNamedPages", true)
     );
     verifyStatic();
     Amplitude.initialize(context, "foo");
-    assertThat(amplitudeIntegrationAdapter.trackAllPages).isTrue();
-    assertThat(amplitudeIntegrationAdapter.trackCategorizedPages).isFalse();
-    assertThat(amplitudeIntegrationAdapter.trackNamedPages).isTrue();
+    assertThat(integration.trackAllPages).isTrue();
+    assertThat(integration.trackCategorizedPages).isFalse();
+    assertThat(integration.trackNamedPages).isTrue();
     // Verify default args
-    amplitudeIntegrationAdapter.initialize(context, //
-        new JsonMap().putValue("apiKey", "foo"));
-    assertThat(amplitudeIntegrationAdapter.trackAllPages).isFalse();
-    assertThat(amplitudeIntegrationAdapter.trackCategorizedPages).isFalse();
-    assertThat(amplitudeIntegrationAdapter.trackNamedPages).isFalse();
+    integration.initialize(context, //
+            new JsonMap().putValue("apiKey", "foo"));
+    assertThat(integration.trackAllPages).isFalse();
+    assertThat(integration.trackCategorizedPages).isFalse();
+    assertThat(integration.trackNamedPages).isFalse();
   }
 
   @Test
   public void track() {
     TrackPayload trackPayload = trackPayload("foo");
-    amplitudeIntegrationAdapter.track(trackPayload);
+    integration.track(trackPayload);
     verifyStatic();
     Amplitude.logEvent(eq("foo"), any(JSONObject.class));
     verifyNoMoreInteractions(Amplitude.class);
@@ -73,7 +73,7 @@ public class AmplitudeRobolectricTest extends IntegrationRobolectricExam {
         .putValue("quantity", 10)
         .putValue("receipt", "baz")
         .putValue("receiptSignature", "qux");
-    amplitudeIntegrationAdapter.track(trackPayload);
+    integration.track(trackPayload);
     verifyStatic();
     Amplitude.logEvent(eq("foo"), any(JSONObject.class));
     verifyStatic();
@@ -82,26 +82,26 @@ public class AmplitudeRobolectricTest extends IntegrationRobolectricExam {
 
   @Test
   public void activityLifecycle() {
-    amplitudeIntegrationAdapter.onActivityResumed(activity);
+    integration.onActivityResumed(activity);
     verifyStatic();
     Amplitude.startSession();
 
-    amplitudeIntegrationAdapter.onActivityPaused(activity);
+    integration.onActivityPaused(activity);
     verifyStatic();
     Amplitude.endSession();
 
-    amplitudeIntegrationAdapter.onActivityStarted(activity);
-    amplitudeIntegrationAdapter.onActivityStopped(activity);
-    amplitudeIntegrationAdapter.onActivityCreated(activity, bundle);
-    amplitudeIntegrationAdapter.onActivityDestroyed(activity);
-    amplitudeIntegrationAdapter.onActivitySaveInstanceState(activity, bundle);
+    integration.onActivityStarted(activity);
+    integration.onActivityStopped(activity);
+    integration.onActivityCreated(activity, bundle);
+    integration.onActivityDestroyed(activity);
+    integration.onActivitySaveInstanceState(activity, bundle);
     verifyNoMoreInteractions(Amplitude.class);
   }
 
   @Test
   public void identify() {
     IdentifyPayload payload = identifyPayload("michael");
-    amplitudeIntegrationAdapter.identify(payload);
+    integration.identify(payload);
     verifyStatic();
     Amplitude.setUserId("michael");
     verifyStatic();
@@ -111,61 +111,61 @@ public class AmplitudeRobolectricTest extends IntegrationRobolectricExam {
 
   @Test
   public void screenTrackNothing() {
-    amplitudeIntegrationAdapter.trackAllPages = false;
-    amplitudeIntegrationAdapter.trackCategorizedPages = false;
-    amplitudeIntegrationAdapter.trackNamedPages = false;
-    amplitudeIntegrationAdapter.screen(screenPayload("foo", "bar"));
+    integration.trackAllPages = false;
+    integration.trackCategorizedPages = false;
+    integration.trackNamedPages = false;
+    integration.screen(screenPayload("foo", "bar"));
     verifyStatic();
     verifyNoMoreInteractions(Amplitude.class);
   }
 
   @Test
   public void screenTrackNamedPages() {
-    amplitudeIntegrationAdapter.trackAllPages = false;
-    amplitudeIntegrationAdapter.trackCategorizedPages = false;
-    amplitudeIntegrationAdapter.trackNamedPages = true;
+    integration.trackAllPages = false;
+    integration.trackCategorizedPages = false;
+    integration.trackNamedPages = true;
 
-    amplitudeIntegrationAdapter.screen(screenPayload(null, "bar"));
+    integration.screen(screenPayload(null, "bar"));
     verifyAmplitudeEvent("Viewed bar Screen", null);
 
-    amplitudeIntegrationAdapter.screen(screenPayload("foo", null));
+    integration.screen(screenPayload("foo", null));
     verifyStatic();
     verifyNoMoreInteractions(Amplitude.class);
   }
 
   @Test
   public void screenTrackCategorizedPages() {
-    amplitudeIntegrationAdapter.trackAllPages = false;
-    amplitudeIntegrationAdapter.trackCategorizedPages = true;
-    amplitudeIntegrationAdapter.trackNamedPages = false;
+    integration.trackAllPages = false;
+    integration.trackCategorizedPages = true;
+    integration.trackNamedPages = false;
 
-    amplitudeIntegrationAdapter.screen(screenPayload("foo", null));
+    integration.screen(screenPayload("foo", null));
     verifyAmplitudeEvent("Viewed foo Screen", null);
 
-    amplitudeIntegrationAdapter.screen(screenPayload(null, "bar"));
+    integration.screen(screenPayload(null, "bar"));
     verifyStatic();
     verifyNoMoreInteractions(Amplitude.class);
   }
 
   @Test
   public void screenTrackAllPages() {
-    amplitudeIntegrationAdapter.trackAllPages = true;
-    amplitudeIntegrationAdapter.trackCategorizedPages = new Random().nextBoolean();
-    amplitudeIntegrationAdapter.trackNamedPages = new Random().nextBoolean();
+    integration.trackAllPages = true;
+    integration.trackCategorizedPages = new Random().nextBoolean();
+    integration.trackNamedPages = new Random().nextBoolean();
 
-    amplitudeIntegrationAdapter.screen(screenPayload("foo", null));
+    integration.screen(screenPayload("foo", null));
     verifyAmplitudeEvent("Viewed foo Screen", null);
 
-    amplitudeIntegrationAdapter.screen(screenPayload(null, "bar"));
+    integration.screen(screenPayload(null, "bar"));
     verifyAmplitudeEvent("Viewed bar Screen", null);
 
-    amplitudeIntegrationAdapter.screen(screenPayload("bar", "baz"));
+    integration.screen(screenPayload("bar", "baz"));
     verifyAmplitudeEvent("Viewed baz Screen", null);
   }
 
   @Test
   public void flush() {
-    amplitudeIntegrationAdapter.flush();
+    integration.flush();
     verifyStatic();
     Amplitude.uploadEvents();
   }

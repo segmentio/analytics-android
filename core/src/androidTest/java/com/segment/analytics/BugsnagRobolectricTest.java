@@ -21,16 +21,16 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @PrepareForTest(Bugsnag.class)
 public class BugsnagRobolectricTest extends IntegrationRobolectricExam {
   @Rule public PowerMockRule rule = new PowerMockRule();
-  BugsnagIntegrationAdapter adapter;
+  BugsnagIntegration integration;
 
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(Bugsnag.class);
-    adapter = new BugsnagIntegrationAdapter(true);
+    integration = new BugsnagIntegration(true);
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
-    adapter.initialize(context, new JsonMap().putValue("apiKey", "foo").putValue("useSSL", true));
+    integration.initialize(context, new JsonMap().putValue("apiKey", "foo").putValue("useSSL", true));
     verifyStatic();
     Bugsnag.register(context, "foo");
     Bugsnag.setUseSSL(true);
@@ -39,7 +39,7 @@ public class BugsnagRobolectricTest extends IntegrationRobolectricExam {
   @Test
   public void onActivityCreated() {
     when(activity.getLocalClassName()).thenReturn("foo");
-    adapter.onActivityCreated(activity, bundle);
+    integration.onActivityCreated(activity, bundle);
     verifyStatic();
     Bugsnag.setContext("foo");
     verifyStatic();
@@ -47,34 +47,34 @@ public class BugsnagRobolectricTest extends IntegrationRobolectricExam {
   }
 
   @Test public void onActivityResumed() {
-    adapter.onActivityResumed(activity);
+    integration.onActivityResumed(activity);
     verifyStatic();
     Bugsnag.onActivityResume(activity);
   }
 
   @Test public void onActivityPaused() {
-    adapter.onActivityPaused(activity);
+    integration.onActivityPaused(activity);
     verifyStatic();
     Bugsnag.onActivityPause(activity);
   }
 
   @Test public void onActivityDestroyed() {
-    adapter.onActivityDestroyed(activity);
+    integration.onActivityDestroyed(activity);
     verifyStatic();
     Bugsnag.onActivityDestroy(activity);
   }
 
   @Test public void activityLifecycle() {
-    adapter.onActivityStopped(activity);
-    adapter.onActivitySaveInstanceState(activity, bundle);
-    adapter.onActivityStarted(activity);
+    integration.onActivityStopped(activity);
+    integration.onActivitySaveInstanceState(activity, bundle);
+    integration.onActivityStarted(activity);
     verifyStatic();
     verifyNoMoreInteractions(Bugsnag.class);
   }
 
   @Test public void identify() {
     traits.putUserId("foo").putEmail("bar").putName("baz");
-    adapter.identify(identifyPayload("foo"));
+    integration.identify(identifyPayload("foo"));
     verifyStatic();
     Bugsnag.setUser("foo", "bar", "baz");
     verifyStatic();

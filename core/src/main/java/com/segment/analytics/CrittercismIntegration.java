@@ -13,8 +13,8 @@ import com.crittercism.app.CrittercismConfig;
  * @see <a href="https://segment.io/docs/integrations/crittercism">Crittercism Integration</a>
  * @see <a href="http://docs.crittercism.com/android/android.html">Crittercism Android SDK</a>
  */
-class CrittercismIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
-  CrittercismIntegrationAdapter(boolean debuggingEnabled) {
+class CrittercismIntegration extends AbstractIntegration<Void> {
+  CrittercismIntegration(boolean debuggingEnabled) {
     super(debuggingEnabled);
   }
 

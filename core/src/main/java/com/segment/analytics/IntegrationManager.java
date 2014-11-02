@@ -56,8 +56,8 @@ class IntegrationManager {
   final boolean debuggingEnabled;
   final StringCache projectSettingsCache;
 
-  final Set<AbstractIntegrationAdapter> bundledIntegrations =
-      new HashSet<AbstractIntegrationAdapter>();
+  final Set<AbstractIntegration> bundledIntegrations =
+      new HashSet<AbstractIntegration>();
   final Map<String, Boolean> serverIntegrations =
       Collections.synchronizedMap(new LinkedHashMap<String, Boolean>());
   Queue<IntegrationOperation> operationQueue = new ArrayDeque<IntegrationOperation>();
@@ -78,40 +78,40 @@ class IntegrationManager {
     // disable sending to these integrations from the server and properly fill the payloads with
     // this information
     if (isOnClassPath("com.amplitude.api.Amplitude")) {
-      bundleIntegration(new AmplitudeIntegrationAdapter(debuggingEnabled));
+      bundleIntegration(new AmplitudeIntegration(debuggingEnabled));
     }
     if (isOnClassPath("com.appsflyer.AppsFlyerLib")) {
-      bundleIntegration(new AppsFlyerIntegrationAdapter(debuggingEnabled));
+      bundleIntegration(new AppsFlyerIntegration(debuggingEnabled));
     }
     if (isOnClassPath("com.bugsnag.android.Bugsnag")) {
-      bundleIntegration(new BugsnagIntegrationAdapter(debuggingEnabled));
+      bundleIntegration(new BugsnagIntegration(debuggingEnabled));
     }
     if (isOnClassPath("ly.count.android.api.Countly")) {
-      bundleIntegration(new CountlyIntegrationAdapter(debuggingEnabled));
+      bundleIntegration(new CountlyIntegration(debuggingEnabled));
     }
     if (isOnClassPath("com.crittercism.app.Crittercism")) {
-      bundleIntegration(new CrittercismIntegrationAdapter(debuggingEnabled));
+      bundleIntegration(new CrittercismIntegration(debuggingEnabled));
     }
     if (isOnClassPath("com.flurry.android.FlurryAgent")) {
-      bundleIntegration(new FlurryIntegrationAdapter(debuggingEnabled));
+      bundleIntegration(new FlurryIntegration(debuggingEnabled));
     }
     if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
-      bundleIntegration(new GoogleAnalyticsIntegrationAdapter(debuggingEnabled));
+      bundleIntegration(new GoogleAnalyticsIntegration(debuggingEnabled));
     }
     if (isOnClassPath("com.localytics.android.LocalyticsSession")) {
-      bundleIntegration(new LocalyticsIntegrationAdapter(debuggingEnabled));
+      bundleIntegration(new LocalyticsIntegration(debuggingEnabled));
     }
     if (isOnClassPath("com.leanplum.Leanplum")) {
-      bundleIntegration(new LeanplumIntegrationAdapter(debuggingEnabled));
+      bundleIntegration(new LeanplumIntegration(debuggingEnabled));
     }
     if (isOnClassPath("com.mixpanel.android.mpmetrics.MixpanelAPI")) {
-      bundleIntegration(new MixpanelIntegrationAdapter(debuggingEnabled));
+      bundleIntegration(new MixpanelIntegration(debuggingEnabled));
     }
     if (isOnClassPath("com.quantcast.measurement.service.QuantcastClient")) {
-      bundleIntegration(new QuantcastIntegrationAdapter(debuggingEnabled));
+      bundleIntegration(new QuantcastIntegration(debuggingEnabled));
     }
     if (isOnClassPath("com.tapstream.sdk.Tapstream")) {
-      bundleIntegration(new TapstreamIntegrationAdapter(debuggingEnabled));
+      bundleIntegration(new TapstreamIntegration(debuggingEnabled));
     }
 
     this.projectSettingsCache = projectSettingsCache;
@@ -135,7 +135,7 @@ class IntegrationManager {
   }
 
   private static boolean isBundledIntegrationEnabledForPayload(BasePayload payload,
-      AbstractIntegrationAdapter integration) {
+      AbstractIntegration integration) {
     boolean enabled = true;
     JsonMap integrations = payload.integrations();
     String key = integration.key();
@@ -149,9 +149,9 @@ class IntegrationManager {
     return enabled;
   }
 
-  void bundleIntegration(AbstractIntegrationAdapter abstractIntegrationAdapter) {
-    serverIntegrations.put(abstractIntegrationAdapter.key(), false);
-    bundledIntegrations.add(abstractIntegrationAdapter);
+  void bundleIntegration(AbstractIntegration abstractIntegration) {
+    serverIntegrations.put(abstractIntegration.key(), false);
+    bundledIntegrations.add(abstractIntegration);
   }
 
   void dispatchFetch() {
@@ -194,9 +194,9 @@ class IntegrationManager {
   }
 
   synchronized void initializeIntegrations(ProjectSettings projectSettings) {
-    Iterator<AbstractIntegrationAdapter> iterator = bundledIntegrations.iterator();
+    Iterator<AbstractIntegration> iterator = bundledIntegrations.iterator();
     while (iterator.hasNext()) {
-      final AbstractIntegrationAdapter integration = iterator.next();
+      final AbstractIntegration integration = iterator.next();
       if (projectSettings.containsKey(integration.key())) {
         JsonMap settings = new JsonMap(projectSettings.getJsonMap(integration.key()));
         try {
@@ -256,7 +256,7 @@ class IntegrationManager {
   }
 
   private void run(IntegrationOperation operation) {
-    for (AbstractIntegrationAdapter integration : bundledIntegrations) {
+    for (AbstractIntegration integration : bundledIntegrations) {
       long startTime = System.currentTimeMillis();
       operation.run(integration);
       long endTime = System.currentTimeMillis();
@@ -273,9 +273,9 @@ class IntegrationManager {
     this.listener = listener;
     if (initialized && listener != null) {
       // Integrations are already ready, notify the listener right away
-      for (AbstractIntegrationAdapter abstractIntegrationAdapter : bundledIntegrations) {
-        listener.onIntegrationReady(abstractIntegrationAdapter.key(),
-            abstractIntegrationAdapter.getUnderlyingInstance());
+      for (AbstractIntegration abstractIntegration : bundledIntegrations) {
+        listener.onIntegrationReady(abstractIntegration.key(),
+            abstractIntegration.getUnderlyingInstance());
       }
     }
   }
@@ -289,7 +289,7 @@ class IntegrationManager {
   }
 
   interface IntegrationOperation {
-    void run(AbstractIntegrationAdapter integration);
+    void run(AbstractIntegration integration);
 
     String id();
   }
@@ -311,7 +311,7 @@ class IntegrationManager {
       return activity;
     }
 
-    @Override public void run(AbstractIntegrationAdapter integration) {
+    @Override public void run(AbstractIntegration integration) {
       switch (type) {
         case CREATED:
           integration.onActivityCreated(activity, bundle);
@@ -355,7 +355,7 @@ class IntegrationManager {
       this.id = UUID.randomUUID().toString();
     }
 
-    @Override public void run(AbstractIntegrationAdapter integration) {
+    @Override public void run(AbstractIntegration integration) {
       integration.flush();
     }
 

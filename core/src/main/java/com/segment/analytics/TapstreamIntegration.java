@@ -18,14 +18,14 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://tapstream.com/developer/android-sdk-documentation/">Tapstream Android
  * SDK</a>
  */
-class TapstreamIntegrationAdapter extends AbstractIntegrationAdapter<Tapstream> {
+class TapstreamIntegration extends AbstractIntegration<Tapstream> {
   boolean trackAllPages;
   boolean trackCategorizedPages;
   boolean trackNamedPages;
   Tapstream tapstream;
   Config config;
 
-  TapstreamIntegrationAdapter(boolean debuggingEnabled) {
+  TapstreamIntegration(boolean debuggingEnabled) {
     super(debuggingEnabled);
   }
 

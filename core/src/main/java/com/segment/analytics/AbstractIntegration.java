@@ -11,12 +11,12 @@ import android.os.Bundle;
  * @param <T> The type of the backing instance. This isn't strictly necessary, but serves as
  * documentation for what type to expect.
  */
-abstract class AbstractIntegrationAdapter<T> {
+abstract class AbstractIntegration<T> {
   static final String VIEWED_EVENT_FORMAT = "Viewed %s Screen";
 
   final boolean debuggingEnabled;
 
-  AbstractIntegrationAdapter(boolean debuggingEnabled) {
+  AbstractIntegration(boolean debuggingEnabled) {
     this.debuggingEnabled = debuggingEnabled;
   }
 

@@ -12,9 +12,9 @@ import ly.count.android.api.Countly;
  * @see <a href="https://segment.io/docs/integrations/countly/">Countly Integration</a>
  * @see <a href="https://github.com/Countly/countly-sdk-android">Countly Android SDK</a>
  */
-class CountlyIntegrationAdapter extends AbstractIntegrationAdapter<Countly> {
+class CountlyIntegration extends AbstractIntegration<Countly> {
 
-  CountlyIntegrationAdapter(boolean debuggingEnabled) {
+  CountlyIntegration(boolean debuggingEnabled) {
     super(debuggingEnabled);
   }
 

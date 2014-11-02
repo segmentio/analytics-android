@@ -21,68 +21,68 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 public class QuantcastRobolectricTest extends IntegrationRobolectricExam {
   final String apiKey = "foo";
   @Rule public PowerMockRule rule = new PowerMockRule();
-  QuantcastIntegrationAdapter adapter;
+  QuantcastIntegration integration;
 
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(QuantcastClient.class);
-    adapter = new QuantcastIntegrationAdapter(true);
-    adapter.apiKey = apiKey;
+    integration = new QuantcastIntegration(true);
+    integration.apiKey = apiKey;
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
-    adapter.initialize(context, new JsonMap().putValue("apiKey", "foo"));
+    integration.initialize(context, new JsonMap().putValue("apiKey", "foo"));
     verifyStatic();
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
   @Test
   public void activityLifecycle() {
-    adapter.onActivityStarted(activity);
+    integration.onActivityStarted(activity);
     verifyStatic();
     QuantcastClient.activityStart(activity, "foo", null, null);
 
-    adapter.onActivityStopped(activity);
+    integration.onActivityStopped(activity);
     verifyStatic();
     QuantcastClient.activityStop();
 
-    adapter.onActivityCreated(activity, bundle);
-    adapter.onActivityResumed(activity);
-    adapter.onActivityPaused(activity);
-    adapter.onActivitySaveInstanceState(activity, bundle);
-    adapter.onActivityDestroyed(activity);
+    integration.onActivityCreated(activity, bundle);
+    integration.onActivityResumed(activity);
+    integration.onActivityPaused(activity);
+    integration.onActivitySaveInstanceState(activity, bundle);
+    integration.onActivityDestroyed(activity);
     verifyStatic();
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
   @Test
   public void identify() {
-    adapter.identify(identifyPayload("bar"));
+    integration.identify(identifyPayload("bar"));
     verifyStatic();
     QuantcastClient.recordUserIdentifier("bar");
   }
 
   @Test
   public void screenTrackNothing() {
-    adapter.screen(screenPayload("bar", "baz"));
+    integration.screen(screenPayload("bar", "baz"));
     verifyStatic();
     QuantcastClient.logEvent("Viewed baz Screen");
   }
 
   @Test
   public void track() {
-    adapter.track(trackPayload("bar"));
+    integration.track(trackPayload("bar"));
     verifyStatic();
     QuantcastClient.logEvent("bar");
   }
 
   @Test
   public void optOut() {
-    adapter.optOut(true);
+    integration.optOut(true);
     verifyStatic();
     QuantcastClient.setCollectionEnabled(true);
 
-    adapter.optOut(false);
+    integration.optOut(false);
     verifyStatic();
     QuantcastClient.setCollectionEnabled(false);
   }

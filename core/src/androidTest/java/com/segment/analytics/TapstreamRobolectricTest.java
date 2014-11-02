@@ -30,18 +30,18 @@ public class TapstreamRobolectricTest extends IntegrationRobolectricExam {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Mock Tapstream tapstream;
   @Mock com.tapstream.sdk.Config config;
-  TapstreamIntegrationAdapter adapter;
+  TapstreamIntegration integration;
 
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(Tapstream.class);
-    adapter = new TapstreamIntegrationAdapter(true);
-    adapter.tapstream = tapstream;
-    adapter.config = config;
+    integration = new TapstreamIntegration(true);
+    integration.tapstream = tapstream;
+    integration.config = config;
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
-    TapstreamIntegrationAdapter adapter = new TapstreamIntegrationAdapter(true);
+    TapstreamIntegration adapter = new TapstreamIntegration(true);
     adapter.initialize(context, new JsonMap().putValue("accountName", "foo")
         .putValue("sdkSecret", "bar")
         .putValue("trackAllPages", true)
@@ -52,7 +52,7 @@ public class TapstreamRobolectricTest extends IntegrationRobolectricExam {
   }
 
   @Test public void track() {
-    adapter.track(trackPayload("foo"));
+    integration.track(trackPayload("foo"));
     verify(tapstream).fireEvent(Matchers.<Event>any());
   }
 
@@ -60,7 +60,7 @@ public class TapstreamRobolectricTest extends IntegrationRobolectricExam {
     Map<String, Object> map = new HashMap<String, Object>();
     config.globalEventParams = map;
     IdentifyPayload payload = identifyPayload("foo");
-    adapter.identify(payload);
+    integration.identify(payload);
     assertThat(map).hasSize(0);
   }
 
@@ -70,7 +70,7 @@ public class TapstreamRobolectricTest extends IntegrationRobolectricExam {
     traits.putValue("foo", "bar");
     traits.putValue("baz", "qux");
     IdentifyPayload payload = identifyPayload("foo");
-    adapter.identify(payload);
+    integration.identify(payload);
     assertThat(map).hasSize(2)
         .containsExactly(MapEntry.entry("foo", "bar"), MapEntry.entry("baz", "qux"));
   }

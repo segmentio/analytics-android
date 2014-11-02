@@ -9,10 +9,10 @@ import com.leanplum.LeanplumActivityHelper;
 
 import static com.segment.analytics.Utils.hasPermission;
 
-class LeanplumIntegrationAdapter extends AbstractIntegrationAdapter<Void> {
+class LeanplumIntegration extends AbstractIntegration<Void> {
   LeanplumActivityHelper helper;
 
-  LeanplumIntegrationAdapter(boolean debuggingEnabled) {
+  LeanplumIntegration(boolean debuggingEnabled) {
     super(debuggingEnabled);
   }
 

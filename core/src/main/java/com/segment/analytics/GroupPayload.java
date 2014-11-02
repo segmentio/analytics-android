@@ -44,7 +44,7 @@ class GroupPayload extends BasePayload {
     put(TRAITS_KEY, traits);
   }
 
-  @Override public void run(AbstractIntegrationAdapter integration) {
+  @Override public void run(AbstractIntegration integration) {
     integration.group(this);
   }
 }

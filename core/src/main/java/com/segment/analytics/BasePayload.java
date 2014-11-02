@@ -115,7 +115,7 @@ class BasePayload extends JsonMap implements IntegrationManager.IntegrationOpera
     return this;
   }
 
-  @Override public void run(AbstractIntegrationAdapter integration) {
+  @Override public void run(AbstractIntegration integration) {
     // needed for deserialization
     throw new UnsupportedOperationException("must be a subclass to call on an integration");
   }

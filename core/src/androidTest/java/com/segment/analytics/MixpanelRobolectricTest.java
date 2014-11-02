@@ -29,19 +29,19 @@ public class MixpanelRobolectricTest extends IntegrationRobolectricExam {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Mock MixpanelAPI mixpanelAPI;
   @Mock MixpanelAPI.People people;
-  MixpanelIntegrationAdapter adapter;
+  MixpanelIntegration integration;
 
   @Before @Override public void setUp() {
     super.setUp();
     doReturn(people).when(mixpanelAPI).getPeople();
 
     PowerMockito.mockStatic(MixpanelAPI.class);
-    adapter = new MixpanelIntegrationAdapter(true);
-    adapter.mixpanelAPI = mixpanelAPI;
+    integration = new MixpanelIntegration(true);
+    integration.mixpanelAPI = mixpanelAPI;
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
-    MixpanelIntegrationAdapter adapter = new MixpanelIntegrationAdapter(true);
+    MixpanelIntegration adapter = new MixpanelIntegration(true);
     adapter.initialize(context, new JsonMap().putValue("token", "foo")
         .putValue("trackAllPages", true)
         .putValue("trackCategorizedPages", false)
@@ -52,93 +52,93 @@ public class MixpanelRobolectricTest extends IntegrationRobolectricExam {
 
   @Test
   public void activityLifecycle() {
-    adapter.onActivityCreated(activity, bundle);
-    adapter.onActivityStarted(activity);
-    adapter.onActivityResumed(activity);
-    adapter.onActivityPaused(activity);
-    adapter.onActivitySaveInstanceState(activity, bundle);
-    adapter.onActivityStopped(activity);
-    adapter.onActivityDestroyed(activity);
+    integration.onActivityCreated(activity, bundle);
+    integration.onActivityStarted(activity);
+    integration.onActivityResumed(activity);
+    integration.onActivityPaused(activity);
+    integration.onActivitySaveInstanceState(activity, bundle);
+    integration.onActivityStopped(activity);
+    integration.onActivityDestroyed(activity);
     verifyNoMoreInteractions(mixpanelAPI);
   }
 
   @Test public void flush() {
-    adapter.flush();
+    integration.flush();
     verify(mixpanelAPI).flush();
   }
 
   @Test
   public void screenTrackNothing() {
-    adapter.trackAllPages = false;
-    adapter.trackCategorizedPages = false;
-    adapter.trackNamedPages = false;
-    adapter.screen(screenPayload("foo", "bar"));
+    integration.trackAllPages = false;
+    integration.trackCategorizedPages = false;
+    integration.trackNamedPages = false;
+    integration.screen(screenPayload("foo", "bar"));
     verifyNoMoreInteractions(mixpanelAPI);
   }
 
   @Test
   public void screenTrackNamedPages() {
-    adapter.trackAllPages = false;
-    adapter.trackCategorizedPages = false;
-    adapter.trackNamedPages = true;
+    integration.trackAllPages = false;
+    integration.trackCategorizedPages = false;
+    integration.trackNamedPages = true;
 
-    adapter.screen(screenPayload(null, "bar"));
+    integration.screen(screenPayload(null, "bar"));
     verify(mixpanelAPI).track(eq("Viewed bar Screen"), Matchers.<JSONObject>any());
 
-    adapter.screen(screenPayload("foo", null));
+    integration.screen(screenPayload("foo", null));
     verifyNoMoreInteractions(mixpanelAPI);
   }
 
   @Test
   public void screenTrackCategorizedPages() {
-    adapter.trackAllPages = false;
-    adapter.trackCategorizedPages = true;
-    adapter.trackNamedPages = false;
+    integration.trackAllPages = false;
+    integration.trackCategorizedPages = true;
+    integration.trackNamedPages = false;
 
-    adapter.screen(screenPayload("foo", null));
+    integration.screen(screenPayload("foo", null));
     verify(mixpanelAPI).track(eq("Viewed foo Screen"), Matchers.<JSONObject>any());
 
-    adapter.screen(screenPayload(null, "bar"));
+    integration.screen(screenPayload(null, "bar"));
     verifyNoMoreInteractions(mixpanelAPI);
   }
 
   @Test
   public void screenTrackAllPages() {
-    adapter.trackAllPages = true;
-    adapter.trackCategorizedPages = new Random().nextBoolean();
-    adapter.trackNamedPages = new Random().nextBoolean();
+    integration.trackAllPages = true;
+    integration.trackCategorizedPages = new Random().nextBoolean();
+    integration.trackNamedPages = new Random().nextBoolean();
 
-    adapter.screen(screenPayload("foo", null));
+    integration.screen(screenPayload("foo", null));
     verify(mixpanelAPI).track(eq("Viewed foo Screen"), Matchers.<JSONObject>any());
 
-    adapter.screen(screenPayload(null, "bar"));
+    integration.screen(screenPayload(null, "bar"));
     verify(mixpanelAPI).track(eq("Viewed bar Screen"), Matchers.<JSONObject>any());
 
-    adapter.screen(screenPayload("bar", "baz"));
+    integration.screen(screenPayload("bar", "baz"));
     verify(mixpanelAPI).track(eq("Viewed baz Screen"), Matchers.<JSONObject>any());
   }
 
   @Test public void track() {
-    adapter.track(trackPayload("Button Clicked"));
+    integration.track(trackPayload("Button Clicked"));
     verify(mixpanelAPI).track(eq("Button Clicked"), Matchers.<JSONObject>any());
     verifyNoMoreInteractions(mixpanelAPI);
   }
 
   @Test public void alias() {
-    adapter.track(trackPayload("Button Clicked"));
+    integration.track(trackPayload("Button Clicked"));
     verify(mixpanelAPI).track(eq("Button Clicked"), Matchers.<JSONObject>any());
     verifyNoMoreInteractions(mixpanelAPI);
   }
 
   @Test public void identify() {
-    adapter.identify(identifyPayload("foo"));
+    integration.identify(identifyPayload("foo"));
     verify(mixpanelAPI).identify("foo");
     verify(mixpanelAPI).registerSuperProperties(Matchers.<JSONObject>any());
   }
 
   @Test public void identifyWithPeople() {
-    adapter.isPeopleEnabled = true;
-    adapter.identify(identifyPayload("foo"));
+    integration.isPeopleEnabled = true;
+    integration.identify(identifyPayload("foo"));
     verify(mixpanelAPI).identify("foo");
     verify(mixpanelAPI).registerSuperProperties(Matchers.<JSONObject>any());
     verify(people).identify("foo");
