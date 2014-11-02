@@ -65,6 +65,7 @@ robolectric {
   // https://github.com/robolectric/robolectric/issues/1186
   // https://code.google.com/p/android/issues/detail?id=75080
   jvmArgs '-noverify'
+  include '**/*RobolectricTest.class'
 }
 
 apply from: rootProject.file('gradle/checkstyle-library.gradle')

@@ -24,7 +24,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(Amplitude.class)
-public class AmplitudeTest extends IntegrationExam {
+public class AmplitudeRobolectricTest extends IntegrationRobolectricExam {
   @Rule public PowerMockRule rule = new PowerMockRule();
 
   AmplitudeIntegrationAdapter amplitudeIntegrationAdapter;

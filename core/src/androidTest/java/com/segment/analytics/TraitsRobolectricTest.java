@@ -11,7 +11,7 @@ import org.robolectric.annotation.Config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class TraitsTest {
+public class TraitsRobolectricTest {
   Traits traits;
 
   @Before public void setUp() {

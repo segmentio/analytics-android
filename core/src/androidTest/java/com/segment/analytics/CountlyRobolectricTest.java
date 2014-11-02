@@ -14,7 +14,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.Mock;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class CountlyTest extends IntegrationExam {
+public class CountlyRobolectricTest extends IntegrationRobolectricExam {
   @Mock Countly countly;
   CountlyIntegrationAdapter countlyIntegrationAdapter;
 

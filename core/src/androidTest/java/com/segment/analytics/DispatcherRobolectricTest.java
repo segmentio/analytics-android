@@ -25,7 +25,7 @@ import static org.mockito.MockitoAnnotations.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class DispatcherTest {
+public class DispatcherRobolectricTest {
   private static final BasePayload TEST_PAYLOAD =
       new BasePayload("{\n" + "\"messageId\":\"ID\",\n" + "\"type\":\"TYPE\"\n" + "}");
 

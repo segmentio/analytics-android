@@ -39,7 +39,7 @@ import org.robolectric.annotation.Config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class JsonUtilsTest {
+public class JsonUtilsRobolectricTest {
   @Test public void simpleJsonToMap() throws Exception {
     Map<String, Object> json = JsonUtils.jsonToMap(TestUtils.SAMPLE_JSON);
 

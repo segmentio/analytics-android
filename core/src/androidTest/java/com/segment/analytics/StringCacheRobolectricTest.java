@@ -10,7 +10,7 @@ import org.robolectric.annotation.Config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class StringCacheTest {
+public class StringCacheRobolectricTest {
   private StringCache stringCache;
 
   @Before public void setUp() {

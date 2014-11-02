@@ -26,7 +26,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(Tapstream.class)
-public class TapstreamTest extends IntegrationExam {
+public class TapstreamRobolectricTest extends IntegrationRobolectricExam {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Mock Tapstream tapstream;
   @Mock com.tapstream.sdk.Config config;

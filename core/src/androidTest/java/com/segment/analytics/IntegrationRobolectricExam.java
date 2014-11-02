@@ -13,7 +13,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Base class for Integration tests. Named Exam so that Junit and Robolectric don't try to run it
  * directly.
  */
-public class IntegrationExam {
+public class IntegrationRobolectricExam {
   String anonymousId;
   String userId;
   AnalyticsContext analyticsContext;

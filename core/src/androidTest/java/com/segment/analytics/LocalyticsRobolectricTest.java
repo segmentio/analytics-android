@@ -19,7 +19,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.Mock;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class LocalyticsTest extends IntegrationExam {
+public class LocalyticsRobolectricTest extends IntegrationRobolectricExam {
   @Mock LocalyticsAmpSession localytics;
   LocalyticsIntegrationAdapter adapter;
 

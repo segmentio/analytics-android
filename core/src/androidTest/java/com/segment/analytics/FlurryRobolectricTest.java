@@ -22,7 +22,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(FlurryAgent.class)
-public class FlurryTest extends IntegrationExam {
+public class FlurryRobolectricTest extends IntegrationRobolectricExam {
   final String apiKey = "foo";
   @Rule public PowerMockRule rule = new PowerMockRule();
   FlurryIntegrationAdapter adapter;
