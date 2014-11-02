@@ -4,6 +4,7 @@ Version 2.3.0 (In progress)
 * New: Deprecate `logging` for `debugging`
 * Fix: If integrations fail to load (e.g. missing permissions), update flags so server can send the event
 * New: (WIP) Debugging will now be forwarded to integrations so they can enable it too
+* Improvement: Update Localytics integration
 
 Version 2.2.0 (October 29th, 2014)
 ====================================
