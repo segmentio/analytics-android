@@ -49,7 +49,7 @@ ext.libraries = [
     localytics     : files('libs/Localytics-2.7.1.jar'),
     leanplum       : files('libs/Leanplum-1.2.5.jar'),
     mixpanel       : 'com.mixpanel.android:mixpanel-android:4.4.0@aar',
-    quantcast      : files('libs/Quantcast-1.2.3.jar'),
+    quantcast      : 'com.quantcast.android.measurement:QuantcastAndroidSdk:1.2.3',
     tapstream      : files('libs/Tapstream-2.7.1.jar'),
     supportWearable: 'com.google.android.support:wearable:1.0.0',
     playWearable   : 'com.google.android.gms:play-services-wearable:6.1.11'

@@ -30,7 +30,8 @@ public class BugsnagRobolectricTest extends IntegrationRobolectricExam {
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
-    integration.initialize(context, new JsonMap().putValue("apiKey", "foo").putValue("useSSL", true));
+    integration.initialize(context, new JsonMap().putValue("apiKey", "foo")
+            .putValue("useSSL", true));
     verifyStatic();
     Bugsnag.register(context, "foo");
     Bugsnag.setUseSSL(true);
