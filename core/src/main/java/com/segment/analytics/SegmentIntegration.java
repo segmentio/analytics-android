@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
-import static com.segment.analytics.Utils.OWNER_DISPATCHER;
+import static com.segment.analytics.Utils.OWNER_SEGMENT;
 import static com.segment.analytics.Utils.VERB_ENQUEUE;
 import static com.segment.analytics.Utils.VERB_FLUSH;
 import static com.segment.analytics.Utils.debug;
@@ -96,26 +96,32 @@ class SegmentIntegration extends AbstractIntegration<Void> {
 
   @Override void identify(IdentifyPayload identify) {
     super.identify(identify);
+    dispatchEnqueue(identify);
   }
 
   @Override void group(GroupPayload group) {
     super.group(group);
+    dispatchEnqueue(group);
   }
 
   @Override void track(TrackPayload track) {
     super.track(track);
+    dispatchEnqueue(track);
   }
 
   @Override void alias(AliasPayload alias) {
     super.alias(alias);
+    dispatchEnqueue(alias);
   }
 
   @Override void screen(ScreenPayload screen) {
     super.screen(screen);
+    dispatchEnqueue(screen);
   }
 
   @Override void flush() {
     super.flush();
+    dispatchFlush();
   }
 
   void dispatchEnqueue(final BasePayload payload) {
@@ -127,13 +133,13 @@ class SegmentIntegration extends AbstractIntegration<Void> {
       queue.add(payload);
     } catch (Exception e) {
       if (debuggingEnabled) {
-        error(OWNER_DISPATCHER, VERB_ENQUEUE, payload.id(), e,
+        error(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), e,
             String.format("payload: %s", payload));
       }
     }
 
     if (debuggingEnabled) {
-      debug(OWNER_DISPATCHER, VERB_ENQUEUE, payload.id(),
+      debug(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(),
           String.format("queueSize: %s", queue.size()));
     }
     // Check if we've reached the maximum queue size
@@ -157,7 +163,7 @@ class SegmentIntegration extends AbstractIntegration<Void> {
       queue.setListener(new ObjectQueue.Listener<BasePayload>() {
         @Override public void onAdd(ObjectQueue<BasePayload> queue, BasePayload entry) {
           if (debuggingEnabled) {
-            debug(OWNER_DISPATCHER, VERB_FLUSH, entry.id(), null);
+            debug(OWNER_SEGMENT, VERB_FLUSH, entry.id(), null);
           }
           payloads.add(entry);
         }
@@ -169,7 +175,7 @@ class SegmentIntegration extends AbstractIntegration<Void> {
       queue.setListener(null);
     } catch (Exception e) {
       if (debuggingEnabled) {
-        error(OWNER_DISPATCHER, VERB_FLUSH, "could not read queue", e,
+        error(OWNER_SEGMENT, VERB_FLUSH, "could not read queue", e,
             String.format("queue: %s", queue));
       }
       return;
@@ -185,7 +191,7 @@ class SegmentIntegration extends AbstractIntegration<Void> {
       }
     } catch (IOException e) {
       if (debuggingEnabled) {
-        error(OWNER_DISPATCHER, VERB_FLUSH, "unable to clear queue", e, "events: " + count);
+        error(OWNER_SEGMENT, VERB_FLUSH, "unable to clear queue", e, "events: " + count);
       }
     }
     rescheduleFlush();

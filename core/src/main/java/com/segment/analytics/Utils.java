@@ -60,7 +60,7 @@ final class Utils {
   static final String THREAD_PREFIX = "SegmentAnalytics-";
   static final DateFormat ISO_8601_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
   final static String OWNER_MAIN = "Main";
-  final static String OWNER_DISPATCHER = "Dispatcher";
+  final static String OWNER_SEGMENT = "Dispatcher";
   final static String OWNER_INTEGRATION_MANAGER = "IntegrationManager";
   final static String VERB_CREATE = "create";
   final static String VERB_DISPATCH = "dispatch";

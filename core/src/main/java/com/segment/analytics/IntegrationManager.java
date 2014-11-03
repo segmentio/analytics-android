@@ -57,6 +57,7 @@ class IntegrationManager {
   final StringCache projectSettingsCache;
 
   final Set<AbstractIntegration> bundledIntegrations = new HashSet<AbstractIntegration>();
+  final SegmentIntegration segmentIntegration;
   final Map<String, Boolean> serverIntegrations =
       Collections.synchronizedMap(new LinkedHashMap<String, Boolean>());
   Queue<IntegrationOperation> operationQueue = new ArrayDeque<IntegrationOperation>();
@@ -82,12 +83,13 @@ class IntegrationManager {
     integrationManagerThread.start();
     handler = new IntegrationManagerHandler(integrationManagerThread.getLooper(), this);
 
+    segmentIntegration =
+        SegmentIntegration.create(context, queueSize, flushInterval, segmentHTTPApi,
+            serverIntegrations, tag, stats, debuggingEnabled);
+
     // Look up all the integrations available on the device. This is done early so that we can
     // disable sending to these integrations from the server and properly fill the payloads with
     // this information
-    bundledIntegrations.add(
-        SegmentIntegration.create(context, queueSize, flushInterval, segmentHTTPApi,
-            serverIntegrations, tag, stats, debuggingEnabled));
     if (isOnClassPath("com.amplitude.api.Amplitude")) {
       bundleIntegration(new AmplitudeIntegration(debuggingEnabled));
     }
@@ -241,6 +243,7 @@ class IntegrationManager {
   }
 
   void submit(IntegrationOperation operation) {
+    operation.run(segmentIntegration);
     if (initialized) {
       run(operation);
     } else {
