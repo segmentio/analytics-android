@@ -18,7 +18,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 public class AnalyticsRobolectricTest {
   Application application;
-  @Mock Dispatcher dispatcher;
   @Mock IntegrationManager integrationManager;
   @Mock Stats stats;
   @Mock TraitsCache traitsCache;
@@ -32,8 +31,8 @@ public class AnalyticsRobolectricTest {
     application = mockApplication();
     Traits traits = new Traits();
     when(traitsCache.get()).thenReturn(traits);
-    analytics = new Analytics(application, dispatcher, integrationManager, stats, traitsCache,
-        analyticsContext, defaultOptions, true);
+    analytics = new Analytics(application, integrationManager, stats, traitsCache, analyticsContext,
+        defaultOptions, true);
   }
 
   @Test public void logoutClearsTraitsAndUpdatesContext() {
@@ -58,14 +57,12 @@ public class AnalyticsRobolectricTest {
   @Test public void submitInvokesDispatches() {
     BasePayload payload = mock(BasePayload.class);
     analytics.submit(payload);
-    verify(dispatcher).dispatchEnqueue(payload);
     verify(integrationManager).submit(payload);
   }
 
   @Test public void flushInvokesFlushes() throws Exception {
     analytics.flush();
     verify(integrationManager).flush();
-    verify(dispatcher).dispatchFlush();
   }
 
   @Test public void shutdown() {
@@ -73,7 +70,6 @@ public class AnalyticsRobolectricTest {
     analytics.shutdown();
     verify(integrationManager).shutdown();
     verify(stats).shutdown();
-    verify(dispatcher).shutdown();
     assertThat(analytics.shutdown).isTrue();
   }
 
@@ -83,7 +79,6 @@ public class AnalyticsRobolectricTest {
     analytics.shutdown();
     verify(integrationManager).shutdown();
     verify(stats).shutdown();
-    verify(dispatcher).shutdown();
     assertThat(analytics.shutdown).isTrue();
   }
 

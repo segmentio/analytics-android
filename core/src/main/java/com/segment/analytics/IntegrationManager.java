@@ -56,16 +56,24 @@ class IntegrationManager {
   final boolean debuggingEnabled;
   final StringCache projectSettingsCache;
 
-  final Set<AbstractIntegration> bundledIntegrations =
-      new HashSet<AbstractIntegration>();
+  final Set<AbstractIntegration> bundledIntegrations = new HashSet<AbstractIntegration>();
   final Map<String, Boolean> serverIntegrations =
       Collections.synchronizedMap(new LinkedHashMap<String, Boolean>());
   Queue<IntegrationOperation> operationQueue = new ArrayDeque<IntegrationOperation>();
   volatile boolean initialized;
   OnIntegrationReadyListener listener;
 
+  static IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi, Stats stats,
+      int queueSize, int flushInterval, String tag, boolean debuggingEnabled) {
+    StringCache projectSettingsCache =
+        new StringCache(getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
+    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, queueSize,
+        flushInterval, tag, debuggingEnabled);
+  }
+
   private IntegrationManager(Context context, SegmentHTTPApi segmentHTTPApi,
-      StringCache projectSettingsCache, Stats stats, boolean debuggingEnabled) {
+      StringCache projectSettingsCache, Stats stats, int queueSize, int flushInterval, String tag,
+      boolean debuggingEnabled) {
     this.context = context;
     this.segmentHTTPApi = segmentHTTPApi;
     this.stats = stats;
@@ -77,6 +85,9 @@ class IntegrationManager {
     // Look up all the integrations available on the device. This is done early so that we can
     // disable sending to these integrations from the server and properly fill the payloads with
     // this information
+    bundledIntegrations.add(
+        SegmentIntegration.create(context, queueSize, flushInterval, segmentHTTPApi,
+            serverIntegrations, tag, stats, debuggingEnabled));
     if (isOnClassPath("com.amplitude.api.Amplitude")) {
       bundleIntegration(new AmplitudeIntegration(debuggingEnabled));
     }
@@ -124,14 +135,6 @@ class IntegrationManager {
         dispatchFetch();
       }
     }
-  }
-
-  static IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi, Stats stats,
-      boolean debuggingEnabled) {
-    StringCache projectSettingsCache =
-        new StringCache(getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
-    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats,
-        debuggingEnabled);
   }
 
   private static boolean isBundledIntegrationEnabledForPayload(BasePayload payload,

@@ -33,7 +33,7 @@ public class DispatcherRobolectricTest {
   @Mock Stats stats;
   Context context;
   ObjectQueue<BasePayload> queue;
-  Dispatcher dispatcher;
+  SegmentIntegration segment;
 
   @Before public void setUp() {
     initMocks(this);
@@ -41,8 +41,8 @@ public class DispatcherRobolectricTest {
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
   }
 
-  Dispatcher createDispatcher(int maxQueueSize) {
-    return new Dispatcher(context, maxQueueSize, 30, segmentHTTPApi, queue,
+  SegmentIntegration createSegmentIntegration(int maxQueueSize) {
+    return new SegmentIntegration(context, maxQueueSize, 30, segmentHTTPApi, queue,
         Collections.<String, Boolean>emptyMap(), stats, true);
   }
 
@@ -55,25 +55,25 @@ public class DispatcherRobolectricTest {
 
   @Test public void addsToQueueCorrectly() throws IOException {
     queue = createQueue();
-    dispatcher = createDispatcher(20);
+    segment = createSegmentIntegration(20);
     assertThat(queue.size()).isEqualTo(0);
-    dispatcher.performEnqueue(TEST_PAYLOAD);
+    segment.performEnqueue(TEST_PAYLOAD);
     assertThat(queue.size()).isEqualTo(1);
-    dispatcher.performEnqueue(TEST_PAYLOAD);
+    segment.performEnqueue(TEST_PAYLOAD);
     assertThat(queue.size()).isEqualTo(2);
   }
 
   @Test public void flushesQueueCorrectly() throws IOException {
     queue = createQueue();
-    dispatcher = createDispatcher(20);
-    dispatcher.performEnqueue(TEST_PAYLOAD);
-    dispatcher.performEnqueue(TEST_PAYLOAD);
-    dispatcher.performEnqueue(TEST_PAYLOAD);
-    dispatcher.performEnqueue(TEST_PAYLOAD);
+    segment = createSegmentIntegration(20);
+    segment.performEnqueue(TEST_PAYLOAD);
+    segment.performEnqueue(TEST_PAYLOAD);
+    segment.performEnqueue(TEST_PAYLOAD);
+    segment.performEnqueue(TEST_PAYLOAD);
 
-    dispatcher.performFlush();
+    segment.performFlush();
     try {
-      verify(segmentHTTPApi).upload(Matchers.<Dispatcher.BatchPayload>any());
+      verify(segmentHTTPApi).upload(Matchers.<SegmentIntegration.BatchPayload>any());
     } catch (IOException e) {
       fail("should not throw exception");
     }
@@ -83,14 +83,14 @@ public class DispatcherRobolectricTest {
 
   @Test public void flushesWhenQueueHitsMax() throws IOException {
     queue = createQueue();
-    dispatcher = createDispatcher(3);
+    segment = createSegmentIntegration(3);
     assertThat(queue.size()).isEqualTo(0);
-    dispatcher.performEnqueue(TEST_PAYLOAD);
-    dispatcher.performEnqueue(TEST_PAYLOAD);
-    dispatcher.performEnqueue(TEST_PAYLOAD);
+    segment.performEnqueue(TEST_PAYLOAD);
+    segment.performEnqueue(TEST_PAYLOAD);
+    segment.performEnqueue(TEST_PAYLOAD);
 
     try {
-      verify(segmentHTTPApi).upload(Matchers.<Dispatcher.BatchPayload>any());
+      verify(segmentHTTPApi).upload(Matchers.<SegmentIntegration.BatchPayload>any());
     } catch (IOException e) {
       fail("should not throw exception");
     }

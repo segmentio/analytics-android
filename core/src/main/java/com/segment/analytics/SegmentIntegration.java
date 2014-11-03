@@ -1,27 +1,3 @@
-/*
- * The MIT License (MIT)
- *
- * Copyright (c) 2014 Segment.io, Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
 package com.segment.analytics;
 
 import android.content.Context;
@@ -30,6 +6,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import com.squareup.tape.FileObjectQueue;
+import com.squareup.tape.InMemoryObjectQueue;
 import com.squareup.tape.ObjectQueue;
 import java.io.File;
 import java.io.IOException;
@@ -49,11 +26,17 @@ import static com.segment.analytics.Utils.panic;
 import static com.segment.analytics.Utils.quitThread;
 import static com.segment.analytics.Utils.toISO8601Date;
 
-class Dispatcher {
+/**
+ * The actual service that posts data to Segment's servers.
+ *
+ * @since 2.4
+ */
+class SegmentIntegration extends AbstractIntegration<Void> {
+
   static final int REQUEST_ENQUEUE = 0;
   static final int REQUEST_FLUSH = 1;
 
-  private static final String DISPATCHER_THREAD_NAME = Utils.THREAD_PREFIX + "Dispatcher";
+  private static final String SEGMENT_THREAD_NAME = Utils.THREAD_PREFIX + "Segment";
   private static final String TASK_QUEUE_FILE_NAME = "payload-task-queue-";
 
   final Context context;
@@ -63,13 +46,31 @@ class Dispatcher {
   final int flushInterval;
   final Stats stats;
   final Handler handler;
-  final HandlerThread dispatcherThread;
+  final HandlerThread segmentThread;
   final boolean debuggingEnabled;
   final Map<String, Boolean> integrations;
 
-  Dispatcher(Context context, int queueSize, int flushInterval, SegmentHTTPApi segmentHTTPApi,
-      ObjectQueue<BasePayload> queue, Map<String, Boolean> integrations, Stats stats,
+  static SegmentIntegration create(Context context, int queueSize, int flushInterval,
+      SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
       boolean debuggingEnabled) {
+    FileObjectQueue.Converter<BasePayload> converter = new PayloadConverter();
+    ObjectQueue<BasePayload> queue;
+    try {
+      File parent = context.getFilesDir();
+      if (!parent.exists()) parent.mkdirs();
+      File queueFile = new File(parent, TASK_QUEUE_FILE_NAME + tag);
+      queue = new FileObjectQueue<BasePayload>(queueFile, converter);
+    } catch (IOException e) {
+      queue = new InMemoryObjectQueue<BasePayload>();
+    }
+    return new SegmentIntegration(context, queueSize, flushInterval, segmentHTTPApi, queue,
+        integrations, stats, debuggingEnabled);
+  }
+
+  SegmentIntegration(Context context, int queueSize, int flushInterval,
+      SegmentHTTPApi segmentHTTPApi, ObjectQueue<BasePayload> queue,
+      Map<String, Boolean> integrations, Stats stats, boolean debuggingEnabled) {
+    super(debuggingEnabled);
     this.context = context;
     this.queueSize = queueSize;
     this.segmentHTTPApi = segmentHTTPApi;
@@ -78,34 +79,47 @@ class Dispatcher {
     this.debuggingEnabled = debuggingEnabled;
     this.integrations = integrations;
     this.flushInterval = flushInterval * 1000;
-    dispatcherThread = new HandlerThread(DISPATCHER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
-    dispatcherThread.start();
-    handler = new DispatcherHandler(dispatcherThread.getLooper(), this);
+    segmentThread = new HandlerThread(SEGMENT_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
+    segmentThread.start();
+    handler = new SegmentHandler(segmentThread.getLooper(), this);
     rescheduleFlush();
   }
 
-  static Dispatcher create(Context context, int queueSize, int flushInterval,
-      SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
-      boolean debuggingEnabled) {
-    FileObjectQueue.Converter<BasePayload> converter = new PayloadConverter();
-    try {
-      File parent = context.getFilesDir();
-      if (!parent.exists()) parent.mkdirs();
-      File queueFile = new File(parent, TASK_QUEUE_FILE_NAME + tag);
-      ObjectQueue<BasePayload> queue = new FileObjectQueue<BasePayload>(queueFile, converter);
-      return new Dispatcher(context, queueSize, flushInterval, segmentHTTPApi, queue, integrations,
-          stats, debuggingEnabled);
-    } catch (IOException e) {
-      throw new RuntimeException("Unable to create file queue.", e);
-    }
+  @Override void initialize(Context context, JsonMap settings)
+      throws InvalidConfigurationException {
+
+  }
+
+  @Override String key() {
+    return "Segment";
+  }
+
+  @Override void identify(IdentifyPayload identify) {
+    super.identify(identify);
+  }
+
+  @Override void group(GroupPayload group) {
+    super.group(group);
+  }
+
+  @Override void track(TrackPayload track) {
+    super.track(track);
+  }
+
+  @Override void alias(AliasPayload alias) {
+    super.alias(alias);
+  }
+
+  @Override void screen(ScreenPayload screen) {
+    super.screen(screen);
+  }
+
+  @Override void flush() {
+    super.flush();
   }
 
   void dispatchEnqueue(final BasePayload payload) {
     handler.sendMessage(handler.obtainMessage(REQUEST_ENQUEUE, payload));
-  }
-
-  void dispatchFlush() {
-    handler.sendMessage(handler.obtainMessage(REQUEST_FLUSH));
   }
 
   void performEnqueue(BasePayload payload) {
@@ -126,6 +140,10 @@ class Dispatcher {
     if (queue.size() >= queueSize) {
       performFlush();
     }
+  }
+
+  void dispatchFlush() {
+    handler.sendMessage(handler.obtainMessage(REQUEST_FLUSH));
   }
 
   void performFlush() {
@@ -178,10 +196,6 @@ class Dispatcher {
     handler.sendMessageDelayed(handler.obtainMessage(REQUEST_FLUSH), flushInterval);
   }
 
-  void shutdown() {
-    quitThread(dispatcherThread);
-  }
-
   static class BatchPayload extends JsonMap {
     /**
      * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can be
@@ -205,22 +219,26 @@ class Dispatcher {
     }
   }
 
-  private static class DispatcherHandler extends Handler {
-    private final Dispatcher dispatcher;
+  void shutdown() {
+    quitThread(segmentThread);
+  }
 
-    DispatcherHandler(Looper looper, Dispatcher dispatcher) {
+  private static class SegmentHandler extends Handler {
+    private final SegmentIntegration segmentIntegration;
+
+    SegmentHandler(Looper looper, SegmentIntegration segmentIntegration) {
       super(looper);
-      this.dispatcher = dispatcher;
+      this.segmentIntegration = segmentIntegration;
     }
 
     @Override public void handleMessage(final Message msg) {
       switch (msg.what) {
         case REQUEST_ENQUEUE:
           BasePayload payload = (BasePayload) msg.obj;
-          dispatcher.performEnqueue(payload);
+          segmentIntegration.performEnqueue(payload);
           break;
         case REQUEST_FLUSH:
-          dispatcher.performFlush();
+          segmentIntegration.performFlush();
           break;
         default:
           panic("Unknown dispatcher message." + msg.what);

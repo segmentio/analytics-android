@@ -90,7 +90,6 @@ public class Analytics {
   };
 
   final Application application;
-  final Dispatcher dispatcher;
   final IntegrationManager integrationManager;
   final Stats stats;
   final TraitsCache traitsCache;
@@ -99,11 +98,10 @@ public class Analytics {
   final boolean debuggingEnabled;
   boolean shutdown;
 
-  Analytics(Application application, Dispatcher dispatcher, IntegrationManager integrationManager,
-      Stats stats, TraitsCache traitsCache, AnalyticsContext analyticsContext,
-      Options defaultOptions, boolean debuggingEnabled) {
+  Analytics(Application application, IntegrationManager integrationManager, Stats stats,
+      TraitsCache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions,
+      boolean debuggingEnabled) {
     this.application = application;
-    this.dispatcher = dispatcher;
     this.integrationManager = integrationManager;
     this.stats = stats;
     this.traitsCache = traitsCache;
@@ -433,7 +431,6 @@ public class Analytics {
    * have an explicit flush method.
    */
   public void flush() {
-    dispatcher.dispatchFlush();
     integrationManager.flush();
   }
 
@@ -463,7 +460,6 @@ public class Analytics {
     }
     integrationManager.shutdown();
     stats.shutdown();
-    dispatcher.shutdown();
     shutdown = true;
   }
 
@@ -488,14 +484,14 @@ public class Analytics {
    * <p></p>
    * {@code
    * analytics.registerOnIntegrationReady(new OnIntegrationReadyListener() {
-   *   @Override public void onIntegrationReady(String key, Object integration) {
-   *     if("Mixpanel".equals(key)) {
-   *       ((MixpanelAPI) integration).clearSuperProperties();
-   *     }
-   *   }
+   *
+   * @Override public void onIntegrationReady(String key, Object integration) {
+   * if("Mixpanel".equals(key)) {
+   * ((MixpanelAPI) integration).clearSuperProperties();
+   * }
+   * }
    * });
    * }
-   *
    * @since 2.4
    */
   public void registerOnIntegrationReady(OnIntegrationReadyListener onIntegrationReadyListener) {
@@ -507,7 +503,6 @@ public class Analytics {
     if (debuggingEnabled) {
       debug(OWNER_MAIN, VERB_CREATE, payload.id(), "type: " + payload.type());
     }
-    dispatcher.dispatchEnqueue(payload);
     integrationManager.submit(payload);
   }
 
@@ -672,15 +667,13 @@ public class Analytics {
       Stats stats = new Stats();
       SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
       IntegrationManager integrationManager =
-          IntegrationManager.create(application, segmentHTTPApi, stats, debuggingEnabled);
-      Dispatcher dispatcher =
-          Dispatcher.create(application, queueSize, flushInterval, segmentHTTPApi,
-              integrationManager.serverIntegrations, tag, stats, debuggingEnabled);
+          IntegrationManager.create(application, segmentHTTPApi, stats, queueSize, flushInterval,
+              tag, debuggingEnabled);
       TraitsCache traitsCache = new TraitsCache(application, tag);
       AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
 
-      return new Analytics(application, dispatcher, integrationManager, stats, traitsCache,
-          analyticsContext, defaultOptions, debuggingEnabled);
+      return new Analytics(application, integrationManager, stats, traitsCache, analyticsContext,
+          defaultOptions, debuggingEnabled);
     }
   }
 }

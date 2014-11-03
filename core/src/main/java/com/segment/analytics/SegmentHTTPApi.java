@@ -37,7 +37,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import javax.net.ssl.HttpsURLConnection;
 
-import static com.segment.analytics.Dispatcher.BatchPayload;
+import static com.segment.analytics.SegmentIntegration.BatchPayload;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 class SegmentHTTPApi {
