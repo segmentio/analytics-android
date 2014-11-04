@@ -39,16 +39,13 @@ set -x
 newReleaseVersion=$(shtool version release.version)
 newReleaseCode=$(echo $newReleaseVersion | sed -e 's/\.//g')
 
-# Update the versions and commit
+# Update the versions, tag and commit
 sed -i '' "/VERSION_NAME=/s/=.*/=$newReleaseVersion/" gradle.properties
 sed -i '' "/VERSION_CODE=/s/=.*/=$newReleaseCode/" gradle.properties
-git commit -a -m "[gradle-release-task] prepare release"
+git tag -a $newReleaseVersion -m "[gradle-release-task] prepare release $newReleaseVersion"
 
 # Build and upload artifacts
 ./gradlew clean build uploadArchives
-
-# Tag the release
-git tag $newReleaseVersion
 
 # Prepare for the next version
 shtool version --increase "$1" release.version
