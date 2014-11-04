@@ -508,8 +508,7 @@ public class Analytics {
 
   void submit(ActivityLifecyclePayload payload) {
     if (debuggingEnabled) {
-      debug(OWNER_MAIN, VERB_CREATE, payload.id(),
-          "type: " + payload.type.toString().toLowerCase());
+      debug(OWNER_MAIN, VERB_CREATE, payload.id(), "type: " + payload.type);
     }
     integrationManager.submit(payload);
   }

@@ -36,7 +36,6 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
@@ -77,18 +76,9 @@ final class Utils {
     throw new AssertionError("No instances");
   }
 
-  /** Returns the date as a string formatted with {@link ISO_8601_DATE_FORMAT}. */
+  /** Returns the date as a string formatted with {@link #ISO_8601_DATE_FORMAT}. */
   static String toISO8601Date(Date date) {
     return ISO_8601_DATE_FORMAT.format(date);
-  }
-
-  /** Returns the date parsed with {@link ISO_8601_DATE_FORMAT}. */
-  static Date fromISO8601Date(String date) {
-    try {
-      return ISO_8601_DATE_FORMAT.parse(date);
-    } catch (ParseException e) {
-      return null;
-    }
   }
 
   /** Returns a {@code Set} of the objects in the specified array. */
@@ -266,7 +256,6 @@ final class Utils {
   /** Call only if debugging is enabled. */
   static void error(String owner, String verb, String id, Throwable throwable, String extras) {
     Log.e(TAG, String.format(FORMAT, owner, verb + " (error)", id == null ? EMPTY : id,
-            extras == null ? EMPTY : extras) + Log.getStackTraceString(throwable)
-    );
+            extras == null ? EMPTY : extras) + Log.getStackTraceString(throwable));
   }
 }
