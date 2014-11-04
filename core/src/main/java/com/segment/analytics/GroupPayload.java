@@ -45,6 +45,6 @@ class GroupPayload extends BasePayload {
   }
 
   @Override public void run(AbstractIntegration integration) {
-    integration.group(this);
+    if (isIntegrationEnabledInPayload(integration)) integration.group(this);
   }
 }

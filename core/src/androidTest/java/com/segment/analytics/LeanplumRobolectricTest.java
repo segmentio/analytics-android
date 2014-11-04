@@ -35,7 +35,7 @@ public class LeanplumRobolectricTest extends IntegrationRobolectricExam {
 
   @Test public void initialize() throws InvalidConfigurationException {
     integration.initialize(context,
-            new JsonMap().putValue("appId", "foo").putValue("clientKey", "bar"));
+        new JsonMap().putValue("appId", "foo").putValue("clientKey", "bar"));
     verifyStatic();
     Leanplum.setAppIdForProductionMode("foo", "bar");
     verifyStatic();
@@ -84,8 +84,9 @@ public class LeanplumRobolectricTest extends IntegrationRobolectricExam {
   }
 
   @Test public void flush() {
-    integration.flush();
+    // exercise a bug where we were calling .forceContentUpdate in Leanplum's flush earlier
     verifyStatic();
-    Leanplum.forceContentUpdate();
+    integration.flush();
+    PowerMockito.verifyNoMoreInteractions(Leanplum.class);
   }
 }

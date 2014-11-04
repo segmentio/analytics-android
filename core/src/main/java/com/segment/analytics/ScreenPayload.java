@@ -70,6 +70,6 @@ class ScreenPayload extends BasePayload {
   }
 
   @Override public void run(AbstractIntegration integration) {
-    integration.screen(this);
+    if (isIntegrationEnabledInPayload(integration)) integration.screen(this);
   }
 }

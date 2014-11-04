@@ -54,6 +54,6 @@ class TrackPayload extends BasePayload {
   }
 
   @Override public void run(AbstractIntegration integration) {
-    integration.track(this);
+    if (isIntegrationEnabledInPayload(integration)) integration.track(this);
   }
 }

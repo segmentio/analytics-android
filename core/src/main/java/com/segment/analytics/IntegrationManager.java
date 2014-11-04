@@ -139,21 +139,6 @@ class IntegrationManager {
     }
   }
 
-  private static boolean isBundledIntegrationEnabledForPayload(BasePayload payload,
-      AbstractIntegration integration) {
-    boolean enabled = true;
-    JsonMap integrations = payload.integrations();
-    String key = integration.key();
-    if (integrations.containsKey(key)) {
-      enabled = integrations.getBoolean(key, true);
-    } else if (integrations.containsKey("All")) {
-      enabled = integrations.getBoolean("All", true);
-    } else if (integrations.containsKey("all")) {
-      enabled = integrations.getBoolean("all", true);
-    }
-    return enabled;
-  }
-
   void bundleIntegration(AbstractIntegration abstractIntegration) {
     serverIntegrations.put(abstractIntegration.key(), false);
     bundledIntegrations.add(abstractIntegration);

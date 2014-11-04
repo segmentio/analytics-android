@@ -70,13 +70,4 @@ class LeanplumIntegration extends AbstractIntegration<Void> {
   @Override String key() {
     return "Leanplum";
   }
-
-  @Override void flush() {
-    super.flush();
-    Leanplum.forceContentUpdate();
-  }
-
-  @Override Void getUnderlyingInstance() {
-    return null;
-  }
 }

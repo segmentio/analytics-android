@@ -44,6 +44,6 @@ class IdentifyPayload extends BasePayload {
   }
 
   @Override public void run(AbstractIntegration integration) {
-    integration.identify(this);
+    if (isIntegrationEnabledInPayload(integration)) integration.identify(this);
   }
 }

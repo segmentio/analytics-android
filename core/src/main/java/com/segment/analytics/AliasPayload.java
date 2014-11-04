@@ -42,6 +42,6 @@ class AliasPayload extends BasePayload {
   }
 
   @Override public void run(AbstractIntegration integration) {
-    integration.alias(this);
+    if (isIntegrationEnabledInPayload(integration)) integration.alias(this);
   }
 }

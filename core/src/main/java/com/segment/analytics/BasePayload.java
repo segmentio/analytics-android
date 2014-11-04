@@ -124,13 +124,27 @@ class BasePayload extends JsonMap implements IntegrationManager.IntegrationOpera
     return getString(MESSAGE_ID);
   }
 
-  /** @see TYPE_KEY */
+  /** @see #TYPE_KEY */
   enum Type {
     alias, group, identify, screen, track
   }
 
-  /** @see CHANNEL_KEY */
+  /** @see #CHANNEL_KEY */
   private enum Channel {
     browser, mobile, server
+  }
+
+  boolean isIntegrationEnabledInPayload(AbstractIntegration integration) {
+    boolean enabled = true;
+    JsonMap integrations = integrations();
+    String key = integration.key();
+    if (integrations.containsKey(key)) {
+      enabled = integrations.getBoolean(key, true);
+    } else if (integrations.containsKey("All")) {
+      enabled = integrations.getBoolean("All", true);
+    } else if (integrations.containsKey("all")) {
+      enabled = integrations.getBoolean("all", true);
+    }
+    return enabled;
   }
 }
