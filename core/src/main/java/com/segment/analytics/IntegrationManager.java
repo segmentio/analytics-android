@@ -157,9 +157,8 @@ class IntegrationManager {
     try {
       if (isConnected(context)) {
         if (debuggingEnabled) {
-          debug(OWNER_INTEGRATION_MANAGER, "request", "fetch settings", null);
+          debug(OWNER_INTEGRATION_MANAGER, "fetch", "settings", null);
         }
-
         final ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
         String projectSettingsJson = projectSettings.toString();
         projectSettingsCache.set(projectSettingsJson);
@@ -177,7 +176,7 @@ class IntegrationManager {
       }
     } catch (IOException e) {
       if (debuggingEnabled) {
-        error(OWNER_INTEGRATION_MANAGER, "request", "fetch settings", e, null);
+        error(OWNER_INTEGRATION_MANAGER, "fetch", "settings", e, null);
       }
       retryFetch();
     }
@@ -192,8 +191,7 @@ class IntegrationManager {
         try {
           integration.initialize(context, settings);
           if (debuggingEnabled) {
-            debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(),
-                settings.toString());
+            debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), null);
           }
           if (listener != null) {
             listener.onIntegrationReady(integration.key(), integration.getUnderlyingInstance());
@@ -202,15 +200,14 @@ class IntegrationManager {
           bundledIntegrations.remove(integration.key());
           iterator.remove();
           if (debuggingEnabled) {
-            error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), e,
-                settings.toString());
+            error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), e, null);
           }
         }
       } else {
         iterator.remove();
         if (debuggingEnabled) {
-          debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, integration.key(),
-              "not enabled in project settings: " + projectSettings.keySet());
+          debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, integration.key(), "settings: %s",
+              projectSettings.keySet());
         }
       }
     }
@@ -256,8 +253,7 @@ class IntegrationManager {
       long endTime = System.currentTimeMillis();
       long duration = endTime - startTime;
       if (debuggingEnabled) {
-        debug(integration.key(), VERB_DISPATCH, operation.id(),
-            String.format("duration: %s", duration));
+        debug(integration.key(), VERB_DISPATCH, operation.id(), "duration: %s", duration);
       }
       stats.dispatchIntegrationOperation(duration);
     }

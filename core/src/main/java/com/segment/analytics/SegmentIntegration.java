@@ -66,9 +66,9 @@ class SegmentIntegration extends AbstractIntegration<Void> {
       queue = new FileObjectQueue<BasePayload>(queueFile, new PayloadConverter());
     } catch (IOException e) {
       if (debuggingEnabled) {
-        error(OWNER_SEGMENT_INTEGRATION, VERB_INITIALIZE,
-            "Unable to initialize queue disk queue. Falling back to memory queue.", e,
-            String.format("tag: %s, directory: %s", tag, parent.getAbsolutePath()));
+        error(OWNER_SEGMENT_INTEGRATION, VERB_INITIALIZE, null, e,
+            "Unable to initialize disk queue with tag %s in directory %s,"
+                + "falling back to memory queue.", tag, parent.getAbsolutePath());
       }
       queue = new InMemoryObjectQueue<BasePayload>();
     }
@@ -142,13 +142,12 @@ class SegmentIntegration extends AbstractIntegration<Void> {
       queue.add(payload);
     } catch (Exception e) {
       if (debuggingEnabled) {
-        error(OWNER_SEGMENT_INTEGRATION, VERB_ENQUEUE, payload.id(), e, String.format("payload: %s", payload));
+        error(OWNER_SEGMENT_INTEGRATION, VERB_ENQUEUE, payload.id(), e, "payload: %s", payload);
       }
     }
 
     if (debuggingEnabled) {
-      debug(OWNER_SEGMENT_INTEGRATION, VERB_ENQUEUE, payload.id(),
-          String.format("queueSize: %s", queue.size()));
+      debug(OWNER_SEGMENT_INTEGRATION, VERB_ENQUEUE, payload.id(), "queueSize: %s", queue.size());
     }
     // Check if we've reached the maximum queue size
     if (queue.size() >= queueSize) {
@@ -199,7 +198,8 @@ class SegmentIntegration extends AbstractIntegration<Void> {
       }
     } catch (IOException e) {
       if (debuggingEnabled) {
-        error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, "unable to clear queue", e, "events: " + count);
+        error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, "unable to clear queue", e,
+            "events: " + count);
       }
     }
     rescheduleFlush();

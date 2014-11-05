@@ -69,8 +69,8 @@ final class Utils {
   final static String VERB_INITIALIZE = "initialize";
   final static String TAG = "Segment";
   // [thread] [verb] [id] {[extras]}
-  final static String FORMAT = "%1$-20s %2$-12s %3$-36s {%4$s}";
-  final static String EMPTY = "";
+  final static String DEBUG_FORMAT = "%1$-20s %2$-12s %3$-36s {%4$s}";
+  final static String ERROR_FORMAT = "%1$-20s %2$-12s %3$-36s {%4$s}\n%5$s";
 
   private Utils() {
     throw new AssertionError("No instances");
@@ -249,14 +249,18 @@ final class Utils {
   }
 
   /** Call only if debugging is enabled. */
-  static void debug(String owner, String verb, String id, String extras) {
-    Log.d(TAG, String.format(FORMAT, owner, verb, id == null ? EMPTY : id,
-        extras == null ? EMPTY : extras));
+  static void debug(String owner, String verb, String id, String format, Object... extras) {
+    Log.d(TAG, String.format(DEBUG_FORMAT, owner, verb, id, safeFormat(format, extras)));
   }
 
   /** Call only if debugging is enabled. */
-  static void error(String owner, String verb, String id, Throwable throwable, String extras) {
-    Log.e(TAG, String.format(FORMAT, owner, verb + " (error)", id == null ? EMPTY : id,
-            extras == null ? EMPTY : extras) + Log.getStackTraceString(throwable));
+  static void error(String owner, String verb, String id, Throwable throwable, String format,
+      Object... extras) {
+    Log.e(TAG, String.format(ERROR_FORMAT, owner, "ERROR: " + verb, id, safeFormat(format, extras),
+        Log.getStackTraceString(throwable)));
+  }
+
+  private static String safeFormat(String format, Object... extras) {
+    return format == null ? null : String.format(format, extras);
   }
 }

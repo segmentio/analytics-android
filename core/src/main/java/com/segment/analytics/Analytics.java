@@ -508,7 +508,7 @@ public class Analytics {
 
   void submit(ActivityLifecyclePayload payload) {
     if (debuggingEnabled) {
-      debug(OWNER_MAIN, VERB_CREATE, payload.id(), "type: " + payload.type);
+      debug(OWNER_MAIN, VERB_CREATE, payload.id(), "type: %s", payload.type);
     }
     integrationManager.submit(payload);
   }
