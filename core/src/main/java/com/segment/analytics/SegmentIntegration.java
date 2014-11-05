@@ -10,6 +10,9 @@ import com.squareup.tape.InMemoryObjectQueue;
 import com.squareup.tape.ObjectQueue;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -19,9 +22,11 @@ import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Utils.OWNER_SEGMENT;
 import static com.segment.analytics.Utils.VERB_ENQUEUE;
 import static com.segment.analytics.Utils.VERB_FLUSH;
+import static com.segment.analytics.Utils.VERB_INITIALIZE;
 import static com.segment.analytics.Utils.debug;
 import static com.segment.analytics.Utils.error;
 import static com.segment.analytics.Utils.isConnected;
+import static com.segment.analytics.Utils.isNullOrEmpty;
 import static com.segment.analytics.Utils.panic;
 import static com.segment.analytics.Utils.quitThread;
 import static com.segment.analytics.Utils.toISO8601Date;
@@ -53,14 +58,18 @@ class SegmentIntegration extends AbstractIntegration<Void> {
   static SegmentIntegration create(Context context, int queueSize, int flushInterval,
       SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
       boolean debuggingEnabled) {
+    File parent = context.getFilesDir();
     FileObjectQueue.Converter<BasePayload> converter = new PayloadConverter();
     ObjectQueue<BasePayload> queue;
     try {
-      File parent = context.getFilesDir();
       if (!parent.exists()) parent.mkdirs();
       File queueFile = new File(parent, TASK_QUEUE_FILE_NAME + tag);
       queue = new FileObjectQueue<BasePayload>(queueFile, converter);
     } catch (IOException e) {
+      if (debuggingEnabled) {
+        error(OWNER_SEGMENT, VERB_INITIALIZE, "unable to initialize queue disk queues", e,
+            String.format("name: %s, directory: %s", TASK_QUEUE_FILE_NAME + tag, parent));
+      }
       queue = new InMemoryObjectQueue<BasePayload>();
     }
     return new SegmentIntegration(context, queueSize, flushInterval, segmentHTTPApi, queue,
@@ -133,8 +142,7 @@ class SegmentIntegration extends AbstractIntegration<Void> {
       queue.add(payload);
     } catch (Exception e) {
       if (debuggingEnabled) {
-        error(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), e,
-            String.format("payload: %s", payload));
+        error(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), e, String.format("payload: %s", payload));
       }
     }
 
@@ -249,6 +257,28 @@ class SegmentIntegration extends AbstractIntegration<Void> {
         default:
           panic("Unknown dispatcher message." + msg.what);
       }
+    }
+  }
+
+  static class PayloadConverter implements FileObjectQueue.Converter<BasePayload> {
+    static final Charset UTF_8 = Charset.forName("UTF-8");
+
+    @Override public BasePayload from(byte[] bytes) throws IOException {
+      String json = new String(bytes, UTF_8);
+      if (isNullOrEmpty(json)) {
+        throw new IOException("Cannot deserialize payload from empty byte array.");
+      }
+      return new BasePayload(json);
+    }
+
+    @Override public void toStream(BasePayload payload, OutputStream bytes) throws IOException {
+      String json = payload.toString();
+      if (isNullOrEmpty(json)) {
+        throw new IOException("Cannot serialize payload : " + payload);
+      }
+      OutputStreamWriter outputStreamWriter = new OutputStreamWriter(bytes, UTF_8);
+      outputStreamWriter.write(json);
+      outputStreamWriter.close();
     }
   }
 }

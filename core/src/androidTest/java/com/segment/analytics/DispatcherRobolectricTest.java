@@ -50,7 +50,7 @@ public class DispatcherRobolectricTest {
     File parent = Robolectric.getShadowApplication().getFilesDir();
     File queueFile = new File(parent, "test.queue");
     queueFile.delete();
-    return new FileObjectQueue<BasePayload>(queueFile, new PayloadConverter());
+    return new FileObjectQueue<BasePayload>(queueFile, new SegmentIntegration.PayloadConverter());
   }
 
   @Test public void addsToQueueCorrectly() throws IOException {
