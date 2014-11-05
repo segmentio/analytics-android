@@ -4,12 +4,13 @@ Version 2.3.0 (In progress)
 * New: Deprecate `logging` for `debugging`
 * New: (WIP) Debugging will now be forwarded to integrations so they can enable it too
 * Improvement: If integrations fail to load (e.g. missing permissions), update server flags so server can send the event instead
-* Improvement: Lazily load all integrations
+* Improvement: Explicitly specify charset for serializing payloads
+* Improvement: Fallback to memory queue if disk fails to load
 * Fix: Don't call `Leanplum#forceContentUpdate` when flushing
 
 Version 2.2.0 (October 29th, 2014)
 ====================================
-* Breaking: Updated Localytics integration (Breaking, Localytics now returns LocalyticsAmpSession)
+* Breaking: Updated Localytics integration (Localytics now returns LocalyticsAmpSession for listeners)
 * New: `flushInterval` setting, that flushes any events in the queue at a specified interval
 * New: Added AppsFlyer integration
 * New: Collect advertisingId as per spec
