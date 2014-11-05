@@ -59,16 +59,16 @@ class SegmentIntegration extends AbstractIntegration<Void> {
       SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
       boolean debuggingEnabled) {
     File parent = context.getFilesDir();
-    FileObjectQueue.Converter<BasePayload> converter = new PayloadConverter();
     ObjectQueue<BasePayload> queue;
     try {
       if (!parent.exists()) parent.mkdirs();
       File queueFile = new File(parent, TASK_QUEUE_FILE_NAME + tag);
-      queue = new FileObjectQueue<BasePayload>(queueFile, converter);
+      queue = new FileObjectQueue<BasePayload>(queueFile, new PayloadConverter());
     } catch (IOException e) {
       if (debuggingEnabled) {
-        error(OWNER_SEGMENT, VERB_INITIALIZE, "unable to initialize queue disk queues", e,
-            String.format("name: %s, directory: %s", TASK_QUEUE_FILE_NAME + tag, parent));
+        error(OWNER_SEGMENT, VERB_INITIALIZE,
+            "Unable to initialize queue disk queue. Falling back to memory queue.", e,
+            String.format("tag: %s, directory: %s", tag, parent.getAbsolutePath()));
       }
       queue = new InMemoryObjectQueue<BasePayload>();
     }
