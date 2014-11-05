@@ -11,11 +11,11 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 import java.util.UUID;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
@@ -55,10 +55,9 @@ class IntegrationManager {
   final Stats stats;
   final boolean debuggingEnabled;
   final StringCache projectSettingsCache;
-
-  final Set<AbstractIntegration> bundledIntegrations;
   final SegmentIntegration segmentIntegration;
-  final Map<String, Boolean> serverIntegrations;
+  final List<AbstractIntegration> integrations;
+  final Map<String, Boolean> bundledIntegrations;
   Queue<IntegrationOperation> operationQueue;
   volatile boolean initialized;
   OnIntegrationReadyListener listener;
@@ -81,12 +80,12 @@ class IntegrationManager {
     integrationManagerThread = new HandlerThread(MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     integrationManagerThread.start();
     handler = new IntegrationManagerHandler(integrationManagerThread.getLooper(), this);
-    bundledIntegrations = new HashSet<AbstractIntegration>();
-    serverIntegrations = Collections.synchronizedMap(new HashMap<String, Boolean>());
+    integrations = new LinkedList<AbstractIntegration>();
+    bundledIntegrations = Collections.synchronizedMap(new HashMap<String, Boolean>());
 
     segmentIntegration =
         SegmentIntegration.create(context, queueSize, flushInterval, segmentHTTPApi,
-            serverIntegrations, tag, stats, debuggingEnabled);
+            bundledIntegrations, tag, stats, debuggingEnabled);
 
     // Look up all the integrations available on the device. This is done early so that we can
     // disable sending to these integrations from the server and properly fill the payloads with
@@ -141,8 +140,8 @@ class IntegrationManager {
   }
 
   void bundleIntegration(AbstractIntegration abstractIntegration) {
-    serverIntegrations.put(abstractIntegration.key(), false);
-    bundledIntegrations.add(abstractIntegration);
+    bundledIntegrations.put(abstractIntegration.key(), false);
+    integrations.add(abstractIntegration);
   }
 
   void dispatchFetch() {
@@ -185,7 +184,7 @@ class IntegrationManager {
   }
 
   synchronized void initializeIntegrations(ProjectSettings projectSettings) {
-    Iterator<AbstractIntegration> iterator = bundledIntegrations.iterator();
+    Iterator<AbstractIntegration> iterator = integrations.iterator();
     while (iterator.hasNext()) {
       final AbstractIntegration integration = iterator.next();
       if (projectSettings.containsKey(integration.key())) {
@@ -200,7 +199,7 @@ class IntegrationManager {
             listener.onIntegrationReady(integration.key(), integration.getUnderlyingInstance());
           }
         } catch (InvalidConfigurationException e) {
-          serverIntegrations.remove(integration.key());
+          bundledIntegrations.remove(integration.key());
           iterator.remove();
           if (debuggingEnabled) {
             error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), e,
@@ -251,7 +250,7 @@ class IntegrationManager {
   }
 
   private void run(IntegrationOperation operation) {
-    for (AbstractIntegration integration : bundledIntegrations) {
+    for (AbstractIntegration integration : integrations) {
       long startTime = System.currentTimeMillis();
       operation.run(integration);
       long endTime = System.currentTimeMillis();
@@ -268,7 +267,7 @@ class IntegrationManager {
     this.listener = listener;
     if (initialized && listener != null) {
       // Integrations are already ready, notify the listener right away
-      for (AbstractIntegration abstractIntegration : bundledIntegrations) {
+      for (AbstractIntegration abstractIntegration : integrations) {
         listener.onIntegrationReady(abstractIntegration.key(),
             abstractIntegration.getUnderlyingInstance());
       }
