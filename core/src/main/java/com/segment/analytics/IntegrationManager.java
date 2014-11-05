@@ -10,9 +10,9 @@ import android.os.Message;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -56,11 +56,10 @@ class IntegrationManager {
   final boolean debuggingEnabled;
   final StringCache projectSettingsCache;
 
-  final Set<AbstractIntegration> bundledIntegrations = new HashSet<AbstractIntegration>();
+  final Set<AbstractIntegration> bundledIntegrations;
   final SegmentIntegration segmentIntegration;
-  final Map<String, Boolean> serverIntegrations =
-      Collections.synchronizedMap(new LinkedHashMap<String, Boolean>());
-  Queue<IntegrationOperation> operationQueue = new ArrayDeque<IntegrationOperation>();
+  final Map<String, Boolean> serverIntegrations;
+  Queue<IntegrationOperation> operationQueue;
   volatile boolean initialized;
   OnIntegrationReadyListener listener;
 
@@ -82,6 +81,8 @@ class IntegrationManager {
     integrationManagerThread = new HandlerThread(MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     integrationManagerThread.start();
     handler = new IntegrationManagerHandler(integrationManagerThread.getLooper(), this);
+    bundledIntegrations = new HashSet<AbstractIntegration>();
+    serverIntegrations = Collections.synchronizedMap(new HashMap<String, Boolean>());
 
     segmentIntegration =
         SegmentIntegration.create(context, queueSize, flushInterval, segmentHTTPApi,
@@ -239,6 +240,9 @@ class IntegrationManager {
         } else {
           if (debuggingEnabled) {
             debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id(), null);
+          }
+          if (operationQueue == null) {
+            operationQueue = new ArrayDeque<IntegrationOperation>();
           }
           operationQueue.add(operation);
         }

@@ -226,6 +226,7 @@ final class Utils {
     });
   }
 
+  /** Return {@code true} if a class with the given name is found. */
   static boolean isOnClassPath(String className) {
     try {
       Class.forName(className);
