@@ -28,7 +28,7 @@ class AppsFlyerIntegration extends AbstractIntegration<Void> {
           "AppsFlyer requires the ACCESS_NETWORK_STATE permission");
     }
     AppsFlyerLib.setAppsFlyerKey(settings.getString("appsFlyerDevKey"));
-    // todo: useHttpFallback
+    AppsFlyerLib.setUseHTTPFalback(settings.getBoolean("httpFallback", false));
     this.context = context;
   }
 
