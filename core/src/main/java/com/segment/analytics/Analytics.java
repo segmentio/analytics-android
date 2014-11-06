@@ -213,6 +213,20 @@ public class Analytics {
   }
 
   /**
+   * Set the global instance returned from {@link #with}.
+   * <p>
+   * This method must be called before any calls to {@link #with} and may only be called once.
+   */
+  public static void setSingletonInstance(Analytics analytics) {
+    synchronized (Analytics.class) {
+      if (singleton != null) {
+        throw new IllegalStateException("Singleton instance already exists.");
+      }
+      singleton = analytics;
+    }
+  }
+
+  /**
    * Returns {@code true} if debugging is enabled.
    *
    * @deprecated Use {@link #isDebugging()} instead.
