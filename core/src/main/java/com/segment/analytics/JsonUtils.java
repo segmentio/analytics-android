@@ -34,10 +34,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.segment.analytics.Utils.createMap;
 import static com.segment.analytics.Utils.isNullOrEmpty;
 
 class JsonUtils {
@@ -83,7 +83,7 @@ class JsonUtils {
 
   /** Parse a json reader into a map. */
   private static Map<String, Object> readerToMap(JsonReader reader) throws IOException {
-    Map<String, Object> map = Collections.synchronizedMap(new HashMap<String, Object>());
+    Map<String, Object> map = createMap();
     reader.beginObject();
     while (reader.hasNext()) {
       String key = reader.nextName();

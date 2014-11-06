@@ -26,10 +26,10 @@ package com.segment.analytics;
 
 import android.content.Context;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.segment.analytics.Utils.createMap;
 import static com.segment.analytics.Utils.isNullOrEmpty;
 import static com.segment.analytics.Utils.toISO8601Date;
 
@@ -105,7 +105,7 @@ public class Traits extends JsonMap {
 
   public Traits putAddress(String city, String country, String postalCode, String state,
       String street) {
-    Map<String, String> address = new LinkedHashMap<String, String>(5);
+    Map<String, String> address = createMap();
     address.put(ADDRESS_CITY_KEY, city);
     address.put(ADDRESS_COUNTRY_KEY, country);
     address.put(ADDRESS_POSTAL_CODE_KEY, postalCode);

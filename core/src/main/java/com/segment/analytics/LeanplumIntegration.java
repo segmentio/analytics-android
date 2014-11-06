@@ -10,6 +10,7 @@ import com.leanplum.LeanplumActivityHelper;
 import static com.segment.analytics.Utils.hasPermission;
 
 class LeanplumIntegration extends AbstractIntegration<Void> {
+  static final String LEANPLUM_KEY = "Leanplum";
   LeanplumActivityHelper helper;
 
   LeanplumIntegration(boolean debuggingEnabled) {
@@ -68,6 +69,6 @@ class LeanplumIntegration extends AbstractIntegration<Void> {
   }
 
   @Override String key() {
-    return "Leanplum";
+    return LEANPLUM_KEY;
   }
 }

@@ -34,7 +34,6 @@ import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
-import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
@@ -45,6 +44,7 @@ import static android.content.Context.TELEPHONY_SERVICE;
 import static android.net.ConnectivityManager.TYPE_BLUETOOTH;
 import static android.net.ConnectivityManager.TYPE_MOBILE;
 import static android.net.ConnectivityManager.TYPE_WIFI;
+import static com.segment.analytics.Utils.createMap;
 import static com.segment.analytics.Utils.getDeviceId;
 import static com.segment.analytics.Utils.getSystemService;
 import static com.segment.analytics.Utils.hasPermission;
@@ -165,7 +165,7 @@ public class AnalyticsContext extends JsonMap {
     try {
       PackageManager packageManager = context.getPackageManager();
       PackageInfo packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
-      Map<String, Object> app = new LinkedHashMap<String, Object>(6);
+      Map<String, Object> app = createMap();
       app.put(APP_NAME_KEY, packageInfo.applicationInfo.loadLabel(packageManager));
       app.put(APP_VERSION_KEY, packageInfo.versionName);
       app.put(APP_PACKAGE_NAME_KEY, packageInfo.packageName);
@@ -184,7 +184,7 @@ public class AnalyticsContext extends JsonMap {
 
   public AnalyticsContext putCampaign(String name, String source, String medium, String term,
       String content) {
-    Map<String, Object> campaign = new LinkedHashMap<String, Object>(5);
+    Map<String, Object> campaign = createMap();
     campaign.put(CAMPAIGN_NAME_KEY, name);
     campaign.put(CAMPAIGN_SOURCE_KEY, source);
     campaign.put(CAMPAIGN_MEDIUM_KEY, medium);
@@ -195,7 +195,7 @@ public class AnalyticsContext extends JsonMap {
   }
 
   public void putDevice(Context context) {
-    Map<String, Object> device = new LinkedHashMap<String, Object>(5);
+    Map<String, Object> device = createMap();
     device.put(DEVICE_ID_KEY, getDeviceId(context));
     device.put(DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);
     device.put(DEVICE_MODEL_KEY, Build.MODEL);
@@ -218,7 +218,7 @@ public class AnalyticsContext extends JsonMap {
   }
 
   void putLibrary() {
-    Map<String, Object> library = new LinkedHashMap<String, Object>(6);
+    Map<String, Object> library = createMap();
     library.put(LIBRARY_NAME_KEY, "analytics-android");
     library.put(LIBRARY_VERSION_KEY, BuildConfig.VERSION_CODE);
     library.put(LIBRARY_VERSION_NAME_KEY, BuildConfig.VERSION_NAME);
@@ -236,7 +236,7 @@ public class AnalyticsContext extends JsonMap {
   }
 
   void putNetwork(Context context) {
-    Map<String, Object> network = new LinkedHashMap<String, Object>(4);
+    Map<String, Object> network = createMap();
     if (hasPermission(context, ACCESS_NETWORK_STATE)) {
       ConnectivityManager connectivityManager = getSystemService(context, CONNECTIVITY_SERVICE);
       if (connectivityManager != null) {
@@ -260,7 +260,7 @@ public class AnalyticsContext extends JsonMap {
   }
 
   void putOs() {
-    Map<String, Object> os = new LinkedHashMap<String, Object>(3);
+    Map<String, Object> os = createMap();
     os.put(OS_NAME_KEY, Build.VERSION.CODENAME);
     os.put(OS_VERSION_KEY, Build.VERSION.RELEASE);
     os.put(OS_SDK_KEY, Build.VERSION.SDK_INT);
@@ -269,7 +269,7 @@ public class AnalyticsContext extends JsonMap {
 
   public AnalyticsContext putReferrer(String id, String link, String name, String type,
       String url) {
-    Map<String, Object> referrer = new LinkedHashMap<String, Object>(5);
+    Map<String, Object> referrer = createMap();
     referrer.put(REFERRER_ID_KEY, id);
     referrer.put(REFERRER_LINK_KEY, link);
     referrer.put(REFERRER_NAME_KEY, name);
@@ -280,7 +280,7 @@ public class AnalyticsContext extends JsonMap {
   }
 
   void putScreen(Context context) {
-    Map<String, Object> screen = new LinkedHashMap<String, Object>(6);
+    Map<String, Object> screen = createMap();
     WindowManager manager = getSystemService(context, Context.WINDOW_SERVICE);
     Display display = manager.getDefaultDisplay();
     DisplayMetrics displayMetrics = new DisplayMetrics();

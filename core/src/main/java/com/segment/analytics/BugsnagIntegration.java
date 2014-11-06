@@ -16,6 +16,7 @@ import java.util.Map;
  * @see <a href="https://github.com/bugsnag/bugsnag-android">Bugsnag Android SDK</a>
  */
 class BugsnagIntegration extends AbstractIntegration<Client> {
+  static final String BUGSNAG_KEY = "Bugsnag";
 
   BugsnagIntegration(boolean debuggingEnabled) {
     super(debuggingEnabled);
@@ -32,7 +33,7 @@ class BugsnagIntegration extends AbstractIntegration<Client> {
   }
 
   @Override String key() {
-    return "Bugsnag";
+    return BUGSNAG_KEY;
   }
 
   @Override void onActivityCreated(Activity activity, Bundle savedInstanceState) {

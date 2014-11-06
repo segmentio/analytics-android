@@ -26,8 +26,9 @@ package com.segment.analytics;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.Map;
+
+import static com.segment.analytics.Utils.createMap;
 
 /**
  * Options let you control behaviour for a specific analytics call, including setting a custom
@@ -39,7 +40,7 @@ public class Options {
   private Date timestamp;
 
   public Options() {
-    integrations = new LinkedHashMap<String, Boolean>();
+    integrations = createMap();
     integrations.put(ALL_INTEGRATIONS_KEY, true);
   }
 

@@ -6,11 +6,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.json.JSONObject;
+
+import static com.segment.analytics.Utils.createMap;
 
 /**
  * A {@link Map} wrapper to expose Json functionality. Only the {@link #toString()} method is
@@ -31,7 +33,7 @@ class JsonMap implements Map<String, Object> {
   private final Map<String, Object> delegate;
 
   JsonMap() {
-    this(new LinkedHashMap<String, Object>());
+    delegate = createMap();
   }
 
   JsonMap(Map<String, Object> delegate) {
@@ -349,7 +351,7 @@ class JsonMap implements Map<String, Object> {
   }
 
   Map<String, String> toStringMap() {
-    Map<String, String> map = new LinkedHashMap<String, String>();
+    Map<String, String> map = new HashMap<String, String>();
     for (Map.Entry<String, Object> entry : entrySet()) {
       map.put(entry.getKey(), String.valueOf(entry.getValue()));
     }
@@ -366,7 +368,7 @@ class JsonMap implements Map<String, Object> {
   private void cache(String key, Object value) {
     try {
       delegate.put(key, value);
-    } catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException ignored) {
       // ignore
     }
   }

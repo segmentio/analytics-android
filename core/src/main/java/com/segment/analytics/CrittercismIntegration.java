@@ -14,6 +14,8 @@ import com.crittercism.app.CrittercismConfig;
  * @see <a href="http://docs.crittercism.com/android/android.html">Crittercism Android SDK</a>
  */
 class CrittercismIntegration extends AbstractIntegration<Void> {
+  static final String CRITTERCISM_KEY = "Crittercism";
+
   CrittercismIntegration(boolean debuggingEnabled) {
     super(debuggingEnabled);
   }
@@ -32,7 +34,7 @@ class CrittercismIntegration extends AbstractIntegration<Void> {
   }
 
   @Override String key() {
-    return "Crittercism";
+    return CRITTERCISM_KEY;
   }
 
   @Override void identify(IdentifyPayload identify) {

@@ -9,8 +9,6 @@ import android.os.Looper;
 import android.os.Message;
 import java.io.IOException;
 import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,10 +24,12 @@ import static com.segment.analytics.Utils.VERB_DISPATCH;
 import static com.segment.analytics.Utils.VERB_ENQUEUE;
 import static com.segment.analytics.Utils.VERB_INITIALIZE;
 import static com.segment.analytics.Utils.VERB_SKIP;
+import static com.segment.analytics.Utils.createMap;
 import static com.segment.analytics.Utils.debug;
 import static com.segment.analytics.Utils.error;
 import static com.segment.analytics.Utils.getSharedPreferences;
 import static com.segment.analytics.Utils.isConnected;
+import static com.segment.analytics.Utils.isNullOrEmpty;
 import static com.segment.analytics.Utils.isOnClassPath;
 import static com.segment.analytics.Utils.panic;
 import static com.segment.analytics.Utils.quitThread;
@@ -56,7 +56,7 @@ class IntegrationManager {
   final boolean debuggingEnabled;
   final StringCache projectSettingsCache;
   final SegmentIntegration segmentIntegration;
-  final List<AbstractIntegration> integrations;
+  List<AbstractIntegration> integrations;
   final Map<String, Boolean> bundledIntegrations;
   Queue<IntegrationOperation> operationQueue;
   volatile boolean initialized;
@@ -70,7 +70,7 @@ class IntegrationManager {
         flushInterval, tag, debuggingEnabled);
   }
 
-  private IntegrationManager(Context context, SegmentHTTPApi segmentHTTPApi,
+  IntegrationManager(Context context, SegmentHTTPApi segmentHTTPApi,
       StringCache projectSettingsCache, Stats stats, int queueSize, int flushInterval, String tag,
       boolean debuggingEnabled) {
     this.context = context;
@@ -80,52 +80,32 @@ class IntegrationManager {
     integrationManagerThread = new HandlerThread(MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     integrationManagerThread.start();
     handler = new IntegrationManagerHandler(integrationManagerThread.getLooper(), this);
-    integrations = new LinkedList<AbstractIntegration>();
-    bundledIntegrations = Collections.synchronizedMap(new HashMap<String, Boolean>());
-
-    segmentIntegration =
-        SegmentIntegration.create(context, queueSize, flushInterval, segmentHTTPApi,
-            bundledIntegrations, tag, stats, debuggingEnabled);
 
     // Look up all the integrations available on the device. This is done early so that we can
     // disable sending to these integrations from the server and properly fill the payloads with
     // this information
-    if (isOnClassPath("com.amplitude.api.Amplitude")) {
-      bundleIntegration(new AmplitudeIntegration(debuggingEnabled));
-    }
-    if (isOnClassPath("com.appsflyer.AppsFlyerLib")) {
-      bundleIntegration(new AppsFlyerIntegration(debuggingEnabled));
-    }
-    if (isOnClassPath("com.bugsnag.android.Bugsnag")) {
-      bundleIntegration(new BugsnagIntegration(debuggingEnabled));
-    }
-    if (isOnClassPath("ly.count.android.api.Countly")) {
-      bundleIntegration(new CountlyIntegration(debuggingEnabled));
-    }
-    if (isOnClassPath("com.crittercism.app.Crittercism")) {
-      bundleIntegration(new CrittercismIntegration(debuggingEnabled));
-    }
-    if (isOnClassPath("com.flurry.android.FlurryAgent")) {
-      bundleIntegration(new FlurryIntegration(debuggingEnabled));
-    }
-    if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
-      bundleIntegration(new GoogleAnalyticsIntegration(debuggingEnabled));
-    }
-    if (isOnClassPath("com.localytics.android.LocalyticsSession")) {
-      bundleIntegration(new LocalyticsIntegration(debuggingEnabled));
-    }
-    if (isOnClassPath("com.leanplum.Leanplum")) {
-      bundleIntegration(new LeanplumIntegration(debuggingEnabled));
-    }
-    if (isOnClassPath("com.mixpanel.android.mpmetrics.MixpanelAPI")) {
-      bundleIntegration(new MixpanelIntegration(debuggingEnabled));
-    }
-    if (isOnClassPath("com.quantcast.measurement.service.QuantcastClient")) {
-      bundleIntegration(new QuantcastIntegration(debuggingEnabled));
-    }
-    if (isOnClassPath("com.tapstream.sdk.Tapstream")) {
-      bundleIntegration(new TapstreamIntegration(debuggingEnabled));
-    }
+    bundledIntegrations = createMap();
+    findBundledIntegration("com.amplitude.api.Amplitude", AmplitudeIntegration.AMPLITUDE_KEY);
+    findBundledIntegration("com.appsflyer.AppsFlyerLib", AppsFlyerIntegration.APPS_FLYER_KEY);
+    findBundledIntegration("com.bugsnag.android.Bugsnag", BugsnagIntegration.BUGSNAG_KEY);
+    findBundledIntegration("ly.count.android.api.Countly", CountlyIntegration.COUNTLY_KEY);
+    findBundledIntegration("com.crittercism.app.Crittercism",
+        CrittercismIntegration.CRITTERCISM_KEY);
+    findBundledIntegration("com.flurry.android.FlurryAgent", FlurryIntegration.FLURRY_KEY);
+    findBundledIntegration("com.google.android.gms.analytics.GoogleAnalytics",
+        GoogleAnalyticsIntegration.GOOGLE_ANALYTICS_KEY);
+    findBundledIntegration("com.localytics.android.LocalyticsAmpSession",
+        LocalyticsIntegration.LOCALYTICS_KEY);
+    findBundledIntegration("com.leanplum.Leanplum", LeanplumIntegration.LEANPLUM_KEY);
+    findBundledIntegration("com.mixpanel.android.mpmetrics.MixpanelAPI",
+        MixpanelIntegration.MIXPANEL_KEY);
+    findBundledIntegration("com.quantcast.measurement.service.QuantcastClient",
+        QuantcastIntegration.QUANTCAST_KEY);
+    findBundledIntegration("com.tapstream.sdk.Tapstream", TapstreamIntegration.TAPSTREAM_KEY);
+
+    segmentIntegration =
+        SegmentIntegration.create(context, queueSize, flushInterval, segmentHTTPApi,
+            bundledIntegrations, tag, stats, debuggingEnabled);
 
     this.projectSettingsCache = projectSettingsCache;
     ProjectSettings projectSettings = ProjectSettings.load(projectSettingsCache);
@@ -139,9 +119,8 @@ class IntegrationManager {
     }
   }
 
-  void bundleIntegration(AbstractIntegration abstractIntegration) {
-    bundledIntegrations.put(abstractIntegration.key(), false);
-    integrations.add(abstractIntegration);
+  void findBundledIntegration(String className, String key) {
+    if (isOnClassPath(className)) bundledIntegrations.put(key, false);
   }
 
   void dispatchFetch() {
@@ -162,7 +141,6 @@ class IntegrationManager {
         final ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
         String projectSettingsJson = projectSettings.toString();
         projectSettingsCache.set(projectSettingsJson);
-
         if (!initialized) {
           // Only initialize integrations if not done already
           Analytics.HANDLER.post(new Runnable() {
@@ -183,21 +161,23 @@ class IntegrationManager {
   }
 
   synchronized void initializeIntegrations(ProjectSettings projectSettings) {
-    Iterator<AbstractIntegration> iterator = integrations.iterator();
+    integrations = new LinkedList<AbstractIntegration>();
+    Iterator<Map.Entry<String, Boolean>> iterator = bundledIntegrations.entrySet().iterator();
     while (iterator.hasNext()) {
-      final AbstractIntegration integration = iterator.next();
-      if (projectSettings.containsKey(integration.key())) {
-        JsonMap settings = new JsonMap(projectSettings.getJsonMap(integration.key()));
+      String key = iterator.next().getKey();
+      if (projectSettings.containsKey(key)) {
+        JsonMap settings = new JsonMap(projectSettings.getJsonMap(key));
+        AbstractIntegration integration = createIntegrationForKey(key);
         try {
-          integration.initialize(context, settings);
           if (debuggingEnabled) {
-            debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), null);
+            debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, key, "settings: %s", settings);
           }
+          integration.initialize(context, settings);
           if (listener != null) {
-            listener.onIntegrationReady(integration.key(), integration.getUnderlyingInstance());
+            listener.onIntegrationReady(key, integration.getUnderlyingInstance());
           }
+          integrations.add(integration);
         } catch (InvalidConfigurationException e) {
-          bundledIntegrations.remove(integration.key());
           iterator.remove();
           if (debuggingEnabled) {
             error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), e, null);
@@ -206,18 +186,68 @@ class IntegrationManager {
       } else {
         iterator.remove();
         if (debuggingEnabled) {
-          debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, integration.key(), "settings: %s",
+          debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, key, "settings: %s",
               projectSettings.keySet());
         }
       }
     }
-    Iterator<IntegrationOperation> operationIterator = operationQueue.iterator();
-    while (operationIterator.hasNext()) {
-      run(operationIterator.next());
-      operationIterator.remove();
+    if (!isNullOrEmpty(operationQueue)) {
+      Iterator<IntegrationOperation> operationIterator = operationQueue.iterator();
+      while (operationIterator.hasNext()) {
+        run(operationIterator.next());
+        operationIterator.remove();
+      }
     }
     operationQueue = null;
     initialized = true;
+  }
+
+  AbstractIntegration createIntegrationForKey(String key) {
+    // Todo: consume the entire string to verify the key? e.g. Amplitude vs Amhuik (random)
+    switch (key.charAt(0)) {
+      case 'A':
+        switch (key.charAt(1)) {
+          case 'm':
+            return new AmplitudeIntegration(debuggingEnabled);
+          case 'p':
+            return new AppsFlyerIntegration(debuggingEnabled);
+          default:
+            break;
+        }
+      case 'B':
+        return new BugsnagIntegration(debuggingEnabled);
+      case 'C':
+        switch (key.charAt(1)) {
+          case 'o':
+            return new CountlyIntegration(debuggingEnabled);
+          case 'r':
+            return new CrittercismIntegration(debuggingEnabled);
+          default:
+            break;
+        }
+      case 'F':
+        return new FlurryIntegration(debuggingEnabled);
+      case 'G':
+        return new GoogleAnalyticsIntegration(debuggingEnabled);
+      case 'L':
+        switch (key.charAt(1)) {
+          case 'e':
+            return new LeanplumIntegration(debuggingEnabled);
+          case 'o':
+            return new LocalyticsIntegration(debuggingEnabled);
+          default:
+            break;
+        }
+      case 'M':
+        return new MixpanelIntegration(debuggingEnabled);
+      case 'Q':
+        return new QuantcastIntegration(debuggingEnabled);
+      case 'T':
+        return new TapstreamIntegration(debuggingEnabled);
+      default:
+        break;
+    }
+    throw new AssertionError("unknown integration key: " + key);
   }
 
   void flush() {
@@ -234,11 +264,11 @@ class IntegrationManager {
         if (initialized) {
           run(operation);
         } else {
-          if (debuggingEnabled) {
-            debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id(), null);
-          }
           if (operationQueue == null) {
             operationQueue = new ArrayDeque<IntegrationOperation>();
+          }
+          if (debuggingEnabled) {
+            debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id(), null);
           }
           operationQueue.add(operation);
         }

@@ -15,6 +15,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://github.com/mixpanel/mixpanel-android">Mixpanel Android SDK</a>
  */
 class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
+  static final String MIXPANEL_KEY = "Mixpanel";
   MixpanelAPI mixpanelAPI;
   boolean isPeopleEnabled;
   boolean trackAllPages;
@@ -40,7 +41,7 @@ class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   }
 
   @Override String key() {
-    return "Mixpanel";
+    return MIXPANEL_KEY;
   }
 
   @Override void identify(IdentifyPayload identify) {

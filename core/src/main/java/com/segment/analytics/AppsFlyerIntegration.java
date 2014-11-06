@@ -15,6 +15,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="http://www.appsflyer.com/">AppsFlyer Website</a>
  */
 class AppsFlyerIntegration extends AbstractIntegration<Void> {
+  static final String APPS_FLYER_KEY = "AppsFlyer";
   Context context;
 
   AppsFlyerIntegration(boolean debuggingEnabled) {
@@ -33,7 +34,7 @@ class AppsFlyerIntegration extends AbstractIntegration<Void> {
   }
 
   @Override String key() {
-    return "AppsFlyer";
+    return APPS_FLYER_KEY;
   }
 
   @Override void track(TrackPayload track) {

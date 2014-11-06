@@ -19,6 +19,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * SDK</a>
  */
 class TapstreamIntegration extends AbstractIntegration<Tapstream> {
+  static final String TAPSTREAM_KEY = "Tapstream";
   boolean trackAllPages;
   boolean trackCategorizedPages;
   boolean trackNamedPages;
@@ -53,7 +54,7 @@ class TapstreamIntegration extends AbstractIntegration<Tapstream> {
   }
 
   @Override String key() {
-    return "Tapstream";
+    return TAPSTREAM_KEY;
   }
 
   @Override void track(TrackPayload track) {

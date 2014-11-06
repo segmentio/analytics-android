@@ -3,7 +3,7 @@ Version 2.3.0 (In progress)
 * Breaking: Add explicit dependency on [Tape](https://github.com/square/tape)
 * New: Deprecate `logging` for `debugging`
 * New: (WIP) Debugging will now be forwarded to integrations so they can enable it too
-* Improvement: If integrations fail to load (e.g. missing permissions), update server flags so server can send the event instead
+* Improvement: If integrations fail to load (e.g. missing permissions), update internal flags so server can send the event instead
 * Improvement: Explicitly specify charset for serializing payloads
 * Improvement: Fallback to memory queue if disk fails to load
 * Fix: Don't call `Leanplum#forceContentUpdate` when flushing

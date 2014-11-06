@@ -15,6 +15,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://github.com/amplitude/Amplitude-Android">Amplitude Android SDK</a>
  */
 class AmplitudeIntegration extends AbstractIntegration<Void> {
+  static final String AMPLITUDE_KEY = "Amplitude";
   boolean trackAllPages;
   boolean trackCategorizedPages;
   boolean trackNamedPages;
@@ -36,7 +37,7 @@ class AmplitudeIntegration extends AbstractIntegration<Void> {
   }
 
   @Override String key() {
-    return "Amplitude";
+    return AMPLITUDE_KEY;
   }
 
   @Override void onActivityResumed(Activity activity) {

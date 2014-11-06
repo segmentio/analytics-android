@@ -19,6 +19,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="http://www.localytics.com/docs/android-integration/">Localytics Android SDK</a>
  */
 class LocalyticsIntegration extends AbstractIntegration<LocalyticsAmpSession> {
+  static final String LOCALYTICS_KEY = "Localytics";
   LocalyticsAmpSession session;
 
   LocalyticsIntegration(boolean debuggingEnabled) {
@@ -38,7 +39,7 @@ class LocalyticsIntegration extends AbstractIntegration<LocalyticsAmpSession> {
   }
 
   @Override String key() {
-    return "Localytics";
+    return LOCALYTICS_KEY;
   }
 
   @Override void onActivityCreated(Activity activity, Bundle savedInstanceState) {

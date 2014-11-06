@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -262,5 +263,9 @@ final class Utils {
 
   private static String safeFormat(String format, Object... extras) {
     return format == null ? null : String.format(format, extras);
+  }
+
+  static <T> Map<String, T> createMap() {
+    return Collections.synchronizedMap(new LinkedHashMap<String, T>());
   }
 }

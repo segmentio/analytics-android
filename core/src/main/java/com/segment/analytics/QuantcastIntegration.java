@@ -17,6 +17,7 @@ import static com.segment.analytics.Utils.hasPermission;
  * Android SDK</a>
  */
 class QuantcastIntegration extends AbstractIntegration<Void> {
+  static final String QUANTCAST_KEY = "Quantcast";
   String apiKey;
 
   QuantcastIntegration(boolean debuggingEnabled) {
@@ -36,7 +37,7 @@ class QuantcastIntegration extends AbstractIntegration<Void> {
   }
 
   @Override String key() {
-    return "Quantcast";
+    return QUANTCAST_KEY;
   }
 
   @Override void onActivityStarted(Activity activity) {

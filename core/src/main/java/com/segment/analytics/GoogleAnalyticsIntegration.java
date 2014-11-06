@@ -29,6 +29,7 @@ class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
       Pattern.compile("completed *order", Pattern.CASE_INSENSITIVE);
   static final Pattern PRODUCT_EVENT_PATTERN =
       Pattern.compile("((viewed)|(added)|(removed)) *product *.*", Pattern.CASE_INSENSITIVE);
+  static final String GOOGLE_ANALYTICS_KEY = "Google Analytics";
   Tracker tracker;
   GoogleAnalytics googleAnalyticsInstance;
   boolean optedOut;
@@ -167,6 +168,6 @@ class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   }
 
   @Override String key() {
-    return "Google Analytics";
+    return GOOGLE_ANALYTICS_KEY;
   }
 }

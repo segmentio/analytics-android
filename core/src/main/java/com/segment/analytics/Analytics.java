@@ -232,7 +232,7 @@ public class Analytics {
 
   /** @see #identify(String, Traits, Options) */
   public void identify(String userId) {
-    identify(userId, null, defaultOptions);
+    identify(userId, null, null);
   }
 
   /** @see #identify(String, Traits, Options) */
@@ -244,8 +244,9 @@ public class Analytics {
    * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
    * also lets you record {@code traits} about the user, like their email, name, account type, etc.
    * <p></p>
-   * Traits will be automatically cached and available on future sessions for the same user. To
-   * update a trait on the server, simply call identify for the same user again.
+   * Traits and userId will be automatically cached and available on future sessions for the same
+   * user. To update a trait on the server, simply call identify with the same user id (or null).
+   * You can also use {@link #identify(Traits)} for this purpose.
    *
    * @param userId Unique identifier which you recognize a user by in your own database. If this is
    * null or empty, any previous id we have (could be the anonymous id) will be
@@ -293,9 +294,8 @@ public class Analytics {
    */
   public void group(String userId, String groupId, Traits traits, Options options) {
     if (isNullOrEmpty(groupId)) {
-      throw new IllegalArgumentException("groupId must be null or empty.");
+      throw new IllegalArgumentException("groupId must not be null or empty.");
     }
-
     if (isNullOrEmpty(userId)) {
       userId = traitsCache.get().userId();
     }
@@ -427,8 +427,8 @@ public class Analytics {
   }
 
   /**
-   * Flush all the messages in the queue. This wil do nothing for bundled integrations that don't
-   * have an explicit flush method.
+   * Flushes all messages in the queue to the server, and tell integrations to do the same. Note
+   * that wil do nothing for bundled integrations that don't provide an explicit flush method.
    */
   public void flush() {
     integrationManager.flush();
@@ -444,7 +444,7 @@ public class Analytics {
     return stats.createSnapshot();
   }
 
-  /** Clear any information about the current user. */
+  /** Clear any information, including traits and user id about the current user. */
   public void logout() {
     traitsCache.delete(application);
     analyticsContext.putTraits(traitsCache.get());
@@ -622,9 +622,9 @@ public class Analytics {
     /**
      * Set a tag for this instance. The tag is used to generate keys for caching. By default the
      * writeKey is used, but you may want to specify an alternative one, if you want the instances
-     * to share different caches. For example, without this tag, all instances will share the same
-     * traits. By specifying a custom tag for each instance of the client, all instance will have a
-     * different traits instance.
+     * to share different caches. For example, without this tag, all instances with the same
+     * writeKey, will share the same traits. By specifying a custom tag for each instance of the
+     * client, the instances will have a different traits instance.
      */
     public Builder tag(String tag) {
       if (isNullOrEmpty(tag)) {

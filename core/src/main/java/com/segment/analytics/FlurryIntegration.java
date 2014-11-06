@@ -17,6 +17,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * Android SDK</a>
  */
 class FlurryIntegration extends AbstractIntegration<Void> {
+  static final String FLURRY_KEY = "Flurry";
   String apiKey;
 
   FlurryIntegration(boolean debuggingEnabled) {
@@ -83,6 +84,6 @@ class FlurryIntegration extends AbstractIntegration<Void> {
   }
 
   @Override String key() {
-    return "Flurry";
+    return FLURRY_KEY;
   }
 }

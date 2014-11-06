@@ -24,7 +24,7 @@
 
 <resources>
 
-  <string name="app_name">Segment.io Sample</string>
+  <string name="app_name">Segment Sample</string>
   <string name="action_view_docs">Docs</string>
   <string name="no_browser_available">No browser to open link</string>
   <string name="track_button_a">Track Button A</string>

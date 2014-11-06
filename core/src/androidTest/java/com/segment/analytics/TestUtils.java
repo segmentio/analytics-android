@@ -1,6 +1,8 @@
 package com.segment.analytics;
 
 import android.app.Application;
+import java.io.File;
+import org.robolectric.Robolectric;
 
 import static android.Manifest.permission.INTERNET;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
@@ -95,6 +97,9 @@ final class TestUtils {
   static Application mockApplication() {
     Application application = mock(Application.class);
     when(application.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_GRANTED);
+    File parent = Robolectric.getShadowApplication().getFilesDir();
+    File temp = new File(parent, "temp");
+    when(application.getFilesDir()).thenReturn(temp);
     return application;
   }
 }

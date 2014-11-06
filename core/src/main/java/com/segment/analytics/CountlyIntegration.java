@@ -13,6 +13,7 @@ import ly.count.android.api.Countly;
  * @see <a href="https://github.com/Countly/countly-sdk-android">Countly Android SDK</a>
  */
 class CountlyIntegration extends AbstractIntegration<Countly> {
+  static final String COUNTLY_KEY = "Countly";
 
   CountlyIntegration(boolean debuggingEnabled) {
     super(debuggingEnabled);
@@ -29,7 +30,7 @@ class CountlyIntegration extends AbstractIntegration<Countly> {
   }
 
   @Override String key() {
-    return "Countly";
+    return COUNTLY_KEY;
   }
 
   @Override void onActivityStarted(Activity activity) {
