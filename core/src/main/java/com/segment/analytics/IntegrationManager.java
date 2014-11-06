@@ -276,7 +276,7 @@ class IntegrationManager {
     }
   }
 
-  private void run(IntegrationOperation operation) {
+  void run(IntegrationOperation operation) {
     for (AbstractIntegration integration : integrations) {
       long startTime = System.currentTimeMillis();
       operation.run(integration);
@@ -324,6 +324,7 @@ class IntegrationManager {
       this.type = type;
       this.bundle = bundle;
       this.id = UUID.randomUUID().toString();
+      // Ideally we would store a weak reference, but it doesn't work for stop/destroy events
       this.activity = activity;
     }
 

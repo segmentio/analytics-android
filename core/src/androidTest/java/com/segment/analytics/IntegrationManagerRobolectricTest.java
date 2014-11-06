@@ -1,9 +1,11 @@
 package com.segment.analytics;
 
 import android.content.Context;
+import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -13,6 +15,8 @@ import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -67,4 +71,52 @@ public class IntegrationManagerRobolectricTest {
       assertThat(expected).hasMessage("unknown integration key: d");
     }
   }
+
+  @Test public void initializesIntegrations() {
+    final AbstractIntegration<Void> fooIntegration = mock(AbstractIntegration.class);
+    IntegrationManager integrationManager =
+        new IntegrationManager(context, segmentHTTPApi, stringCache, stats, 20, 30, "bar", true) {
+          @Override AbstractIntegration createIntegrationForKey(String key) {
+            if ("Foo".equals(key)) {
+              return fooIntegration;
+            }
+            throw new IllegalArgumentException("unknown key: " + key);
+          }
+        };
+
+    integrationManager.bundledIntegrations.clear();
+    integrationManager.bundledIntegrations.put("Foo", false);
+    integrationManager.initializeIntegrations(
+        ProjectSettings.create("{\"Foo\":{\"trackNamedPages\":true,\"trackAllPages\":false}}",
+            System.currentTimeMillis()));
+
+    try {
+      verify(fooIntegration).initialize(context,
+          new JsonMap("{\"trackNamedPages\":true,\"trackAllPages\":false}"));
+    } catch (InvalidConfigurationException ignored) {
+      fail("unexpected exception: ", ignored);
+    }
+
+    assertThat(integrationManager.initialized).isTrue();
+    assertThat(integrationManager.integrations).containsExactly(fooIntegration);
+  }
+
+  @Test public void forwardsCorrectly() {
+    integrationManager.initialized = true;
+    final AbstractIntegration<Void> fooIntegration = mock(AbstractIntegration.class);
+    integrationManager.integrations = new ArrayList<AbstractIntegration>();
+    integrationManager.integrations.add(fooIntegration);
+
+    integrationManager.run(new IntegrationManager.IntegrationOperation() {
+      @Override public void run(AbstractIntegration integration) {
+        integration.alias(mock(AliasPayload.class));
+      }
+
+      @Override public String id() {
+        return null;
+      }
+    });
+    verify(fooIntegration).alias(Matchers.<AliasPayload>any());
+  }
 }
+
