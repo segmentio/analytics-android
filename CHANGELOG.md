@@ -7,6 +7,7 @@ Version 2.3.0 (In progress)
 * Improvement: If integrations fail to load (e.g. due to missing permissions), update internal flags so server can send the event instead
 * Improvement: Explicitly specify UTF-8 charset for serializing/deserializing payloads
 * Improvement: Fallback to memory queue if disk fails to load
+* Improvement: Accept `httpFallback` for AppsFlyer
 * Fix: Don't call `Leanplum#forceContentUpdate` when flushing
 
 Version 2.2.0 (October 29th, 2014)
@@ -15,7 +16,7 @@ Version 2.2.0 (October 29th, 2014)
 * New: `flushInterval` setting, that flushes any events in the queue at a specified interval
 * New: Added AppsFlyer integration
 * New: Collect advertisingId as per spec
-* Fix: More permissions verification for Leanplum
+* Fix: Verify C2DM permission for Leanplum
 * Fix: Synchronize maps across threads
 * Fix: Ignore `siteSpeedSamplingRate` for Google Analytics
 
