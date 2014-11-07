@@ -407,8 +407,8 @@ public class Analytics {
   }
 
   /** @see #alias(String, String, Options) */
-  public void alias(String newId, String previousId) {
-    alias(newId, previousId, null);
+  public void alias(String previousId, String newId) {
+    alias(previousId, newId, null);
   }
 
   /**
@@ -417,14 +417,14 @@ public class Analytics {
    * successfully in some of our integrations. You should still call {@link #identify(String,
    * Traits, Options)} with {@code newId} if you want to use it as the default id.
    *
-   * @param newId The newId to map the old id to. Must not be null to empty.
    * @param previousId The old id we want to map. If it is null, the userId we've cached will
    * automatically used.
+   * @param newId The newId to map the old id to. Must not be null to empty.
    * @param options To configure the call
    * @throws IllegalArgumentException if newId is null or empty
    * @see <a href="https://segment.io/docs/tracking-api/alias/">Alias Documentation</a>
    */
-  public void alias(String newId, String previousId, Options options) {
+  public void alias(String previousId, String newId, Options options) {
     if (isNullOrEmpty(newId)) {
       throw new IllegalArgumentException("newId must not be null or empty.");
     }

@@ -1,6 +1,7 @@
 Version 2.3.0 (In progress)
 ====================================
 * Breaking: Add explicit dependency on [Tape](https://github.com/square/tape)
+* Breaking: `alias` method accepts `(previousId, newId)` instead of `(newId, previousId)` to keep parity with other clients
 * New: Deprecate `logging` for `debugging`
 * New: (WIP) Debugging will now be forwarded to integrations so they can enable it too
 * New: Analytics.setSingletonInstance allows setting the global Analytics instance returned from Analytics.with.
