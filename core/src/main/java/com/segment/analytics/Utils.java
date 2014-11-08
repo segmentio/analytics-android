@@ -41,10 +41,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.Manifest.permission.READ_PHONE_STATE;
@@ -266,6 +266,27 @@ final class Utils {
   }
 
   static <T> Map<String, T> createMap() {
-    return Collections.synchronizedMap(new LinkedHashMap<String, T>());
+    return new NullableConcurrentHashMap<String, T>();
+  }
+
+  /** A {@link ConcurrentHashMap} that rejects null keys and values instead of failing. */
+  static class NullableConcurrentHashMap<K, V> extends ConcurrentHashMap<K, V> {
+    NullableConcurrentHashMap() {
+    }
+
+    NullableConcurrentHashMap(int initialCapacity) {
+      super(initialCapacity);
+    }
+
+    NullableConcurrentHashMap(Map<? extends K, ? extends V> m) {
+      super(m);
+    }
+
+    @Override public V put(K key, V value) {
+      if (key == null || value == null) {
+        return null;
+      }
+      return super.put(key, value);
+    }
   }
 }

@@ -278,7 +278,7 @@ public class Analytics {
       options = defaultOptions;
     }
     if (!isNullOrEmpty(traits)) {
-      traitsCache.get().merge(traits);
+      traitsCache.get().putAll(traits);
       traitsCache.save();
     }
 
@@ -314,7 +314,7 @@ public class Analytics {
       userId = traitsCache.get().userId();
     }
     if (!isNullOrEmpty(traits)) {
-      traitsCache.get().merge(traits);
+      traitsCache.get().putAll(traits);
       traitsCache.save();
     }
     if (options == null) {

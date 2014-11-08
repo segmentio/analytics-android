@@ -45,7 +45,7 @@ public class TraitsRobolectricTest {
         .putDescription("the second one");
     assertThat(traits2).hasSize(3);
 
-    traits1.merge(traits2);
+    traits1.putAll(traits2);
     assertThat(traits1).hasSize(7)
         .contains(MapEntry.entry("avatar", "f2prateek"))
         .contains(MapEntry.entry("description", "the second one"))

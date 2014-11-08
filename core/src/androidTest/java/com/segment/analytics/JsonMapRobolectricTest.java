@@ -50,7 +50,7 @@ public class JsonMapRobolectricTest {
     jsonMap.put("value1", MyEnum.VALUE1);
     jsonMap.put("value2", MyEnum.VALUE2);
     String json = jsonMap.toString();
-    assertThat(json).isEqualTo("{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}");
+    assertThat(json).isEqualTo("{\"value2\":\"VALUE2\",\"value1\":\"VALUE1\"}");
 
     jsonMap = new JsonMap("{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}");
     assertThat(jsonMap) //
@@ -61,6 +61,11 @@ public class JsonMapRobolectricTest {
     assertThat(jsonMap) //
         .contains(MapEntry.entry("value1", MyEnum.VALUE1))
         .contains(MapEntry.entry("value2", MyEnum.VALUE2));
+  }
+
+  @Test public void allowsNullValues() {
+    jsonMap.put(null, "foo");
+    jsonMap.put("foo", null);
   }
 
   @Test public void nestedMaps() throws Exception {

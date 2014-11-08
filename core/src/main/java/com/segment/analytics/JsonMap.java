@@ -5,14 +5,14 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.json.JSONObject;
 
-import static com.segment.analytics.Utils.createMap;
+import static com.segment.analytics.Utils.NullableConcurrentHashMap;
 
 /**
  * A {@link Map} wrapper to expose Json functionality. Only the {@link #toString()} method is
@@ -30,22 +30,23 @@ import static com.segment.analytics.Utils.createMap;
  * serialization.
  */
 class JsonMap implements Map<String, Object> {
-  private final Map<String, Object> delegate;
+  private final ConcurrentHashMap<String, Object> delegate;
 
   JsonMap() {
-    delegate = createMap();
+    delegate = new NullableConcurrentHashMap<String, Object>();
   }
 
-  JsonMap(Map<String, Object> delegate) {
-    if (delegate == null) {
+  JsonMap(Map<String, Object> map) {
+    if (map == null) {
       throw new IllegalArgumentException("Map must not be null.");
     }
-    this.delegate = Collections.synchronizedMap(delegate);
+    this.delegate = new NullableConcurrentHashMap<String, Object>(map);
   }
 
   JsonMap(String json) {
     try {
-      this.delegate = JsonUtils.jsonToMap(json);
+      Map<String, Object> map = JsonUtils.jsonToMap(json);
+      this.delegate = new NullableConcurrentHashMap<String, Object>(map);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -143,7 +144,7 @@ class JsonMap implements Map<String, Object> {
     if (integerValue == null) {
       return defaultValue;
     } else {
-      cache(key, integerValue);
+      put(key, integerValue);
       return integerValue;
     }
   }
@@ -170,7 +171,7 @@ class JsonMap implements Map<String, Object> {
     if (longValue == null) {
       return defaultValue;
     } else {
-      cache(key, longValue);
+      put(key, longValue);
       return longValue;
     }
   }
@@ -197,7 +198,7 @@ class JsonMap implements Map<String, Object> {
     if (doubleValue == null) {
       return defaultValue;
     } else {
-      cache(key, doubleValue);
+      put(key, doubleValue);
       return doubleValue;
     }
   }
@@ -214,7 +215,7 @@ class JsonMap implements Map<String, Object> {
     if (value != null && value instanceof String) {
       if (((String) value).length() == 1) {
         Character charValue = ((String) value).charAt(0);
-        cache(key, charValue);
+        put(key, charValue);
         return charValue;
       }
     }
@@ -234,7 +235,7 @@ class JsonMap implements Map<String, Object> {
       return (String) value;
     } else if (value != null) {
       String stringValue = String.valueOf(value);
-      cache(key, stringValue);
+      put(key, stringValue);
       return stringValue;
     }
     return null;
@@ -251,7 +252,7 @@ class JsonMap implements Map<String, Object> {
     } else if (value instanceof String) {
       String stringValue = (String) value;
       boolean bool = Boolean.valueOf(stringValue);
-      cache(key, bool);
+      put(key, bool);
     }
     return defaultValue;
   }
@@ -271,7 +272,7 @@ class JsonMap implements Map<String, Object> {
     } else if (value instanceof String) {
       String stringValue = (String) value;
       T enumValue = Enum.valueOf(enumType, stringValue);
-      cache(key, enumValue);
+      put(key, enumValue);
       return enumValue;
     }
     return null;
@@ -298,7 +299,7 @@ class JsonMap implements Map<String, Object> {
   <T extends JsonMap> T getJsonMap(String key, Class<T> clazz) {
     Object value = get(key);
     T typedValue = castToJsonMap(value, clazz);
-    if (typedValue != null) cache(key, typedValue);
+    if (typedValue != null) put(key, typedValue);
     return typedValue;
   }
 
@@ -356,20 +357,5 @@ class JsonMap implements Map<String, Object> {
       map.put(entry.getKey(), String.valueOf(entry.getValue()));
     }
     return map;
-  }
-
-  /** Shallow merge the given map into this map. */
-  void merge(Map<String, Object> map) {
-    for (Map.Entry<String, Object> entry : map.entrySet()) {
-      put(entry.getKey(), entry.getValue());
-    }
-  }
-
-  private void cache(String key, Object value) {
-    try {
-      delegate.put(key, value);
-    } catch (UnsupportedOperationException ignored) {
-      // ignore
-    }
   }
 }
