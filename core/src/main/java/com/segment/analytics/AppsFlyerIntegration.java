@@ -52,9 +52,4 @@ class AppsFlyerIntegration extends AbstractIntegration<Void> {
     AppsFlyerLib.setAppUserId(identify.userId());
     AppsFlyerLib.setUserEmail(identify.traits().email());
   }
-
-  @Override void optOut(boolean optOut) {
-    super.optOut(optOut);
-    AppsFlyerLib.setDeviceTrackingDisabled(optOut);
-  }
 }

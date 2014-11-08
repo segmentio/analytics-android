@@ -32,7 +32,6 @@ class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   static final String GOOGLE_ANALYTICS_KEY = "Google Analytics";
   Tracker tracker;
   GoogleAnalytics googleAnalyticsInstance;
-  boolean optedOut;
   boolean sendUserId;
 
   GoogleAnalyticsIntegration(boolean debuggingEnabled) {
@@ -67,22 +66,11 @@ class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   @Override void onActivityStarted(Activity activity) {
     super.onActivityStarted(activity);
     googleAnalyticsInstance.reportActivityStart(activity);
-    applyOptOut();
   }
 
   @Override void onActivityStopped(Activity activity) {
     super.onActivityStopped(activity);
     googleAnalyticsInstance.reportActivityStop(activity);
-    applyOptOut();
-  }
-
-  @Override void optOut(boolean optOut) {
-    super.optOut(optOut);
-    optedOut = optOut;
-  }
-
-  private void applyOptOut() {
-    googleAnalyticsInstance.setAppOptOut(optedOut);
   }
 
   @Override void screen(ScreenPayload screen) {

@@ -7,9 +7,12 @@ import android.os.Bundle;
 /**
  * A base class for Integrations. An integration will only be created if the server sends us
  * settings for it.
+ * <p></p>
+ * This could exist as an interface, but we'll want an abstract class anyway since not all
+ * integrations require all methods to be implemented.
  *
  * @param <T> The type of the backing instance. This isn't strictly necessary, but serves as
- * documentation for what type to expect.
+ * documentation for what type to expect with {@link #getUnderlyingInstance()}
  */
 abstract class AbstractIntegration<T> {
   static final String VIEWED_EVENT_FORMAT = "Viewed %s Screen";
@@ -80,15 +83,6 @@ abstract class AbstractIntegration<T> {
   }
 
   void flush() {
-
-  }
-
-  /**
-   * Called to indicate that the user has optedOut. If called with {@code true}true, this
-   * integration won't receive any more events until this method is called with {@code false}.
-   * todo: this isn't exposed to the public API yet
-   */
-  void optOut(boolean optOut) {
 
   }
 }

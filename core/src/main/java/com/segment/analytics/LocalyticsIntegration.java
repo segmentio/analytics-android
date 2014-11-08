@@ -71,11 +71,6 @@ class LocalyticsIntegration extends AbstractIntegration<LocalyticsAmpSession> {
     session.upload();
   }
 
-  @Override void optOut(boolean optOut) {
-    super.optOut(optOut);
-    session.setOptOut(optOut);
-  }
-
   @Override void identify(IdentifyPayload identify) {
     super.identify(identify);
     Traits traits = identify.traits();

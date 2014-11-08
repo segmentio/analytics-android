@@ -64,9 +64,4 @@ class QuantcastIntegration extends AbstractIntegration<Void> {
     super.track(track);
     QuantcastClient.logEvent(track.event());
   }
-
-  @Override void optOut(boolean optOut) {
-    super.optOut(optOut);
-    QuantcastClient.setCollectionEnabled(optOut);
-  }
 }

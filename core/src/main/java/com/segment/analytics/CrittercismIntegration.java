@@ -57,9 +57,4 @@ class CrittercismIntegration extends AbstractIntegration<Void> {
     super.flush();
     Crittercism.sendAppLoadData();
   }
-
-  @Override void optOut(boolean optOut) {
-    super.optOut(optOut);
-    Crittercism.setOptOutStatus(optOut);
-  }
 }
