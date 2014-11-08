@@ -30,17 +30,16 @@ public class FlurryRobolectricTest extends IntegrationRobolectricExam {
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(FlurryAgent.class);
-    integration = new FlurryIntegration(true);
+    integration = new FlurryIntegration();
     integration.apiKey = apiKey;
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
     integration.initialize(context, //
-            new JsonMap().putValue("apiKey", apiKey)
-                    .putValue("sessionContinueSeconds", 20)
-                    .putValue("captureUncaughtExceptions", true)
-                    .putValue("useHttps", false)
-    );
+        new JsonMap().putValue("apiKey", apiKey)
+            .putValue("sessionContinueSeconds", 20)
+            .putValue("captureUncaughtExceptions", true)
+            .putValue("useHttps", false), true);
     verifyStatic();
     FlurryAgent.setContinueSessionMillis(20000);
     verifyStatic();

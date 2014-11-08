@@ -18,11 +18,7 @@ import java.util.Map;
 class BugsnagIntegration extends AbstractIntegration<Client> {
   static final String BUGSNAG_KEY = "Bugsnag";
 
-  BugsnagIntegration(boolean debuggingEnabled) {
-    super(debuggingEnabled);
-  }
-
-  @Override void initialize(Context context, JsonMap settings)
+  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
       throws InvalidConfigurationException {
     Bugsnag.register(context, settings.getString("apiKey"));
     Bugsnag.setUseSSL(settings.getBoolean("useSSL", true));

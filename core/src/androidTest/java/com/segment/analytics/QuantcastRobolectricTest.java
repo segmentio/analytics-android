@@ -26,13 +26,21 @@ public class QuantcastRobolectricTest extends IntegrationRobolectricExam {
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(QuantcastClient.class);
-    integration = new QuantcastIntegration(true);
+    integration = new QuantcastIntegration();
     integration.apiKey = apiKey;
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
-    integration.initialize(context, new JsonMap().putValue("apiKey", "foo"));
+    integration.initialize(context, new JsonMap().putValue("apiKey", "foo"), false);
     verifyStatic();
+    QuantcastClient.enableLogging(false);
+    verifyNoMoreInteractions(QuantcastClient.class);
+  }
+
+  @Test public void initializeWithDebugging() throws InvalidConfigurationException {
+    integration.initialize(context, new JsonMap().putValue("apiKey", "foo"), true);
+    verifyStatic();
+    QuantcastClient.enableLogging(true);
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
@@ -74,16 +82,5 @@ public class QuantcastRobolectricTest extends IntegrationRobolectricExam {
     integration.track(trackPayload("bar"));
     verifyStatic();
     QuantcastClient.logEvent("bar");
-  }
-
-  @Test
-  public void optOut() {
-    integration.optOut(true);
-    verifyStatic();
-    QuantcastClient.setCollectionEnabled(true);
-
-    integration.optOut(false);
-    verifyStatic();
-    QuantcastClient.setCollectionEnabled(false);
   }
 }

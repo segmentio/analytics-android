@@ -172,7 +172,7 @@ class IntegrationManager {
           if (debuggingEnabled) {
             debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, key, "settings: %s", settings);
           }
-          integration.initialize(context, settings);
+          integration.initialize(context, settings, debuggingEnabled);
           if (listener != null) {
             listener.onIntegrationReady(key, integration.getUnderlyingInstance());
           }
@@ -208,42 +208,42 @@ class IntegrationManager {
       case 'A':
         switch (key.charAt(1)) {
           case 'm':
-            return new AmplitudeIntegration(debuggingEnabled);
+            return new AmplitudeIntegration();
           case 'p':
-            return new AppsFlyerIntegration(debuggingEnabled);
+            return new AppsFlyerIntegration();
           default:
             break;
         }
       case 'B':
-        return new BugsnagIntegration(debuggingEnabled);
+        return new BugsnagIntegration();
       case 'C':
         switch (key.charAt(1)) {
           case 'o':
-            return new CountlyIntegration(debuggingEnabled);
+            return new CountlyIntegration();
           case 'r':
-            return new CrittercismIntegration(debuggingEnabled);
+            return new CrittercismIntegration();
           default:
             break;
         }
       case 'F':
-        return new FlurryIntegration(debuggingEnabled);
+        return new FlurryIntegration();
       case 'G':
-        return new GoogleAnalyticsIntegration(debuggingEnabled);
+        return new GoogleAnalyticsIntegration();
       case 'L':
         switch (key.charAt(1)) {
           case 'e':
-            return new LeanplumIntegration(debuggingEnabled);
+            return new LeanplumIntegration();
           case 'o':
-            return new LocalyticsIntegration(debuggingEnabled);
+            return new LocalyticsIntegration();
           default:
             break;
         }
       case 'M':
-        return new MixpanelIntegration(debuggingEnabled);
+        return new MixpanelIntegration();
       case 'Q':
-        return new QuantcastIntegration(debuggingEnabled);
+        return new QuantcastIntegration();
       case 'T':
-        return new TapstreamIntegration(debuggingEnabled);
+        return new TapstreamIntegration();
       default:
         break;
     }

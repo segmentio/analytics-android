@@ -26,12 +26,12 @@ public class BugsnagRobolectricTest extends IntegrationRobolectricExam {
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(Bugsnag.class);
-    integration = new BugsnagIntegration(true);
+    integration = new BugsnagIntegration();
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
-    integration.initialize(context, new JsonMap().putValue("apiKey", "foo")
-            .putValue("useSSL", true));
+    integration.initialize(context,
+        new JsonMap().putValue("apiKey", "foo").putValue("useSSL", true), true);
     verifyStatic();
     Bugsnag.register(context, "foo");
     Bugsnag.setUseSSL(true);

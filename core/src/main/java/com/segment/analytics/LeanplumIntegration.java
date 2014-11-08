@@ -13,11 +13,7 @@ class LeanplumIntegration extends AbstractIntegration<Void> {
   static final String LEANPLUM_KEY = "Leanplum";
   LeanplumActivityHelper helper;
 
-  LeanplumIntegration(boolean debuggingEnabled) {
-    super(debuggingEnabled);
-  }
-
-  @Override void initialize(Context context, JsonMap settings)
+  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
       throws InvalidConfigurationException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new InvalidConfigurationException("Leanplum requires ACCESS_NETWORK_STATE permission");
@@ -26,6 +22,13 @@ class LeanplumIntegration extends AbstractIntegration<Void> {
       throw new InvalidConfigurationException(
           "Leanplum requires com.google.android.c2dm.permission.RECEIVE permission");
     }
+    /*
+    if (debuggingEnabled) {
+      Leanplum.setAppIdForDevelopmentMode(settings.getString("appId"),
+          settings.getString("clientKey"));
+      Leanplum.enableVerboseLoggingInDevelopmentMode();
+    }
+    */
     Leanplum.setAppIdForProductionMode(settings.getString("appId"),
         settings.getString("clientKey"));
     Leanplum.start(context);

@@ -33,13 +33,13 @@ public class LocalyticsRobolectricTest extends IntegrationRobolectricExam {
 
     grantPermission(Robolectric.application, Manifest.permission.WAKE_LOCK);
 
-    integration = new LocalyticsIntegration(true);
+    integration = new LocalyticsIntegration();
     integration.session = localytics;
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
-    LocalyticsIntegration adapter = new LocalyticsIntegration(true);
-    adapter.initialize(Robolectric.application, new JsonMap().putValue("appKey", "foo"));
+    LocalyticsIntegration adapter = new LocalyticsIntegration();
+    adapter.initialize(Robolectric.application, new JsonMap().putValue("appKey", "foo"), true);
     assertThat(adapter.session).isNotNull();
   }
 
@@ -97,14 +97,6 @@ public class LocalyticsRobolectricTest extends IntegrationRobolectricExam {
   @Test public void flush() {
     integration.flush();
     verify(localytics).upload();
-  }
-
-  @Test public void optOut() {
-    integration.optOut(false);
-    verify(localytics).setOptOut(false);
-
-    integration.optOut(true);
-    verify(localytics).setOptOut(true);
   }
 
   @Test public void screen() {

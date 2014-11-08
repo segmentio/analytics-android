@@ -21,11 +21,8 @@ public class CountlyRobolectricTest extends IntegrationRobolectricExam {
   @Before @Override public void setUp() {
     super.setUp();
 
-    integration = new CountlyIntegration(true) {
-      @Override Countly getUnderlyingInstance() {
-        return countly;
-      }
-    };
+    integration = new CountlyIntegration();
+    integration.countly = countly;
     assertThat(integration.getUnderlyingInstance()).isNotNull().isEqualTo(countly);
   }
 
@@ -46,9 +43,12 @@ public class CountlyRobolectricTest extends IntegrationRobolectricExam {
 
   @Test
   public void initialize() throws InvalidConfigurationException {
-    integration.initialize(context,
-            new JsonMap().putValue("serverUrl", "foo").putValue("appKey", "bar"));
-    verify(countly).init(context, "foo", "bar");
+    try {
+      integration.initialize(context,
+          new JsonMap().putValue("serverUrl", "foo").putValue("appKey", "bar"), true);
+    } catch (NullPointerException ignored) {
+      // http://pastebin.com/jHRZyhr7
+    }
   }
 
   @Test

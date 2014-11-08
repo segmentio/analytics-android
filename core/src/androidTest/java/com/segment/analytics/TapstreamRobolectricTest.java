@@ -20,6 +20,7 @@ import org.robolectric.annotation.Config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
@@ -35,18 +36,19 @@ public class TapstreamRobolectricTest extends IntegrationRobolectricExam {
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(Tapstream.class);
-    integration = new TapstreamIntegration(true);
+    integration = new TapstreamIntegration();
     integration.tapstream = tapstream;
     integration.config = config;
+    when(context.getApplicationContext()).thenReturn(context);
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
-    TapstreamIntegration adapter = new TapstreamIntegration(true);
+    TapstreamIntegration adapter = new TapstreamIntegration();
     adapter.initialize(context, new JsonMap().putValue("accountName", "foo")
         .putValue("sdkSecret", "bar")
         .putValue("trackAllPages", true)
         .putValue("trackCategorizedPages", false)
-        .putValue("trackNamedPages", true));
+        .putValue("trackNamedPages", true), true);
     verifyStatic();
     Tapstream.create(eq(context), eq("foo"), eq("bar"), Matchers.<com.tapstream.sdk.Config>any());
   }

@@ -26,10 +26,6 @@ class TapstreamIntegration extends AbstractIntegration<Tapstream> {
   Tapstream tapstream;
   Config config;
 
-  TapstreamIntegration(boolean debuggingEnabled) {
-    super(debuggingEnabled);
-  }
-
   private static Event makeEvent(String name, Properties properties) {
     Event event = new Event(name, false);
     for (Map.Entry<String, Object> entry : properties.entrySet()) {
@@ -38,14 +34,14 @@ class TapstreamIntegration extends AbstractIntegration<Tapstream> {
     return event;
   }
 
-  @Override void initialize(Context context, JsonMap settings)
+  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
       throws InvalidConfigurationException {
     trackAllPages = settings.getBoolean("trackAllPages", true);
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", true);
     trackNamedPages = settings.getBoolean("trackNamedPages", true);
     config = new Config();
-    Tapstream.create((Application) context, settings.getString("accountName"),
-        settings.getString("sdkSecret"), config);
+    Tapstream.create((Application) context.getApplicationContext(),
+        settings.getString("accountName"), settings.getString("sdkSecret"), config);
     tapstream = Tapstream.getInstance();
   }
 

@@ -14,19 +14,16 @@ import ly.count.android.api.Countly;
  */
 class CountlyIntegration extends AbstractIntegration<Countly> {
   static final String COUNTLY_KEY = "Countly";
+  Countly countly;
 
-  CountlyIntegration(boolean debuggingEnabled) {
-    super(debuggingEnabled);
-  }
-
-  @Override void initialize(Context context, JsonMap settings)
+  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
       throws InvalidConfigurationException {
-    getUnderlyingInstance().init(context, settings.getString("serverUrl"),
-        settings.getString("appKey"));
+    countly = Countly.sharedInstance();
+    countly.init(context, settings.getString("serverUrl"), settings.getString("appKey"));
   }
 
   @Override Countly getUnderlyingInstance() {
-    return Countly.sharedInstance();
+    return countly;
   }
 
   @Override String key() {
@@ -35,12 +32,12 @@ class CountlyIntegration extends AbstractIntegration<Countly> {
 
   @Override void onActivityStarted(Activity activity) {
     super.onActivityStarted(activity);
-    getUnderlyingInstance().onStart();
+    countly.onStart();
   }
 
   @Override void onActivityStopped(Activity activity) {
     super.onActivityStopped(activity);
-    getUnderlyingInstance().onStop();
+    countly.onStop();
   }
 
   @Override void track(TrackPayload track) {
@@ -56,6 +53,6 @@ class CountlyIntegration extends AbstractIntegration<Countly> {
   private void event(String name, Properties properties) {
     int count = properties.getInt("count", 1);
     double sum = properties.getDouble("sum", 0);
-    getUnderlyingInstance().recordEvent(name, properties.toStringMap(), count, sum);
+    countly.recordEvent(name, properties.toStringMap(), count, sum);
   }
 }

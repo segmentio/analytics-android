@@ -20,17 +20,14 @@ class FlurryIntegration extends AbstractIntegration<Void> {
   static final String FLURRY_KEY = "Flurry";
   String apiKey;
 
-  FlurryIntegration(boolean debuggingEnabled) {
-    super(debuggingEnabled);
-  }
-
-  @Override void initialize(Context context, JsonMap settings)
+  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
       throws InvalidConfigurationException {
     apiKey = settings.getString("apiKey");
     FlurryAgent.setContinueSessionMillis(settings.getInt("sessionContinueSeconds", 10) * 1000);
     FlurryAgent.setCaptureUncaughtExceptions(
         settings.getBoolean("captureUncaughtExceptions", false));
     FlurryAgent.setUseHttps(settings.getBoolean("useHttps", true));
+    FlurryAgent.setLogEnabled(debuggingEnabled);
   }
 
   @Override void onActivityStarted(Activity activity) {

@@ -79,7 +79,6 @@ class SegmentIntegration extends AbstractIntegration<Void> {
   SegmentIntegration(Context context, int queueSize, int flushInterval,
       SegmentHTTPApi segmentHTTPApi, ObjectQueue<BasePayload> queue,
       Map<String, Boolean> integrations, Stats stats, boolean debuggingEnabled) {
-    super(debuggingEnabled);
     this.context = context;
     this.queueSize = queueSize;
     this.segmentHTTPApi = segmentHTTPApi;
@@ -94,9 +93,9 @@ class SegmentIntegration extends AbstractIntegration<Void> {
     rescheduleFlush();
   }
 
-  @Override void initialize(Context context, JsonMap settings)
+  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
       throws InvalidConfigurationException {
-
+    // ignored
   }
 
   @Override String key() {

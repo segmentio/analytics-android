@@ -36,16 +36,16 @@ public class MixpanelRobolectricTest extends IntegrationRobolectricExam {
     doReturn(people).when(mixpanelAPI).getPeople();
 
     PowerMockito.mockStatic(MixpanelAPI.class);
-    integration = new MixpanelIntegration(true);
+    integration = new MixpanelIntegration();
     integration.mixpanelAPI = mixpanelAPI;
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
-    MixpanelIntegration adapter = new MixpanelIntegration(true);
+    MixpanelIntegration adapter = new MixpanelIntegration();
     adapter.initialize(context, new JsonMap().putValue("token", "foo")
         .putValue("trackAllPages", true)
         .putValue("trackCategorizedPages", false)
-        .putValue("trackNamedPages", true));
+        .putValue("trackNamedPages", true), true);
     verifyStatic();
     MixpanelAPI.getInstance(context, "foo");
   }

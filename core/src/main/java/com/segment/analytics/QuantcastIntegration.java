@@ -20,16 +20,13 @@ class QuantcastIntegration extends AbstractIntegration<Void> {
   static final String QUANTCAST_KEY = "Quantcast";
   String apiKey;
 
-  QuantcastIntegration(boolean debuggingEnabled) {
-    super(debuggingEnabled);
-  }
-
-  @Override void initialize(Context context, JsonMap settings)
+  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
       throws InvalidConfigurationException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new InvalidConfigurationException("ACCESS_NETWORK_STATE is required");
     }
     apiKey = settings.getString("apiKey");
+    QuantcastClient.enableLogging(debuggingEnabled);
   }
 
   @Override Void getUnderlyingInstance() {

@@ -32,16 +32,15 @@ public class AmplitudeRobolectricTest extends IntegrationRobolectricExam {
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(Amplitude.class);
-    integration = new AmplitudeIntegration(true);
+    integration = new AmplitudeIntegration();
   }
 
   @Test public void initialize() throws InvalidConfigurationException {
     integration.initialize(context, //
-            new JsonMap().putValue("apiKey", "foo")
-                    .putValue("trackAllPages", true)
-                    .putValue("trackCategorizedPages", false)
-                    .putValue("trackNamedPages", true)
-    );
+        new JsonMap().putValue("apiKey", "foo")
+            .putValue("trackAllPages", true)
+            .putValue("trackCategorizedPages", false)
+            .putValue("trackNamedPages", true), true);
     verifyStatic();
     Amplitude.initialize(context, "foo");
     assertThat(integration.trackAllPages).isTrue();
@@ -49,7 +48,7 @@ public class AmplitudeRobolectricTest extends IntegrationRobolectricExam {
     assertThat(integration.trackNamedPages).isTrue();
     // Verify default args
     integration.initialize(context, //
-            new JsonMap().putValue("apiKey", "foo"));
+        new JsonMap().putValue("apiKey", "foo"), true);
     assertThat(integration.trackAllPages).isFalse();
     assertThat(integration.trackCategorizedPages).isFalse();
     assertThat(integration.trackNamedPages).isFalse();

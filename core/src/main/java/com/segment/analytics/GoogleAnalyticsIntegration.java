@@ -6,6 +6,7 @@ import android.content.Context;
 import com.google.android.gms.analytics.ExceptionReporter;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Logger;
 import com.google.android.gms.analytics.Tracker;
 import java.util.List;
 import java.util.Map;
@@ -34,11 +35,7 @@ class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   GoogleAnalytics googleAnalyticsInstance;
   boolean sendUserId;
 
-  GoogleAnalyticsIntegration(boolean debuggingEnabled) {
-    super(debuggingEnabled);
-  }
-
-  @Override void initialize(Context context, JsonMap settings)
+  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
       throws InvalidConfigurationException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new InvalidConfigurationException(
@@ -46,7 +43,9 @@ class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     }
 
     googleAnalyticsInstance = GoogleAnalytics.getInstance(context);
-    // todo: set logger level googleAnalyticsInstance.getLogger().setLogLevel();
+    if (debuggingEnabled) {
+      googleAnalyticsInstance.getLogger().setLogLevel(Logger.LogLevel.VERBOSE);
+    }
 
     // Look up the mobileTrackingId, if unavailable, fallback to the trackingId
     String trackingId = settings.getString("mobileTrackingId");

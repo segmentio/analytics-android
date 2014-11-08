@@ -31,11 +31,11 @@ public class CrittercismRobolectricTest extends IntegrationRobolectricExam {
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(Crittercism.class);
-    integration = new CrittercismIntegration(true);
+    integration = new CrittercismIntegration();
   }
 
   @Test public void initialize() throws Exception {
-    integration.initialize(context, new JsonMap().putValue("appId", "foo"));
+    integration.initialize(context, new JsonMap().putValue("appId", "foo"), true);
     verifyStatic();
     // todo: verify config params
     Crittercism.initialize(eq(context), eq("foo"), Matchers.<CrittercismConfig>any());
@@ -76,15 +76,5 @@ public class CrittercismRobolectricTest extends IntegrationRobolectricExam {
     integration.flush();
     verifyStatic();
     Crittercism.sendAppLoadData();
-  }
-
-  @Test public void optOut() {
-    integration.optOut(false);
-    verifyStatic();
-    Crittercism.setOptOutStatus(false);
-
-    integration.optOut(true);
-    verifyStatic();
-    Crittercism.setOptOutStatus(true);
   }
 }

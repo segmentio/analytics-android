@@ -18,11 +18,7 @@ class AppsFlyerIntegration extends AbstractIntegration<Void> {
   static final String APPS_FLYER_KEY = "AppsFlyer";
   Context context;
 
-  AppsFlyerIntegration(boolean debuggingEnabled) {
-    super(debuggingEnabled);
-  }
-
-  @Override void initialize(Context context, JsonMap settings)
+  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
       throws InvalidConfigurationException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new InvalidConfigurationException(
