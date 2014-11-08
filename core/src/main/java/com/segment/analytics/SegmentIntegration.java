@@ -94,7 +94,7 @@ class SegmentIntegration extends AbstractIntegration<Void> {
   }
 
   @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
-      throws InvalidConfigurationException {
+      throws IllegalStateException {
     // ignored
   }
 

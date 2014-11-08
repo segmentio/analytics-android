@@ -177,7 +177,7 @@ class IntegrationManager {
             listener.onIntegrationReady(key, integration.getUnderlyingInstance());
           }
           integrations.add(integration);
-        } catch (InvalidConfigurationException e) {
+        } catch (IllegalStateException e) {
           iterator.remove();
           if (debuggingEnabled) {
             error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), e, null);

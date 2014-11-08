@@ -33,7 +33,7 @@ public class LeanplumRobolectricTest extends IntegrationRobolectricExam {
     integration = new LeanplumIntegration();
   }
 
-  @Test public void initialize() throws InvalidConfigurationException {
+  @Test public void initialize() throws IllegalStateException {
     integration.initialize(context,
         new JsonMap().putValue("appId", "foo").putValue("clientKey", "bar"), true);
     verifyStatic();
@@ -42,7 +42,7 @@ public class LeanplumRobolectricTest extends IntegrationRobolectricExam {
     Leanplum.start(context);
   }
 
-  @Test public void initializeWithDebugging() throws InvalidConfigurationException {
+  @Test public void initializeWithDebugging() throws IllegalStateException {
     // Same as above, just until we verify if enabling development mode is the right behaviour
     integration.initialize(context,
         new JsonMap().putValue("appId", "foo").putValue("clientKey", "bar"), false);

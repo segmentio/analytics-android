@@ -93,7 +93,7 @@ public class IntegrationManagerRobolectricTest {
     try {
       verify(fooIntegration).initialize(context,
           new JsonMap("{\"trackNamedPages\":true,\"trackAllPages\":false}"), true);
-    } catch (InvalidConfigurationException ignored) {
+    } catch (IllegalStateException ignored) {
       fail("unexpected exception: ", ignored);
     }
 

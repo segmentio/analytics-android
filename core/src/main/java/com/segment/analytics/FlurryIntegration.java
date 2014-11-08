@@ -21,7 +21,7 @@ class FlurryIntegration extends AbstractIntegration<Void> {
   String apiKey;
 
   @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
-      throws InvalidConfigurationException {
+      throws IllegalStateException {
     apiKey = settings.getString("apiKey");
     FlurryAgent.setContinueSessionMillis(settings.getInt("sessionContinueSeconds", 10) * 1000);
     FlurryAgent.setCaptureUncaughtExceptions(

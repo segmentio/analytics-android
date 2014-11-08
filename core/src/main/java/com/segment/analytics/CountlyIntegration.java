@@ -17,7 +17,7 @@ class CountlyIntegration extends AbstractIntegration<Countly> {
   Countly countly;
 
   @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
-      throws InvalidConfigurationException {
+      throws IllegalStateException {
     countly = Countly.sharedInstance();
     countly.init(context, settings.getString("serverUrl"), settings.getString("appKey"));
   }

@@ -23,9 +23,9 @@ class LocalyticsIntegration extends AbstractIntegration<LocalyticsAmpSession> {
   LocalyticsAmpSession session;
 
   @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
-      throws InvalidConfigurationException {
+      throws IllegalStateException {
     if (!hasPermission(context, Manifest.permission.WAKE_LOCK)) {
-      throw new InvalidConfigurationException("localytics requires the wake lock permission");
+      throw new IllegalStateException("localytics requires the wake lock permission");
     }
     session = new LocalyticsAmpSession(context, settings.getString("appKey"));
   }

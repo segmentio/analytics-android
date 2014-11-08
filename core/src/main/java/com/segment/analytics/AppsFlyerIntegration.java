@@ -19,10 +19,9 @@ class AppsFlyerIntegration extends AbstractIntegration<Void> {
   Context context;
 
   @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
-      throws InvalidConfigurationException {
+      throws IllegalStateException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
-      throw new InvalidConfigurationException(
-          "AppsFlyer requires the ACCESS_NETWORK_STATE permission");
+      throw new IllegalStateException("AppsFlyer requires the ACCESS_NETWORK_STATE permission");
     }
     AppsFlyerLib.setAppsFlyerKey(settings.getString("appsFlyerDevKey"));
     AppsFlyerLib.setUseHTTPFalback(settings.getBoolean("httpFallback", false));

@@ -37,7 +37,7 @@ public class LocalyticsRobolectricTest extends IntegrationRobolectricExam {
     integration.session = localytics;
   }
 
-  @Test public void initialize() throws InvalidConfigurationException {
+  @Test public void initialize() throws IllegalStateException {
     LocalyticsIntegration adapter = new LocalyticsIntegration();
     adapter.initialize(Robolectric.application, new JsonMap().putValue("appKey", "foo"), true);
     assertThat(adapter.session).isNotNull();

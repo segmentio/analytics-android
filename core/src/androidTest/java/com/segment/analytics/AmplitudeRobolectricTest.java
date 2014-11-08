@@ -35,7 +35,7 @@ public class AmplitudeRobolectricTest extends IntegrationRobolectricExam {
     integration = new AmplitudeIntegration();
   }
 
-  @Test public void initialize() throws InvalidConfigurationException {
+  @Test public void initialize() throws IllegalStateException {
     integration.initialize(context, //
         new JsonMap().putValue("apiKey", "foo")
             .putValue("trackAllPages", true)

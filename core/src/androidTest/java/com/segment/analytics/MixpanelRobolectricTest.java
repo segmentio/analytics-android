@@ -40,7 +40,7 @@ public class MixpanelRobolectricTest extends IntegrationRobolectricExam {
     integration.mixpanelAPI = mixpanelAPI;
   }
 
-  @Test public void initialize() throws InvalidConfigurationException {
+  @Test public void initialize() throws IllegalStateException {
     MixpanelIntegration adapter = new MixpanelIntegration();
     adapter.initialize(context, new JsonMap().putValue("token", "foo")
         .putValue("trackAllPages", true)

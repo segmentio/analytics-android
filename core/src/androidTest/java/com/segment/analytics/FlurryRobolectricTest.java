@@ -34,7 +34,7 @@ public class FlurryRobolectricTest extends IntegrationRobolectricExam {
     integration.apiKey = apiKey;
   }
 
-  @Test public void initialize() throws InvalidConfigurationException {
+  @Test public void initialize() throws IllegalStateException {
     integration.initialize(context, //
         new JsonMap().putValue("apiKey", apiKey)
             .putValue("sessionContinueSeconds", 20)

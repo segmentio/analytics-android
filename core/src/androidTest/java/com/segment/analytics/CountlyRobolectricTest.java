@@ -42,7 +42,7 @@ public class CountlyRobolectricTest extends IntegrationRobolectricExam {
   }
 
   @Test
-  public void initialize() throws InvalidConfigurationException {
+  public void initialize() throws IllegalStateException {
     try {
       integration.initialize(context,
           new JsonMap().putValue("serverUrl", "foo").putValue("appKey", "bar"), true);

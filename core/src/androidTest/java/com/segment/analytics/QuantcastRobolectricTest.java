@@ -30,14 +30,14 @@ public class QuantcastRobolectricTest extends IntegrationRobolectricExam {
     integration.apiKey = apiKey;
   }
 
-  @Test public void initialize() throws InvalidConfigurationException {
+  @Test public void initialize() throws IllegalStateException {
     integration.initialize(context, new JsonMap().putValue("apiKey", "foo"), false);
     verifyStatic();
     QuantcastClient.enableLogging(false);
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test public void initializeWithDebugging() throws InvalidConfigurationException {
+  @Test public void initializeWithDebugging() throws IllegalStateException {
     integration.initialize(context, new JsonMap().putValue("apiKey", "foo"), true);
     verifyStatic();
     QuantcastClient.enableLogging(true);

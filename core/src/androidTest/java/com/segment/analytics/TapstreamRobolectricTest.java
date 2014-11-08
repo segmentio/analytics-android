@@ -42,7 +42,7 @@ public class TapstreamRobolectricTest extends IntegrationRobolectricExam {
     when(context.getApplicationContext()).thenReturn(context);
   }
 
-  @Test public void initialize() throws InvalidConfigurationException {
+  @Test public void initialize() throws IllegalStateException {
     TapstreamIntegration adapter = new TapstreamIntegration();
     adapter.initialize(context, new JsonMap().putValue("accountName", "foo")
         .putValue("sdkSecret", "bar")

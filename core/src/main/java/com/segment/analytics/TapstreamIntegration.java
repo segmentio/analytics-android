@@ -35,7 +35,7 @@ class TapstreamIntegration extends AbstractIntegration<Tapstream> {
   }
 
   @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
-      throws InvalidConfigurationException {
+      throws IllegalStateException {
     trackAllPages = settings.getBoolean("trackAllPages", true);
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", true);
     trackNamedPages = settings.getBoolean("trackNamedPages", true);

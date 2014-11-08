@@ -19,11 +19,11 @@ abstract class AbstractIntegration<T> {
 
   /**
    * Initialize the integration. Implementations should wrap any errors, including missing settings
-   * and permission in {@link InvalidConfigurationException}. If this method call completes without
+   * and permission in {@link IllegalStateException}. If this method call completes without
    * an error, the integration is assumed to be initialize and ready.
    */
   abstract void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
-      throws InvalidConfigurationException;
+      throws IllegalStateException;
 
   /**
    * The underlying instance for this provider - used for integration specific actions. This will
