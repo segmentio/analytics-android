@@ -1,14 +1,14 @@
-Version 2.3.0 (In progress)
+Version 2.3.0 (November 10th, 2014)
 ====================================
 * Breaking: Add explicit dependency on [Tape](https://github.com/square/tape)
-* Breaking: `alias` method accepts `(previousId, newId)` instead of `(newId, previousId)` to keep parity with other clients
-* New: Deprecate `logging` for `debugging`
-* New: (WIP) Debugging will now be forwarded to integrations so they can enable it too
-* New: Analytics.setSingletonInstance allows setting the global Analytics instance returned from Analytics.with.
-* Improvement: If integrations fail to load (e.g. due to missing permissions), update internal flags so server can send the event instead
+* Breaking: `alias` method accepts `(previousId, newId)` instead of `(newId, previousId)` (arguments reversed).
+* New: Deprecate `logging` method on builder for `debugging`
+* New: `debugging` value will now be forwarded to integrations so they can enable it as we ll
+* New: `Analytics.setSingletonInstance` allows setting the global Analytics instance returned from `Analytics.with`
+* Improvement: If integrations fail to load (e.g. due to missing permissions), we'll now update internal flags so server can send the event instead
 * Improvement: Explicitly specify UTF-8 charset for serializing/deserializing payloads
 * Improvement: Fallback to memory queue if disk fails to load
-* Improvement: Accept `httpFallback` for AppsFlyer
+* Improvement: Accept `httpFallback` parameter for AppsFlyer
 * Fix: Don't call `Leanplum#forceContentUpdate` when flushing
 
 Version 2.2.0 (October 29th, 2014)
