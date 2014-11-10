@@ -34,7 +34,7 @@ import static com.segment.analytics.Utils.toISO8601Date;
 /**
  * The actual service that posts data to Segment's servers.
  *
- * @since 2.4
+ * @since 2.3
  */
 class SegmentIntegration extends AbstractIntegration<Void> {
 

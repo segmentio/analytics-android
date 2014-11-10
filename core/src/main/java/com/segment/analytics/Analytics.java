@@ -217,7 +217,7 @@ public class Analytics {
    * <p>
    * This method must be called before any calls to {@link #with} and may only be called once.
    *
-   * @since 2.4
+   * @since 2.3
    */
   public static void setSingletonInstance(Analytics analytics) {
     synchronized (Analytics.class) {
@@ -240,7 +240,7 @@ public class Analytics {
   /**
    * Returns {@code true} if debugging is enabled.
    *
-   * @since 2.4
+   * @since 2.3
    */
   public boolean isDebugging() {
     return debuggingEnabled;
@@ -508,7 +508,7 @@ public class Analytics {
    * }
    * });
    * }
-   * @since 2.4
+   * @since 2.3
    */
   public void registerOnIntegrationReady(OnIntegrationReadyListener onIntegrationReadyListener) {
     checkMain();
@@ -665,7 +665,7 @@ public class Analytics {
     /**
      * Set whether debugging is enabled or not.
      *
-     * @since 2.4
+     * @since 2.3
      */
     public Builder debugging(boolean debuggingEnabled) {
       this.debuggingEnabled = debuggingEnabled;
