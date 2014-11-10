@@ -216,6 +216,8 @@ public class Analytics {
    * Set the global instance returned from {@link #with}.
    * <p>
    * This method must be called before any calls to {@link #with} and may only be called once.
+   *
+   * @since 2.4
    */
   public static void setSingletonInstance(Analytics analytics) {
     synchronized (Analytics.class) {
