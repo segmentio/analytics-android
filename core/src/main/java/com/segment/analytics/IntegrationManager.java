@@ -250,7 +250,9 @@ class IntegrationManager {
       default:
         break;
     }
-    // this will only be called for bundled integrations, so should fail!
+    // this will only be called for bundled integrations, so should fail if we see some unknown
+    // bundled integration!
+    panic("Unknown integration key:" + key);
     throw new AssertionError("unknown integration key: " + key);
   }
 
