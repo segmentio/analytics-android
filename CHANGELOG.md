@@ -1,3 +1,7 @@
+Version 2.3.1 (November 11th, 2014)
+===================================
+* Fix: Check if errorStream is null before trying to read it
+
 Version 2.3.0 (November 10th, 2014)
 ====================================
 * Breaking: Add explicit dependency on [Tape](https://github.com/square/tape)
