@@ -89,7 +89,8 @@ class SegmentHTTPApi {
 
     int responseCode = urlConnection.getResponseCode();
     if (responseCode != HTTP_OK) {
-      String message = readFully(urlConnection.getErrorStream());
+      String message =
+          urlConnection.getErrorStream() == null ? null : readFully(urlConnection.getErrorStream());
       throw new IOException("Could not upload payloads. Response code: "
           + responseCode
           + ", response message: "
