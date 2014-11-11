@@ -1,8 +1,8 @@
-Version 2.3.1 (November 11th, 2014)
+Version 2.4.1 (November 11th, 2014)
 ===================================
 * Fix: Check if errorStream is null before trying to read it
 
-Version 2.3.0 (November 10th, 2014)
+Version 2.4.0 (November 10th, 2014)
 ====================================
 * Breaking: Add explicit dependency on [Tape](https://github.com/square/tape)
 * Breaking: `alias` method accepts `(previousId, newId)` instead of `(newId, previousId)` (arguments reversed).
@@ -14,6 +14,10 @@ Version 2.3.0 (November 10th, 2014)
 * Improvement: Fallback to memory queue if disk fails to load
 * Improvement: Accept `httpFallback` parameter for AppsFlyer
 * Fix: Don't call `Leanplum#forceContentUpdate` when flushing
+
+Version 2.3.0 (N/A)
+===================
+* Accidentally skipped!
 
 Version 2.2.0 (October 29th, 2014)
 ====================================
