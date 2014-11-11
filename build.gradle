@@ -46,6 +46,7 @@ ext.libraries = [
     flurry         : files('libs/Flurry-4.1.0.jar'),
     supportLib     : 'com.android.support:support-v4:20.0.0',
     googleAnalytics: 'com.google.android.gms:play-services:6.1.11',
+    kahuna         : files('libs/Kahuna-5.1.0.jar'),
     localytics     : files('libs/Localytics-2.7.1.jar'),
     leanplum       : files('libs/Leanplum-1.2.5.jar'),
     mixpanel       : 'com.mixpanel.android:mixpanel-android:4.4.0@aar',

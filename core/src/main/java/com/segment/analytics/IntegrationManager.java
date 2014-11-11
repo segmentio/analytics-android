@@ -94,6 +94,7 @@ class IntegrationManager {
     findBundledIntegration("com.flurry.android.FlurryAgent", FlurryIntegration.FLURRY_KEY);
     findBundledIntegration("com.google.android.gms.analytics.GoogleAnalytics",
         GoogleAnalyticsIntegration.GOOGLE_ANALYTICS_KEY);
+    findBundledIntegration("com.kahuna.sdk.KahunaAnalytics", KahunaIntegration.KAHUNA_KEY);
     findBundledIntegration("com.localytics.android.LocalyticsAmpSession",
         LocalyticsIntegration.LOCALYTICS_KEY);
     findBundledIntegration("com.leanplum.Leanplum", LeanplumIntegration.LEANPLUM_KEY);
@@ -229,6 +230,8 @@ class IntegrationManager {
         return new FlurryIntegration();
       case 'G':
         return new GoogleAnalyticsIntegration();
+      case 'K':
+        return new KahunaIntegration();
       case 'L':
         switch (key.charAt(1)) {
           case 'e':
@@ -247,6 +250,7 @@ class IntegrationManager {
       default:
         break;
     }
+    // this will only be called for bundled integrations, so should fail!
     throw new AssertionError("unknown integration key: " + key);
   }
 
