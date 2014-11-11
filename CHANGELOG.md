@@ -1,6 +1,11 @@
+Version 2.4.2 (WIP)
+===================================
+* Improvement: Updating the Crittercism SDK version from 4.5.3 to 5.0.3
+* Use `newId` parameter from `alias` method
+
 Version 2.4.1 (November 11th, 2014)
 ===================================
-* Fix: Check if errorStream is null before trying to read it
+* Fix: Check if Error Input Stream is null before trying to read it
 
 Version 2.4.0 (November 10th, 2014)
 ====================================
