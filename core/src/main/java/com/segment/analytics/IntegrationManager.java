@@ -279,8 +279,9 @@ class IntegrationManager {
   }
 
   /** Runs the given operation on all BUNDLED integrations. */
-  void run(IntegrationOperation operation) {
-    for (AbstractIntegration integration : integrations) {
+  private void run(IntegrationOperation operation) {
+    for (int i = 0; i < integrations.size(); i++) {
+      AbstractIntegration integration = integrations.get(0);
       long startTime = System.currentTimeMillis();
       operation.run(integration);
       long endTime = System.currentTimeMillis();
