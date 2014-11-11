@@ -31,6 +31,11 @@ public class AnalyticsRobolectricTest {
 
   private Analytics analytics;
 
+  public static void grantPermission(final Application app, final String permission) {
+    ShadowApplication shadowApp = Robolectric.shadowOf(app);
+    shadowApp.grantPermissions(permission);
+  }
+
   @Before public void setUp() {
     initMocks(this);
     grantPermission(Robolectric.application, Manifest.permission.INTERNET);
@@ -39,11 +44,6 @@ public class AnalyticsRobolectricTest {
     when(traitsCache.get()).thenReturn(traits);
     analytics = new Analytics(application, integrationManager, stats, traitsCache, analyticsContext,
         defaultOptions, logger, true);
-  }
-
-  public static void grantPermission(final Application app, final String permission) {
-    ShadowApplication shadowApp = Robolectric.shadowOf(app);
-    shadowApp.grantPermissions(permission);
   }
 
   @Test public void logoutClearsTraitsAndUpdatesContext() {

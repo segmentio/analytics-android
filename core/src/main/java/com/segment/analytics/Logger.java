@@ -24,6 +24,10 @@ public class Logger {
     this.loggingEnabled = loggingEnabled;
   }
 
+  private static String safeFormat(String format, Object... extras) {
+    return format == null ? null : String.format(format, extras);
+  }
+
   /** Call only if debugging is enabled. */
   void debug(String owner, String verb, String id, String format, Object... extras) {
     if (loggingEnabled) {
@@ -39,9 +43,5 @@ public class Logger {
           String.format(ERROR_FORMAT, owner, "ERROR: " + verb, id, safeFormat(format, extras),
               Log.getStackTraceString(throwable)));
     }
-  }
-
-  private static String safeFormat(String format, Object... extras) {
-    return format == null ? null : String.format(format, extras);
   }
 }

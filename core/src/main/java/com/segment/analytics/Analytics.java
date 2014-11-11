@@ -87,7 +87,7 @@ public class Analytics {
       }
     }
   };
-
+  static Analytics singleton = null;
   final Application application;
   final IntegrationManager integrationManager;
   final Stats stats;
@@ -547,8 +547,6 @@ public class Analytics {
      */
     void onIntegrationReady(String key, Object integration);
   }
-
-  static Analytics singleton = null;
 
   /** Fluent API for creating {@link Analytics} instances. */
   public static class Builder {

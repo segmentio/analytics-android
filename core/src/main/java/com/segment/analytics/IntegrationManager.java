@@ -54,20 +54,12 @@ class IntegrationManager {
   final boolean debuggingEnabled;
   final StringCache projectSettingsCache;
   final SegmentIntegration segmentIntegration;
-  List<AbstractIntegration> integrations;
   final Map<String, Boolean> bundledIntegrations = createMap();
+  final Logger logger;
+  List<AbstractIntegration> integrations;
   Queue<IntegrationOperation> operationQueue;
   boolean initialized;
-  final Logger logger;
   OnIntegrationReadyListener listener;
-
-  static IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi, Stats stats,
-      int queueSize, int flushInterval, String tag, Logger logger, boolean debuggingEnabled) {
-    StringCache projectSettingsCache =
-        new StringCache(getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
-    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, queueSize,
-        flushInterval, tag, logger, debuggingEnabled);
-  }
 
   IntegrationManager(Context context, SegmentHTTPApi segmentHTTPApi,
       StringCache projectSettingsCache, Stats stats, int queueSize, int flushInterval, String tag,
@@ -119,6 +111,14 @@ class IntegrationManager {
         dispatchFetch();
       }
     }
+  }
+
+  static IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi, Stats stats,
+      int queueSize, int flushInterval, String tag, Logger logger, boolean debuggingEnabled) {
+    StringCache projectSettingsCache =
+        new StringCache(getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
+    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, queueSize,
+        flushInterval, tag, logger, debuggingEnabled);
   }
 
   private void findBundledIntegration(String className, String key) {
