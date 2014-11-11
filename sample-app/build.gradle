@@ -7,6 +7,8 @@ dependencies {
   //   transitive = true
   // }
   compile project(':core')
+  compile rootProject.ext.libraries.supportLib
+  compile rootProject.ext.libraries.kahuna
   compile project(':wear') // only for Android Wear apps
 }
 

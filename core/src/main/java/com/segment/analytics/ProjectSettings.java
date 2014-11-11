@@ -49,7 +49,7 @@ class ProjectSettings extends JsonMap {
     return new ProjectSettings(Collections.unmodifiableMap(map));
   }
 
-  Long timestamp() {
+  long timestamp() {
     return getLong(TIMESTAMP_KEY, 0L);
   }
 }
