@@ -138,6 +138,9 @@ class IntegrationManager {
         String projectSettingsJson = projectSettings.toString();
         projectSettingsCache.set(projectSettingsJson);
         if (!initialized) {
+          // It's ok if integrations are being initialized right now (and so initialized will be
+          // false). Since we just dispatch the request, the actual perform method will be able to
+          // see the real value of `initialized` and just skip the operation
           dispatchInitialize(projectSettings);
         }
       } else {
@@ -287,7 +290,12 @@ class IntegrationManager {
     }
   }
 
-  void registerIntegrationInitializedListener(OnIntegrationReadyListener listener) {
+  void dispatchRegisterIntegrationInitializedListener(OnIntegrationReadyListener listener) {
+    integrationManagerHandler.sendMessage(
+        integrationManagerHandler.obtainMessage(IntegrationHandler.REGISTER_LISTENER, listener));
+  }
+
+  void performRegisterIntegrationInitializedListener(OnIntegrationReadyListener listener) {
     this.listener = listener;
     if (initialized && listener != null) {
       // Integrations are already ready, notify the listener right away
@@ -407,6 +415,7 @@ class IntegrationManager {
   private static class IntegrationHandler extends Handler {
     static final int INITIALIZE = 1;
     static final int DISPATCH_OPERATION = 2;
+    static final int REGISTER_LISTENER = 3;
 
     private final IntegrationManager integrationManager;
 
@@ -422,6 +431,10 @@ class IntegrationManager {
           break;
         case DISPATCH_OPERATION:
           integrationManager.performOperation((IntegrationOperation) msg.obj);
+          break;
+        case REGISTER_LISTENER:
+          integrationManager.performRegisterIntegrationInitializedListener(
+              (OnIntegrationReadyListener) msg.obj);
           break;
         default:
           panic("Unhandled dispatcher message." + msg.what);

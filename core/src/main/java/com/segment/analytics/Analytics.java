@@ -513,7 +513,7 @@ public class Analytics {
    */
   public void registerOnIntegrationReady(OnIntegrationReadyListener onIntegrationReadyListener) {
     checkMain();
-    integrationManager.registerIntegrationInitializedListener(onIntegrationReadyListener);
+    integrationManager.dispatchRegisterIntegrationInitializedListener(onIntegrationReadyListener);
   }
 
   void submit(BasePayload payload) {
