@@ -519,14 +519,14 @@ public class Analytics {
     if (debuggingEnabled) {
       debug(OWNER_MAIN, VERB_CREATE, payload.id(), "type: " + payload.type());
     }
-    integrationManager.submit(payload);
+    integrationManager.dispatchOperation(payload);
   }
 
   void submit(ActivityLifecyclePayload payload) {
     if (debuggingEnabled) {
       debug(OWNER_MAIN, VERB_CREATE, payload.id(), "type: %s", payload.type);
     }
-    integrationManager.submit(payload);
+    integrationManager.dispatchOperation(payload);
   }
 
   /**

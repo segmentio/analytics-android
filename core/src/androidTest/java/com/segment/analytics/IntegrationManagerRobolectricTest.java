@@ -86,7 +86,7 @@ public class IntegrationManagerRobolectricTest {
 
     integrationManager.bundledIntegrations.clear();
     integrationManager.bundledIntegrations.put("Foo", false);
-    integrationManager.initializeIntegrations(
+    integrationManager.performInitialize(
         ProjectSettings.create("{\"Foo\":{\"trackNamedPages\":true,\"trackAllPages\":false}}",
             System.currentTimeMillis()));
 

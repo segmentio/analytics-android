@@ -67,7 +67,7 @@ public class AnalyticsRobolectricTest {
   @Test public void submitInvokesDispatches() {
     BasePayload payload = mock(BasePayload.class);
     analytics.submit(payload);
-    verify(integrationManager).submit(payload);
+    verify(integrationManager).dispatchOperation(payload);
   }
 
   @Test public void flushInvokesFlushes() throws Exception {

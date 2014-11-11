@@ -35,31 +35,32 @@ import static com.segment.analytics.Utils.panic;
 import static com.segment.analytics.Utils.quitThread;
 
 /**
- * Manages bundled integrations. This class will maintain it's own queue for events to account for
- * the latency between receiving the first event, fetching remote settings and enabling the
- * integrations. Once we enable all integrations - we'll replay any events in the queue. This will
- * only affect the first app install, subsequent launches will be use the cached settings on disk.
+ * The class that forwards operations from the client to integrations, including Segment.
+ * It maintains it's own in-memory queue to account for the latency between receiving the first
+ * event, fetching settings from the server and enabling the integrations. Once it enables all
+ * integrations it replays any events in the queue. This will only affect the first app install,
+ * subsequent launches will be use the cached settings on disk.
  */
 class IntegrationManager {
-  static final int REQUEST_FETCH_SETTINGS = 1;
 
   private static final String PROJECT_SETTINGS_CACHE_KEY = "project-settings";
   private static final String MANAGER_THREAD_NAME = THREAD_PREFIX + "IntegrationManager";
   private static final long SETTINGS_REFRESH_INTERVAL = 1000 * 60 * 60 * 24; // 24 hours
-  private static final long SETTINGS_ERROR_INTERVAL = 1000 * 60; // 1 minute
+  private static final long SETTINGS_ERROR_RETRY_INTERVAL = 1000 * 60; // 1 minute
 
   final Context context;
   final SegmentHTTPApi segmentHTTPApi;
-  final HandlerThread integrationManagerThread;
-  final Handler handler;
+  final HandlerThread networkingThread;
+  final Handler networkingHandler;
+  final Handler integrationManagerHandler;
   final Stats stats;
   final boolean debuggingEnabled;
   final StringCache projectSettingsCache;
   final SegmentIntegration segmentIntegration;
   List<AbstractIntegration> integrations;
-  final Map<String, Boolean> bundledIntegrations;
+  final Map<String, Boolean> bundledIntegrations = createMap();
   Queue<IntegrationOperation> operationQueue;
-  volatile boolean initialized;
+  boolean initialized;
   OnIntegrationReadyListener listener;
 
   static IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi, Stats stats,
@@ -77,14 +78,14 @@ class IntegrationManager {
     this.segmentHTTPApi = segmentHTTPApi;
     this.stats = stats;
     this.debuggingEnabled = debuggingEnabled;
-    integrationManagerThread = new HandlerThread(MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
-    integrationManagerThread.start();
-    handler = new IntegrationManagerHandler(integrationManagerThread.getLooper(), this);
+    networkingThread = new HandlerThread(MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
+    networkingThread.start();
+    networkingHandler = new NetworkingHandler(networkingThread.getLooper(), this);
+    integrationManagerHandler = new IntegrationHandler(Looper.getMainLooper(), this);
 
     // Look up all the integrations available on the device. This is done early so that we can
     // disable sending to these integrations from the server and properly fill the payloads with
     // this information
-    bundledIntegrations = createMap();
     findBundledIntegration("com.amplitude.api.Amplitude", AmplitudeIntegration.AMPLITUDE_KEY);
     findBundledIntegration("com.appsflyer.AppsFlyerLib", AppsFlyerIntegration.APPS_FLYER_KEY);
     findBundledIntegration("com.bugsnag.android.Bugsnag", BugsnagIntegration.BUGSNAG_KEY);
@@ -109,28 +110,25 @@ class IntegrationManager {
             bundledIntegrations, tag, stats, debuggingEnabled);
 
     this.projectSettingsCache = projectSettingsCache;
+
     ProjectSettings projectSettings = ProjectSettings.load(projectSettingsCache);
     if (projectSettings == null) {
       dispatchFetch();
     } else {
-      initializeIntegrations(projectSettings);
+      performInitialize(projectSettings);
       if (projectSettings.timestamp() + SETTINGS_REFRESH_INTERVAL < System.currentTimeMillis()) {
         dispatchFetch();
       }
     }
   }
 
-  void findBundledIntegration(String className, String key) {
+  private void findBundledIntegration(String className, String key) {
     if (isOnClassPath(className)) bundledIntegrations.put(key, false);
   }
 
   void dispatchFetch() {
-    handler.sendMessage(handler.obtainMessage(REQUEST_FETCH_SETTINGS));
-  }
-
-  void retryFetch() {
-    handler.sendMessageDelayed(handler.obtainMessage(REQUEST_FETCH_SETTINGS),
-        SETTINGS_ERROR_INTERVAL);
+    networkingHandler.sendMessage(
+        networkingHandler.obtainMessage(NetworkingHandler.FETCH_SETTINGS));
   }
 
   void performFetch() {
@@ -139,16 +137,11 @@ class IntegrationManager {
         if (debuggingEnabled) {
           debug(OWNER_INTEGRATION_MANAGER, "fetch", "settings", null);
         }
-        final ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
+        ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
         String projectSettingsJson = projectSettings.toString();
         projectSettingsCache.set(projectSettingsJson);
         if (!initialized) {
-          // Only initialize integrations if not done already
-          Analytics.HANDLER.post(new Runnable() {
-            @Override public void run() {
-              initializeIntegrations(projectSettings);
-            }
-          });
+          dispatchInitialize(projectSettings);
         }
       } else {
         retryFetch();
@@ -161,8 +154,22 @@ class IntegrationManager {
     }
   }
 
-  synchronized void initializeIntegrations(ProjectSettings projectSettings) {
+  void retryFetch() {
+    networkingHandler.sendMessageDelayed(
+        networkingHandler.obtainMessage(NetworkingHandler.FETCH_SETTINGS),
+        SETTINGS_ERROR_RETRY_INTERVAL);
+  }
+
+  void dispatchInitialize(ProjectSettings projectSettings) {
+    integrationManagerHandler.sendMessage(
+        integrationManagerHandler.obtainMessage(IntegrationHandler.INITIALIZE, projectSettings));
+  }
+
+  void performInitialize(ProjectSettings projectSettings) {
+    if (initialized) return;
+
     integrations = new LinkedList<AbstractIntegration>();
+    // Iterate over all the bundled integrations
     Iterator<Map.Entry<String, Boolean>> iterator = bundledIntegrations.entrySet().iterator();
     while (iterator.hasNext()) {
       String key = iterator.next().getKey();
@@ -204,6 +211,7 @@ class IntegrationManager {
   }
 
   AbstractIntegration createIntegrationForKey(String key) {
+    // todo: should be a factory method
     // Todo: consume the entire string to verify the key? e.g. Amplitude vs Amhuik (random)
     switch (key.charAt(0)) {
       case 'A':
@@ -252,36 +260,35 @@ class IntegrationManager {
     }
     // this will only be called for bundled integrations, so should fail if we see some unknown
     // bundled integration!
-    panic("Unknown integration key:" + key);
     throw new AssertionError("unknown integration key: " + key);
   }
 
   void flush() {
-    submit(new FlushOperation());
+    dispatchOperation(new FlushOperation());
   }
 
-  void submit(IntegrationOperation operation) {
+  void dispatchOperation(IntegrationOperation operation) {
+    integrationManagerHandler.sendMessage(
+        integrationManagerHandler.obtainMessage(IntegrationHandler.DISPATCH_OPERATION, operation));
+  }
+
+  void performOperation(IntegrationOperation operation) {
     operation.run(segmentIntegration);
+
     if (initialized) {
       run(operation);
     } else {
-      // Integrations might be being initialized, so let's wait for the lock
-      synchronized (this) {
-        if (initialized) {
-          run(operation);
-        } else {
-          if (operationQueue == null) {
-            operationQueue = new ArrayDeque<IntegrationOperation>();
-          }
-          if (debuggingEnabled) {
-            debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id(), null);
-          }
-          operationQueue.add(operation);
-        }
+      if (operationQueue == null) {
+        operationQueue = new ArrayDeque<IntegrationOperation>();
       }
+      if (debuggingEnabled) {
+        debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id(), null);
+      }
+      operationQueue.add(operation);
     }
   }
 
+  /** Runs the given operation on all BUNDLED integrations. */
   void run(IntegrationOperation operation) {
     for (AbstractIntegration integration : integrations) {
       long startTime = System.currentTimeMillis();
@@ -307,7 +314,7 @@ class IntegrationManager {
   }
 
   void shutdown() {
-    quitThread(integrationManagerThread);
+    quitThread(networkingThread);
     if (operationQueue != null) {
       operationQueue.clear();
       operationQueue = null;
@@ -391,18 +398,45 @@ class IntegrationManager {
     }
   }
 
-  private static class IntegrationManagerHandler extends Handler {
+  private static class NetworkingHandler extends Handler {
+    static final int FETCH_SETTINGS = 1;
+
     private final IntegrationManager integrationManager;
 
-    IntegrationManagerHandler(Looper looper, IntegrationManager integrationManager) {
+    NetworkingHandler(Looper looper, IntegrationManager integrationManager) {
       super(looper);
       this.integrationManager = integrationManager;
     }
 
     @Override public void handleMessage(final Message msg) {
       switch (msg.what) {
-        case REQUEST_FETCH_SETTINGS:
+        case FETCH_SETTINGS:
           integrationManager.performFetch();
+          break;
+        default:
+          panic("Unhandled dispatcher message." + msg.what);
+      }
+    }
+  }
+
+  private static class IntegrationHandler extends Handler {
+    static final int INITIALIZE = 1;
+    static final int DISPATCH_OPERATION = 2;
+
+    private final IntegrationManager integrationManager;
+
+    IntegrationHandler(Looper looper, IntegrationManager integrationManager) {
+      super(looper);
+      this.integrationManager = integrationManager;
+    }
+
+    @Override public void handleMessage(final Message msg) {
+      switch (msg.what) {
+        case INITIALIZE:
+          integrationManager.performInitialize((ProjectSettings) msg.obj);
+          break;
+        case DISPATCH_OPERATION:
+          integrationManager.performOperation((IntegrationOperation) msg.obj);
           break;
         default:
           panic("Unhandled dispatcher message." + msg.what);
