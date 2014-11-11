@@ -20,18 +20,15 @@ import android.content.Context;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowLog;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
-import static com.segment.analytics.Utils.debug;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.isNullOrEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,21 +71,5 @@ public class UtilsRobolectricTest {
   @Test public void returnsConnectedIfMissingPermission() throws Exception {
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
     assertThat(isConnected(context)).isTrue();
-  }
-
-  @Test public void testDebugLogWithNullFormat() throws Exception {
-    debug("foo", "bar", "qaz", null);
-    List<ShadowLog.LogItem> logs = ShadowLog.getLogs();
-    assertThat(logs).hasSize(1);
-    assertThat(logs.get(0).msg).isEqualTo(
-        "foo                  bar          qaz                                  {null}");
-  }
-
-  @Test public void testDebugLogWithFormat() throws Exception {
-    debug("foo", "bar", "qaz", "qux");
-    List<ShadowLog.LogItem> logs = ShadowLog.getLogs();
-    assertThat(logs).hasSize(1);
-    assertThat(logs.get(0).msg).isEqualTo(
-        "foo                  bar          qaz                                  {qux}");
   }
 }

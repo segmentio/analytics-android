@@ -31,6 +31,7 @@ public class SegmentIntegrationRobolectricTest {
 
   @Mock SegmentHTTPApi segmentHTTPApi;
   @Mock Stats stats;
+  @Mock Logger logger;
   Context context;
   ObjectQueue<BasePayload> queue;
   SegmentIntegration segment;
@@ -43,7 +44,7 @@ public class SegmentIntegrationRobolectricTest {
 
   SegmentIntegration createSegmentIntegration(int maxQueueSize) {
     return new SegmentIntegration(context, maxQueueSize, 30, segmentHTTPApi, queue,
-        Collections.<String, Boolean>emptyMap(), stats, true);
+        Collections.<String, Boolean>emptyMap(), stats, logger);
   }
 
   ObjectQueue<BasePayload> createQueue() throws IOException {

@@ -45,10 +45,9 @@ import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.SAVE_INSTANCE;
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.STARTED;
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.STOPPED;
-import static com.segment.analytics.Utils.OWNER_MAIN;
-import static com.segment.analytics.Utils.VERB_CREATE;
+import static com.segment.analytics.Logger.OWNER_MAIN;
+import static com.segment.analytics.Logger.VERB_CREATE;
 import static com.segment.analytics.Utils.checkMain;
-import static com.segment.analytics.Utils.debug;
 import static com.segment.analytics.Utils.getResourceBooleanOrThrow;
 import static com.segment.analytics.Utils.getResourceIntegerOrThrow;
 import static com.segment.analytics.Utils.getResourceString;
@@ -95,12 +94,13 @@ public class Analytics {
   final TraitsCache traitsCache;
   final AnalyticsContext analyticsContext;
   final Options defaultOptions;
+  final Logger logger;
   final boolean debuggingEnabled;
   boolean shutdown;
 
   Analytics(Application application, IntegrationManager integrationManager, Stats stats,
       TraitsCache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions,
-      boolean debuggingEnabled) {
+      Logger logger, boolean debuggingEnabled) {
     this.application = application;
     this.integrationManager = integrationManager;
     this.stats = stats;
@@ -108,6 +108,7 @@ public class Analytics {
     this.analyticsContext = analyticsContext;
     this.defaultOptions = defaultOptions;
     this.debuggingEnabled = debuggingEnabled;
+    this.logger = logger;
 
     application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
       @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -516,16 +517,12 @@ public class Analytics {
   }
 
   void submit(BasePayload payload) {
-    if (debuggingEnabled) {
-      debug(OWNER_MAIN, VERB_CREATE, payload.id(), "type: " + payload.type());
-    }
+    logger.debug(OWNER_MAIN, VERB_CREATE, payload.id(), "type: %s", payload.type());
     integrationManager.dispatchOperation(payload);
   }
 
   void submit(ActivityLifecyclePayload payload) {
-    if (debuggingEnabled) {
-      debug(OWNER_MAIN, VERB_CREATE, payload.id(), "type: %s", payload.type);
-    }
+    logger.debug(OWNER_MAIN, VERB_CREATE, payload.id(), "type: %s", payload.type);
     integrationManager.dispatchOperation(payload);
   }
 
@@ -679,16 +676,17 @@ public class Analytics {
       }
       if (isNullOrEmpty(tag)) tag = writeKey;
 
+      Logger logger = new Logger(debuggingEnabled);
+
       Stats stats = new Stats();
       SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
       IntegrationManager integrationManager =
           IntegrationManager.create(application, segmentHTTPApi, stats, queueSize, flushInterval,
-              tag, debuggingEnabled);
+              tag, logger, debuggingEnabled);
       TraitsCache traitsCache = new TraitsCache(application, tag);
       AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
-
       return new Analytics(application, integrationManager, stats, traitsCache, analyticsContext,
-          defaultOptions, debuggingEnabled);
+          defaultOptions, logger, debuggingEnabled);
     }
   }
 }

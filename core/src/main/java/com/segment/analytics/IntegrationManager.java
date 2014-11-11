@@ -18,15 +18,12 @@ import java.util.UUID;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Analytics.OnIntegrationReadyListener;
-import static com.segment.analytics.Utils.OWNER_INTEGRATION_MANAGER;
+import static com.segment.analytics.Logger.OWNER_INTEGRATION_MANAGER;
+import static com.segment.analytics.Logger.VERB_DISPATCH;
+import static com.segment.analytics.Logger.VERB_INITIALIZE;
+import static com.segment.analytics.Logger.VERB_SKIP;
 import static com.segment.analytics.Utils.THREAD_PREFIX;
-import static com.segment.analytics.Utils.VERB_DISPATCH;
-import static com.segment.analytics.Utils.VERB_ENQUEUE;
-import static com.segment.analytics.Utils.VERB_INITIALIZE;
-import static com.segment.analytics.Utils.VERB_SKIP;
 import static com.segment.analytics.Utils.createMap;
-import static com.segment.analytics.Utils.debug;
-import static com.segment.analytics.Utils.error;
 import static com.segment.analytics.Utils.getSharedPreferences;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.isNullOrEmpty;
@@ -61,23 +58,25 @@ class IntegrationManager {
   final Map<String, Boolean> bundledIntegrations = createMap();
   Queue<IntegrationOperation> operationQueue;
   boolean initialized;
+  final Logger logger;
   OnIntegrationReadyListener listener;
 
   static IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi, Stats stats,
-      int queueSize, int flushInterval, String tag, boolean debuggingEnabled) {
+      int queueSize, int flushInterval, String tag, Logger logger, boolean debuggingEnabled) {
     StringCache projectSettingsCache =
         new StringCache(getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
     return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, queueSize,
-        flushInterval, tag, debuggingEnabled);
+        flushInterval, tag, logger, debuggingEnabled);
   }
 
   IntegrationManager(Context context, SegmentHTTPApi segmentHTTPApi,
       StringCache projectSettingsCache, Stats stats, int queueSize, int flushInterval, String tag,
-      boolean debuggingEnabled) {
+      Logger logger, boolean debuggingEnabled) {
     this.context = context;
     this.segmentHTTPApi = segmentHTTPApi;
     this.stats = stats;
     this.debuggingEnabled = debuggingEnabled;
+    this.logger = logger;
     networkingThread = new HandlerThread(MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     networkingThread.start();
     networkingHandler = new NetworkingHandler(networkingThread.getLooper(), this);
@@ -107,7 +106,7 @@ class IntegrationManager {
 
     segmentIntegration =
         SegmentIntegration.create(context, queueSize, flushInterval, segmentHTTPApi,
-            bundledIntegrations, tag, stats, debuggingEnabled);
+            bundledIntegrations, tag, stats, logger);
 
     this.projectSettingsCache = projectSettingsCache;
 
@@ -134,9 +133,7 @@ class IntegrationManager {
   void performFetch() {
     try {
       if (isConnected(context)) {
-        if (debuggingEnabled) {
-          debug(OWNER_INTEGRATION_MANAGER, "fetch", "settings", null);
-        }
+        logger.debug(OWNER_INTEGRATION_MANAGER, "fetch", "settings", null);
         ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
         String projectSettingsJson = projectSettings.toString();
         projectSettingsCache.set(projectSettingsJson);
@@ -147,9 +144,7 @@ class IntegrationManager {
         retryFetch();
       }
     } catch (IOException e) {
-      if (debuggingEnabled) {
-        error(OWNER_INTEGRATION_MANAGER, "fetch", "settings", e, null);
-      }
+      logger.debug(OWNER_INTEGRATION_MANAGER, "fetch", "settings", null);
       retryFetch();
     }
   }
@@ -177,9 +172,7 @@ class IntegrationManager {
         JsonMap settings = new JsonMap(projectSettings.getJsonMap(key));
         AbstractIntegration integration = createIntegrationForKey(key);
         try {
-          if (debuggingEnabled) {
-            debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, key, "settings: %s", settings);
-          }
+          logger.debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, key, "settings: %s", settings);
           integration.initialize(context, settings, debuggingEnabled);
           if (listener != null) {
             listener.onIntegrationReady(key, integration.getUnderlyingInstance());
@@ -187,16 +180,12 @@ class IntegrationManager {
           integrations.add(integration);
         } catch (IllegalStateException e) {
           iterator.remove();
-          if (debuggingEnabled) {
-            error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), e, null);
-          }
+          logger.error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), e, null);
         }
       } else {
         iterator.remove();
-        if (debuggingEnabled) {
-          debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, key, "settings: %s",
-              projectSettings.keySet());
-        }
+        logger.debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, key, "settings: %s",
+            projectSettings.keySet());
       }
     }
     if (!isNullOrEmpty(operationQueue)) {
@@ -281,9 +270,7 @@ class IntegrationManager {
       if (operationQueue == null) {
         operationQueue = new ArrayDeque<IntegrationOperation>();
       }
-      if (debuggingEnabled) {
-        debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id(), null);
-      }
+      logger.debug(OWNER_INTEGRATION_MANAGER, Logger.VERB_ENQUEUE, operation.id(), null);
       operationQueue.add(operation);
     }
   }
@@ -295,9 +282,7 @@ class IntegrationManager {
       operation.run(integration);
       long endTime = System.currentTimeMillis();
       long duration = endTime - startTime;
-      if (debuggingEnabled) {
-        debug(integration.key(), VERB_DISPATCH, operation.id(), "duration: %s", duration);
-      }
+      logger.debug(integration.key(), VERB_DISPATCH, operation.id(), "duration: %s", duration);
       stats.dispatchIntegrationOperation(duration);
     }
   }

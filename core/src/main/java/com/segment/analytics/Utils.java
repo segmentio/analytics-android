@@ -34,7 +34,6 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import android.util.Log;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -59,19 +58,6 @@ import static android.provider.Settings.Secure.getString;
 final class Utils {
   static final String THREAD_PREFIX = "SegmentAnalytics-";
   static final DateFormat ISO_8601_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-  final static String OWNER_MAIN = "Main";
-  final static String OWNER_SEGMENT_INTEGRATION = "SegmentIntegration";
-  final static String OWNER_INTEGRATION_MANAGER = "IntegrationManager";
-  final static String VERB_CREATE = "create";
-  final static String VERB_DISPATCH = "dispatch";
-  final static String VERB_ENQUEUE = "enqueue";
-  final static String VERB_FLUSH = "flush";
-  final static String VERB_SKIP = "skip";
-  final static String VERB_INITIALIZE = "initialize";
-  final static String TAG = "Segment";
-  // [thread] [verb] [id] {[extras]}
-  final static String DEBUG_FORMAT = "%1$-20s %2$-12s %3$-36s {%4$s}";
-  final static String ERROR_FORMAT = "%1$-20s %2$-12s %3$-36s {%4$s}\n%5$s";
 
   private Utils() {
     throw new AssertionError("No instances");
@@ -247,22 +233,6 @@ final class Utils {
 
   private static boolean isMain() {
     return Looper.getMainLooper().getThread() == Thread.currentThread();
-  }
-
-  /** Call only if debugging is enabled. */
-  static void debug(String owner, String verb, String id, String format, Object... extras) {
-    Log.d(TAG, String.format(DEBUG_FORMAT, owner, verb, id, safeFormat(format, extras)));
-  }
-
-  /** Call only if debugging is enabled. */
-  static void error(String owner, String verb, String id, Throwable throwable, String format,
-      Object... extras) {
-    Log.e(TAG, String.format(ERROR_FORMAT, owner, "ERROR: " + verb, id, safeFormat(format, extras),
-        Log.getStackTraceString(throwable)));
-  }
-
-  private static String safeFormat(String format, Object... extras) {
-    return format == null ? null : String.format(format, extras);
   }
 
   static <T> Map<String, T> createMap() {

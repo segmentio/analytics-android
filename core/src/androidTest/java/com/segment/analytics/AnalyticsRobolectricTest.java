@@ -27,6 +27,7 @@ public class AnalyticsRobolectricTest {
   @Mock TraitsCache traitsCache;
   @Mock AnalyticsContext analyticsContext;
   @Mock Options defaultOptions;
+  @Mock Logger logger;
 
   private Analytics analytics;
 
@@ -37,7 +38,7 @@ public class AnalyticsRobolectricTest {
     Traits traits = new Traits();
     when(traitsCache.get()).thenReturn(traits);
     analytics = new Analytics(application, integrationManager, stats, traitsCache, analyticsContext,
-        defaultOptions, true);
+        defaultOptions, logger, true);
   }
 
   public static void grantPermission(final Application app, final String permission) {

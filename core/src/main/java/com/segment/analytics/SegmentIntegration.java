@@ -19,12 +19,9 @@ import java.util.List;
 import java.util.Map;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
-import static com.segment.analytics.Utils.OWNER_SEGMENT_INTEGRATION;
-import static com.segment.analytics.Utils.VERB_ENQUEUE;
-import static com.segment.analytics.Utils.VERB_FLUSH;
-import static com.segment.analytics.Utils.VERB_INITIALIZE;
-import static com.segment.analytics.Utils.debug;
-import static com.segment.analytics.Utils.error;
+import static com.segment.analytics.Logger.OWNER_SEGMENT_INTEGRATION;
+import static com.segment.analytics.Logger.VERB_ENQUEUE;
+import static com.segment.analytics.Logger.VERB_FLUSH;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.isNullOrEmpty;
 import static com.segment.analytics.Utils.panic;
@@ -52,12 +49,12 @@ class SegmentIntegration extends AbstractIntegration<Void> {
   final Stats stats;
   final Handler handler;
   final HandlerThread segmentThread;
-  final boolean debuggingEnabled;
+  final Logger logger;
   final Map<String, Boolean> integrations;
 
   static SegmentIntegration create(Context context, int queueSize, int flushInterval,
       SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
-      boolean debuggingEnabled) {
+      Logger logger) {
     File parent = context.getFilesDir();
     ObjectQueue<BasePayload> queue;
     try {
@@ -65,26 +62,25 @@ class SegmentIntegration extends AbstractIntegration<Void> {
       File queueFile = new File(parent, TASK_QUEUE_FILE_NAME + tag);
       queue = new FileObjectQueue<BasePayload>(queueFile, new PayloadConverter());
     } catch (IOException e) {
-      if (debuggingEnabled) {
-        error(OWNER_SEGMENT_INTEGRATION, VERB_INITIALIZE, null, e,
-            "Unable to initialize disk queue with tag %s in directory %s,"
-                + "falling back to memory queue.", tag, parent.getAbsolutePath());
-      }
+      logger.error(OWNER_SEGMENT_INTEGRATION, Logger.VERB_INITIALIZE, null, e,
+          "Unable to initialize disk queue with tag %s in directory %s,"
+              + "falling back to memory queue.", tag, parent.getAbsolutePath());
+
       queue = new InMemoryObjectQueue<BasePayload>();
     }
     return new SegmentIntegration(context, queueSize, flushInterval, segmentHTTPApi, queue,
-        integrations, stats, debuggingEnabled);
+        integrations, stats, logger);
   }
 
   SegmentIntegration(Context context, int queueSize, int flushInterval,
       SegmentHTTPApi segmentHTTPApi, ObjectQueue<BasePayload> queue,
-      Map<String, Boolean> integrations, Stats stats, boolean debuggingEnabled) {
+      Map<String, Boolean> integrations, Stats stats, Logger logger) {
     this.context = context;
     this.queueSize = queueSize;
     this.segmentHTTPApi = segmentHTTPApi;
     this.queue = queue;
     this.stats = stats;
-    this.debuggingEnabled = debuggingEnabled;
+    this.logger = logger;
     this.integrations = integrations;
     this.flushInterval = flushInterval * 1000;
     segmentThread = new HandlerThread(SEGMENT_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
@@ -137,16 +133,14 @@ class SegmentIntegration extends AbstractIntegration<Void> {
   }
 
   void performEnqueue(BasePayload payload) {
+    logger.debug(OWNER_SEGMENT_INTEGRATION, VERB_ENQUEUE, payload.id(), "queueSize: %s",
+        queue.size());
     try {
       queue.add(payload);
     } catch (Exception e) {
-      if (debuggingEnabled) {
-        error(OWNER_SEGMENT_INTEGRATION, VERB_ENQUEUE, payload.id(), e, "payload: %s", payload);
-      }
-    }
-
-    if (debuggingEnabled) {
-      debug(OWNER_SEGMENT_INTEGRATION, VERB_ENQUEUE, payload.id(), "queueSize: %s", queue.size());
+      logger.error(OWNER_SEGMENT_INTEGRATION, VERB_ENQUEUE, payload.id(), e, "payload: %s",
+          payload);
+      return;
     }
     // Check if we've reached the maximum queue size
     if (queue.size() >= queueSize) {
@@ -168,9 +162,7 @@ class SegmentIntegration extends AbstractIntegration<Void> {
     try {
       queue.setListener(new ObjectQueue.Listener<BasePayload>() {
         @Override public void onAdd(ObjectQueue<BasePayload> queue, BasePayload entry) {
-          if (debuggingEnabled) {
-            debug(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, entry.id(), null);
-          }
+          logger.debug(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, entry.id(), null);
           payloads.add(entry);
         }
 
@@ -180,10 +172,8 @@ class SegmentIntegration extends AbstractIntegration<Void> {
       });
       queue.setListener(null);
     } catch (Exception e) {
-      if (debuggingEnabled) {
-        error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, "could not read queue", e,
-            String.format("queue: %s", queue));
-      }
+      logger.error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, "could not read queue", e,
+          String.format("queue: %s", queue));
       return;
     }
 
@@ -196,10 +186,8 @@ class SegmentIntegration extends AbstractIntegration<Void> {
         queue.remove();
       }
     } catch (IOException e) {
-      if (debuggingEnabled) {
-        error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, "unable to clear queue", e,
-            "events: " + count);
-      }
+      logger.error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, "unable to clear queue", e,
+          "events: " + count);
     }
     rescheduleFlush();
   }

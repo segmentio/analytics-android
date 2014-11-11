@@ -6,7 +6,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
-import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -18,6 +17,7 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
@@ -25,9 +25,11 @@ public class IntegrationManagerRobolectricTest {
 
   IntegrationManager integrationManager;
 
-  @MockitoAnnotations.Mock SegmentHTTPApi segmentHTTPApi;
-  @MockitoAnnotations.Mock Stats stats;
-  @MockitoAnnotations.Mock StringCache stringCache;
+  @Mock SegmentHTTPApi segmentHTTPApi;
+  @Mock Stats stats;
+  @Mock StringCache stringCache;
+  @Mock Logger logger;
+
   Context context;
 
   @Before public void setUp() {
@@ -35,7 +37,8 @@ public class IntegrationManagerRobolectricTest {
     context = mockApplication();
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
     integrationManager =
-        new IntegrationManager(context, segmentHTTPApi, stringCache, stats, 20, 30, "foo", true);
+        new IntegrationManager(context, segmentHTTPApi, stringCache, stats, 20, 30, "foo", logger,
+            true);
   }
 
   @Test public void createsIntegrationsCorrectly() {
@@ -75,7 +78,8 @@ public class IntegrationManagerRobolectricTest {
   @Test public void initializesIntegrations() {
     final AbstractIntegration<Void> fooIntegration = mock(AbstractIntegration.class);
     IntegrationManager integrationManager =
-        new IntegrationManager(context, segmentHTTPApi, stringCache, stats, 20, 30, "bar", true) {
+        new IntegrationManager(context, segmentHTTPApi, stringCache, stats, 20, 30, "bar", logger,
+            true) {
           @Override AbstractIntegration createIntegrationForKey(String key) {
             if ("Foo".equals(key)) {
               return fooIntegration;
