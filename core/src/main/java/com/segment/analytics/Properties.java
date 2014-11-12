@@ -83,7 +83,7 @@ public class Properties extends JsonMap {
     return getDouble(REVENUE_KEY, 0);
   }
 
-  public Properties putValue(String value) {
+  public Properties putValue(double value) {
     return putValue(VALUE_KEY, value);
   }
 
@@ -208,7 +208,7 @@ public class Properties extends JsonMap {
     return getDouble(PRICE_KEY, 0);
   }
 
-  public double value() {
+  double value() {
     return getDouble(VALUE_KEY, 0);
   }
 
