@@ -1,6 +1,6 @@
 Version 2.3.1 (November 11th, 2014)
 ===================================
-* Improvement: Updating the Crittercism SDK version from 4.5.3 to 5.1.0
+* Improvement: Updating the Crittercism SDK version from 4.5.3 to 5.0.3
 
 Version 2.3.0 (November 10th, 2014)
 ====================================
