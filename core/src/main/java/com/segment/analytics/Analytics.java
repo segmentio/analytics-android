@@ -438,7 +438,7 @@ public class Analytics {
     }
 
     BasePayload payload = new AliasPayload(traitsCache.get().anonymousId(), analyticsContext,
-        traitsCache.get().userId(), previousId, options);
+            newId, previousId, options);
     submit(payload);
   }
 
