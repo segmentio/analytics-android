@@ -1,7 +1,7 @@
 package com.segment.analytics;
 
 import android.content.Context;
-import java.util.ArrayList;
+import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -108,10 +108,10 @@ public class IntegrationManagerRobolectricTest {
   @Test public void forwardsCorrectly() {
     integrationManager.initialized = true;
     final AbstractIntegration<Void> fooIntegration = mock(AbstractIntegration.class);
-    integrationManager.integrations = new ArrayList<AbstractIntegration>();
-    integrationManager.integrations.add(fooIntegration);
+    integrationManager.integrations =
+        Collections.<AbstractIntegration>singletonList(fooIntegration);
 
-    integrationManager.run(new IntegrationManager.IntegrationOperation() {
+    integrationManager.performOperation(new IntegrationManager.IntegrationOperation() {
       @Override public void run(AbstractIntegration integration) {
         integration.alias(mock(AliasPayload.class));
       }
