@@ -113,8 +113,9 @@ class IntegrationManager {
     }
   }
 
-  static IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi, Stats stats,
-      int queueSize, int flushInterval, String tag, Logger logger, boolean debuggingEnabled) {
+  static synchronized IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi,
+      Stats stats, int queueSize, int flushInterval, String tag, Logger logger,
+      boolean debuggingEnabled) {
     StringCache projectSettingsCache =
         new StringCache(getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
     return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, queueSize,

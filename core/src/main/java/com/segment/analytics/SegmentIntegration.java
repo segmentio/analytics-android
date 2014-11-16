@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import com.squareup.tape.FileException;
 import com.squareup.tape.FileObjectQueue;
 import com.squareup.tape.InMemoryObjectQueue;
 import com.squareup.tape.ObjectQueue;
@@ -14,6 +15,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +71,7 @@ class SegmentIntegration extends AbstractIntegration<Void> {
     rescheduleFlush();
   }
 
-  static SegmentIntegration create(Context context, int queueSize, int flushInterval,
+  static synchronized SegmentIntegration create(Context context, int queueSize, int flushInterval,
       SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
       Logger logger) {
     File parent = context.getFilesDir();
@@ -82,7 +84,6 @@ class SegmentIntegration extends AbstractIntegration<Void> {
       logger.error(OWNER_SEGMENT_INTEGRATION, Logger.VERB_INITIALIZE, null, e,
           "Unable to initialize disk queue with tag %s in directory %s,"
               + "falling back to memory queue.", tag, parent.getAbsolutePath());
-
       queue = new InMemoryObjectQueue<BasePayload>();
     }
     return new SegmentIntegration(context, queueSize, flushInterval, segmentHTTPApi, queue,
@@ -153,41 +154,64 @@ class SegmentIntegration extends AbstractIntegration<Void> {
   }
 
   void performFlush() {
-    if (queue.size() == 0 || !isConnected(context)) {
-      rescheduleFlush();
-      return;
-    }
+    if (queue.size() != 0 && isConnected(context)) {
+      boolean batch = true;
+      final List<BasePayload> payloads = new ArrayList<BasePayload>(queue.size());
+      try {
+        queue.setListener(new ObjectQueue.Listener<BasePayload>() {
+          @Override public void onAdd(ObjectQueue<BasePayload> queue, BasePayload entry) {
+            logger.debug(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, entry.id(), null);
+            payloads.add(entry);
+          }
 
-    final List<BasePayload> payloads = new ArrayList<BasePayload>();
-    try {
-      queue.setListener(new ObjectQueue.Listener<BasePayload>() {
-        @Override public void onAdd(ObjectQueue<BasePayload> queue, BasePayload entry) {
-          logger.debug(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, entry.id(), null);
-          payloads.add(entry);
-        }
+          @Override public void onRemove(ObjectQueue<BasePayload> queue) {
 
-        @Override public void onRemove(ObjectQueue<BasePayload> queue) {
-
-        }
-      });
-      queue.setListener(null);
-    } catch (Exception e) {
-      logger.error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, "could not read queue", e,
-          String.format("queue: %s", queue));
-      return;
-    }
-
-    int count = payloads.size();
-    try {
-      segmentHTTPApi.upload(new BatchPayload(payloads, integrations));
-      stats.dispatchFlush(count);
-      //noinspection ForLoopReplaceableByForEach
-      for (int i = 0; i < count; i++) {
-        queue.remove();
+          }
+        });
+        queue.setListener(null);
+      } catch (Exception e) {
+        logger.error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH,
+            "Could not read queue. Flushing messages individually.", e,
+            String.format("queue: %s", queue));
+        batch = false;
       }
-    } catch (IOException e) {
-      logger.error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, "unable to clear queue", e,
-          "events: " + count);
+
+      if (batch) {
+        int count = payloads.size();
+        try {
+          segmentHTTPApi.upload(new BatchPayload(payloads, integrations));
+          stats.dispatchFlush(count);
+          //noinspection ForLoopReplaceableByForEach
+          for (int i = 0; i < count; i++) {
+            queue.remove();
+          }
+        } catch (IOException e) {
+          logger.error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, "Unable to flush messages.", e,
+              "events: %s", count);
+        }
+      } else {
+        // There was an error reading the queue, so we'll try to flush the payloads one at a time
+        while (queue.size() > 0) {
+          try {
+            BasePayload payload = queue.peek();
+            logger.debug(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, payload.id(), null);
+            try {
+              segmentHTTPApi.upload(
+                  new BatchPayload(Collections.singletonList(payload), integrations));
+              stats.dispatchFlush(1);
+              queue.remove();
+            } catch (IOException e) {
+              logger.error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, "Unable to flush payload.", e,
+                  "payload: %s", payload);
+            }
+          } catch (FileException e) {
+            // This is an unrecoverable error, we can't read the entry from disk
+            logger.error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, "Unable to read payload.", e,
+                "queue: %s", queue);
+            queue.remove();
+          }
+        }
+      }
     }
     rescheduleFlush();
   }
