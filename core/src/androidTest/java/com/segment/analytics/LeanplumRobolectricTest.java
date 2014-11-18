@@ -1,7 +1,10 @@
 package com.segment.analytics;
 
+import android.app.Activity;
+import android.os.Bundle;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
+import java.util.HashMap;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,6 +16,10 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
+import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
+import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
+import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -22,18 +29,19 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(Leanplum.class)
-public class LeanplumRobolectricTest extends IntegrationRobolectricExam {
+public class LeanplumRobolectricTest extends AbstractIntegrationTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
-
   LeanplumIntegration integration;
+  LeanplumActivityHelper leanplumActivityHelper;
 
   @Before @Override public void setUp() {
     super.setUp();
     PowerMockito.mockStatic(Leanplum.class);
     integration = new LeanplumIntegration();
+    integration.helper = leanplumActivityHelper = mock(LeanplumActivityHelper.class);
   }
 
-  @Test public void initialize() throws IllegalStateException {
+  @Test @Override public void initialize() {
     integration.initialize(context,
         new JsonMap().putValue("appId", "foo").putValue("clientKey", "bar"), true);
     verifyStatic();
@@ -42,61 +50,87 @@ public class LeanplumRobolectricTest extends IntegrationRobolectricExam {
     Leanplum.start(context);
   }
 
-  @Test public void initializeWithDebugging() throws IllegalStateException {
-    // Same as above, just until we verify if enabling development mode is the right behaviour
-    integration.initialize(context,
-        new JsonMap().putValue("appId", "foo").putValue("clientKey", "bar"), false);
-    verifyStatic();
-    Leanplum.setAppIdForProductionMode("foo", "bar");
-    verifyStatic();
-    Leanplum.start(context);
-  }
-
-  @Test public void onActivityCreated() {
+  @Test @Override public void activityCreate() {
+    Activity activity = mock(Activity.class);
+    Bundle bundle = mock(Bundle.class);
+    integration = new LeanplumIntegration();
     assertThat(integration.helper).isNull();
     integration.onActivityCreated(activity, bundle);
     // todo: mock helper constructor
     assertThat(integration.helper).isNotNull();
   }
 
-  @Test public void activityLifecycle() {
-    integration.helper = mock(LeanplumActivityHelper.class);
-
-    integration.onActivityResumed(activity);
-    verify(integration.helper).onResume();
-    integration.onActivityPaused(activity);
-    verify(integration.helper).onPause();
-    integration.onActivityStopped(activity);
-    verify(integration.helper).onStop();
-
-    integration.onActivityDestroyed(activity);
-    integration.onActivitySaveInstanceState(activity, bundle);
+  @Test @Override public void activityStart() {
+    Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
-    verifyNoMoreInteractions(integration.helper);
+    verifyNoMoreInteractions(leanplumActivityHelper);
   }
 
-  @Test public void track() {
-    integration.track(trackPayload("foo"));
+  @Test @Override public void activityResume() {
+    Activity activity = mock(Activity.class);
+    integration.onActivityResumed(activity);
+    verify(leanplumActivityHelper).onResume();
+  }
+
+  @Test @Override public void activityPause() {
+    Activity activity = mock(Activity.class);
+    integration.onActivityPaused(activity);
+    verify(leanplumActivityHelper).onPause();
+  }
+
+  @Test @Override public void activityStop() {
+    Activity activity = mock(Activity.class);
+    integration.onActivityStopped(activity);
+    verify(leanplumActivityHelper).onStop();
+  }
+
+  @Test @Override public void activitySaveInstance() {
+    Activity activity = mock(Activity.class);
+    Bundle bundle = mock(Bundle.class);
+    integration.onActivitySaveInstanceState(activity, bundle);
+    verifyNoMoreInteractions(leanplumActivityHelper);
+  }
+
+  @Test @Override public void activityDestroy() {
+    Activity activity = mock(Activity.class);
+    integration.onActivityDestroyed(activity);
+    verifyNoMoreInteractions(leanplumActivityHelper);
+  }
+
+  @Test @Override public void track() {
+    integration.track(new TrackPayloadBuilder().event("foo").build());
     verifyStatic();
-    Leanplum.track("foo", 0, properties);
+    Leanplum.track("foo", 0, new HashMap<String, Object>());
   }
 
-  @Test public void screen() {
-    integration.screen(screenPayload("foo", "bar"));
+  @Test @Override public void alias() {
+    integration.alias(new TestUtils.AliasPayloadBuilder().build());
     verifyStatic();
-    Leanplum.advanceTo("bar", "foo", properties);
+    verifyNoMoreInteractions(Leanplum.class);
   }
 
-  @Test public void identify() {
-    integration.identify(identifyPayload("foo"));
+  @Test @Override public void screen() {
+    integration.screen(new ScreenPayloadBuilder().category("foo").name("bar").build());
+    verifyStatic();
+    Leanplum.advanceTo("bar", "foo", new HashMap<String, Object>());
+  }
+
+  @Test @Override public void identify() {
+    Traits traits = new Traits().putUserId("foo");
+    integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verifyStatic();
     Leanplum.setUserAttributes("foo", traits);
   }
 
-  @Test public void flush() {
-    // exercise a bug where we were calling .forceContentUpdate in Leanplum's flush earlier
+  @Test @Override public void group() {
+    integration.group(new GroupPayloadBuilder().build());
     verifyStatic();
+    verifyNoMoreInteractions(Leanplum.class);
+  }
+
+  @Test @Override public void flush() {
     integration.flush();
-    PowerMockito.verifyNoMoreInteractions(Leanplum.class);
+    verifyStatic();
+    verifyNoMoreInteractions(Leanplum.class);
   }
 }
