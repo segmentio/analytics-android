@@ -212,10 +212,6 @@ public class Traits extends JsonMap {
     return putValue(USERNAME_KEY, username);
   }
 
-  String username() {
-    return getString(USERNAME_KEY);
-  }
-
   public Traits putEmployees(long employees) {
     return putValue(EMPLOYEES_KEY, employees);
   }
