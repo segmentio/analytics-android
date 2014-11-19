@@ -16,6 +16,7 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
 import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
 import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
 import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
@@ -104,7 +105,7 @@ public class LeanplumRobolectricTest extends AbstractIntegrationTest {
   }
 
   @Test @Override public void alias() {
-    integration.alias(new TestUtils.AliasPayloadBuilder().build());
+    integration.alias(new AliasPayloadBuilder().build());
     verifyStatic();
     verifyNoMoreInteractions(Leanplum.class);
   }
