@@ -6,7 +6,10 @@ import com.tapstream.sdk.Event;
 import com.tapstream.sdk.Tapstream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import org.assertj.core.data.MapEntry;
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,6 +28,7 @@ import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
 import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
 import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -51,7 +55,7 @@ public class TapstreamRobolectricTest extends AbstractIntegrationTest {
     when(context.getApplicationContext()).thenReturn(context);
   }
 
-  @Test public void initialize() throws IllegalStateException {
+  @Test @Override public void initialize() throws IllegalStateException {
     TapstreamIntegration adapter = new TapstreamIntegration();
     adapter.initialize(context, new JsonMap().putValue("accountName", "foo")
         .putValue("sdkSecret", "bar")
@@ -62,74 +66,113 @@ public class TapstreamRobolectricTest extends AbstractIntegrationTest {
     Tapstream.create(eq(context), eq("foo"), eq("bar"), Matchers.<com.tapstream.sdk.Config>any());
   }
 
-  @Override public void activityCreate() {
+  @Test @Override public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Override public void activityStart() {
+  @Test @Override public void activityStart() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Override public void activityResume() {
+  @Test @Override public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Override public void activityPause() {
+  @Test @Override public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Override public void activityStop() {
+  @Test @Override public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Override public void activitySaveInstance() {
+  @Test @Override public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Override public void activityDestroy() {
+  @Test @Override public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Test public void track() {
-    integration.track(new TrackPayloadBuilder().build());
-    verify(tapstream).fireEvent(Matchers.<Event>any());
+  @Test @Override public void track() {
+    integration.track(new TrackPayloadBuilder().event("foo").build());
+    verify(tapstream).fireEvent(eqEvent("foo"));
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Override public void alias() {
+  @Test @Override public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Override public void screen() {
-    integration.screen(new ScreenPayloadBuilder().build());
-    verify(tapstream).fireEvent(Matchers.<Event>any());
+  @Test @Override public void screen() {
+    integration.trackAllPages = false;
+    integration.trackCategorizedPages = false;
+    integration.trackNamedPages = false;
+
+    integration.screen(new ScreenPayloadBuilder().name("foo").build());
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Override public void flush() {
+  @Test public void screenAllPages() {
+    integration.trackAllPages = true;
+    integration.trackCategorizedPages = new Random().nextBoolean();
+    integration.trackNamedPages = new Random().nextBoolean();
+
+    integration.screen(new ScreenPayloadBuilder().name("foo").build());
+    verify(tapstream).fireEvent(eqEvent("viewed foo screen"));
+    verifyNoMoreTapstreamInteractions();
+  }
+
+  @Test public void screenNamedPages() {
+    integration.trackAllPages = false;
+    integration.trackCategorizedPages = false;
+    integration.trackNamedPages = true;
+
+    integration.screen(new ScreenPayloadBuilder().name("foo").build());
+    verify(tapstream).fireEvent(eqEvent("viewed foo screen"));
+    verifyNoMoreTapstreamInteractions();
+
+    integration.screen(new ScreenPayloadBuilder().category("foo").build());
+    verifyNoMoreTapstreamInteractions();
+  }
+
+  @Test public void screenCategorizedPages() {
+    integration.trackAllPages = false;
+    integration.trackCategorizedPages = true;
+    integration.trackNamedPages = false;
+
+    integration.screen(new ScreenPayloadBuilder().category("foo").build());
+    verify(tapstream).fireEvent(eqEvent("viewed foo screen"));
+    verifyNoMoreTapstreamInteractions();
+
+    integration.screen(new ScreenPayloadBuilder().name("foo").build());
+    verifyNoMoreTapstreamInteractions();
+  }
+
+  @Test @Override public void flush() {
     integration.flush();
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Test public void identify() {
+  @Test @Override public void identify() {
     Map<String, Object> emptyParams = new HashMap<String, Object>();
     config.globalEventParams = emptyParams;
     integration.identify(new IdentifyPayloadBuilder().userId("foo").build());
@@ -144,7 +187,7 @@ public class TapstreamRobolectricTest extends AbstractIntegrationTest {
         .containsExactly(MapEntry.entry("foo", "bar"), MapEntry.entry("baz", "qux"));
   }
 
-  @Override public void group() {
+  @Test @Override public void group() {
     integration.group(new GroupPayloadBuilder().build());
     verifyNoMoreTapstreamInteractions();
   }
@@ -152,5 +195,31 @@ public class TapstreamRobolectricTest extends AbstractIntegrationTest {
   private void verifyNoMoreTapstreamInteractions() {
     PowerMockito.verifyNoMoreInteractions(Tapstream.class);
     verifyNoMoreInteractions(tapstream);
+  }
+
+  private Event eqEvent(String name) {
+    return argThat(new EventMatcher(name));
+  }
+
+  static class EventMatcher extends TypeSafeMatcher<Event> {
+    final String name;
+
+    EventMatcher(String name) {
+      this.name = name;
+    }
+
+    @Override protected boolean matchesSafely(Event event) {
+      return event.getName().compareTo(name) == 0;
+    }
+
+    @Override protected void describeMismatchSafely(Event item, Description mismatchDescription) {
+      super.describeMismatchSafely(item, mismatchDescription);
+      mismatchDescription.appendText(item.getName());
+      mismatchDescription.appendText(item.getEncodedName());
+    }
+
+    @Override public void describeTo(Description description) {
+      description.appendText(name);
+    }
   }
 }

@@ -66,7 +66,7 @@ class TapstreamIntegration extends AbstractIntegration<Tapstream> {
     super.screen(screen);
     if (trackAllPages) {
       tapstream.fireEvent(
-          makeEvent(String.format(VIEWED_EVENT_FORMAT, screen.event), screen.properties()));
+          makeEvent(String.format(VIEWED_EVENT_FORMAT, screen.event()), screen.properties()));
     } else if (trackCategorizedPages && !isNullOrEmpty(screen.category())) {
       tapstream.fireEvent(
           makeEvent(String.format(VIEWED_EVENT_FORMAT, screen.category()), screen.properties()));
