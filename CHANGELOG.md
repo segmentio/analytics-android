@@ -1,4 +1,4 @@
-Version 2.4.2 (WIP)
+Version 2.4.2 (November 20th, 2014)
 ===================================
 * Improvement: Updating the Crittercism SDK version from 4.5.3 to 5.0.3
 * Fix: Use `newId` parameter from `alias` method
