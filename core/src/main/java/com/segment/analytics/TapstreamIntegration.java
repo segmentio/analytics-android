@@ -2,8 +2,11 @@ package com.segment.analytics;
 
 import android.app.Application;
 import android.content.Context;
+import android.util.Log;
 import com.tapstream.sdk.Config;
 import com.tapstream.sdk.Event;
+import com.tapstream.sdk.Logger;
+import com.tapstream.sdk.Logging;
 import com.tapstream.sdk.Tapstream;
 import java.util.Map;
 
@@ -26,19 +29,20 @@ class TapstreamIntegration extends AbstractIntegration<Tapstream> {
   Tapstream tapstream;
   Config config;
 
-  private static Event makeEvent(String name, Properties properties) {
-    Event event = new Event(name, false);
-    for (Map.Entry<String, Object> entry : properties.entrySet()) {
-      event.addPair(entry.getKey(), entry.getValue());
-    }
-    return event;
-  }
-
   @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
       throws IllegalStateException {
     trackAllPages = settings.getBoolean("trackAllPages", true);
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", true);
     trackNamedPages = settings.getBoolean("trackNamedPages", true);
+
+    if (debuggingEnabled) {
+      Logging.setLogger(new Logger() {
+        @Override public void log(int i, String s) {
+          Log.d(TAPSTREAM_KEY, s);
+        }
+      });
+    }
+
     config = new Config();
     Tapstream.create((Application) context.getApplicationContext(),
         settings.getString("accountName"), settings.getString("sdkSecret"), config);
@@ -61,12 +65,23 @@ class TapstreamIntegration extends AbstractIntegration<Tapstream> {
   @Override void screen(ScreenPayload screen) {
     super.screen(screen);
     if (trackAllPages) {
-      tapstream.fireEvent(makeEvent("screen-" + screen.event(), screen.properties()));
+      tapstream.fireEvent(
+          makeEvent(String.format(VIEWED_EVENT_FORMAT, screen.event()), screen.properties()));
     } else if (trackCategorizedPages && !isNullOrEmpty(screen.category())) {
-      tapstream.fireEvent(makeEvent("screen-" + screen.category(), screen.properties()));
+      tapstream.fireEvent(
+          makeEvent(String.format(VIEWED_EVENT_FORMAT, screen.category()), screen.properties()));
     } else if (trackNamedPages && !isNullOrEmpty(screen.name())) {
-      tapstream.fireEvent(makeEvent("screen-" + screen.name(), screen.properties()));
+      tapstream.fireEvent(
+          makeEvent(String.format(VIEWED_EVENT_FORMAT, screen.name()), screen.properties()));
     }
+  }
+
+  private Event makeEvent(String name, Properties properties) {
+    Event event = new Event(name, false);
+    for (Map.Entry<String, Object> entry : properties.entrySet()) {
+      event.addPair(entry.getKey(), entry.getValue());
+    }
+    return event;
   }
 
   @Override void identify(IdentifyPayload identify) {

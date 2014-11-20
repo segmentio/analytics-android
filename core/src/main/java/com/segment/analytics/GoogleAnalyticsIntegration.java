@@ -120,11 +120,10 @@ class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
 
     String category = properties.category();
     String label = properties.getString("label");
-    int value = properties.getInt("value", 0);
     tracker.send(new HitBuilders.EventBuilder().setCategory(category)
         .setAction(event)
         .setLabel(label)
-        .setValue(value)
+        .setValue((int) properties.value())
         .build());
   }
 

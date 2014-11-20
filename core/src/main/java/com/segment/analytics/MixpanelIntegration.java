@@ -77,7 +77,7 @@ class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     event(track.event(), track.properties());
   }
 
-  private void event(String name, Properties properties) {
+  void event(String name, Properties properties) {
     JSONObject props = properties.toJsonObject();
     mixpanelAPI.track(name, props);
     if (isPeopleEnabled) {

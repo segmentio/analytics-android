@@ -54,7 +54,7 @@ class QuantcastIntegration extends AbstractIntegration<Void> {
 
   @Override void screen(ScreenPayload screen) {
     super.screen(screen);
-    QuantcastClient.logEvent(String.format(VIEWED_EVENT_FORMAT, screen.name()));
+    QuantcastClient.logEvent(String.format(VIEWED_EVENT_FORMAT, screen.event()));
   }
 
   @Override void track(TrackPayload track) {

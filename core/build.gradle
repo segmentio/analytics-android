@@ -24,7 +24,7 @@ dependencies {
   androidTestCompile 'junit:junit:4.11'
   androidTestCompile 'com.squareup.assertj:assertj-android:1.0.0'
   androidTestCompile 'org.mockito:mockito-all:1.9.5'
-  androidTestCompile('org.robolectric:robolectric:2.3') {
+  androidTestCompile('org.robolectric:robolectric:2.4') {
     // Workaround for https://github.com/robolectric/robolectric-gradle-plugin/issues/43
     // and https://github.com/robolectric/robolectric/issues/1175
     exclude group: 'com.android.support', module: 'support-v4'
@@ -34,7 +34,6 @@ dependencies {
   androidTestCompile 'org.powermock:powermock-module-junit4-rule:1.5.6'
   androidTestCompile 'org.powermock:powermock-api-mockito:1.5.6'
   androidTestCompile 'org.powermock:powermock-classloading-xstream:1.5.6'
-  androidTestCompile 'org.json:json:20140107' // fails to find org.json for some reason
 }
 
 android {

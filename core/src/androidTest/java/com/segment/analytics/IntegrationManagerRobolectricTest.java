@@ -1,11 +1,10 @@
 package com.segment.analytics;
 
 import android.content.Context;
-import java.util.Collections;
+import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -14,7 +13,9 @@ import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
@@ -109,7 +110,7 @@ public class IntegrationManagerRobolectricTest {
     integrationManager.initialized = true;
     final AbstractIntegration<Void> fooIntegration = mock(AbstractIntegration.class);
     integrationManager.integrations =
-        Collections.<AbstractIntegration>singletonList(fooIntegration);
+        Arrays.<AbstractIntegration>asList(fooIntegration, fooIntegration, fooIntegration);
 
     integrationManager.performOperation(new IntegrationManager.IntegrationOperation() {
       @Override public void run(AbstractIntegration integration) {
@@ -120,7 +121,18 @@ public class IntegrationManagerRobolectricTest {
         return null;
       }
     });
-    verify(fooIntegration).alias(Matchers.<AliasPayload>any());
+    verify(fooIntegration, times(3)).alias(any(AliasPayload.class));
+
+    integrationManager.performOperation(new IntegrationManager.IntegrationOperation() {
+      @Override public void run(AbstractIntegration integration) {
+        integration.flush();
+      }
+
+      @Override public String id() {
+        return null;
+      }
+    });
+    verify(fooIntegration, times(3)).flush();
   }
 }
 

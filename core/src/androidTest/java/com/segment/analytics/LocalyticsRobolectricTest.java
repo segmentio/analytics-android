@@ -1,9 +1,12 @@
 package com.segment.analytics;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Application;
+import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import com.localytics.android.LocalyticsAmpSession;
+import java.util.HashMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,6 +15,11 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
 
+import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
+import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
+import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
+import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
+import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -19,8 +27,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.Mock;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class LocalyticsRobolectricTest extends IntegrationRobolectricExam {
-  @Mock LocalyticsAmpSession localytics;
+public class LocalyticsRobolectricTest extends AbstractIntegrationTest {
+  @Mock LocalyticsAmpSession session;
   LocalyticsIntegration integration;
 
   public static void grantPermission(final Application app, final String permission) {
@@ -30,89 +38,116 @@ public class LocalyticsRobolectricTest extends IntegrationRobolectricExam {
 
   @Before @Override public void setUp() {
     super.setUp();
-
     grantPermission(Robolectric.application, Manifest.permission.WAKE_LOCK);
-
     integration = new LocalyticsIntegration();
-    integration.session = localytics;
+    integration.session = session;
   }
 
-  @Test public void initialize() throws IllegalStateException {
-    LocalyticsIntegration adapter = new LocalyticsIntegration();
-    adapter.initialize(Robolectric.application, new JsonMap().putValue("appKey", "foo"), true);
-    assertThat(adapter.session).isNotNull();
+  @Test @Override public void initialize() throws IllegalStateException {
+    LocalyticsIntegration integration = new LocalyticsIntegration();
+    integration.initialize(Robolectric.application, new JsonMap().putValue("appKey", "foo"), true);
+    assertThat(integration.session).isNotNull();
   }
 
-  @Test
-  public void onActivityResumed() {
+  @Test @Override public void activityCreate() {
+    Activity activity = mock(Activity.class);
+    Bundle bundle = mock(Bundle.class);
+    integration.onActivityCreated(activity, bundle);
+    verify(session).open();
+    verify(session).upload();
+    verifyNoMoreInteractions(session);
+  }
+
+  @Test @Override public void activityStart() {
+    Activity activity = mock(Activity.class);
+    integration.onActivityStarted(activity);
+    verifyNoMoreInteractions(session);
+  }
+
+  @Test @Override public void activityResume() {
+    Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
-    verify(localytics).open();
-    verify(localytics).upload();
-    verifyNoMoreInteractions(localytics);
+    verify(session).open();
+    verify(session).upload();
+    verifyNoMoreInteractions(session);
   }
 
-  @Test
-  public void onActivityResumedCompat() {
+  @Test public void activityResumeCompat() {
     FragmentActivity activity = mock(FragmentActivity.class);
     integration.onActivityResumed(activity);
-    verify(localytics).open();
-    verify(localytics).upload();
-    verify(localytics).attach(activity);
+    verify(session).open();
+    verify(session).upload();
+    verify(session).attach(activity);
   }
 
-  @Test
-  public void onActivityPaused() {
+  @Test @Override public void activityPause() {
+    Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
-    verify(localytics).close();
-    verify(localytics).upload();
-    verifyNoMoreInteractions(localytics);
+    verify(session).close();
+    verify(session).upload();
+    verifyNoMoreInteractions(session);
   }
 
-  @Test
-  public void onActivityPausedCompat() {
-    activity = mock(FragmentActivity.class);
+  @Test public void activityPauseCompat() {
+    FragmentActivity activity = mock(FragmentActivity.class);
     integration.onActivityPaused(activity);
-    verify(localytics).detach();
-    verify(localytics).close();
-    verify(localytics).upload();
+    verify(session).detach();
+    verify(session).close();
+    verify(session).upload();
   }
 
-  @Test
-  public void onActivityCreated() {
-    integration.onActivityCreated(activity, bundle);
-    verify(localytics).open();
-    verify(localytics).upload();
-    verifyNoMoreInteractions(localytics);
-  }
-
-  @Test
-  public void activityLifecycle() {
-    integration.onActivityStarted(activity);
-    integration.onActivityDestroyed(activity);
-    integration.onActivitySaveInstanceState(activity, bundle);
+  @Test @Override public void activityStop() {
+    Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
-    verifyNoMoreInteractions(localytics);
+    verifyNoMoreInteractions(session);
   }
 
-  @Test public void flush() {
+  @Test @Override public void activitySaveInstance() {
+    Activity activity = mock(Activity.class);
+    Bundle bundle = mock(Bundle.class);
+    integration.onActivitySaveInstanceState(activity, bundle);
+    verifyNoMoreInteractions(session);
+  }
+
+  @Test @Override public void activityDestroy() {
+    Activity activity = mock(Activity.class);
+    integration.onActivityDestroyed(activity);
+    verifyNoMoreInteractions(session);
+  }
+
+  @Test @Override public void identify() {
+    integration.identify(new IdentifyPayloadBuilder().build());
+  }
+
+  @Test @Override public void group() {
+    integration.group(new GroupPayloadBuilder().build());
+    verifyNoMoreInteractions(session);
+  }
+
+  @Test @Override public void flush() {
     integration.flush();
-    verify(localytics).upload();
+    verify(session).upload();
   }
 
-  @Test public void screen() {
-    integration.screen(screenPayload("Clothes", "Pants"));
-    verify(localytics).tagScreen("Pants");
+  @Test @Override public void screen() {
+    integration.screen(new ScreenPayloadBuilder().category("foo").name("bar").build());
+    verify(session).tagScreen("bar");
 
-    integration.screen(screenPayload(null, "Shirts"));
-    verify(localytics).tagScreen("Shirts");
+    integration.screen(new ScreenPayloadBuilder().name("baz").build());
+    verify(session).tagScreen("baz");
 
-    integration.screen(screenPayload("Games", null));
-    verify(localytics).tagScreen("Games");
+    integration.screen(new ScreenPayloadBuilder().category("qux").build());
+    verify(session).tagScreen("qux");
   }
 
-  @Test public void track() {
-    integration.track(trackPayload("Button Clicked"));
-    verify(localytics).tagEvent("Button Clicked", properties.toStringMap());
+  @Test @Override public void track() {
+    integration.track(new TrackPayloadBuilder().event("foo").build());
+    verify(session).tagEvent("foo", new HashMap<String, String>());
+  }
+
+  @Test @Override public void alias() {
+    integration.alias(new AliasPayloadBuilder().build());
+    verifyNoMoreInteractions(session);
   }
 }
 

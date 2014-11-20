@@ -1,5 +1,7 @@
 package com.segment.analytics;
 
+import android.app.Activity;
+import android.os.Bundle;
 import com.quantcast.measurement.service.QuantcastClient;
 import org.junit.Before;
 import org.junit.Rule;
@@ -12,14 +14,19 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
+import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
+import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
+import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
+import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
+import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(QuantcastClient.class)
-public class QuantcastRobolectricTest extends IntegrationRobolectricExam {
-  final String apiKey = "foo";
+public class QuantcastRobolectricTest extends AbstractIntegrationTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
   QuantcastIntegration integration;
 
@@ -27,7 +34,7 @@ public class QuantcastRobolectricTest extends IntegrationRobolectricExam {
     super.setUp();
     PowerMockito.mockStatic(QuantcastClient.class);
     integration = new QuantcastIntegration();
-    integration.apiKey = apiKey;
+    integration.apiKey = "foo";
   }
 
   @Test public void initialize() throws IllegalStateException {
@@ -44,43 +51,91 @@ public class QuantcastRobolectricTest extends IntegrationRobolectricExam {
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test
-  public void activityLifecycle() {
-    integration.onActivityStarted(activity);
-    verifyStatic();
-    QuantcastClient.activityStart(activity, "foo", null, null);
-
-    integration.onActivityStopped(activity);
-    verifyStatic();
-    QuantcastClient.activityStop();
-
+  @Test @Override public void activityCreate() {
+    Activity activity = mock(Activity.class);
+    Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
-    integration.onActivityResumed(activity);
-    integration.onActivityPaused(activity);
-    integration.onActivitySaveInstanceState(activity, bundle);
-    integration.onActivityDestroyed(activity);
-    verifyStatic();
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test
-  public void identify() {
-    integration.identify(identifyPayload("bar"));
+  @Test @Override public void activityStart() {
+    Activity activity = mock(Activity.class);
+    integration.onActivityStarted(activity);
+    verifyStatic();
+    QuantcastClient.activityStart(activity, "foo", null, null);
+    verifyNoMoreInteractions(QuantcastClient.class);
+  }
+
+  @Test @Override public void activityResume() {
+    Activity activity = mock(Activity.class);
+    integration.onActivityResumed(activity);
+    verifyNoMoreInteractions(QuantcastClient.class);
+  }
+
+  @Test @Override public void activityPause() {
+    Activity activity = mock(Activity.class);
+    integration.onActivityPaused(activity);
+    verifyNoMoreInteractions(QuantcastClient.class);
+  }
+
+  @Test @Override public void activityStop() {
+    Activity activity = mock(Activity.class);
+    integration.onActivityStopped(activity);
+    verifyStatic();
+    QuantcastClient.activityStop();
+    verifyNoMoreInteractions(QuantcastClient.class);
+  }
+
+  @Test @Override public void activitySaveInstance() {
+    Activity activity = mock(Activity.class);
+    Bundle bundle = mock(Bundle.class);
+    integration.onActivitySaveInstanceState(activity, bundle);
+    verifyNoMoreInteractions(QuantcastClient.class);
+  }
+
+  @Test @Override public void activityDestroy() {
+    Activity activity = mock(Activity.class);
+    integration.onActivityDestroyed(activity);
+    verifyNoMoreInteractions(QuantcastClient.class);
+  }
+
+  @Test @Override public void identify() {
+    integration.identify(new IdentifyPayloadBuilder().userId("bar").build());
     verifyStatic();
     QuantcastClient.recordUserIdentifier("bar");
+    verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test
-  public void screenTrackNothing() {
-    integration.screen(screenPayload("bar", "baz"));
-    verifyStatic();
-    QuantcastClient.logEvent("Viewed baz Screen");
+  @Test @Override public void group() {
+    integration.group(new GroupPayloadBuilder().build());
+    verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test
-  public void track() {
-    integration.track(trackPayload("bar"));
+  @Test @Override public void track() {
+    integration.track(new TrackPayloadBuilder().event("bar").build());
     verifyStatic();
     QuantcastClient.logEvent("bar");
+    verifyNoMoreInteractions(QuantcastClient.class);
+  }
+
+  @Test @Override public void alias() {
+    integration.alias(new AliasPayloadBuilder().build());
+    verifyNoMoreInteractions(QuantcastClient.class);
+  }
+
+  @Test @Override public void screen() {
+    integration.screen(new ScreenPayloadBuilder().category("bar").build());
+    verifyStatic();
+    QuantcastClient.logEvent("Viewed bar Screen");
+
+    integration.screen(new ScreenPayloadBuilder().name("baz").build());
+    verifyStatic();
+    QuantcastClient.logEvent("Viewed baz Screen");
+    verifyNoMoreInteractions(QuantcastClient.class);
+  }
+
+  @Test @Override public void flush() {
+    integration.flush();
+    verifyNoMoreInteractions(QuantcastClient.class);
   }
 }
