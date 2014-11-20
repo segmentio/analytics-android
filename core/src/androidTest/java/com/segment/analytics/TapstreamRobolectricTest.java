@@ -76,8 +76,7 @@ public class TapstreamRobolectricTest extends AbstractIntegrationTest {
 
   @Test @Override public void activityStart() {
     Activity activity = mock(Activity.class);
-    Bundle bundle = mock(Bundle.class);
-    integration.onActivityCreated(activity, bundle);
+    integration.onActivityStarted(activity);
     verifyNoMoreTapstreamInteractions();
   }
 
