@@ -9,7 +9,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -17,18 +16,19 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
 import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
+import static com.segment.analytics.TestUtils.JSONObjectMatcher.jsonEq;
 import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
 import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-@PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
+@PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*", "org.json.*" })
 @PrepareForTest(Amplitude.class)
 public class AmplitudeRobolectricTest extends AbstractIntegrationTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
@@ -63,14 +63,12 @@ public class AmplitudeRobolectricTest extends AbstractIntegrationTest {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
-    verifyStatic();
     verifyNoMoreInteractions(Amplitude.class);
   }
 
   @Test @Override public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
-    verifyStatic();
     verifyNoMoreInteractions(Amplitude.class);
   }
 
@@ -91,7 +89,6 @@ public class AmplitudeRobolectricTest extends AbstractIntegrationTest {
   @Test @Override public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
-    verifyStatic();
     verifyNoMoreInteractions(Amplitude.class);
   }
 
@@ -99,27 +96,26 @@ public class AmplitudeRobolectricTest extends AbstractIntegrationTest {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
-    verifyStatic();
     verifyNoMoreInteractions(Amplitude.class);
   }
 
   @Test @Override public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
-    verifyStatic();
     verifyNoMoreInteractions(Amplitude.class);
   }
 
   @Test @Override public void track() {
-    TrackPayload trackPayload = new TrackPayloadBuilder().event("foo").build();
-    integration.track(trackPayload);
+    Properties properties = new Properties();
+    integration.track(new TrackPayloadBuilder().event("foo").properties(properties).build());
     verifyStatic();
-    Amplitude.logEvent(eq("foo"), any(JSONObject.class));
+    Amplitude.logEvent(eq("foo"), jsonEq(properties.toJsonObject()));
     verifyNoMoreInteractions(Amplitude.class);
   }
 
   @Override public void alias() {
-
+    integration.alias(new AliasPayloadBuilder().build());
+    verifyNoMoreInteractions(Amplitude.class);
   }
 
   @Test public void trackWithRevenue() {
@@ -132,23 +128,24 @@ public class AmplitudeRobolectricTest extends AbstractIntegrationTest {
         new TrackPayloadBuilder().event("foo").properties(properties).build();
     integration.track(trackPayload);
     verifyStatic();
-    Amplitude.logEvent(eq("foo"), any(JSONObject.class));
+    Amplitude.logEvent(eq("foo"), jsonEq(properties.toJsonObject()));
     verifyStatic();
     Amplitude.logRevenue("bar", 10, 20, "baz", "qux");
   }
 
   @Test @Override public void identify() {
-    IdentifyPayload payload = new IdentifyPayloadBuilder().userId("foo").build();
+    Traits traits = new Traits().putUserId("foo").putAge(20).putFirstName("bar");
+    IdentifyPayload payload = new IdentifyPayloadBuilder().traits(traits).build();
     integration.identify(payload);
     verifyStatic();
     Amplitude.setUserId("foo");
     verifyStatic();
-    Amplitude.setUserProperties(Matchers.<JSONObject>any());
-    // todo: verify JSONObject
+    Amplitude.setUserProperties(jsonEq(traits.toJsonObject()));
   }
 
-  @Override public void group() {
-
+  @Test @Override public void group() {
+    integration.group(new TestUtils.GroupPayloadBuilder().build());
+    verifyNoMoreInteractions(Amplitude.class);
   }
 
   @Test @Override public void screen() {
@@ -156,7 +153,6 @@ public class AmplitudeRobolectricTest extends AbstractIntegrationTest {
     integration.trackCategorizedPages = false;
     integration.trackNamedPages = false;
     integration.screen(new ScreenPayloadBuilder().category("foo").build());
-    verifyStatic();
     verifyNoMoreInteractions(Amplitude.class);
   }
 
@@ -167,10 +163,9 @@ public class AmplitudeRobolectricTest extends AbstractIntegrationTest {
     integration.trackNamedPages = true;
 
     integration.screen(new ScreenPayloadBuilder().name("bar").build());
-    verifyAmplitudeLoggedEvent("Viewed bar Screen", null);
+    verifyAmplitudeLoggedEvent("Viewed bar Screen", new JSONObject());
 
     integration.screen(new ScreenPayloadBuilder().category("foo").build());
-    verifyStatic();
     verifyNoMoreInteractions(Amplitude.class);
   }
 
@@ -181,10 +176,9 @@ public class AmplitudeRobolectricTest extends AbstractIntegrationTest {
     integration.trackNamedPages = false;
 
     integration.screen(new ScreenPayloadBuilder().category("foo").build());
-    verifyAmplitudeLoggedEvent("Viewed foo Screen", null);
+    verifyAmplitudeLoggedEvent("Viewed foo Screen", new JSONObject());
 
     integration.screen(new ScreenPayloadBuilder().name("foo").build());
-    verifyStatic();
     verifyNoMoreInteractions(Amplitude.class);
   }
 
@@ -195,13 +189,13 @@ public class AmplitudeRobolectricTest extends AbstractIntegrationTest {
     integration.trackNamedPages = new Random().nextBoolean();
 
     integration.screen(new ScreenPayloadBuilder().category("foo").build());
-    verifyAmplitudeLoggedEvent("Viewed foo Screen", null);
+    verifyAmplitudeLoggedEvent("Viewed foo Screen", new JSONObject());
 
     integration.screen(new ScreenPayloadBuilder().name("bar").build());
-    verifyAmplitudeLoggedEvent("Viewed bar Screen", null);
+    verifyAmplitudeLoggedEvent("Viewed bar Screen", new JSONObject());
 
     integration.screen(new ScreenPayloadBuilder().category("bar").name("baz").build());
-    verifyAmplitudeLoggedEvent("Viewed baz Screen", null);
+    verifyAmplitudeLoggedEvent("Viewed baz Screen", new JSONObject());
   }
 
   @Test @Override public void flush() {
@@ -212,6 +206,6 @@ public class AmplitudeRobolectricTest extends AbstractIntegrationTest {
 
   private void verifyAmplitudeLoggedEvent(String event, JSONObject jsonObject) {
     verifyStatic();
-    Amplitude.logEvent(eq(event), any(JSONObject.class));
+    Amplitude.logEvent(eq(event), jsonEq(jsonObject));
   }
 }

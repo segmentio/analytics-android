@@ -4,12 +4,10 @@ import android.app.Activity;
 import android.os.Bundle;
 import com.crittercism.app.Crittercism;
 import com.crittercism.app.CrittercismConfig;
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -20,15 +18,17 @@ import org.robolectric.annotation.Config;
 import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
 import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
 import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
+import static com.segment.analytics.TestUtils.JSONObjectMatcher.jsonEq;
 import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
 import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-@PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
+@PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*", "org.json.*" })
 @PrepareForTest(Crittercism.class)
 public class CrittercismRobolectricTest extends AbstractIntegrationTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
@@ -45,7 +45,7 @@ public class CrittercismRobolectricTest extends AbstractIntegrationTest {
     integration.initialize(context, new JsonMap().putValue("appId", "foo"), true);
     verifyStatic();
     // todo: verify config params
-    Crittercism.initialize(eq(context), eq("foo"), Matchers.<CrittercismConfig>any());
+    Crittercism.initialize(eq(context), eq("foo"), any(CrittercismConfig.class));
   }
 
   @Test @Override public void activityCreate() {
@@ -101,11 +101,12 @@ public class CrittercismRobolectricTest extends AbstractIntegrationTest {
   }
 
   @Test @Override public void identify() {
-    integration.identify(new IdentifyPayloadBuilder().userId("foo").build());
+    Traits traits = new Traits().putUserId("foo");
+    integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verifyStatic();
     Crittercism.setUsername("foo");
     verifyStatic();
-    Crittercism.setMetadata(Matchers.<JSONObject>any());
+    Crittercism.setMetadata(jsonEq(traits.toJsonObject()));
   }
 
   @Test @Override public void group() {

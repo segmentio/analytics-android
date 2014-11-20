@@ -22,6 +22,7 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.TapstreamRobolectricTest.EventMatcher.eventEq;
 import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
 import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
 import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
@@ -113,7 +114,7 @@ public class TapstreamRobolectricTest extends AbstractIntegrationTest {
 
   @Test @Override public void track() {
     integration.track(new TrackPayloadBuilder().event("foo").build());
-    verify(tapstream).fireEvent(eqEvent("foo"));
+    verify(tapstream).fireEvent(eventEq("foo"));
     verifyNoMoreTapstreamInteractions();
   }
 
@@ -137,7 +138,7 @@ public class TapstreamRobolectricTest extends AbstractIntegrationTest {
     integration.trackNamedPages = new Random().nextBoolean();
 
     integration.screen(new ScreenPayloadBuilder().name("foo").build());
-    verify(tapstream).fireEvent(eqEvent("viewed foo screen"));
+    verify(tapstream).fireEvent(eventEq("viewed foo screen"));
     verifyNoMoreTapstreamInteractions();
   }
 
@@ -147,7 +148,7 @@ public class TapstreamRobolectricTest extends AbstractIntegrationTest {
     integration.trackNamedPages = true;
 
     integration.screen(new ScreenPayloadBuilder().name("foo").build());
-    verify(tapstream).fireEvent(eqEvent("viewed foo screen"));
+    verify(tapstream).fireEvent(eventEq("viewed foo screen"));
     verifyNoMoreTapstreamInteractions();
 
     integration.screen(new ScreenPayloadBuilder().category("foo").build());
@@ -160,7 +161,7 @@ public class TapstreamRobolectricTest extends AbstractIntegrationTest {
     integration.trackNamedPages = false;
 
     integration.screen(new ScreenPayloadBuilder().category("foo").build());
-    verify(tapstream).fireEvent(eqEvent("viewed foo screen"));
+    verify(tapstream).fireEvent(eventEq("viewed foo screen"));
     verifyNoMoreTapstreamInteractions();
 
     integration.screen(new ScreenPayloadBuilder().name("foo").build());
@@ -197,18 +198,18 @@ public class TapstreamRobolectricTest extends AbstractIntegrationTest {
     verifyNoMoreInteractions(tapstream);
   }
 
-  private Event eqEvent(String name) {
-    return argThat(new EventMatcher(name));
-  }
-
   static class EventMatcher extends TypeSafeMatcher<Event> {
     final String name;
 
-    EventMatcher(String name) {
+    private EventMatcher(String name) {
       this.name = name;
     }
 
-    @Override protected boolean matchesSafely(Event event) {
+    static Event eventEq(String name) {
+      return argThat(new EventMatcher(name));
+    }
+
+    @Override public boolean matchesSafely(Event event) {
       return event.getName().compareTo(name) == 0;
     }
 

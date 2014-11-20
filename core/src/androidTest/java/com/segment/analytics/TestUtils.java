@@ -3,10 +3,14 @@ package com.segment.analytics;
 import android.app.Application;
 import java.io.File;
 import java.util.UUID;
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeMatcher;
+import org.json.JSONObject;
 import org.robolectric.Robolectric;
 
 import static android.Manifest.permission.INTERNET;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -404,6 +408,27 @@ final class TestUtils {
         options = new Options();
       }
       return new GroupPayload(anonymousId, context, userId, groupId, traits, options);
+    }
+  }
+
+  static class JSONObjectMatcher extends TypeSafeMatcher<JSONObject> {
+    private final JSONObject expected;
+
+    private JSONObjectMatcher(JSONObject expected) {
+      this.expected = expected;
+    }
+
+    static JSONObject jsonEq(JSONObject expected) {
+      return argThat(new JSONObjectMatcher(expected));
+    }
+
+    @Override public boolean matchesSafely(JSONObject jsonObject) {
+      // this relies on having the same order
+      return expected.toString().equals(jsonObject.toString());
+    }
+
+    @Override public void describeTo(Description description) {
+      description.appendText(expected.toString());
     }
   }
 }
