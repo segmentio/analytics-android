@@ -131,7 +131,7 @@ public class GoogleAnalyticsRobolectricTest extends AbstractIntegrationTest {
         .build());
     verifyNoMoreGoogleInteractions();
 
-    Properties properties = new Properties().putValue("51").putValue("label", "bar");
+    Properties properties = new Properties().putValue(51).putValue("label", "bar");
     integration.track(new TrackPayloadBuilder().properties(properties).event("foo").build());
     verify(tracker).send(new HitBuilders.EventBuilder().setCategory(null)
         .setAction("foo")

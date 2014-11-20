@@ -16,15 +16,24 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  */
 class AppsFlyerIntegration extends AbstractIntegration<Void> {
   static final String APPS_FLYER_KEY = "AppsFlyer";
+  final AppsFlyer appsFlyer;
   Context context;
+
+  AppsFlyerIntegration() {
+    this(AppsFlyer.DEFAULT);
+  }
+
+  AppsFlyerIntegration(AppsFlyer appsFlyer) {
+    this.appsFlyer = appsFlyer;
+  }
 
   @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
       throws IllegalStateException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new IllegalStateException("AppsFlyer requires the ACCESS_NETWORK_STATE permission");
     }
-    AppsFlyerLib.setAppsFlyerKey(settings.getString("appsFlyerDevKey"));
-    AppsFlyerLib.setUseHTTPFalback(settings.getBoolean("httpFallback", false));
+    appsFlyer.setAppsFlyerKey(settings.getString("appsFlyerDevKey"));
+    appsFlyer.setUseHTTPFallback(settings.getBoolean("httpFallback", false));
     this.context = context;
   }
 
@@ -36,15 +45,64 @@ class AppsFlyerIntegration extends AbstractIntegration<Void> {
     super.track(track);
     String currency = track.properties().currency();
     if (!isNullOrEmpty(currency)) {
-      AppsFlyerLib.setCurrencyCode(track.properties().currency());
+      appsFlyer.setCurrencyCode(track.properties().currency());
     }
-    AppsFlyerLib.sendTrackingWithEvent(context, track.event(),
+    appsFlyer.sendTrackingWithEvent(context, track.event(),
         String.valueOf(track.properties().value()));
   }
 
   @Override void identify(IdentifyPayload identify) {
     super.identify(identify);
-    AppsFlyerLib.setAppUserId(identify.userId());
-    AppsFlyerLib.setUserEmail(identify.traits().email());
+    appsFlyer.setAppUserId(identify.userId());
+    appsFlyer.setUserEmail(identify.traits().email());
+  }
+
+  /**
+   * We can't mock AppsFlyerLib even with PowerMock, so we make a wrapper that can be
+   * tested.
+   * <p></p>
+   * The relevant error which prevents the AppsFlyerLib class from being mocked
+   * http://pastebin.com/jdZi9jPt
+   */
+  interface AppsFlyer {
+
+    AppsFlyer DEFAULT = new AppsFlyer() {
+      @Override public void setAppsFlyerKey(String key) {
+        AppsFlyerLib.setAppsFlyerKey(key);
+      }
+
+      @Override public void setUseHTTPFallback(boolean isUseHttp) {
+        AppsFlyerLib.setUseHTTPFalback(isUseHttp);
+      }
+
+      @Override public void setCurrencyCode(String currencyCode) {
+        AppsFlyerLib.setCurrencyCode(currencyCode);
+      }
+
+      @Override public void sendTrackingWithEvent(Context context, String eventName,
+          String eventValue) {
+        AppsFlyerLib.sendTrackingWithEvent(context, eventName, eventValue);
+      }
+
+      @Override public void setAppUserId(String userId) {
+        AppsFlyerLib.setAppUserId(userId);
+      }
+
+      @Override public void setUserEmail(String email) {
+        AppsFlyerLib.setUserEmail(email);
+      }
+    };
+
+    void setAppsFlyerKey(String key);
+
+    void setUseHTTPFallback(boolean isUseHttp);
+
+    void setCurrencyCode(String currencyCode);
+
+    void sendTrackingWithEvent(Context context1, String eventName, String eventValue);
+
+    void setAppUserId(String userId);
+
+    void setUserEmail(String email);
   }
 }
