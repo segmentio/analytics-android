@@ -208,7 +208,7 @@ public class Properties extends JsonMap {
     return getDouble(PRICE_KEY, 0);
   }
 
-  public double value() {
+  double value() {
     return getDouble(VALUE_KEY, 0);
   }
 
