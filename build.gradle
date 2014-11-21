@@ -7,9 +7,9 @@ subprojects {
       mavenCentral()
     }
     dependencies {
-      classpath 'com.android.tools.build:gradle:0.13.3'
+      classpath 'com.android.tools.build:gradle:0.14.4'
       classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
-      classpath 'org.robolectric:robolectric-gradle-plugin:0.13.2'
+      classpath 'org.robolectric:robolectric-gradle-plugin:0.14.0'
     }
   }
 
@@ -29,10 +29,10 @@ ext {
   versionName = VERSION_NAME
 
   minSdkVersion = 14
-  minSdkVersionWear = 20
-  targetSdkVersion = 20
-  compileSdkVersion = 20
-  buildToolsVersion = '20.0.0'
+  minSdkVersionWear = 21
+  targetSdkVersion = 21
+  compileSdkVersion = 21
+  buildToolsVersion = '21.1.1'
 
   preDexLibraries = preDexEnabled && !isTravis
 }
@@ -44,14 +44,14 @@ ext.libraries = [
     countly        : 'ly.count:sdk-android:13.11',
     crittercism    : 'com.crittercism:crittercism-android-agent:5.0.3',
     flurry         : files('libs/Flurry-4.1.0.jar'),
-    supportLib     : 'com.android.support:support-v4:20.0.0',
-    googleAnalytics: 'com.google.android.gms:play-services:6.1.11',
+    supportLib     : 'com.android.support:support-v4:21.0.2',
+    googleAnalytics: 'com.google.android.gms:play-services:6.1.71',
     localytics     : files('libs/Localytics-2.7.1.jar'),
     leanplum       : files('libs/Leanplum-1.2.5.jar'),
     mixpanel       : 'com.mixpanel.android:mixpanel-android:4.4.0@aar',
     quantcast      : 'com.quantcast.android.measurement:QuantcastAndroidSdk:1.2.3',
     tapstream      : files('libs/Tapstream-2.7.1.jar'),
     supportWearable: 'com.google.android.support:wearable:1.0.0',
-    playWearable   : 'com.google.android.gms:play-services-wearable:6.1.11'
+    playWearable   : 'com.google.android.gms:play-services-wearable:6.1.71'
 ]
 // @formatter:on
