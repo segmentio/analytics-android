@@ -1,3 +1,7 @@
+Version 2.4.3 (November 25th, 2014)
+===================================
+* New: Kahuna Integration
+
 Version 2.4.2 (November 20th, 2014)
 ===================================
 * Improvement: Updating the Crittercism SDK version from 4.5.3 to 5.0.3
