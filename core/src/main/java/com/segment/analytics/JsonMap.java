@@ -40,7 +40,11 @@ class JsonMap implements Map<String, Object> {
     if (map == null) {
       throw new IllegalArgumentException("Map must not be null.");
     }
-    this.delegate = new NullableConcurrentHashMap<String, Object>(map);
+    if (map instanceof NullableConcurrentHashMap) {
+      this.delegate = (NullableConcurrentHashMap) map;
+    } else {
+      this.delegate = new NullableConcurrentHashMap<String, Object>(map);
+    }
   }
 
   JsonMap(String json) {
