@@ -204,49 +204,60 @@ class IntegrationManager {
   }
 
   AbstractIntegration createIntegrationForKey(String key) {
-    // todo: should be a factory method
-    // Todo: consume the entire string to verify the key? e.g. Amplitude vs Amhuik (random)
     switch (key.charAt(0)) {
       case 'A':
         switch (key.charAt(1)) {
           case 'm':
+            verify(key, AmplitudeIntegration.AMPLITUDE_KEY);
             return new AmplitudeIntegration();
           case 'p':
+            verify(key, AppsFlyerIntegration.APPS_FLYER_KEY);
             return new AppsFlyerIntegration();
           default:
             break;
         }
       case 'B':
+        verify(key, BugsnagIntegration.BUGSNAG_KEY);
         return new BugsnagIntegration();
       case 'C':
         switch (key.charAt(1)) {
           case 'o':
+            verify(key, CountlyIntegration.COUNTLY_KEY);
             return new CountlyIntegration();
           case 'r':
+            verify(key, CrittercismIntegration.CRITTERCISM_KEY);
             return new CrittercismIntegration();
           default:
             break;
         }
       case 'F':
+        verify(key, FlurryIntegration.FLURRY_KEY);
         return new FlurryIntegration();
       case 'G':
+        verify(key, GoogleAnalyticsIntegration.GOOGLE_ANALYTICS_KEY);
         return new GoogleAnalyticsIntegration();
       case 'K':
+        verify(key, KahunaIntegration.KAHUNA_KEY);
         return new KahunaIntegration();
       case 'L':
         switch (key.charAt(1)) {
           case 'e':
+            verify(key, LeanplumIntegration.LEANPLUM_KEY);
             return new LeanplumIntegration();
           case 'o':
+            verify(key, LocalyticsIntegration.LOCALYTICS_KEY);
             return new LocalyticsIntegration();
           default:
             break;
         }
       case 'M':
+        verify(key, MixpanelIntegration.MIXPANEL_KEY);
         return new MixpanelIntegration();
       case 'Q':
+        verify(key, QuantcastIntegration.QUANTCAST_KEY);
         return new QuantcastIntegration();
       case 'T':
+        verify(key, TapstreamIntegration.TAPSTREAM_KEY);
         return new TapstreamIntegration();
       default:
         break;
@@ -254,6 +265,14 @@ class IntegrationManager {
     // this will only be called for bundled integrations, so should fail if we see some unknown
     // bundled integration!
     throw new AssertionError("unknown integration key: " + key);
+  }
+
+  private void verify(String actual, String expected) {
+    // todo: ideally we wouldn't even have to compare the first n characters that were matched in
+    // the trie, but this is ok for now
+    if (actual.compareTo(expected) != 0) {
+      throw new AssertionError("unknown integration key: " + actual);
+    }
   }
 
   void flush() {

@@ -74,6 +74,27 @@ public class IntegrationManagerRobolectricTest {
     } catch (AssertionError expected) {
       assertThat(expected).hasMessage("unknown integration key: d");
     }
+
+    try {
+      assertThat(integrationManager.createIntegrationForKey("Mixed"));
+      fail("passing an invalid key should fail.");
+    } catch (AssertionError expected) {
+      assertThat(expected).hasMessage("unknown integration key: Mixed");
+    }
+
+    try {
+      assertThat(integrationManager.createIntegrationForKey("Mix"));
+      fail("passing an invalid key should fail.");
+    } catch (AssertionError expected) {
+      assertThat(expected).hasMessage("unknown integration key: Mix");
+    }
+
+    try {
+      assertThat(integrationManager.createIntegrationForKey("Mixpaneled"));
+      fail("passing an invalid key should fail.");
+    } catch (AssertionError expected) {
+      assertThat(expected).hasMessage("unknown integration key: Mixpaneled");
+    }
   }
 
   @Test public void initializesIntegrations() {
