@@ -94,7 +94,6 @@ afterEvaluate { project ->
 
   task androidJavadocs(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
-    options.addStringOption('Xdoclint:none', '-quiet')
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
   }
 

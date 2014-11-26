@@ -24,7 +24,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * The counterpart to {@link com.segment.analytics.Analytics} for Android Wear. This class will
  * simply forward all events to the host. The host app must register {@link
  * PhoneAnalyticsListenerService} (or a subclass) to be able to receive the events.
- * <p/>
+ * <p>
  * This class can only send track or screen events. You should `identify`, `group` or `alias` users
  * through your host app (that runs on an Android phone).
  */
@@ -78,9 +78,8 @@ public class WearAnalytics {
 
   /**
    * The screen methods let your record whenever a user sees a screen of your mobile app, and
-   * attach
-   * a name, category or properties to the screen.
-   * <p/>
+   * attach a name, category or properties to the screen.
+   * <p>
    * Either category or name must be provided.
    *
    * @param category A category to describe the screen

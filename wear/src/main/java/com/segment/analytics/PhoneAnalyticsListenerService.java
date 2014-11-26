@@ -22,7 +22,7 @@ import com.google.android.gms.wearable.WearableListenerService;
 
 /**
  * A {@link WearableListenerService} that listens for analytics events from a wear device.
- * <p/>
+ * <p>
  * Clients may subclass this and override {@link #getAnalytics()} to provide custom instances of
  * {@link Analytics} client. Ideally, it should be the same instance as the client you're using to
  * track events on the host Android device.

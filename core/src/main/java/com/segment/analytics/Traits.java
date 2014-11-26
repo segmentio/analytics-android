@@ -38,7 +38,7 @@ import static com.segment.analytics.Utils.toISO8601Date;
  * special ways. For example, whenever we see an email trait, we expect it to be the user's email
  * address. And we'll send this on to integrations that need an email, like Mailchimp. For that
  * reason, you should only use special traits for their intended purpose.
- * <p/>
+ * <p>
  * This is persisted to disk, and will be remembered between sessions.
  */
 public class Traits extends JsonMap {

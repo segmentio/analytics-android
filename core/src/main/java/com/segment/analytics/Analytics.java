@@ -57,14 +57,14 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
 /**
  * The idea is simple: one pipeline for all your data. Segment is the single hub to collect,
  * translate and route your data with the flip of a switch.
- * <p></p>
+ * <p>
  * Analytics for Android will automatically batch events, queue them to disk, and upload it
  * periodically to Segment for you. It will also look up your project's settings (that you've
  * configured in the web interface), specifically looking up settings for bundled integrations, and
  * then initialize them for you on the user's phone, and mapping our standardized events to formats
  * they can all understand. You only need to instrument Segment once, then flip a switch to install
  * new tools.
- * <p></p>
+ * <p>
  * This class is the main entry point into the client API. Use {@link
  * #with(android.content.Context)} for the global singleton instance or construct your own instance
  * with {@link Builder}.
@@ -143,14 +143,14 @@ public class Analytics {
 
   /**
    * The global default {@link Analytics} instance.
-   * <p></p>
+   * <p>
    * This instance is automatically initialized with defaults that are suitable to most
    * implementations.
-   * <p></p>
+   * <p>
    * If these settings do not meet the requirements of your application, you can override defaults
    * in {@code analytics.xml}, or you can construct your own instance with full control over the
    * configuration by using {@link Builder}.
-   * <p></p>
+   * <p>
    * By default, events are uploaded every 30 seconds, or every 20 events (whichever occurs first),
    * and debugging is disabled.
    */
@@ -260,7 +260,7 @@ public class Analytics {
   /**
    * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
    * also lets you record {@code traits} about the user, like their email, name, account type, etc.
-   * <p></p>
+   * <p>
    * Traits and userId will be automatically cached and available on future sessions for the same
    * user. To update a trait on the server, simply call identify with the same user id (or null).
    * You can also use {@link #identify(Traits)} for this purpose.
@@ -298,7 +298,7 @@ public class Analytics {
   /**
    * The group method lets you associate a user with a group. It also lets you record custom traits
    * about the group, like industry or number of employees.
-   * <p/>
+   * <p>
    * If you've called {@link #identify(String, Traits, Options)} before, this will automatically
    * remember the user id. If not, it will fall back to use the anonymousId instead.
    *
@@ -307,7 +307,7 @@ public class Analytics {
    * be null or empty.
    * @param options To configure the call
    * @throws IllegalArgumentException if groupId is null or an empty string
-   * @see <a href=" https://segment.io/docs/tracking-api/group/">Group Documentation</a>
+   * @see <a href="https://segment.io/docs/tracking-api/group/">Group Documentation</a>
    */
   public void group(String userId, String groupId, Traits traits, Options options) {
     if (isNullOrEmpty(groupId)) {
@@ -383,7 +383,7 @@ public class Analytics {
    * The screen methods let your record whenever a user sees a screen of your mobile app, and
    * attach
    * a name, category or properties to the screen.
-   * <p/>
+   * <p>
    * Either category or name must be provided.
    *
    * @param category A category to describe the screen
@@ -483,7 +483,7 @@ public class Analytics {
   /**
    * Register to be notified when a bundled integration is ready. See {@link
    * OnIntegrationReadyListener} for more information.
-   * <p></p>
+   * <p>
    * This method must be called from the main thread.
    *
    * @since 2.1
@@ -496,13 +496,13 @@ public class Analytics {
   /**
    * Register to be notified when a bundled integration is ready. See {@link
    * OnIntegrationReadyListener} for more information.
-   * <p></p>
+   * <p>
    * This method must be called from the main thread.
-   * <p></p>
+   * <p>
    * {@code
    * analytics.registerOnIntegrationReady(new OnIntegrationReadyListener() {
    *
-   * @Override public void onIntegrationReady(String key, Object integration) {
+   * \@Override public void onIntegrationReady(String key, Object integration) {
    * if("Mixpanel".equals(key)) {
    * ((MixpanelAPI) integration).clearSuperProperties();
    * }
@@ -529,7 +529,7 @@ public class Analytics {
   /**
    * A callback interface that is invoked when the Analytics client initializes bundled
    * integrations.
-   * <p></p>
+   * <p>
    * In most cases, integrations would have already been initialized, and the callback will be
    * invoked right away. The only time this not invoked immediately is when the application is
    * opened the very first time (right after a fresh install).

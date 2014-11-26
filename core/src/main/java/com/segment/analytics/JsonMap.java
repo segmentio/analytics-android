@@ -18,13 +18,13 @@ import static com.segment.analytics.Utils.NullableConcurrentHashMap;
  * A {@link Map} wrapper to expose Json functionality. Only the {@link #toString()} method is
  * modified to return a json formatted string. All other methods will be forwarded to a delegate
  * map.
- * <p/>
+ * <p>
  * The purpose of this class is to not limit clients to a custom implementation of a Json type,
  * they
  * can use existing {@link Map} and {@link java.util.List} implementations as they see fit. It adds
  * some utility methods, including methods to coerce numeric types from Strings, and a {@link
  * #putValue(String, Object)} to be able to chain method calls.
- * <p/>
+ * <p>
  * Although it lets you use custom objects for values, note that type information is lost during
  * serialization. You should use one of the coercion methods if you're expecting a type after
  * serialization.
@@ -229,7 +229,7 @@ class JsonMap implements Map<String, Object> {
   /**
    * Returns the value mapped by {@code key} if it exists and is a string or can be coerced to a
    * string. Returns null otherwise.
-   * <p/>
+   * <p>
    * This will return null only if the value does not exist, since all types can have a String
    * representation.
    */

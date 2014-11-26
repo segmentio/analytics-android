@@ -46,7 +46,7 @@ public class Options {
 
   /**
    * Sets whether this call will be sent to the target integration.
-   * <p/>
+   * <p>
    * By default, all integrations are sent a payload. You can disable specific payloads. For
    * instance, <code>options.setIntegration("Google Analytics", false).setIntegration("Countly",
    * false)</code> will send the event to all integrations except Google Analytic and Countly. If

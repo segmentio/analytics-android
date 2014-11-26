@@ -71,3 +71,8 @@ robolectric {
 apply from: rootProject.file('gradle/checkstyle-library.gradle')
 apply from: rootProject.file('gradle/attach-lean-jar.gradle')
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
+
+// todo: move this to the build script
+afterEvaluate {
+  androidJavadocs.classpath += project.android.libraryVariants.toList().first().javaCompile.classpath
+}
