@@ -83,6 +83,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
+      <Button
+          android:id="@+id/action_alias"
+          android:text="@string/alias_button"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"/>
+
     <Button
         android:id="@+id/action_identify"
         android:text="@string/identify_button"
