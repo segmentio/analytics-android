@@ -93,6 +93,19 @@ public class MainActivity extends Activity {
         }
       }
     });
+
+    findViewById(R.id.action_alias).setOnClickListener(new View.OnClickListener() {
+          @Override
+          public void onClick(View v) {
+              String id = ((EditText) findViewById(R.id.action_identify_id)).getText().toString();
+              if (isNullOrEmpty(id)) {
+                  Toast.makeText(MainActivity.this, R.string.id_required, Toast.LENGTH_LONG).show();
+              } else {
+                  Analytics.with(MainActivity.this).alias(null, id);
+                  Analytics.with(MainActivity.this).identify(id);
+              }
+          }
+    });
     findViewById(R.id.action_flush).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         Analytics.with(MainActivity.this).flush();

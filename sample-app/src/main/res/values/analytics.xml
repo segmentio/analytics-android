@@ -25,7 +25,7 @@
 
 <resources>
   <!--Your Segment.io f2prateek/android-sample-app write key-->
-  <string name="analytics_write_key">l8v1ga655b</string>
+  <string name="analytics_write_key">xxx</string>
 
   <!--Whether to print additional log information as you develop.-->
   <bool name="analytics_debugging">true</bool>

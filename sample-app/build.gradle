@@ -2,12 +2,13 @@ apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
 
 dependencies {
-  // repositories { maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' } }
-  // compile('io.segment.analytics.android:all:1.3.11-SNAPSHOT@aar') {
-  //   transitive = true
-  // }
-  compile project(':core')
-  compile project(':wear') // only for Android Wear apps
+   //repositories { maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' } }
+   compile('com.segment.analytics.android:all:+@aar') {
+     transitive = true
+   }
+  //compile project(':core')
+  //compile project(':wear') // only for Android Wear apps
+  compile 'com.google.android.gms:play-services:6.1.11'
 }
 
 android {
