@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 import static com.segment.analytics.TestUtils.PROJECT_SETTINGS_JSON_SAMPLE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,7 +51,7 @@ public class JsonMapRobolectricTest {
     jsonMap.put("value1", MyEnum.VALUE1);
     jsonMap.put("value2", MyEnum.VALUE2);
     String json = jsonMap.toString();
-    assertThat(json).isEqualTo("{\"value2\":\"VALUE2\",\"value1\":\"VALUE1\"}");
+    JSONAssert.assertEquals(json, "{\"value2\":\"VALUE2\",\"value1\":\"VALUE1\"}", false);
 
     jsonMap = new JsonMap("{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}");
     assertThat(jsonMap) //

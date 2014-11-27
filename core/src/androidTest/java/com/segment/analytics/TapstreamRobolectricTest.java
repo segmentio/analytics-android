@@ -184,7 +184,8 @@ public class TapstreamRobolectricTest extends AbstractIntegrationTest {
     Traits traits = new Traits().putValue("foo", "bar").putValue("baz", "qux");
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     assertThat(map).hasSize(2)
-        .containsExactly(MapEntry.entry("foo", "bar"), MapEntry.entry("baz", "qux"));
+        .contains(MapEntry.entry("foo", "bar"))
+        .contains(MapEntry.entry("baz", "qux"));
   }
 
   @Test @Override public void group() {
