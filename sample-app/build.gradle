@@ -3,11 +3,11 @@ apply plugin: 'com.android.application'
 
 dependencies {
   // repositories { maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' } }
-  // compile('io.segment.analytics.android:all:1.3.11-SNAPSHOT@aar') {
+  // compile('com.segment.analytics.android:all:2.4.4-SNAPSHOT@aar') {
   //   transitive = true
   // }
   compile project(':core')
-  compile project(':wear') // only for Android Wear apps
+  compile project(':wear') // only required for Android Wear apps
 }
 
 android {
