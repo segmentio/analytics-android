@@ -17,6 +17,13 @@ subprojects {
     mavenCentral()
   }
 
+  configurations {
+    // These are provided internally by Android and can be excluded
+    compile.exclude group: 'org.json', module: 'json'
+    compile.exclude group: 'commons-logging', module: 'commons-logging'
+    compile.exclude group: 'org.apache.httpcomponents', module: 'httpclient'
+  }
+
   group = GROUP
   version = VERSION_NAME
 }
