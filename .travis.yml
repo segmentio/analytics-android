@@ -1,4 +1,4 @@
-language: java
+language: android
 
 jdk:
   - oraclejdk8
@@ -14,7 +14,18 @@ branches:
   except:
     - gh-pages
 
-before_install:
-  - export TERM=dumb
-  - sudo apt-get update
-  - sudo apt-get install -qq libstdc++6:i386 lib32z1
+android:
+  components:
+    - platform-tools
+    - tools
+
+    - build-tools-21.1.1
+
+    - android-21
+
+    - extra-google-google_play_services
+    - extra-google-m2repository
+    - extra-android-m2repository
+
+script:
+  - ./gradlew build
