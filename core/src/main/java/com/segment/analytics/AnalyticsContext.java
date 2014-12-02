@@ -51,8 +51,12 @@ import static com.segment.analytics.Utils.hasPermission;
 import static com.segment.analytics.Utils.isOnClassPath;
 
 /**
- * Context is a dictionary of extra, free-form information about a specific API call. You can add
- * any custom data to the context dictionary that you'd like to have access to in the raw logs.
+ * Context is a dictionary of free-form information about a the state of the device. Context is
+ * attached to every outgoing call, if you need to attach information to individual calls, see
+ * {@link Properties}.
+ * <p>
+ * You can add any custom data to the context dictionary that you'd like to have access to in the
+ * raw logs.
  * <p>
  * Some keys in the context dictionary have semantic meaning and will be collected for you
  * automatically, depending on the library you send data from.Some keys need to be manually

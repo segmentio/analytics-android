@@ -1,5 +1,6 @@
 package com.segment.analytics;
 
+/** Value class for stats about an {@link Analytics} client. */
 public class StatsSnapshot {
   public final long timestamp;
   public final long flushCount;

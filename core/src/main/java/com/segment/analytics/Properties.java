@@ -28,7 +28,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Just like traits, we also imbue some properties with semantic meaning, and you should only ever
+ * A class to attach extra information to specific tracking calls.
+ * <p>
+ * Just like traits, we also accept some properties with semantic meaning, and you should only ever
  * use these property names for that purpose.
  */
 public class Properties extends JsonMap {
@@ -212,6 +214,9 @@ public class Properties extends JsonMap {
     return getDouble(VALUE_KEY, 0);
   }
 
+  /**
+   *
+   */
   public static class Product extends JsonMap {
     private static final String ID_KEY = "id";
     private static final String SKU_KEY = "sku";

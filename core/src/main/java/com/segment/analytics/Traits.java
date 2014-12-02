@@ -34,6 +34,8 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
 import static com.segment.analytics.Utils.toISO8601Date;
 
 /**
+ * A class representing information about a user.
+ * <p>
  * Traits can be anything you want, but some of them have semantic meaning and we treat them in
  * special ways. For example, whenever we see an email trait, we expect it to be the user's email
  * address. And we'll send this on to integrations that need an email, like Mailchimp. For that

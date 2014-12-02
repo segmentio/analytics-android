@@ -2,7 +2,7 @@ package com.segment.analytics;
 
 import android.util.Log;
 
-public class Logger {
+class Logger {
   final static String TAG = "Segment";
   // [thread] [verb] [id] {[extras]}
   final static String DEBUG_FORMAT = "%1$-20s %2$-12s %3$-36s {%4$s}";
