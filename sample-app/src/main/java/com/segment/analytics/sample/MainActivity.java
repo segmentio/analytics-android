@@ -37,8 +37,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.segment.analytics.Analytics;
-import com.segment.analytics.Options;
-import com.segment.analytics.Properties;
 import com.segment.analytics.StatsSnapshot;
 
 public class MainActivity extends Activity {
@@ -113,8 +111,7 @@ public class MainActivity extends Activity {
         ((TextView) findViewById(R.id.stat_flush_count)).setText(
             "Total operations sent to bundled integrations (this is the total "
                 + "analytics events, flush events, and activity lifecycle events): "
-                + snapshot.integrationOperationCount
-        );
+                + snapshot.integrationOperationCount);
       }
     });
   }
