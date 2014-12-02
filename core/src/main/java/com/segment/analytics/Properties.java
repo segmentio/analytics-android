@@ -215,7 +215,10 @@ public class Properties extends JsonMap {
   }
 
   /**
-   *
+   * A representation of an e-commerce product.
+   * <p>
+   * Use only when you have multiple products. If you have only one product, {@link Properties} has
+   * methods on it directly to attach this information.
    */
   public static class Product extends JsonMap {
     private static final String ID_KEY = "id";
