@@ -1,3 +1,9 @@
+Version 2.4.4 (December 2nd, 2014)
+==================================
+* Fix: Better error handling for unexpected deserialization
+* Improvement: Update Play Services Dependencies
+* Fix: Update Javadocs
+
 Version 2.4.3 (November 25th, 2014)
 ===================================
 * New: Kahuna Integration
