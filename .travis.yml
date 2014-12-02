@@ -28,4 +28,4 @@ android:
     - extra-android-m2repository
 
 script:
-  - ./gradlew build --info
+  - ./gradlew build
