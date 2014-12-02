@@ -5,7 +5,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
-import com.squareup.tape.FileException;
 import com.squareup.tape.FileObjectQueue;
 import com.squareup.tape.InMemoryObjectQueue;
 import com.squareup.tape.ObjectQueue;
@@ -204,7 +203,7 @@ class SegmentIntegration extends AbstractIntegration<Void> {
               logger.error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, "Unable to flush payload.", e,
                   "payload: %s", payload);
             }
-          } catch (FileException e) {
+          } catch (Exception e) {
             // This is an unrecoverable error, we can't read the entry from disk
             logger.error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, "Unable to read payload.", e,
                 "queue: %s", queue);
