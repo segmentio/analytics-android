@@ -100,9 +100,7 @@ public class MainActivity extends Activity {
     });
     findViewById(R.id.action_test_sequence).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
-        Analytics.with(MainActivity.this)
-            .track("Not for native Amplitude", new Properties(),
-                new Options().setIntegration("Amplitude", false));
+        Analytics.with(MainActivity.this).screen("Android", "Main Activity Screen");
       }
     });
     findViewById(R.id.action_update_stats).setOnClickListener(new View.OnClickListener() {
