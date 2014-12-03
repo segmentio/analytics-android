@@ -92,6 +92,7 @@ public class Analytics {
   static Analytics singleton = null;
   final Application application;
   final IntegrationManager integrationManager;
+  final Segment segment;
   final Stats stats;
   final TraitsCache traitsCache;
   final AnalyticsContext analyticsContext;
@@ -100,11 +101,12 @@ public class Analytics {
   final boolean debuggingEnabled;
   boolean shutdown;
 
-  Analytics(Application application, IntegrationManager integrationManager, Stats stats,
-      TraitsCache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions,
-      Logger logger, boolean debuggingEnabled) {
+  Analytics(Application application, IntegrationManager integrationManager, Segment segment,
+      Stats stats, TraitsCache traitsCache, AnalyticsContext analyticsContext,
+      Options defaultOptions, Logger logger, boolean debuggingEnabled) {
     this.application = application;
     this.integrationManager = integrationManager;
+    this.segment = segment;
     this.stats = stats;
     this.traitsCache = traitsCache;
     this.analyticsContext = analyticsContext;
@@ -440,17 +442,22 @@ public class Analytics {
       options = defaultOptions;
     }
 
-    BasePayload payload = new AliasPayload(traitsCache.get().anonymousId(), analyticsContext,
-            newId, previousId, options);
+    BasePayload payload =
+        new AliasPayload(traitsCache.get().anonymousId(), analyticsContext, newId, previousId,
+            options);
     submit(payload);
   }
 
   /**
-   * Flushes all messages in the queue to the server, and tell integrations to do the same. Note
-   * that wil do nothing for bundled integrations that don't provide an explicit flush method.
+   * Asynchronously flushes all messages in the queue to the server, and tell integrations to do
+   * the same.
+   * <p>
+   * Note that this will do nothing for bundled integrations that don't provide an explicit flush
+   * method.
    */
   public void flush() {
-    integrationManager.flush();
+    segment.dispatchFlush();
+    integrationManager.dispatchFlush();
   }
 
   /** Get the {@link AnalyticsContext} used by this instance. */
@@ -478,6 +485,7 @@ public class Analytics {
       return;
     }
     integrationManager.shutdown();
+    segment.shutdown();
     stats.shutdown();
     shutdown = true;
   }
@@ -501,15 +509,12 @@ public class Analytics {
    * <p>
    * This method must be called from the main thread.
    * <p>
+   * Usage:
    * {@code
-   * analytics.registerOnIntegrationReady(new OnIntegrationReadyListener() {
-   *
-   * \@Override public void onIntegrationReady(String key, Object integration) {
-   * if("Mixpanel".equals(key)) {
-   * ((MixpanelAPI) integration).clearSuperProperties();
-   * }
-   * }
-   * });
+   * analytics.registerOnIntegrationReady((key, integration) ->
+   *   if("Mixpanel".equals(key)) {
+   *     ((MixpanelAPI) integration).clearSuperProperties();
+   *   }
    * }
    * @since 2.3
    */
@@ -520,6 +525,7 @@ public class Analytics {
 
   void submit(BasePayload payload) {
     logger.debug(OWNER_MAIN, VERB_CREATE, payload.id(), "type: %s", payload.type());
+    segment.dispatchEnqueue(payload);
     integrationManager.dispatchOperation(payload);
   }
 
@@ -533,8 +539,9 @@ public class Analytics {
    * integrations.
    * <p>
    * In most cases, integrations would have already been initialized, and the callback will be
-   * invoked right away. The only time this not invoked immediately is when the application is
-   * opened the very first time (right after a fresh install).
+   * invoked fairly quickly. However there may be a latency the first time the app is launched, and
+   * we don't have settings for bundled integrations yet. This is compounded if the user is
+   * offline on the first run.
    */
   public interface OnIntegrationReadyListener {
     /**
@@ -677,16 +684,17 @@ public class Analytics {
       if (isNullOrEmpty(tag)) tag = writeKey;
 
       Logger logger = new Logger(debuggingEnabled);
-
       Stats stats = new Stats();
       SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
       IntegrationManager integrationManager =
-          IntegrationManager.create(application, segmentHTTPApi, stats, queueSize, flushInterval,
-              tag, logger, debuggingEnabled);
+          IntegrationManager.create(application, segmentHTTPApi, stats, logger, debuggingEnabled);
+      Segment segment = Segment.create(application, queueSize, flushInterval, segmentHTTPApi,
+          integrationManager.bundledIntegrations, tag, stats, logger);
       TraitsCache traitsCache = new TraitsCache(application, tag);
       AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
-      return new Analytics(application, integrationManager, stats, traitsCache, analyticsContext,
-          defaultOptions, logger, debuggingEnabled);
+
+      return new Analytics(application, integrationManager, segment, stats, traitsCache,
+          analyticsContext, defaultOptions, logger, debuggingEnabled);
     }
   }
 }

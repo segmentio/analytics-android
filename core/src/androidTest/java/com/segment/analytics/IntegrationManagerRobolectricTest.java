@@ -38,8 +38,7 @@ public class IntegrationManagerRobolectricTest {
     context = mockApplication();
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
     integrationManager =
-        new IntegrationManager(context, segmentHTTPApi, stringCache, stats, 20, 30, "foo", logger,
-            true);
+        new IntegrationManager(context, segmentHTTPApi, stringCache, stats, logger, true);
   }
 
   @Test public void createsIntegrationsCorrectly() {
@@ -100,8 +99,7 @@ public class IntegrationManagerRobolectricTest {
   @Test public void initializesIntegrations() {
     final AbstractIntegration<Void> fooIntegration = mock(AbstractIntegration.class);
     IntegrationManager integrationManager =
-        new IntegrationManager(context, segmentHTTPApi, stringCache, stats, 20, 30, "bar", logger,
-            true) {
+        new IntegrationManager(context, segmentHTTPApi, stringCache, stats, logger, true) {
           @Override AbstractIntegration createIntegrationForKey(String key) {
             if ("Foo".equals(key)) {
               return fooIntegration;
