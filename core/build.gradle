@@ -20,7 +20,6 @@ dependencies {
   androidTestCompile 'org.powermock:powermock-module-junit4-rule:1.5.6'
   androidTestCompile 'org.powermock:powermock-api-mockito:1.5.6'
   androidTestCompile 'org.powermock:powermock-classloading-xstream:1.5.6'
-  androidTestCompile 'org.skyscreamer:jsonassert:1.2.3'
 }
 
 android {
