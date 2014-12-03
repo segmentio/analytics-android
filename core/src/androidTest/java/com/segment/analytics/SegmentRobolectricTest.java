@@ -25,7 +25,7 @@ import static org.mockito.MockitoAnnotations.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class SegmentIntegrationRobolectricTest {
+public class SegmentRobolectricTest {
   private static final BasePayload TEST_PAYLOAD =
       new BasePayload("{\n" + "\"messageId\":\"ID\",\n" + "\"type\":\"TYPE\"\n" + "}");
 
@@ -34,7 +34,7 @@ public class SegmentIntegrationRobolectricTest {
   @Mock Logger logger;
   Context context;
   ObjectQueue<BasePayload> queue;
-  SegmentIntegration segment;
+  Segment segment;
 
   @Before public void setUp() {
     initMocks(this);
@@ -42,8 +42,8 @@ public class SegmentIntegrationRobolectricTest {
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
   }
 
-  SegmentIntegration createSegmentIntegration(int maxQueueSize) {
-    return new SegmentIntegration(context, maxQueueSize, 30, segmentHTTPApi, queue,
+  Segment createSegmentIntegration(int maxQueueSize) {
+    return new Segment(context, maxQueueSize, 30, segmentHTTPApi, queue,
         Collections.<String, Boolean>emptyMap(), stats, logger);
   }
 
@@ -51,7 +51,7 @@ public class SegmentIntegrationRobolectricTest {
     File parent = Robolectric.getShadowApplication().getFilesDir();
     File queueFile = new File(parent, "test.queue");
     queueFile.delete();
-    return new FileObjectQueue<BasePayload>(queueFile, new SegmentIntegration.PayloadConverter());
+    return new FileObjectQueue<BasePayload>(queueFile, new Segment.PayloadConverter());
   }
 
   @Test public void addsToQueueCorrectly() throws IOException {
@@ -74,7 +74,7 @@ public class SegmentIntegrationRobolectricTest {
 
     segment.performFlush();
     try {
-      verify(segmentHTTPApi).upload(Matchers.<SegmentIntegration.BatchPayload>any());
+      verify(segmentHTTPApi).upload(Matchers.<Segment.BatchPayload>any());
     } catch (IOException e) {
       fail("should not throw exception");
     }
@@ -91,7 +91,7 @@ public class SegmentIntegrationRobolectricTest {
     segment.performEnqueue(TEST_PAYLOAD);
 
     try {
-      verify(segmentHTTPApi).upload(Matchers.<SegmentIntegration.BatchPayload>any());
+      verify(segmentHTTPApi).upload(Matchers.<Segment.BatchPayload>any());
     } catch (IOException e) {
       fail("should not throw exception");
     }

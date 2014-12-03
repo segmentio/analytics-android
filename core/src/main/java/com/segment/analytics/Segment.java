@@ -34,7 +34,7 @@ import static com.segment.analytics.Utils.toISO8601Date;
  *
  * @since 2.3
  */
-class SegmentIntegration extends AbstractIntegration<Void> {
+class Segment {
 
   static final int REQUEST_ENQUEUE = 0;
   static final int REQUEST_FLUSH = 1;
@@ -53,9 +53,9 @@ class SegmentIntegration extends AbstractIntegration<Void> {
   final Logger logger;
   final Map<String, Boolean> integrations;
 
-  SegmentIntegration(Context context, int queueSize, int flushInterval,
-      SegmentHTTPApi segmentHTTPApi, ObjectQueue<BasePayload> queue,
-      Map<String, Boolean> integrations, Stats stats, Logger logger) {
+  Segment(Context context, int queueSize, int flushInterval, SegmentHTTPApi segmentHTTPApi,
+      ObjectQueue<BasePayload> queue, Map<String, Boolean> integrations, Stats stats,
+      Logger logger) {
     this.context = context;
     this.queueSize = queueSize;
     this.segmentHTTPApi = segmentHTTPApi;
@@ -70,7 +70,7 @@ class SegmentIntegration extends AbstractIntegration<Void> {
     rescheduleFlush();
   }
 
-  static synchronized SegmentIntegration create(Context context, int queueSize, int flushInterval,
+  static synchronized Segment create(Context context, int queueSize, int flushInterval,
       SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
       Logger logger) {
     File parent = context.getFilesDir();
@@ -85,47 +85,8 @@ class SegmentIntegration extends AbstractIntegration<Void> {
               + "falling back to memory queue.", tag, parent.getAbsolutePath());
       queue = new InMemoryObjectQueue<BasePayload>();
     }
-    return new SegmentIntegration(context, queueSize, flushInterval, segmentHTTPApi, queue,
-        integrations, stats, logger);
-  }
-
-  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
-      throws IllegalStateException {
-    // ignored
-  }
-
-  @Override String key() {
-    return "Segment";
-  }
-
-  @Override void identify(IdentifyPayload identify) {
-    super.identify(identify);
-    dispatchEnqueue(identify);
-  }
-
-  @Override void group(GroupPayload group) {
-    super.group(group);
-    dispatchEnqueue(group);
-  }
-
-  @Override void track(TrackPayload track) {
-    super.track(track);
-    dispatchEnqueue(track);
-  }
-
-  @Override void alias(AliasPayload alias) {
-    super.alias(alias);
-    dispatchEnqueue(alias);
-  }
-
-  @Override void screen(ScreenPayload screen) {
-    super.screen(screen);
-    dispatchEnqueue(screen);
-  }
-
-  @Override void flush() {
-    super.flush();
-    dispatchFlush();
+    return new Segment(context, queueSize, flushInterval, segmentHTTPApi, queue, integrations,
+        stats, logger);
   }
 
   void dispatchEnqueue(final BasePayload payload) {
@@ -200,8 +161,8 @@ class SegmentIntegration extends AbstractIntegration<Void> {
               stats.dispatchFlush(1);
               queue.remove();
             } catch (IOException e) {
-              logger.error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, "Unable to flush payload.", e,
-                  "payload: %s", payload);
+              logger.error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH,
+                  "Unable to dispatchFlush payload.", e, "payload: %s", payload);
             }
           } catch (Exception e) {
             // This is an unrecoverable error, we can't read the entry from disk
@@ -248,21 +209,21 @@ class SegmentIntegration extends AbstractIntegration<Void> {
   }
 
   private static class SegmentHandler extends Handler {
-    private final SegmentIntegration segmentIntegration;
+    private final Segment segment;
 
-    SegmentHandler(Looper looper, SegmentIntegration segmentIntegration) {
+    SegmentHandler(Looper looper, Segment segment) {
       super(looper);
-      this.segmentIntegration = segmentIntegration;
+      this.segment = segment;
     }
 
     @Override public void handleMessage(final Message msg) {
       switch (msg.what) {
         case REQUEST_ENQUEUE:
           BasePayload payload = (BasePayload) msg.obj;
-          segmentIntegration.performEnqueue(payload);
+          segment.performEnqueue(payload);
           break;
         case REQUEST_FLUSH:
-          segmentIntegration.performFlush();
+          segment.performFlush();
           break;
         default:
           panic("Unknown dispatcher message." + msg.what);

@@ -53,7 +53,6 @@ class IntegrationManager {
   final Stats stats;
   final boolean debuggingEnabled;
   final StringCache projectSettingsCache;
-  final SegmentIntegration segmentIntegration;
   final Map<String, Boolean> bundledIntegrations = createMap();
   final Logger logger;
   List<AbstractIntegration> integrations;
@@ -62,8 +61,7 @@ class IntegrationManager {
   OnIntegrationReadyListener listener;
 
   IntegrationManager(Context context, SegmentHTTPApi segmentHTTPApi,
-      StringCache projectSettingsCache, Stats stats, int queueSize, int flushInterval, String tag,
-      Logger logger, boolean debuggingEnabled) {
+      StringCache projectSettingsCache, Stats stats, Logger logger, boolean debuggingEnabled) {
     this.context = context;
     this.segmentHTTPApi = segmentHTTPApi;
     this.stats = stats;
@@ -96,10 +94,6 @@ class IntegrationManager {
         QuantcastIntegration.QUANTCAST_KEY);
     findBundledIntegration("com.tapstream.sdk.Tapstream", TapstreamIntegration.TAPSTREAM_KEY);
 
-    segmentIntegration =
-        SegmentIntegration.create(context, queueSize, flushInterval, segmentHTTPApi,
-            bundledIntegrations, tag, stats, logger);
-
     this.projectSettingsCache = projectSettingsCache;
 
     ProjectSettings projectSettings = ProjectSettings.load(projectSettingsCache);
@@ -114,12 +108,11 @@ class IntegrationManager {
   }
 
   static synchronized IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi,
-      Stats stats, int queueSize, int flushInterval, String tag, Logger logger,
-      boolean debuggingEnabled) {
+      Stats stats, Logger logger, boolean debuggingEnabled) {
     StringCache projectSettingsCache =
         new StringCache(getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
-    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, queueSize,
-        flushInterval, tag, logger, debuggingEnabled);
+    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logger,
+        debuggingEnabled);
   }
 
   private void findBundledIntegration(String className, String key) {
@@ -275,7 +268,7 @@ class IntegrationManager {
     }
   }
 
-  void flush() {
+  void dispatchFlush() {
     dispatchOperation(new FlushOperation());
   }
 
@@ -285,8 +278,6 @@ class IntegrationManager {
   }
 
   void performOperation(IntegrationOperation operation) {
-    operation.run(segmentIntegration);
-
     if (initialized) {
       run(operation);
     } else {

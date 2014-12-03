@@ -23,6 +23,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class AnalyticsRobolectricTest {
   Application application;
   @Mock IntegrationManager integrationManager;
+  @Mock Segment segment;
   @Mock Stats stats;
   @Mock TraitsCache traitsCache;
   @Mock AnalyticsContext analyticsContext;
@@ -42,8 +43,8 @@ public class AnalyticsRobolectricTest {
     application = mockApplication();
     Traits traits = new Traits();
     when(traitsCache.get()).thenReturn(traits);
-    analytics = new Analytics(application, integrationManager, stats, traitsCache, analyticsContext,
-        defaultOptions, logger, true);
+    analytics = new Analytics(application, integrationManager, segment, stats, traitsCache,
+        analyticsContext, defaultOptions, logger, true);
   }
 
   @Test public void logoutClearsTraitsAndUpdatesContext() {
@@ -69,11 +70,13 @@ public class AnalyticsRobolectricTest {
     BasePayload payload = mock(BasePayload.class);
     analytics.submit(payload);
     verify(integrationManager).dispatchOperation(payload);
+    verify(segment).dispatchEnqueue(payload);
   }
 
   @Test public void flushInvokesFlushes() throws Exception {
     analytics.flush();
-    verify(integrationManager).flush();
+    verify(integrationManager).dispatchFlush();
+    verify(segment).dispatchFlush();
   }
 
   @Test public void shutdown() {
@@ -81,6 +84,7 @@ public class AnalyticsRobolectricTest {
     analytics.shutdown();
     verify(integrationManager).shutdown();
     verify(stats).shutdown();
+    verify(segment).shutdown();
     assertThat(analytics.shutdown).isTrue();
   }
 
