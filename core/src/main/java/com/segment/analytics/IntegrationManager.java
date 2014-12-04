@@ -173,6 +173,7 @@ class IntegrationManager {
           integration.initialize(context, settings, debuggingEnabled);
           if (listener != null) {
             listener.onIntegrationReady(key, integration.getUnderlyingInstance());
+            listener = null; // clear the reference
           }
           integrations.add(integration);
         } catch (IllegalStateException e) {
@@ -308,13 +309,14 @@ class IntegrationManager {
   }
 
   void performRegisterIntegrationInitializedListener(OnIntegrationReadyListener listener) {
-    this.listener = listener;
     if (initialized && listener != null) {
       // Integrations are already ready, notify the listener right away
       for (AbstractIntegration abstractIntegration : integrations) {
         listener.onIntegrationReady(abstractIntegration.key(),
             abstractIntegration.getUnderlyingInstance());
       }
+    } else {
+      this.listener = listener;
     }
   }
 
