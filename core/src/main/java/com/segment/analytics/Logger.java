@@ -9,7 +9,7 @@ class Logger {
   final static String ERROR_FORMAT = "%1$-20s %2$-12s %3$-36s {%4$s}\n%5$s";
 
   final static String OWNER_MAIN = "Main";
-  final static String OWNER_SEGMENT_INTEGRATION = "SegmentIntegration";
+  final static String OWNER_SEGMENT = "Segment";
   final static String OWNER_INTEGRATION_MANAGER = "IntegrationManager";
   final static String VERB_CREATE = "create";
   final static String VERB_DISPATCH = "dispatch";

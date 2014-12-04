@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
-import static com.segment.analytics.Logger.OWNER_SEGMENT_INTEGRATION;
+import static com.segment.analytics.Logger.OWNER_SEGMENT;
 import static com.segment.analytics.Logger.VERB_ENQUEUE;
 import static com.segment.analytics.Logger.VERB_FLUSH;
 import static com.segment.analytics.Utils.isConnected;
@@ -80,7 +80,7 @@ class Segment {
       File queueFile = new File(parent, TASK_QUEUE_FILE_NAME + tag);
       queue = new FileObjectQueue<BasePayload>(queueFile, new PayloadConverter());
     } catch (IOException e) {
-      logger.error(OWNER_SEGMENT_INTEGRATION, Logger.VERB_INITIALIZE, null, e,
+      logger.error(OWNER_SEGMENT, Logger.VERB_INITIALIZE, null, e,
           "Unable to initialize disk queue with tag %s in directory %s,"
               + "falling back to memory queue.", tag, parent.getAbsolutePath());
       queue = new InMemoryObjectQueue<BasePayload>();
@@ -94,12 +94,12 @@ class Segment {
   }
 
   void performEnqueue(BasePayload payload) {
-    logger.debug(OWNER_SEGMENT_INTEGRATION, VERB_ENQUEUE, payload.id(), "queueSize: %s",
+    logger.debug(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), "queueSize: %s",
         queue.size());
     try {
       queue.add(payload);
     } catch (Exception e) {
-      logger.error(OWNER_SEGMENT_INTEGRATION, VERB_ENQUEUE, payload.id(), e, "payload: %s",
+      logger.error(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), e, "payload: %s",
           payload);
       return;
     }
@@ -120,7 +120,7 @@ class Segment {
       try {
         queue.setListener(new ObjectQueue.Listener<BasePayload>() {
           @Override public void onAdd(ObjectQueue<BasePayload> queue, BasePayload entry) {
-            logger.debug(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, entry.id(), null);
+            logger.debug(OWNER_SEGMENT, VERB_FLUSH, entry.id(), null);
             payloads.add(entry);
           }
 
@@ -130,7 +130,7 @@ class Segment {
         });
         queue.setListener(null);
       } catch (Exception e) {
-        logger.error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH,
+        logger.error(OWNER_SEGMENT, VERB_FLUSH,
             "Could not read queue. Flushing messages individually.", e,
             String.format("queue: %s", queue));
         batch = false;
@@ -146,7 +146,7 @@ class Segment {
             queue.remove();
           }
         } catch (IOException e) {
-          logger.error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, "Unable to flush messages.", e,
+          logger.error(OWNER_SEGMENT, VERB_FLUSH, "Unable to flush messages.", e,
               "events: %s", count);
         }
       } else {
@@ -154,19 +154,19 @@ class Segment {
         while (queue.size() > 0) {
           try {
             BasePayload payload = queue.peek();
-            logger.debug(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, payload.id(), null);
+            logger.debug(OWNER_SEGMENT, VERB_FLUSH, payload.id(), null);
             try {
               segmentHTTPApi.upload(
                   new BatchPayload(Collections.singletonList(payload), integrations));
               stats.dispatchFlush(1);
               queue.remove();
             } catch (IOException e) {
-              logger.error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH,
+              logger.error(OWNER_SEGMENT, VERB_FLUSH,
                   "Unable to dispatchFlush payload.", e, "payload: %s", payload);
             }
           } catch (Exception e) {
             // This is an unrecoverable error, we can't read the entry from disk
-            logger.error(OWNER_SEGMENT_INTEGRATION, VERB_FLUSH, "Unable to read payload.", e,
+            logger.error(OWNER_SEGMENT, VERB_FLUSH, "Unable to read payload.", e,
                 "queue: %s", queue);
             queue.remove();
           }
