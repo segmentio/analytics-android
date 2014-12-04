@@ -1,3 +1,7 @@
+Version 2.4.5 (December 3rd, 2014)
+==================================
+* Improvement: Eagerly clear references to OnIntegrationReadyListener
+
 Version 2.4.4 (December 2nd, 2014)
 ==================================
 * Fix: Better error handling for unexpected deserialization
