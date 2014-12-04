@@ -10,7 +10,7 @@ analytics-android is an Android client for [Segment](https://segment.com)
 
 ## Documentation
 
-You can find usage documentation at [https://segment.io/libraries/android](https://segment.io/libraries/android).
+You can find usage documentation at [https://segment.com/libraries/android](https://segment.com/libraries/android).
 
 #### Building with Gradle
 
@@ -18,7 +18,7 @@ To build the project with [Gradle](http://tools.android.com/tech-docs/new-build-
 
 If you have an existing Android SDK installed, make sure to export a variable `$ANDROID_HOME` that point to it. Once you've cloned the repo, simply run `./gradlew clean build`, which will automatically download all dependencies, build the project, and run all tests. Run `./gradlew tasks --all` to see all available tasks.
 
-Check out how to contribute to the library, or add providers here: [https://segment.io/libraries/android#contributing](https://segment.io/libraries/android#contributing).
+Check out how to contribute to the library, or add providers here: [https://segment.com/libraries/android#contributing](https://segment.com/libraries/android#contributing).
 
 ## License
 
@@ -36,7 +36,7 @@ WWWWWW||WWWWWW
 
 The MIT License (MIT)
 
-Copyright (c) 2014 Segment.io, Inc.
+Copyright (c) 2014 Segment, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
