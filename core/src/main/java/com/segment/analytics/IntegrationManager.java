@@ -20,6 +20,7 @@ import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Analytics.OnIntegrationReadyListener;
 import static com.segment.analytics.Logger.OWNER_INTEGRATION_MANAGER;
 import static com.segment.analytics.Logger.VERB_DISPATCH;
+import static com.segment.analytics.Logger.VERB_ENQUEUE;
 import static com.segment.analytics.Logger.VERB_INITIALIZE;
 import static com.segment.analytics.Logger.VERB_SKIP;
 import static com.segment.analytics.Utils.THREAD_PREFIX;
@@ -127,7 +128,6 @@ class IntegrationManager {
   void performFetch() {
     try {
       if (isConnected(context)) {
-        logger.debug(OWNER_INTEGRATION_MANAGER, "fetch", "settings", null);
         ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
         String projectSettingsJson = projectSettings.toString();
         projectSettingsCache.set(projectSettingsJson);
@@ -141,7 +141,6 @@ class IntegrationManager {
         retryFetch();
       }
     } catch (IOException e) {
-      logger.debug(OWNER_INTEGRATION_MANAGER, "fetch", "settings", null);
       retryFetch();
     }
   }
@@ -181,7 +180,7 @@ class IntegrationManager {
         }
       } else {
         iterator.remove();
-        logger.debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, key, "settings: %s",
+        logger.debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, key, "integrations: %s",
             projectSettings.keySet());
       }
     }
@@ -284,7 +283,7 @@ class IntegrationManager {
       if (operationQueue == null) {
         operationQueue = new ArrayDeque<IntegrationOperation>();
       }
-      logger.debug(OWNER_INTEGRATION_MANAGER, Logger.VERB_ENQUEUE, operation.id(), null);
+      logger.debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id(), null);
       operationQueue.add(operation);
     }
   }

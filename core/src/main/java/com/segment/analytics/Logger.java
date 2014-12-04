@@ -28,20 +28,25 @@ class Logger {
     return format == null ? null : String.format(format, extras);
   }
 
-  /** Call only if debugging is enabled. */
   void debug(String owner, String verb, String id, String format, Object... extras) {
     if (loggingEnabled) {
       Log.d(TAG, String.format(DEBUG_FORMAT, owner, verb, id, safeFormat(format, extras)));
     }
   }
 
-  /** Call only if debugging is enabled. */
   void error(String owner, String verb, String id, Throwable throwable, String format,
       Object... extras) {
     if (loggingEnabled) {
       Log.e(TAG,
           String.format(ERROR_FORMAT, owner, "ERROR: " + verb, id, safeFormat(format, extras),
               Log.getStackTraceString(throwable)));
+    }
+  }
+
+  void print(Throwable throwable, String format, Object... extras) {
+    if (loggingEnabled) {
+      Log.e(TAG, Log.getStackTraceString(throwable));
+      Log.e(TAG, String.format(format, extras));
     }
   }
 }

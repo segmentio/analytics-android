@@ -21,9 +21,6 @@ import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.WearableListenerService;
 import java.io.IOException;
 
-import static com.segment.analytics.Logger.OWNER_SEGMENT;
-import static com.segment.analytics.Logger.VERB_DISPATCH;
-
 /**
  * A {@link WearableListenerService} that listens for analytics events from a wear device.
  * <p>
@@ -41,7 +38,7 @@ public class PhoneAnalyticsListenerService extends WearableListenerService {
       try {
         wearPayload = new WearPayload(new String(messageEvent.getData()));
       } catch (IOException e) {
-        getAnalytics().logger.error(OWNER_SEGMENT, VERB_DISPATCH, null, e, null);
+        getAnalytics().logger.print(e, "Error deserializing payload. Skipping.");
         return;
       }
       switch (wearPayload.type()) {
@@ -55,8 +52,7 @@ public class PhoneAnalyticsListenerService extends WearableListenerService {
               wearScreenPayload.getProperties());
           break;
         default:
-          throw new UnsupportedOperationException(
-              "only track and screen calls may be sent from wear.");
+          throw new UnsupportedOperationException("Only track/screen calls may be sent from Wear.");
       }
     }
   }

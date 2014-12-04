@@ -22,7 +22,6 @@ import java.util.Map;
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Logger.OWNER_SEGMENT;
 import static com.segment.analytics.Logger.VERB_ENQUEUE;
-import static com.segment.analytics.Logger.VERB_FLUSH;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.isNullOrEmpty;
 import static com.segment.analytics.Utils.panic;
@@ -80,9 +79,8 @@ class Segment {
       File queueFile = new File(parent, TASK_QUEUE_FILE_NAME + tag);
       queue = new FileObjectQueue<BasePayload>(queueFile, new PayloadConverter());
     } catch (IOException e) {
-      logger.error(OWNER_SEGMENT, Logger.VERB_INITIALIZE, null, e,
-          "Unable to initialize disk queue with tag %s in directory %s,"
-              + "falling back to memory queue.", tag, parent.getAbsolutePath());
+      logger.print(e, "Unable to initialize disk queue for tag %s in directory %s,", tag,
+          parent.getAbsolutePath());
       queue = new InMemoryObjectQueue<BasePayload>();
     }
     return new Segment(context, queueSize, flushInterval, segmentHTTPApi, queue, integrations,
@@ -97,7 +95,7 @@ class Segment {
     logger.debug(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), "queueSize: %s", queue.size());
     try {
       queue.add(payload);
-    } catch (Exception e) {
+    } catch (FileException e) {
       logger.error(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), e, "payload: %s", payload);
       return;
     }
@@ -120,10 +118,7 @@ class Segment {
         try {
           payloads.add(queue.peek());
         } catch (FileException e) {
-          // This is an unrecoverable error, we can't read the entry
-          logger.error(OWNER_SEGMENT, VERB_FLUSH,
-              "Could not read queue. Flushing messages individually.", e,
-              String.format("queue: %s", queue));
+          logger.print(e, "Could not read payload. Skipping.");
         } finally {
           queue.remove();
         }
@@ -132,8 +127,7 @@ class Segment {
         segmentHTTPApi.upload(new BatchPayload(payloads, integrations));
         stats.dispatchFlush(queueSize);
       } catch (IOException e) {
-        logger.error(OWNER_SEGMENT, VERB_FLUSH, "Unable to flush messages.", e, "events: %s",
-            queueSize);
+        logger.print(e, "Unable to flush messages. Requeuing %s events.", queueSize);
         for (int i = 0; i < payloads.size(); i++) {
           dispatchEnqueue(payloads.get(i));
         }
