@@ -75,8 +75,8 @@ public class AnalyticsRobolectricTest {
 
   @Test public void flushInvokesFlushes() throws Exception {
     analytics.flush();
+    verify(segment).dispatchFlush(0);
     verify(integrationManager).dispatchFlush();
-    verify(segment).dispatchFlush();
   }
 
   @Test public void shutdown() {
