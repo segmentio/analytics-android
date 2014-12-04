@@ -19,6 +19,10 @@ package com.segment.analytics;
 import android.annotation.SuppressLint;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.WearableListenerService;
+import java.io.IOException;
+
+import static com.segment.analytics.Logger.OWNER_SEGMENT;
+import static com.segment.analytics.Logger.VERB_DISPATCH;
 
 /**
  * A {@link WearableListenerService} that listens for analytics events from a wear device.
@@ -33,7 +37,13 @@ public class PhoneAnalyticsListenerService extends WearableListenerService {
     super.onMessageReceived(messageEvent);
 
     if (WearAnalytics.ANALYTICS_PATH.equals(messageEvent.getPath())) {
-      WearPayload wearPayload = new WearPayload(new String(messageEvent.getData()));
+      WearPayload wearPayload = null;
+      try {
+        wearPayload = new WearPayload(new String(messageEvent.getData()));
+      } catch (IOException e) {
+        getAnalytics().logger.error(OWNER_SEGMENT, VERB_DISPATCH, null, e, null);
+        return;
+      }
       switch (wearPayload.type()) {
         case track:
           WearTrackPayload wearTrackPayload = wearPayload.payload(WearTrackPayload.class);

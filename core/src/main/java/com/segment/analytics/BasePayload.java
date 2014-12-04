@@ -24,6 +24,7 @@
 
 package com.segment.analytics;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.UUID;
 
@@ -90,7 +91,7 @@ class BasePayload extends JsonMap implements IntegrationManager.IntegrationOpera
     put(INTEGRATIONS_KEY, options.integrations());
   }
 
-  BasePayload(String json) {
+  BasePayload(String json) throws IOException {
     super(json);
   }
 

@@ -25,6 +25,7 @@
 package com.segment.analytics;
 
 import android.content.Context;
+import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
@@ -78,7 +79,7 @@ public class Traits extends JsonMap {
     putAnonymousId(id);
   }
 
-  Traits(String json) {
+  Traits(String json) throws IOException {
     super(json);
   }
 
