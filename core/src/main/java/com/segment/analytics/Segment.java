@@ -94,13 +94,11 @@ class Segment {
   }
 
   void performEnqueue(BasePayload payload) {
-    logger.debug(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), "queueSize: %s",
-        queue.size());
+    logger.debug(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), "queueSize: %s", queue.size());
     try {
       queue.add(payload);
     } catch (Exception e) {
-      logger.error(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), e, "payload: %s",
-          payload);
+      logger.error(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), e, "payload: %s", payload);
       return;
     }
     // Check if we've reached the maximum queue size
@@ -120,7 +118,6 @@ class Segment {
       try {
         queue.setListener(new ObjectQueue.Listener<BasePayload>() {
           @Override public void onAdd(ObjectQueue<BasePayload> queue, BasePayload entry) {
-            logger.debug(OWNER_SEGMENT, VERB_FLUSH, entry.id(), null);
             payloads.add(entry);
           }
 
@@ -146,28 +143,27 @@ class Segment {
             queue.remove();
           }
         } catch (IOException e) {
-          logger.error(OWNER_SEGMENT, VERB_FLUSH, "Unable to flush messages.", e,
-              "events: %s", count);
+          logger.error(OWNER_SEGMENT, VERB_FLUSH, "Unable to flush messages.", e, "events: %s",
+              count);
         }
       } else {
         // There was an error reading the queue, so we'll try to flush the payloads one at a time
         while (queue.size() > 0) {
           try {
             BasePayload payload = queue.peek();
-            logger.debug(OWNER_SEGMENT, VERB_FLUSH, payload.id(), null);
             try {
               segmentHTTPApi.upload(
                   new BatchPayload(Collections.singletonList(payload), integrations));
               stats.dispatchFlush(1);
               queue.remove();
             } catch (IOException e) {
-              logger.error(OWNER_SEGMENT, VERB_FLUSH,
-                  "Unable to dispatchFlush payload.", e, "payload: %s", payload);
+              logger.error(OWNER_SEGMENT, VERB_FLUSH, "Unable to dispatchFlush payload.", e,
+                  "payload: %s", payload);
             }
           } catch (Exception e) {
             // This is an unrecoverable error, we can't read the entry from disk
-            logger.error(OWNER_SEGMENT, VERB_FLUSH, "Unable to read payload.", e,
-                "queue: %s", queue);
+            logger.error(OWNER_SEGMENT, VERB_FLUSH, "Unable to read payload.", e, "queue: %s",
+                queue);
             queue.remove();
           }
         }
