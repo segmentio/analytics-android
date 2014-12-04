@@ -1,5 +1,7 @@
 package com.segment.analytics;
 
+import java.io.IOException;
+
 class WearPayload extends JsonMap {
   /** Type of the payload */
   private static final String TYPE_KEY = "type";
@@ -7,7 +9,7 @@ class WearPayload extends JsonMap {
   /** The actual payload */
   private static final String PAYLOAD_KEY = "payload";
 
-  WearPayload(String json) {
+  WearPayload(String json) throws IOException {
     super(json);
   }
 

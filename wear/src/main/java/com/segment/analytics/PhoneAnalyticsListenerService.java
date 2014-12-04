@@ -19,6 +19,7 @@ package com.segment.analytics;
 import android.annotation.SuppressLint;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.WearableListenerService;
+import java.io.IOException;
 
 /**
  * A {@link WearableListenerService} that listens for analytics events from a wear device.
@@ -33,7 +34,13 @@ public class PhoneAnalyticsListenerService extends WearableListenerService {
     super.onMessageReceived(messageEvent);
 
     if (WearAnalytics.ANALYTICS_PATH.equals(messageEvent.getPath())) {
-      WearPayload wearPayload = new WearPayload(new String(messageEvent.getData()));
+      WearPayload wearPayload = null;
+      try {
+        wearPayload = new WearPayload(new String(messageEvent.getData()));
+      } catch (IOException e) {
+        getAnalytics().logger.print(e, "Error deserializing payload. Skipping.");
+        return;
+      }
       switch (wearPayload.type()) {
         case track:
           WearTrackPayload wearTrackPayload = wearPayload.payload(WearTrackPayload.class);
@@ -45,8 +52,7 @@ public class PhoneAnalyticsListenerService extends WearableListenerService {
               wearScreenPayload.getProperties());
           break;
         default:
-          throw new UnsupportedOperationException(
-              "only track and screen calls may be sent from wear.");
+          throw new UnsupportedOperationException("Only track/screen calls may be sent from Wear.");
       }
     }
   }

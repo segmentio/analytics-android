@@ -96,7 +96,7 @@ public class IntegrationManagerRobolectricTest {
     }
   }
 
-  @Test public void initializesIntegrations() {
+  @Test public void initializesIntegrations() throws Exception {
     final AbstractIntegration<Void> fooIntegration = mock(AbstractIntegration.class);
     IntegrationManager integrationManager =
         new IntegrationManager(context, segmentHTTPApi, stringCache, stats, logger, true) {

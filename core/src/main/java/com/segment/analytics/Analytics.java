@@ -456,7 +456,7 @@ public class Analytics {
    * method.
    */
   public void flush() {
-    segment.dispatchFlush();
+    segment.dispatchFlush(0);
     integrationManager.dispatchFlush();
   }
 

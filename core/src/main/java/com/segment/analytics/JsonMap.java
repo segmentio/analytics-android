@@ -47,13 +47,9 @@ class JsonMap implements Map<String, Object> {
     }
   }
 
-  JsonMap(String json) {
-    try {
-      Map<String, Object> map = JsonUtils.jsonToMap(json);
-      this.delegate = new NullableConcurrentHashMap<String, Object>(map);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  JsonMap(String json) throws IOException {
+    Map<String, Object> map = JsonUtils.jsonToMap(json);
+    this.delegate = new NullableConcurrentHashMap<String, Object>(map);
   }
 
   @Override public void clear() {

@@ -20,6 +20,7 @@ import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Analytics.OnIntegrationReadyListener;
 import static com.segment.analytics.Logger.OWNER_INTEGRATION_MANAGER;
 import static com.segment.analytics.Logger.VERB_DISPATCH;
+import static com.segment.analytics.Logger.VERB_ENQUEUE;
 import static com.segment.analytics.Logger.VERB_INITIALIZE;
 import static com.segment.analytics.Logger.VERB_SKIP;
 import static com.segment.analytics.Utils.THREAD_PREFIX;
@@ -40,6 +41,7 @@ import static com.segment.analytics.Utils.quitThread;
  */
 class IntegrationManager {
 
+  static final int REQUEST_FETCH_SETTINGS = 1;
   private static final String PROJECT_SETTINGS_CACHE_KEY = "project-settings";
   private static final String MANAGER_THREAD_NAME = THREAD_PREFIX + "IntegrationManager";
   private static final long SETTINGS_REFRESH_INTERVAL = 1000 * 60 * 60 * 24; // 24 hours
@@ -120,14 +122,12 @@ class IntegrationManager {
   }
 
   void dispatchFetch() {
-    networkingHandler.sendMessage(
-        networkingHandler.obtainMessage(NetworkingHandler.FETCH_SETTINGS));
+    networkingHandler.sendMessage(networkingHandler.obtainMessage(REQUEST_FETCH_SETTINGS));
   }
 
   void performFetch() {
     try {
       if (isConnected(context)) {
-        logger.debug(OWNER_INTEGRATION_MANAGER, "fetch", "settings", null);
         ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
         String projectSettingsJson = projectSettings.toString();
         projectSettingsCache.set(projectSettingsJson);
@@ -141,14 +141,12 @@ class IntegrationManager {
         retryFetch();
       }
     } catch (IOException e) {
-      logger.debug(OWNER_INTEGRATION_MANAGER, "fetch", "settings", null);
       retryFetch();
     }
   }
 
   void retryFetch() {
-    networkingHandler.sendMessageDelayed(
-        networkingHandler.obtainMessage(NetworkingHandler.FETCH_SETTINGS),
+    networkingHandler.sendMessageDelayed(networkingHandler.obtainMessage(REQUEST_FETCH_SETTINGS),
         SETTINGS_ERROR_RETRY_INTERVAL);
   }
 
@@ -182,7 +180,7 @@ class IntegrationManager {
         }
       } else {
         iterator.remove();
-        logger.debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, key, "settings: %s",
+        logger.debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, key, "integrations: %s",
             projectSettings.keySet());
       }
     }
@@ -285,7 +283,7 @@ class IntegrationManager {
       if (operationQueue == null) {
         operationQueue = new ArrayDeque<IntegrationOperation>();
       }
-      logger.debug(OWNER_INTEGRATION_MANAGER, Logger.VERB_ENQUEUE, operation.id(), null);
+      logger.debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id(), null);
       operationQueue.add(operation);
     }
   }
@@ -406,7 +404,6 @@ class IntegrationManager {
   }
 
   private static class NetworkingHandler extends Handler {
-    static final int FETCH_SETTINGS = 1;
 
     private final IntegrationManager integrationManager;
 
@@ -417,7 +414,7 @@ class IntegrationManager {
 
     @Override public void handleMessage(final Message msg) {
       switch (msg.what) {
-        case FETCH_SETTINGS:
+        case REQUEST_FETCH_SETTINGS:
           integrationManager.performFetch();
           break;
         default:

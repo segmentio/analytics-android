@@ -1,5 +1,6 @@
 package com.segment.analytics;
 
+import java.io.IOException;
 import java.util.Map;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;
@@ -129,7 +130,7 @@ public class JsonMapRobolectricTest {
   }
 
   static class Settings extends JsonMap {
-    Settings(String json) {
+    Settings(String json) throws IOException {
       super(json);
     }
 
@@ -149,7 +150,7 @@ public class JsonMapRobolectricTest {
   }
 
   static class AmplitudeSettings extends JsonMap {
-    AmplitudeSettings(String json) {
+    AmplitudeSettings(String json) throws IOException {
       super(json);
     }
   }
