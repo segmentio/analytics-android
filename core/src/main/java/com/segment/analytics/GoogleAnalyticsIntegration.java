@@ -119,6 +119,9 @@ class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     }
 
     String category = properties.category();
+    if (isNullOrEmpty(category)) {
+        category = "All"; // default
+    }
     String label = properties.getString("label");
     tracker.send(new HitBuilders.EventBuilder().setCategory(category)
         .setAction(event)
