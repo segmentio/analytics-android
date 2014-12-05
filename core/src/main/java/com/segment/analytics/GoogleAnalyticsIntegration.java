@@ -26,6 +26,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * Analyitcs Android SDK</a>
  */
 class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
+  static final String DEFAULT_CATEGORY = "All";
   static final Pattern COMPLETED_ORDER_PATTERN =
       Pattern.compile("completed *order", Pattern.CASE_INSENSITIVE);
   static final Pattern PRODUCT_EVENT_PATTERN =
@@ -119,9 +120,8 @@ class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     }
 
     String category = properties.category();
-    if (isNullOrEmpty(category)) {
-        category = "All"; // default
-    }
+    if (isNullOrEmpty(category)) category = DEFAULT_CATEGORY;
+
     String label = properties.getString("label");
     tracker.send(new HitBuilders.EventBuilder().setCategory(category)
         .setAction(event)
@@ -136,6 +136,8 @@ class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
 
   /** Check if event is an ecommerce event. If it is, do it and return true, else return false. */
   boolean handleProductEvent(String event, String category, Properties properties) {
+    if (isNullOrEmpty(category)) category = DEFAULT_CATEGORY;
+
     if (PRODUCT_EVENT_PATTERN.matcher(event).matches()) {
       tracker.send(new HitBuilders.ItemBuilder() //
           .setTransactionId(properties.id())
