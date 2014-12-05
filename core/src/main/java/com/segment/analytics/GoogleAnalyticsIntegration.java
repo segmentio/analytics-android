@@ -96,7 +96,7 @@ class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   @Override void track(TrackPayload track) {
     Properties properties = track.properties();
     String event = track.event();
-    if (handleProductEvent(event, null, properties)) {
+    if (handleProductEvent(event, properties.category(), properties)) {
       return;
     }
     if (COMPLETED_ORDER_PATTERN.matcher(event).matches()) {
