@@ -124,7 +124,7 @@ public class GoogleAnalyticsRobolectricTest extends AbstractIntegrationTest {
 
   @Test @Override public void track() {
     integration.track(new TrackPayloadBuilder().event("foo").build());
-    verify(tracker).send(new HitBuilders.EventBuilder().setCategory(null)
+    verify(tracker).send(new HitBuilders.EventBuilder().setCategory("All")
         .setAction("foo")
         .setLabel(null)
         .setValue(0)
@@ -133,7 +133,7 @@ public class GoogleAnalyticsRobolectricTest extends AbstractIntegrationTest {
 
     Properties properties = new Properties().putValue(51).putValue("label", "bar");
     integration.track(new TrackPayloadBuilder().properties(properties).event("foo").build());
-    verify(tracker).send(new HitBuilders.EventBuilder().setCategory(null)
+    verify(tracker).send(new HitBuilders.EventBuilder().setCategory("All")
         .setAction("foo")
         .setLabel("bar")
         .setValue(51)
