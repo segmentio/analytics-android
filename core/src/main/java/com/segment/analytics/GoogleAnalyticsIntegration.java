@@ -118,9 +118,8 @@ class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
           .build());
     }
 
-    // Try to extract a "category" property
     String category = properties.category();
-    if (category == null || category.trim().isEmpty()) {
+    if (isNullOrEmpty(category)) {
         category = "All"; // default
     }
     String label = properties.getString("label");
