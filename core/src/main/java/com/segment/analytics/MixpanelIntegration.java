@@ -1,6 +1,8 @@
 package com.segment.analytics;
 
+import android.app.Activity;
 import android.content.Context;
+import android.os.Bundle;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import org.json.JSONObject;
 
@@ -21,6 +23,7 @@ class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   boolean trackAllPages;
   boolean trackCategorizedPages;
   boolean trackNamedPages;
+  String token;
 
   @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
       throws IllegalStateException {
@@ -29,7 +32,18 @@ class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     trackNamedPages = settings.getBoolean("trackNamedPages", true);
     isPeopleEnabled = settings.getBoolean("people", false);
 
-    mixpanelAPI = MixpanelAPI.getInstance(context, settings.getString("token"));
+    token = settings.getString("token");
+
+    mixpanelAPI = MixpanelAPI.getInstance(context, token);
+  }
+
+  @Override void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+    super.onActivityCreated(activity, savedInstanceState);
+
+    // This is needed to trigger a call to #checkIntentForInboundAppLink.
+    // From Mixpanel's source, this won't trigger a creation of another instance. It caches
+    // instances by the application context and token, both of which remain the same.
+    MixpanelAPI.getInstance(activity, token);
   }
 
   @Override MixpanelAPI getUnderlyingInstance() {

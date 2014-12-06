@@ -22,6 +22,7 @@ import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
 import static com.segment.analytics.TestUtils.JSONObjectMatcher.jsonEq;
 import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
 import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -57,12 +58,19 @@ public class MixpanelRobolectricTest extends AbstractIntegrationTest {
         .putValue("trackNamedPages", true), true);
     verifyStatic();
     MixpanelAPI.getInstance(context, "foo");
+    assertThat(adapter.token).isEqualTo("foo");
+    assertThat(adapter.trackAllPages).isTrue();
+    assertThat(adapter.trackCategorizedPages).isFalse();
+    assertThat(adapter.trackNamedPages).isTrue();
   }
 
   @Test @Override public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
+    integration.token = "foo";
     integration.onActivityCreated(activity, bundle);
+    verifyStatic();
+    MixpanelAPI.getInstance(activity, "foo");
     verifyNoMoreMixpanelInteractions();
   }
 
