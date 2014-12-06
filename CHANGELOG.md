@@ -1,3 +1,10 @@
+Version 2.4.6 (December 5th, 2014)
+==================================
+* Fix: Catch serialization errors better
+* Improvement: Better logging messages
+* Fix: Add a default category for Google Analytics events
+* Improvement: Follow App Links in Mixpanel
+
 Version 2.4.5 (December 3rd, 2014)
 ==================================
 * Improvement: Eagerly clear references to OnIntegrationReadyListener
