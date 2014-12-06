@@ -55,7 +55,7 @@ public class SegmentRobolectricTest {
 
   QueueFile createQueueFile() throws IOException {
     File parent = Robolectric.getShadowApplication().getFilesDir();
-    File queueFile = new File(parent, "test.queue");
+    File queueFile = new File(parent, "wj8s1h5k-payload-v1");
     queueFile.delete();
     return new QueueFile(queueFile);
   }

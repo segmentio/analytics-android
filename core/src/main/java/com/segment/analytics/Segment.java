@@ -30,7 +30,7 @@ import static com.segment.analytics.Utils.toISO8601Date;
 class Segment {
   private static final Charset UTF_8 = Charset.forName("UTF-8");
   private static final String SEGMENT_THREAD_NAME = Utils.THREAD_PREFIX + "Segment";
-  private static final String PAYLOAD_QUEUE_FILE_SUFFIX = "-payload";
+  private static final String PAYLOAD_QUEUE_FILE_SUFFIX = "-payload-v1";
   private static final int MAX_FLUSH_BATCH_SIZE = 50;
   private static final int MAX_QUEUE_SIZE = 200;
 
