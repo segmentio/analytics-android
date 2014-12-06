@@ -5,14 +5,8 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
-import com.squareup.tape.FileException;
-import com.squareup.tape.FileObjectQueue;
-import com.squareup.tape.InMemoryObjectQueue;
-import com.squareup.tape.ObjectQueue;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,11 +28,14 @@ import static com.segment.analytics.Utils.toISO8601Date;
  * @since 2.3
  */
 class Segment {
+  private static final Charset UTF_8 = Charset.forName("UTF-8");
   private static final String SEGMENT_THREAD_NAME = Utils.THREAD_PREFIX + "Segment";
-  private static final String TASK_QUEUE_FILE_NAME = "payload-task-queue-";
+  private static final String PAYLOAD_QUEUE_FILE_SUFFIX = "-payload";
+  private static final int MAX_FLUSH_BATCH_SIZE = 50;
+  private static final int MAX_QUEUE_SIZE = 200;
 
   final Context context;
-  final ObjectQueue<BasePayload> queue;
+  final QueueFile payloadQueueFile;
   final SegmentHTTPApi segmentHTTPApi;
   final int flushQueueSize;
   final int flushInterval;
@@ -48,31 +45,32 @@ class Segment {
   final Logger logger;
   final Map<String, Boolean> integrations;
 
-  static synchronized Segment create(Context context, int queueSize, int flushInterval,
+  static synchronized Segment create(Context context, int flushQueueSize, int flushInterval,
       SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
       Logger logger) {
     File parent = context.getFilesDir();
-    ObjectQueue<BasePayload> queue;
+    String filePrefix = tag.replaceAll("[^A-Za-z0-9]", ""); // sanitize input
+    QueueFile payloadQueueFile;
     try {
-      if (!parent.exists()) parent.mkdirs();
-      File queueFile = new File(parent, TASK_QUEUE_FILE_NAME + tag);
-      queue = new FileObjectQueue<BasePayload>(queueFile, new PayloadConverter());
+      if (parent.exists() || parent.mkdirs() || parent.isDirectory()) {
+        payloadQueueFile = new QueueFile(new File(parent, filePrefix + PAYLOAD_QUEUE_FILE_SUFFIX));
+      } else {
+        throw new IOException();
+      }
     } catch (IOException e) {
-      logger.print(e, "Unable to initialize disk queue for tag %s in directory %s,", tag,
-          parent.getAbsolutePath());
-      queue = new InMemoryObjectQueue<BasePayload>();
+      throw new RuntimeException("Could not create disk queue " + filePrefix + " in " + parent, e);
     }
-    return new Segment(context, queueSize, flushInterval, segmentHTTPApi, queue, integrations,
-        stats, logger);
+    flushQueueSize = Math.min(flushQueueSize, MAX_FLUSH_BATCH_SIZE);
+    return new Segment(context, flushQueueSize, flushInterval, segmentHTTPApi, payloadQueueFile,
+        integrations, stats, logger);
   }
 
   Segment(Context context, int flushQueueSize, int flushInterval, SegmentHTTPApi segmentHTTPApi,
-      ObjectQueue<BasePayload> queue, Map<String, Boolean> integrations, Stats stats,
-      Logger logger) {
+      QueueFile payloadQueueFile, Map<String, Boolean> integrations, Stats stats, Logger logger) {
     this.context = context;
     this.flushQueueSize = flushQueueSize;
     this.segmentHTTPApi = segmentHTTPApi;
-    this.queue = queue;
+    this.payloadQueueFile = payloadQueueFile;
     this.stats = stats;
     this.logger = logger;
     this.integrations = integrations;
@@ -88,15 +86,30 @@ class Segment {
   }
 
   void performEnqueue(BasePayload payload) {
-    logger.debug(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), "queueSize: %s", queue.size());
+    final int queueSize = payloadQueueFile.size();
+    logger.debug(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), "queueSize: %s", queueSize);
+    if (queueSize > MAX_QUEUE_SIZE) {
+      // In normal conditions, we wouldn't have more than flushQueueSize events, which is
+      // MAX_FLUSH_BATCH_SIZE = 50 at most. But if the user has been offline for a while, then
+      // the number of events could start accumulating. Even though QueueFile has a limit of 2GB,
+      // which is more than enough, we shouldn't be using more than a couple of megs here.
+      logger.print(null, "queueSize limit reached. Dropping oldest event.");
+      try {
+        payloadQueueFile.remove();
+      } catch (IOException e) {
+        panic("could not remove payload from queue.");
+      }
+    }
     try {
-      queue.add(payload);
-    } catch (FileException e) {
+      String json = payload.toString();
+      if (isNullOrEmpty(json)) throw new IOException("could not serialize payload " + payload);
+      payloadQueueFile.add(json.getBytes(UTF_8));
+    } catch (IOException e) {
       logger.error(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), e, "payload: %s", payload);
       return;
     }
     // Check if we've reached the maximum queue size
-    if (queue.size() >= flushQueueSize) {
+    if (payloadQueueFile.size() >= flushQueueSize) {
       performFlush();
     }
   }
@@ -107,16 +120,24 @@ class Segment {
   }
 
   void performFlush() {
-    final int queueSize = queue.size();
+    final int queueSize = Math.min(payloadQueueFile.size(), MAX_FLUSH_BATCH_SIZE);
+    boolean error = false;
+
     if (queueSize != 0 && isConnected(context)) {
       final List<BasePayload> payloads = new ArrayList<BasePayload>(queueSize);
-      while (queue.size() > 0) {
+      for (int i = 0; i < queueSize; i++) {
         try {
-          payloads.add(queue.peek());
-        } catch (FileException e) {
+          byte[] bytes = payloadQueueFile.peek();
+          String json = new String(bytes, UTF_8);
+          if (isNullOrEmpty(json)) throw new IOException("Cannot deserialize payload.");
+          payloads.add(new BasePayload(json));
+        } catch (IOException e) {
           logger.print(e, "Could not read payload. Skipping.");
-        } finally {
-          queue.remove();
+        }
+        try {
+          payloadQueueFile.remove();
+        } catch (IOException e) {
+          panic("could not remove payload from queue.");
         }
       }
       try {
@@ -125,11 +146,17 @@ class Segment {
       } catch (IOException e) {
         logger.print(e, "Unable to flush messages. Requeuing %s events.", queueSize);
         for (int i = 0; i < payloads.size(); i++) {
-          dispatchEnqueue(payloads.get(i));
+          performEnqueue(payloads.get(i));
         }
+        error = true;
       }
     }
-    dispatchFlush(flushInterval);
+
+    if (!error && payloadQueueFile.size() > 0) {
+      performFlush();
+    } else {
+      dispatchFlush(flushInterval);
+    }
   }
 
   void shutdown() {
@@ -181,28 +208,6 @@ class Segment {
         default:
           panic("Unknown dispatcher message." + msg.what);
       }
-    }
-  }
-
-  static class PayloadConverter implements FileObjectQueue.Converter<BasePayload> {
-    static final Charset UTF_8 = Charset.forName("UTF-8");
-
-    @Override public BasePayload from(byte[] bytes) throws IOException {
-      String json = new String(bytes, UTF_8);
-      if (isNullOrEmpty(json)) {
-        throw new IOException("Cannot deserialize payload from empty byte array.");
-      }
-      return new BasePayload(json);
-    }
-
-    @Override public void toStream(BasePayload payload, OutputStream bytes) throws IOException {
-      String json = payload.toString();
-      if (isNullOrEmpty(json)) {
-        throw new IOException("Cannot serialize payload : " + payload);
-      }
-      OutputStreamWriter outputStreamWriter = new OutputStreamWriter(bytes, UTF_8);
-      outputStreamWriter.write(json);
-      outputStreamWriter.close();
     }
   }
 }

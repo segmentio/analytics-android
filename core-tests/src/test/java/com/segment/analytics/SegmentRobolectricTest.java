@@ -1,8 +1,6 @@
 package com.segment.analytics;
 
 import android.content.Context;
-import com.squareup.tape.FileObjectQueue;
-import com.squareup.tape.ObjectQueue;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -41,7 +39,7 @@ public class SegmentRobolectricTest {
   @Mock Stats stats;
   @Mock Logger logger;
   Context context;
-  ObjectQueue<BasePayload> queue;
+  QueueFile queueFile;
   Segment segment;
 
   @Before public void setUp() {
@@ -51,29 +49,29 @@ public class SegmentRobolectricTest {
   }
 
   Segment createSegmentIntegration(int maxQueueSize) {
-    return new Segment(context, maxQueueSize, 30, segmentHTTPApi, queue,
+    return new Segment(context, maxQueueSize, 30, segmentHTTPApi, queueFile,
         Collections.<String, Boolean>emptyMap(), stats, logger);
   }
 
-  ObjectQueue<BasePayload> createQueue() throws IOException {
+  QueueFile createQueueFile() throws IOException {
     File parent = Robolectric.getShadowApplication().getFilesDir();
     File queueFile = new File(parent, "test.queue");
     queueFile.delete();
-    return new FileObjectQueue<BasePayload>(queueFile, new Segment.PayloadConverter());
+    return new QueueFile(queueFile);
   }
 
   @Test public void addsToQueueCorrectly() throws IOException {
-    queue = createQueue();
+    queueFile = createQueueFile();
     segment = createSegmentIntegration(20);
-    assertThat(queue.size()).isEqualTo(0);
+    assertThat(queueFile.size()).isEqualTo(0);
     segment.performEnqueue(TEST_PAYLOAD);
-    assertThat(queue.size()).isEqualTo(1);
+    assertThat(queueFile.size()).isEqualTo(1);
     segment.performEnqueue(TEST_PAYLOAD);
-    assertThat(queue.size()).isEqualTo(2);
+    assertThat(queueFile.size()).isEqualTo(2);
   }
 
   @Test public void flushesQueueCorrectly() throws IOException {
-    queue = createQueue();
+    queueFile = createQueueFile();
     segment = createSegmentIntegration(20);
     segment.performEnqueue(TEST_PAYLOAD);
     segment.performEnqueue(TEST_PAYLOAD);
@@ -87,13 +85,13 @@ public class SegmentRobolectricTest {
       fail("should not throw exception");
     }
     verify(stats).dispatchFlush(4);
-    assertThat(queue.size()).isEqualTo(0);
+    assertThat(queueFile.size()).isEqualTo(0);
   }
 
   @Test public void flushesWhenQueueHitsMax() throws IOException {
-    queue = createQueue();
+    queueFile = createQueueFile();
     segment = createSegmentIntegration(3);
-    assertThat(queue.size()).isEqualTo(0);
+    assertThat(queueFile.size()).isEqualTo(0);
     segment.performEnqueue(TEST_PAYLOAD);
     segment.performEnqueue(TEST_PAYLOAD);
     segment.performEnqueue(TEST_PAYLOAD);
@@ -104,6 +102,6 @@ public class SegmentRobolectricTest {
       fail("should not throw exception");
     }
     verify(stats).dispatchFlush(3);
-    assertThat(queue.size()).isEqualTo(0);
+    assertThat(queueFile.size()).isEqualTo(0);
   }
 }
