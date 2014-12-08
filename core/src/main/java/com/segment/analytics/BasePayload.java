@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.UUID;
 
+import static com.segment.analytics.Options.ALL_INTEGRATIONS_KEY;
 import static com.segment.analytics.Utils.toISO8601Date;
 
 /**
@@ -118,7 +119,7 @@ class BasePayload extends JsonMap implements IntegrationManager.IntegrationOpera
 
   @Override public void run(AbstractIntegration integration) {
     // needed for deserialization
-    throw new UnsupportedOperationException("must be a subclass to call on an integration");
+    throw new UnsupportedOperationException("BasePayload cannot directly be run on integrations.");
   }
 
   @Override public String id() {
@@ -131,10 +132,8 @@ class BasePayload extends JsonMap implements IntegrationManager.IntegrationOpera
     String key = integration.key();
     if (integrations.containsKey(key)) {
       enabled = integrations.getBoolean(key, true);
-    } else if (integrations.containsKey("All")) {
-      enabled = integrations.getBoolean("All", true);
-    } else if (integrations.containsKey("all")) {
-      enabled = integrations.getBoolean("all", true);
+    } else if (integrations.containsKey(ALL_INTEGRATIONS_KEY)) {
+      enabled = integrations.getBoolean(ALL_INTEGRATIONS_KEY, true);
     }
     return enabled;
   }
