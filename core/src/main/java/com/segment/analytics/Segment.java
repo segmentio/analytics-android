@@ -34,10 +34,6 @@ import static com.segment.analytics.Utils.toISO8601Date;
  * @since 2.3
  */
 class Segment {
-
-  static final int REQUEST_ENQUEUE = 0;
-  static final int REQUEST_FLUSH = 1;
-
   private static final String SEGMENT_THREAD_NAME = Utils.THREAD_PREFIX + "Segment";
   private static final String TASK_QUEUE_FILE_NAME = "payload-task-queue-";
 
@@ -51,23 +47,6 @@ class Segment {
   final HandlerThread segmentThread;
   final Logger logger;
   final Map<String, Boolean> integrations;
-
-  Segment(Context context, int flushQueueSize, int flushInterval, SegmentHTTPApi segmentHTTPApi,
-      ObjectQueue<BasePayload> queue, Map<String, Boolean> integrations, Stats stats,
-      Logger logger) {
-    this.context = context;
-    this.flushQueueSize = flushQueueSize;
-    this.segmentHTTPApi = segmentHTTPApi;
-    this.queue = queue;
-    this.stats = stats;
-    this.logger = logger;
-    this.integrations = integrations;
-    this.flushInterval = flushInterval * 1000;
-    segmentThread = new HandlerThread(SEGMENT_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
-    segmentThread.start();
-    handler = new SegmentHandler(segmentThread.getLooper(), this);
-    dispatchFlush(flushInterval);
-  }
 
   static synchronized Segment create(Context context, int queueSize, int flushInterval,
       SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
@@ -87,8 +66,25 @@ class Segment {
         stats, logger);
   }
 
+  Segment(Context context, int flushQueueSize, int flushInterval, SegmentHTTPApi segmentHTTPApi,
+      ObjectQueue<BasePayload> queue, Map<String, Boolean> integrations, Stats stats,
+      Logger logger) {
+    this.context = context;
+    this.flushQueueSize = flushQueueSize;
+    this.segmentHTTPApi = segmentHTTPApi;
+    this.queue = queue;
+    this.stats = stats;
+    this.logger = logger;
+    this.integrations = integrations;
+    this.flushInterval = flushInterval * 1000;
+    segmentThread = new HandlerThread(SEGMENT_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
+    segmentThread.start();
+    handler = new SegmentHandler(segmentThread.getLooper(), this);
+    dispatchFlush(flushInterval);
+  }
+
   void dispatchEnqueue(final BasePayload payload) {
-    handler.sendMessage(handler.obtainMessage(REQUEST_ENQUEUE, payload));
+    handler.sendMessage(handler.obtainMessage(SegmentHandler.REQUEST_ENQUEUE, payload));
   }
 
   void performEnqueue(BasePayload payload) {
@@ -106,8 +102,8 @@ class Segment {
   }
 
   void dispatchFlush(int delay) {
-    handler.removeMessages(REQUEST_FLUSH);
-    handler.sendMessageDelayed(handler.obtainMessage(REQUEST_FLUSH), delay);
+    handler.removeMessages(SegmentHandler.REQUEST_FLUSH);
+    handler.sendMessageDelayed(handler.obtainMessage(SegmentHandler.REQUEST_FLUSH), delay);
   }
 
   void performFlush() {
@@ -164,6 +160,8 @@ class Segment {
   }
 
   private static class SegmentHandler extends Handler {
+    static final int REQUEST_ENQUEUE = 0;
+    static final int REQUEST_FLUSH = 1;
     private final Segment segment;
 
     SegmentHandler(Looper looper, Segment segment) {

@@ -16,7 +16,6 @@ import java.util.HashSet;
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
 class WearDispatcher {
-  static final int REQUEST_DISPATCH = 0;
   private static final String DISPATCHER_THREAD_NAME = Utils.THREAD_PREFIX + "Wear-Dispatcher";
 
   final Handler handler;
@@ -31,7 +30,7 @@ class WearDispatcher {
   }
 
   void dispatchPayload(WearPayload payload) {
-    handler.sendMessage(handler.obtainMessage(REQUEST_DISPATCH, payload));
+    handler.sendMessage(handler.obtainMessage(DispatcherHandler.REQUEST_DISPATCH, payload));
   }
 
   void performDispatch(WearPayload payload) {
@@ -58,6 +57,7 @@ class WearDispatcher {
   }
 
   private static class DispatcherHandler extends Handler {
+    static final int REQUEST_DISPATCH = 0;
     private final WearDispatcher wearDispatcher;
 
     public DispatcherHandler(Looper looper, WearDispatcher wearDispatcher) {

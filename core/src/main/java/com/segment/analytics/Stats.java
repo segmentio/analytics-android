@@ -11,8 +11,6 @@ import static com.segment.analytics.Utils.quitThread;
 
 class Stats {
   private static final String STATS_THREAD_NAME = Utils.THREAD_PREFIX + "Stats";
-  private static final int FLUSH = 1;
-  private static final int INTEGRATION_OPERATION = 2;
 
   final HandlerThread statsThread;
   final Handler handler;
@@ -33,11 +31,12 @@ class Stats {
   }
 
   void dispatchFlush(int count) {
-    handler.sendMessage(handler.obtainMessage(FLUSH, count, 0));
+    handler.sendMessage(handler.obtainMessage(StatsHandler.REQUEST_TRACK_FLUSH, count, 0));
   }
 
   void dispatchIntegrationOperation(long duration) {
-    handler.sendMessage(handler.obtainMessage(INTEGRATION_OPERATION, duration));
+    handler.sendMessage(
+        handler.obtainMessage(StatsHandler.REQUEST_TRACK_INTEGRATION_OPERATION, duration));
   }
 
   void performIntegrationOperation(long duration) {
@@ -56,6 +55,8 @@ class Stats {
   }
 
   private static class StatsHandler extends Handler {
+    private static final int REQUEST_TRACK_FLUSH = 1;
+    private static final int REQUEST_TRACK_INTEGRATION_OPERATION = 2;
     private final Stats stats;
 
     StatsHandler(Looper looper, Stats stats) {
@@ -65,10 +66,10 @@ class Stats {
 
     @Override public void handleMessage(final Message msg) {
       switch (msg.what) {
-        case FLUSH:
+        case REQUEST_TRACK_FLUSH:
           stats.performFlush(msg.arg1);
           break;
-        case INTEGRATION_OPERATION:
+        case REQUEST_TRACK_INTEGRATION_OPERATION:
           stats.performIntegrationOperation((Long) msg.obj);
           break;
         default:

@@ -41,7 +41,6 @@ import static com.segment.analytics.Utils.quitThread;
  */
 class IntegrationManager {
 
-  static final int REQUEST_FETCH_SETTINGS = 1;
   private static final String PROJECT_SETTINGS_CACHE_KEY = "project-settings";
   private static final String MANAGER_THREAD_NAME = THREAD_PREFIX + "IntegrationManager";
   private static final long SETTINGS_REFRESH_INTERVAL = 1000 * 60 * 60 * 24; // 24 hours
@@ -122,7 +121,8 @@ class IntegrationManager {
   }
 
   void dispatchFetch() {
-    networkingHandler.sendMessage(networkingHandler.obtainMessage(REQUEST_FETCH_SETTINGS));
+    networkingHandler.sendMessage(
+        networkingHandler.obtainMessage(NetworkingHandler.REQUEST_FETCH_SETTINGS));
   }
 
   void performFetch() {
@@ -146,13 +146,15 @@ class IntegrationManager {
   }
 
   void retryFetch() {
-    networkingHandler.sendMessageDelayed(networkingHandler.obtainMessage(REQUEST_FETCH_SETTINGS),
+    networkingHandler.sendMessageDelayed(
+        networkingHandler.obtainMessage(NetworkingHandler.REQUEST_FETCH_SETTINGS),
         SETTINGS_ERROR_RETRY_INTERVAL);
   }
 
   void dispatchInitialize(ProjectSettings projectSettings) {
     integrationManagerHandler.sendMessage(
-        integrationManagerHandler.obtainMessage(IntegrationHandler.INITIALIZE, projectSettings));
+        integrationManagerHandler.obtainMessage(IntegrationHandler.REQUEST_INITIALIZE,
+            projectSettings));
   }
 
   void performInitialize(ProjectSettings projectSettings) {
@@ -273,7 +275,8 @@ class IntegrationManager {
 
   void dispatchOperation(IntegrationOperation operation) {
     integrationManagerHandler.sendMessage(
-        integrationManagerHandler.obtainMessage(IntegrationHandler.DISPATCH_OPERATION, operation));
+        integrationManagerHandler.obtainMessage(IntegrationHandler.REQUEST_DISPATCH_OPERATION,
+            operation));
   }
 
   void performOperation(IntegrationOperation operation) {
@@ -303,7 +306,8 @@ class IntegrationManager {
 
   void dispatchRegisterIntegrationInitializedListener(OnIntegrationReadyListener listener) {
     integrationManagerHandler.sendMessage(
-        integrationManagerHandler.obtainMessage(IntegrationHandler.REGISTER_LISTENER, listener));
+        integrationManagerHandler.obtainMessage(IntegrationHandler.REQUEST_REGISTER_LISTENER,
+            listener));
   }
 
   void performRegisterIntegrationInitializedListener(OnIntegrationReadyListener listener) {
@@ -404,7 +408,7 @@ class IntegrationManager {
   }
 
   private static class NetworkingHandler extends Handler {
-
+    static final int REQUEST_FETCH_SETTINGS = 1;
     private final IntegrationManager integrationManager;
 
     NetworkingHandler(Looper looper, IntegrationManager integrationManager) {
@@ -424,9 +428,9 @@ class IntegrationManager {
   }
 
   private static class IntegrationHandler extends Handler {
-    static final int INITIALIZE = 1;
-    static final int DISPATCH_OPERATION = 2;
-    static final int REGISTER_LISTENER = 3;
+    static final int REQUEST_INITIALIZE = 1;
+    static final int REQUEST_DISPATCH_OPERATION = 2;
+    static final int REQUEST_REGISTER_LISTENER = 3;
 
     private final IntegrationManager integrationManager;
 
@@ -437,13 +441,13 @@ class IntegrationManager {
 
     @Override public void handleMessage(final Message msg) {
       switch (msg.what) {
-        case INITIALIZE:
+        case REQUEST_INITIALIZE:
           integrationManager.performInitialize((ProjectSettings) msg.obj);
           break;
-        case DISPATCH_OPERATION:
+        case REQUEST_DISPATCH_OPERATION:
           integrationManager.performOperation((IntegrationOperation) msg.obj);
           break;
-        case REGISTER_LISTENER:
+        case REQUEST_REGISTER_LISTENER:
           integrationManager.performRegisterIntegrationInitializedListener(
               (OnIntegrationReadyListener) msg.obj);
           break;
