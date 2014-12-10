@@ -6,11 +6,6 @@ subprojects {
     repositories {
       mavenCentral()
     }
-    dependencies {
-      classpath 'com.android.tools.build:gradle:1.0.0'
-      classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
-      classpath 'org.robolectric:robolectric-gradle-plugin:0.14.1'
-    }
   }
 
   repositories {
@@ -44,6 +39,11 @@ ext {
   preDexLibraries = preDexEnabled && !isTravis
 }
 // @formatter:off
+ext.plugins = [
+    android        : 'com.android.tools.build:gradle:1.0.0',
+    sdkManager     : 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
+]
+
 ext.integrationsMap = [
     amplitude      : 'com.amplitude:android-sdk:1.4.1',
     appsFlyer      : files('libs/AppsFlyer-2.3.1.12.jar'),

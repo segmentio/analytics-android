@@ -1,25 +1,17 @@
 apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
-apply plugin: 'robolectric'
+
+buildscript {
+  dependencies {
+    classpath rootProject.ext.plugins.android
+    classpath rootProject.ext.plugins.sdkManager
+  }
+}
 
 dependencies {
   compile rootProject.ext.libraries.tape
   provided rootProject.ext.libraries.supportLib
   provided rootProject.ext.integrations
-
-  androidTestCompile 'junit:junit:4.11'
-  androidTestCompile 'com.squareup.assertj:assertj-android:1.0.0'
-  androidTestCompile 'org.mockito:mockito-all:1.9.5'
-  androidTestCompile('org.robolectric:robolectric:2.4') {
-    // Workaround for https://github.com/robolectric/robolectric-gradle-plugin/issues/43
-    // and https://github.com/robolectric/robolectric/issues/1175
-    exclude group: 'com.android.support', module: 'support-v4'
-  }
-  androidTestCompile 'org.powermock:powermock:1.5.6'
-  androidTestCompile 'org.powermock:powermock-module-junit4:1.5.6'
-  androidTestCompile 'org.powermock:powermock-module-junit4-rule:1.5.6'
-  androidTestCompile 'org.powermock:powermock-api-mockito:1.5.6'
-  androidTestCompile 'org.powermock:powermock-classloading-xstream:1.5.6'
 }
 
 android {
@@ -44,13 +36,6 @@ android {
   packagingOptions {
     exclude 'LICENSE.txt'
   }
-}
-
-robolectric {
-  // https://github.com/robolectric/robolectric/issues/1186
-  // https://code.google.com/p/android/issues/detail?id=75080
-  jvmArgs '-noverify'
-  include '**/*RobolectricTest.class'
 }
 
 apply from: rootProject.file('gradle/checkstyle-library.gradle')

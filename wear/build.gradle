@@ -1,6 +1,13 @@
 apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
 
+buildscript {
+  dependencies {
+    classpath rootProject.ext.plugins.android
+    classpath rootProject.ext.plugins.sdkManager
+  }
+}
+
 dependencies {
   compile project(':core')
   compile rootProject.ext.libraries.playWearable

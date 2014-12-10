@@ -1,6 +1,13 @@
 apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
 
+buildscript {
+  dependencies {
+    classpath rootProject.ext.plugins.android
+    classpath rootProject.ext.plugins.sdkManager
+  }
+}
+
 dependencies {
   // repositories { maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' } }
   // compile('com.segment.analytics.android:all:2.4.4-SNAPSHOT@aar') {

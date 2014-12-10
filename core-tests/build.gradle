@@ -1,0 +1,53 @@
+buildscript {
+  dependencies {
+    classpath rootProject.ext.plugins.android
+  }
+}
+
+import static com.android.builder.core.BuilderConstants.DEBUG
+
+apply plugin: 'java'
+
+// targetCompatibility = JavaVersion.VERSION_1_7
+// sourceCompatibility = JavaVersion.VERSION_1_7
+
+compileJava.options.encoding = 'UTF-8'
+
+evaluationDependsOn(':core')
+
+def core = project(':core')
+def coreBuild = core.android.libraryVariants.findAll { it.buildType.name == DEBUG }.first()
+
+// In order to resolve direct or transitive dependencies in SDK m2's copy the app's repositories.
+repositories.addAll(core.repositories)
+
+tasks.withType(Test) {
+  scanForTestClasses = false
+  include "**/*RobolectricTest.class" // whatever Ant pattern matches your test class files
+}
+
+dependencies {
+  testCompile 'junit:junit:4.11'
+  testCompile 'com.squareup.assertj:assertj-android:1.0.0'
+  testCompile 'org.mockito:mockito-all:1.9.5'
+  testCompile('org.robolectric:robolectric:2.4') {
+    // Workaround for https://github.com/robolectric/robolectric-gradle-plugin/issues/43
+    // and https://github.com/robolectric/robolectric/issues/1175
+    exclude group: 'com.android.support', module: 'support-v4'
+  }
+  testCompile 'org.powermock:powermock:1.5.6'
+  testCompile 'org.powermock:powermock-module-junit4:1.5.6'
+  testCompile 'org.powermock:powermock-module-junit4-rule:1.5.6'
+  testCompile 'org.powermock:powermock-api-mockito:1.5.6'
+  testCompile 'org.powermock:powermock-classloading-xstream:1.5.6'
+
+  // The transitive dependencies from our tested build type.
+  testCompile coreBuild.javaCompile.classpath
+  // The source files from our tested build type.
+  testCompile core
+  // The compiled class files from our tested build type.
+  testCompile coreBuild.javaCompile.outputs.files
+
+  // The Android API jar.
+  testCompile files(core.android.bootClasspath)
+}
