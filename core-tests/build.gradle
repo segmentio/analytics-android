@@ -23,18 +23,19 @@ repositories.addAll(core.repositories)
 
 tasks.withType(Test) {
   scanForTestClasses = false
-  include "**/*RobolectricTest.class" // whatever Ant pattern matches your test class files
+  include "**/*RobolectricTest.class"
+}
+
+test {
+  jvmArgs '-noverify'
 }
 
 dependencies {
   testCompile 'junit:junit:4.11'
-  testCompile 'com.squareup.assertj:assertj-android:1.0.0'
-  testCompile 'org.mockito:mockito-all:1.9.5'
-  testCompile('org.robolectric:robolectric:2.4') {
-    // Workaround for https://github.com/robolectric/robolectric-gradle-plugin/issues/43
-    // and https://github.com/robolectric/robolectric/issues/1175
-    exclude group: 'com.android.support', module: 'support-v4'
-  }
+  testCompile 'org.robolectric:robolectric:2.3'
+  testCompile 'org.mockito:mockito-core:1.10.8'
+  testCompile 'org.assertj:assertj-core:1.7.0'
+
   testCompile 'org.powermock:powermock:1.5.6'
   testCompile 'org.powermock:powermock-module-junit4:1.5.6'
   testCompile 'org.powermock:powermock-module-junit4-rule:1.5.6'

@@ -39,23 +39,23 @@ public class BasePayloadRobolectricTest {
 
   @Test public void defaultPayloadRunsOnAllIntegrations() throws IOException {
     // this should be done with junits params, couldn't get it to work http://pastebin.com/W61q1H3J
-    List<Pair<Options, Boolean>> params = new ArrayList<>();
-    params.add(new Pair<>(new Options(), true));
+    List<Pair<Options, Boolean>> params = new ArrayList<Pair<Options, Boolean>>();
+    params.add(new Pair<Options, Boolean>(new Options(), true));
     // respect integration specific options
-    params.add(new Pair<>(new Options().setIntegration("foo", true), true));
-    params.add(new Pair<>(new Options().setIntegration("foo", false), false));
+    params.add(new Pair<Options, Boolean>(new Options().setIntegration("foo", true), true));
+    params.add(new Pair<Options, Boolean>(new Options().setIntegration("foo", false), false));
 
     // ignores "All" capital case
-    params.add(new Pair<>(new Options().setIntegration("All", false), true));
-    params.add(new Pair<>(new Options().setIntegration("All", true), true));
+    params.add(new Pair<Options, Boolean>(new Options().setIntegration("All", false), true));
+    params.add(new Pair<Options, Boolean>(new Options().setIntegration("All", true), true));
 
     // Respect "all" under case
-    params.add(new Pair<>(new Options().setIntegration("all", false), false));
-    params.add(new Pair<>(new Options().setIntegration("all", true), true));
+    params.add(new Pair<Options, Boolean>(new Options().setIntegration("all", false), false));
+    params.add(new Pair<Options, Boolean>(new Options().setIntegration("all", true), true));
 
     // ignore values for other integrations
-    params.add(new Pair<>(new Options().setIntegration("bar", true), true));
-    params.add(new Pair<>(new Options().setIntegration("bar", false), true));
+    params.add(new Pair<Options, Boolean>(new Options().setIntegration("bar", true), true));
+    params.add(new Pair<Options, Boolean>(new Options().setIntegration("bar", false), true));
 
     for (Pair<Options, Boolean> param : params) {
       BasePayload payload =
