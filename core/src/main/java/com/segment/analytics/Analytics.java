@@ -101,50 +101,6 @@ public class Analytics {
   final boolean debuggingEnabled;
   boolean shutdown;
 
-  Analytics(Application application, IntegrationManager integrationManager, Segment segment,
-      Stats stats, TraitsCache traitsCache, AnalyticsContext analyticsContext,
-      Options defaultOptions, Logger logger, boolean debuggingEnabled) {
-    this.application = application;
-    this.integrationManager = integrationManager;
-    this.segment = segment;
-    this.stats = stats;
-    this.traitsCache = traitsCache;
-    this.analyticsContext = analyticsContext;
-    this.defaultOptions = defaultOptions;
-    this.debuggingEnabled = debuggingEnabled;
-    this.logger = logger;
-
-    application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
-      @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-        submit(new ActivityLifecyclePayload(CREATED, activity, savedInstanceState));
-      }
-
-      @Override public void onActivityStarted(Activity activity) {
-        submit(new ActivityLifecyclePayload(STARTED, activity, null));
-      }
-
-      @Override public void onActivityResumed(Activity activity) {
-        submit(new ActivityLifecyclePayload(RESUMED, activity, null));
-      }
-
-      @Override public void onActivityPaused(Activity activity) {
-        submit(new ActivityLifecyclePayload(PAUSED, activity, null));
-      }
-
-      @Override public void onActivityStopped(Activity activity) {
-        submit(new ActivityLifecyclePayload(STOPPED, activity, null));
-      }
-
-      @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-        submit(new ActivityLifecyclePayload(SAVE_INSTANCE, activity, outState));
-      }
-
-      @Override public void onActivityDestroyed(Activity activity) {
-        submit(new ActivityLifecyclePayload(DESTROYED, activity, null));
-      }
-    });
-  }
-
   /**
    * The global default {@link Analytics} instance.
    * <p>
@@ -231,6 +187,50 @@ public class Analytics {
       }
       singleton = analytics;
     }
+  }
+
+  Analytics(Application application, IntegrationManager integrationManager, Segment segment,
+      Stats stats, TraitsCache traitsCache, AnalyticsContext analyticsContext,
+      Options defaultOptions, Logger logger, boolean debuggingEnabled) {
+    this.application = application;
+    this.integrationManager = integrationManager;
+    this.segment = segment;
+    this.stats = stats;
+    this.traitsCache = traitsCache;
+    this.analyticsContext = analyticsContext;
+    this.defaultOptions = defaultOptions;
+    this.debuggingEnabled = debuggingEnabled;
+    this.logger = logger;
+
+    application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+      @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+        submit(new ActivityLifecyclePayload(CREATED, activity, savedInstanceState));
+      }
+
+      @Override public void onActivityStarted(Activity activity) {
+        submit(new ActivityLifecyclePayload(STARTED, activity, null));
+      }
+
+      @Override public void onActivityResumed(Activity activity) {
+        submit(new ActivityLifecyclePayload(RESUMED, activity, null));
+      }
+
+      @Override public void onActivityPaused(Activity activity) {
+        submit(new ActivityLifecyclePayload(PAUSED, activity, null));
+      }
+
+      @Override public void onActivityStopped(Activity activity) {
+        submit(new ActivityLifecyclePayload(STOPPED, activity, null));
+      }
+
+      @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+        submit(new ActivityLifecyclePayload(SAVE_INSTANCE, activity, outState));
+      }
+
+      @Override public void onActivityDestroyed(Activity activity) {
+        submit(new ActivityLifecyclePayload(DESTROYED, activity, null));
+      }
+    });
   }
 
   /**
@@ -516,6 +516,7 @@ public class Analytics {
    *     ((MixpanelAPI) integration).clearSuperProperties();
    *   }
    * }
+   *
    * @since 2.3
    */
   public void registerOnIntegrationReady(OnIntegrationReadyListener onIntegrationReadyListener) {

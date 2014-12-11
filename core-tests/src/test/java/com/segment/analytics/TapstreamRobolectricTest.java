@@ -201,12 +201,12 @@ public class TapstreamRobolectricTest extends AbstractIntegrationTest {
   static class EventMatcher extends TypeSafeMatcher<Event> {
     final String name;
 
-    private EventMatcher(String name) {
-      this.name = name;
-    }
-
     static Event eventEq(String name) {
       return argThat(new EventMatcher(name));
+    }
+
+    private EventMatcher(String name) {
+      this.name = name;
     }
 
     @Override public boolean matchesSafely(Event event) {

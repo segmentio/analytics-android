@@ -20,12 +20,12 @@ class Logger {
 
   final boolean loggingEnabled;
 
-  public Logger(boolean loggingEnabled) {
-    this.loggingEnabled = loggingEnabled;
-  }
-
   private static String safeFormat(String format, Object... extras) {
     return format == null ? null : String.format(format, extras);
+  }
+
+  public Logger(boolean loggingEnabled) {
+    this.loggingEnabled = loggingEnabled;
   }
 
   void debug(String owner, String verb, String id, String format, Object... extras) {

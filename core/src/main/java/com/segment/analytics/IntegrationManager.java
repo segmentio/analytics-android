@@ -61,6 +61,14 @@ class IntegrationManager {
   boolean initialized;
   OnIntegrationReadyListener listener;
 
+  static synchronized IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi,
+      Stats stats, Logger logger, boolean debuggingEnabled) {
+    StringCache projectSettingsCache =
+        new StringCache(getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
+    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logger,
+        debuggingEnabled);
+  }
+
   IntegrationManager(Context context, SegmentHTTPApi segmentHTTPApi,
       StringCache projectSettingsCache, Stats stats, Logger logger, boolean debuggingEnabled) {
     this.context = context;
@@ -106,14 +114,6 @@ class IntegrationManager {
         dispatchFetch();
       }
     }
-  }
-
-  static synchronized IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi,
-      Stats stats, Logger logger, boolean debuggingEnabled) {
-    StringCache projectSettingsCache =
-        new StringCache(getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
-    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logger,
-        debuggingEnabled);
   }
 
   private void findBundledIntegration(String className, String key) {

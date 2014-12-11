@@ -45,15 +45,6 @@ class SegmentHTTPApi {
 
   private final String writeKey;
 
-  SegmentHTTPApi(String writeKey) {
-    this.writeKey = writeKey;
-
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
-      // bug in pre-froyo, http://android-developers.blogspot.com/2011/09/androids-http-clients.html
-      System.setProperty("http.keepAlive", "false");
-    }
-  }
-
   private static URL createUrl(String endpoint) {
     String url = API_URL + endpoint;
     try {
@@ -70,6 +61,15 @@ class SegmentHTTPApi {
       response.append(line);
     }
     return response.toString();
+  }
+
+  SegmentHTTPApi(String writeKey) {
+    this.writeKey = writeKey;
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
+      // bug in pre-froyo, http://android-developers.blogspot.com/2011/09/androids-http-clients.html
+      System.setProperty("http.keepAlive", "false");
+    }
   }
 
   void upload(BatchPayload batchPayload) throws IOException {

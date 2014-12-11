@@ -33,10 +33,6 @@ public class WearAnalytics {
   static WearAnalytics singleton;
   final WearDispatcher dispatcher;
 
-  WearAnalytics(Context context) {
-    this.dispatcher = new WearDispatcher(context);
-  }
-
   public static WearAnalytics with(Context context) {
     if (singleton == null) {
       if (context == null) {
@@ -49,6 +45,10 @@ public class WearAnalytics {
       }
     }
     return singleton;
+  }
+
+  WearAnalytics(Context context) {
+    this.dispatcher = new WearDispatcher(context);
   }
 
   /**
