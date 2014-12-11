@@ -1,23 +1,31 @@
 package com.segment.analytics;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.TestUtils.PROJECT_SETTINGS_JSON_SAMPLE;
+import static com.segment.analytics.Utils.NullableConcurrentHashMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.verify;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 public class JsonMapRobolectricTest {
+  @Mock NullableConcurrentHashMap<String, Object> delegate;
+  @Mock Object object;
   JsonMap jsonMap;
 
   @Before public void setUp() {
+    initMocks(this);
     jsonMap = new JsonMap();
   }
 
@@ -31,6 +39,47 @@ public class JsonMapRobolectricTest {
 
   @Test public void emptyMap() throws Exception {
     assertThat(jsonMap).hasSize(0).isEmpty();
+  }
+
+  @Test public void methodsAreForwardedCorrectly() throws Exception {
+    jsonMap = new JsonMap(delegate);
+
+    jsonMap.clear();
+    verify(delegate).clear();
+
+    jsonMap.containsKey(object);
+    verify(delegate).containsKey(object);
+
+    jsonMap.entrySet();
+    verify(delegate).entrySet();
+
+    jsonMap.get(object);
+    verify(delegate).get(object);
+
+    jsonMap.isEmpty();
+    verify(delegate).isEmpty();
+
+    jsonMap.keySet();
+    verify(delegate).keySet();
+
+    jsonMap.put("foo", object);
+    verify(delegate).put("foo", object);
+
+    Map<String, Object> map = new LinkedHashMap<>();
+    jsonMap.putAll(map);
+    verify(delegate).putAll(map);
+
+    jsonMap.remove(object);
+    verify(delegate).remove(object);
+
+    jsonMap.size();
+    verify(delegate).size();
+
+    jsonMap.values();
+    verify(delegate).values();
+
+    jsonMap.putValue("bar", object);
+    verify(delegate).put("bar", object);
   }
 
   @Test public void conversionsAreCached() throws Exception {
