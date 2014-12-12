@@ -12,7 +12,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
@@ -25,16 +24,6 @@ public class BasePayloadRobolectricTest {
   @Before public void setUp() {
     MockitoAnnotations.initMocks(this);
     when(mockIntegration.key()).thenReturn("foo");
-  }
-
-  @Test public void runThrowsError() throws IOException {
-    BasePayload payload = new BasePayload("{}");
-    try {
-      payload.run(mock(AbstractIntegration.class));
-      fail("Calling run on BasePayload should throw exception");
-    } catch (UnsupportedOperationException e) {
-      assertThat(e).hasMessage("BasePayload cannot directly be run on integrations.");
-    }
   }
 
   @Test public void defaultPayloadRunsOnAllIntegrations() throws IOException {
@@ -59,8 +48,7 @@ public class BasePayloadRobolectricTest {
 
     for (Pair<Options, Boolean> param : params) {
       BasePayload payload =
-          new BasePayload(BasePayload.Type.alias, "qaz", mock(AnalyticsContext.class), "qux",
-              param.first);
+          new AliasPayload("qaz", mock(AnalyticsContext.class), "qux", "baaz", param.first);
       assertThat(payload.isIntegrationEnabledInPayload(mockIntegration)).overridingErrorMessage(
           "Expected %s for integrations %s", param.second, param.first.integrations())
           .isEqualTo(param.second);

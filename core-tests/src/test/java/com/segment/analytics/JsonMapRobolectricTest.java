@@ -65,7 +65,7 @@ public class JsonMapRobolectricTest {
     jsonMap.put("foo", object);
     verify(delegate).put("foo", object);
 
-    Map<String, Object> map = new LinkedHashMap<>();
+    Map<String, Object> map = new LinkedHashMap<String, Object>();
     jsonMap.putAll(map);
     verify(delegate).putAll(map);
 

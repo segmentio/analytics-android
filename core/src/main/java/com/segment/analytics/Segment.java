@@ -5,12 +5,16 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.util.JsonWriter;
+import android.util.Log;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
@@ -120,41 +124,50 @@ class Segment {
   }
 
   void performFlush() {
-    final int queueSize = Math.min(payloadQueueFile.size(), MAX_FLUSH_BATCH_SIZE);
+    final int batchSize = Math.min(payloadQueueFile.size(), MAX_FLUSH_BATCH_SIZE);
     boolean error = false;
 
-    if (queueSize != 0 && isConnected(context)) {
-      final List<BasePayload> payloads = new ArrayList<BasePayload>(queueSize);
-      for (int i = 0; i < queueSize; i++) {
-        try {
-          byte[] bytes = payloadQueueFile.peek();
-          String json = new String(bytes, UTF_8);
-          if (isNullOrEmpty(json)) throw new IOException("Cannot deserialize payload.");
-          payloads.add(new BasePayload(json));
-        } catch (IOException e) {
-          logger.print(e, "Could not read payload. Skipping.");
-        }
-        try {
-          payloadQueueFile.remove();
-        } catch (IOException e) {
-          panic("could not remove payload from queue.");
-        }
-      }
+    if (batchSize != 0 && isConnected(context)) {
       try {
-        segmentHTTPApi.upload(new BatchPayload(payloads, integrations));
-        stats.dispatchFlush(queueSize);
-      } catch (IOException e) {
-        logger.print(e, "Unable to flush messages. Requeuing %s events.", queueSize);
-        for (int i = 0; i < payloads.size(); i++) {
-          performEnqueue(payloads.get(i));
+        segmentHTTPApi.upload(new SegmentHTTPApi.StreamWriter() {
+          @Override public void write(OutputStream outputStream) throws IOException {
+            final BatchPayloadStreamWriter writer =
+                new BatchPayloadStreamWriter(outputStream).beginObject()
+                    .integrations(integrations)
+                    .beginBatchArray();
+
+            payloadQueueFile.forEach(new QueueFile.ElementVisitor() {
+              int count;
+
+              @Override public boolean read(InputStream in, int length) throws IOException {
+                byte[] data = new byte[length];
+                in.read(data, 0, length);
+                writer.emitBatchItem(new String(data, UTF_8));
+                return ++count < batchSize;
+              }
+            });
+            writer.endBatchArray().endObject().close();
+          }
+        });
+        for (int i = 0; i < batchSize; i++) {
+          try {
+            payloadQueueFile.remove();
+          } catch (IOException e) {
+            panic("Unable to remove item from queue. %s" + Log.getStackTraceString(e));
+          }
         }
+        stats.dispatchFlush(batchSize);
+      } catch (IOException e) {
+        logger.print(e, "Unable to flush messages.", batchSize);
         error = true;
       }
     }
 
     if (!error && payloadQueueFile.size() > 0) {
+      // There was no error, and there are remaining items in the queue. Flush remaining items
       performFlush();
     } else {
+      // There was an error, or the queue is empty. Reschedule flush
       dispatchFlush(flushInterval);
     }
   }
@@ -163,26 +176,73 @@ class Segment {
     quitThread(segmentThread);
   }
 
-  static class BatchPayload extends JsonMap {
-    /**
-     * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can be
-     * used to correct the original timestamp in situations where the local clock cannot be
-     * trusted, for example in our mobile libraries. The sentAt and receivedAt timestamps will be
-     * assumed to have occurred at the same time, and therefore the difference is the local clock
-     * skew.
-     */
-    private static final String SENT_AT_KEY = "sentAt";
+  /**
+   * A wrapper class that helps in emitting a JSON formatted batch payload to the underlying
+   * writer.
+   */
+  static class BatchPayloadStreamWriter {
+    private final JsonWriter jsonWriter;
+    private final BufferedWriter bufferedWriter;
+    private boolean needsComma;
 
-    /**
-     * A dictionary of integration names that the message should be proxied to. 'All' is a special
-     * name that applies when no key for a specific integration is found, and is case-insensitive.
-     */
-    private static final String INTEGRATIONS_KEY = "integrations";
+    BatchPayloadStreamWriter(OutputStream stream) {
+      bufferedWriter = new BufferedWriter(new OutputStreamWriter(stream));
+      jsonWriter = new JsonWriter(bufferedWriter);
+    }
 
-    BatchPayload(List<BasePayload> batch, Map<String, Boolean> integrations) {
-      put("batch", batch);
-      put(INTEGRATIONS_KEY, integrations);
-      put(SENT_AT_KEY, toISO8601Date(new Date()));
+    BatchPayloadStreamWriter beginObject() throws IOException {
+      jsonWriter.beginObject();
+      return this;
+    }
+
+    BatchPayloadStreamWriter integrations(Map<String, Boolean> integrations) throws IOException {
+      /**
+       * A dictionary of integration names that the message should be proxied to. 'All' is a special
+       * name that applies when no key for a specific integration is found, and is case-insensitive.
+       */
+      jsonWriter.name("integrations").beginObject();
+      for (Map.Entry<String, Boolean> entry : integrations.entrySet()) {
+        jsonWriter.name(entry.getKey()).value(entry.getValue());
+      }
+      jsonWriter.endObject();
+      return this;
+    }
+
+    BatchPayloadStreamWriter beginBatchArray() throws IOException {
+      jsonWriter.name("batch").beginArray();
+      needsComma = false;
+      return this;
+    }
+
+    BatchPayloadStreamWriter emitBatchItem(String item) throws IOException {
+      if (needsComma) {
+        bufferedWriter.write(',');
+      } else {
+        needsComma = true;
+      }
+      bufferedWriter.write(item);
+      return this;
+    }
+
+    BatchPayloadStreamWriter endBatchArray() throws IOException {
+      jsonWriter.endArray();
+      return this;
+    }
+
+    BatchPayloadStreamWriter endObject() throws IOException {
+      /**
+       * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can be
+       * used to correct the original timestamp in situations where the local clock cannot be
+       * trusted, for example in our mobile libraries. The sentAt and receivedAt timestamps will be
+       * assumed to have occurred at the same time, and therefore the difference is the local clock
+       * skew.
+       */
+      jsonWriter.name("sentAt").value(toISO8601Date(new Date())).endObject();
+      return this;
+    }
+
+    void close() throws IOException {
+      jsonWriter.close();
     }
   }
 
