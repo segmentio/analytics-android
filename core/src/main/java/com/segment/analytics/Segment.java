@@ -65,7 +65,6 @@ class Segment {
     } catch (IOException e) {
       throw new RuntimeException("Could not create disk queue " + filePrefix + " in " + parent, e);
     }
-    flushQueueSize = Math.min(flushQueueSize, MAX_FLUSH_BATCH_SIZE);
     return new Segment(context, flushQueueSize, flushInterval, segmentHTTPApi, payloadQueueFile,
         integrations, stats, logger);
   }
