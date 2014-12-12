@@ -35,8 +35,9 @@ class Segment {
   private static final Charset UTF_8 = Charset.forName("UTF-8");
   private static final String SEGMENT_THREAD_NAME = Utils.THREAD_PREFIX + "Segment";
   private static final String PAYLOAD_QUEUE_FILE_SUFFIX = "-payload-v1";
-  private static final int MAX_FLUSH_BATCH_SIZE = 50;
-  private static final int MAX_QUEUE_SIZE = 200;
+  // we can probably relax/adjust these limits after getting more feedback
+  private static final int MAX_FLUSH_BATCH_SIZE = 50; // only flush 50 payloads in a single request
+  private static final int MAX_QUEUE_SIZE = 1000; // reject any payloads if queue grows to over this
 
   final Context context;
   final QueueFile payloadQueueFile;

@@ -39,7 +39,6 @@ import javax.net.ssl.HttpsURLConnection;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 class SegmentHTTPApi {
-
   final String writeKey;
   final HttpURLConnectionFactory urlConnectionFactory;
 
