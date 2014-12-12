@@ -5,18 +5,16 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
-import com.squareup.tape.FileException;
-import com.squareup.tape.FileObjectQueue;
-import com.squareup.tape.InMemoryObjectQueue;
-import com.squareup.tape.ObjectQueue;
+import android.util.JsonWriter;
+import android.util.Log;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
@@ -34,11 +32,15 @@ import static com.segment.analytics.Utils.toISO8601Date;
  * @since 2.3
  */
 class Segment {
+  private static final Charset UTF_8 = Charset.forName("UTF-8");
   private static final String SEGMENT_THREAD_NAME = Utils.THREAD_PREFIX + "Segment";
-  private static final String TASK_QUEUE_FILE_NAME = "payload-task-queue-";
+  private static final String PAYLOAD_QUEUE_FILE_SUFFIX = "-payload-v1";
+  // we can probably relax/adjust these limits after getting more feedback
+  private static final int MAX_FLUSH_BATCH_SIZE = 50; // only flush 50 payloads in a single request
+  private static final int MAX_QUEUE_SIZE = 1000; // reject any payloads if queue grows to over this
 
   final Context context;
-  final ObjectQueue<BasePayload> queue;
+  final QueueFile payloadQueueFile;
   final SegmentHTTPApi segmentHTTPApi;
   final int flushQueueSize;
   final int flushInterval;
@@ -48,31 +50,31 @@ class Segment {
   final Logger logger;
   final Map<String, Boolean> integrations;
 
-  static synchronized Segment create(Context context, int queueSize, int flushInterval,
+  static synchronized Segment create(Context context, int flushQueueSize, int flushInterval,
       SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
       Logger logger) {
     File parent = context.getFilesDir();
-    ObjectQueue<BasePayload> queue;
+    String filePrefix = tag.replaceAll("[^A-Za-z0-9]", ""); // sanitize input
+    QueueFile payloadQueueFile;
     try {
-      if (!parent.exists()) parent.mkdirs();
-      File queueFile = new File(parent, TASK_QUEUE_FILE_NAME + tag);
-      queue = new FileObjectQueue<BasePayload>(queueFile, new PayloadConverter());
+      if (parent.exists() || parent.mkdirs() || parent.isDirectory()) {
+        payloadQueueFile = new QueueFile(new File(parent, filePrefix + PAYLOAD_QUEUE_FILE_SUFFIX));
+      } else {
+        throw new IOException();
+      }
     } catch (IOException e) {
-      logger.print(e, "Unable to initialize disk queue for tag %s in directory %s,", tag,
-          parent.getAbsolutePath());
-      queue = new InMemoryObjectQueue<BasePayload>();
+      throw new RuntimeException("Could not create disk queue " + filePrefix + " in " + parent, e);
     }
-    return new Segment(context, queueSize, flushInterval, segmentHTTPApi, queue, integrations,
-        stats, logger);
+    return new Segment(context, flushQueueSize, flushInterval, segmentHTTPApi, payloadQueueFile,
+        integrations, stats, logger);
   }
 
   Segment(Context context, int flushQueueSize, int flushInterval, SegmentHTTPApi segmentHTTPApi,
-      ObjectQueue<BasePayload> queue, Map<String, Boolean> integrations, Stats stats,
-      Logger logger) {
+      QueueFile payloadQueueFile, Map<String, Boolean> integrations, Stats stats, Logger logger) {
     this.context = context;
     this.flushQueueSize = flushQueueSize;
     this.segmentHTTPApi = segmentHTTPApi;
-    this.queue = queue;
+    this.payloadQueueFile = payloadQueueFile;
     this.stats = stats;
     this.logger = logger;
     this.integrations = integrations;
@@ -88,15 +90,30 @@ class Segment {
   }
 
   void performEnqueue(BasePayload payload) {
-    logger.debug(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), "queueSize: %s", queue.size());
+    final int queueSize = payloadQueueFile.size();
+    logger.debug(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), "queueSize: %s", queueSize);
+    if (queueSize > MAX_QUEUE_SIZE) {
+      // In normal conditions, we wouldn't have more than flushQueueSize events, which is
+      // MAX_FLUSH_BATCH_SIZE = 50 at most. But if the user has been offline for a while, then
+      // the number of events could start accumulating. Even though QueueFile has a limit of 2GB,
+      // which is more than enough, we shouldn't be using more than a couple of megs here.
+      logger.print(null, "queueSize limit reached. Dropping oldest event.");
+      try {
+        payloadQueueFile.remove();
+      } catch (IOException e) {
+        panic("could not remove payload from queue.");
+      }
+    }
     try {
-      queue.add(payload);
-    } catch (FileException e) {
+      String json = payload.toString();
+      if (isNullOrEmpty(json)) throw new IOException("could not serialize payload " + payload);
+      payloadQueueFile.add(json.getBytes(UTF_8));
+    } catch (IOException e) {
       logger.error(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), e, "payload: %s", payload);
       return;
     }
     // Check if we've reached the maximum queue size
-    if (queue.size() >= flushQueueSize) {
+    if (payloadQueueFile.size() >= flushQueueSize) {
       performFlush();
     }
   }
@@ -107,55 +124,125 @@ class Segment {
   }
 
   void performFlush() {
-    final int queueSize = queue.size();
-    if (queueSize != 0 && isConnected(context)) {
-      final List<BasePayload> payloads = new ArrayList<BasePayload>(queueSize);
-      while (queue.size() > 0) {
-        try {
-          payloads.add(queue.peek());
-        } catch (FileException e) {
-          logger.print(e, "Could not read payload. Skipping.");
-        } finally {
-          queue.remove();
-        }
-      }
+    final int batchSize = Math.min(payloadQueueFile.size(), MAX_FLUSH_BATCH_SIZE);
+    boolean error = false;
+
+    if (batchSize != 0 && isConnected(context)) {
       try {
-        segmentHTTPApi.upload(new BatchPayload(payloads, integrations));
-        stats.dispatchFlush(queueSize);
-      } catch (IOException e) {
-        logger.print(e, "Unable to flush messages. Requeuing %s events.", queueSize);
-        for (int i = 0; i < payloads.size(); i++) {
-          dispatchEnqueue(payloads.get(i));
+        segmentHTTPApi.upload(new SegmentHTTPApi.StreamWriter() {
+          @Override public void write(OutputStream outputStream) throws IOException {
+            final BatchPayloadStreamWriter writer =
+                new BatchPayloadStreamWriter(outputStream).beginObject()
+                    .integrations(integrations)
+                    .beginBatchArray();
+
+            payloadQueueFile.forEach(new QueueFile.ElementVisitor() {
+              int count;
+
+              @Override public boolean read(InputStream in, int length) throws IOException {
+                byte[] data = new byte[length];
+                in.read(data, 0, length);
+                writer.emitBatchItem(new String(data, UTF_8));
+                return ++count < batchSize;
+              }
+            });
+            writer.endBatchArray().endObject().close();
+          }
+        });
+        for (int i = 0; i < batchSize; i++) {
+          try {
+            payloadQueueFile.remove();
+          } catch (IOException e) {
+            panic("Unable to remove item from queue. %s" + Log.getStackTraceString(e));
+          }
         }
+        stats.dispatchFlush(batchSize);
+      } catch (IOException e) {
+        logger.print(e, "Unable to flush messages.", batchSize);
+        error = true;
       }
     }
-    dispatchFlush(flushInterval);
+
+    if (!error && payloadQueueFile.size() > 0) {
+      // There was no error, and there are remaining items in the queue. Flush remaining items
+      performFlush();
+    } else {
+      // There was an error, or the queue is empty. Reschedule flush
+      dispatchFlush(flushInterval);
+    }
   }
 
   void shutdown() {
     quitThread(segmentThread);
   }
 
-  static class BatchPayload extends JsonMap {
-    /**
-     * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can be
-     * used to correct the original timestamp in situations where the local clock cannot be
-     * trusted, for example in our mobile libraries. The sentAt and receivedAt timestamps will be
-     * assumed to have occurred at the same time, and therefore the difference is the local clock
-     * skew.
-     */
-    private static final String SENT_AT_KEY = "sentAt";
+  /**
+   * A wrapper class that helps in emitting a JSON formatted batch payload to the underlying
+   * writer.
+   */
+  static class BatchPayloadStreamWriter {
+    private final JsonWriter jsonWriter;
+    private final BufferedWriter bufferedWriter;
+    private boolean needsComma;
 
-    /**
-     * A dictionary of integration names that the message should be proxied to. 'All' is a special
-     * name that applies when no key for a specific integration is found, and is case-insensitive.
-     */
-    private static final String INTEGRATIONS_KEY = "integrations";
+    BatchPayloadStreamWriter(OutputStream stream) {
+      bufferedWriter = new BufferedWriter(new OutputStreamWriter(stream));
+      jsonWriter = new JsonWriter(bufferedWriter);
+    }
 
-    BatchPayload(List<BasePayload> batch, Map<String, Boolean> integrations) {
-      put("batch", batch);
-      put(INTEGRATIONS_KEY, integrations);
-      put(SENT_AT_KEY, toISO8601Date(new Date()));
+    BatchPayloadStreamWriter beginObject() throws IOException {
+      jsonWriter.beginObject();
+      return this;
+    }
+
+    BatchPayloadStreamWriter integrations(Map<String, Boolean> integrations) throws IOException {
+      /**
+       * A dictionary of integration names that the message should be proxied to. 'All' is a special
+       * name that applies when no key for a specific integration is found, and is case-insensitive.
+       */
+      jsonWriter.name("integrations").beginObject();
+      for (Map.Entry<String, Boolean> entry : integrations.entrySet()) {
+        jsonWriter.name(entry.getKey()).value(entry.getValue());
+      }
+      jsonWriter.endObject();
+      return this;
+    }
+
+    BatchPayloadStreamWriter beginBatchArray() throws IOException {
+      jsonWriter.name("batch").beginArray();
+      needsComma = false;
+      return this;
+    }
+
+    BatchPayloadStreamWriter emitBatchItem(String item) throws IOException {
+      if (needsComma) {
+        bufferedWriter.write(',');
+      } else {
+        needsComma = true;
+      }
+      bufferedWriter.write(item);
+      return this;
+    }
+
+    BatchPayloadStreamWriter endBatchArray() throws IOException {
+      jsonWriter.endArray();
+      return this;
+    }
+
+    BatchPayloadStreamWriter endObject() throws IOException {
+      /**
+       * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can be
+       * used to correct the original timestamp in situations where the local clock cannot be
+       * trusted, for example in our mobile libraries. The sentAt and receivedAt timestamps will be
+       * assumed to have occurred at the same time, and therefore the difference is the local clock
+       * skew.
+       */
+      jsonWriter.name("sentAt").value(toISO8601Date(new Date())).endObject();
+      return this;
+    }
+
+    void close() throws IOException {
+      jsonWriter.close();
     }
   }
 
@@ -181,28 +268,6 @@ class Segment {
         default:
           panic("Unknown dispatcher message." + msg.what);
       }
-    }
-  }
-
-  static class PayloadConverter implements FileObjectQueue.Converter<BasePayload> {
-    static final Charset UTF_8 = Charset.forName("UTF-8");
-
-    @Override public BasePayload from(byte[] bytes) throws IOException {
-      String json = new String(bytes, UTF_8);
-      if (isNullOrEmpty(json)) {
-        throw new IOException("Cannot deserialize payload from empty byte array.");
-      }
-      return new BasePayload(json);
-    }
-
-    @Override public void toStream(BasePayload payload, OutputStream bytes) throws IOException {
-      String json = payload.toString();
-      if (isNullOrEmpty(json)) {
-        throw new IOException("Cannot serialize payload : " + payload);
-      }
-      OutputStreamWriter outputStreamWriter = new OutputStreamWriter(bytes, UTF_8);
-      outputStreamWriter.write(json);
-      outputStreamWriter.close();
     }
   }
 }

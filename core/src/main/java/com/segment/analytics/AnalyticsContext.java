@@ -122,6 +122,27 @@ public class AnalyticsContext extends JsonMap {
   private static final String USER_AGENT_KEY = "userAgent";
   private static final String TIMEZONE_KEY = "timezone";
 
+  private static String getDensityString(DisplayMetrics displayMetrics) {
+    switch (displayMetrics.densityDpi) {
+      case DisplayMetrics.DENSITY_LOW:
+        return "ldpi";
+      case DisplayMetrics.DENSITY_MEDIUM:
+        return "mdpi";
+      case DisplayMetrics.DENSITY_HIGH:
+        return "hdpi";
+      case DisplayMetrics.DENSITY_XHIGH:
+        return "xhdpi";
+      case DisplayMetrics.DENSITY_XXHIGH:
+        return "xxhdpi";
+      case DisplayMetrics.DENSITY_XXXHIGH:
+        return "xxxhdpi";
+      case DisplayMetrics.DENSITY_TV:
+        return "tvdpi";
+      default:
+        return "unknown";
+    }
+  }
+
   AnalyticsContext(Context context, Traits traits) {
     if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
       // this needs to be done each time since the settings may have been updated
@@ -142,27 +163,6 @@ public class AnalyticsContext extends JsonMap {
   // For deserialization
   AnalyticsContext(Map<String, Object> delegate) {
     super(delegate);
-  }
-
-  private static String getDensityString(DisplayMetrics displayMetrics) {
-    switch (displayMetrics.densityDpi) {
-      case DisplayMetrics.DENSITY_LOW:
-        return "ldpi";
-      case DisplayMetrics.DENSITY_MEDIUM:
-        return "mdpi";
-      case DisplayMetrics.DENSITY_HIGH:
-        return "hdpi";
-      case DisplayMetrics.DENSITY_XHIGH:
-        return "xhdpi";
-      case DisplayMetrics.DENSITY_XXHIGH:
-        return "xxhdpi";
-      case DisplayMetrics.DENSITY_XXXHIGH:
-        return "xxxhdpi";
-      case DisplayMetrics.DENSITY_TV:
-        return "tvdpi";
-      default:
-        return "unknown";
-    }
   }
 
   void putApp(Context context) {

@@ -24,8 +24,8 @@
 
 package com.segment.analytics;
 
-import java.io.IOException;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.UUID;
 
 import static com.segment.analytics.Options.ALL_INTEGRATIONS_KEY;
@@ -37,7 +37,7 @@ import static com.segment.analytics.Utils.toISO8601Date;
  */
 // This ignores projectId, receivedAt and version that are set by the server.
 // sentAt is set on SegmentHTTPApi#BatchPayload
-class BasePayload extends JsonMap implements IntegrationManager.IntegrationOperation {
+abstract class BasePayload extends JsonMap implements IntegrationManager.IntegrationOperation {
   /** The type of message. */
   private static final String TYPE_KEY = "type";
   /**
@@ -89,11 +89,7 @@ class BasePayload extends JsonMap implements IntegrationManager.IntegrationOpera
     put(USER_ID_KEY, userId);
     put(TIMESTAMP_KEY, options.timestamp() == null ? toISO8601Date(new Date())
         : toISO8601Date(options.timestamp()));
-    put(INTEGRATIONS_KEY, options.integrations());
-  }
-
-  BasePayload(String json) throws IOException {
-    super(json);
+    put(INTEGRATIONS_KEY, new LinkedHashMap<String, Boolean>(options.integrations())); // copy
   }
 
   JsonMap integrations() {
@@ -115,11 +111,6 @@ class BasePayload extends JsonMap implements IntegrationManager.IntegrationOpera
   @Override BasePayload putValue(String key, Object value) {
     super.putValue(key, value);
     return this;
-  }
-
-  @Override public void run(AbstractIntegration integration) {
-    // needed for deserialization
-    throw new UnsupportedOperationException("BasePayload cannot directly be run on integrations.");
   }
 
   @Override public String id() {

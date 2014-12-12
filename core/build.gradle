@@ -9,7 +9,6 @@ buildscript {
 }
 
 dependencies {
-  compile rootProject.ext.libraries.tape
   provided rootProject.ext.libraries.supportLib
   provided rootProject.ext.integrations
 }

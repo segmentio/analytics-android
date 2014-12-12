@@ -95,10 +95,6 @@ final class TestUtils {
       + "        {\"id\": \"About\", \"label\": \"About Adobe CVG Viewer...\"}\n"
       + "    ]";
 
-  private TestUtils() {
-    throw new AssertionError("no instances");
-  }
-
   static Application mockApplication() {
     Application application = mock(Application.class);
     when(application.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_GRANTED);
@@ -106,6 +102,10 @@ final class TestUtils {
     File temp = new File(parent, "temp");
     when(application.getFilesDir()).thenReturn(temp);
     return application;
+  }
+
+  private TestUtils() {
+    throw new AssertionError("no instances");
   }
 
   static class TrackPayloadBuilder {
@@ -414,12 +414,12 @@ final class TestUtils {
   static class JSONObjectMatcher extends TypeSafeMatcher<JSONObject> {
     private final JSONObject expected;
 
-    private JSONObjectMatcher(JSONObject expected) {
-      this.expected = expected;
-    }
-
     static JSONObject jsonEq(JSONObject expected) {
       return argThat(new JSONObjectMatcher(expected));
+    }
+
+    private JSONObjectMatcher(JSONObject expected) {
+      this.expected = expected;
     }
 
     @Override public boolean matchesSafely(JSONObject jsonObject) {

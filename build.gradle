@@ -65,7 +65,6 @@ ext.integrations = ext.integrationsMap.values()
 ext.libraries = [
     playWearable   : 'com.google.android.gms:play-services-wearable:6.1.71',
     supportLib     : 'com.android.support:support-v4:21.0.2',
-    supportWearable: 'com.google.android.support:wearable:1.0.0',
-    tape           : 'com.squareup:tape:1.2.3'
+    supportWearable: 'com.google.android.support:wearable:1.0.0'
 ]
 // @formatter:on

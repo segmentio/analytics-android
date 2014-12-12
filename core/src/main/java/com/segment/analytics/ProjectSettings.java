@@ -33,10 +33,6 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
 class ProjectSettings extends JsonMap {
   private static final String TIMESTAMP_KEY = "timestamp";
 
-  private ProjectSettings(Map<String, Object> map) {
-    super(map);
-  }
-
   static ProjectSettings load(StringCache cache) {
     if (isNullOrEmpty(cache.get())) {
       return null;
@@ -52,6 +48,10 @@ class ProjectSettings extends JsonMap {
     JsonMap map = new JsonMap(json);
     map.put(TIMESTAMP_KEY, timestamp);
     return new ProjectSettings(Collections.unmodifiableMap(map));
+  }
+
+  private ProjectSettings(Map<String, Object> map) {
+    super(map);
   }
 
   long timestamp() {

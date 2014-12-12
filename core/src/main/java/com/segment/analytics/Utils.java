@@ -59,10 +59,6 @@ final class Utils {
   static final String THREAD_PREFIX = "SegmentAnalytics-";
   static final DateFormat ISO_8601_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
-  private Utils() {
-    throw new AssertionError("No instances");
-  }
-
   /** Returns the date as a string formatted with {@link #ISO_8601_DATE_FORMAT}. */
   static String toISO8601Date(Date date) {
     return ISO_8601_DATE_FORMAT.format(date);
@@ -237,6 +233,10 @@ final class Utils {
 
   static <T> Map<String, T> createMap() {
     return new NullableConcurrentHashMap<String, T>();
+  }
+
+  private Utils() {
+    throw new AssertionError("No instances");
   }
 
   /** A {@link ConcurrentHashMap} that rejects null keys and values instead of failing. */

@@ -24,7 +24,6 @@
 
 package com.segment.analytics;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
@@ -35,7 +34,12 @@ import static com.segment.analytics.Utils.createMap;
  * timestamp and disabling integrations on demand.
  */
 public class Options {
-  public static final String ALL_INTEGRATIONS_KEY = "all";
+  /**
+   * A special key , whose value which is respected for all integrations that don't have an
+   * explicit value set for them, a "default" value. See the documentation for {@link
+   * #setIntegration(String, boolean)} how to use this key.
+   */
+  public static final String ALL_INTEGRATIONS_KEY = "All";
   private final Map<String, Boolean> integrations; // passed in by the user
   private Date timestamp;
 
@@ -47,13 +51,15 @@ public class Options {
   /**
    * Sets whether this call will be sent to the target integration.
    * <p>
-   * By default, all integrations are sent a payload. You can disable specific payloads. For
-   * instance, <code>options.setIntegration("Google Analytics", false).setIntegration("Countly",
-   * false)</code> will send the event to all integrations except Google Analytic and Countly. If
-   * you want to enable only specific integrations, first override the defaults and then enable
+   * By default, all integrations are sent a payload, and the value for the {@link
+   * #ALL_INTEGRATIONS_KEY} is {@code true}. You can disable specific payloads. For instance,
+   * <code>options.setIntegration("Google Analytics", false).setIntegration("Countly",
+   * false)</code> will send the event to ALL integrations except Google Analytic and Countly.
+   * <p>
+   * If you want to enable only specific integrations, first override the defaults and then enable
    * specific integrations. For example, <code>options.setIntegration(Options.ALL_INTEGRATIONS_KEY,
    * false).setIntegration("Countly", true).setIntegration("Google Analytics", true)</code> will
-   * only send events to Countly and Google Analytics.
+   * only send events to ONLY Countly and Google Analytics.
    *
    * @param integrationKey The integration key
    * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
@@ -65,7 +71,7 @@ public class Options {
   }
 
   Map<String, Boolean> integrations() {
-    return Collections.unmodifiableMap(integrations);
+    return integrations;
   }
 
   /**

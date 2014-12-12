@@ -27,7 +27,6 @@ package com.segment.analytics;
 import android.os.Build;
 import android.util.Base64;
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,16 +36,19 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import javax.net.ssl.HttpsURLConnection;
 
-import static com.segment.analytics.Segment.BatchPayload;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 class SegmentHTTPApi {
-  static final String API_URL = "https://api.segment.io/";
-
-  private final String writeKey;
+  final String writeKey;
+  final HttpURLConnectionFactory urlConnectionFactory;
 
   SegmentHTTPApi(String writeKey) {
+    this(writeKey, HttpURLConnectionFactory.DEFAULT);
+  }
+
+  SegmentHTTPApi(String writeKey, HttpURLConnectionFactory urlConnectionFactory) {
     this.writeKey = writeKey;
+    this.urlConnectionFactory = urlConnectionFactory;
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
       // bug in pre-froyo, http://android-developers.blogspot.com/2011/09/androids-http-clients.html
@@ -54,26 +56,18 @@ class SegmentHTTPApi {
     }
   }
 
-  private static URL createUrl(String endpoint) {
-    String url = API_URL + endpoint;
-    try {
-      return new URL(url);
-    } catch (MalformedURLException e) {
-      throw new IllegalArgumentException("Could not form url for " + url);
-    }
-  }
-
-  private static String readFully(InputStream in) throws IOException {
-    BufferedReader r = new BufferedReader(new InputStreamReader(in));
+  /** Consume the InputStream and read it into a string. */
+  private String readFully(InputStream in) throws IOException {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(in));
     StringBuilder response = new StringBuilder();
-    for (String line; (line = r.readLine()) != null; ) {
+    for (String line; (line = reader.readLine()) != null; ) {
       response.append(line);
     }
     return response.toString();
   }
 
-  void upload(BatchPayload batchPayload) throws IOException {
-    HttpsURLConnection urlConnection = (HttpsURLConnection) createUrl("v1/import").openConnection();
+  void upload(final StreamWriter streamWriter) throws IOException {
+    HttpsURLConnection urlConnection = urlConnectionFactory.open("v1/import");
 
     urlConnection.setDoOutput(true);
     urlConnection.setDoInput(true);
@@ -83,9 +77,14 @@ class SegmentHTTPApi {
         "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP));
     urlConnection.setChunkedStreamingMode(0);
 
-    OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-    out.write(batchPayload.toString().getBytes());
-    out.close();
+    OutputStream outputStream = urlConnection.getOutputStream();
+    try {
+      streamWriter.write(outputStream);
+    } catch (IOException e) {
+      throw new IOException("Could not write payloads to OutputStream.", e);
+    } finally {
+      outputStream.close();
+    }
 
     int responseCode = urlConnection.getResponseCode();
     if (responseCode != HTTP_OK) {
@@ -103,7 +102,7 @@ class SegmentHTTPApi {
 
   ProjectSettings fetchSettings() throws IOException {
     HttpsURLConnection urlConnection =
-        (HttpsURLConnection) createUrl("project/" + writeKey + "/settings").openConnection();
+        urlConnectionFactory.open("project/" + writeKey + "/settings");
 
     urlConnection.setDoInput(true);
     urlConnection.setRequestMethod("GET");
@@ -127,5 +126,34 @@ class SegmentHTTPApi {
     in.close();
     urlConnection.disconnect();
     return ProjectSettings.create(json, System.currentTimeMillis());
+  }
+
+  // An abstraction to return a URLConnection for a given endpoint
+  interface HttpURLConnectionFactory {
+
+    // this could probably just be HTTPUrlConnection
+    HttpsURLConnection open(String endpoint) throws IOException;
+
+    HttpURLConnectionFactory DEFAULT = new HttpURLConnectionFactory() {
+      static final String API_URL = "https://api.segment.io/";
+
+      @Override public HttpsURLConnection open(String endpoint) throws IOException {
+        return (HttpsURLConnection) createUrl(endpoint).openConnection();
+      }
+
+      private URL createUrl(String endpoint) {
+        String url = API_URL + endpoint;
+        try {
+          return new URL(url);
+        } catch (MalformedURLException e) {
+          throw new IllegalArgumentException("Could not form url for " + url);
+        }
+      }
+    };
+  }
+
+  // An entity that writes to an output stream
+  interface StreamWriter {
+    void write(OutputStream outputStream) throws IOException;
   }
 }
