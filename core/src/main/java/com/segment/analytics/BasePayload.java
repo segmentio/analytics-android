@@ -25,6 +25,7 @@
 package com.segment.analytics;
 
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.UUID;
 
 import static com.segment.analytics.Options.ALL_INTEGRATIONS_KEY;
@@ -88,7 +89,7 @@ abstract class BasePayload extends JsonMap implements IntegrationManager.Integra
     put(USER_ID_KEY, userId);
     put(TIMESTAMP_KEY, options.timestamp() == null ? toISO8601Date(new Date())
         : toISO8601Date(options.timestamp()));
-    put(INTEGRATIONS_KEY, options.integrations());
+    put(INTEGRATIONS_KEY, new LinkedHashMap<String, Boolean>(options.integrations())); // copy
   }
 
   JsonMap integrations() {
