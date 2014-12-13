@@ -42,8 +42,6 @@ public class SegmentRobolectricTest {
     initMocks(this);
     context = mockApplication();
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
-    when(payload.toString()).thenReturn(
-        "{\n" + "\"messageId\":\"ID\",\n" + "\"type\":\"TYPE\"\n" + "}");
   }
 
   Segment createSegmentIntegration(int maxQueueSize) {

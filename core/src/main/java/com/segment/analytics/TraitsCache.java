@@ -18,7 +18,7 @@ class TraitsCache {
       traits = new Traits(context);
     } else {
       try {
-        traits = new Traits(stringCache.get());
+        traits = new Traits(JsonUtils.jsonToMap(stringCache.get()));
       } catch (IOException e) {
         traits = new Traits(context);
       }
@@ -30,7 +30,11 @@ class TraitsCache {
   }
 
   void save() {
-    stringCache.set(traits.toString());
+    try {
+      stringCache.set(JsonUtils.mapToJson(traits));
+    } catch (IOException e) {
+      // todo: handle error?
+    }
   }
 
   void delete(Context context) {

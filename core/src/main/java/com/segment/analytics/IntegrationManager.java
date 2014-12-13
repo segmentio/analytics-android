@@ -40,7 +40,6 @@ import static com.segment.analytics.Utils.quitThread;
  * subsequent launches will be use the cached settings on disk.
  */
 class IntegrationManager {
-
   private static final String PROJECT_SETTINGS_CACHE_KEY = "project-settings";
   private static final String MANAGER_THREAD_NAME = THREAD_PREFIX + "IntegrationManager";
   private static final long SETTINGS_REFRESH_INTERVAL = 1000 * 60 * 60 * 24; // 24 hours
@@ -129,8 +128,7 @@ class IntegrationManager {
     try {
       if (isConnected(context)) {
         ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
-        String projectSettingsJson = projectSettings.toString();
-        projectSettingsCache.set(projectSettingsJson);
+        projectSettingsCache.set(JsonUtils.mapToJson(projectSettings));
         if (!initialized) {
           // It's ok if integrations are being initialized right now (and so initialized will be
           // false). Since we just dispatch the request, the actual perform method will be able to

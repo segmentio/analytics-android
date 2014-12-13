@@ -95,12 +95,12 @@ public class JsonMapRobolectricTest {
   @Test public void enumDeserialization() throws Exception {
     jsonMap.put("value1", MyEnum.VALUE1);
     jsonMap.put("value2", MyEnum.VALUE2);
-    String json = jsonMap.toString();
+    String json = JsonUtils.mapToJson(jsonMap);
     // todo: the ordering may be different on different versions of Java
     assertThat(json).isIn("{\"value2\":\"VALUE2\",\"value1\":\"VALUE1\"}",
         "{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}");
 
-    jsonMap = new JsonMap("{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}");
+    jsonMap = new JsonMap(JsonUtils.jsonToMap("{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}"));
     assertThat(jsonMap) //
         .contains(MapEntry.entry("value1", "VALUE1")) //
         .contains(MapEntry.entry("value2", "VALUE2"));
@@ -119,9 +119,9 @@ public class JsonMapRobolectricTest {
     jsonMap.put("nested", nested);
 
     assertThat(jsonMap).hasSize(1).contains(MapEntry.entry("nested", nested));
-    assertThat(jsonMap.toString()).isEqualTo("{\"nested\":{\"value\":\"box\"}}");
+    assertThat(JsonUtils.mapToJson(jsonMap)).isEqualTo("{\"nested\":{\"value\":\"box\"}}");
 
-    jsonMap = new JsonMap("{\"nested\":{\"value\":\"box\"}}");
+    jsonMap = new JsonMap(JsonUtils.jsonToMap("{\"nested\":{\"value\":\"box\"}}"));
     assertThat(jsonMap).hasSize(1).contains(MapEntry.entry("nested", nested));
   }
 
@@ -151,7 +151,7 @@ public class JsonMapRobolectricTest {
 
   @Test public void projectSettings() throws Exception {
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection") JsonMap jsonMap =
-        new JsonMap(PROJECT_SETTINGS_JSON_SAMPLE);
+        new JsonMap(JsonUtils.jsonToMap(PROJECT_SETTINGS_JSON_SAMPLE));
 
     assertThat(jsonMap.getJsonMap("Amplitude")).isNotNull()
         .hasSize(4)
@@ -173,7 +173,7 @@ public class JsonMapRobolectricTest {
 
   static class Settings extends JsonMap {
     Settings(String json) throws IOException {
-      super(json);
+      super(JsonUtils.jsonToMap(json));
     }
 
     AmplitudeSettings getAmplitudeSettings() {
@@ -193,7 +193,7 @@ public class JsonMapRobolectricTest {
 
   static class AmplitudeSettings extends JsonMap {
     AmplitudeSettings(String json) throws IOException {
-      super(json);
+      super(JsonUtils.jsonToMap(json));
     }
   }
 }

@@ -1,55 +1,41 @@
 package com.segment.analytics;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import org.json.JSONObject;
 
-import static com.segment.analytics.Utils.NullableConcurrentHashMap;
-
 /**
- * A {@link Map} wrapper to expose Json functionality. Only the {@link #toString()} method is
- * modified to return a json formatted string. All other methods will be forwarded to a delegate
+ * A {@link Map} wrapper to expose Json functionality. All methods will be forwarded to a delegate
  * map.
  * <p>
  * The purpose of this class is to not limit clients to a custom implementation of a Json type,
- * they
- * can use existing {@link Map} and {@link java.util.List} implementations as they see fit. It adds
- * some utility methods, including methods to coerce numeric types from Strings, and a {@link
+ * they can use existing {@link Map} and {@link java.util.List} implementations as they see fit. It
+ * adds some utility methods, such as methods to coerce numeric types from Strings, and a {@link
  * #putValue(String, Object)} to be able to chain method calls.
  * <p>
  * Although it lets you use custom objects for values, note that type information is lost during
- * serialization. You should use one of the coercion methods if you're expecting a type after
- * serialization.
+ * serialization. You should use one of the coercion methods instead to get objects of a concrete
+ * type.
  */
 class JsonMap implements Map<String, Object> {
-  private final ConcurrentHashMap<String, Object> delegate;
+  private final Map<String, Object> delegate;
 
   JsonMap() {
-    delegate = new NullableConcurrentHashMap<String, Object>();
+    delegate = new LinkedHashMap<String, Object>();
   }
 
   JsonMap(Map<String, Object> map) {
     if (map == null) {
       throw new IllegalArgumentException("Map must not be null.");
     }
-    if (map instanceof NullableConcurrentHashMap) {
-      this.delegate = (NullableConcurrentHashMap) map;
-    } else {
-      this.delegate = new NullableConcurrentHashMap<String, Object>(map);
-    }
-  }
-
-  JsonMap(String json) throws IOException {
-    Map<String, Object> map = JsonUtils.jsonToMap(json);
-    this.delegate = new NullableConcurrentHashMap<String, Object>(map);
+    this.delegate = map;
   }
 
   @Override public void clear() {
@@ -109,11 +95,7 @@ class JsonMap implements Map<String, Object> {
   }
 
   @Override public String toString() {
-    try {
-      return JsonUtils.mapToJson(delegate);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return delegate.toString();
   }
 
   /** Helper method to be able to chain put methods. */

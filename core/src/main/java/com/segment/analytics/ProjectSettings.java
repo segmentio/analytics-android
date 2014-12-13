@@ -25,7 +25,6 @@
 package com.segment.analytics;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Map;
 
 import static com.segment.analytics.Utils.isNullOrEmpty;
@@ -38,16 +37,17 @@ class ProjectSettings extends JsonMap {
       return null;
     }
     try {
-      return new ProjectSettings(new JsonMap(cache.get()));
+      return new ProjectSettings(JsonUtils.jsonToMap(cache.get()));
     } catch (IOException e) {
       return null;
     }
   }
 
   static ProjectSettings create(String json, long timestamp) throws IOException {
-    JsonMap map = new JsonMap(json);
+    Map<String, Object> map = JsonUtils.jsonToMap(json);
     map.put(TIMESTAMP_KEY, timestamp);
-    return new ProjectSettings(Collections.unmodifiableMap(map));
+    // todo: make immutable?
+    return new ProjectSettings(map);
   }
 
   private ProjectSettings(Map<String, Object> map) {
