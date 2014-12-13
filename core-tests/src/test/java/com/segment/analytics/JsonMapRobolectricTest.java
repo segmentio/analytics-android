@@ -82,25 +82,21 @@ public class JsonMapRobolectricTest {
     verify(delegate).put("bar", object);
   }
 
-  @Test public void conversionsAreCached() throws Exception {
+  @Test public void simpleConversions() throws Exception {
     String stringPi = String.valueOf(Math.PI);
 
     jsonMap.put("double_pi", Math.PI);
-    assertThat(jsonMap).contains(MapEntry.entry("double_pi", Math.PI));
     assertThat(jsonMap.getString("double_pi")).isEqualTo(stringPi);
-    assertThat(jsonMap).contains(MapEntry.entry("double_pi", stringPi));
 
     jsonMap.put("string_pi", stringPi);
-    assertThat(jsonMap).contains(MapEntry.entry("string_pi", stringPi));
     assertThat(jsonMap.getDouble("string_pi", 0)).isEqualTo(Math.PI);
-    assertThat(jsonMap).contains(MapEntry.entry("string_pi", Math.PI));
   }
 
   @Test public void enumDeserialization() throws Exception {
     jsonMap.put("value1", MyEnum.VALUE1);
     jsonMap.put("value2", MyEnum.VALUE2);
     String json = jsonMap.toString();
-    // the ordering may be different on different versions of Java
+    // todo: the ordering may be different on different versions of Java
     assertThat(json).isIn("{\"value2\":\"VALUE2\",\"value1\":\"VALUE1\"}",
         "{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}");
 
@@ -110,9 +106,6 @@ public class JsonMapRobolectricTest {
         .contains(MapEntry.entry("value2", "VALUE2"));
     assertThat(jsonMap.getEnum(MyEnum.class, "value1")).isEqualTo(MyEnum.VALUE1);
     assertThat(jsonMap.getEnum(MyEnum.class, "value2")).isEqualTo(MyEnum.VALUE2);
-    assertThat(jsonMap) //
-        .contains(MapEntry.entry("value1", MyEnum.VALUE1))
-        .contains(MapEntry.entry("value2", MyEnum.VALUE2));
   }
 
   @Test public void allowsNullValues() {

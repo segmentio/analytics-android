@@ -129,24 +129,18 @@ class JsonMap implements Map<String, Object> {
   int getInt(String key, int defaultValue) {
     Object value = get(key);
     if (value instanceof Integer) {
-      return (Integer) value;
+      return (int) value;
     }
-    Integer integerValue = null;
     if (value instanceof Number) {
-      integerValue = ((Number) value).intValue();
+      return ((Number) value).intValue();
     } else if (value instanceof String) {
       try {
-        integerValue = Integer.valueOf((String) value);
+        return Integer.valueOf((String) value);
       } catch (NumberFormatException ignored) {
         // ignore
       }
     }
-    if (integerValue == null) {
-      return defaultValue;
-    } else {
-      put(key, integerValue);
-      return integerValue;
-    }
+    return defaultValue;
   }
 
   /**
@@ -156,24 +150,18 @@ class JsonMap implements Map<String, Object> {
   long getLong(String key, long defaultValue) {
     Object value = get(key);
     if (value instanceof Long) {
-      return (Long) value;
+      return (long) value;
     }
-    Long longValue = null;
     if (value instanceof Number) {
-      longValue = ((Number) value).longValue();
+      return ((Number) value).longValue();
     } else if (value instanceof String) {
       try {
-        longValue = Long.valueOf((String) value);
+        return Long.valueOf((String) value);
       } catch (NumberFormatException ignored) {
         // ignore
       }
     }
-    if (longValue == null) {
-      return defaultValue;
-    } else {
-      put(key, longValue);
-      return longValue;
-    }
+    return defaultValue;
   }
 
   /**
@@ -183,24 +171,18 @@ class JsonMap implements Map<String, Object> {
   double getDouble(String key, double defaultValue) {
     Object value = get(key);
     if (value instanceof Double) {
-      return (Double) value;
+      return (double) value;
     }
-    Double doubleValue = null;
     if (value instanceof Number) {
-      doubleValue = ((Number) value).doubleValue();
+      return ((Number) value).doubleValue();
     } else if (value instanceof String) {
       try {
-        doubleValue = Double.valueOf((String) value);
+        return Double.valueOf((String) value);
       } catch (NumberFormatException ignored) {
         // ignore
       }
     }
-    if (doubleValue == null) {
-      return defaultValue;
-    } else {
-      put(key, doubleValue);
-      return doubleValue;
-    }
+    return defaultValue;
   }
 
   /**
@@ -214,9 +196,7 @@ class JsonMap implements Map<String, Object> {
     }
     if (value != null && value instanceof String) {
       if (((String) value).length() == 1) {
-        Character charValue = ((String) value).charAt(0);
-        put(key, charValue);
-        return charValue;
+        return ((String) value).charAt(0);
       }
     }
     return defaultValue;
@@ -234,9 +214,7 @@ class JsonMap implements Map<String, Object> {
     if (value instanceof String) {
       return (String) value;
     } else if (value != null) {
-      String stringValue = String.valueOf(value);
-      put(key, stringValue);
-      return stringValue;
+      return String.valueOf(value);
     }
     return null;
   }
@@ -248,11 +226,9 @@ class JsonMap implements Map<String, Object> {
   boolean getBoolean(String key, boolean defaultValue) {
     Object value = get(key);
     if (value instanceof Boolean) {
-      return (Boolean) value;
+      return (boolean) value;
     } else if (value instanceof String) {
-      String stringValue = (String) value;
-      boolean bool = Boolean.valueOf(stringValue);
-      put(key, bool);
+      return Boolean.valueOf((String) value);
     }
     return defaultValue;
   }
@@ -271,9 +247,7 @@ class JsonMap implements Map<String, Object> {
       return (T) value;
     } else if (value instanceof String) {
       String stringValue = (String) value;
-      T enumValue = Enum.valueOf(enumType, stringValue);
-      put(key, enumValue);
-      return enumValue;
+      return Enum.valueOf(enumType, stringValue);
     }
     return null;
   }
