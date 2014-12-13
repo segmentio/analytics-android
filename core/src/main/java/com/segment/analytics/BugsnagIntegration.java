@@ -18,7 +18,7 @@ import java.util.Map;
 class BugsnagIntegration extends AbstractIntegration<Client> {
   static final String BUGSNAG_KEY = "Bugsnag";
 
-  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
+  @Override void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
       throws IllegalStateException {
     Bugsnag.register(context, settings.getString("apiKey"));
     Bugsnag.setUseSSL(settings.getBoolean("useSSL", true));

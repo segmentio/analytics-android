@@ -22,7 +22,7 @@ import static com.segment.analytics.Utils.isOnClassPath;
 class KahunaIntegration extends AbstractIntegration<Void> {
   static final String KAHUNA_KEY = "Kahuna";
 
-  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
+  @Override void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
       throws IllegalStateException {
     if (!isOnClassPath("android.support.v4.app.Fragment")) {
       throw new IllegalStateException("Kahuna requires the support library to be bundled.");

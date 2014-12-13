@@ -37,7 +37,7 @@ import static com.segment.analytics.Utils.toISO8601Date;
  */
 // This ignores projectId, receivedAt and version that are set by the server.
 // sentAt is set on SegmentHTTPApi#BatchPayload
-abstract class BasePayload extends JsonMap implements IntegrationManager.IntegrationOperation {
+abstract class BasePayload extends ValueMap implements IntegrationManager.IntegrationOperation {
   /** The type of message. */
   private static final String TYPE_KEY = "type";
   /**
@@ -92,8 +92,8 @@ abstract class BasePayload extends JsonMap implements IntegrationManager.Integra
     put(INTEGRATIONS_KEY, new LinkedHashMap<String, Boolean>(options.integrations())); // copy
   }
 
-  JsonMap integrations() {
-    return getJsonMap(INTEGRATIONS_KEY);
+  private ValueMap integrations() {
+    return getValueMap(INTEGRATIONS_KEY);
   }
 
   Type type() {
@@ -105,7 +105,7 @@ abstract class BasePayload extends JsonMap implements IntegrationManager.Integra
   }
 
   AnalyticsContext context() {
-    return getJsonMap(CONTEXT_KEY, AnalyticsContext.class);
+    return getValueMap(CONTEXT_KEY, AnalyticsContext.class);
   }
 
   @Override BasePayload putValue(String key, Object value) {
@@ -119,7 +119,7 @@ abstract class BasePayload extends JsonMap implements IntegrationManager.Integra
 
   boolean isIntegrationEnabledInPayload(AbstractIntegration integration) {
     boolean enabled = true;
-    JsonMap integrations = integrations();
+    ValueMap integrations = integrations();
     String key = integration.key();
     if (integrations.containsKey(key)) {
       enabled = integrations.getBoolean(key, true);

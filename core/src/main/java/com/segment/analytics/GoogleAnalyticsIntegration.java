@@ -36,7 +36,7 @@ class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   GoogleAnalytics googleAnalyticsInstance;
   boolean sendUserId;
 
-  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
+  @Override void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
       throws IllegalStateException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new IllegalStateException("Google Analytics requires the access state permission.");

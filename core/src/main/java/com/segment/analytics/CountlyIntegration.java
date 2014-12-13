@@ -16,7 +16,7 @@ class CountlyIntegration extends AbstractIntegration<Countly> {
   static final String COUNTLY_KEY = "Countly";
   Countly countly;
 
-  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
+  @Override void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
       throws IllegalStateException {
     countly = Countly.sharedInstance();
     countly.init(context, settings.getString("serverUrl"), settings.getString("appKey"));

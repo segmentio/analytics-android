@@ -41,9 +41,9 @@ import static com.segment.analytics.Utils.toISO8601Date;
  * address. And we'll send this on to integrations that need an email, like Mailchimp. For that
  * reason, you should only use special traits for their intended purpose.
  * <p>
- * This is persisted to disk, and will be remembered between sessions.
+ * Traits are persisted to disk, and will be remembered between application and system reboots.
  */
-public class Traits extends JsonMap {
+public class Traits extends ValueMap {
   private static final String ADDRESS_KEY = "address";
   private static final String ADDRESS_CITY_KEY = "city";
   private static final String ADDRESS_COUNTRY_KEY = "country";

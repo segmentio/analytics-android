@@ -116,7 +116,7 @@ public class IntegrationManagerRobolectricTest {
 
     try {
       verify(fooIntegration).initialize(context,
-          new JsonMap(JsonUtils.jsonToMap("{\"trackNamedPages\":true,\"trackAllPages\":false}")),
+          new ValueMap(JsonUtils.jsonToMap("{\"trackNamedPages\":true,\"trackAllPages\":false}")),
           true);
     } catch (IllegalStateException ignored) {
       fail("unexpected exception: ", ignored);

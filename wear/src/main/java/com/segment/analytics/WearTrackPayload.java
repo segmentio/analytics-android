@@ -2,7 +2,7 @@ package com.segment.analytics;
 
 import java.util.Map;
 
-class WearTrackPayload extends JsonMap {
+class WearTrackPayload extends ValueMap {
   private static final String EVENT_KEY = "event";
   private static final String PROPERTIES_KEY = "properties";
 
@@ -17,7 +17,7 @@ class WearTrackPayload extends JsonMap {
   }
 
   Properties getProperties() {
-    return getJsonMap(PROPERTIES_KEY, Properties.class);
+    return getValueMap(PROPERTIES_KEY, Properties.class);
   }
 
   String getEvent() {

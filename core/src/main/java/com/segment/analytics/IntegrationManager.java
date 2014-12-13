@@ -164,7 +164,7 @@ class IntegrationManager {
     while (iterator.hasNext()) {
       String key = iterator.next().getKey();
       if (projectSettings.containsKey(key)) {
-        JsonMap settings = new JsonMap(projectSettings.getJsonMap(key));
+        ValueMap settings = new ValueMap(projectSettings.getValueMap(key));
         AbstractIntegration integration = createIntegrationForKey(key);
         try {
           logger.debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, key, "settings: %s", settings);

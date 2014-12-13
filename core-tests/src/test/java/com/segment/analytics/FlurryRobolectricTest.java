@@ -45,7 +45,7 @@ public class FlurryRobolectricTest extends AbstractIntegrationTest {
 
   @Test @Override public void initialize() throws IllegalStateException {
     integration.initialize(context, //
-        new JsonMap().putValue("apiKey", apiKey)
+        new ValueMap().putValue("apiKey", apiKey)
             .putValue("sessionContinueSeconds", 20)
             .putValue("captureUncaughtExceptions", true)
             .putValue("useHttps", false), true);

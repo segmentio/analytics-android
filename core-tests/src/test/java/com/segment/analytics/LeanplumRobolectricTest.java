@@ -44,7 +44,7 @@ public class LeanplumRobolectricTest extends AbstractIntegrationTest {
 
   @Test @Override public void initialize() {
     integration.initialize(context,
-        new JsonMap().putValue("appId", "foo").putValue("clientKey", "bar"), true);
+        new ValueMap().putValue("appId", "foo").putValue("clientKey", "bar"), true);
     verifyStatic();
     Leanplum.setAppIdForProductionMode("foo", "bar");
     verifyStatic();

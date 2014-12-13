@@ -40,7 +40,7 @@ class IdentifyPayload extends BasePayload {
   }
 
   Traits traits() {
-    return getJsonMap(TRAITS_KEY, Traits.class);
+    return getValueMap(TRAITS_KEY, Traits.class);
   }
 
   @Override public void run(AbstractIntegration integration) {

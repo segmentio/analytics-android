@@ -67,7 +67,7 @@ import static com.segment.analytics.Utils.isOnClassPath;
  * manually, you'll have to update it as well for each app start if you want it to persist between
  * sessions.
  */
-public class AnalyticsContext extends JsonMap {
+public class AnalyticsContext extends ValueMap {
   private static final String APP_KEY = "app";
   private static final String APP_NAME_KEY = "name";
   private static final String APP_VERSION_KEY = "version";
@@ -209,14 +209,14 @@ public class AnalyticsContext extends JsonMap {
   }
 
   void putAdvertisingInfo(String advertisingId, boolean adTrackingEnabled) {
-    JsonMap device = getJsonMap(DEVICE_KEY);
+    ValueMap device = getValueMap(DEVICE_KEY);
     device.put(DEVICE_ADVERTISING_ID_KEY, advertisingId);
     device.put(DEVICE_AD_TRACKING_ENABLED_KEY, adTrackingEnabled);
     put(DEVICE_KEY, device);
   }
 
   public void putDeviceToken(String token) {
-    JsonMap device = getJsonMap(DEVICE_KEY);
+    ValueMap device = getValueMap(DEVICE_KEY);
     device.put(DEVICE_TOKEN_KEY, token);
     put(DEVICE_KEY, device);
   }
@@ -236,7 +236,7 @@ public class AnalyticsContext extends JsonMap {
   }
 
   Location location() {
-    return getJsonMap(LOCATION_KEY, Location.class);
+    return getValueMap(LOCATION_KEY, Location.class);
   }
 
   void putNetwork(Context context) {
@@ -304,7 +304,7 @@ public class AnalyticsContext extends JsonMap {
     return this;
   }
 
-  static class Location extends JsonMap {
+  static class Location extends ValueMap {
     private static final String LOCATION_LATITUDE_KEY = "latitude";
     private static final String LOCATION_LONGITUDE_KEY = "longitude";
     private static final String LOCATION_SPEED_KEY = "speed";

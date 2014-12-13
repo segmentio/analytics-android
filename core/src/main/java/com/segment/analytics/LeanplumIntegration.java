@@ -13,7 +13,7 @@ class LeanplumIntegration extends AbstractIntegration<Void> {
   static final String LEANPLUM_KEY = "Leanplum";
   LeanplumActivityHelper helper;
 
-  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
+  @Override void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
       throws IllegalStateException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new IllegalStateException("Leanplum requires ACCESS_NETWORK_STATE permission");

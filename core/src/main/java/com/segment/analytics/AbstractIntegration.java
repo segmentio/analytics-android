@@ -22,7 +22,7 @@ abstract class AbstractIntegration<T> {
    * and permission in {@link IllegalStateException}. If this method call completes without
    * an error, the integration is assumed to be initialize and ready.
    */
-  abstract void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
+  abstract void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
       throws IllegalStateException;
 
   /**

@@ -29,7 +29,7 @@ import java.util.Map;
 
 import static com.segment.analytics.Utils.isNullOrEmpty;
 
-class ProjectSettings extends JsonMap {
+class ProjectSettings extends ValueMap {
   private static final String TIMESTAMP_KEY = "timestamp";
 
   static ProjectSettings load(StringCache cache) {

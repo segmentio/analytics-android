@@ -12,26 +12,23 @@ import java.util.Set;
 import org.json.JSONObject;
 
 /**
- * A {@link Map} wrapper to expose Json functionality. All methods will be forwarded to a delegate
- * map.
+ * A class that wraps an existing {@link Map} to expose value type functionality.
  * <p>
- * The purpose of this class is to not limit clients to a custom implementation of a Json type,
- * they can use existing {@link Map} and {@link java.util.List} implementations as they see fit. It
- * adds some utility methods, such as methods to coerce numeric types from Strings, and a {@link
- * #putValue(String, Object)} to be able to chain method calls.
+ * All {@link java.util.Map} methods will simply be forwarded to a delegate map. This class is
+ * meant to subclassed and provide methods to access values in keys.
  * <p>
  * Although it lets you use custom objects for values, note that type information is lost during
  * serialization. You should use one of the coercion methods instead to get objects of a concrete
  * type.
  */
-class JsonMap implements Map<String, Object> {
+class ValueMap implements Map<String, Object> {
   private final Map<String, Object> delegate;
 
-  JsonMap() {
+  ValueMap() {
     delegate = new LinkedHashMap<String, Object>();
   }
 
-  JsonMap(Map<String, Object> map) {
+  ValueMap(Map<String, Object> map) {
     if (map == null) {
       throw new IllegalArgumentException("Map must not be null.");
     }
@@ -99,7 +96,7 @@ class JsonMap implements Map<String, Object> {
   }
 
   /** Helper method to be able to chain put methods. */
-  JsonMap putValue(String key, Object value) {
+  ValueMap putValue(String key, Object value) {
     delegate.put(key, value);
     return this;
   }
@@ -235,14 +232,16 @@ class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a JsonMap. Returns null otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a {@link ValueMap}. Returns null
+   * otherwise.
    */
-  JsonMap getJsonMap(Object key) {
+  ValueMap getValueMap(Object key) {
     Object value = get(key);
-    if (value instanceof JsonMap) {
-      return (JsonMap) value;
+    if (value instanceof ValueMap) {
+      return (ValueMap) value;
     } else if (value instanceof Map) {
-      return new JsonMap((Map<String, Object>) value);
+      //noinspection unchecked
+      return new ValueMap((Map<String, Object>) value);
     } else {
       return null;
     }
@@ -250,17 +249,21 @@ class JsonMap implements Map<String, Object> {
 
   /**
    * Returns the value mapped by {@code key} if it exists and if it can be coerced to the given
-   * type. The JsonMap subclass MUST have a map constructor.
+   * type. The expected subclass MUST have a constructor that accepts a {@link Map}.
    */
-  <T extends JsonMap> T getJsonMap(String key, Class<T> clazz) {
+  <T extends ValueMap> T getValueMap(String key, Class<T> clazz) {
     Object value = get(key);
-    T typedValue = castToJsonMap(value, clazz);
+    T typedValue = coerceToValueMap(value, clazz);
     if (typedValue != null) put(key, typedValue);
     return typedValue;
   }
 
-  /** Coerce an object to a JsonMap. */
-  private <T extends JsonMap> T castToJsonMap(Object object, Class<T> clazz) {
+  /**
+   * Coerce an object to a JsonMap. It will first check if the object is already of the expected
+   * type. If not, it checks if the object a {@link Map} type, and feeds it to the constructor by
+   * reflection.
+   */
+  private <T extends ValueMap> T coerceToValueMap(Object object, Class<T> clazz) {
     if (clazz.isInstance(object)) {
       //noinspection unchecked
       return (T) object;
@@ -284,14 +287,14 @@ class JsonMap implements Map<String, Object> {
    * Returns the value mapped by {@code key} if it exists and is a List of {@code T}. Returns null
    * otherwise.
    */
-  <T extends JsonMap> List<T> getJsonList(Object key, Class<T> clazz) {
+  <T extends ValueMap> List<T> getList(Object key, Class<T> clazz) {
     Object value = get(key);
     if (value instanceof List) {
       List list = (List) value;
       try {
         ArrayList<T> real = new ArrayList<T>();
         for (Object item : list) {
-          T typedValue = castToJsonMap(item, clazz);
+          T typedValue = coerceToValueMap(item, clazz);
           if (typedValue != null) {
             real.add(typedValue);
           }
@@ -303,10 +306,12 @@ class JsonMap implements Map<String, Object> {
     return null;
   }
 
+  /** Return a copy of the contents of this map as a {@link JSONObject}. */
   JSONObject toJsonObject() {
     return new JSONObject(delegate);
   }
 
+  /** Return a copy of the contents of this map as a {@code Map<String, String>}. */
   Map<String, String> toStringMap() {
     Map<String, String> map = new HashMap<String, String>();
     for (Map.Entry<String, Object> entry : entrySet()) {

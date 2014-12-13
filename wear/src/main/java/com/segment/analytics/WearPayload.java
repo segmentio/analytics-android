@@ -3,7 +3,7 @@ package com.segment.analytics;
 import java.io.IOException;
 import java.util.Map;
 
-class WearPayload extends JsonMap {
+class WearPayload extends ValueMap {
   /** Type of the payload */
   private static final String TYPE_KEY = "type";
 
@@ -14,7 +14,7 @@ class WearPayload extends JsonMap {
     super(delegate);
   }
 
-  WearPayload(BasePayload.Type type, JsonMap payload) {
+  WearPayload(BasePayload.Type type, ValueMap payload) {
     put(TYPE_KEY, type);
     put(PAYLOAD_KEY, payload);
   }
@@ -23,7 +23,7 @@ class WearPayload extends JsonMap {
     return getEnum(BasePayload.Type.class, TYPE_KEY);
   }
 
-  <T extends JsonMap> T payload(Class<T> clazz) {
-    return getJsonMap(PAYLOAD_KEY, clazz);
+  <T extends ValueMap> T payload(Class<T> clazz) {
+    return getValueMap(PAYLOAD_KEY, clazz);
   }
 }

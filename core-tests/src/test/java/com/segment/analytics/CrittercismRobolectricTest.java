@@ -42,7 +42,7 @@ public class CrittercismRobolectricTest extends AbstractIntegrationTest {
   }
 
   @Test @Override public void initialize() throws IllegalStateException {
-    integration.initialize(context, new JsonMap().putValue("appId", "foo"), true);
+    integration.initialize(context, new ValueMap().putValue("appId", "foo"), true);
     verifyStatic();
     // todo: verify config params
     Crittercism.initialize(eq(context), eq("foo"), any(CrittercismConfig.class));

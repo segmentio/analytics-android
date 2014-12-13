@@ -39,7 +39,7 @@ public class BugsnagRobolectricTest extends AbstractIntegrationTest {
 
   @Test @Override public void initialize() throws IllegalStateException {
     integration.initialize(context,
-        new JsonMap().putValue("apiKey", "foo").putValue("useSSL", true), true);
+        new ValueMap().putValue("apiKey", "foo").putValue("useSSL", true), true);
     verifyStatic();
     Bugsnag.register(context, "foo");
     Bugsnag.setUseSSL(true);

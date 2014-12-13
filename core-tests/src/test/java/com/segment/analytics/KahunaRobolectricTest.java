@@ -44,7 +44,7 @@ public class KahunaRobolectricTest extends AbstractIntegrationTest {
 
   @Test @Override public void initialize() throws IllegalStateException {
     integration.initialize(context,
-        new JsonMap().putValue("secretKey", "foo").putValue("pushSenderId", "bar"), true);
+        new ValueMap().putValue("secretKey", "foo").putValue("pushSenderId", "bar"), true);
 
     verifyStatic();
     KahunaAnalytics.onAppCreate(context, "foo", "bar");

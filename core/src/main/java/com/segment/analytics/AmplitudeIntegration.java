@@ -20,7 +20,7 @@ class AmplitudeIntegration extends AbstractIntegration<Void> {
   boolean trackCategorizedPages;
   boolean trackNamedPages;
 
-  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
+  @Override void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
       throws IllegalStateException {
     trackAllPages = settings.getBoolean("trackAllPages", false);
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", false);
