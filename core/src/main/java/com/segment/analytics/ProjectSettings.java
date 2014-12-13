@@ -27,21 +27,8 @@ package com.segment.analytics;
 import java.io.IOException;
 import java.util.Map;
 
-import static com.segment.analytics.Utils.isNullOrEmpty;
-
 class ProjectSettings extends ValueMap {
   private static final String TIMESTAMP_KEY = "timestamp";
-
-  static ProjectSettings load(StringCache cache) {
-    if (isNullOrEmpty(cache.get())) {
-      return null;
-    }
-    try {
-      return new ProjectSettings(JsonUtils.jsonToMap(cache.get()));
-    } catch (IOException e) {
-      return null;
-    }
-  }
 
   static ProjectSettings create(String json, long timestamp) throws IOException {
     Map<String, Object> map = JsonUtils.jsonToMap(json);
@@ -50,6 +37,7 @@ class ProjectSettings extends ValueMap {
     return new ProjectSettings(map);
   }
 
+  // for deserialization
   private ProjectSettings(Map<String, Object> map) {
     super(map);
   }

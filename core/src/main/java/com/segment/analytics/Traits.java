@@ -78,6 +78,7 @@ public class Traits extends ValueMap {
     putAnonymousId(id);
   }
 
+  // For deserialization
   Traits(Map<String, Object> delegate) {
     super(delegate);
   }

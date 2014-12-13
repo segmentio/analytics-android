@@ -41,7 +41,8 @@ public class ValueMapRobolectricTest {
     assertThat(valueMap).hasSize(0).isEmpty();
   }
 
-  @Test public void methodsAreForwardedCorrectly() throws Exception {
+  @SuppressWarnings("ResultOfMethodCallIgnored") @Test public void methodsAreForwardedCorrectly()
+      throws Exception {
     valueMap = new ValueMap(delegate);
 
     valueMap.clear();
@@ -145,7 +146,8 @@ public class ValueMapRobolectricTest {
     try {
       settings.getAmplitudeSettings();
     } catch (AssertionError error) {
-      assertThat(error).hasMessageContaining("Could not find map constructor for");
+      assertThat(error).hasMessage(
+          "Could not create instance of com.segment.analytics.ValueMapRobolectricTest.AmplitudeSettings");
     }
   }
 

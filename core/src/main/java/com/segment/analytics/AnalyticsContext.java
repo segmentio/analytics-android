@@ -44,6 +44,7 @@ import static android.content.Context.TELEPHONY_SERVICE;
 import static android.net.ConnectivityManager.TYPE_BLUETOOTH;
 import static android.net.ConnectivityManager.TYPE_MOBILE;
 import static android.net.ConnectivityManager.TYPE_WIFI;
+import static com.segment.analytics.Utils.NullableConcurrentHashMap;
 import static com.segment.analytics.Utils.createMap;
 import static com.segment.analytics.Utils.getDeviceId;
 import static com.segment.analytics.Utils.getSystemService;
@@ -144,6 +145,7 @@ public class AnalyticsContext extends ValueMap {
   }
 
   AnalyticsContext(Context context, Traits traits) {
+    super(new NullableConcurrentHashMap<String, Object>());
     if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
       // this needs to be done each time since the settings may have been updated
       new GetAdvertisingIdTask(this).execute(context);
@@ -160,10 +162,12 @@ public class AnalyticsContext extends ValueMap {
     putTraits(traits);
   }
 
+  /**
   // For deserialization
   AnalyticsContext(Map<String, Object> delegate) {
     super(delegate);
   }
+  */
 
   void putApp(Context context) {
     try {
@@ -183,7 +187,10 @@ public class AnalyticsContext extends ValueMap {
   }
 
   void putTraits(Traits traits) {
-    put(TRAITS_KEY, traits);
+    // copy the traits
+    Traits copy = new Traits();
+    copy.putAll(traits);
+    put(TRAITS_KEY, copy);
   }
 
   public AnalyticsContext putCampaign(String name, String source, String medium, String term,

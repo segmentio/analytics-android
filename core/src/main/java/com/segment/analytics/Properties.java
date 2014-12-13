@@ -232,11 +232,6 @@ public class Properties extends ValueMap {
       putValue(PRICE_KEY, price);
     }
 
-    // For deserialization
-    Product(Map<String, Object> delegate) {
-      super(delegate);
-    }
-
     public Product putName(String name) {
       return putValue(NAME_KEY, name);
     }

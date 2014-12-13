@@ -130,7 +130,7 @@ final class Utils {
   }
 
   /** Returns a shared preferences for storing any library preferences. */
-  static SharedPreferences getSharedPreferences(Context context) {
+  static SharedPreferences getSegmentSharedPreferences(Context context) {
     return context.getSharedPreferences("analytics-android", MODE_PRIVATE);
   }
 

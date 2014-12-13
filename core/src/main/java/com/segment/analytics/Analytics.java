@@ -74,6 +74,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://segment.io/">Segment.io</a>
  */
 public class Analytics {
+  private static final String TRAITS_CACHE_PREFIX = "traits-";
 
   // Resource identifiers to define options in xml
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
@@ -94,7 +95,7 @@ public class Analytics {
   final IntegrationManager integrationManager;
   final Segment segment;
   final Stats stats;
-  final TraitsCache traitsCache;
+  final ValueMap.Cache<Traits> traitsCache;
   final AnalyticsContext analyticsContext;
   final Options defaultOptions;
   final Logger logger;
@@ -190,7 +191,7 @@ public class Analytics {
   }
 
   Analytics(Application application, IntegrationManager integrationManager, Segment segment,
-      Stats stats, TraitsCache traitsCache, AnalyticsContext analyticsContext,
+      Stats stats, ValueMap.Cache<Traits> traitsCache, AnalyticsContext analyticsContext,
       Options defaultOptions, Logger logger, boolean debuggingEnabled) {
     this.application = application;
     this.integrationManager = integrationManager;
@@ -272,21 +273,23 @@ public class Analytics {
    * @param userId Unique identifier which you recognize a user by in your own database. If this is
    * null or empty, any previous id we have (could be the anonymous id) will be
    * used.
-   * @param traits Traits about the user
+   * @param newTraits Traits about the user
    * @param options To configure the call
    * @throws IllegalArgumentException if userId is null or an empty string
    * @see <a href="https://segment.io/docs/tracking-api/identify/">Identify Documentation</a>
    */
-  public void identify(String userId, Traits traits, Options options) {
+  public void identify(String userId, Traits newTraits, Options options) {
     if (!isNullOrEmpty(userId)) {
       traitsCache.get().putUserId(userId);
     }
     if (options == null) {
       options = defaultOptions;
     }
-    if (!isNullOrEmpty(traits)) {
-      traitsCache.get().putAll(traits);
-      traitsCache.save();
+    if (!isNullOrEmpty(newTraits)) {
+      Traits traits = traitsCache.get();
+      traits.putAll(newTraits);
+      traitsCache.set(traits);
+      analyticsContext.putTraits(traits);
     }
 
     BasePayload payload = new IdentifyPayload(traitsCache.get().anonymousId(), analyticsContext,
@@ -313,16 +316,18 @@ public class Analytics {
    * @throws IllegalArgumentException if groupId is null or an empty string
    * @see <a href="https://segment.io/docs/tracking-api/group/">Group Documentation</a>
    */
-  public void group(String userId, String groupId, Traits traits, Options options) {
+  public void group(String userId, String groupId, Traits newTraits, Options options) {
     if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException("groupId must not be null or empty.");
     }
     if (isNullOrEmpty(userId)) {
       userId = traitsCache.get().userId();
     }
-    if (!isNullOrEmpty(traits)) {
-      traitsCache.get().putAll(traits);
-      traitsCache.save();
+    if (!isNullOrEmpty(newTraits)) {
+      Traits traits = traitsCache.get();
+      traits.putAll(newTraits);
+      traitsCache.set(traits);
+      analyticsContext.putTraits(traits);
     }
     if (options == null) {
       options = defaultOptions;
@@ -472,7 +477,8 @@ public class Analytics {
 
   /** Clear any information, including traits and user id about the current user. */
   public void logout() {
-    traitsCache.delete(application);
+    traitsCache.delete();
+    traitsCache.set(new Traits(application));
     analyticsContext.putTraits(traitsCache.get());
   }
 
@@ -512,9 +518,9 @@ public class Analytics {
    * Usage:
    * {@code
    * analytics.registerOnIntegrationReady((key, integration) ->
-   *   if("Mixpanel".equals(key)) {
-   *     ((MixpanelAPI) integration).clearSuperProperties();
-   *   }
+   * if("Mixpanel".equals(key)) {
+   * ((MixpanelAPI) integration).clearSuperProperties();
+   * }
    * }
    *
    * @since 2.3
@@ -688,10 +694,17 @@ public class Analytics {
       Stats stats = new Stats();
       SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
       IntegrationManager integrationManager =
-          IntegrationManager.create(application, segmentHTTPApi, stats, logger, debuggingEnabled);
+          IntegrationManager.create(application, segmentHTTPApi, stats, logger, tag,
+              debuggingEnabled);
       Segment segment = Segment.create(application, queueSize, flushInterval, segmentHTTPApi,
           integrationManager.bundledIntegrations, tag, stats, logger);
-      TraitsCache traitsCache = new TraitsCache(application, tag);
+
+      ValueMap.Cache<Traits> traitsCache =
+          new ValueMap.Cache<>(application, TRAITS_CACHE_PREFIX + tag, Traits.class);
+      if (!traitsCache.isSet() || traitsCache.get() == null) {
+        Traits traits = new Traits(application);
+        traitsCache.set(traits);
+      }
       AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
 
       return new Analytics(application, integrationManager, segment, stats, traitsCache,

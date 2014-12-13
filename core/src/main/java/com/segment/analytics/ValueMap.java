@@ -1,5 +1,8 @@
 package com.segment.analytics;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -10,6 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.json.JSONObject;
+
+import static com.segment.analytics.JsonUtils.mapToJson;
+import static com.segment.analytics.Utils.getSegmentSharedPreferences;
+import static com.segment.analytics.Utils.isNullOrEmpty;
 
 /**
  * A class that wraps an existing {@link Map} to expose value type functionality.
@@ -268,19 +275,22 @@ class ValueMap implements Map<String, Object> {
       //noinspection unchecked
       return (T) object;
     } else if (object instanceof Map) {
-      // Try the map constructor, it's more efficient since we've already parsed the json tree
-      try {
-        Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
-        constructor.setAccessible(true);
-        return constructor.newInstance(object);
-      } catch (NoSuchMethodException ignored) {
-      } catch (InvocationTargetException ignored) {
-      } catch (InstantiationException ignored) {
-      } catch (IllegalAccessException ignored) {
-      }
-      throw new AssertionError("Could not find map constructor for " + clazz.getCanonicalName());
+      return createValueMap((Map) object, clazz);
     }
     return null;
+  }
+
+  private static <T extends ValueMap> T createValueMap(Map map, Class<T> clazz) {
+    try {
+      Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
+      constructor.setAccessible(true);
+      return constructor.newInstance(map);
+    } catch (NoSuchMethodException ignored) {
+    } catch (InvocationTargetException ignored) {
+    } catch (InstantiationException ignored) {
+    } catch (IllegalAccessException ignored) {
+    }
+    throw new AssertionError("Could not create instance of " + clazz.getCanonicalName());
   }
 
   /**
@@ -318,5 +328,55 @@ class ValueMap implements Map<String, Object> {
       map.put(entry.getKey(), String.valueOf(entry.getValue()));
     }
     return map;
+  }
+
+  /** A class to let you store arbitrary key - {@link ValueMap} pairs. */
+  static class Cache<T extends ValueMap> {
+    private final SharedPreferences preferences;
+    private final String key;
+    private final Class<T> clazz;
+    private T value;
+
+    Cache(Context context, String key, Class<T> clazz) {
+      this.preferences = getSegmentSharedPreferences(context);
+      this.key = key;
+      this.clazz = clazz;
+    }
+
+    T get() {
+      if (value == null) {
+        String json = preferences.getString(key, null);
+        if (isNullOrEmpty(json)) {
+          return null;
+        }
+        try {
+          Map<String, Object> map = JsonUtils.jsonToMap(json);
+          // todo: offload this to a method, so it can subclassed and skip reflection
+          value = ValueMap.createValueMap(map, clazz);
+        } catch (IOException ignored) {
+          // todo: log
+          return null;
+        }
+      }
+      return value;
+    }
+
+    boolean isSet() {
+      return preferences.contains(key);
+    }
+
+    void set(T value) {
+      this.value = value;
+      try {
+        String json = mapToJson(value);
+        preferences.edit().putString(key, json).apply();
+      } catch (IOException ignored) {
+        // todo: log
+      }
+    }
+
+    void delete() {
+      preferences.edit().remove(key).apply();
+    }
   }
 }
