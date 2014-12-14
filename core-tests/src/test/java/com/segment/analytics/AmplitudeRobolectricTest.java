@@ -42,7 +42,7 @@ public class AmplitudeRobolectricTest extends AbstractIntegrationTest {
 
   @Test @Override public void initialize() {
     integration.initialize(context, //
-        new JsonMap().putValue("apiKey", "foo")
+        new ValueMap().putValue("apiKey", "foo")
             .putValue("trackAllPages", true)
             .putValue("trackCategorizedPages", false)
             .putValue("trackNamedPages", true), true);
@@ -53,7 +53,7 @@ public class AmplitudeRobolectricTest extends AbstractIntegrationTest {
     assertThat(integration.trackNamedPages).isTrue();
     // Verify default args
     integration.initialize(context, //
-        new JsonMap().putValue("apiKey", "foo"), true);
+        new ValueMap().putValue("apiKey", "foo"), true);
     assertThat(integration.trackAllPages).isFalse();
     assertThat(integration.trackCategorizedPages).isFalse();
     assertThat(integration.trackNamedPages).isFalse();

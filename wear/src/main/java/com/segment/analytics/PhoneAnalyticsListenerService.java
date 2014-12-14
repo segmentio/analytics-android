@@ -34,9 +34,9 @@ public class PhoneAnalyticsListenerService extends WearableListenerService {
     super.onMessageReceived(messageEvent);
 
     if (WearAnalytics.ANALYTICS_PATH.equals(messageEvent.getPath())) {
-      WearPayload wearPayload = null;
+      WearPayload wearPayload;
       try {
-        wearPayload = new WearPayload(new String(messageEvent.getData()));
+        wearPayload = new WearPayload(JsonUtils.jsonToMap(new String(messageEvent.getData())));
       } catch (IOException e) {
         getAnalytics().logger.print(e, "Error deserializing payload. Skipping.");
         return;

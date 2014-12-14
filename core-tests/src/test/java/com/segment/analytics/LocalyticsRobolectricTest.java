@@ -45,7 +45,7 @@ public class LocalyticsRobolectricTest extends AbstractIntegrationTest {
 
   @Test @Override public void initialize() throws IllegalStateException {
     LocalyticsIntegration integration = new LocalyticsIntegration();
-    integration.initialize(Robolectric.application, new JsonMap().putValue("appKey", "foo"), true);
+    integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"), true);
     assertThat(integration.session).isNotNull();
   }
 

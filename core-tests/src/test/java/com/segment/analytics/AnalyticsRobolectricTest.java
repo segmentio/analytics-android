@@ -13,6 +13,7 @@ import org.robolectric.shadows.ShadowApplication;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,7 +26,7 @@ public class AnalyticsRobolectricTest {
   @Mock IntegrationManager integrationManager;
   @Mock Segment segment;
   @Mock Stats stats;
-  @Mock TraitsCache traitsCache;
+  @Mock Traits.Cache traitsCache;
   @Mock AnalyticsContext analyticsContext;
   @Mock Options defaultOptions;
   @Mock Logger logger;
@@ -49,8 +50,9 @@ public class AnalyticsRobolectricTest {
 
   @Test public void logoutClearsTraitsAndUpdatesContext() {
     analytics.logout();
-    verify(traitsCache).delete(application);
-    verify(analyticsContext).putTraits(traitsCache.get());
+    verify(traitsCache).delete();
+    verify(traitsCache).set(any(Traits.class));
+    verify(analyticsContext).setTraits(traitsCache.get()); // update the traits in context
   }
 
   @Test public void trackFailsForInvalidEvent() {

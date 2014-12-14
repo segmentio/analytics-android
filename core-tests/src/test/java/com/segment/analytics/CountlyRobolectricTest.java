@@ -33,7 +33,7 @@ public class CountlyRobolectricTest extends AbstractIntegrationTest {
   @Test @Override public void initialize() throws IllegalStateException {
     try {
       integration.initialize(context,
-          new JsonMap().putValue("serverUrl", "foo").putValue("appKey", "bar"), true);
+          new ValueMap().putValue("serverUrl", "foo").putValue("appKey", "bar"), true);
     } catch (NullPointerException ignored) {
       // an NPE occurs in Countly's SDK, but we only need to verify that we did indeed call the SDK
       // correctly

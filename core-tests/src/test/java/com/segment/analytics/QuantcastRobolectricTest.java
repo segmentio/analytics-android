@@ -38,14 +38,14 @@ public class QuantcastRobolectricTest extends AbstractIntegrationTest {
   }
 
   @Test public void initialize() throws IllegalStateException {
-    integration.initialize(context, new JsonMap().putValue("apiKey", "foo"), false);
+    integration.initialize(context, new ValueMap().putValue("apiKey", "foo"), false);
     verifyStatic();
     QuantcastClient.enableLogging(false);
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
   @Test public void initializeWithDebugging() throws IllegalStateException {
-    integration.initialize(context, new JsonMap().putValue("apiKey", "foo"), true);
+    integration.initialize(context, new ValueMap().putValue("apiKey", "foo"), true);
     verifyStatic();
     QuantcastClient.enableLogging(true);
     verifyNoMoreInteractions(QuantcastClient.class);

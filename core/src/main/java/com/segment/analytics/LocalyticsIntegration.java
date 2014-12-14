@@ -22,7 +22,7 @@ class LocalyticsIntegration extends AbstractIntegration<LocalyticsAmpSession> {
   static final String LOCALYTICS_KEY = "Localytics";
   LocalyticsAmpSession session;
 
-  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
+  @Override void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
       throws IllegalStateException {
     if (!hasPermission(context, Manifest.permission.WAKE_LOCK)) {
       throw new IllegalStateException("localytics requires the wake lock permission");

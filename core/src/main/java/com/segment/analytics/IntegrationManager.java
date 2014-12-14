@@ -25,7 +25,6 @@ import static com.segment.analytics.Logger.VERB_INITIALIZE;
 import static com.segment.analytics.Logger.VERB_SKIP;
 import static com.segment.analytics.Utils.THREAD_PREFIX;
 import static com.segment.analytics.Utils.createMap;
-import static com.segment.analytics.Utils.getSharedPreferences;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.isNullOrEmpty;
 import static com.segment.analytics.Utils.isOnClassPath;
@@ -40,8 +39,7 @@ import static com.segment.analytics.Utils.quitThread;
  * subsequent launches will be use the cached settings on disk.
  */
 class IntegrationManager {
-
-  private static final String PROJECT_SETTINGS_CACHE_KEY = "project-settings";
+  private static final String PROJECT_SETTINGS_CACHE_KEY_PREFIX = "project-settings-";
   private static final String MANAGER_THREAD_NAME = THREAD_PREFIX + "IntegrationManager";
   private static final long SETTINGS_REFRESH_INTERVAL = 1000 * 60 * 60 * 24; // 24 hours
   private static final long SETTINGS_ERROR_RETRY_INTERVAL = 1000 * 60; // 1 minute
@@ -53,7 +51,7 @@ class IntegrationManager {
   final Handler integrationManagerHandler;
   final Stats stats;
   final boolean debuggingEnabled;
-  final StringCache projectSettingsCache;
+  final ValueMap.Cache<ProjectSettings> projectSettingsCache;
   final Map<String, Boolean> bundledIntegrations = createMap();
   final Logger logger;
   List<AbstractIntegration> integrations;
@@ -62,15 +60,17 @@ class IntegrationManager {
   OnIntegrationReadyListener listener;
 
   static synchronized IntegrationManager create(Context context, SegmentHTTPApi segmentHTTPApi,
-      Stats stats, Logger logger, boolean debuggingEnabled) {
-    StringCache projectSettingsCache =
-        new StringCache(getSharedPreferences(context), PROJECT_SETTINGS_CACHE_KEY);
+      Stats stats, Logger logger, String tag, boolean debuggingEnabled) {
+    ValueMap.Cache<ProjectSettings> projectSettingsCache =
+        new ValueMap.Cache<ProjectSettings>(context, PROJECT_SETTINGS_CACHE_KEY_PREFIX + tag,
+            ProjectSettings.class);
     return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logger,
         debuggingEnabled);
   }
 
   IntegrationManager(Context context, SegmentHTTPApi segmentHTTPApi,
-      StringCache projectSettingsCache, Stats stats, Logger logger, boolean debuggingEnabled) {
+      ValueMap.Cache<ProjectSettings> projectSettingsCache, Stats stats, Logger logger,
+      boolean debuggingEnabled) {
     this.context = context;
     this.segmentHTTPApi = segmentHTTPApi;
     this.stats = stats;
@@ -105,12 +105,13 @@ class IntegrationManager {
 
     this.projectSettingsCache = projectSettingsCache;
 
-    ProjectSettings projectSettings = ProjectSettings.load(projectSettingsCache);
-    if (projectSettings == null) {
+    if (!projectSettingsCache.isSet() || projectSettingsCache.get() == null) {
       dispatchFetch();
     } else {
-      performInitialize(projectSettings);
+      ProjectSettings projectSettings = projectSettingsCache.get();
+      dispatchInitialize(projectSettings);
       if (projectSettings.timestamp() + SETTINGS_REFRESH_INTERVAL < System.currentTimeMillis()) {
+        // Update stale settings
         dispatchFetch();
       }
     }
@@ -129,8 +130,7 @@ class IntegrationManager {
     try {
       if (isConnected(context)) {
         ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
-        String projectSettingsJson = projectSettings.toString();
-        projectSettingsCache.set(projectSettingsJson);
+        projectSettingsCache.set(projectSettings);
         if (!initialized) {
           // It's ok if integrations are being initialized right now (and so initialized will be
           // false). Since we just dispatch the request, the actual perform method will be able to
@@ -152,7 +152,7 @@ class IntegrationManager {
   }
 
   void dispatchInitialize(ProjectSettings projectSettings) {
-    integrationManagerHandler.sendMessage(
+    integrationManagerHandler.sendMessageAtFrontOfQueue(
         integrationManagerHandler.obtainMessage(IntegrationHandler.REQUEST_INITIALIZE,
             projectSettings));
   }
@@ -166,7 +166,7 @@ class IntegrationManager {
     while (iterator.hasNext()) {
       String key = iterator.next().getKey();
       if (projectSettings.containsKey(key)) {
-        JsonMap settings = new JsonMap(projectSettings.getJsonMap(key));
+        ValueMap settings = new ValueMap(projectSettings.getValueMap(key));
         AbstractIntegration integration = createIntegrationForKey(key);
         try {
           logger.debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, key, "settings: %s", settings);
@@ -189,7 +189,8 @@ class IntegrationManager {
     if (!isNullOrEmpty(operationQueue)) {
       Iterator<IntegrationOperation> operationIterator = operationQueue.iterator();
       while (operationIterator.hasNext()) {
-        run(operationIterator.next());
+        IntegrationOperation operation = operationIterator.next();
+        run(operation);
         operationIterator.remove();
       }
     }

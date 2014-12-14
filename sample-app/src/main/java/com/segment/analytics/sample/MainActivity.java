@@ -28,6 +28,7 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Menu;
@@ -67,7 +68,16 @@ public class MainActivity extends Activity {
     });
     findViewById(R.id.action_track_c).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
-        Analytics.with(MainActivity.this).track("Button C clicked");
+        AsyncTask<Void, Void, Void> asyncTask = new AsyncTask<Void, Void, Void>() {
+
+          @Override protected Void doInBackground(Void... params) {
+            // This is a bad use of AsyncTask! But it's just to demonstrate that the Analytics
+            // client can be safely called from multiple threads.
+            Analytics.with(MainActivity.this).track("Button C clicked");
+            return null;
+          }
+        };
+        asyncTask.execute();
       }
     });
     findViewById(R.id.action_track_custom_event).setOnClickListener(new View.OnClickListener() {

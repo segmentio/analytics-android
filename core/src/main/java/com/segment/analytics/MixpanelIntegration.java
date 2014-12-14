@@ -25,7 +25,7 @@ class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   boolean trackNamedPages;
   String token;
 
-  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
+  @Override void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
       throws IllegalStateException {
     trackAllPages = settings.getBoolean("trackAllPages", false);
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", true);

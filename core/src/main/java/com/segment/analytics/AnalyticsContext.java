@@ -34,6 +34,7 @@ import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
@@ -44,11 +45,13 @@ import static android.content.Context.TELEPHONY_SERVICE;
 import static android.net.ConnectivityManager.TYPE_BLUETOOTH;
 import static android.net.ConnectivityManager.TYPE_MOBILE;
 import static android.net.ConnectivityManager.TYPE_WIFI;
+import static com.segment.analytics.Utils.NullableConcurrentHashMap;
 import static com.segment.analytics.Utils.createMap;
 import static com.segment.analytics.Utils.getDeviceId;
 import static com.segment.analytics.Utils.getSystemService;
 import static com.segment.analytics.Utils.hasPermission;
 import static com.segment.analytics.Utils.isOnClassPath;
+import static java.util.Collections.unmodifiableMap;
 
 /**
  * Context is a dictionary of free-form information about a the state of the device. Context is
@@ -67,7 +70,7 @@ import static com.segment.analytics.Utils.isOnClassPath;
  * manually, you'll have to update it as well for each app start if you want it to persist between
  * sessions.
  */
-public class AnalyticsContext extends JsonMap {
+public class AnalyticsContext extends ValueMap {
   private static final String APP_KEY = "app";
   private static final String APP_NAME_KEY = "name";
   private static final String APP_VERSION_KEY = "version";
@@ -143,7 +146,9 @@ public class AnalyticsContext extends JsonMap {
     }
   }
 
+  /** The {@link Analytics} client can be called from anywhere, so this needs to be thread safe. */
   AnalyticsContext(Context context, Traits traits) {
+    super(new NullableConcurrentHashMap<String, Object>());
     if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
       // this needs to be done each time since the settings may have been updated
       new GetAdvertisingIdTask(this).execute(context);
@@ -157,12 +162,17 @@ public class AnalyticsContext extends JsonMap {
     putScreen(context);
     put(USER_AGENT_KEY, System.getProperty("http.agent"));
     put(TIMEZONE_KEY, TimeZone.getDefault().getID());
-    putTraits(traits);
+    setTraits(traits);
   }
 
-  // For deserialization
-  AnalyticsContext(Map<String, Object> delegate) {
+  // Used to create copies
+  private AnalyticsContext(Map<String, Object> delegate) {
     super(delegate);
+  }
+
+  AnalyticsContext unmodifiableCopy() {
+    LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(this);
+    return new AnalyticsContext(unmodifiableMap(map));
   }
 
   void putApp(Context context) {
@@ -182,8 +192,8 @@ public class AnalyticsContext extends JsonMap {
     }
   }
 
-  void putTraits(Traits traits) {
-    put(TRAITS_KEY, traits);
+  void setTraits(Traits traits) {
+    put(TRAITS_KEY, traits.unmodifiableCopy()); // copy
   }
 
   public AnalyticsContext putCampaign(String name, String source, String medium, String term,
@@ -209,14 +219,14 @@ public class AnalyticsContext extends JsonMap {
   }
 
   void putAdvertisingInfo(String advertisingId, boolean adTrackingEnabled) {
-    JsonMap device = getJsonMap(DEVICE_KEY);
+    ValueMap device = getValueMap(DEVICE_KEY);
     device.put(DEVICE_ADVERTISING_ID_KEY, advertisingId);
     device.put(DEVICE_AD_TRACKING_ENABLED_KEY, adTrackingEnabled);
     put(DEVICE_KEY, device);
   }
 
   public void putDeviceToken(String token) {
-    JsonMap device = getJsonMap(DEVICE_KEY);
+    ValueMap device = getValueMap(DEVICE_KEY);
     device.put(DEVICE_TOKEN_KEY, token);
     put(DEVICE_KEY, device);
   }
@@ -236,7 +246,7 @@ public class AnalyticsContext extends JsonMap {
   }
 
   Location location() {
-    return getJsonMap(LOCATION_KEY, Location.class);
+    return getValueMap(LOCATION_KEY, Location.class);
   }
 
   void putNetwork(Context context) {
@@ -304,7 +314,7 @@ public class AnalyticsContext extends JsonMap {
     return this;
   }
 
-  static class Location extends JsonMap {
+  static class Location extends ValueMap {
     private static final String LOCATION_LATITUDE_KEY = "latitude";
     private static final String LOCATION_LONGITUDE_KEY = "longitude";
     private static final String LOCATION_SPEED_KEY = "speed";

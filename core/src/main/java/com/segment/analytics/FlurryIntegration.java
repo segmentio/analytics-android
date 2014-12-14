@@ -20,7 +20,7 @@ class FlurryIntegration extends AbstractIntegration<Void> {
   static final String FLURRY_KEY = "Flurry";
   String apiKey;
 
-  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
+  @Override void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
       throws IllegalStateException {
     apiKey = settings.getString("apiKey");
     FlurryAgent.setContinueSessionMillis(settings.getInt("sessionContinueSeconds", 10) * 1000);

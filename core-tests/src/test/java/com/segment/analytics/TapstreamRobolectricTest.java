@@ -58,7 +58,7 @@ public class TapstreamRobolectricTest extends AbstractIntegrationTest {
 
   @Test @Override public void initialize() throws IllegalStateException {
     TapstreamIntegration adapter = new TapstreamIntegration();
-    adapter.initialize(context, new JsonMap().putValue("accountName", "foo")
+    adapter.initialize(context, new ValueMap().putValue("accountName", "foo")
         .putValue("sdkSecret", "bar")
         .putValue("trackAllPages", true)
         .putValue("trackCategorizedPages", false)

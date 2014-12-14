@@ -1,55 +1,44 @@
 package com.segment.analytics;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import org.json.JSONObject;
 
-import static com.segment.analytics.Utils.NullableConcurrentHashMap;
+import static com.segment.analytics.JsonUtils.mapToJson;
+import static com.segment.analytics.Utils.getSegmentSharedPreferences;
+import static com.segment.analytics.Utils.isNullOrEmpty;
 
 /**
- * A {@link Map} wrapper to expose Json functionality. Only the {@link #toString()} method is
- * modified to return a json formatted string. All other methods will be forwarded to a delegate
- * map.
+ * A class that wraps an existing {@link Map} to expose value type functionality.
  * <p>
- * The purpose of this class is to not limit clients to a custom implementation of a Json type,
- * they
- * can use existing {@link Map} and {@link java.util.List} implementations as they see fit. It adds
- * some utility methods, including methods to coerce numeric types from Strings, and a {@link
- * #putValue(String, Object)} to be able to chain method calls.
+ * All {@link java.util.Map} methods will simply be forwarded to a delegate map. This class is
+ * meant to subclassed and provide methods to access values in keys.
  * <p>
  * Although it lets you use custom objects for values, note that type information is lost during
- * serialization. You should use one of the coercion methods if you're expecting a type after
- * serialization.
+ * serialization. You should use one of the coercion methods instead to get objects of a concrete
+ * type.
  */
-class JsonMap implements Map<String, Object> {
-  private final ConcurrentHashMap<String, Object> delegate;
+class ValueMap implements Map<String, Object> {
+  private final Map<String, Object> delegate;
 
-  JsonMap() {
-    delegate = new NullableConcurrentHashMap<String, Object>();
+  ValueMap() {
+    delegate = new LinkedHashMap<String, Object>();
   }
 
-  JsonMap(Map<String, Object> map) {
+  ValueMap(Map<String, Object> map) {
     if (map == null) {
       throw new IllegalArgumentException("Map must not be null.");
     }
-    if (map instanceof NullableConcurrentHashMap) {
-      this.delegate = (NullableConcurrentHashMap) map;
-    } else {
-      this.delegate = new NullableConcurrentHashMap<String, Object>(map);
-    }
-  }
-
-  JsonMap(String json) throws IOException {
-    Map<String, Object> map = JsonUtils.jsonToMap(json);
-    this.delegate = new NullableConcurrentHashMap<String, Object>(map);
+    this.delegate = map;
   }
 
   @Override public void clear() {
@@ -109,15 +98,11 @@ class JsonMap implements Map<String, Object> {
   }
 
   @Override public String toString() {
-    try {
-      return JsonUtils.mapToJson(delegate);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return delegate.toString();
   }
 
   /** Helper method to be able to chain put methods. */
-  JsonMap putValue(String key, Object value) {
+  ValueMap putValue(String key, Object value) {
     delegate.put(key, value);
     return this;
   }
@@ -253,14 +238,16 @@ class JsonMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a JsonMap. Returns null otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a {@link ValueMap}. Returns null
+   * otherwise.
    */
-  JsonMap getJsonMap(Object key) {
+  ValueMap getValueMap(Object key) {
     Object value = get(key);
-    if (value instanceof JsonMap) {
-      return (JsonMap) value;
+    if (value instanceof ValueMap) {
+      return (ValueMap) value;
     } else if (value instanceof Map) {
-      return new JsonMap((Map<String, Object>) value);
+      //noinspection unchecked
+      return new ValueMap((Map<String, Object>) value);
     } else {
       return null;
     }
@@ -268,48 +255,47 @@ class JsonMap implements Map<String, Object> {
 
   /**
    * Returns the value mapped by {@code key} if it exists and if it can be coerced to the given
-   * type. The JsonMap subclass MUST have a map constructor.
+   * type. The expected subclass MUST have a constructor that accepts a {@link Map}.
    */
-  <T extends JsonMap> T getJsonMap(String key, Class<T> clazz) {
+  <T extends ValueMap> T getValueMap(String key, Class<T> clazz) {
     Object value = get(key);
-    T typedValue = castToJsonMap(value, clazz);
-    if (typedValue != null) put(key, typedValue);
-    return typedValue;
+    return coerceToValueMap(value, clazz);
   }
 
-  /** Coerce an object to a JsonMap. */
-  private <T extends JsonMap> T castToJsonMap(Object object, Class<T> clazz) {
-    if (clazz.isInstance(object)) {
-      //noinspection unchecked
-      return (T) object;
-    } else if (object instanceof Map) {
-      // Try the map constructor, it's more efficient since we've already parsed the json tree
-      try {
-        Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
-        constructor.setAccessible(true);
-        return constructor.newInstance(object);
-      } catch (NoSuchMethodException ignored) {
-      } catch (InvocationTargetException ignored) {
-      } catch (InstantiationException ignored) {
-      } catch (IllegalAccessException ignored) {
-      }
-      throw new AssertionError("Could not find map constructor for " + clazz.getCanonicalName());
-    }
+  /**
+   * Coerce an object to a JsonMap. It will first check if the object is already of the expected
+   * type. If not, it checks if the object a {@link Map} type, and feeds it to the constructor by
+   * reflection.
+   */
+  private <T extends ValueMap> T coerceToValueMap(Object object, Class<T> clazz) {
+    if (object == null) return null;
+    if (clazz.isInstance(object)) return (T) object;
+    if (object instanceof Map) return createValueMap((Map) object, clazz);
     return null;
+  }
+
+  private static <T extends ValueMap> T createValueMap(Map map, Class<T> clazz) {
+    try {
+      Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
+      constructor.setAccessible(true);
+      return constructor.newInstance(map);
+    } catch (Exception e) {
+      throw new RuntimeException("Could not create instance of " + clazz.getCanonicalName(), e);
+    }
   }
 
   /**
    * Returns the value mapped by {@code key} if it exists and is a List of {@code T}. Returns null
    * otherwise.
    */
-  <T extends JsonMap> List<T> getJsonList(Object key, Class<T> clazz) {
+  <T extends ValueMap> List<T> getList(Object key, Class<T> clazz) {
     Object value = get(key);
     if (value instanceof List) {
       List list = (List) value;
       try {
         ArrayList<T> real = new ArrayList<T>();
         for (Object item : list) {
-          T typedValue = castToJsonMap(item, clazz);
+          T typedValue = coerceToValueMap(item, clazz);
           if (typedValue != null) {
             real.add(typedValue);
           }
@@ -321,15 +307,70 @@ class JsonMap implements Map<String, Object> {
     return null;
   }
 
+  /** Return a copy of the contents of this map as a {@link JSONObject}. */
   JSONObject toJsonObject() {
     return new JSONObject(delegate);
   }
 
+  /** Return a copy of the contents of this map as a {@code Map<String, String>}. */
   Map<String, String> toStringMap() {
     Map<String, String> map = new HashMap<String, String>();
     for (Map.Entry<String, Object> entry : entrySet()) {
       map.put(entry.getKey(), String.valueOf(entry.getValue()));
     }
     return map;
+  }
+
+  /** A class to let you store arbitrary key - {@link ValueMap} pairs. */
+  static class Cache<T extends ValueMap> {
+    private final SharedPreferences preferences;
+    private final String key;
+    private final Class<T> clazz;
+    private T value;
+
+    Cache(Context context, String key, Class<T> clazz) {
+      this.preferences = getSegmentSharedPreferences(context);
+      this.key = key;
+      this.clazz = clazz;
+    }
+
+    T get() {
+      if (value == null) {
+        String json = preferences.getString(key, null);
+        if (isNullOrEmpty(json)) {
+          return null;
+        }
+        try {
+          Map<String, Object> map = JsonUtils.jsonToMap(json);
+          value = create(map);
+        } catch (IOException ignored) {
+          // todo: log
+          return null;
+        }
+      }
+      return value;
+    }
+
+    boolean isSet() {
+      return preferences.contains(key);
+    }
+
+    T create(Map<String, Object> map) {
+      return ValueMap.createValueMap(map, clazz);
+    }
+
+    void set(T value) {
+      this.value = value;
+      try {
+        String json = mapToJson(value);
+        preferences.edit().putString(key, json).apply();
+      } catch (IOException ignored) {
+        // todo: log
+      }
+    }
+
+    void delete() {
+      preferences.edit().remove(key).apply();
+    }
   }
 }

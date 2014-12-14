@@ -25,14 +25,16 @@
 package com.segment.analytics;
 
 import android.content.Context;
-import java.io.IOException;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.segment.analytics.Utils.NullableConcurrentHashMap;
 import static com.segment.analytics.Utils.createMap;
 import static com.segment.analytics.Utils.isNullOrEmpty;
 import static com.segment.analytics.Utils.toISO8601Date;
+import static java.util.Collections.unmodifiableMap;
 
 /**
  * A class representing information about a user.
@@ -42,9 +44,9 @@ import static com.segment.analytics.Utils.toISO8601Date;
  * address. And we'll send this on to integrations that need an email, like Mailchimp. For that
  * reason, you should only use special traits for their intended purpose.
  * <p>
- * This is persisted to disk, and will be remembered between sessions.
+ * Traits are persisted to disk, and will be remembered between application and system reboots.
  */
-public class Traits extends JsonMap {
+public class Traits extends ValueMap {
   private static final String ADDRESS_KEY = "address";
   private static final String ADDRESS_CITY_KEY = "city";
   private static final String ADDRESS_COUNTRY_KEY = "country";
@@ -73,17 +75,35 @@ public class Traits extends JsonMap {
   private static final String EMPLOYEES_KEY = "employees";
   private static final String INDUSTRY_KEY = "industry";
 
-  Traits(Context context) {
+  /**
+   * Create a new Traits instance. Analytics client can be called on any thread, so this instance
+   * is thread safe.
+   */
+  static Traits create(Context context) {
+    Traits traits = new Traits(new NullableConcurrentHashMap<String, Object>());
     String id = UUID.randomUUID().toString(); // only done when creating a new traits object
-    putUserId(id);
-    putAnonymousId(id);
+    traits.putUserId(id);
+    traits.putAnonymousId(id);
+    return traits;
   }
 
-  Traits(String json) throws IOException {
-    super(json);
+  /** For deserialization from disk by {@link Traits.Cache}. */
+  private Traits(Map<String, Object> delegate) {
+    super(delegate);
   }
 
+  /**
+   * This instance is not thread safe. {@link Traits} are  meant to be attached to a single call
+   * and discarded. If the client is keeping a reference to a {@link Traits} instance that may be
+   * accessed by multiple threads, they should synchronize access to this instance.
+   */
   public Traits() {
+    // Public Constructor
+  }
+
+  Traits unmodifiableCopy() {
+    LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(this);
+    return new Traits(unmodifiableMap(map));
   }
 
   /**
@@ -230,5 +250,16 @@ public class Traits extends JsonMap {
   @Override public Traits putValue(String key, Object value) {
     super.putValue(key, value);
     return this;
+  }
+
+  static class Cache extends ValueMap.Cache<Traits> {
+    Cache(Context context, String key, Class<Traits> clazz) {
+      super(context, key, clazz);
+    }
+
+    @Override Traits create(Map<String, Object> map) {
+      // Analytics client can be called on any thread, so this instance is thread safe.
+      return new Traits(new NullableConcurrentHashMap<String, Object>(map));
+    }
   }
 }

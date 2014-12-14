@@ -28,7 +28,7 @@ public class IntegrationManagerRobolectricTest {
 
   @Mock SegmentHTTPApi segmentHTTPApi;
   @Mock Stats stats;
-  @Mock StringCache stringCache;
+  @Mock ValueMap.Cache<ProjectSettings> projectSettingsCache;
   @Mock Logger logger;
 
   Context context;
@@ -38,7 +38,7 @@ public class IntegrationManagerRobolectricTest {
     context = mockApplication();
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
     integrationManager =
-        new IntegrationManager(context, segmentHTTPApi, stringCache, stats, logger, true);
+        new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logger, true);
   }
 
   @Test public void createsIntegrationsCorrectly() {
@@ -99,7 +99,7 @@ public class IntegrationManagerRobolectricTest {
   @Test public void initializesIntegrations() throws Exception {
     final AbstractIntegration<Void> fooIntegration = mock(AbstractIntegration.class);
     IntegrationManager integrationManager =
-        new IntegrationManager(context, segmentHTTPApi, stringCache, stats, logger, true) {
+        new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logger, true) {
           @Override AbstractIntegration createIntegrationForKey(String key) {
             if ("Foo".equals(key)) {
               return fooIntegration;
@@ -116,7 +116,8 @@ public class IntegrationManagerRobolectricTest {
 
     try {
       verify(fooIntegration).initialize(context,
-          new JsonMap("{\"trackNamedPages\":true,\"trackAllPages\":false}"), true);
+          new ValueMap(JsonUtils.jsonToMap("{\"trackNamedPages\":true,\"trackAllPages\":false}")),
+          true);
     } catch (IllegalStateException ignored) {
       fail("unexpected exception: ", ignored);
     }

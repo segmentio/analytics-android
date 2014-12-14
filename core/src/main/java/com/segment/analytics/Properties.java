@@ -33,7 +33,7 @@ import java.util.Map;
  * Just like traits, we also accept some properties with semantic meaning, and you should only ever
  * use these property names for that purpose.
  */
-public class Properties extends JsonMap {
+public class Properties extends ValueMap {
   // Common
   private static final String REVENUE_KEY = "revenue";
   private static final String VALUE_KEY = "value";
@@ -189,7 +189,7 @@ public class Properties extends JsonMap {
   }
 
   List<Product> products(Product... products) {
-    return getJsonList(PRODUCTS_KEY, Product.class);
+    return getList(PRODUCTS_KEY, Product.class);
   }
 
   // Product Properties
@@ -220,7 +220,7 @@ public class Properties extends JsonMap {
    * Use only when you have multiple products. If you have only one product, {@link Properties} has
    * methods on it directly to attach this information.
    */
-  public static class Product extends JsonMap {
+  public static class Product extends ValueMap {
     private static final String ID_KEY = "id";
     private static final String SKU_KEY = "sku";
     private static final String NAME_KEY = "name";
@@ -230,11 +230,6 @@ public class Properties extends JsonMap {
       putValue(ID_KEY, id);
       putValue(SKU_KEY, sku);
       putValue(PRICE_KEY, price);
-    }
-
-    // For deserialization
-    Product(Map<String, Object> delegate) {
-      super(delegate);
     }
 
     public Product putName(String name) {

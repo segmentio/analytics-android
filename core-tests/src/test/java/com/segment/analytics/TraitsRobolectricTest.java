@@ -1,5 +1,6 @@
 package com.segment.analytics;
 
+import java.util.Map;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,17 +10,18 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 public class TraitsRobolectricTest {
   Traits traits;
 
   @Before public void setUp() {
-    traits = new Traits(Robolectric.application);
+    traits = Traits.create(Robolectric.application);
   }
 
   @Test public void newInvocationHasUniqueId() throws Exception {
-    assertThat(traits).isNotSameAs(new Traits(Robolectric.application));
+    assertThat(traits).isNotSameAs(Traits.create(Robolectric.application));
   }
 
   @Test public void newInvocationHasSameAnonymousAndUserId() throws Exception {
@@ -65,5 +67,26 @@ public class TraitsRobolectricTest {
     traits.clear();
     traits.putLastName("srivastava");
     assertThat(traits.name()).isEqualTo("srivastava");
+  }
+
+  @Test public void copyReturnsSameMappings() {
+    Traits copy = traits.unmodifiableCopy();
+
+    assertThat(copy).hasSameSizeAs(traits).isNotSameAs(traits).isEqualTo(traits);
+    for (Map.Entry<String, Object> entry : traits.entrySet()) {
+      assertThat(copy).contains(MapEntry.entry(entry.getKey(), entry.getValue()));
+    }
+  }
+
+  @Test public void copyIsImmutable() {
+    Traits copy = traits.unmodifiableCopy();
+
+    //noinspection EmptyCatchBlock
+    try {
+      copy.put("foo", "bar");
+      fail("Inserting into copy should throw UnsupportedOperationException");
+    } catch (UnsupportedOperationException expected) {
+
+    }
   }
 }

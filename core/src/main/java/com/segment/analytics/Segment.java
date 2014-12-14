@@ -105,7 +105,7 @@ class Segment {
       }
     }
     try {
-      String json = payload.toString();
+      String json = JsonUtils.mapToJson(payload);
       if (isNullOrEmpty(json)) throw new IOException("could not serialize payload " + payload);
       payloadQueueFile.add(json.getBytes(UTF_8));
     } catch (IOException e) {

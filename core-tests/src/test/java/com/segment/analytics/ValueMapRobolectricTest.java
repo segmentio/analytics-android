@@ -19,110 +19,111 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class JsonMapRobolectricTest {
+public class ValueMapRobolectricTest {
   @Mock NullableConcurrentHashMap<String, Object> delegate;
   @Mock Object object;
-  JsonMap jsonMap;
+  ValueMap valueMap;
 
   @Before public void setUp() {
     initMocks(this);
-    jsonMap = new JsonMap();
+    valueMap = new ValueMap();
   }
 
   @Test public void disallowsNullMap() throws Exception {
     try {
-      new JsonMap((Map) null);
+      new ValueMap((Map) null);
       fail("Null Map should throw exception.");
     } catch (IllegalArgumentException ignored) {
     }
   }
 
   @Test public void emptyMap() throws Exception {
-    assertThat(jsonMap).hasSize(0).isEmpty();
+    assertThat(valueMap).hasSize(0).isEmpty();
   }
 
-  @Test public void methodsAreForwardedCorrectly() throws Exception {
-    jsonMap = new JsonMap(delegate);
+  @SuppressWarnings("ResultOfMethodCallIgnored") @Test public void methodsAreForwardedCorrectly()
+      throws Exception {
+    valueMap = new ValueMap(delegate);
 
-    jsonMap.clear();
+    valueMap.clear();
     verify(delegate).clear();
 
-    jsonMap.containsKey(object);
+    valueMap.containsKey(object);
     verify(delegate).containsKey(object);
 
-    jsonMap.entrySet();
+    valueMap.entrySet();
     verify(delegate).entrySet();
 
-    jsonMap.get(object);
+    valueMap.get(object);
     verify(delegate).get(object);
 
-    jsonMap.isEmpty();
+    valueMap.isEmpty();
     verify(delegate).isEmpty();
 
-    jsonMap.keySet();
+    valueMap.keySet();
     verify(delegate).keySet();
 
-    jsonMap.put("foo", object);
+    valueMap.put("foo", object);
     verify(delegate).put("foo", object);
 
     Map<String, Object> map = new LinkedHashMap<String, Object>();
-    jsonMap.putAll(map);
+    valueMap.putAll(map);
     verify(delegate).putAll(map);
 
-    jsonMap.remove(object);
+    valueMap.remove(object);
     verify(delegate).remove(object);
 
-    jsonMap.size();
+    valueMap.size();
     verify(delegate).size();
 
-    jsonMap.values();
+    valueMap.values();
     verify(delegate).values();
 
-    jsonMap.putValue("bar", object);
+    valueMap.putValue("bar", object);
     verify(delegate).put("bar", object);
   }
 
   @Test public void simpleConversions() throws Exception {
     String stringPi = String.valueOf(Math.PI);
 
-    jsonMap.put("double_pi", Math.PI);
-    assertThat(jsonMap.getString("double_pi")).isEqualTo(stringPi);
+    valueMap.put("double_pi", Math.PI);
+    assertThat(valueMap.getString("double_pi")).isEqualTo(stringPi);
 
-    jsonMap.put("string_pi", stringPi);
-    assertThat(jsonMap.getDouble("string_pi", 0)).isEqualTo(Math.PI);
+    valueMap.put("string_pi", stringPi);
+    assertThat(valueMap.getDouble("string_pi", 0)).isEqualTo(Math.PI);
   }
 
   @Test public void enumDeserialization() throws Exception {
-    jsonMap.put("value1", MyEnum.VALUE1);
-    jsonMap.put("value2", MyEnum.VALUE2);
-    String json = jsonMap.toString();
+    valueMap.put("value1", MyEnum.VALUE1);
+    valueMap.put("value2", MyEnum.VALUE2);
+    String json = JsonUtils.mapToJson(valueMap);
     // todo: the ordering may be different on different versions of Java
     assertThat(json).isIn("{\"value2\":\"VALUE2\",\"value1\":\"VALUE1\"}",
         "{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}");
 
-    jsonMap = new JsonMap("{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}");
-    assertThat(jsonMap) //
+    valueMap = new ValueMap(JsonUtils.jsonToMap("{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}"));
+    assertThat(valueMap) //
         .contains(MapEntry.entry("value1", "VALUE1")) //
         .contains(MapEntry.entry("value2", "VALUE2"));
-    assertThat(jsonMap.getEnum(MyEnum.class, "value1")).isEqualTo(MyEnum.VALUE1);
-    assertThat(jsonMap.getEnum(MyEnum.class, "value2")).isEqualTo(MyEnum.VALUE2);
+    assertThat(valueMap.getEnum(MyEnum.class, "value1")).isEqualTo(MyEnum.VALUE1);
+    assertThat(valueMap.getEnum(MyEnum.class, "value2")).isEqualTo(MyEnum.VALUE2);
   }
 
   @Test public void allowsNullValues() {
-    jsonMap.put(null, "foo");
-    jsonMap.put("foo", null);
+    valueMap.put(null, "foo");
+    valueMap.put("foo", null);
   }
 
   @Test public void nestedMaps() throws Exception {
-    JsonMap nested = new JsonMap();
+    ValueMap nested = new ValueMap();
     nested.put("value", "box");
-    jsonMap.put("nested", nested);
+    valueMap.put("nested", nested);
 
-    assertThat(jsonMap).hasSize(1).contains(MapEntry.entry("nested", nested));
-    assertThat(jsonMap.toString()).isEqualTo("{\"nested\":{\"value\":\"box\"}}");
+    assertThat(valueMap).hasSize(1).contains(MapEntry.entry("nested", nested));
+    assertThat(JsonUtils.mapToJson(valueMap)).isEqualTo("{\"nested\":{\"value\":\"box\"}}");
 
-    jsonMap = new JsonMap("{\"nested\":{\"value\":\"box\"}}");
-    assertThat(jsonMap).hasSize(1).contains(MapEntry.entry("nested", nested));
+    valueMap = new ValueMap(JsonUtils.jsonToMap("{\"nested\":{\"value\":\"box\"}}"));
+    assertThat(valueMap).hasSize(1).contains(MapEntry.entry("nested", nested));
   }
 
   @Test public void customJsonMapDeserialization() throws Exception {
@@ -144,22 +145,24 @@ public class JsonMapRobolectricTest {
 
     try {
       settings.getAmplitudeSettings();
-    } catch (AssertionError error) {
-      assertThat(error).hasMessageContaining("Could not find map constructor for");
+    } catch (RuntimeException exception) {
+      assertThat(exception) //
+          .hasMessage("Could not create instance of "
+              + "com.segment.analytics.ValueMapRobolectricTest.AmplitudeSettings");
     }
   }
 
   @Test public void projectSettings() throws Exception {
-    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection") JsonMap jsonMap =
-        new JsonMap(PROJECT_SETTINGS_JSON_SAMPLE);
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection") ValueMap valueMap =
+        new ValueMap(JsonUtils.jsonToMap(PROJECT_SETTINGS_JSON_SAMPLE));
 
-    assertThat(jsonMap.getJsonMap("Amplitude")).isNotNull()
+    assertThat(valueMap.getValueMap("Amplitude")).isNotNull()
         .hasSize(4)
         .contains(MapEntry.entry("apiKey", "ad3c426eb736d7442a65da8174bc1b1b"))
         .contains(MapEntry.entry("trackNamedPages", true))
         .contains(MapEntry.entry("trackCategorizedPages", true))
         .contains(MapEntry.entry("trackAllPages", false));
-    assertThat(jsonMap.getJsonMap("Flurry")).isNotNull()
+    assertThat(valueMap.getValueMap("Flurry")).isNotNull()
         .hasSize(4)
         .contains(MapEntry.entry("apiKey", "8DY3D6S7CCWH54RBJ9ZM"))
         .contains(MapEntry.entry("captureUncaughtExceptions", false))
@@ -171,29 +174,29 @@ public class JsonMapRobolectricTest {
     VALUE1, VALUE2
   }
 
-  static class Settings extends JsonMap {
+  static class Settings extends ValueMap {
     Settings(String json) throws IOException {
-      super(json);
+      super(JsonUtils.jsonToMap(json));
     }
 
     AmplitudeSettings getAmplitudeSettings() {
-      return getJsonMap("Amplitude", AmplitudeSettings.class);
+      return getValueMap("Amplitude", AmplitudeSettings.class);
     }
 
     MixpanelSettings getMixpanelSettings() {
-      return getJsonMap("Mixpanel", MixpanelSettings.class);
+      return getValueMap("Mixpanel", MixpanelSettings.class);
     }
   }
 
-  static class MixpanelSettings extends JsonMap {
+  static class MixpanelSettings extends ValueMap {
     MixpanelSettings(Map<String, Object> delegate) {
       super(delegate);
     }
   }
 
-  static class AmplitudeSettings extends JsonMap {
+  static class AmplitudeSettings extends ValueMap {
     AmplitudeSettings(String json) throws IOException {
-      super(json);
+      super(JsonUtils.jsonToMap(json));
     }
   }
 }

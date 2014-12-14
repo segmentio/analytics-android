@@ -20,7 +20,7 @@ class QuantcastIntegration extends AbstractIntegration<Void> {
   static final String QUANTCAST_KEY = "Quantcast";
   String apiKey;
 
-  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
+  @Override void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
       throws IllegalStateException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new IllegalStateException("ACCESS_NETWORK_STATE is required");

@@ -34,7 +34,7 @@ public class AppsFlyerRobolectricTest extends AbstractIntegrationTest {
   @Test @Override public void initialize() throws IllegalStateException {
     AppsFlyerIntegration integration = new AppsFlyerIntegration(appsFlyer);
     integration.initialize(context,
-        new JsonMap().putValue("appsFlyerDevKey", "foo").putValue("httpFallback", true), true);
+        new ValueMap().putValue("appsFlyerDevKey", "foo").putValue("httpFallback", true), true);
     verify(appsFlyer).setAppsFlyerKey("foo");
     verify(appsFlyer).setUseHTTPFallback(true);
     assertThat(integration.context).isEqualTo(context);

@@ -16,7 +16,7 @@ import com.crittercism.app.CrittercismConfig;
 class CrittercismIntegration extends AbstractIntegration<Void> {
   static final String CRITTERCISM_KEY = "Crittercism";
 
-  @Override void initialize(Context context, JsonMap settings, boolean debuggingEnabled)
+  @Override void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
       throws IllegalStateException {
     CrittercismConfig crittercismConfig = new CrittercismConfig();
     crittercismConfig.setLogcatReportingEnabled(settings.getBoolean("shouldCollectLogcat", false));

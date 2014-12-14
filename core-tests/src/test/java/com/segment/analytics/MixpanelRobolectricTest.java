@@ -52,7 +52,7 @@ public class MixpanelRobolectricTest extends AbstractIntegrationTest {
 
   @Test public void initialize() throws IllegalStateException {
     MixpanelIntegration adapter = new MixpanelIntegration();
-    adapter.initialize(context, new JsonMap().putValue("token", "foo")
+    adapter.initialize(context, new ValueMap().putValue("token", "foo")
         .putValue("trackAllPages", true)
         .putValue("trackCategorizedPages", false)
         .putValue("trackNamedPages", true), true);
