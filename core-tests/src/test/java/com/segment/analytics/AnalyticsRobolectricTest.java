@@ -26,7 +26,7 @@ public class AnalyticsRobolectricTest {
   @Mock IntegrationManager integrationManager;
   @Mock Segment segment;
   @Mock Stats stats;
-  @Mock ValueMap.Cache<Traits> traitsCache;
+  @Mock Traits.Cache traitsCache;
   @Mock AnalyticsContext analyticsContext;
   @Mock Options defaultOptions;
   @Mock Logger logger;
@@ -52,7 +52,7 @@ public class AnalyticsRobolectricTest {
     analytics.logout();
     verify(traitsCache).delete();
     verify(traitsCache).set(any(Traits.class));
-    verify(analyticsContext).putTraits(traitsCache.get());
+    verify(analyticsContext).setTraits(traitsCache.get()); // update the traits in context
   }
 
   @Test public void trackFailsForInvalidEvent() {

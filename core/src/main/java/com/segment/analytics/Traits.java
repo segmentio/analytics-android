@@ -79,25 +79,17 @@ public class Traits extends ValueMap {
    * Create a new Traits instance. Analytics client can be called on any thread, so this instance
    * is thread safe.
    */
-  Traits(Context context) {
-    super(new NullableConcurrentHashMap<String, Object>());
+  static Traits create(Context context) {
+    Traits traits = new Traits(new NullableConcurrentHashMap<String, Object>());
     String id = UUID.randomUUID().toString(); // only done when creating a new traits object
-    putUserId(id);
-    putAnonymousId(id);
+    traits.putUserId(id);
+    traits.putAnonymousId(id);
+    return traits;
   }
 
-  /**
-   * For deserialization from disk by {@link ValueMap.Cache}. Analytics client can be called on any
-   * thread, so this instance is thread safe.
-   */
+  /** For deserialization from disk by {@link Traits.Cache}. */
   private Traits(Map<String, Object> delegate) {
-    super(new NullableConcurrentHashMap<String, Object>(delegate));
-  }
-
-  /** The returned instance is thread safe in that it is immutable. */
-  Traits unmodifiableCopy() {
-    LinkedHashMap<String, Object> map = new LinkedHashMap<>(this);
-    return new Traits(unmodifiableMap(map));
+    super(delegate);
   }
 
   /**
@@ -107,6 +99,12 @@ public class Traits extends ValueMap {
    */
   public Traits() {
     // Public Constructor
+  }
+
+  /** The returned instance is thread safe in that it is immutable. */
+  Traits unmodifiableCopy() {
+    LinkedHashMap<String, Object> map = new LinkedHashMap<>(this);
+    return new Traits(unmodifiableMap(map));
   }
 
   /**
@@ -253,5 +251,16 @@ public class Traits extends ValueMap {
   @Override public Traits putValue(String key, Object value) {
     super.putValue(key, value);
     return this;
+  }
+
+  static class Cache extends ValueMap.Cache<Traits> {
+    Cache(Context context, String key, Class<Traits> clazz) {
+      super(context, key, clazz);
+    }
+
+    @Override Traits create(Map<String, Object> map) {
+      // Analytics client can be called on any thread, so this instance is thread safe.
+      return new Traits(new NullableConcurrentHashMap<>(map));
+    }
   }
 }

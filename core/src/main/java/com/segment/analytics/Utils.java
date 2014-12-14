@@ -89,8 +89,7 @@ final class Utils {
 
   /** Returns true if the string is null, or empty (once trimmed). */
   static boolean isNullOrEmpty(String text) {
-    // use getTrimmedLength to avoid allocating an extra string object
-    return TextUtils.isEmpty(text) || TextUtils.getTrimmedLength(text) == 0;
+    return TextUtils.isEmpty(text) || text.trim().length() == 0;
   }
 
   /** Returns true if the collection or has a size 0. */

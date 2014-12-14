@@ -95,7 +95,7 @@ public class Analytics {
   final IntegrationManager integrationManager;
   final Segment segment;
   final Stats stats;
-  final ValueMap.Cache<Traits> traitsCache;
+  final Traits.Cache traitsCache;
   final AnalyticsContext analyticsContext;
   final Options defaultOptions;
   final Logger logger;
@@ -191,7 +191,7 @@ public class Analytics {
   }
 
   Analytics(Application application, IntegrationManager integrationManager, Segment segment,
-      Stats stats, ValueMap.Cache<Traits> traitsCache, AnalyticsContext analyticsContext,
+      Stats stats, Traits.Cache traitsCache, AnalyticsContext analyticsContext,
       Options defaultOptions, Logger logger, boolean debuggingEnabled) {
     this.application = application;
     this.integrationManager = integrationManager;
@@ -289,7 +289,7 @@ public class Analytics {
       Traits traits = traitsCache.get();
       traits.putAll(newTraits);
       traitsCache.set(traits);
-      analyticsContext.putTraits(traits);
+      analyticsContext.setTraits(traits);
     }
 
     BasePayload payload = new IdentifyPayload(traitsCache.get().anonymousId(), analyticsContext,
@@ -327,7 +327,7 @@ public class Analytics {
       Traits traits = traitsCache.get();
       traits.putAll(newTraits);
       traitsCache.set(traits);
-      analyticsContext.putTraits(traits);
+      analyticsContext.setTraits(traits);
     }
     if (options == null) {
       options = defaultOptions;
@@ -478,8 +478,8 @@ public class Analytics {
   /** Clear any information, including traits and user id about the current user. */
   public void logout() {
     traitsCache.delete();
-    traitsCache.set(new Traits(application));
-    analyticsContext.putTraits(traitsCache.get());
+    traitsCache.set(Traits.create(application));
+    analyticsContext.setTraits(traitsCache.get());
   }
 
   /** Stops this instance from accepting further requests. */
@@ -699,11 +699,10 @@ public class Analytics {
       Segment segment = Segment.create(application, queueSize, flushInterval, segmentHTTPApi,
           integrationManager.bundledIntegrations, tag, stats, logger);
 
-      ValueMap.Cache<Traits> traitsCache =
-          new ValueMap.Cache<>(application, TRAITS_CACHE_PREFIX + tag, Traits.class);
+      Traits.Cache traitsCache =
+          new Traits.Cache(application, TRAITS_CACHE_PREFIX + tag, Traits.class);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
-        Traits traits = new Traits(application);
-        traitsCache.set(traits);
+        traitsCache.set(Traits.create(application));
       }
       AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
 

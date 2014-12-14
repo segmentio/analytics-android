@@ -162,7 +162,7 @@ public class AnalyticsContext extends ValueMap {
     putScreen(context);
     put(USER_AGENT_KEY, System.getProperty("http.agent"));
     put(TIMEZONE_KEY, TimeZone.getDefault().getID());
-    putTraits(traits);
+    setTraits(traits);
   }
 
   // Used to create copies
@@ -193,7 +193,7 @@ public class AnalyticsContext extends ValueMap {
     }
   }
 
-  void putTraits(Traits traits) {
+  void setTraits(Traits traits) {
     put(TRAITS_KEY, traits.unmodifiableCopy()); // copy
   }
 

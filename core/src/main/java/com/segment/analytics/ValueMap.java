@@ -342,8 +342,7 @@ class ValueMap implements Map<String, Object> {
         }
         try {
           Map<String, Object> map = JsonUtils.jsonToMap(json);
-          // todo: offload this to a method, so it can subclassed and skip reflection
-          value = ValueMap.createValueMap(map, clazz);
+          value = create(map);
         } catch (IOException ignored) {
           // todo: log
           return null;
@@ -354,6 +353,10 @@ class ValueMap implements Map<String, Object> {
 
     boolean isSet() {
       return preferences.contains(key);
+    }
+
+    T create(Map<String, Object> map) {
+      return ValueMap.createValueMap(map, clazz);
     }
 
     void set(T value) {
