@@ -170,9 +170,8 @@ public class AnalyticsContext extends ValueMap {
     super(delegate);
   }
 
-  /** The returned instance is thread safe in that it is immutable. */
   AnalyticsContext unmodifiableCopy() {
-    LinkedHashMap<String, Object> map = new LinkedHashMap<>(this);
+    LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(this);
     return new AnalyticsContext(unmodifiableMap(map));
   }
 

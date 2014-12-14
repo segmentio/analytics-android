@@ -101,9 +101,8 @@ public class Traits extends ValueMap {
     // Public Constructor
   }
 
-  /** The returned instance is thread safe in that it is immutable. */
   Traits unmodifiableCopy() {
-    LinkedHashMap<String, Object> map = new LinkedHashMap<>(this);
+    LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(this);
     return new Traits(unmodifiableMap(map));
   }
 
@@ -260,7 +259,7 @@ public class Traits extends ValueMap {
 
     @Override Traits create(Map<String, Object> map) {
       // Analytics client can be called on any thread, so this instance is thread safe.
-      return new Traits(new NullableConcurrentHashMap<>(map));
+      return new Traits(new NullableConcurrentHashMap<String, Object>(map));
     }
   }
 }
