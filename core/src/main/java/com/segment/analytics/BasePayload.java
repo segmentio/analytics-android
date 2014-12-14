@@ -85,7 +85,7 @@ abstract class BasePayload extends ValueMap implements IntegrationManager.Integr
     put(TYPE_KEY, type);
     put(CHANNEL_KEY, Channel.mobile);
     put(ANONYMOUS_ID_KEY, anonymousId);
-    put(CONTEXT_KEY, context);
+    put(CONTEXT_KEY, context.unmodifiableCopy());
     put(USER_ID_KEY, userId);
     put(TIMESTAMP_KEY, options.timestamp() == null ? toISO8601Date(new Date())
         : toISO8601Date(options.timestamp()));

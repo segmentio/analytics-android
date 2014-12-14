@@ -145,9 +145,10 @@ public class ValueMapRobolectricTest {
 
     try {
       settings.getAmplitudeSettings();
-    } catch (AssertionError error) {
-      assertThat(error).hasMessage(
-          "Could not create instance of com.segment.analytics.ValueMapRobolectricTest.AmplitudeSettings");
+    } catch (RuntimeException exception) {
+      assertThat(exception) //
+          .hasMessage("Could not create instance of "
+              + "com.segment.analytics.ValueMapRobolectricTest.AmplitudeSettings");
     }
   }
 

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -260,9 +259,7 @@ class ValueMap implements Map<String, Object> {
    */
   <T extends ValueMap> T getValueMap(String key, Class<T> clazz) {
     Object value = get(key);
-    T typedValue = coerceToValueMap(value, clazz);
-    if (typedValue != null) put(key, typedValue);
-    return typedValue;
+    return coerceToValueMap(value, clazz);
   }
 
   /**
@@ -271,12 +268,9 @@ class ValueMap implements Map<String, Object> {
    * reflection.
    */
   private <T extends ValueMap> T coerceToValueMap(Object object, Class<T> clazz) {
-    if (clazz.isInstance(object)) {
-      //noinspection unchecked
-      return (T) object;
-    } else if (object instanceof Map) {
-      return createValueMap((Map) object, clazz);
-    }
+    if (object == null) return null;
+    if (clazz.isInstance(object)) return (T) object;
+    if (object instanceof Map) return createValueMap((Map) object, clazz);
     return null;
   }
 
@@ -285,12 +279,9 @@ class ValueMap implements Map<String, Object> {
       Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
       constructor.setAccessible(true);
       return constructor.newInstance(map);
-    } catch (NoSuchMethodException ignored) {
-    } catch (InvocationTargetException ignored) {
-    } catch (InstantiationException ignored) {
-    } catch (IllegalAccessException ignored) {
+    } catch (Exception e) {
+      throw new RuntimeException("Could not create instance of " + clazz.getCanonicalName(), e);
     }
-    throw new AssertionError("Could not create instance of " + clazz.getCanonicalName());
   }
 
   /**

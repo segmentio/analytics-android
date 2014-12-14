@@ -34,6 +34,7 @@ import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
@@ -50,6 +51,7 @@ import static com.segment.analytics.Utils.getDeviceId;
 import static com.segment.analytics.Utils.getSystemService;
 import static com.segment.analytics.Utils.hasPermission;
 import static com.segment.analytics.Utils.isOnClassPath;
+import static java.util.Collections.unmodifiableMap;
 
 /**
  * Context is a dictionary of free-form information about a the state of the device. Context is
@@ -144,6 +146,7 @@ public class AnalyticsContext extends ValueMap {
     }
   }
 
+  /** The {@link Analytics} client can be called from anywhere, so this needs to be thread safe. */
   AnalyticsContext(Context context, Traits traits) {
     super(new NullableConcurrentHashMap<String, Object>());
     if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
@@ -162,12 +165,16 @@ public class AnalyticsContext extends ValueMap {
     putTraits(traits);
   }
 
-  /**
-  // For deserialization
-  AnalyticsContext(Map<String, Object> delegate) {
+  // Used to create copies
+  private AnalyticsContext(Map<String, Object> delegate) {
     super(delegate);
   }
-  */
+
+  /** The returned instance is thread safe in that it is immutable. */
+  AnalyticsContext unmodifiableCopy() {
+    LinkedHashMap<String, Object> map = new LinkedHashMap<>(this);
+    return new AnalyticsContext(unmodifiableMap(map));
+  }
 
   void putApp(Context context) {
     try {
@@ -187,10 +194,7 @@ public class AnalyticsContext extends ValueMap {
   }
 
   void putTraits(Traits traits) {
-    // copy the traits
-    Traits copy = new Traits();
-    copy.putAll(traits);
-    put(TRAITS_KEY, copy);
+    put(TRAITS_KEY, traits.unmodifiableCopy()); // copy
   }
 
   public AnalyticsContext putCampaign(String name, String source, String medium, String term,

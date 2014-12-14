@@ -152,7 +152,7 @@ class SegmentHTTPApi {
     };
   }
 
-  // An entity that writes to an output stream
+  /** An entity that writes to an {@link OutputStream}. */
   interface StreamWriter {
     void write(OutputStream outputStream) throws IOException;
   }

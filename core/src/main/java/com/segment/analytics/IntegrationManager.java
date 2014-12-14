@@ -189,7 +189,8 @@ class IntegrationManager {
     if (!isNullOrEmpty(operationQueue)) {
       Iterator<IntegrationOperation> operationIterator = operationQueue.iterator();
       while (operationIterator.hasNext()) {
-        run(operationIterator.next());
+        IntegrationOperation operation = operationIterator.next();
+        run(operation);
         operationIterator.remove();
       }
     }

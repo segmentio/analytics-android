@@ -26,12 +26,15 @@ package com.segment.analytics;
 
 import android.content.Context;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.segment.analytics.Utils.NullableConcurrentHashMap;
 import static com.segment.analytics.Utils.createMap;
 import static com.segment.analytics.Utils.isNullOrEmpty;
 import static com.segment.analytics.Utils.toISO8601Date;
+import static java.util.Collections.unmodifiableMap;
 
 /**
  * A class representing information about a user.
@@ -72,17 +75,36 @@ public class Traits extends ValueMap {
   private static final String EMPLOYEES_KEY = "employees";
   private static final String INDUSTRY_KEY = "industry";
 
+  /**
+   * Create a new Traits instance. Analytics client can be called on any thread, so this instance
+   * is thread safe.
+   */
   Traits(Context context) {
+    super(new NullableConcurrentHashMap<String, Object>());
     String id = UUID.randomUUID().toString(); // only done when creating a new traits object
     putUserId(id);
     putAnonymousId(id);
   }
 
-  // For deserialization
-  Traits(Map<String, Object> delegate) {
-    super(delegate);
+  /**
+   * For deserialization from disk by {@link ValueMap.Cache}. Analytics client can be called on any
+   * thread, so this instance is thread safe.
+   */
+  private Traits(Map<String, Object> delegate) {
+    super(new NullableConcurrentHashMap<String, Object>(delegate));
   }
 
+  /** The returned instance is thread safe in that it is immutable. */
+  Traits unmodifiableCopy() {
+    LinkedHashMap<String, Object> map = new LinkedHashMap<>(this);
+    return new Traits(unmodifiableMap(map));
+  }
+
+  /**
+   * This instance is not thread safe. {@link Traits} are  meant to be attached to a single call
+   * and discarded. If the client is keeping a reference to a {@link Traits} instance that may be
+   * accessed by multiple threads, they should synchronize access to this instance.
+   */
   public Traits() {
     // Public Constructor
   }
