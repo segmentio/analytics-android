@@ -27,6 +27,8 @@ package com.segment.analytics;
 import java.io.IOException;
 import java.util.Map;
 
+import static java.util.Collections.unmodifiableMap;
+
 class ProjectSettings extends ValueMap {
   private static final String TIMESTAMP_KEY = "timestamp";
 
@@ -39,7 +41,7 @@ class ProjectSettings extends ValueMap {
 
   // for deserialization
   private ProjectSettings(Map<String, Object> map) {
-    super(map);
+    super(unmodifiableMap(map));
   }
 
   long timestamp() {
