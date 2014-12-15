@@ -30,6 +30,20 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
 class ValueMap implements Map<String, Object> {
   private final Map<String, Object> delegate;
 
+  /**
+   * Uses reflection to create an instance of a subclass of {@link ValueMap} as long it declares a
+   * map constructor.
+   */
+  private static <T extends ValueMap> T createValueMap(Map map, Class<T> clazz) {
+    try {
+      Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
+      constructor.setAccessible(true);
+      return constructor.newInstance(map);
+    } catch (Exception e) {
+      throw new RuntimeException("Could not create instance of " + clazz.getCanonicalName(), e);
+    }
+  }
+
   ValueMap() {
     delegate = new LinkedHashMap<String, Object>();
   }
@@ -272,16 +286,6 @@ class ValueMap implements Map<String, Object> {
     if (clazz.isInstance(object)) return (T) object;
     if (object instanceof Map) return createValueMap((Map) object, clazz);
     return null;
-  }
-
-  private static <T extends ValueMap> T createValueMap(Map map, Class<T> clazz) {
-    try {
-      Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
-      constructor.setAccessible(true);
-      return constructor.newInstance(map);
-    } catch (Exception e) {
-      throw new RuntimeException("Could not create instance of " + clazz.getCanonicalName(), e);
-    }
   }
 
   /**

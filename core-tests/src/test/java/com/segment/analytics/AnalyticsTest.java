@@ -21,7 +21,7 @@ import static org.mockito.MockitoAnnotations.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class AnalyticsRobolectricTest {
+public class AnalyticsTest {
   Application application;
   @Mock IntegrationManager integrationManager;
   @Mock Segment segment;

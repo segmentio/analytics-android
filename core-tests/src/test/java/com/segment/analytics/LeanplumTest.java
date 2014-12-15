@@ -30,7 +30,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(Leanplum.class)
-public class LeanplumRobolectricTest extends AbstractIntegrationTest {
+public class LeanplumTest extends AbstractIntegrationTestCase {
   @Rule public PowerMockRule rule = new PowerMockRule();
   LeanplumIntegration integration;
   LeanplumActivityHelper leanplumActivityHelper;

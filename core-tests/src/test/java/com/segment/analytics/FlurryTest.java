@@ -2,15 +2,19 @@ package com.segment.analytics;
 
 import android.app.Activity;
 import android.os.Bundle;
-import com.bugsnag.android.Bugsnag;
+import com.flurry.android.Constants;
+import com.flurry.android.FlurryAgent;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.rule.PowerMockRule;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -19,69 +23,74 @@ import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
 import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
 import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
 import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
-@PrepareForTest(Bugsnag.class)
-public class BugsnagRobolectricTest extends AbstractIntegrationTest {
+@PrepareForTest(FlurryAgent.class)
+public class FlurryTest extends AbstractIntegrationTestCase {
+  final String apiKey = "foo";
   @Rule public PowerMockRule rule = new PowerMockRule();
-  BugsnagIntegration integration;
+  FlurryIntegration integration;
 
   @Before @Override public void setUp() {
     super.setUp();
-    PowerMockito.mockStatic(Bugsnag.class);
-    integration = new BugsnagIntegration();
+    PowerMockito.mockStatic(FlurryAgent.class);
+    integration = new FlurryIntegration();
+    integration.apiKey = apiKey;
   }
 
   @Test @Override public void initialize() throws IllegalStateException {
-    integration.initialize(context,
-        new ValueMap().putValue("apiKey", "foo").putValue("useSSL", true), true);
+    integration.initialize(context, //
+        new ValueMap().putValue("apiKey", apiKey)
+            .putValue("sessionContinueSeconds", 20)
+            .putValue("captureUncaughtExceptions", true)
+            .putValue("useHttps", false), true);
     verifyStatic();
-    Bugsnag.register(context, "foo");
-    Bugsnag.setUseSSL(true);
+    FlurryAgent.setContinueSessionMillis(20000);
+    verifyStatic();
+    FlurryAgent.setCaptureUncaughtExceptions(true);
+    verifyStatic();
+    FlurryAgent.setUseHttps(false);
   }
 
   @Test @Override public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
-    when(activity.getLocalClassName()).thenReturn("foo");
     integration.onActivityCreated(activity, bundle);
     verifyStatic();
-    Bugsnag.setContext("foo");
-    verifyStatic();
-    Bugsnag.onActivityCreate(activity);
+    verifyNoMoreInteractions(FlurryAgent.class);
   }
 
   @Test @Override public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
     verifyStatic();
-    verifyNoMoreInteractions(Bugsnag.class);
+    FlurryAgent.onStartSession(activity, apiKey);
   }
 
   @Test @Override public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
     verifyStatic();
-    Bugsnag.onActivityResume(activity);
+    verifyNoMoreInteractions(FlurryAgent.class);
   }
 
   @Test @Override public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
     verifyStatic();
-    Bugsnag.onActivityPause(activity);
+    verifyNoMoreInteractions(FlurryAgent.class);
   }
 
   @Test @Override public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
     verifyStatic();
-    verifyNoMoreInteractions(Bugsnag.class);
+    FlurryAgent.onEndSession(activity);
   }
 
   @Test @Override public void activitySaveInstance() {
@@ -89,56 +98,72 @@ public class BugsnagRobolectricTest extends AbstractIntegrationTest {
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
     verifyStatic();
-    verifyNoMoreInteractions(Bugsnag.class);
+    verifyNoMoreInteractions(FlurryAgent.class);
   }
 
   @Test @Override public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
     verifyStatic();
-    Bugsnag.onActivityDestroy(activity);
-  }
-
-  @Test @Override public void identify() {
-    Traits traits = new Traits().putUserId("foo").putEmail("bar").putName("baz");
-    integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
-    verifyStatic();
-    Bugsnag.setUser("foo", "bar", "baz");
-    verifyStatic();
-    Bugsnag.addToTab("User", "userId", "foo");
-    verifyStatic();
-    Bugsnag.addToTab("User", "email", "bar");
-    verifyStatic();
-    Bugsnag.addToTab("User", "name", "baz");
-  }
-
-  @Test @Override public void group() {
-    integration.group(new GroupPayloadBuilder().build());
-    verifyStatic();
-    verifyNoMoreInteractions(Bugsnag.class);
-  }
-
-  @Test @Override public void track() {
-    integration.track(new TrackPayloadBuilder().build());
-    verifyStatic();
-    verifyNoMoreInteractions(Bugsnag.class);
-  }
-
-  @Test @Override public void alias() {
-    integration.alias(new AliasPayloadBuilder().build());
-    verifyStatic();
-    verifyNoMoreInteractions(Bugsnag.class);
+    verifyNoMoreInteractions(FlurryAgent.class);
   }
 
   @Test @Override public void screen() {
-    integration.screen(new ScreenPayloadBuilder().build());
+    integration.screen(new ScreenPayloadBuilder().name("foo").category("bar").build());
     verifyStatic();
-    verifyNoMoreInteractions(Bugsnag.class);
+    FlurryAgent.onPageView();
+    verifyStatic();
+    FlurryAgent.logEvent(eq("foo"), Matchers.<Map<String, String>>any());
   }
 
   @Test @Override public void flush() {
     integration.flush();
     verifyStatic();
-    verifyNoMoreInteractions(Bugsnag.class);
+    verifyNoMoreInteractions(FlurryAgent.class);
+  }
+
+  @Test @Override public void track() {
+    integration.track(new TrackPayloadBuilder().event("bar").build());
+    verifyStatic();
+    FlurryAgent.logEvent(eq("bar"), Matchers.<Map<String, String>>any());
+  }
+
+  @Test @Override public void alias() {
+    integration.alias(new AliasPayloadBuilder().build());
+    verifyStatic();
+    verifyNoMoreInteractions(FlurryAgent.class);
+  }
+
+  @Test @Override public void identify() {
+    integration.identify(
+        new IdentifyPayloadBuilder().traits(new Traits().putUserId("foo")).build());
+    verifyStatic();
+    FlurryAgent.setUserId("foo");
+    verifyStatic();
+    verifyNoMoreInteractions(FlurryAgent.class);
+  }
+
+  @Test public void identifyWithTraits() {
+    Traits traits = new Traits().putAge(20).putGender("f").putUserId("bar");
+    AnalyticsContext analyticsContext =
+        new AnalyticsContext(Robolectric.application, traits).putLocation(20, 20, 20);
+    integration.identify(
+        new IdentifyPayloadBuilder().traits(traits).context(analyticsContext).build());
+    verifyStatic();
+    FlurryAgent.setUserId("bar");
+    verifyStatic();
+    FlurryAgent.setAge(20);
+    verifyStatic();
+    FlurryAgent.setGender(Constants.FEMALE);
+    verifyStatic();
+    FlurryAgent.setLocation(20, 20);
+    verifyStatic();
+    verifyNoMoreInteractions(FlurryAgent.class);
+  }
+
+  @Test @Override public void group() {
+    integration.group(new GroupPayloadBuilder().build());
+    verifyStatic();
+    verifyNoMoreInteractions(FlurryAgent.class);
   }
 }

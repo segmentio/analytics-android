@@ -23,7 +23,7 @@ repositories.addAll(core.repositories)
 
 tasks.withType(Test) {
   scanForTestClasses = false
-  include "**/*RobolectricTest.class"
+  include "**/*Test.class"
 }
 
 test {

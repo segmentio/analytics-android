@@ -22,7 +22,7 @@ import static org.mockito.MockitoAnnotations.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class IntegrationManagerRobolectricTest {
+public class IntegrationManagerTest {
 
   IntegrationManager integrationManager;
 

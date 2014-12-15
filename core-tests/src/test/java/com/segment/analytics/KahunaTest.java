@@ -31,7 +31,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(KahunaAnalytics.class)
-public class KahunaRobolectricTest extends AbstractIntegrationTest {
+public class KahunaTest extends AbstractIntegrationTestCase {
   @Rule public PowerMockRule rule = new PowerMockRule();
 
   KahunaIntegration integration;
@@ -131,7 +131,8 @@ public class KahunaRobolectricTest extends AbstractIntegrationTest {
   }
 
   @Test @Override public void identify() {
-    integration.identify(new IdentifyPayloadBuilder().userId("foo").build());
+    integration.identify(
+        new IdentifyPayloadBuilder().traits(new Traits().putUserId("foo")).build());
     verifyStatic();
     KahunaAnalytics.setUsernameAndEmail("foo", null);
     KahunaAnalytics.setUserCredential(USERNAME_KEY, null);

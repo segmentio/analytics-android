@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class SegmentHTTPApiRobolectricTest {
+public class SegmentHTTPApiTest {
 
   @Mock SegmentHTTPApi.HttpURLConnectionFactory factory;
   SegmentHTTPApi segmentHTTPApi;

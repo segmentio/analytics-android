@@ -22,7 +22,7 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.TapstreamRobolectricTest.EventMatcher.eventEq;
+import static com.segment.analytics.TapstreamTest.EventMatcher.eventEq;
 import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
 import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
 import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
@@ -41,7 +41,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(Tapstream.class)
-public class TapstreamRobolectricTest extends AbstractIntegrationTest {
+public class TapstreamTest extends AbstractIntegrationTestCase {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Mock Tapstream tapstream;
   @Mock com.tapstream.sdk.Config config;
@@ -175,9 +175,9 @@ public class TapstreamRobolectricTest extends AbstractIntegrationTest {
   @Test @Override public void identify() {
     Map<String, Object> emptyParams = new HashMap<String, Object>();
     config.globalEventParams = emptyParams;
-    integration.identify(new IdentifyPayloadBuilder().userId("foo").build());
-    // anonymousId is set automatically as well in the builder
-    assertThat(emptyParams).hasSize(2).contains(MapEntry.entry("userId", "foo"));
+    integration.identify(new IdentifyPayloadBuilder() //
+        .traits(new Traits().putUserId("foo")).build());
+    assertThat(emptyParams).hasSize(1).contains(MapEntry.entry("userId", "foo"));
 
     Map<String, Object> map = new HashMap<String, Object>();
     config.globalEventParams = map;

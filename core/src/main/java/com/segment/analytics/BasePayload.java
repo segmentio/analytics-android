@@ -43,9 +43,8 @@ abstract class BasePayload extends ValueMap implements IntegrationManager.Integr
   /**
    * The anonymous ID is an identifier that uniquely (or close enough) identifies the user, but
    * isn't from your database. This is useful in cases where you are able to uniquely identifier
-   * the
-   * user between visits before they signup thanks to a cookie, or session ID or device ID. In our
-   * mobile and browser libraries we will automatically handle sending the anonymous ID.
+   * the user between visits before they signup thanks to a cookie, or session ID or device ID. In
+   * our mobile and browser libraries we will automatically handle sending the anonymous ID.
    */
   private static final String ANONYMOUS_ID_KEY = "anonymousId";
   /**
@@ -79,14 +78,14 @@ abstract class BasePayload extends ValueMap implements IntegrationManager.Integr
    */
   private static final String USER_ID_KEY = "userId";
 
-  BasePayload(Type type, String anonymousId, AnalyticsContext context, String userId,
-      Options options) {
+  BasePayload(Type type, AnalyticsContext context, Options options) {
+    AnalyticsContext contextCopy = context.unmodifiableCopy();
     put(MESSAGE_ID, UUID.randomUUID().toString());
     put(TYPE_KEY, type);
     put(CHANNEL_KEY, Channel.mobile);
-    put(ANONYMOUS_ID_KEY, anonymousId);
-    put(CONTEXT_KEY, context.unmodifiableCopy());
-    put(USER_ID_KEY, userId);
+    put(CONTEXT_KEY, contextCopy);
+    put(ANONYMOUS_ID_KEY, contextCopy.traits().anonymousId());
+    put(USER_ID_KEY, contextCopy.traits().userId());
     put(TIMESTAMP_KEY, options.timestamp() == null ? toISO8601Date(new Date())
         : toISO8601Date(options.timestamp()));
     put(INTEGRATIONS_KEY, new LinkedHashMap<String, Boolean>(options.integrations())); // copy
@@ -117,7 +116,7 @@ abstract class BasePayload extends ValueMap implements IntegrationManager.Integr
     return getString(MESSAGE_ID);
   }
 
-  boolean isIntegrationEnabledInPayload(AbstractIntegration integration) {
+  final boolean isIntegrationEnabledInPayload(AbstractIntegration integration) {
     boolean enabled = true;
     ValueMap integrations = integrations();
     String key = integration.key();
@@ -135,7 +134,7 @@ abstract class BasePayload extends ValueMap implements IntegrationManager.Integr
   }
 
   /** @see #CHANNEL_KEY */
-  private enum Channel {
+  enum Channel {
     browser, mobile, server
   }
 }

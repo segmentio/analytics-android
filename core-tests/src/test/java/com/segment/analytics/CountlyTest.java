@@ -2,16 +2,14 @@ package com.segment.analytics;
 
 import android.app.Activity;
 import android.os.Bundle;
+import java.util.HashMap;
+import ly.count.android.api.Countly;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.AppsFlyerIntegration.AppsFlyer;
-import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
-import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
-import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
 import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
 import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,101 +19,109 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.Mock;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class AppsFlyerRobolectricTest extends AbstractIntegrationTest {
-  AppsFlyerIntegration integration;
-  @Mock AppsFlyer appsFlyer;
+public class CountlyTest extends AbstractIntegrationTestCase {
+  @Mock Countly countly;
+  CountlyIntegration integration;
 
-  @Before public void setUp() {
+  @Before @Override public void setUp() {
     super.setUp();
-    integration = new AppsFlyerIntegration(appsFlyer);
-    integration.context = context;
+    integration = new CountlyIntegration();
+    integration.countly = countly;
+    assertThat(integration.getUnderlyingInstance()).isNotNull().isEqualTo(countly);
   }
 
   @Test @Override public void initialize() throws IllegalStateException {
-    AppsFlyerIntegration integration = new AppsFlyerIntegration(appsFlyer);
-    integration.initialize(context,
-        new ValueMap().putValue("appsFlyerDevKey", "foo").putValue("httpFallback", true), true);
-    verify(appsFlyer).setAppsFlyerKey("foo");
-    verify(appsFlyer).setUseHTTPFallback(true);
-    assertThat(integration.context).isEqualTo(context);
+    try {
+      integration.initialize(context,
+          new ValueMap().putValue("serverUrl", "foo").putValue("appKey", "bar"), true);
+    } catch (NullPointerException ignored) {
+      // an NPE occurs in Countly's SDK, but we only need to verify that we did indeed call the SDK
+      // correctly
+      // http://pastebin.com/jHRZyhr7
+    }
   }
 
   @Test @Override public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
-    verifyNoMoreInteractions(appsFlyer);
+    verifyNoMoreInteractions(countly);
   }
 
   @Test @Override public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
-    verifyNoMoreInteractions(appsFlyer);
+    verify(countly).onStart();
   }
 
   @Test @Override public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
-    verifyNoMoreInteractions(appsFlyer);
+    verifyNoMoreInteractions(countly);
   }
 
   @Test @Override public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
-    verifyNoMoreInteractions(appsFlyer);
+    verifyNoMoreInteractions(countly);
   }
 
   @Test @Override public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
-    verifyNoMoreInteractions(appsFlyer);
+    verify(countly).onStop();
   }
 
   @Test @Override public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
-    verifyNoMoreInteractions(appsFlyer);
+    verifyNoMoreInteractions(countly);
   }
 
   @Test @Override public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
-    verifyNoMoreInteractions(appsFlyer);
+    verifyNoMoreInteractions(countly);
   }
 
   @Test @Override public void identify() {
-    Traits traits = new Traits().putUserId("foo").putEmail("bar");
-    integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
-    verify(appsFlyer).setAppUserId("foo");
-    verify(appsFlyer).setUserEmail("bar");
+    integration.identify(mock(IdentifyPayload.class));
+    verifyNoMoreInteractions(countly);
   }
 
   @Test @Override public void group() {
-    integration.group(new GroupPayloadBuilder().build());
-    verifyNoMoreInteractions(appsFlyer);
+    integration.group(mock(GroupPayload.class));
+    verifyNoMoreInteractions(countly);
   }
 
   @Test @Override public void track() {
-    Properties properties = new Properties().putCurrency("foo").putValue(20);
-    integration.track(new TrackPayloadBuilder().properties(properties).event("baz").build());
-    verify(appsFlyer).setCurrencyCode("foo");
-    verify(appsFlyer).sendTrackingWithEvent(context, "baz", "20.0");
-    verifyNoMoreInteractions(appsFlyer);
+    integration.track(new TrackPayloadBuilder() //
+        .event("foo") //
+        .build());
+    verify(countly).recordEvent("foo", new HashMap<String, String>(), 1, 0.0);
+
+    Properties properties = new Properties().putValue("count", 10).putValue("sum", 20);
+    integration.track(new TrackPayloadBuilder().event("bar").properties(properties).build());
+    verify(countly).recordEvent("bar", properties.toStringMap(), 10, 20);
   }
 
   @Test @Override public void alias() {
-    integration.alias(new AliasPayloadBuilder().build());
-    verifyNoMoreInteractions(appsFlyer);
+    integration.alias(mock(AliasPayload.class));
+    verifyNoMoreInteractions(countly);
   }
 
   @Test @Override public void screen() {
-    integration.screen(new ScreenPayloadBuilder().build());
-    verifyNoMoreInteractions(appsFlyer);
+    integration.screen(new ScreenPayloadBuilder().category("foo").build());
+    verify(countly).recordEvent("Viewed foo Screen", new HashMap<String, String>(), 1, 0.0);
+
+    Properties properties = new Properties().putValue("count", 10).putValue("sum", 20);
+    integration.screen(new ScreenPayloadBuilder().name("bar").properties(properties).build());
+    verify(countly).recordEvent("Viewed bar Screen", properties.toStringMap(), 10, 20.0);
   }
 
   @Test @Override public void flush() {
     integration.flush();
-    verifyNoMoreInteractions(appsFlyer);
+    verifyNoMoreInteractions(countly);
   }
 }

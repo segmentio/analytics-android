@@ -253,6 +253,14 @@ public class Traits extends ValueMap {
     return this;
   }
 
+  @Override public String toString() {
+    try {
+      return "Traits" + JsonUtils.mapToJson(this);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   static class Cache extends ValueMap.Cache<Traits> {
     Cache(Context context, String key, Class<Traits> clazz) {
       super(context, key, clazz);
@@ -261,14 +269,6 @@ public class Traits extends ValueMap {
     @Override Traits create(Map<String, Object> map) {
       // Analytics client can be called on any thread, so this instance is thread safe.
       return new Traits(new NullableConcurrentHashMap<String, Object>(map));
-    }
-  }
-
-  @Override public String toString() {
-    try {
-      return "Traits" + JsonUtils.mapToJson(this);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     }
   }
 }

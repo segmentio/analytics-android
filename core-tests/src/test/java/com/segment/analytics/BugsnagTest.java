@@ -2,7 +2,7 @@ package com.segment.analytics;
 
 import android.app.Activity;
 import android.os.Bundle;
-import com.quantcast.measurement.service.QuantcastClient;
+import com.bugsnag.android.Bugsnag;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,122 +20,125 @@ import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
 import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
 import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
-@PrepareForTest(QuantcastClient.class)
-public class QuantcastRobolectricTest extends AbstractIntegrationTest {
+@PrepareForTest(Bugsnag.class)
+public class BugsnagTest extends AbstractIntegrationTestCase {
   @Rule public PowerMockRule rule = new PowerMockRule();
-  QuantcastIntegration integration;
+  BugsnagIntegration integration;
 
   @Before @Override public void setUp() {
     super.setUp();
-    PowerMockito.mockStatic(QuantcastClient.class);
-    integration = new QuantcastIntegration();
-    integration.apiKey = "foo";
+    PowerMockito.mockStatic(Bugsnag.class);
+    integration = new BugsnagIntegration();
   }
 
-  @Test public void initialize() throws IllegalStateException {
-    integration.initialize(context, new ValueMap().putValue("apiKey", "foo"), false);
+  @Test @Override public void initialize() throws IllegalStateException {
+    integration.initialize(context,
+        new ValueMap().putValue("apiKey", "foo").putValue("useSSL", true), true);
     verifyStatic();
-    QuantcastClient.enableLogging(false);
-    verifyNoMoreInteractions(QuantcastClient.class);
-  }
-
-  @Test public void initializeWithDebugging() throws IllegalStateException {
-    integration.initialize(context, new ValueMap().putValue("apiKey", "foo"), true);
-    verifyStatic();
-    QuantcastClient.enableLogging(true);
-    verifyNoMoreInteractions(QuantcastClient.class);
+    Bugsnag.register(context, "foo");
+    Bugsnag.setUseSSL(true);
   }
 
   @Test @Override public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
+    when(activity.getLocalClassName()).thenReturn("foo");
     integration.onActivityCreated(activity, bundle);
-    verifyNoMoreInteractions(QuantcastClient.class);
+    verifyStatic();
+    Bugsnag.setContext("foo");
+    verifyStatic();
+    Bugsnag.onActivityCreate(activity);
   }
 
   @Test @Override public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
     verifyStatic();
-    QuantcastClient.activityStart(activity, "foo", null, null);
-    verifyNoMoreInteractions(QuantcastClient.class);
+    verifyNoMoreInteractions(Bugsnag.class);
   }
 
   @Test @Override public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
-    verifyNoMoreInteractions(QuantcastClient.class);
+    verifyStatic();
+    Bugsnag.onActivityResume(activity);
   }
 
   @Test @Override public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
-    verifyNoMoreInteractions(QuantcastClient.class);
+    verifyStatic();
+    Bugsnag.onActivityPause(activity);
   }
 
   @Test @Override public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
     verifyStatic();
-    QuantcastClient.activityStop();
-    verifyNoMoreInteractions(QuantcastClient.class);
+    verifyNoMoreInteractions(Bugsnag.class);
   }
 
   @Test @Override public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
-    verifyNoMoreInteractions(QuantcastClient.class);
+    verifyStatic();
+    verifyNoMoreInteractions(Bugsnag.class);
   }
 
   @Test @Override public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
-    verifyNoMoreInteractions(QuantcastClient.class);
+    verifyStatic();
+    Bugsnag.onActivityDestroy(activity);
   }
 
   @Test @Override public void identify() {
-    integration.identify(new IdentifyPayloadBuilder().userId("bar").build());
+    Traits traits = new Traits().putUserId("foo").putEmail("bar").putName("baz");
+    integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verifyStatic();
-    QuantcastClient.recordUserIdentifier("bar");
-    verifyNoMoreInteractions(QuantcastClient.class);
+    Bugsnag.setUser("foo", "bar", "baz");
+    verifyStatic();
+    Bugsnag.addToTab("User", "userId", "foo");
+    verifyStatic();
+    Bugsnag.addToTab("User", "email", "bar");
+    verifyStatic();
+    Bugsnag.addToTab("User", "name", "baz");
   }
 
   @Test @Override public void group() {
     integration.group(new GroupPayloadBuilder().build());
-    verifyNoMoreInteractions(QuantcastClient.class);
+    verifyStatic();
+    verifyNoMoreInteractions(Bugsnag.class);
   }
 
   @Test @Override public void track() {
-    integration.track(new TrackPayloadBuilder().event("bar").build());
+    integration.track(new TrackPayloadBuilder().build());
     verifyStatic();
-    QuantcastClient.logEvent("bar");
-    verifyNoMoreInteractions(QuantcastClient.class);
+    verifyNoMoreInteractions(Bugsnag.class);
   }
 
   @Test @Override public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
-    verifyNoMoreInteractions(QuantcastClient.class);
+    verifyStatic();
+    verifyNoMoreInteractions(Bugsnag.class);
   }
 
   @Test @Override public void screen() {
-    integration.screen(new ScreenPayloadBuilder().category("bar").build());
+    integration.screen(new ScreenPayloadBuilder().build());
     verifyStatic();
-    QuantcastClient.logEvent("Viewed bar Screen");
-
-    integration.screen(new ScreenPayloadBuilder().name("baz").build());
-    verifyStatic();
-    QuantcastClient.logEvent("Viewed baz Screen");
-    verifyNoMoreInteractions(QuantcastClient.class);
+    verifyNoMoreInteractions(Bugsnag.class);
   }
 
   @Test @Override public void flush() {
     integration.flush();
-    verifyNoMoreInteractions(QuantcastClient.class);
+    verifyStatic();
+    verifyNoMoreInteractions(Bugsnag.class);
   }
 }

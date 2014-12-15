@@ -74,8 +74,6 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://segment.io/">Segment.io</a>
  */
 public class Analytics {
-  private static final String TRAITS_CACHE_PREFIX = "traits-";
-
   // Resource identifiers to define options in xml
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
   static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
@@ -90,6 +88,7 @@ public class Analytics {
       }
     }
   };
+  private static final String TRAITS_CACHE_PREFIX = "traits-";
   static Analytics singleton = null;
   final Application application;
   final IntegrationManager integrationManager;
@@ -292,8 +291,7 @@ public class Analytics {
       analyticsContext.setTraits(traits);
     }
 
-    BasePayload payload = new IdentifyPayload(traitsCache.get().anonymousId(), analyticsContext,
-        traitsCache.get().userId(), traitsCache.get(), options);
+    BasePayload payload = new IdentifyPayload(analyticsContext, options, traitsCache.get());
     submit(payload);
   }
 
@@ -307,7 +305,7 @@ public class Analytics {
    * about the group, like industry or number of employees.
    * <p>
    * If you've called {@link #identify(String, Traits, Options)} before, this will automatically
-   * remember the user id. If not, it will fall back to use the anonymousId instead.
+   * remember the userId. If not, it will fall back to use the anonymousId instead.
    *
    * @param userId To match up a user with their associated group.
    * @param groupId Unique identifier which you recognize a group by in your own database. Must not
@@ -316,16 +314,16 @@ public class Analytics {
    * @throws IllegalArgumentException if groupId is null or an empty string
    * @see <a href="https://segment.io/docs/tracking-api/group/">Group Documentation</a>
    */
-  public void group(String userId, String groupId, Traits newTraits, Options options) {
+  public void group(String userId, String groupId, Traits groupTraits, Options options) {
     if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException("groupId must not be null or empty.");
     }
     if (isNullOrEmpty(userId)) {
       userId = traitsCache.get().userId();
     }
-    if (!isNullOrEmpty(newTraits)) {
+    if (!isNullOrEmpty(groupTraits)) {
       Traits traits = traitsCache.get();
-      traits.putAll(newTraits);
+      traits.putAll(groupTraits);
       traitsCache.set(traits);
       analyticsContext.setTraits(traits);
     }
@@ -333,10 +331,7 @@ public class Analytics {
       options = defaultOptions;
     }
 
-    BasePayload payload =
-        new GroupPayload(traitsCache.get().anonymousId(), analyticsContext, userId, groupId,
-            traitsCache.get(), options);
-
+    BasePayload payload = new GroupPayload(analyticsContext, options, groupId, groupTraits);
     submit(payload);
   }
 
@@ -373,8 +368,7 @@ public class Analytics {
       options = defaultOptions;
     }
 
-    BasePayload payload = new TrackPayload(traitsCache.get().anonymousId(), analyticsContext,
-        traitsCache.get().userId(), event, properties, options);
+    BasePayload payload = new TrackPayload(analyticsContext, options, event, properties);
     submit(payload);
   }
 
@@ -413,8 +407,7 @@ public class Analytics {
       options = defaultOptions;
     }
 
-    BasePayload payload = new ScreenPayload(traitsCache.get().anonymousId(), analyticsContext,
-        traitsCache.get().userId(), category, name, properties, options);
+    BasePayload payload = new ScreenPayload(analyticsContext, options, category, name, properties);
     submit(payload);
   }
 
@@ -447,9 +440,7 @@ public class Analytics {
       options = defaultOptions;
     }
 
-    BasePayload payload =
-        new AliasPayload(traitsCache.get().anonymousId(), analyticsContext, newId, previousId,
-            options);
+    BasePayload payload = new AliasPayload(analyticsContext, options, previousId);
     submit(payload);
   }
 

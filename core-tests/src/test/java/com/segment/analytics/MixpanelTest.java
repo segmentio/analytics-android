@@ -35,7 +35,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*", "org.json.*" })
 @PrepareForTest(MixpanelAPI.class)
-public class MixpanelRobolectricTest extends AbstractIntegrationTest {
+public class MixpanelTest extends AbstractIntegrationTestCase {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Mock MixpanelAPI mixpanelAPI;
   @Mock MixpanelAPI.People people;
@@ -163,7 +163,8 @@ public class MixpanelRobolectricTest extends AbstractIntegrationTest {
   }
 
   @Test @Override public void alias() {
-    integration.alias(new AliasPayloadBuilder().userId("foo").previousId("bar").build());
+    integration.alias(
+        new AliasPayloadBuilder().traits(new Traits().putUserId("foo")).previousId("bar").build());
     verify(mixpanelAPI).alias("foo", "bar");
     verifyNoMoreMixpanelInteractions();
   }
