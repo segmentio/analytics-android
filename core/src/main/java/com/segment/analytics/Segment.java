@@ -183,7 +183,7 @@ class Segment {
   static class BatchPayloadStreamWriter {
     private final JsonWriter jsonWriter;
     private final BufferedWriter bufferedWriter;
-    private boolean needsComma;
+    private boolean needsComma = false;
 
     BatchPayloadStreamWriter(OutputStream stream) {
       bufferedWriter = new BufferedWriter(new OutputStreamWriter(stream));
@@ -225,6 +225,9 @@ class Segment {
     }
 
     BatchPayloadStreamWriter endBatchArray() throws IOException {
+      if (!needsComma) {
+        throw new AssertionError("At least one payload must be provided.");
+      }
       jsonWriter.endArray();
       return this;
     }

@@ -115,13 +115,59 @@ public class SegmentTest {
         .beginBatchArray()
         .emitBatchItem("qaz")
         .emitBatchItem("qux")
+        .emitBatchItem("foobarbazqux")
         .endBatchArray()
         .endObject()
         .close();
 
     assertThat(byteArrayOutputStream.toString()).isEqualTo(
-        "{\"integrations\":{\"foo\":false,\"bar\":true},\"batch\":[qaz,qux],\"sentAt\":\""
+        "{\"integrations\":{\"foo\":false,\"bar\":true},\"batch\":[qaz,qux,foobarbazqux],"
+            + "\"sentAt\":\""
             + toISO8601Date(new Date())
             + "\"}").overridingErrorMessage("its ok if this failed close to midnight!");
+  }
+
+  @Test public void batchPayloadStreamWriterSingleItem() throws IOException {
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    Segment.BatchPayloadStreamWriter batchPayloadStreamWriter =
+        new Segment.BatchPayloadStreamWriter(byteArrayOutputStream);
+
+    final HashMap<String, Boolean> integrations = new LinkedHashMap<String, Boolean>();
+    integrations.put("foo", false);
+    integrations.put("bar", true);
+
+    batchPayloadStreamWriter.beginObject()
+        .integrations(integrations)
+        .beginBatchArray()
+        .emitBatchItem("qaz")
+        .endBatchArray()
+        .endObject()
+        .close();
+
+    assertThat(byteArrayOutputStream.toString()).isEqualTo(
+        "{\"integrations\":{\"foo\":false,\"bar\":true},\"batch\":[qaz],\"sentAt\":\""
+            + toISO8601Date(new Date())
+            + "\"}").overridingErrorMessage("its ok if this failed close to midnight!");
+  }
+
+  @Test public void batchPayloadStreamWriterNoItem() throws IOException {
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    Segment.BatchPayloadStreamWriter batchPayloadStreamWriter =
+        new Segment.BatchPayloadStreamWriter(byteArrayOutputStream);
+
+    final HashMap<String, Boolean> integrations = new LinkedHashMap<String, Boolean>();
+    integrations.put("foo", false);
+    integrations.put("bar", true);
+
+    try {
+      batchPayloadStreamWriter.beginObject()
+          .integrations(integrations)
+          .beginBatchArray()
+          .endBatchArray()
+          .endObject()
+          .close();
+    } catch (AssertionError error) {
+      assertThat(error).hasMessage("At least one payload must be provided.");
+    }
   }
 }
