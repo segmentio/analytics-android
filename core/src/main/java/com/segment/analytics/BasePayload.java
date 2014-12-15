@@ -134,7 +134,7 @@ abstract class BasePayload extends ValueMap implements IntegrationManager.Integr
   }
 
   /** @see #CHANNEL_KEY */
-  private enum Channel {
+  enum Channel {
     browser, mobile, server
   }
 }

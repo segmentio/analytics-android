@@ -2,8 +2,12 @@ package com.segment.analytics;
 
 import android.util.Pair;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import org.assertj.core.data.MapEntry;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,6 +58,49 @@ public class BasePayloadTest {
       assertThat(payload.isIntegrationEnabledInPayload(mockIntegration)).overridingErrorMessage(
           "Expected %s for integrations %s", param.second, param.first.integrations())
           .isEqualTo(param.second);
+    }
+  }
+
+  static class FakePayload extends BasePayload {
+    FakePayload(Type type, AnalyticsContext context, Options options) {
+      super(type, context, options);
+    }
+
+    @Override public void run(AbstractIntegration integration) {
+
+    }
+  }
+
+  @Test public void payloadCreatedCorrectly() throws IOException {
+    AnalyticsContext analyticsContext =
+        createValueMap(new LinkedHashMap<String, Object>(), AnalyticsContext.class);
+    Traits traits = new Traits().putUserId("foo").putAnonymousId("bar").putAge(20);
+    analyticsContext.setTraits(traits);
+    FakePayload fakePayload =
+        new FakePayload(BasePayload.Type.alias, analyticsContext, new Options());
+
+    assertThat(fakePayload) //
+        .contains(MapEntry.entry("type", BasePayload.Type.alias))
+        .contains(MapEntry.entry("channel", BasePayload.Channel.mobile))
+        .contains(MapEntry.entry("anonymousId", "bar"))
+        .contains(MapEntry.entry("userId", "foo"))
+        .containsKey("integrations")
+        .containsKey("context")
+        .containsKey("messageId")
+        .containsKey("timestamp");
+
+    // It should have the same mappings but be a copy (and hence a different instance)
+    assertThat(fakePayload.context()).isNotSameAs(analyticsContext).isEqualTo(analyticsContext);
+    assertThat(fakePayload.context().traits()).isNotSameAs(traits).isEqualTo(traits);
+  }
+
+  private static <T extends ValueMap> T createValueMap(Map map, Class<T> clazz) {
+    try {
+      Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
+      constructor.setAccessible(true);
+      return constructor.newInstance(map);
+    } catch (Exception e) {
+      throw new RuntimeException("Could not create instance of " + clazz.getCanonicalName(), e);
     }
   }
 }

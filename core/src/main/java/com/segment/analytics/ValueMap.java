@@ -30,6 +30,10 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
 class ValueMap implements Map<String, Object> {
   private final Map<String, Object> delegate;
 
+  /**
+   * Uses reflection to create an instance of a subclass of {@link ValueMap} as long it declares a
+   * map constructor.
+   */
   private static <T extends ValueMap> T createValueMap(Map map, Class<T> clazz) {
     try {
       Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);

@@ -16,9 +16,9 @@ import static org.assertj.core.api.Assertions.fail;
 public class AnalyticsContextTest {
 
   AnalyticsContext analyticsContext;
+  Traits traits = Traits.create(Robolectric.application);
 
   @Before public void setUp() {
-    Traits traits = Traits.create(Robolectric.application);
     analyticsContext = new AnalyticsContext(Robolectric.application, traits);
   }
 
@@ -43,5 +43,13 @@ public class AnalyticsContextTest {
     } catch (UnsupportedOperationException expected) {
 
     }
+  }
+
+  @Test public void traitsAreCopied() {
+    assertThat(analyticsContext.traits()).isEqualTo(traits).isNotSameAs(traits);
+
+    Traits traits = new Traits().putAnonymousId("foo");
+    analyticsContext.setTraits(traits);
+    assertThat(analyticsContext.traits()).isEqualTo(traits).isNotSameAs(traits);
   }
 }
