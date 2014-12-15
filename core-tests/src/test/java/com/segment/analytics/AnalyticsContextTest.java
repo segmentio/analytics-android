@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class AnalyticsContextRobolectricTest {
+public class AnalyticsContextTest {
 
   AnalyticsContext analyticsContext;
 

@@ -33,7 +33,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(GoogleAnalytics.class)
-public class GoogleAnalyticsRobolectricTest extends AbstractIntegrationTest {
+public class GoogleAnalyticsTest extends AbstractIntegrationTestCase {
   GoogleAnalyticsIntegration integration;
   @Mock GoogleAnalytics googleAnalytics;
   @Mock Tracker tracker;

@@ -5,6 +5,7 @@ import java.io.File;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.json.JSONObject;
+import org.junit.Ignore;
 import org.robolectric.Robolectric;
 
 import static android.Manifest.permission.INTERNET;
@@ -13,6 +14,7 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@Ignore
 final class TestUtils {
   static final String PROJECT_SETTINGS_JSON_SAMPLE = "{\n"
       + "  \"Amplitude\": {\n"

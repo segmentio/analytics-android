@@ -26,7 +26,7 @@ import org.robolectric.shadows.ShadowLog;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class LoggerRobolectricTest {
+public class LoggerTest {
   static final String TEST_OWNER = "Test";
 
   @Test public void disabledLogger() throws Exception {

@@ -26,7 +26,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(QuantcastClient.class)
-public class QuantcastRobolectricTest extends AbstractIntegrationTest {
+public class QuantcastTest extends AbstractIntegrationTestCase {
   @Rule public PowerMockRule rule = new PowerMockRule();
   QuantcastIntegration integration;
 

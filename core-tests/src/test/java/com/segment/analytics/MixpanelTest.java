@@ -35,7 +35,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*", "org.json.*" })
 @PrepareForTest(MixpanelAPI.class)
-public class MixpanelRobolectricTest extends AbstractIntegrationTest {
+public class MixpanelTest extends AbstractIntegrationTestCase {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Mock MixpanelAPI mixpanelAPI;
   @Mock MixpanelAPI.People people;

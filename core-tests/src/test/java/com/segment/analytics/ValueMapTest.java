@@ -19,7 +19,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class ValueMapRobolectricTest {
+public class ValueMapTest {
   @Mock NullableConcurrentHashMap<String, Object> delegate;
   @Mock Object object;
   ValueMap valueMap;
@@ -148,7 +148,7 @@ public class ValueMapRobolectricTest {
     } catch (RuntimeException exception) {
       assertThat(exception) //
           .hasMessage("Could not create instance of "
-              + "com.segment.analytics.ValueMapRobolectricTest.AmplitudeSettings");
+              + "com.segment.analytics.ValueMapTest.AmplitudeSettings");
     }
   }
 

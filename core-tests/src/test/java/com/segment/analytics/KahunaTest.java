@@ -31,7 +31,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(KahunaAnalytics.class)
-public class KahunaRobolectricTest extends AbstractIntegrationTest {
+public class KahunaTest extends AbstractIntegrationTestCase {
   @Rule public PowerMockRule rule = new PowerMockRule();
 
   KahunaIntegration integration;

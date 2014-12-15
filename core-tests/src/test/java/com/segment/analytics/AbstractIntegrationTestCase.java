@@ -6,7 +6,8 @@ import org.junit.Ignore;
 import static org.mockito.MockitoAnnotations.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-@Ignore public abstract class AbstractIntegrationTest {
+@Ignore
+public abstract class AbstractIntegrationTestCase {
   @Mock Application context;
 
   public void setUp() {
