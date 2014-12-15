@@ -43,9 +43,8 @@ abstract class BasePayload extends ValueMap implements IntegrationManager.Integr
   /**
    * The anonymous ID is an identifier that uniquely (or close enough) identifies the user, but
    * isn't from your database. This is useful in cases where you are able to uniquely identifier
-   * the
-   * user between visits before they signup thanks to a cookie, or session ID or device ID. In our
-   * mobile and browser libraries we will automatically handle sending the anonymous ID.
+   * the user between visits before they signup thanks to a cookie, or session ID or device ID. In
+   * our mobile and browser libraries we will automatically handle sending the anonymous ID.
    */
   private static final String ANONYMOUS_ID_KEY = "anonymousId";
   /**
