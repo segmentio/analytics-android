@@ -163,7 +163,8 @@ public class MixpanelRobolectricTest extends AbstractIntegrationTest {
   }
 
   @Test @Override public void alias() {
-    integration.alias(new AliasPayloadBuilder().userId("foo").previousId("bar").build());
+    integration.alias(
+        new AliasPayloadBuilder().traits(new Traits().putUserId("foo")).previousId("bar").build());
     verify(mixpanelAPI).alias("foo", "bar");
     verifyNoMoreMixpanelInteractions();
   }

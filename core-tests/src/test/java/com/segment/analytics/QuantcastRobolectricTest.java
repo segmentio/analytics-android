@@ -100,7 +100,8 @@ public class QuantcastRobolectricTest extends AbstractIntegrationTest {
   }
 
   @Test @Override public void identify() {
-    integration.identify(new IdentifyPayloadBuilder().userId("bar").build());
+    integration.identify(new IdentifyPayloadBuilder() //
+        .traits(new Traits().putUserId("bar")).build());
     verifyStatic();
     QuantcastClient.recordUserIdentifier("bar");
     verifyNoMoreInteractions(QuantcastClient.class);

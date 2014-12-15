@@ -7,11 +7,11 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -48,8 +48,9 @@ public class BasePayloadRobolectricTest {
     params.add(new Pair<Options, Boolean>(new Options().setIntegration("bar", false), true));
 
     for (Pair<Options, Boolean> param : params) {
-      BasePayload payload =
-          new AliasPayload("qaz", mock(AnalyticsContext.class), "qux", "baaz", param.first);
+      Traits traits = Traits.create(Robolectric.application);
+      AnalyticsContext analyticsContext = new AnalyticsContext(Robolectric.application, traits);
+      BasePayload payload = new AliasPayload(analyticsContext, param.first, "foo");
       assertThat(payload.isIntegrationEnabledInPayload(mockIntegration)).overridingErrorMessage(
           "Expected %s for integrations %s", param.second, param.first.integrations())
           .isEqualTo(param.second);

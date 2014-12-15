@@ -37,11 +37,10 @@ class GroupPayload extends BasePayload {
    */
   private static final String TRAITS_KEY = "traits";
 
-  GroupPayload(String anonymousId, AnalyticsContext context, String userId, String groupId,
-      Traits traits, Options options) {
-    super(Type.group, anonymousId, context, userId, options);
+  GroupPayload(AnalyticsContext context, Options options, String groupId, Traits groupTraits) {
+    super(Type.group, context, options);
     put(GROUP_ID_KEY, groupId);
-    put(TRAITS_KEY, traits);
+    put(TRAITS_KEY, groupTraits.unmodifiableCopy());
   }
 
   String groupId() {

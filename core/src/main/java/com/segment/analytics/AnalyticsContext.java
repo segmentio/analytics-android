@@ -197,6 +197,10 @@ public class AnalyticsContext extends ValueMap {
     put(TRAITS_KEY, traits.unmodifiableCopy()); // copy
   }
 
+  Traits traits() {
+    return getValueMap(TRAITS_KEY, Traits.class);
+  }
+
   public AnalyticsContext putCampaign(String name, String source, String medium, String term,
       String content) {
     Map<String, Object> campaign = createMap();
@@ -315,6 +319,14 @@ public class AnalyticsContext extends ValueMap {
     return this;
   }
 
+  @Override public String toString() {
+    try {
+      return "AnalyticsContext" + JsonUtils.mapToJson(this);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   static class Location extends ValueMap {
     private static final String LOCATION_LATITUDE_KEY = "latitude";
     private static final String LOCATION_LONGITUDE_KEY = "longitude";
@@ -336,14 +348,6 @@ public class AnalyticsContext extends ValueMap {
 
     double speed() {
       return getDouble(LOCATION_SPEED_KEY, 0.0d);
-    }
-  }
-
-  @Override public String toString() {
-    try {
-      return "AnalyticsContext" + JsonUtils.mapToJson(this);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     }
   }
 }

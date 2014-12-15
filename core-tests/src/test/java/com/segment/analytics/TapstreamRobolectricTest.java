@@ -175,9 +175,9 @@ public class TapstreamRobolectricTest extends AbstractIntegrationTest {
   @Test @Override public void identify() {
     Map<String, Object> emptyParams = new HashMap<String, Object>();
     config.globalEventParams = emptyParams;
-    integration.identify(new IdentifyPayloadBuilder().userId("foo").build());
-    // anonymousId is set automatically as well in the builder
-    assertThat(emptyParams).hasSize(2).contains(MapEntry.entry("userId", "foo"));
+    integration.identify(new IdentifyPayloadBuilder() //
+        .traits(new Traits().putUserId("foo")).build());
+    assertThat(emptyParams).hasSize(1).contains(MapEntry.entry("userId", "foo"));
 
     Map<String, Object> map = new HashMap<String, Object>();
     config.globalEventParams = map;

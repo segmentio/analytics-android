@@ -215,6 +215,14 @@ public class Properties extends ValueMap {
     return getDouble(VALUE_KEY, 0);
   }
 
+  @Override public String toString() {
+    try {
+      return "Properties" + JsonUtils.mapToJson(this);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   /**
    * A representation of an e-commerce product.
    * <p>
@@ -261,14 +269,6 @@ public class Properties extends ValueMap {
     @Override public Product putValue(String key, Object value) {
       super.putValue(key, value);
       return this;
-    }
-  }
-
-  @Override public String toString() {
-    try {
-      return "Properties" + JsonUtils.mapToJson(this);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     }
   }
 }

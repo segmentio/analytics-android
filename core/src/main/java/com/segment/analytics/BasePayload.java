@@ -79,14 +79,14 @@ abstract class BasePayload extends ValueMap implements IntegrationManager.Integr
    */
   private static final String USER_ID_KEY = "userId";
 
-  BasePayload(Type type, String anonymousId, AnalyticsContext context, String userId,
-      Options options) {
+  BasePayload(Type type, AnalyticsContext context, Options options) {
+    AnalyticsContext contextCopy = context.unmodifiableCopy();
     put(MESSAGE_ID, UUID.randomUUID().toString());
     put(TYPE_KEY, type);
     put(CHANNEL_KEY, Channel.mobile);
-    put(ANONYMOUS_ID_KEY, anonymousId);
-    put(CONTEXT_KEY, context.unmodifiableCopy());
-    put(USER_ID_KEY, userId);
+    put(CONTEXT_KEY, contextCopy);
+    put(ANONYMOUS_ID_KEY, contextCopy.traits().anonymousId());
+    put(USER_ID_KEY, contextCopy.traits().userId());
     put(TIMESTAMP_KEY, options.timestamp() == null ? toISO8601Date(new Date())
         : toISO8601Date(options.timestamp()));
     put(INTEGRATIONS_KEY, new LinkedHashMap<String, Boolean>(options.integrations())); // copy

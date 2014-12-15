@@ -2,7 +2,6 @@ package com.segment.analytics;
 
 import android.app.Application;
 import java.io.File;
-import java.util.UUID;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.json.JSONObject;
@@ -110,23 +109,18 @@ final class TestUtils {
 
   static class TrackPayloadBuilder {
     private AnalyticsContext context;
-    private String anonymousId;
-    private String userId;
+    private Traits traits;
     private String event;
     private Properties properties;
     private Options options;
 
-    public void context(AnalyticsContext context) {
+    public TrackPayloadBuilder context(AnalyticsContext context) {
       this.context = context;
-    }
-
-    public TrackPayloadBuilder anonymousId(String anonymousId) {
-      this.anonymousId = anonymousId;
       return this;
     }
 
-    public TrackPayloadBuilder userId(String userId) {
-      this.userId = userId;
+    public TrackPayloadBuilder traits(Traits traits) {
+      this.traits = traits;
       return this;
     }
 
@@ -146,17 +140,13 @@ final class TestUtils {
     }
 
     public TrackPayload build() {
-      if (anonymousId == null) {
-        anonymousId = UUID.randomUUID().toString();
-      }
-      if (userId == null) {
-        userId = "foo";
+      if (traits == null) {
+        traits = Traits.create(Robolectric.application);
       }
       if (event == null) {
         event = "bar";
       }
       if (context == null) {
-        Traits traits = new Traits();
         context = new AnalyticsContext(Robolectric.application, traits);
       }
       if (properties == null) {
@@ -165,26 +155,14 @@ final class TestUtils {
       if (options == null) {
         options = new Options();
       }
-      return new TrackPayload(anonymousId, context, userId, event, properties, options);
+      return new TrackPayload(context, options, event, properties);
     }
   }
 
   static class IdentifyPayloadBuilder {
     private AnalyticsContext context;
-    private String anonymousId;
-    private String userId;
     private Traits traits;
     private Options options;
-
-    public IdentifyPayloadBuilder anonymousId(String anonymousId) {
-      this.anonymousId = anonymousId;
-      return this;
-    }
-
-    public IdentifyPayloadBuilder userId(String userId) {
-      this.userId = userId;
-      return this;
-    }
 
     public IdentifyPayloadBuilder traits(Traits traits) {
       this.traits = traits;
@@ -202,18 +180,8 @@ final class TestUtils {
     }
 
     public IdentifyPayload build() {
-      if (anonymousId == null) {
-        anonymousId = UUID.randomUUID().toString();
-      }
-      if (userId == null) {
-        if (traits == null) {
-          userId = "foo";
-        } else if (traits.userId() != null) {
-          userId = traits.userId();
-        }
-      }
       if (traits == null) {
-        traits = new Traits().putUserId(userId).putAnonymousId(anonymousId);
+        traits = Traits.create(Robolectric.application);
       }
       if (context == null) {
         context = new AnalyticsContext(Robolectric.application, traits);
@@ -221,30 +189,25 @@ final class TestUtils {
       if (options == null) {
         options = new Options();
       }
-      return new IdentifyPayload(anonymousId, context, userId, traits, options);
+      return new IdentifyPayload(context, options, traits);
     }
   }
 
   static class ScreenPayloadBuilder {
     private AnalyticsContext context;
-    private String anonymousId;
-    private String userId;
+    private Traits traits;
     private String category;
     private String name;
     private Properties properties;
     private Options options;
 
-    public void context(AnalyticsContext context) {
+    public ScreenPayloadBuilder context(AnalyticsContext context) {
       this.context = context;
-    }
-
-    public ScreenPayloadBuilder anonymousId(String anonymousId) {
-      this.anonymousId = anonymousId;
       return this;
     }
 
-    public ScreenPayloadBuilder userId(String userId) {
-      this.userId = userId;
+    public ScreenPayloadBuilder traits(Traits traits) {
+      this.traits = traits;
       return this;
     }
 
@@ -269,49 +232,39 @@ final class TestUtils {
     }
 
     public ScreenPayload build() {
-      if (anonymousId == null) {
-        anonymousId = UUID.randomUUID().toString();
-      }
-      if (userId == null) {
-        userId = "foo";
-      }
-      if (category == null && name == null) {
-        category = "bar";
-        name = "baz";
-      }
-      if (properties == null) {
-        properties = new Properties();
+      if (traits == null) {
+        traits = Traits.create(Robolectric.application);
       }
       if (context == null) {
-        Traits traits = new Traits().putUserId(userId).putAnonymousId(anonymousId);
         context = new AnalyticsContext(Robolectric.application, traits);
       }
       if (options == null) {
         options = new Options();
       }
-      return new ScreenPayload(anonymousId, context, userId, category, name, properties, options);
+      if (category == null && name == null) {
+        category = "foo";
+        name = "bar";
+      }
+      if (properties == null) {
+        properties = new Properties();
+      }
+      return new ScreenPayload(context, options, category, name, properties);
     }
   }
 
   static class AliasPayloadBuilder {
-    private String anonymousId;
     private AnalyticsContext context;
-    private String userId;
+    private Traits traits;
     private String previousId;
     private Options options;
 
-    public AliasPayloadBuilder anonymousId(String anonymousId) {
-      this.anonymousId = anonymousId;
+    public AliasPayloadBuilder traits(Traits traits) {
+      this.traits = traits;
       return this;
     }
 
     public AliasPayloadBuilder context(AnalyticsContext context) {
       this.context = context;
-      return this;
-    }
-
-    public AliasPayloadBuilder userId(String userId) {
-      this.userId = userId;
       return this;
     }
 
@@ -326,46 +279,31 @@ final class TestUtils {
     }
 
     public AliasPayload build() {
-      if (anonymousId == null) {
-        anonymousId = UUID.randomUUID().toString();
-      }
-      if (userId == null) {
-        userId = "foo";
-      }
-      if (previousId == null) {
-        userId = "bar";
+      if (traits == null) {
+        traits = Traits.create(Robolectric.application);
       }
       if (context == null) {
-        Traits traits = new Traits().putUserId(userId).putAnonymousId(anonymousId);
         context = new AnalyticsContext(Robolectric.application, traits);
       }
       if (options == null) {
         options = new Options();
       }
-      return new AliasPayload(anonymousId, context, userId, previousId, options);
+      if (previousId == null) {
+        previousId = "foo";
+      }
+      return new AliasPayload(context, options, previousId);
     }
   }
 
   static class GroupPayloadBuilder {
-    private String anonymousId;
     private AnalyticsContext context;
-    private String userId;
     private String groupId;
     private Traits traits;
+    private Traits groupTraits;
     private Options options;
-
-    public GroupPayloadBuilder anonymousId(String anonymousId) {
-      this.anonymousId = anonymousId;
-      return this;
-    }
 
     public GroupPayloadBuilder context(AnalyticsContext context) {
       this.context = context;
-      return this;
-    }
-
-    public GroupPayloadBuilder userId(String userId) {
-      this.userId = userId;
       return this;
     }
 
@@ -379,27 +317,22 @@ final class TestUtils {
       return this;
     }
 
+    public GroupPayloadBuilder groupTraits(Traits groupTraits) {
+      this.groupTraits = groupTraits;
+      return this;
+    }
+
     public GroupPayloadBuilder options(Options options) {
       this.options = options;
       return this;
     }
 
     public GroupPayload build() {
-      if (anonymousId == null) {
-        anonymousId = UUID.randomUUID().toString();
-      }
-      if (userId == null) {
-        if (traits == null) {
-          userId = "foo";
-        } else if (traits.userId() != null) {
-          userId = traits.userId();
-        }
-      }
-      if (groupId == null) {
-        groupId = "bar";
-      }
       if (traits == null) {
-        traits = new Traits().putUserId(userId).putAnonymousId(anonymousId);
+        traits = Traits.create(Robolectric.application);
+      }
+      if (groupTraits == null) {
+        groupTraits = new Traits();
       }
       if (context == null) {
         context = new AnalyticsContext(Robolectric.application, traits);
@@ -407,7 +340,10 @@ final class TestUtils {
       if (options == null) {
         options = new Options();
       }
-      return new GroupPayload(anonymousId, context, userId, groupId, traits, options);
+      if (groupId == null) {
+        groupId = "bar";
+      }
+      return new GroupPayload(context, options, groupId, groupTraits);
     }
   }
 
@@ -423,7 +359,7 @@ final class TestUtils {
     }
 
     @Override public boolean matchesSafely(JSONObject jsonObject) {
-      // this relies on having the same order
+      // todo: this relies on having the same order
       return expected.toString().equals(jsonObject.toString());
     }
 

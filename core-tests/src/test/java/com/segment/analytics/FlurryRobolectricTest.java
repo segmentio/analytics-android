@@ -135,7 +135,8 @@ public class FlurryRobolectricTest extends AbstractIntegrationTest {
   }
 
   @Test @Override public void identify() {
-    integration.identify(new IdentifyPayloadBuilder().userId("foo").build());
+    integration.identify(
+        new IdentifyPayloadBuilder().traits(new Traits().putUserId("foo")).build());
     verifyStatic();
     FlurryAgent.setUserId("foo");
     verifyStatic();

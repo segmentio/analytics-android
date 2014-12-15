@@ -131,7 +131,8 @@ public class KahunaRobolectricTest extends AbstractIntegrationTest {
   }
 
   @Test @Override public void identify() {
-    integration.identify(new IdentifyPayloadBuilder().userId("foo").build());
+    integration.identify(
+        new IdentifyPayloadBuilder().traits(new Traits().putUserId("foo")).build());
     verifyStatic();
     KahunaAnalytics.setUsernameAndEmail("foo", null);
     KahunaAnalytics.setUserCredential(USERNAME_KEY, null);

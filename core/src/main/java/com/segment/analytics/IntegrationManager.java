@@ -385,12 +385,12 @@ class IntegrationManager {
       return id;
     }
 
-    enum Type {
-      CREATED, STARTED, RESUMED, PAUSED, STOPPED, SAVE_INSTANCE, DESTROYED
-    }
-
     @Override public String toString() {
       return "ActivityLifecycle{" + type + '}';
+    }
+
+    enum Type {
+      CREATED, STARTED, RESUMED, PAUSED, STOPPED, SAVE_INSTANCE, DESTROYED
     }
   }
 
