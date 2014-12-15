@@ -2,6 +2,8 @@ package com.segment.analytics;
 
 import android.app.Application;
 import java.io.File;
+import java.lang.reflect.Constructor;
+import java.util.Map;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.json.JSONObject;
@@ -367,6 +369,16 @@ final class TestUtils {
 
     @Override public void describeTo(Description description) {
       description.appendText(expected.toString());
+    }
+  }
+
+  public static <T extends ValueMap> T createValueMap(Map map, Class<T> clazz) {
+    try {
+      Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
+      constructor.setAccessible(true);
+      return constructor.newInstance(map);
+    } catch (Exception e) {
+      throw new RuntimeException("Could not create instance of " + clazz.getCanonicalName(), e);
     }
   }
 }

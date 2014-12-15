@@ -2,35 +2,28 @@ package com.segment.analytics;
 
 import android.util.Pair;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import org.assertj.core.data.MapEntry;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.TestUtils.createValueMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.Mock;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 public class BasePayloadTest {
 
-  @Mock AbstractIntegration mockIntegration;
-
-  @Before public void setUp() {
-    initMocks(this);
-    when(mockIntegration.key()).thenReturn("foo");
-  }
-
   @Test public void payloadEnabledCorrectly() throws IOException {
+    AbstractIntegration mockIntegration = mock(AbstractIntegration.class);
+    when(mockIntegration.key()).thenReturn("foo");
+
     // this should be done with junits params, couldn't get it to work http://pastebin.com/W61q1H3J
     List<Pair<Options, Boolean>> params = new ArrayList<Pair<Options, Boolean>>();
     params.add(new Pair<Options, Boolean>(new Options(), true));
@@ -93,7 +86,7 @@ public class BasePayloadTest {
     assertThat(fakePayload.context()).isNotSameAs(analyticsContext).isEqualTo(analyticsContext);
     assertThat(fakePayload.context().traits()).isNotSameAs(traits).isEqualTo(traits);
 
-    // put some predictable values for random data
+    // put some predictable values for automatically generated data
     fakePayload.put("messageId", "a161304c-498c-4830-9291-fcfb8498877b");
     fakePayload.put("timestamp", "2014-12-15T13:32:44-0700");
 
@@ -114,15 +107,5 @@ public class BasePayloadTest {
         + "All\":true"
         + "}"
         + "}");
-  }
-
-  private static <T extends ValueMap> T createValueMap(Map map, Class<T> clazz) {
-    try {
-      Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
-      constructor.setAccessible(true);
-      return constructor.newInstance(map);
-    } catch (Exception e) {
-      throw new RuntimeException("Could not create instance of " + clazz.getCanonicalName(), e);
-    }
   }
 }

@@ -116,7 +116,7 @@ abstract class BasePayload extends ValueMap implements IntegrationManager.Integr
     return getString(MESSAGE_ID);
   }
 
-  boolean isIntegrationEnabledInPayload(AbstractIntegration integration) {
+  final boolean isIntegrationEnabledInPayload(AbstractIntegration integration) {
     boolean enabled = true;
     ValueMap integrations = integrations();
     String key = integration.key();
