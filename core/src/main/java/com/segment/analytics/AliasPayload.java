@@ -44,4 +44,8 @@ class AliasPayload extends BasePayload {
   @Override public void run(AbstractIntegration integration) {
     if (isIntegrationEnabledInPayload(integration)) integration.alias(this);
   }
+
+  @Override public String toString() {
+    return "AliasPayload{userId=\"" + userId() + ",previousId=\"" + previousId() + "\"}";
+  }
 }

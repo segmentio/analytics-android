@@ -46,4 +46,8 @@ class IdentifyPayload extends BasePayload {
   @Override public void run(AbstractIntegration integration) {
     if (isIntegrationEnabledInPayload(integration)) integration.identify(this);
   }
+
+  @Override public String toString() {
+    return "IdentifyPayload{\"userId=\"" + userId() + "\"," + traits() + '}';
+  }
 }

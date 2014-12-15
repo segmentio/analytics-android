@@ -91,7 +91,6 @@ class Segment {
 
   void performEnqueue(BasePayload payload) {
     final int queueSize = payloadQueueFile.size();
-    logger.debug(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), "queueSize: %s", queueSize);
     if (queueSize > MAX_QUEUE_SIZE) {
       // In normal conditions, we wouldn't have more than flushQueueSize events, which is
       // MAX_FLUSH_BATCH_SIZE = 50 at most. But if the user has been offline for a while, then
@@ -108,8 +107,9 @@ class Segment {
       String json = JsonUtils.mapToJson(payload);
       if (isNullOrEmpty(json)) throw new IOException("could not serialize payload " + payload);
       payloadQueueFile.add(json.getBytes(UTF_8));
+      logger.debug(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), "queueSize: %s", queueSize);
     } catch (IOException e) {
-      logger.error(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), e, "payload: %s", payload);
+      logger.error(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), e, "%s", payload);
       return;
     }
     // Check if we've reached the maximum queue size

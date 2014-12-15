@@ -25,6 +25,7 @@
 package com.segment.analytics;
 
 import android.content.Context;
+import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -260,6 +261,14 @@ public class Traits extends ValueMap {
     @Override Traits create(Map<String, Object> map) {
       // Analytics client can be called on any thread, so this instance is thread safe.
       return new Traits(new NullableConcurrentHashMap<String, Object>(map));
+    }
+  }
+
+  @Override public String toString() {
+    try {
+      return "Traits" + JsonUtils.mapToJson(this);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 }

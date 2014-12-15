@@ -45,7 +45,7 @@ class Logger {
 
   void print(Throwable throwable, String format, Object... extras) {
     if (loggingEnabled) {
-      Log.e(TAG, Log.getStackTraceString(throwable));
+      if (throwable != null) Log.e(TAG, Log.getStackTraceString(throwable));
       Log.e(TAG, String.format(format, extras));
     }
   }

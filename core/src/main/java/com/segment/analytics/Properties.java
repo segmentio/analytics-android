@@ -24,6 +24,7 @@
 
 package com.segment.analytics;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -232,6 +233,11 @@ public class Properties extends ValueMap {
       putValue(PRICE_KEY, price);
     }
 
+    // For deserialization
+    Product(Map<String, Object> map) {
+      super(map);
+    }
+
     public Product putName(String name) {
       return putValue(NAME_KEY, name);
     }
@@ -255,6 +261,14 @@ public class Properties extends ValueMap {
     @Override public Product putValue(String key, Object value) {
       super.putValue(key, value);
       return this;
+    }
+  }
+
+  @Override public String toString() {
+    try {
+      return "Properties" + JsonUtils.mapToJson(this);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 }
