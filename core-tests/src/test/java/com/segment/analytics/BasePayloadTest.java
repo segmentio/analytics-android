@@ -92,6 +92,28 @@ public class BasePayloadTest {
     // It should have the same mappings but be a copy (and hence a different instance)
     assertThat(fakePayload.context()).isNotSameAs(analyticsContext).isEqualTo(analyticsContext);
     assertThat(fakePayload.context().traits()).isNotSameAs(traits).isEqualTo(traits);
+
+    // put some predictable values for random data
+    fakePayload.put("messageId", "a161304c-498c-4830-9291-fcfb8498877b");
+    fakePayload.put("timestamp", "2014-12-15T13:32:44-0700");
+
+    String json = JsonUtils.mapToJson(fakePayload);
+    assertThat(json).isEqualTo("{\""
+        + "messageId\":\"a161304c-498c-4830-9291-fcfb8498877b\",\""
+        + "type\":\"alias\",\""
+        + "channel\":\"mobile\",\""
+        + "context\":{\""
+        + "traits\":{\""
+        + "userId\":\"foo\",\""
+        + "anonymousId\":\"bar\",\""
+        + "age\":20}},\""
+        + "anonymousId\":\"bar\",\""
+        + "userId\":\"foo\",\""
+        + "timestamp\":\"2014-12-15T13:32:44-0700\",\""
+        + "integrations\":{\""
+        + "All\":true"
+        + "}"
+        + "}");
   }
 
   private static <T extends ValueMap> T createValueMap(Map map, Class<T> clazz) {
