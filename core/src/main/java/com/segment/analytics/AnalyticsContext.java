@@ -34,6 +34,7 @@ import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -335,6 +336,14 @@ public class AnalyticsContext extends ValueMap {
 
     double speed() {
       return getDouble(LOCATION_SPEED_KEY, 0.0d);
+    }
+  }
+
+  @Override public String toString() {
+    try {
+      return "AnalyticsContext" + JsonUtils.mapToJson(this);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 }

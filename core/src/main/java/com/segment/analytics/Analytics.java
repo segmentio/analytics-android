@@ -531,13 +531,13 @@ public class Analytics {
   }
 
   void submit(BasePayload payload) {
-    logger.debug(OWNER_MAIN, VERB_CREATE, payload.id(), "type: %s", payload.type());
+    logger.debug(OWNER_MAIN, VERB_CREATE, payload.id(), "%s", payload);
     segment.dispatchEnqueue(payload);
     integrationManager.dispatchOperation(payload);
   }
 
   void submit(ActivityLifecyclePayload payload) {
-    logger.debug(OWNER_MAIN, VERB_CREATE, payload.id(), "type: %s", payload.type);
+    logger.debug(OWNER_MAIN, VERB_CREATE, payload.id(), "%s", payload);
     integrationManager.dispatchOperation(payload);
   }
 

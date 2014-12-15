@@ -50,10 +50,14 @@ class TrackPayload extends BasePayload {
   }
 
   Properties properties() {
-    return (Properties) get(PROPERTIES_KEY);
+    return getValueMap(PROPERTIES_KEY, Properties.class);
   }
 
   @Override public void run(AbstractIntegration integration) {
     if (isIntegrationEnabledInPayload(integration)) integration.track(this);
+  }
+
+  @Override public String toString() {
+    return "TrackPayload{\"" + event() + "\"," + properties() + '}';
   }
 }

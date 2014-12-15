@@ -44,7 +44,19 @@ class GroupPayload extends BasePayload {
     put(TRAITS_KEY, traits);
   }
 
+  String groupId() {
+    return getString(GROUP_ID_KEY);
+  }
+
+  Traits traits() {
+    return getValueMap(TRAITS_KEY, Traits.class);
+  }
+
   @Override public void run(AbstractIntegration integration) {
     if (isIntegrationEnabledInPayload(integration)) integration.group(this);
+  }
+
+  @Override public String toString() {
+    return "GroupPayload{\"groupId=\"" + groupId() + "\"," + traits() + '}';
   }
 }

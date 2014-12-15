@@ -22,7 +22,6 @@ import static com.segment.analytics.Logger.OWNER_INTEGRATION_MANAGER;
 import static com.segment.analytics.Logger.VERB_DISPATCH;
 import static com.segment.analytics.Logger.VERB_ENQUEUE;
 import static com.segment.analytics.Logger.VERB_INITIALIZE;
-import static com.segment.analytics.Logger.VERB_SKIP;
 import static com.segment.analytics.Utils.THREAD_PREFIX;
 import static com.segment.analytics.Utils.createMap;
 import static com.segment.analytics.Utils.isConnected;
@@ -182,8 +181,7 @@ class IntegrationManager {
         }
       } else {
         iterator.remove();
-        logger.debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, key, "integrations: %s",
-            projectSettings.keySet());
+        logger.print(null, "Did not initialize integration %s as it was disabled.", key);
       }
     }
     if (!isNullOrEmpty(operationQueue)) {
@@ -390,6 +388,10 @@ class IntegrationManager {
     enum Type {
       CREATED, STARTED, RESUMED, PAUSED, STOPPED, SAVE_INSTANCE, DESTROYED
     }
+
+    @Override public String toString() {
+      return "ActivityLifecycle{" + type + '}';
+    }
   }
 
   static class FlushOperation implements IntegrationOperation {
@@ -405,6 +407,10 @@ class IntegrationManager {
 
     @Override public String id() {
       return id;
+    }
+
+    @Override public String toString() {
+      return "Flush";
     }
   }
 

@@ -72,4 +72,8 @@ class ScreenPayload extends BasePayload {
   @Override public void run(AbstractIntegration integration) {
     if (isIntegrationEnabledInPayload(integration)) integration.screen(this);
   }
+
+  @Override public String toString() {
+    return "ScreenPayload{\"" + event() + "\"," + properties() + '}';
+  }
 }
