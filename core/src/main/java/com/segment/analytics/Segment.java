@@ -45,8 +45,11 @@ class Segment {
   /**
    * Our servers only accept payloads <500KB. Any incoming payloads over 500KB will not be sent to
    * our servers, and we'll batch items so that they don't go over this limit.
+   * This limit is 450kb to account for extra information that is not present in payloads
+   * themselves, but is added later, such as `sentAt`, `integrations` and the json tokens for this
+   * extra metadata.
    */
-  private static final int MAX_PAYLOAD_SIZE = 500000;
+  private static final int MAX_PAYLOAD_SIZE = 450000;
 
   final Context context;
   final QueueFile payloadQueueFile;
@@ -102,7 +105,7 @@ class Segment {
   void performEnqueue(BasePayload payload) {
     final int queueSize = payloadQueueFile.size();
     if (queueSize > MAX_QUEUE_SIZE) {
-      logger.print(null, "Queue has reached it's limit. Dropping oldest event.");
+      logger.print(null, "Queue has reached limit. Dropping oldest event.");
       try {
         payloadQueueFile.remove();
       } catch (IOException e) {
@@ -186,7 +189,7 @@ class Segment {
         @Override public boolean read(InputStream in, int length) throws IOException {
           final int newSize = size + length;
           if (newSize > MAX_PAYLOAD_SIZE) {
-            // Only upload up to 500KB at a time
+            // Only upload up to MAX_PAYLOAD_SIZE at a time
             return false;
           }
           size = newSize;
