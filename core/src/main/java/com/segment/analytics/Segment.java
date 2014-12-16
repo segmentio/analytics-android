@@ -85,7 +85,7 @@ class Segment {
   Segment(Context context, int flushQueueSize, int flushInterval, SegmentHTTPApi segmentHTTPApi,
       QueueFile payloadQueueFile, Map<String, Boolean> integrations, Stats stats, Logger logger) {
     this.context = context;
-    this.flushQueueSize = flushQueueSize;
+    this.flushQueueSize = Math.min(flushQueueSize, MAX_QUEUE_SIZE);
     this.segmentHTTPApi = segmentHTTPApi;
     this.payloadQueueFile = payloadQueueFile;
     this.stats = stats;
