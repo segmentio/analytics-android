@@ -34,10 +34,11 @@ import static com.segment.analytics.Utils.toISO8601Date;
 class Segment {
   private static final Charset UTF_8 = Charset.forName("UTF-8");
   private static final String SEGMENT_THREAD_NAME = Utils.THREAD_PREFIX + "Segment";
-  private static final String PAYLOAD_QUEUE_FILE_SUFFIX = "-payload-v1";
+  private static final String PAYLOAD_QUEUE_FILE_SUFFIX = "-payloads-v1";
   // we can probably relax/adjust these limits after getting more feedback
   private static final int MAX_FLUSH_BATCH_SIZE = 50; // only flush 50 payloads in a single request
-  private static final int MAX_QUEUE_SIZE = 1000; // reject any payloads if queue grows to over this
+  private static final int MAX_QUEUE_SIZE = 1000; // reject payloads if queue grows to over this
+  private static final int MAX_PAYLOAD_SIZE = 500000; // reject payloads larger than 500kb
 
   final Context context;
   final QueueFile payloadQueueFile;
@@ -105,7 +106,9 @@ class Segment {
     }
     try {
       String json = JsonUtils.mapToJson(payload);
-      if (isNullOrEmpty(json)) throw new IOException("could not serialize payload " + payload);
+      if (isNullOrEmpty(json) || json.length() > MAX_PAYLOAD_SIZE) {
+        throw new IOException("Could not serialize payload " + payload);
+      }
       payloadQueueFile.add(json.getBytes(UTF_8));
       logger.debug(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), "queueSize: %s", queueSize);
     } catch (IOException e) {
