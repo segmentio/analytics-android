@@ -262,8 +262,10 @@ public class Traits extends ValueMap {
   }
 
   static class Cache extends ValueMap.Cache<Traits> {
-    Cache(Context context, String key, Class<Traits> clazz) {
-      super(context, key, clazz);
+    private static final String TRAITS_CACHE_PREFIX = "traits-";
+
+    Cache(Context context, String tag, Class<Traits> clazz) {
+      super(context, TRAITS_CACHE_PREFIX + tag, clazz);
     }
 
     @Override Traits create(Map<String, Object> map) {

@@ -35,7 +35,6 @@ class ProjectSettings extends ValueMap {
   static ProjectSettings create(String json, long timestamp) throws IOException {
     Map<String, Object> map = JsonUtils.jsonToMap(json);
     map.put(TIMESTAMP_KEY, timestamp);
-    // todo: make immutable?
     return new ProjectSettings(map);
   }
 

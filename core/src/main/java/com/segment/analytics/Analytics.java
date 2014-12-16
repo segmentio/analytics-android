@@ -88,7 +88,6 @@ public class Analytics {
       }
     }
   };
-  private static final String TRAITS_CACHE_PREFIX = "traits-";
   static Analytics singleton = null;
   final Application application;
   final IntegrationManager integrationManager;
@@ -690,8 +689,7 @@ public class Analytics {
       Segment segment = Segment.create(application, queueSize, flushInterval, segmentHTTPApi,
           integrationManager.bundledIntegrations, tag, stats, logger);
 
-      Traits.Cache traitsCache =
-          new Traits.Cache(application, TRAITS_CACHE_PREFIX + tag, Traits.class);
+      Traits.Cache traitsCache = new Traits.Cache(application, tag, Traits.class);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
         traitsCache.set(Traits.create(application));
       }
