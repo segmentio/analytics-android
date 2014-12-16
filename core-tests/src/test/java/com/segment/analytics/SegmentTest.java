@@ -4,6 +4,7 @@ import android.content.Context;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -17,11 +18,14 @@ import org.robolectric.annotation.Config;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
+import static com.segment.analytics.Segment.PayloadQueueFileStreamWriter;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static com.segment.analytics.Utils.toISO8601Date;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
@@ -67,6 +71,13 @@ public class SegmentTest {
   }
 
   @Test public void flushesQueueCorrectly() throws IOException {
+    final OutputStream outputStream = mock(OutputStream.class);
+    segmentHTTPApi = new SegmentHTTPApi("foo") {
+      @Override void upload(StreamWriter streamWriter) throws IOException {
+        streamWriter.write(outputStream);
+      }
+    };
+
     queueFile = createQueueFile();
     segment = createSegmentIntegration(20);
     segment.performEnqueue(payload);
@@ -76,7 +87,7 @@ public class SegmentTest {
 
     segment.performFlush();
     try {
-      verify(segmentHTTPApi).upload(any(SegmentHTTPApi.StreamWriter.class));
+      verify(outputStream).write((byte[]) any(), anyInt(), anyInt());
     } catch (IOException e) {
       fail("should not throw exception");
     }
@@ -85,6 +96,13 @@ public class SegmentTest {
   }
 
   @Test public void flushesWhenQueueHitsMax() throws IOException {
+    final OutputStream outputStream = mock(OutputStream.class);
+    segmentHTTPApi = new SegmentHTTPApi("foo") {
+      @Override void upload(StreamWriter streamWriter) throws IOException {
+        streamWriter.write(outputStream);
+      }
+    };
+
     queueFile = createQueueFile();
     segment = createSegmentIntegration(3);
     assertThat(queueFile.size()).isEqualTo(0);
@@ -93,7 +111,7 @@ public class SegmentTest {
     segment.performEnqueue(payload);
 
     try {
-      verify(segmentHTTPApi).upload(any(SegmentHTTPApi.StreamWriter.class));
+      verify(outputStream).write((byte[]) any(), anyInt(), anyInt());
     } catch (IOException e) {
       fail("should not throw exception");
     }
@@ -101,21 +119,21 @@ public class SegmentTest {
     assertThat(queueFile.size()).isEqualTo(0);
   }
 
-  @Test public void batchPayloadStreamWriter() throws IOException {
+  @Test public void batchPayloadWriter() throws IOException {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    Segment.BatchPayloadStreamWriter batchPayloadStreamWriter =
-        new Segment.BatchPayloadStreamWriter(byteArrayOutputStream);
+    Segment.BatchPayloadWriter batchPayloadWriter =
+        new Segment.BatchPayloadWriter(byteArrayOutputStream);
 
     final HashMap<String, Boolean> integrations = new LinkedHashMap<String, Boolean>();
     integrations.put("foo", false);
     integrations.put("bar", true);
 
-    batchPayloadStreamWriter.beginObject()
+    batchPayloadWriter.beginObject()
         .integrations(integrations)
         .beginBatchArray()
-        .emitBatchItem("qaz")
-        .emitBatchItem("qux")
-        .emitBatchItem("foobarbazqux")
+        .emitPayloadObject("qaz")
+        .emitPayloadObject("qux")
+        .emitPayloadObject("foobarbazqux")
         .endBatchArray()
         .endObject()
         .close();
@@ -127,19 +145,19 @@ public class SegmentTest {
             + "\"}").overridingErrorMessage("its ok if this failed close to midnight!");
   }
 
-  @Test public void batchPayloadStreamWriterSingleItem() throws IOException {
+  @Test public void batchPayloadWriterSingleItem() throws IOException {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    Segment.BatchPayloadStreamWriter batchPayloadStreamWriter =
-        new Segment.BatchPayloadStreamWriter(byteArrayOutputStream);
+    Segment.BatchPayloadWriter batchPayloadWriter =
+        new Segment.BatchPayloadWriter(byteArrayOutputStream);
 
     final HashMap<String, Boolean> integrations = new LinkedHashMap<String, Boolean>();
     integrations.put("foo", false);
     integrations.put("bar", true);
 
-    batchPayloadStreamWriter.beginObject()
+    batchPayloadWriter.beginObject()
         .integrations(integrations)
         .beginBatchArray()
-        .emitBatchItem("qaz")
+        .emitPayloadObject("qaz")
         .endBatchArray()
         .endObject()
         .close();
@@ -150,17 +168,17 @@ public class SegmentTest {
             + "\"}").overridingErrorMessage("its ok if this failed close to midnight!");
   }
 
-  @Test public void batchPayloadStreamWriterNoItem() throws IOException {
+  @Test public void batchPayloadWriterNoItem() throws IOException {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    Segment.BatchPayloadStreamWriter batchPayloadStreamWriter =
-        new Segment.BatchPayloadStreamWriter(byteArrayOutputStream);
+    Segment.BatchPayloadWriter batchPayloadWriter =
+        new Segment.BatchPayloadWriter(byteArrayOutputStream);
 
     final HashMap<String, Boolean> integrations = new LinkedHashMap<String, Boolean>();
     integrations.put("foo", false);
     integrations.put("bar", true);
 
     try {
-      batchPayloadStreamWriter.beginObject()
+      batchPayloadWriter.beginObject()
           .integrations(integrations)
           .beginBatchArray()
           .endBatchArray()
@@ -169,5 +187,28 @@ public class SegmentTest {
     } catch (AssertionError error) {
       assertThat(error).hasMessage("At least one payload must be provided.");
     }
+  }
+
+  @Test public void queueFileSteamWriter() throws IOException {
+    QueueFile queueFile = createQueueFile();
+    OutputStream outputStream = mock(OutputStream.class);
+    PayloadQueueFileStreamWriter payloadQueueFileStreamWriter =
+        new PayloadQueueFileStreamWriter(new LinkedHashMap<String, Boolean>(), queueFile);
+    byte[] data = JsonUtils.mapToJson(payload).getBytes();
+
+    queueFile.add(data);
+    queueFile.add(data);
+    queueFile.add(data);
+    queueFile.add(data);
+    queueFile.add(data);
+    payloadQueueFileStreamWriter.write(outputStream);
+    assertThat(payloadQueueFileStreamWriter.payloadCount).isEqualTo(5);
+
+    queueFile.clear();
+    queueFile.add(data);
+    queueFile.add(data);
+    queueFile.add(data);
+    payloadQueueFileStreamWriter.write(outputStream);
+    assertThat(payloadQueueFileStreamWriter.payloadCount).isEqualTo(3);
   }
 }
