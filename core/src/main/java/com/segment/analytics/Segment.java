@@ -37,9 +37,9 @@ class Segment {
   private static final String PAYLOAD_QUEUE_FILE_SUFFIX = "-payloads-v1";
   // we can probably relax/adjust these limits after getting more feedback
   /**
-   * Reject payloads if queue contains more than 1000 items. Since each item can be at most 500KB,
-   * this bounds the queue size to ~500MB (ignoring queueFile headers), which leaves room for
-   * QueueFile's 2GB limit.
+   * Drop old payloads if queue contains more than 1000 items. Since each item can be at most
+   * 450KB, this bounds the queueFile size to ~450MB (ignoring queueFile headers), which leaves room
+   * for QueueFile's 2GB limit.
    */
   private static final int MAX_QUEUE_SIZE = 1000;
   /**

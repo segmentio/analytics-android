@@ -1,3 +1,14 @@
+Version 2.5.0 (In Progress)
+===========================
+* Improvement: Remove dependency on Tape. We won't add it back again for this major version.
+* Fix: OOM when buffering too many messages in the queue
+* Improvement: Stream payloads to URLConnection
+* Fix: Each project will not have it's own ProjectSettings and Traits Cache
+* Improvement: Reject payloads over 450kb
+* Improvement: Automatically batch messages in 500kb
+* Improvement: If the disk queue grows to over 1000, old messages will be dropped
+* Improvement: Print important payload information in logs
+
 Version 2.4.6 (December 5th, 2014)
 ==================================
 * Fix: Catch serialization errors better
