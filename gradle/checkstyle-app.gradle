@@ -1,7 +1,7 @@
 apply plugin: 'checkstyle'
 
 checkstyle {
-  configFile rootProject.file('checkstyle.xml')
+  configFile rootProject.file('gradle/checkstyle.xml')
   showViolations true
 }
 
