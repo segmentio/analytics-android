@@ -1,4 +1,5 @@
 #!/bin/bash
+# Automate deploying releases
 
 set -e
 
