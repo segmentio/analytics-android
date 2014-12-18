@@ -6,6 +6,7 @@ import android.app.Application;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import com.localytics.android.LocalyticsAmpSession;
+import com.localytics.android.LocalyticsSession;
 import java.util.HashMap;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,6 +48,11 @@ public class LocalyticsTest extends AbstractIntegrationTestCase {
     LocalyticsIntegration integration = new LocalyticsIntegration();
     integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"), true);
     assertThat(integration.session).isNotNull();
+    assertThat(LocalyticsSession.isLoggingEnabled()).isTrue();
+
+    integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"),
+        false);
+    assertThat(LocalyticsSession.isLoggingEnabled()).isFalse();
   }
 
   @Test @Override public void activityCreate() {

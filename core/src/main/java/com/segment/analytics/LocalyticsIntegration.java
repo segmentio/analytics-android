@@ -28,6 +28,7 @@ class LocalyticsIntegration extends AbstractIntegration<LocalyticsAmpSession> {
       throw new IllegalStateException("localytics requires the wake lock permission");
     }
     session = new LocalyticsAmpSession(context, settings.getString("appKey"));
+    LocalyticsAmpSession.setLoggingEnabled(debuggingEnabled);
   }
 
   @Override LocalyticsAmpSession getUnderlyingInstance() {
