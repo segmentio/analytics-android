@@ -60,7 +60,7 @@ public class WearAnalytics {
    * @param event Name of the event. Must not be null or empty.
    * @param properties {@link Properties} to add extra information to this call
    * @throws IllegalArgumentException if event name is null or an empty string
-   * @see <a href="https://segment.io/docs/tracking-api/track/">Track Documentation</a>
+   * @see <a href="https://Segment/docs/tracking-api/track/">Track Documentation</a>
    * @see com.segment.analytics.Analytics#track(String, Properties)
    */
   public void track(String event, Properties properties) {
@@ -85,7 +85,7 @@ public class WearAnalytics {
    * @param category A category to describe the screen
    * @param name A name for the screen
    * @param properties {@link Properties} to add extra information to this call
-   * @see <a href="http://segment.io/docs/tracking-api/page-and-screen/">Screen Documentation</a>
+   * @see <a href="http://Segment/docs/tracking-api/page-and-screen/">Screen Documentation</a>
    * @see com.segment.analytics.Analytics#screen(String, String, Properties)
    */
   public void screen(String category, String name, Properties properties) {

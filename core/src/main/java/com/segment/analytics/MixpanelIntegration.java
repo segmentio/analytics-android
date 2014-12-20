@@ -13,7 +13,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * and people tracking; advanced segmentation; and sending email and notifications.
  *
  * @see <a href="https://mixpanel.com">Mixpanel</a>
- * @see <a href="https://segment.io/docs/integrations/mixpanel">Mixpanel Integration</a>
+ * @see <a href="https://Segment/docs/integrations/mixpanel">Mixpanel Integration</a>
  * @see <a href="https://github.com/mixpanel/mixpanel-android">Mixpanel Android SDK</a>
  */
 class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {

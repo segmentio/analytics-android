@@ -37,7 +37,7 @@ public class ProjectSettingsTest {
         + "    ],\n"
         + "    \"legacySuperProperties\": false\n"
         + "  },\n"
-        + "  \"Segment.io\": {\n"
+        + "  \"Segment\": {\n"
         + "    \"apiKey\": \"l8v1ga655b\"\n"
         + "  }\n"
         + "}";

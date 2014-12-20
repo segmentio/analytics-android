@@ -20,7 +20,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * wide range of features. It’s especially good at measuring traffic sources and ad campaigns.
  *
  * @see <a href="http://www.google.com/analytics/">Google Analytics</a>
- * @see <a href="https://segment.io/docs/integrations/google-analytics/">Google Analytics
+ * @see <a href="https://Segment/docs/integrations/google-analytics/">Google Analytics
  * Integration</a>
  * @see <a href="https://developers.google.com/analytics/devguides/collection/android/v4/">Google
  * Analyitcs Android SDK</a>

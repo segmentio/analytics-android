@@ -15,7 +15,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * attribution, retargeting campaigns and user actions in your mobile apps.
  *
  * @see <a href="http://www.localytics.com/">Localytics</a>
- * @see <a href="https://segment.io/docs/integrations/localytics/">Localytics Integration</a>
+ * @see <a href="https://Segment/docs/integrations/localytics/">Localytics Integration</a>
  * @see <a href="http://www.localytics.com/docs/android-integration/">Localytics Android SDK</a>
  */
 class LocalyticsIntegration extends AbstractIntegration<LocalyticsAmpSession> {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2014 Segment.io, Inc.
+ * Copyright (c) 2014 Segment, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -135,7 +135,7 @@ class SegmentHTTPApi {
     HttpsURLConnection open(String endpoint) throws IOException;
 
     HttpURLConnectionFactory DEFAULT = new HttpURLConnectionFactory() {
-      static final String API_URL = "https://api.segment.io/";
+      static final String API_URL = "https://api.Segment/";
 
       @Override public HttpsURLConnection open(String endpoint) throws IOException {
         return (HttpsURLConnection) createUrl(endpoint).openConnection();

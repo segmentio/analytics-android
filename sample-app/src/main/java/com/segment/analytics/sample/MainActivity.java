@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2014 Segment.io, Inc.
+ * Copyright (c) 2014 Segment, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -137,7 +137,7 @@ public class MainActivity extends Activity {
     int id = item.getItemId();
     if (id == R.id.action_view_docs) {
       Intent intent = new Intent(Intent.ACTION_VIEW,
-          Uri.parse("https://segment.io/docs/tutorials/quickstart-android/"));
+          Uri.parse("https://Segment/docs/tutorials/quickstart-android/"));
       try {
         startActivity(intent);
       } catch (ActivityNotFoundException e) {

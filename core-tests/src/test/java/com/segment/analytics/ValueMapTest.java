@@ -130,7 +130,7 @@ public class ValueMapTest {
     Settings settings = new Settings(PROJECT_SETTINGS_JSON_SAMPLE);
     assertThat(settings).hasSize(4)
         .containsKey("Amplitude")
-        .containsKey("Segment.io")
+        .containsKey("Segment")
         .containsKey("Flurry")
         .containsKey("Mixpanel");
 

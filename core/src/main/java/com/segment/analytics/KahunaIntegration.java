@@ -16,7 +16,7 @@ import static com.segment.analytics.Utils.isOnClassPath;
  * Kahuna helps mobile marketers send push notifications and in-app messages.
  *
  * @see <a href="https://www.kahuna.com/">Kahuna</a>
- * @see <a href="https://segment.io/docs/integrations/kahuna/">Kahuna Integration</a>
+ * @see <a href="https://Segment/docs/integrations/kahuna/">Kahuna Integration</a>
  * @see <a href="http://app.usekahuna.com/tap/getstarted/android/">Kahuna Android SDK</a>
  */
 class KahunaIntegration extends AbstractIntegration<Void> {

@@ -2,7 +2,7 @@
 <!--
   ~ The MIT License (MIT)
   ~
-  ~ Copyright (c) 2014 Segment.io, Inc.
+  ~ Copyright (c) 2014 Segment, Inc.
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy
   ~ of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
   -->
 
 <resources>
-  <!--Your Segment.io f2prateek/android-sample-app write key-->
+  <!--Your Segment f2prateek/android-sample-app write key-->
   <string name="analytics_write_key">l8v1ga655b</string>
 
   <!--Whether to print additional log information as you develop.-->

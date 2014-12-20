@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2014 Segment.io, Inc.
+ * Copyright (c) 2014 Segment, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -71,7 +71,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * #with(android.content.Context)} for the global singleton instance or construct your own instance
  * with {@link Builder}.
  *
- * @see <a href="https://segment.io/">Segment.io</a>
+ * @see <a href="https://Segment/">Segment</a>
  */
 public class Analytics {
   // Resource identifiers to define options in xml
@@ -274,7 +274,7 @@ public class Analytics {
    * @param newTraits Traits about the user
    * @param options To configure the call
    * @throws IllegalArgumentException if userId is null or an empty string
-   * @see <a href="https://segment.io/docs/tracking-api/identify/">Identify Documentation</a>
+   * @see <a href="https://Segment/docs/tracking-api/identify/">Identify Documentation</a>
    */
   public void identify(String userId, Traits newTraits, Options options) {
     if (!isNullOrEmpty(userId)) {
@@ -311,7 +311,7 @@ public class Analytics {
    * be null or empty.
    * @param options To configure the call
    * @throws IllegalArgumentException if groupId is null or an empty string
-   * @see <a href="https://segment.io/docs/tracking-api/group/">Group Documentation</a>
+   * @see <a href="https://Segment/docs/tracking-api/group/">Group Documentation</a>
    */
   public void group(String userId, String groupId, Traits groupTraits, Options options) {
     if (isNullOrEmpty(groupId)) {
@@ -354,7 +354,7 @@ public class Analytics {
    * @param properties {@link Properties} to add extra information to this call
    * @param options To configure the call
    * @throws IllegalArgumentException if event name is null or an empty string
-   * @see <a href="https://segment.io/docs/tracking-api/track/">Track Documentation</a>
+   * @see <a href="https://Segment/docs/tracking-api/track/">Track Documentation</a>
    */
   public void track(String event, Properties properties, Options options) {
     if (isNullOrEmpty(event)) {
@@ -392,7 +392,7 @@ public class Analytics {
    * @param name A name for the screen
    * @param properties {@link Properties} to add extra information to this call
    * @param options To configure the call
-   * @see <a href="http://segment.io/docs/tracking-api/page-and-screen/">Screen Documentation</a>
+   * @see <a href="http://Segment/docs/tracking-api/page-and-screen/">Screen Documentation</a>
    */
   public void screen(String category, String name, Properties properties, Options options) {
     if (isNullOrEmpty(category) && isNullOrEmpty(name)) {
@@ -426,7 +426,7 @@ public class Analytics {
    * @param newId The newId to map the old id to. Must not be null to empty.
    * @param options To configure the call
    * @throws IllegalArgumentException if newId is null or empty
-   * @see <a href="https://segment.io/docs/tracking-api/alias/">Alias Documentation</a>
+   * @see <a href="https://Segment/docs/tracking-api/alias/">Alias Documentation</a>
    */
   public void alias(String previousId, String newId, Options options) {
     if (isNullOrEmpty(newId)) {
