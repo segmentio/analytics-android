@@ -37,3 +37,9 @@ script:
 
 after_success:
   - .buildscript/deploy_snapshot.sh
+
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.gradle
