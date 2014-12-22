@@ -1,8 +1,6 @@
 package com.segment.analytics;
 
-import android.app.Activity;
 import android.content.Context;
-import android.os.Bundle;
 import com.bugsnag.android.Bugsnag;
 import com.bugsnag.android.Client;
 import java.util.Map;
@@ -20,8 +18,7 @@ class BugsnagIntegration extends AbstractIntegration<Client> {
 
   @Override void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
       throws IllegalStateException {
-    Bugsnag.register(context, settings.getString("apiKey"));
-    Bugsnag.setUseSSL(settings.getBoolean("useSSL", true));
+    Bugsnag.init(context, settings.getString("apiKey"));
   }
 
   @Override Client getUnderlyingInstance() {
@@ -32,27 +29,6 @@ class BugsnagIntegration extends AbstractIntegration<Client> {
     return BUGSNAG_KEY;
   }
 
-  @Override void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-    super.onActivityCreated(activity, savedInstanceState);
-    Bugsnag.setContext(activity.getLocalClassName());
-    Bugsnag.onActivityCreate(activity);
-  }
-
-  @Override void onActivityResumed(Activity activity) {
-    super.onActivityResumed(activity);
-    Bugsnag.onActivityResume(activity);
-  }
-
-  @Override void onActivityPaused(Activity activity) {
-    super.onActivityPaused(activity);
-    Bugsnag.onActivityPause(activity);
-  }
-
-  @Override void onActivityDestroyed(Activity activity) {
-    super.onActivityDestroyed(activity);
-    Bugsnag.onActivityDestroy(activity);
-  }
-
   @Override void identify(IdentifyPayload identify) {
     super.identify(identify);
     Traits traits = identify.traits();
@@ -61,5 +37,15 @@ class BugsnagIntegration extends AbstractIntegration<Client> {
     for (Map.Entry<String, Object> entry : traits.entrySet()) {
       Bugsnag.addToTab(userKey, entry.getKey(), entry.getValue());
     }
+  }
+
+  @Override void screen(ScreenPayload screen) {
+    super.screen(screen);
+    Bugsnag.leaveBreadcrumb(String.format(VIEWED_EVENT_FORMAT, screen.event()));
+  }
+
+  @Override void track(TrackPayload track) {
+    super.track(track);
+    Bugsnag.leaveBreadcrumb(track.event());
   }
 }

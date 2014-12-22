@@ -1,13 +1,14 @@
 Version 2.5.0 (In Progress)
 ===========================
-* Improvement: Remove dependency on Tape. We won't add it back again for this major version.
-* Fix: OOM when buffering too many messages in the queue
+* Fix: Potential OOM when buffering too many messages in the queue
+* Fix: Each Analytics instance (for unique writeKey/tag) will have it's own ProjectSettings and Traits cache
 * Improvement: Stream payloads to URLConnection
-* Fix: Each project will not have it's own ProjectSettings and Traits Cache
-* Improvement: Reject payloads over 450kb
-* Improvement: Automatically batch messages in 500kb
-* Improvement: If the disk queue grows to over 1000, old messages will be dropped
+* Improvement: Reject individual payloads over 450kb
+* Improvement: Automatically batch messages by size upto 500kb
+* Improvement: Drop old messages once disk queue reaches 1000.
+* Improvement: Remove dependency on Tape. We won't add it back again for this major version.
 * Improvement: Print important payload information in logs
+* Improvement: Update to Bugsnag 3.0.0
 
 Version 2.4.6 (December 5th, 2014)
 ==================================

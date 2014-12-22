@@ -36,7 +36,7 @@ class ScreenPayload extends BasePayload {
   /** The page and screen methods also take a properties dictionary, just like track. */
   private static final String PROPERTIES_KEY = "properties";
 
-  String event;
+  private String event;
 
   ScreenPayload(AnalyticsContext context, Options options, String category, String name,
       Properties properties) {
