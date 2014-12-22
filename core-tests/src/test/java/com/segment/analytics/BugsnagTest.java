@@ -20,6 +20,7 @@ import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
 import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
 import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
@@ -45,9 +46,11 @@ public class BugsnagTest extends AbstractIntegrationTestCase {
 
   @Test @Override public void activityCreate() {
     Activity activity = mock(Activity.class);
+    when(activity.getLocalClassName()).thenReturn("foo");
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
     verifyStatic();
+    Bugsnag.setContext("foo");
     verifyNoMoreInteractions(Bugsnag.class);
   }
 

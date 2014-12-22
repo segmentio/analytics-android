@@ -1,6 +1,8 @@
 package com.segment.analytics;
 
+import android.app.Activity;
 import android.content.Context;
+import android.os.Bundle;
 import com.bugsnag.android.Bugsnag;
 import com.bugsnag.android.Client;
 import java.util.Map;
@@ -27,6 +29,11 @@ class BugsnagIntegration extends AbstractIntegration<Client> {
 
   @Override String key() {
     return BUGSNAG_KEY;
+  }
+
+  @Override void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+    super.onActivityCreated(activity, savedInstanceState);
+    Bugsnag.setContext(activity.getLocalClassName());
   }
 
   @Override void identify(IdentifyPayload identify) {
