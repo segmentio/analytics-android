@@ -20,7 +20,6 @@ import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
 import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
 import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
@@ -41,19 +40,15 @@ public class BugsnagTest extends AbstractIntegrationTestCase {
     integration.initialize(context,
         new ValueMap().putValue("apiKey", "foo").putValue("useSSL", true), true);
     verifyStatic();
-    Bugsnag.register(context, "foo");
-    Bugsnag.setUseSSL(true);
+    Bugsnag.init(context, "foo");
   }
 
   @Test @Override public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
-    when(activity.getLocalClassName()).thenReturn("foo");
     integration.onActivityCreated(activity, bundle);
     verifyStatic();
-    Bugsnag.setContext("foo");
-    verifyStatic();
-    Bugsnag.onActivityCreate(activity);
+    verifyNoMoreInteractions(Bugsnag.class);
   }
 
   @Test @Override public void activityStart() {
@@ -67,14 +62,14 @@ public class BugsnagTest extends AbstractIntegrationTestCase {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
     verifyStatic();
-    Bugsnag.onActivityResume(activity);
+    verifyNoMoreInteractions(Bugsnag.class);
   }
 
   @Test @Override public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
     verifyStatic();
-    Bugsnag.onActivityPause(activity);
+    verifyNoMoreInteractions(Bugsnag.class);
   }
 
   @Test @Override public void activityStop() {
@@ -96,7 +91,7 @@ public class BugsnagTest extends AbstractIntegrationTestCase {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
     verifyStatic();
-    Bugsnag.onActivityDestroy(activity);
+    verifyNoMoreInteractions(Bugsnag.class);
   }
 
   @Test @Override public void identify() {
@@ -119,9 +114,9 @@ public class BugsnagTest extends AbstractIntegrationTestCase {
   }
 
   @Test @Override public void track() {
-    integration.track(new TrackPayloadBuilder().build());
+    integration.track(new TrackPayloadBuilder().event("foo").build());
     verifyStatic();
-    verifyNoMoreInteractions(Bugsnag.class);
+    Bugsnag.leaveBreadcrumb("foo");
   }
 
   @Test @Override public void alias() {
@@ -131,9 +126,9 @@ public class BugsnagTest extends AbstractIntegrationTestCase {
   }
 
   @Test @Override public void screen() {
-    integration.screen(new ScreenPayloadBuilder().build());
+    integration.screen(new ScreenPayloadBuilder().name("foo").build());
     verifyStatic();
-    verifyNoMoreInteractions(Bugsnag.class);
+    Bugsnag.leaveBreadcrumb("Viewed foo Screen");
   }
 
   @Test @Override public void flush() {
