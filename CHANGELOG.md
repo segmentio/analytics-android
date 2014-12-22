@@ -1,4 +1,4 @@
-Version 2.5.0 (In Progress)
+Version 2.5.0 (December 22nd, 2014)
 ===========================
 * Fix: Potential OOM when buffering too many messages in the queue
 * Fix: Each Analytics instance (for unique writeKey/tag) will have it's own ProjectSettings and Traits cache
