@@ -1,21 +1,27 @@
 package com.segment.analytics;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import java.util.HashMap;
 import ly.count.android.api.Countly;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static android.content.Context.MODE_PRIVATE;
 import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
 import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
@@ -31,14 +37,13 @@ public class CountlyTest extends AbstractIntegrationTestCase {
   }
 
   @Test @Override public void initialize() throws IllegalStateException {
-    try {
-      integration.initialize(context,
-          new ValueMap().putValue("serverUrl", "foo").putValue("appKey", "bar"), true);
-    } catch (NullPointerException ignored) {
-      // an NPE occurs in Countly's SDK, but we only need to verify that we did indeed call the SDK
-      // correctly
-      // http://pastebin.com/jHRZyhr7
-    }
+    integration.countly = null;
+    SharedPreferences countlyPrefs =
+        Robolectric.application.getSharedPreferences("countly", MODE_PRIVATE);
+    when(context.getSharedPreferences(anyString(), anyInt())).thenReturn(countlyPrefs);
+    integration.initialize(context, new ValueMap() //
+        .putValue("serverUrl", "https://countly.com").putValue("appKey", "foo"), true);
+    assertThat(integration.countly).isNotNull();
   }
 
   @Test @Override public void activityCreate() {
