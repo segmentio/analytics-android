@@ -51,7 +51,7 @@ ext.integrationsMap = [
     countly        : 'ly.count:sdk-android:14.12',
     crittercism    : 'com.crittercism:crittercism-android-agent:5.0.3',
     flurry         : files('libs/Flurry-4.1.0.jar'),
-    googleAnalytics: 'com.google.android.gms:play-services:6.5.87',
+    googleAnalytics: 'com.google.android.gms:play-services-base:6.5.87',
     kahuna         : files('libs/Kahuna-5.1.0.jar'),
     localytics     : files('libs/Localytics-2.7.1.jar'),
     leanplum       : files('libs/Leanplum-1.2.5.jar'),
