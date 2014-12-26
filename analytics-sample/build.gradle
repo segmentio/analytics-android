@@ -13,7 +13,7 @@ dependencies {
   // compile('com.segment.analytics.android:all:2.4.4-SNAPSHOT@aar') {
   //   transitive = true
   // }
-  compile project(':analytics')
+  compile project(':analytics-core')
   compile project(':analytics-wear') // only required for Android Wear apps
 }
 

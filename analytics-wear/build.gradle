@@ -9,7 +9,7 @@ buildscript {
 }
 
 dependencies {
-  compile project(':analytics')
+  compile project(':analytics-core')
   compile rootProject.ext.libraries.playWearable
 }
 
