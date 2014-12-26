@@ -10,11 +10,12 @@ import android.os.Message;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Analytics.OnIntegrationReadyListener;
@@ -23,10 +24,8 @@ import static com.segment.analytics.Logger.VERB_DISPATCH;
 import static com.segment.analytics.Logger.VERB_ENQUEUE;
 import static com.segment.analytics.Logger.VERB_INITIALIZE;
 import static com.segment.analytics.Utils.THREAD_PREFIX;
-import static com.segment.analytics.Utils.createMap;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.isNullOrEmpty;
-import static com.segment.analytics.Utils.isOnClassPath;
 import static com.segment.analytics.Utils.panic;
 import static com.segment.analytics.Utils.quitThread;
 
@@ -51,9 +50,9 @@ class IntegrationManager {
   final Stats stats;
   final boolean debuggingEnabled;
   final ValueMap.Cache<ProjectSettings> projectSettingsCache;
-  final Map<String, Boolean> bundledIntegrations = createMap();
   final Logger logger;
-  List<AbstractIntegration> integrations;
+  final List<AbstractIntegration> integrations = new CopyOnWriteArrayList<AbstractIntegration>();
+  final Map<String, Boolean> bundledIntegrations = new ConcurrentHashMap<String, Boolean>();
   Queue<IntegrationOperation> operationQueue;
   boolean initialized;
   OnIntegrationReadyListener listener;
@@ -83,24 +82,19 @@ class IntegrationManager {
     // Look up all the integrations available on the device. This is done early so that we can
     // disable sending to these integrations from the server and properly fill the payloads with
     // this information
-    findBundledIntegration("com.amplitude.api.Amplitude", AmplitudeIntegration.AMPLITUDE_KEY);
-    findBundledIntegration("com.appsflyer.AppsFlyerLib", AppsFlyerIntegration.APPS_FLYER_KEY);
-    findBundledIntegration("com.bugsnag.android.Bugsnag", BugsnagIntegration.BUGSNAG_KEY);
-    findBundledIntegration("ly.count.android.api.Countly", CountlyIntegration.COUNTLY_KEY);
-    findBundledIntegration("com.crittercism.app.Crittercism",
-        CrittercismIntegration.CRITTERCISM_KEY);
-    findBundledIntegration("com.flurry.android.FlurryAgent", FlurryIntegration.FLURRY_KEY);
-    findBundledIntegration("com.google.android.gms.analytics.GoogleAnalytics",
-        GoogleAnalyticsIntegration.GOOGLE_ANALYTICS_KEY);
-    findBundledIntegration("com.kahuna.sdk.KahunaAnalytics", KahunaIntegration.KAHUNA_KEY);
-    findBundledIntegration("com.localytics.android.LocalyticsAmpSession",
-        LocalyticsIntegration.LOCALYTICS_KEY);
-    findBundledIntegration("com.leanplum.Leanplum", LeanplumIntegration.LEANPLUM_KEY);
-    findBundledIntegration("com.mixpanel.android.mpmetrics.MixpanelAPI",
-        MixpanelIntegration.MIXPANEL_KEY);
-    findBundledIntegration("com.quantcast.measurement.service.QuantcastClient",
-        QuantcastIntegration.QUANTCAST_KEY);
-    findBundledIntegration("com.tapstream.sdk.Tapstream", TapstreamIntegration.TAPSTREAM_KEY);
+    loadBundledIntegration("com.segment.analytics.AmplitudeIntegration");
+    loadBundledIntegration("com.segment.analytics.AppsFlyerIntegration");
+    loadBundledIntegration("com.segment.analytics.BugsnagIntegration");
+    loadBundledIntegration("com.segment.analytics.CountlyIntegration");
+    loadBundledIntegration("com.segment.analytics.CrittercismIntegration");
+    loadBundledIntegration("com.segment.analytics.FlurryIntegration");
+    loadBundledIntegration("com.segment.analytics.GoogleAnalyticsIntegration");
+    loadBundledIntegration("com.segment.analytics.KahunaIntegration");
+    loadBundledIntegration("com.segment.analytics.LeanplumIntegration");
+    loadBundledIntegration("com.segment.analytics.LocalyticsIntegration");
+    loadBundledIntegration("com.segment.analytics.MixpanelIntegration");
+    loadBundledIntegration("com.segment.analytics.QuantcastIntegration");
+    loadBundledIntegration("com.segment.analytics.TapstreamIntegration");
 
     this.projectSettingsCache = projectSettingsCache;
 
@@ -116,8 +110,19 @@ class IntegrationManager {
     }
   }
 
-  private void findBundledIntegration(String className, String key) {
-    if (isOnClassPath(className)) bundledIntegrations.put(key, false);
+  private void loadBundledIntegration(String className) {
+    try {
+      Class clz = Class.forName(className);
+      AbstractIntegration integration = (AbstractIntegration) clz.newInstance();
+      integrations.add(integration);
+      bundledIntegrations.put(integration.key(), false);
+    } catch (InstantiationException e) {
+      logger.print(e, "Skipped integration %s as it could not be instantiated.", className);
+    } catch (ClassNotFoundException e) {
+      logger.print(e, "Skipped integration %s as it was not bundled.", className);
+    } catch (IllegalAccessException e) {
+      logger.print(e, "Skipped integration %s as it could not be accessed.", className);
+    }
   }
 
   void dispatchFetch() {
@@ -159,14 +164,13 @@ class IntegrationManager {
   void performInitialize(ProjectSettings projectSettings) {
     if (initialized) return;
 
-    integrations = new LinkedList<AbstractIntegration>();
     // Iterate over all the bundled integrations
-    Iterator<Map.Entry<String, Boolean>> iterator = bundledIntegrations.entrySet().iterator();
+    Iterator<AbstractIntegration> iterator = integrations.iterator();
     while (iterator.hasNext()) {
-      String key = iterator.next().getKey();
+      AbstractIntegration integration = iterator.next();
+      String key = integration.key();
       if (projectSettings.containsKey(key)) {
         ValueMap settings = new ValueMap(projectSettings.getValueMap(key));
-        AbstractIntegration integration = createIntegrationForKey(key);
         try {
           logger.debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, key, "settings: %s", settings);
           integration.initialize(context, settings, debuggingEnabled);
@@ -174,10 +178,10 @@ class IntegrationManager {
             listener.onIntegrationReady(key, integration.getUnderlyingInstance());
             listener = null; // clear the reference
           }
-          integrations.add(integration);
         } catch (IllegalStateException e) {
           iterator.remove();
-          logger.error(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, integration.key(), e, null);
+          bundledIntegrations.remove(key);
+          logger.print(e, "Did not initialize integration %s as it needed more permissions.", key);
         }
       } else {
         iterator.remove();
@@ -194,78 +198,6 @@ class IntegrationManager {
     }
     operationQueue = null;
     initialized = true;
-  }
-
-  AbstractIntegration createIntegrationForKey(String key) {
-    switch (key.charAt(0)) {
-      case 'A':
-        switch (key.charAt(1)) {
-          case 'm':
-            verify(key, AmplitudeIntegration.AMPLITUDE_KEY);
-            return new AmplitudeIntegration();
-          case 'p':
-            verify(key, AppsFlyerIntegration.APPS_FLYER_KEY);
-            return new AppsFlyerIntegration();
-          default:
-            break;
-        }
-      case 'B':
-        verify(key, BugsnagIntegration.BUGSNAG_KEY);
-        return new BugsnagIntegration();
-      case 'C':
-        switch (key.charAt(1)) {
-          case 'o':
-            verify(key, CountlyIntegration.COUNTLY_KEY);
-            return new CountlyIntegration();
-          case 'r':
-            verify(key, CrittercismIntegration.CRITTERCISM_KEY);
-            return new CrittercismIntegration();
-          default:
-            break;
-        }
-      case 'F':
-        verify(key, FlurryIntegration.FLURRY_KEY);
-        return new FlurryIntegration();
-      case 'G':
-        verify(key, GoogleAnalyticsIntegration.GOOGLE_ANALYTICS_KEY);
-        return new GoogleAnalyticsIntegration();
-      case 'K':
-        verify(key, KahunaIntegration.KAHUNA_KEY);
-        return new KahunaIntegration();
-      case 'L':
-        switch (key.charAt(1)) {
-          case 'e':
-            verify(key, LeanplumIntegration.LEANPLUM_KEY);
-            return new LeanplumIntegration();
-          case 'o':
-            verify(key, LocalyticsIntegration.LOCALYTICS_KEY);
-            return new LocalyticsIntegration();
-          default:
-            break;
-        }
-      case 'M':
-        verify(key, MixpanelIntegration.MIXPANEL_KEY);
-        return new MixpanelIntegration();
-      case 'Q':
-        verify(key, QuantcastIntegration.QUANTCAST_KEY);
-        return new QuantcastIntegration();
-      case 'T':
-        verify(key, TapstreamIntegration.TAPSTREAM_KEY);
-        return new TapstreamIntegration();
-      default:
-        break;
-    }
-    // this will only be called for bundled integrations, so should fail if we see some unknown
-    // bundled integration!
-    throw new AssertionError("unknown integration key: " + key);
-  }
-
-  private void verify(String actual, String expected) {
-    // todo: ideally we wouldn't even have to compare the first n characters that were matched in
-    // the trie, but this is ok for now
-    if (actual.compareTo(expected) != 0) {
-      throw new AssertionError("unknown integration key: " + actual);
-    }
   }
 
   void dispatchFlush() {
