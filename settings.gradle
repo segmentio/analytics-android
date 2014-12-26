@@ -1,5 +1,4 @@
 include 'analytics-core'
-include 'analytics-tests'
 include 'analytics-wear'
 include 'analytics'
 include 'analytics-sample'
