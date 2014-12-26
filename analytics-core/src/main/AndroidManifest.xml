@@ -23,6 +23,11 @@
   ~ SOFTWARE.
   -->
 
-<manifest package="com.segment.analytics.all">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.segment.analytics">
+
+  <!-- Required for internet. -->
+  <uses-permission android:name="android.permission.INTERNET"/>
+
   <application/>
 </manifest>

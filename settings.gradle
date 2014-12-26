@@ -1,1 +1,6 @@
-include 'analytics', 'analytics-tests', 'analytics-wear', 'analytics-all', 'analytics-sample', 'analytics-wear-sample'
+include 'analytics-core'
+include 'analytics-tests'
+include 'analytics-wear'
+include 'analytics'
+include 'analytics-sample'
+include 'analytics-wear-sample'
