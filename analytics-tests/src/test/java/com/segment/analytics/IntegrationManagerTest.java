@@ -1,7 +1,7 @@
 package com.segment.analytics;
 
 import android.content.Context;
-import java.util.Arrays;
+import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,7 +12,6 @@ import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -33,104 +32,49 @@ public class IntegrationManagerTest {
 
   Context context;
 
-  @Before public void setUp() {
+  @Before public void setUp() throws IOException {
     initMocks(this);
+
     context = mockApplication();
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
+
     integrationManager =
         new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logger, true);
   }
 
-  @Test public void createsIntegrationsCorrectly() {
-    assertThat(integrationManager.createIntegrationForKey("Amplitude")).isInstanceOf(
-        AmplitudeIntegration.class);
-    assertThat(integrationManager.createIntegrationForKey("AppsFlyer")).isInstanceOf(
-        AppsFlyerIntegration.class);
-    assertThat(integrationManager.createIntegrationForKey("Bugsnag")).isInstanceOf(
-        BugsnagIntegration.class);
-    assertThat(integrationManager.createIntegrationForKey("Countly")).isInstanceOf(
-        CountlyIntegration.class);
-    assertThat(integrationManager.createIntegrationForKey("Crittercism")).isInstanceOf(
-        CrittercismIntegration.class);
-    assertThat(integrationManager.createIntegrationForKey("Flurry")).isInstanceOf(
-        FlurryIntegration.class);
-    assertThat(integrationManager.createIntegrationForKey("Google Analytics")).isInstanceOf(
-        GoogleAnalyticsIntegration.class);
-    assertThat(integrationManager.createIntegrationForKey("Leanplum")).isInstanceOf(
-        LeanplumIntegration.class);
-    assertThat(integrationManager.createIntegrationForKey("Localytics")).isInstanceOf(
-        LocalyticsIntegration.class);
-    assertThat(integrationManager.createIntegrationForKey("Mixpanel")).isInstanceOf(
-        MixpanelIntegration.class);
-    assertThat(integrationManager.createIntegrationForKey("Quantcast")).isInstanceOf(
-        QuantcastIntegration.class);
-    assertThat(integrationManager.createIntegrationForKey("Tapstream")).isInstanceOf(
-        TapstreamIntegration.class);
-
-    try {
-      assertThat(integrationManager.createIntegrationForKey("d"));
-      fail("passing an invalid key should fail.");
-    } catch (AssertionError expected) {
-      assertThat(expected).hasMessage("unknown integration key: d");
-    }
-
-    try {
-      assertThat(integrationManager.createIntegrationForKey("Mixed"));
-      fail("passing an invalid key should fail.");
-    } catch (AssertionError expected) {
-      assertThat(expected).hasMessage("unknown integration key: Mixed");
-    }
-
-    try {
-      assertThat(integrationManager.createIntegrationForKey("Mix"));
-      fail("passing an invalid key should fail.");
-    } catch (AssertionError expected) {
-      assertThat(expected).hasMessage("unknown integration key: Mix");
-    }
-
-    try {
-      assertThat(integrationManager.createIntegrationForKey("Mixpaneled"));
-      fail("passing an invalid key should fail.");
-    } catch (AssertionError expected) {
-      assertThat(expected).hasMessage("unknown integration key: Mixpaneled");
-    }
+  @Test public void addsKeysCorrectly() throws Exception {
+    assertThat(integrationManager.bundledIntegrations).hasSameSizeAs(
+        integrationManager.integrations);
   }
 
   @Test public void initializesIntegrations() throws Exception {
-    final AbstractIntegration<Void> fooIntegration = mock(AbstractIntegration.class);
-    IntegrationManager integrationManager =
-        new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logger, true) {
-          @Override AbstractIntegration createIntegrationForKey(String key) {
-            if ("Foo".equals(key)) {
-              return fooIntegration;
-            }
-            throw new IllegalArgumentException("unknown key: " + key);
-          }
-        };
+    final AbstractIntegration mockIntegration = mock(AbstractIntegration.class);
+    when(mockIntegration.key()).thenReturn("Foo");
+    integrationManager.initialized = false;
+    integrationManager.integrations.clear();
+    integrationManager.integrations.add(mockIntegration);
 
-    integrationManager.bundledIntegrations.clear();
-    integrationManager.bundledIntegrations.put("Foo", false);
     integrationManager.performInitialize(
         ProjectSettings.create("{\"Foo\":{\"trackNamedPages\":true,\"trackAllPages\":false}}",
             System.currentTimeMillis()));
 
-    try {
-      verify(fooIntegration).initialize(context,
-          new ValueMap(JsonUtils.jsonToMap("{\"trackNamedPages\":true,\"trackAllPages\":false}")),
-          true);
-    } catch (IllegalStateException ignored) {
-      fail("unexpected exception: ", ignored);
-    }
+    verify(mockIntegration).initialize(context,
+        new ValueMap(JsonUtils.jsonToMap("{\"trackNamedPages\":true,\"trackAllPages\":false}")),
+        true);
 
     assertThat(integrationManager.initialized).isTrue();
-    assertThat(integrationManager.integrations).containsExactly(fooIntegration);
+
+    // exercise a bug where we added an integration twice, once on load and once on initialize
+    assertThat(integrationManager.integrations).containsExactly(mockIntegration);
   }
 
   @Test public void forwardsCorrectly() {
     integrationManager.initialized = true;
-    final AbstractIntegration<Void> fooIntegration = mock(AbstractIntegration.class);
-    integrationManager.integrations =
-        Arrays.<AbstractIntegration>asList(fooIntegration, fooIntegration, fooIntegration);
+    final AbstractIntegration<Void> mockIntegration = mock(AbstractIntegration.class);
+    integrationManager.integrations.clear();
+    integrationManager.integrations.add(mockIntegration);
+    integrationManager.integrations.add(mockIntegration);
+    integrationManager.integrations.add(mockIntegration);
 
     integrationManager.performOperation(new IntegrationManager.IntegrationOperation() {
       @Override public void run(AbstractIntegration integration) {
@@ -141,7 +85,7 @@ public class IntegrationManagerTest {
         return null;
       }
     });
-    verify(fooIntegration, times(3)).alias(any(AliasPayload.class));
+    verify(mockIntegration, times(3)).alias(any(AliasPayload.class));
 
     integrationManager.performOperation(new IntegrationManager.IntegrationOperation() {
       @Override public void run(AbstractIntegration integration) {
@@ -152,7 +96,7 @@ public class IntegrationManagerTest {
         return null;
       }
     });
-    verify(fooIntegration, times(3)).flush();
+    verify(mockIntegration, times(3)).flush();
   }
 }
 

@@ -14,7 +14,8 @@ public class ValueMapCacheTest {
   private ValueMap.Cache<Traits> traitsCache;
 
   @Before public void setUp() {
-    traitsCache = new ValueMap.Cache<>(Robolectric.application, "traits-cache-test", Traits.class);
+    traitsCache =
+        new ValueMap.Cache<Traits>(Robolectric.application, "traits-cache-test", Traits.class);
     traitsCache.delete();
     assertThat(traitsCache.get()).isNullOrEmpty();
   }
@@ -31,7 +32,7 @@ public class ValueMapCacheTest {
     traitsCache.set(traits);
 
     ValueMap.Cache<Traits> traitsCacheDuplicate =
-        new ValueMap.Cache<>(Robolectric.application, "traits-cache-test", Traits.class);
+        new ValueMap.Cache<Traits>(Robolectric.application, "traits-cache-test", Traits.class);
     assertThat(traitsCacheDuplicate.isSet()).isTrue();
   }
 }
