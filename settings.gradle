@@ -1,1 +1,1 @@
-include 'core', 'core-tests', 'wear', 'all', 'sample-app', 'wear-sample'
+include 'analytics', 'analytics-tests', 'analytics-wear', 'analytics-all', 'analytics-sample', 'analytics-wear-sample'

@@ -13,9 +13,9 @@ apply plugin: 'java'
 
 compileJava.options.encoding = 'UTF-8'
 
-evaluationDependsOn(':core')
+evaluationDependsOn(':analytics')
 
-def core = project(':core')
+def core = project(':analytics')
 def coreBuild = core.android.libraryVariants.findAll { it.buildType.name == DEBUG }.first()
 
 // In order to resolve direct or transitive dependencies in SDK m2's copy the app's repositories.
