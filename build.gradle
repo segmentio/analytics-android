@@ -46,9 +46,7 @@ ext.plugins = [
 ]
 
 ext.integrationsMap = [
-    amplitude      : 'com.amplitude:android-sdk:1.4.3',
     appsFlyer      : files('libs/AppsFlyer-2.3.1.12.jar'),
-    bugsnag        : 'com.bugsnag:bugsnag-android:3.1.1',
     countly        : 'ly.count:sdk-android:14.12',
     crittercism    : 'com.crittercism:crittercism-android-agent:5.0.3',
     flurry         : files('libs/Flurry-4.1.0.jar'),

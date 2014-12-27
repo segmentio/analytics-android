@@ -15,7 +15,7 @@ import java.util.Map;
  * @see <a href="https://Segment/docs/integrations/bugsnag/">Bugsnag Integration</a>
  * @see <a href="https://github.com/bugsnag/bugsnag-android">Bugsnag Android SDK</a>
  */
-class BugsnagIntegration extends AbstractIntegration<Client> {
+public class BugsnagIntegration extends AbstractIntegration<Client> {
   static final String BUGSNAG_KEY = "Bugsnag";
 
   @Override void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
