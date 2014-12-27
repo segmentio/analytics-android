@@ -12,7 +12,7 @@ import ly.count.android.api.Countly;
  * @see <a href="https://Segment/docs/integrations/countly/">Countly Integration</a>
  * @see <a href="https://github.com/Countly/countly-sdk-android">Countly Android SDK</a>
  */
-class CountlyIntegration extends AbstractIntegration<Countly> {
+public class CountlyIntegration extends AbstractIntegration<Countly> {
   static final String COUNTLY_KEY = "Countly";
   Countly countly;
 

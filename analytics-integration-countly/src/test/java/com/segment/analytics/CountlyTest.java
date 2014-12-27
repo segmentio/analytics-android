@@ -1,6 +1,7 @@
 package com.segment.analytics;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import java.util.HashMap;
@@ -13,8 +14,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static android.content.Context.MODE_PRIVATE;
-import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
-import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -23,20 +22,22 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class CountlyTest extends AbstractIntegrationTestCase {
+public class CountlyTest {
   @Mock Countly countly;
+  @Mock Application context;
   CountlyIntegration integration;
 
-  @Before @Override public void setUp() {
-    super.setUp();
+  @Before public void setUp() {
+    initMocks(this);
     integration = new CountlyIntegration();
     integration.countly = countly;
     assertThat(integration.getUnderlyingInstance()).isNotNull().isEqualTo(countly);
   }
 
-  @Test @Override public void initialize() throws IllegalStateException {
+  @Test public void initialize() throws IllegalStateException {
     integration.countly = null;
     SharedPreferences countlyPrefs =
         Robolectric.application.getSharedPreferences("countly", MODE_PRIVATE);
@@ -46,61 +47,61 @@ public class CountlyTest extends AbstractIntegrationTestCase {
     assertThat(integration.countly).isNotNull();
   }
 
-  @Test @Override public void activityCreate() {
+  @Test public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
     verifyNoMoreInteractions(countly);
   }
 
-  @Test @Override public void activityStart() {
+  @Test public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
     verify(countly).onStart();
   }
 
-  @Test @Override public void activityResume() {
+  @Test public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
     verifyNoMoreInteractions(countly);
   }
 
-  @Test @Override public void activityPause() {
+  @Test public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
     verifyNoMoreInteractions(countly);
   }
 
-  @Test @Override public void activityStop() {
+  @Test public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
     verify(countly).onStop();
   }
 
-  @Test @Override public void activitySaveInstance() {
+  @Test public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
     verifyNoMoreInteractions(countly);
   }
 
-  @Test @Override public void activityDestroy() {
+  @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
     verifyNoMoreInteractions(countly);
   }
 
-  @Test @Override public void identify() {
+  @Test public void identify() {
     integration.identify(mock(IdentifyPayload.class));
     verifyNoMoreInteractions(countly);
   }
 
-  @Test @Override public void group() {
+  @Test public void group() {
     integration.group(mock(GroupPayload.class));
     verifyNoMoreInteractions(countly);
   }
 
-  @Test @Override public void track() {
+  @Test public void track() {
     integration.track(new TrackPayloadBuilder() //
         .event("foo") //
         .build());
@@ -111,12 +112,12 @@ public class CountlyTest extends AbstractIntegrationTestCase {
     verify(countly).recordEvent("bar", properties.toStringMap(), 10, 20);
   }
 
-  @Test @Override public void alias() {
+  @Test public void alias() {
     integration.alias(mock(AliasPayload.class));
     verifyNoMoreInteractions(countly);
   }
 
-  @Test @Override public void screen() {
+  @Test public void screen() {
     integration.screen(new ScreenPayloadBuilder().category("foo").build());
     verify(countly).recordEvent("Viewed foo Screen", new HashMap<String, String>(), 1, 0.0);
 
@@ -125,7 +126,7 @@ public class CountlyTest extends AbstractIntegrationTestCase {
     verify(countly).recordEvent("Viewed bar Screen", properties.toStringMap(), 10, 20.0);
   }
 
-  @Test @Override public void flush() {
+  @Test public void flush() {
     integration.flush();
     verifyNoMoreInteractions(countly);
   }

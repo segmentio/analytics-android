@@ -1,5 +1,6 @@
 package com.segment.analytics;
 
+import java.util.LinkedHashMap;
 import org.robolectric.Robolectric;
 
 public class TrackPayloadBuilder {
@@ -42,7 +43,8 @@ public class TrackPayloadBuilder {
       event = "bar";
     }
     if (context == null) {
-      context = new AnalyticsContext(Robolectric.application, traits);
+      context = new AnalyticsContext(new LinkedHashMap<String, Object>());
+      context.setTraits(traits);
     }
     if (properties == null) {
       properties = new Properties();

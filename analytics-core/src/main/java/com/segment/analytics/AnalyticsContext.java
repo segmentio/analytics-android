@@ -166,8 +166,9 @@ public class AnalyticsContext extends ValueMap {
     setTraits(traits);
   }
 
-  // Used to create copies
-  private AnalyticsContext(Map<String, Object> delegate) {
+  // Used to create copies and for tests, reflective operations fail with
+  // http://pastebin.com/vDc3qR8n
+  AnalyticsContext(Map<String, Object> delegate) {
     super(delegate);
   }
 
