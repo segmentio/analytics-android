@@ -1,12 +1,14 @@
 package com.segment.analytics;
 
 import android.app.Activity;
+import android.app.Application;
 import android.os.Bundle;
 import com.bugsnag.android.Bugsnag;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -14,37 +16,34 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
-import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
-import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
-import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
-import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(Bugsnag.class)
-public class BugsnagTest extends AbstractIntegrationTestCase {
+public class BugsnagTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
+  @MockitoAnnotations.Mock Application context;
   BugsnagIntegration integration;
 
-  @Before @Override public void setUp() {
-    super.setUp();
+  @Before public void setUp() {
+    initMocks(this);
     PowerMockito.mockStatic(Bugsnag.class);
     integration = new BugsnagIntegration();
   }
 
-  @Test @Override public void initialize() throws IllegalStateException {
+  @Test public void initialize() throws IllegalStateException {
     integration.initialize(context,
         new ValueMap().putValue("apiKey", "foo").putValue("useSSL", true), true);
     verifyStatic();
     Bugsnag.init(context, "foo");
   }
 
-  @Test @Override public void activityCreate() {
+  @Test public void activityCreate() {
     Activity activity = mock(Activity.class);
     when(activity.getLocalClassName()).thenReturn("foo");
     Bundle bundle = mock(Bundle.class);
@@ -54,35 +53,35 @@ public class BugsnagTest extends AbstractIntegrationTestCase {
     verifyNoMoreInteractions(Bugsnag.class);
   }
 
-  @Test @Override public void activityStart() {
+  @Test public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
     verifyStatic();
     verifyNoMoreInteractions(Bugsnag.class);
   }
 
-  @Test @Override public void activityResume() {
+  @Test public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
     verifyStatic();
     verifyNoMoreInteractions(Bugsnag.class);
   }
 
-  @Test @Override public void activityPause() {
+  @Test public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
     verifyStatic();
     verifyNoMoreInteractions(Bugsnag.class);
   }
 
-  @Test @Override public void activityStop() {
+  @Test public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
     verifyStatic();
     verifyNoMoreInteractions(Bugsnag.class);
   }
 
-  @Test @Override public void activitySaveInstance() {
+  @Test public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
@@ -90,14 +89,14 @@ public class BugsnagTest extends AbstractIntegrationTestCase {
     verifyNoMoreInteractions(Bugsnag.class);
   }
 
-  @Test @Override public void activityDestroy() {
+  @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
     verifyStatic();
     verifyNoMoreInteractions(Bugsnag.class);
   }
 
-  @Test @Override public void identify() {
+  @Test public void identify() {
     Traits traits = new Traits().putUserId("foo").putEmail("bar").putName("baz");
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verifyStatic();
@@ -110,31 +109,31 @@ public class BugsnagTest extends AbstractIntegrationTestCase {
     Bugsnag.addToTab("User", "name", "baz");
   }
 
-  @Test @Override public void group() {
+  @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
     verifyStatic();
     verifyNoMoreInteractions(Bugsnag.class);
   }
 
-  @Test @Override public void track() {
+  @Test public void track() {
     integration.track(new TrackPayloadBuilder().event("foo").build());
     verifyStatic();
     Bugsnag.leaveBreadcrumb("foo");
   }
 
-  @Test @Override public void alias() {
+  @Test public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
     verifyStatic();
     verifyNoMoreInteractions(Bugsnag.class);
   }
 
-  @Test @Override public void screen() {
+  @Test public void screen() {
     integration.screen(new ScreenPayloadBuilder().name("foo").build());
     verifyStatic();
     Bugsnag.leaveBreadcrumb("Viewed foo Screen");
   }
 
-  @Test @Override public void flush() {
+  @Test public void flush() {
     integration.flush();
     verifyStatic();
     verifyNoMoreInteractions(Bugsnag.class);
