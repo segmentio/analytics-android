@@ -14,7 +14,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://segment.com/docs/integrations/appsflyer/">AppsFlyer Integration</a>
  * @see <a href="http://www.appsflyer.com/">AppsFlyer Website</a>
  */
-class AppsFlyerIntegration extends AbstractIntegration<Void> {
+public class AppsFlyerIntegration extends AbstractIntegration<Void> {
   static final String APPS_FLYER_KEY = "AppsFlyer";
   final AppsFlyer appsFlyer;
   Context context;

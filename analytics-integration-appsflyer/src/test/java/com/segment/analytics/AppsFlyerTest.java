@@ -1,6 +1,7 @@
 package com.segment.analytics;
 
 import android.app.Activity;
+import android.app.Application;
 import android.os.Bundle;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,29 +10,26 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.AppsFlyerIntegration.AppsFlyer;
-import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
-import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
-import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
-import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
-import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.Mock;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class AppsFlyerTest extends AbstractIntegrationTestCase {
+public class AppsFlyerTest {
   AppsFlyerIntegration integration;
+  @Mock Application context;
   @Mock AppsFlyer appsFlyer;
 
   @Before public void setUp() {
-    super.setUp();
+    initMocks(this);
     integration = new AppsFlyerIntegration(appsFlyer);
     integration.context = context;
   }
 
-  @Test @Override public void initialize() throws IllegalStateException {
+  @Test public void initialize() throws IllegalStateException {
     AppsFlyerIntegration integration = new AppsFlyerIntegration(appsFlyer);
     integration.initialize(context,
         new ValueMap().putValue("appsFlyerDevKey", "foo").putValue("httpFallback", true), true);
@@ -40,63 +38,63 @@ public class AppsFlyerTest extends AbstractIntegrationTestCase {
     assertThat(integration.context).isEqualTo(context);
   }
 
-  @Test @Override public void activityCreate() {
+  @Test public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
     verifyNoMoreInteractions(appsFlyer);
   }
 
-  @Test @Override public void activityStart() {
+  @Test public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
     verifyNoMoreInteractions(appsFlyer);
   }
 
-  @Test @Override public void activityResume() {
+  @Test public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
     verifyNoMoreInteractions(appsFlyer);
   }
 
-  @Test @Override public void activityPause() {
+  @Test public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
     verifyNoMoreInteractions(appsFlyer);
   }
 
-  @Test @Override public void activityStop() {
+  @Test public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
     verifyNoMoreInteractions(appsFlyer);
   }
 
-  @Test @Override public void activitySaveInstance() {
+  @Test public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
     verifyNoMoreInteractions(appsFlyer);
   }
 
-  @Test @Override public void activityDestroy() {
+  @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
     verifyNoMoreInteractions(appsFlyer);
   }
 
-  @Test @Override public void identify() {
+  @Test public void identify() {
     Traits traits = new Traits().putUserId("foo").putEmail("bar");
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verify(appsFlyer).setAppUserId("foo");
     verify(appsFlyer).setUserEmail("bar");
   }
 
-  @Test @Override public void group() {
+  @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
     verifyNoMoreInteractions(appsFlyer);
   }
 
-  @Test @Override public void track() {
+  @Test public void track() {
     Properties properties = new Properties().putCurrency("foo").putValue(20);
     integration.track(new TrackPayloadBuilder().properties(properties).event("baz").build());
     verify(appsFlyer).setCurrencyCode("foo");
@@ -104,17 +102,17 @@ public class AppsFlyerTest extends AbstractIntegrationTestCase {
     verifyNoMoreInteractions(appsFlyer);
   }
 
-  @Test @Override public void alias() {
+  @Test public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
     verifyNoMoreInteractions(appsFlyer);
   }
 
-  @Test @Override public void screen() {
+  @Test public void screen() {
     integration.screen(new ScreenPayloadBuilder().build());
     verifyNoMoreInteractions(appsFlyer);
   }
 
-  @Test @Override public void flush() {
+  @Test public void flush() {
     integration.flush();
     verifyNoMoreInteractions(appsFlyer);
   }
