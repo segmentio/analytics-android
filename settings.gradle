@@ -1,5 +1,6 @@
 include 'analytics-core'
 include 'analytics-integration-amplitude'
+include 'analytics-integration-appsflyer'
 include 'analytics-integration-bugsnag'
 include 'analytics-wear'
 include 'analytics'
