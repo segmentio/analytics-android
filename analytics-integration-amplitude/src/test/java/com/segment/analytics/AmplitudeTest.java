@@ -1,6 +1,7 @@
 package com.segment.analytics;
 
 import android.app.Activity;
+import android.app.Application;
 import android.os.Bundle;
 import com.amplitude.api.Amplitude;
 import java.util.Random;
@@ -9,6 +10,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -16,31 +18,29 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
-import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
 import static com.segment.analytics.TestUtils.JSONObjectMatcher.jsonEq;
-import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
-import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*", "org.json.*" })
 @PrepareForTest(Amplitude.class)
-public class AmplitudeTest extends AbstractIntegrationTestCase {
+public class AmplitudeTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
+  @MockitoAnnotations.Mock Application context;
   AmplitudeIntegration integration;
 
   @Before public void setUp() {
-    super.setUp();
+    initMocks(this);
     PowerMockito.mockStatic(Amplitude.class);
     integration = new AmplitudeIntegration();
   }
 
-  @Test @Override public void initialize() {
+  @Test public void initialize() {
     integration.initialize(context, //
         new ValueMap().putValue("apiKey", "foo")
             .putValue("trackAllPages", true)
@@ -59,53 +59,53 @@ public class AmplitudeTest extends AbstractIntegrationTestCase {
     assertThat(integration.trackNamedPages).isFalse();
   }
 
-  @Test @Override public void activityCreate() {
+  @Test public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
     verifyNoMoreInteractions(Amplitude.class);
   }
 
-  @Test @Override public void activityStart() {
+  @Test public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
     verifyNoMoreInteractions(Amplitude.class);
   }
 
-  @Test @Override public void activityResume() {
+  @Test public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
     verifyStatic();
     Amplitude.startSession();
   }
 
-  @Test @Override public void activityPause() {
+  @Test public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
     verifyStatic();
     Amplitude.endSession();
   }
 
-  @Test @Override public void activityStop() {
+  @Test public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
     verifyNoMoreInteractions(Amplitude.class);
   }
 
-  @Test @Override public void activitySaveInstance() {
+  @Test public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
     verifyNoMoreInteractions(Amplitude.class);
   }
 
-  @Test @Override public void activityDestroy() {
+  @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
     verifyNoMoreInteractions(Amplitude.class);
   }
 
-  @Test @Override public void track() {
+  @Test public void track() {
     Properties properties = new Properties();
     integration.track(new TrackPayloadBuilder().event("foo").properties(properties).build());
     verifyStatic();
@@ -113,7 +113,7 @@ public class AmplitudeTest extends AbstractIntegrationTestCase {
     verifyNoMoreInteractions(Amplitude.class);
   }
 
-  @Override public void alias() {
+  public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
     verifyNoMoreInteractions(Amplitude.class);
   }
@@ -133,7 +133,7 @@ public class AmplitudeTest extends AbstractIntegrationTestCase {
     Amplitude.logRevenue("bar", 10, 20, "baz", "qux");
   }
 
-  @Test @Override public void identify() {
+  @Test public void identify() {
     Traits traits = new Traits().putUserId("foo").putAge(20).putFirstName("bar");
     IdentifyPayload payload = new IdentifyPayloadBuilder().traits(traits).build();
     integration.identify(payload);
@@ -143,12 +143,12 @@ public class AmplitudeTest extends AbstractIntegrationTestCase {
     Amplitude.setUserProperties(jsonEq(traits.toJsonObject()));
   }
 
-  @Test @Override public void group() {
-    integration.group(new TestUtils.GroupPayloadBuilder().build());
+  @Test public void group() {
+    integration.group(new GroupPayloadBuilder().build());
     verifyNoMoreInteractions(Amplitude.class);
   }
 
-  @Test @Override public void screen() {
+  @Test public void screen() {
     integration.trackAllPages = false;
     integration.trackCategorizedPages = false;
     integration.trackNamedPages = false;
@@ -198,7 +198,7 @@ public class AmplitudeTest extends AbstractIntegrationTestCase {
     verifyAmplitudeLoggedEvent("Viewed baz Screen", new JSONObject());
   }
 
-  @Test @Override public void flush() {
+  @Test public void flush() {
     integration.flush();
     verifyStatic();
     Amplitude.uploadEvents();
