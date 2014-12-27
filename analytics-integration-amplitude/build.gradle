@@ -48,8 +48,7 @@ dependencies {
   compile 'com.amplitude:android-sdk:1.4.3'
 
   testCompile rootProject.ext.testLibraries
-  // todo: lookup locations from plugin API
-  testCompile files('../analytics-core/build/test-classes/debug')
+  testCompile project(path: ':analytics-core', configuration: 'testOutput')
 }
 
 apply from: rootProject.file('gradle/checkstyle-library.gradle')
