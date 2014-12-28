@@ -23,6 +23,6 @@
   ~ SOFTWARE.
   -->
 
-<manifest package="com.segment.analytics.crittercism">
+<manifest package="com.segment.analytics.flurry">
   <application/>
 </manifest>
