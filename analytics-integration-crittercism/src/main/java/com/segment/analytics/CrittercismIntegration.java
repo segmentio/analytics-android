@@ -6,14 +6,13 @@ import com.crittercism.app.CrittercismConfig;
 
 /**
  * Crittercism is an error reporting tool for your mobile apps. Any time your app crashes or
- * errors.
- * Crittercism will collect logs that will help you debug the problem and fix your app.
+ * errors. Crittercism will collect logs that will help you debug the problem and fix your app.
  *
  * @see <a href="http://crittercism.com">Crittercism</a>
  * @see <a href="https://Segment/docs/integrations/crittercism">Crittercism Integration</a>
  * @see <a href="http://docs.crittercism.com/android/android.html">Crittercism Android SDK</a>
  */
-class CrittercismIntegration extends AbstractIntegration<Void> {
+public class CrittercismIntegration extends AbstractIntegration<Void> {
   static final String CRITTERCISM_KEY = "Crittercism";
 
   @Override void initialize(Context context, ValueMap settings, boolean debuggingEnabled)

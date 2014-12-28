@@ -46,7 +46,6 @@ ext.plugins = [
 ]
 
 ext.integrationsMap = [
-    crittercism    : 'com.crittercism:crittercism-android-agent:5.0.3',
     flurry         : files('libs/Flurry-4.1.0.jar'),
     googleAnalytics: 'com.google.android.gms:play-services-base:6.5.87',
     kahuna         : files('libs/Kahuna-5.1.0.jar'),
