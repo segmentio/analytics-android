@@ -1,6 +1,7 @@
 package com.segment.analytics;
 
 import android.app.Activity;
+import android.app.Application;
 import android.os.Bundle;
 import com.flurry.android.Constants;
 import com.flurry.android.FlurryAgent;
@@ -10,6 +11,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
+import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -18,32 +20,29 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
-import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
-import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
-import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
-import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(FlurryAgent.class)
-public class FlurryTest extends AbstractIntegrationTestCase {
+public class FlurryTest {
   final String apiKey = "foo";
   @Rule public PowerMockRule rule = new PowerMockRule();
+  @MockitoAnnotations.Mock Application context;
   FlurryIntegration integration;
 
-  @Before @Override public void setUp() {
-    super.setUp();
+  @Before public void setUp() {
+    initMocks(this);
     PowerMockito.mockStatic(FlurryAgent.class);
     integration = new FlurryIntegration();
     integration.apiKey = apiKey;
   }
 
-  @Test @Override public void initialize() throws IllegalStateException {
+  @Test public void initialize() throws IllegalStateException {
     integration.initialize(context, //
         new ValueMap().putValue("apiKey", apiKey)
             .putValue("sessionContinueSeconds", 20)
@@ -57,7 +56,7 @@ public class FlurryTest extends AbstractIntegrationTestCase {
     FlurryAgent.setUseHttps(false);
   }
 
-  @Test @Override public void activityCreate() {
+  @Test public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
@@ -65,35 +64,35 @@ public class FlurryTest extends AbstractIntegrationTestCase {
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
-  @Test @Override public void activityStart() {
+  @Test public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
     verifyStatic();
     FlurryAgent.onStartSession(activity, apiKey);
   }
 
-  @Test @Override public void activityResume() {
+  @Test public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
     verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
-  @Test @Override public void activityPause() {
+  @Test public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
     verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
-  @Test @Override public void activityStop() {
+  @Test public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
     verifyStatic();
     FlurryAgent.onEndSession(activity);
   }
 
-  @Test @Override public void activitySaveInstance() {
+  @Test public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
@@ -101,14 +100,14 @@ public class FlurryTest extends AbstractIntegrationTestCase {
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
-  @Test @Override public void activityDestroy() {
+  @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
     verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
-  @Test @Override public void screen() {
+  @Test public void screen() {
     integration.screen(new ScreenPayloadBuilder().name("foo").category("bar").build());
     verifyStatic();
     FlurryAgent.onPageView();
@@ -116,25 +115,25 @@ public class FlurryTest extends AbstractIntegrationTestCase {
     FlurryAgent.logEvent(eq("foo"), Matchers.<Map<String, String>>any());
   }
 
-  @Test @Override public void flush() {
+  @Test public void flush() {
     integration.flush();
     verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
-  @Test @Override public void track() {
+  @Test public void track() {
     integration.track(new TrackPayloadBuilder().event("bar").build());
     verifyStatic();
     FlurryAgent.logEvent(eq("bar"), Matchers.<Map<String, String>>any());
   }
 
-  @Test @Override public void alias() {
+  @Test public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
     verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
-  @Test @Override public void identify() {
+  @Test public void identify() {
     integration.identify(
         new IdentifyPayloadBuilder().traits(new Traits().putUserId("foo")).build());
     verifyStatic();
@@ -161,7 +160,7 @@ public class FlurryTest extends AbstractIntegrationTestCase {
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
-  @Test @Override public void group() {
+  @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
     verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);

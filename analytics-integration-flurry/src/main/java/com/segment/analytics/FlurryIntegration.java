@@ -16,7 +16,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="http://support.flurry.com/index.php?title=Analytics/GettingStarted/Android">Flurry
  * Android SDK</a>
  */
-class FlurryIntegration extends AbstractIntegration<Void> {
+public class FlurryIntegration extends AbstractIntegration<Void> {
   static final String FLURRY_KEY = "Flurry";
   String apiKey;
 
