@@ -39,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import com.segment.analytics.core.BuildConfig;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.Context.CONNECTIVITY_SERVICE;
