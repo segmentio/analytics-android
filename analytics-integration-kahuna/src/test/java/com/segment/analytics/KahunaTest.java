@@ -1,6 +1,7 @@
 package com.segment.analytics;
 
 import android.app.Activity;
+import android.app.Application;
 import android.os.Bundle;
 import com.kahuna.sdk.KahunaAnalytics;
 import org.junit.Before;
@@ -19,11 +20,8 @@ import static com.kahuna.sdk.KahunaUserCredentialKeys.FACEBOOK_KEY;
 import static com.kahuna.sdk.KahunaUserCredentialKeys.LINKEDIN_KEY;
 import static com.kahuna.sdk.KahunaUserCredentialKeys.TWITTER_KEY;
 import static com.kahuna.sdk.KahunaUserCredentialKeys.USERNAME_KEY;
-import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
-import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
-import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
-import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
-import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
+import static org.mockito.MockitoAnnotations.Mock;
+import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
@@ -31,18 +29,18 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(KahunaAnalytics.class)
-public class KahunaTest extends AbstractIntegrationTestCase {
+public class KahunaTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
-
+  @Mock Application context;
   KahunaIntegration integration;
 
-  @Before @Override public void setUp() {
-    super.setUp();
+  @Before public void setUp() {
+    initMocks(this);
     PowerMockito.mockStatic(KahunaAnalytics.class);
     integration = new KahunaIntegration();
   }
 
-  @Test @Override public void initialize() throws IllegalStateException {
+  @Test public void initialize() throws IllegalStateException {
     integration.initialize(context,
         new ValueMap().putValue("secretKey", "foo").putValue("pushSenderId", "bar"), true);
 
@@ -50,14 +48,14 @@ public class KahunaTest extends AbstractIntegrationTestCase {
     KahunaAnalytics.onAppCreate(context, "foo", "bar");
   }
 
-  @Test @Override public void activityCreate() {
+  @Test public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
     verifyNoMoreInteractions(KahunaAnalytics.class);
   }
 
-  @Test @Override public void activityStart() {
+  @Test public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
     verifyStatic();
@@ -65,19 +63,19 @@ public class KahunaTest extends AbstractIntegrationTestCase {
     verifyNoMoreInteractions(KahunaAnalytics.class);
   }
 
-  @Test @Override public void activityResume() {
+  @Test public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
     verifyNoMoreInteractions(KahunaAnalytics.class);
   }
 
-  @Test @Override public void activityPause() {
+  @Test public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
     verifyNoMoreInteractions(KahunaAnalytics.class);
   }
 
-  @Test @Override public void activityStop() {
+  @Test public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
     verifyStatic();
@@ -85,20 +83,20 @@ public class KahunaTest extends AbstractIntegrationTestCase {
     verifyNoMoreInteractions(KahunaAnalytics.class);
   }
 
-  @Test @Override public void activitySaveInstance() {
+  @Test public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
     verifyNoMoreInteractions(KahunaAnalytics.class);
   }
 
-  @Test @Override public void activityDestroy() {
+  @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
     verifyNoMoreInteractions(KahunaAnalytics.class);
   }
 
-  @Test @Override public void track() {
+  @Test public void track() {
     integration.track(new TrackPayloadBuilder().event("foo").build());
     verifyStatic();
     KahunaAnalytics.trackEvent("foo", 0, 0);
@@ -110,27 +108,27 @@ public class KahunaTest extends AbstractIntegrationTestCase {
     KahunaAnalytics.trackEvent("bar", 3, 10);
   }
 
-  @Test @Override public void alias() {
+  @Test public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
     verifyNoMoreInteractions(KahunaAnalytics.class);
   }
 
-  @Test @Override public void screen() {
+  @Test public void screen() {
     integration.screen(new ScreenPayloadBuilder().build());
     verifyNoMoreInteractions(KahunaAnalytics.class);
   }
 
-  @Test @Override public void flush() {
+  @Test public void flush() {
     integration.flush();
     verifyNoMoreInteractions(KahunaAnalytics.class);
   }
 
-  @Test @Override public void group() {
+  @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
     verifyNoMoreInteractions(KahunaAnalytics.class);
   }
 
-  @Test @Override public void identify() {
+  @Test public void identify() {
     integration.identify(
         new IdentifyPayloadBuilder().traits(new Traits().putUserId("foo")).build());
     verifyStatic();
