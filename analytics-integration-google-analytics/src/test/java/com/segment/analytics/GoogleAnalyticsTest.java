@@ -1,6 +1,7 @@
 package com.segment.analytics;
 
 import android.app.Activity;
+import android.app.Application;
 import android.os.Bundle;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
@@ -17,15 +18,11 @@ import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.GoogleAnalyticsIntegration.COMPLETED_ORDER_PATTERN;
 import static com.segment.analytics.GoogleAnalyticsIntegration.PRODUCT_EVENT_PATTERN;
-import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
-import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
-import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
-import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
-import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyMap;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
+import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
@@ -33,70 +30,72 @@ import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(GoogleAnalytics.class)
-public class GoogleAnalyticsTest extends AbstractIntegrationTestCase {
+// todo: These tests do not run in the IDE http://pastebin.com/YZZTcZa8
+public class GoogleAnalyticsTest {
   GoogleAnalyticsIntegration integration;
   @Mock GoogleAnalytics googleAnalytics;
   @Mock Tracker tracker;
+  @Mock Application context;
 
-  @Before @Override public void setUp() {
-    super.setUp();
+  @Before public void setUp() {
+    initMocks(this);
     mockStatic(GoogleAnalytics.class);
     integration = new GoogleAnalyticsIntegration();
     integration.googleAnalyticsInstance = googleAnalytics;
     integration.tracker = tracker;
   }
 
-  @Test @Override public void initialize() throws IllegalStateException {
+  @Test public void initialize() throws IllegalStateException {
     // TODO
   }
 
-  @Test @Override public void activityCreate() {
+  @Test public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
     verifyNoMoreGoogleInteractions();
   }
 
-  @Test @Override public void activityStart() {
+  @Test public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
     verify(googleAnalytics).reportActivityStart(activity);
     verifyNoMoreGoogleInteractions();
   }
 
-  @Test @Override public void activityResume() {
+  @Test public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
     verifyNoMoreGoogleInteractions();
   }
 
-  @Test @Override public void activityPause() {
+  @Test public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
     verifyNoMoreGoogleInteractions();
   }
 
-  @Test @Override public void activityStop() {
+  @Test public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
     verify(googleAnalytics).reportActivityStop(activity);
     verifyNoMoreGoogleInteractions();
   }
 
-  @Test @Override public void activitySaveInstance() {
+  @Test public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
     verifyNoMoreGoogleInteractions();
   }
 
-  @Test @Override public void activityDestroy() {
+  @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
     verifyNoMoreGoogleInteractions();
   }
 
-  @Test @Override public void identify() {
+  @Test public void identify() {
     integration.sendUserId = false;
     Traits traits = new Traits().putAge(20).putUserId("foo");
 
@@ -117,12 +116,12 @@ public class GoogleAnalyticsTest extends AbstractIntegrationTestCase {
     verifyNoMoreGoogleInteractions();
   }
 
-  @Test @Override public void group() {
+  @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
     verifyNoMoreGoogleInteractions();
   }
 
-  @Test @Override public void track() {
+  @Test public void track() {
     integration.track(new TrackPayloadBuilder().event("foo").build());
     verify(tracker).send(new HitBuilders.EventBuilder().setCategory("All")
         .setAction("foo")
@@ -142,12 +141,12 @@ public class GoogleAnalyticsTest extends AbstractIntegrationTestCase {
     verifyNoMoreGoogleInteractions();
   }
 
-  @Test @Override public void alias() {
+  @Test public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
     verifyNoMoreGoogleInteractions();
   }
 
-  @Test @Override public void screen() {
+  @Test public void screen() {
     integration.screen(new ScreenPayloadBuilder().name("foo").build());
     InOrder inOrder = inOrder(tracker);
     inOrder.verify(tracker).setScreenName("foo");
@@ -156,7 +155,7 @@ public class GoogleAnalyticsTest extends AbstractIntegrationTestCase {
     verifyNoMoreGoogleInteractions();
   }
 
-  @Test @Override public void flush() {
+  @Test public void flush() {
     integration.flush();
     verify(googleAnalytics).dispatchLocalHits();
     verifyNoMoreGoogleInteractions();

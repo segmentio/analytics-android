@@ -45,6 +45,7 @@ androidUnitTest {
 
 dependencies {
   provided rootProject.ext.libraries.supportLib
+  provided rootProject.ext.libraries.googleAnalytics
   provided rootProject.ext.integrations
 
   testCompile rootProject.ext.testLibraries

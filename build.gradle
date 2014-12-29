@@ -46,7 +46,6 @@ ext.plugins = [
 ]
 
 ext.integrationsMap = [
-    googleAnalytics: 'com.google.android.gms:play-services-base:6.5.87',
     kahuna         : files('libs/Kahuna-5.1.0.jar'),
     localytics     : files('libs/Localytics-2.7.1.jar'),
     leanplum       : files('libs/Leanplum-1.2.5.jar'),
@@ -60,7 +59,8 @@ ext.integrations = ext.integrationsMap.values()
 ext.libraries = [
     playWearable   : 'com.google.android.gms:play-services-wearable:6.5.87',
     supportLib     : 'com.android.support:support-v4:21.0.2',
-    supportWearable: 'com.google.android.support:wearable:1.0.0'
+    supportWearable: 'com.google.android.support:wearable:1.0.0',
+    googleAnalytics: 'com.google.android.gms:play-services-base:6.5.87'
 ]
 
 ext.testLibraries = [
