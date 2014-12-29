@@ -16,20 +16,17 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
 
-import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
-import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
-import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
-import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
-import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.Mock;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class LocalyticsTest extends AbstractIntegrationTestCase {
+public class LocalyticsTest {
   @Mock LocalyticsAmpSession session;
+  @Mock Application context;
   LocalyticsIntegration integration;
 
   public static void grantPermission(final Application app, final String permission) {
@@ -37,14 +34,15 @@ public class LocalyticsTest extends AbstractIntegrationTestCase {
     shadowApp.grantPermissions(permission);
   }
 
-  @Before @Override public void setUp() {
-    super.setUp();
+  @Before public void setUp() {
+    initMocks(this);
     grantPermission(Robolectric.application, Manifest.permission.WAKE_LOCK);
     integration = new LocalyticsIntegration();
     integration.session = session;
+    integration.hasSupportLibOnClassPath = true;
   }
 
-  @Test @Override public void initialize() throws IllegalStateException {
+  @Test public void initialize() throws IllegalStateException {
     LocalyticsIntegration integration = new LocalyticsIntegration();
     integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"), true);
     assertThat(integration.session).isNotNull();
@@ -55,7 +53,7 @@ public class LocalyticsTest extends AbstractIntegrationTestCase {
     assertThat(LocalyticsSession.isLoggingEnabled()).isFalse();
   }
 
-  @Test @Override public void activityCreate() {
+  @Test public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
@@ -64,13 +62,13 @@ public class LocalyticsTest extends AbstractIntegrationTestCase {
     verifyNoMoreInteractions(session);
   }
 
-  @Test @Override public void activityStart() {
+  @Test public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
     verifyNoMoreInteractions(session);
   }
 
-  @Test @Override public void activityResume() {
+  @Test public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
     verify(session).open();
@@ -86,7 +84,7 @@ public class LocalyticsTest extends AbstractIntegrationTestCase {
     verify(session).attach(activity);
   }
 
-  @Test @Override public void activityPause() {
+  @Test public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
     verify(session).close();
@@ -102,40 +100,40 @@ public class LocalyticsTest extends AbstractIntegrationTestCase {
     verify(session).upload();
   }
 
-  @Test @Override public void activityStop() {
+  @Test public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
     verifyNoMoreInteractions(session);
   }
 
-  @Test @Override public void activitySaveInstance() {
+  @Test public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
     verifyNoMoreInteractions(session);
   }
 
-  @Test @Override public void activityDestroy() {
+  @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
     verifyNoMoreInteractions(session);
   }
 
-  @Test @Override public void identify() {
+  @Test public void identify() {
     integration.identify(new IdentifyPayloadBuilder().build());
   }
 
-  @Test @Override public void group() {
+  @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
     verifyNoMoreInteractions(session);
   }
 
-  @Test @Override public void flush() {
+  @Test public void flush() {
     integration.flush();
     verify(session).upload();
   }
 
-  @Test @Override public void screen() {
+  @Test public void screen() {
     integration.screen(new ScreenPayloadBuilder().category("foo").name("bar").build());
     verify(session).tagScreen("bar");
 
@@ -146,12 +144,12 @@ public class LocalyticsTest extends AbstractIntegrationTestCase {
     verify(session).tagScreen("qux");
   }
 
-  @Test @Override public void track() {
+  @Test public void track() {
     integration.track(new TrackPayloadBuilder().event("foo").build());
     verify(session).tagEvent("foo", new HashMap<String, String>());
   }
 
-  @Test @Override public void alias() {
+  @Test public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
     verifyNoMoreInteractions(session);
   }

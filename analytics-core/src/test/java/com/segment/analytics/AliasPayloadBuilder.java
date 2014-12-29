@@ -1,5 +1,6 @@
 package com.segment.analytics;
 
+import java.util.LinkedHashMap;
 import org.robolectric.Robolectric;
 
 public class AliasPayloadBuilder {
@@ -33,7 +34,8 @@ public class AliasPayloadBuilder {
       traits = Traits.create(Robolectric.application);
     }
     if (context == null) {
-      context = new AnalyticsContext(Robolectric.application, traits);
+      context = new AnalyticsContext(new LinkedHashMap<String, Object>());
+      context.setTraits(traits);
     }
     if (options == null) {
       options = new Options();
