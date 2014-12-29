@@ -5,20 +5,8 @@ buildscript {
   dependencies {
     classpath rootProject.ext.plugins.android
     classpath rootProject.ext.plugins.sdkManager
+    classpath rootProject.ext.plugins.androidUnitTest
   }
-}
-
-dependencies {
-  compile project(':analytics-core')
-  compile project(':analytics-integration-amplitude')
-  compile project(':analytics-integration-appsflyer')
-  compile project(':analytics-integration-bugsnag')
-  compile project(':analytics-integration-countly')
-  compile project(':analytics-integration-crittercism')
-  compile project(':analytics-integration-flurry')
-  compile project(':analytics-integration-google-analytics')
-  compile project(':analytics-integration-kahuna')
-  compile project(':analytics-integration-localytics')
 }
 
 android {
@@ -42,8 +30,34 @@ android {
 
   packagingOptions {
     exclude 'LICENSE.txt'
-    exclude 'AndroidManifest.xml'
   }
 }
 
+apply plugin: 'android-unit-test'
+
+androidUnitTest {
+  testTasks {
+    all {
+      jvmArgs '-noverify'
+    }
+  }
+}
+
+dependencies {
+  provided project(':analytics-core')
+  provided rootProject.ext.libraries.supportLib
+  compile files('libs/Localytics-2.7.1.jar')
+
+  testCompile rootProject.ext.testLibraries
+  testCompile project(path: ':analytics-core', configuration: 'testOutput')
+}
+
+apply from: rootProject.file('gradle/checkstyle-library.gradle')
+apply from: rootProject.file('gradle/attach-lean-jar.gradle')
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
+
+// todo: move this to the gradle-mvn-push script
+afterEvaluate {
+  androidJavadocs.classpath +=
+      project.android.libraryVariants.toList().first().javaCompile.classpath
+}

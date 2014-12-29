@@ -9,6 +9,7 @@ import java.util.Map;
 
 import static com.segment.analytics.Utils.hasPermission;
 import static com.segment.analytics.Utils.isNullOrEmpty;
+import static com.segment.analytics.Utils.isOnClassPath;
 
 /**
  * Localytics is a general-purpose mobile analytics tool that measures customer acquisition, ad
@@ -18,9 +19,10 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://Segment/docs/integrations/localytics/">Localytics Integration</a>
  * @see <a href="http://www.localytics.com/docs/android-integration/">Localytics Android SDK</a>
  */
-class LocalyticsIntegration extends AbstractIntegration<LocalyticsAmpSession> {
+public class LocalyticsIntegration extends AbstractIntegration<LocalyticsAmpSession> {
   static final String LOCALYTICS_KEY = "Localytics";
   LocalyticsAmpSession session;
+  boolean hasSupportLibOnClassPath;
 
   @Override void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
       throws IllegalStateException {
@@ -29,6 +31,7 @@ class LocalyticsIntegration extends AbstractIntegration<LocalyticsAmpSession> {
     }
     session = new LocalyticsAmpSession(context, settings.getString("appKey"));
     LocalyticsAmpSession.setLoggingEnabled(debuggingEnabled);
+    hasSupportLibOnClassPath = isOnClassPath("android.support.v4.app.FragmentActivity");
   }
 
   @Override LocalyticsAmpSession getUnderlyingInstance() {
@@ -49,15 +52,20 @@ class LocalyticsIntegration extends AbstractIntegration<LocalyticsAmpSession> {
     super.onActivityResumed(activity);
     session.open();
     session.upload();
-    if (activity instanceof android.support.v4.app.FragmentActivity) {
-      session.attach((android.support.v4.app.FragmentActivity) activity);
+
+    if (hasSupportLibOnClassPath) {
+      if (activity instanceof android.support.v4.app.FragmentActivity) {
+        session.attach((android.support.v4.app.FragmentActivity) activity);
+      }
     }
   }
 
   @Override void onActivityPaused(Activity activity) {
     super.onActivityPaused(activity);
-    if (activity instanceof android.support.v4.app.FragmentActivity) {
-      session.detach();
+    if (hasSupportLibOnClassPath) {
+      if (activity instanceof android.support.v4.app.FragmentActivity) {
+        session.detach();
+      }
     }
     session.close();
     session.upload();
