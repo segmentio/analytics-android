@@ -137,7 +137,7 @@ public class MainActivity extends Activity {
     int id = item.getItemId();
     if (id == R.id.action_view_docs) {
       Intent intent = new Intent(Intent.ACTION_VIEW,
-          Uri.parse("https://Segment/docs/tutorials/quickstart-android/"));
+          Uri.parse("https://segment.com/docs/tutorials/quickstart-android/"));
       try {
         startActivity(intent);
       } catch (ActivityNotFoundException e) {

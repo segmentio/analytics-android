@@ -12,7 +12,7 @@ import java.util.Map;
  * errors in your code so that you can find them and resolve them as quickly as possible.
  *
  * @see <a href="https://bugsnag.com/">Bugsnag</a>
- * @see <a href="https://Segment/docs/integrations/bugsnag/">Bugsnag Integration</a>
+ * @see <a href="https://segment.com/docs/integrations/bugsnag/">Bugsnag Integration</a>
  * @see <a href="https://github.com/bugsnag/bugsnag-android">Bugsnag Android SDK</a>
  */
 public class BugsnagIntegration extends AbstractIntegration<Client> {

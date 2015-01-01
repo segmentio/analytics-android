@@ -9,7 +9,7 @@ import ly.count.android.api.Countly;
  * sources, demographics, event tracking and segmentation.
  *
  * @see <a href="https://count.ly/">Countly</a>
- * @see <a href="https://Segment/docs/integrations/countly/">Countly Integration</a>
+ * @see <a href="https://segment.com/docs/integrations/countly/">Countly Integration</a>
  * @see <a href="https://github.com/Countly/countly-sdk-android">Countly Android SDK</a>
  */
 public class CountlyIntegration extends AbstractIntegration<Countly> {

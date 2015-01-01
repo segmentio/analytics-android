@@ -12,7 +12,7 @@ import static com.segment.analytics.Utils.hasPermission;
  * visitors to your site, to make sure your ads are targeted at the right people.
  *
  * @see <a href="https://www.quantcast.com/">Quantcast</a>
- * @see <a href="https://Segment/docs/integrations/quantcast/">Quantcast Integration</a>
+ * @see <a href="https://segment.com/docs/integrations/quantcast/">Quantcast Integration</a>
  * @see <a href="https://github.com/quantcast/android-measurement#quantcast-android-sdk">Quantcast
  * Android SDK</a>
  */
