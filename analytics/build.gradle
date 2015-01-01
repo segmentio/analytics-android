@@ -22,6 +22,7 @@ dependencies {
   compile project(':analytics-integration-leanplum')
   compile project(':analytics-integration-mixpanel')
   compile project(':analytics-integration-quantcast')
+  compile project(':analytics-integration-tapstream')
 }
 
 android {

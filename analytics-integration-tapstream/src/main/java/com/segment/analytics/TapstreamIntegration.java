@@ -21,7 +21,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://tapstream.com/developer/android-sdk-documentation/">Tapstream Android
  * SDK</a>
  */
-class TapstreamIntegration extends AbstractIntegration<Tapstream> {
+public class TapstreamIntegration extends AbstractIntegration<Tapstream> {
   static final String TAPSTREAM_KEY = "Tapstream";
   boolean trackAllPages;
   boolean trackCategorizedPages;

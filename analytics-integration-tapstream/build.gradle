@@ -44,16 +44,17 @@ androidUnitTest {
 }
 
 dependencies {
+  provided project(':analytics-core')
   provided rootProject.ext.libraries.supportLib
-  provided rootProject.ext.libraries.googleAnalytics
+  compile files('libs/Tapstream-2.7.1.jar')
 
   testCompile rootProject.ext.testLibraries
+  testCompile project(path: ':analytics-core', configuration: 'testOutput')
 }
 
 apply from: rootProject.file('gradle/checkstyle-library.gradle')
 apply from: rootProject.file('gradle/attach-lean-jar.gradle')
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
-apply from: rootProject.file('gradle/attach-test-jar.gradle')
 
 // todo: move this to the gradle-mvn-push script
 afterEvaluate {

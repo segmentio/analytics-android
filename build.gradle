@@ -45,12 +45,6 @@ ext.plugins = [
     androidUnitTest: 'com.github.jcandksolutions.gradle:android-unit-test:2.1.1'
 ]
 
-ext.integrationsMap = [
-    tapstream      : files('libs/Tapstream-2.7.1.jar')
-]
-
-ext.integrations = ext.integrationsMap.values()
-
 ext.libraries = [
     playWearable   : 'com.google.android.gms:play-services-wearable:6.5.87',
     supportLib     : 'com.android.support:support-v4:21.0.2',
