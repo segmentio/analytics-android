@@ -1,6 +1,7 @@
 package com.segment.analytics;
 
 import android.app.Activity;
+import android.app.Application;
 import android.os.Bundle;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import java.util.Random;
@@ -16,12 +17,7 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
-import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
-import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
 import static com.segment.analytics.TestUtils.JSONObjectMatcher.jsonEq;
-import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
-import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -29,20 +25,22 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
+import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*", "org.json.*" })
 @PrepareForTest(MixpanelAPI.class)
-public class MixpanelTest extends AbstractIntegrationTestCase {
+public class MixpanelTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Mock MixpanelAPI mixpanelAPI;
+  @Mock Application context;
   @Mock MixpanelAPI.People people;
   MixpanelIntegration integration;
 
-  @Before @Override public void setUp() {
-    super.setUp();
+  @Before public void setUp() {
+    initMocks(this);
     mockStatic(MixpanelAPI.class);
     integration = new MixpanelIntegration();
     when(mixpanelAPI.getPeople()).thenReturn(people);
@@ -64,7 +62,7 @@ public class MixpanelTest extends AbstractIntegrationTestCase {
     assertThat(adapter.trackNamedPages).isTrue();
   }
 
-  @Test @Override public void activityCreate() {
+  @Test public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.token = "foo";
@@ -74,44 +72,44 @@ public class MixpanelTest extends AbstractIntegrationTestCase {
     verifyNoMoreMixpanelInteractions();
   }
 
-  @Test @Override public void activityStart() {
+  @Test public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
     verifyNoMoreMixpanelInteractions();
   }
 
-  @Test @Override public void activityResume() {
+  @Test public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
     verifyNoMoreMixpanelInteractions();
   }
 
-  @Test @Override public void activityPause() {
+  @Test public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
     verifyNoMoreMixpanelInteractions();
   }
 
-  @Test @Override public void activityStop() {
+  @Test public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
     verifyNoMoreMixpanelInteractions();
   }
 
-  @Test @Override public void activitySaveInstance() {
+  @Test public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
     verifyNoMoreMixpanelInteractions();
   }
 
-  @Test @Override public void activityDestroy() {
+  @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
     verifyNoMoreMixpanelInteractions();
   }
 
-  @Test @Override public void screen() {
+  @Test public void screen() {
     integration.trackAllPages = false;
     integration.trackCategorizedPages = false;
     integration.trackNamedPages = false;
@@ -156,20 +154,20 @@ public class MixpanelTest extends AbstractIntegrationTestCase {
     verifyNoMoreMixpanelInteractions();
   }
 
-  @Test @Override public void track() {
+  @Test public void track() {
     integration.track(new TrackPayloadBuilder().event("foo").build());
     verify(mixpanelAPI).track(eq("foo"), jsonEq(new JSONObject()));
     verifyNoMoreMixpanelInteractions();
   }
 
-  @Test @Override public void alias() {
+  @Test public void alias() {
     integration.alias(
         new AliasPayloadBuilder().traits(new Traits().putUserId("foo")).previousId("bar").build());
     verify(mixpanelAPI).alias("foo", "bar");
     verifyNoMoreMixpanelInteractions();
   }
 
-  @Test @Override public void identify() {
+  @Test public void identify() {
     Traits traits = new Traits().putUserId("foo");
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verify(mixpanelAPI).identify("foo");
@@ -189,7 +187,7 @@ public class MixpanelTest extends AbstractIntegrationTestCase {
     verifyNoMoreMixpanelInteractions();
   }
 
-  @Test @Override public void group() {
+  @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
     verifyNoMoreMixpanelInteractions();
   }
@@ -220,7 +218,7 @@ public class MixpanelTest extends AbstractIntegrationTestCase {
     verifyNoMoreMixpanelInteractions();
   }
 
-  @Test @Override public void flush() {
+  @Test public void flush() {
     integration.flush();
     verify(mixpanelAPI).flush();
     verifyNoMoreMixpanelInteractions();
