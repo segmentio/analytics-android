@@ -119,7 +119,7 @@ class IntegrationManager {
     } catch (InstantiationException e) {
       logger.print(e, "Skipped integration %s as it could not be instantiated.", className);
     } catch (ClassNotFoundException e) {
-      logger.print(e, "Skipped integration %s as it was not bundled.", className);
+      logger.print(null, "Skipped integration %s as it was not bundled.", className);
     } catch (IllegalAccessException e) {
       logger.print(e, "Skipped integration %s as it could not be accessed.", className);
     }
