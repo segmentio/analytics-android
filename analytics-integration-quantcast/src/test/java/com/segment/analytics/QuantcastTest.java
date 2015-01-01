@@ -1,6 +1,7 @@
 package com.segment.analytics;
 
 import android.app.Activity;
+import android.app.Application;
 import android.os.Bundle;
 import com.quantcast.measurement.service.QuantcastClient;
 import org.junit.Before;
@@ -14,24 +15,22 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
-import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
-import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
-import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
-import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.MockitoAnnotations.Mock;
+import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(QuantcastClient.class)
-public class QuantcastTest extends AbstractIntegrationTestCase {
+public class QuantcastTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
+  @Mock Application context;
   QuantcastIntegration integration;
 
-  @Before @Override public void setUp() {
-    super.setUp();
+  @Before public void setUp() {
+    initMocks(this);
     PowerMockito.mockStatic(QuantcastClient.class);
     integration = new QuantcastIntegration();
     integration.apiKey = "foo";
@@ -51,14 +50,14 @@ public class QuantcastTest extends AbstractIntegrationTestCase {
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test @Override public void activityCreate() {
+  @Test public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test @Override public void activityStart() {
+  @Test public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
     verifyStatic();
@@ -66,19 +65,19 @@ public class QuantcastTest extends AbstractIntegrationTestCase {
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test @Override public void activityResume() {
+  @Test public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test @Override public void activityPause() {
+  @Test public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test @Override public void activityStop() {
+  @Test public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
     verifyStatic();
@@ -86,20 +85,20 @@ public class QuantcastTest extends AbstractIntegrationTestCase {
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test @Override public void activitySaveInstance() {
+  @Test public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test @Override public void activityDestroy() {
+  @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test @Override public void identify() {
+  @Test public void identify() {
     integration.identify(new IdentifyPayloadBuilder() //
         .traits(new Traits().putUserId("bar")).build());
     verifyStatic();
@@ -107,24 +106,24 @@ public class QuantcastTest extends AbstractIntegrationTestCase {
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test @Override public void group() {
+  @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test @Override public void track() {
+  @Test public void track() {
     integration.track(new TrackPayloadBuilder().event("bar").build());
     verifyStatic();
     QuantcastClient.logEvent("bar");
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test @Override public void alias() {
+  @Test public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test @Override public void screen() {
+  @Test public void screen() {
     integration.screen(new ScreenPayloadBuilder().category("bar").build());
     verifyStatic();
     QuantcastClient.logEvent("Viewed bar Screen");
@@ -135,7 +134,7 @@ public class QuantcastTest extends AbstractIntegrationTestCase {
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test @Override public void flush() {
+  @Test public void flush() {
     integration.flush();
     verifyNoMoreInteractions(QuantcastClient.class);
   }

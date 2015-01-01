@@ -16,7 +16,7 @@ import static com.segment.analytics.Utils.hasPermission;
  * @see <a href="https://github.com/quantcast/android-measurement#quantcast-android-sdk">Quantcast
  * Android SDK</a>
  */
-class QuantcastIntegration extends AbstractIntegration<Void> {
+public class QuantcastIntegration extends AbstractIntegration<Void> {
   static final String QUANTCAST_KEY = "Quantcast";
   String apiKey;
 
