@@ -46,7 +46,6 @@ ext.plugins = [
 ]
 
 ext.integrationsMap = [
-    leanplum       : files('libs/Leanplum-1.2.5.jar'),
     mixpanel       : 'com.mixpanel.android:mixpanel-android:4.5.1@aar',
     quantcast      : files('libs/Quantcast-1.2.5.jar'),
     tapstream      : files('libs/Tapstream-2.7.1.jar')
