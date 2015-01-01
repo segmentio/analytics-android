@@ -12,7 +12,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * features. It also helps you advertise to the right audiences with your apps.
  *
  * @see <a href="http://www.flurry.com/">Flurry</a>
- * @see <a href="https://Segment/docs/integrations/flurry/">Flurry Integration</a>
+ * @see <a href="https://segment.com/docs/integrations/flurry/">Flurry Integration</a>
  * @see <a href="http://support.flurry.com/index.php?title=Analytics/GettingStarted/Android">Flurry
  * Android SDK</a>
  */

@@ -11,7 +11,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * actions your users perform you can gain a better understanding of how they use your app.
  *
  * @see <a href="https://amplitude.com">Amplitude</a>
- * @see <a href="https://Segment/docs/integrations/amplitude/">Amplitude Integration</a>
+ * @see <a href="https://segment.com/docs/integrations/amplitude/">Amplitude Integration</a>
  * @see <a href="https://github.com/amplitude/Amplitude-Android">Amplitude Android SDK</a>
  */
 public class AmplitudeIntegration extends AbstractIntegration<Void> {

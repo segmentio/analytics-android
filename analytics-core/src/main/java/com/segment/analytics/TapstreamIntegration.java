@@ -17,7 +17,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * who have visited your website, so your marketing team can know what's working.
  *
  * @see <a href="https://tapstream.com">Tapstream</a>
- * @see <a href="https://Segment/docs/integrations/tapstream/">Tapstream Integration</a>
+ * @see <a href="https://segment.com/docs/integrations/tapstream/">Tapstream Integration</a>
  * @see <a href="https://tapstream.com/developer/android-sdk-documentation/">Tapstream Android
  * SDK</a>
  */

@@ -60,7 +60,7 @@ public class WearAnalytics {
    * @param event Name of the event. Must not be null or empty.
    * @param properties {@link Properties} to add extra information to this call
    * @throws IllegalArgumentException if event name is null or an empty string
-   * @see <a href="https://Segment/docs/tracking-api/track/">Track Documentation</a>
+   * @see <a href="https://segment.com/docs/tracking-api/track/">Track Documentation</a>
    * @see com.segment.analytics.Analytics#track(String, Properties)
    */
   public void track(String event, Properties properties) {

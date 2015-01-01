@@ -9,7 +9,7 @@ import com.crittercism.app.CrittercismConfig;
  * errors. Crittercism will collect logs that will help you debug the problem and fix your app.
  *
  * @see <a href="http://crittercism.com">Crittercism</a>
- * @see <a href="https://Segment/docs/integrations/crittercism">Crittercism Integration</a>
+ * @see <a href="https://segment.com/docs/integrations/crittercism">Crittercism Integration</a>
  * @see <a href="http://docs.crittercism.com/android/android.html">Crittercism Android SDK</a>
  */
 public class CrittercismIntegration extends AbstractIntegration<Void> {

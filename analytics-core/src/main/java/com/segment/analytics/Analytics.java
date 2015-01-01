@@ -275,7 +275,7 @@ public class Analytics {
    * @param options To configure the call
    * @return The previous ID assigned to the user. Use it to call {@link #alias(String, Options)}
    * @throws IllegalArgumentException if userId is null or an empty string
-   * @see <a href="https://Segment/docs/tracking-api/identify/">Identify Documentation</a>
+   * @see <a href="https://segment.com/docs/tracking-api/identify/">Identify Documentation</a>
    */
   public String identify(String userId, Traits newTraits, Options options) {
     String previousId = traitsCache.get().userIdOrAnonymousId();
@@ -310,7 +310,7 @@ public class Analytics {
    * be null or empty.
    * @param options To configure the call
    * @throws IllegalArgumentException if groupId is null or an empty string
-   * @see <a href="https://Segment/docs/tracking-api/group/">Group Documentation</a>
+   * @see <a href="https://segment.com/docs/tracking-api/group/">Group Documentation</a>
    */
   public void group(String groupId, Traits groupTraits, Options options) {
     if (isNullOrEmpty(groupId)) {
@@ -346,7 +346,7 @@ public class Analytics {
    * @param properties {@link Properties} to add extra information to this call
    * @param options To configure the call
    * @throws IllegalArgumentException if event name is null or an empty string
-   * @see <a href="https://Segment/docs/tracking-api/track/">Track Documentation</a>
+   * @see <a href="https://segment.com/docs/tracking-api/track/">Track Documentation</a>
    */
   public void track(String event, Properties properties, Options options) {
     if (isNullOrEmpty(event)) {
@@ -423,7 +423,7 @@ public class Analytics {
    * by calling {@link #identify(String, Traits, Options)} (String)}
    * @param options To configure the call
    * @throws IllegalArgumentException if newId is null or empty
-   * @see <a href="https://Segment/docs/tracking-api/alias/">Alias Documentation</a>
+   * @see <a href="https://segment.com/docs/tracking-api/alias/">Alias Documentation</a>
    */
   public void alias(String previousId, Options options) {
     if (isNullOrEmpty(previousId)) {
