@@ -16,7 +16,7 @@ import static com.segment.analytics.Utils.isNullOrEmpty;
  * @see <a href="https://segment.com/docs/integrations/mixpanel">Mixpanel Integration</a>
  * @see <a href="https://github.com/mixpanel/mixpanel-android">Mixpanel Android SDK</a>
  */
-class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
+public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   static final String MIXPANEL_KEY = "Mixpanel";
   MixpanelAPI mixpanelAPI;
   boolean isPeopleEnabled;
