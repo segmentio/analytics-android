@@ -46,7 +46,6 @@ ext.plugins = [
 ]
 
 ext.integrationsMap = [
-    quantcast      : files('libs/Quantcast-1.2.5.jar'),
     tapstream      : files('libs/Tapstream-2.7.1.jar')
 ]
 
