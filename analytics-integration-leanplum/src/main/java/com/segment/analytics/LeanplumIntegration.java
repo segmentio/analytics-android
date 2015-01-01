@@ -9,7 +9,14 @@ import com.leanplum.LeanplumActivityHelper;
 
 import static com.segment.analytics.Utils.hasPermission;
 
-class LeanplumIntegration extends AbstractIntegration<Void> {
+/**
+ * Leanplum enables mobile teams to quickly go from insight to action using the lean cycle of
+ * releasing, analyzing and optimizing content and messaging.
+ *
+ * @see <a href="http://www.leanplum.com/">Leanplum</a>
+ * @see <a href="https://segment.com/docs/integrations/leanplum/">Leanplum Integration</a>
+ */
+public class LeanplumIntegration extends AbstractIntegration<Void> {
   static final String LEANPLUM_KEY = "Leanplum";
   LeanplumActivityHelper helper;
 
