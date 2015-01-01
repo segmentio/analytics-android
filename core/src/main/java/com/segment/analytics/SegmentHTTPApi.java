@@ -135,7 +135,7 @@ class SegmentHTTPApi {
     HttpsURLConnection open(String endpoint) throws IOException;
 
     HttpURLConnectionFactory DEFAULT = new HttpURLConnectionFactory() {
-      static final String API_URL = "https://api.Segment/";
+      static final String API_URL = "https://api.segment.io/";
 
       @Override public HttpsURLConnection open(String endpoint) throws IOException {
         return (HttpsURLConnection) createUrl(endpoint).openConnection();
