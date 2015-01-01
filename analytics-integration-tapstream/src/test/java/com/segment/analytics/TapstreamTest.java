@@ -1,6 +1,7 @@
 package com.segment.analytics;
 
 import android.app.Activity;
+import android.app.Application;
 import android.os.Bundle;
 import com.tapstream.sdk.Event;
 import com.tapstream.sdk.Tapstream;
@@ -23,11 +24,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.TapstreamTest.EventMatcher.eventEq;
-import static com.segment.analytics.TestUtils.AliasPayloadBuilder;
-import static com.segment.analytics.TestUtils.GroupPayloadBuilder;
-import static com.segment.analytics.TestUtils.IdentifyPayloadBuilder;
-import static com.segment.analytics.TestUtils.ScreenPayloadBuilder;
-import static com.segment.analytics.TestUtils.TrackPayloadBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
@@ -36,19 +32,21 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
+import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(Tapstream.class)
-public class TapstreamTest extends AbstractIntegrationTestCase {
+public class TapstreamTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Mock Tapstream tapstream;
   @Mock com.tapstream.sdk.Config config;
+  @Mock Application context;
   TapstreamIntegration integration;
 
-  @Before @Override public void setUp() {
-    super.setUp();
+  @Before public void setUp() {
+    initMocks(this);
     PowerMockito.mockStatic(Tapstream.class);
     integration = new TapstreamIntegration();
     integration.tapstream = tapstream;
@@ -56,7 +54,7 @@ public class TapstreamTest extends AbstractIntegrationTestCase {
     when(context.getApplicationContext()).thenReturn(context);
   }
 
-  @Test @Override public void initialize() throws IllegalStateException {
+  @Test public void initialize() throws IllegalStateException {
     TapstreamIntegration adapter = new TapstreamIntegration();
     adapter.initialize(context, new ValueMap().putValue("accountName", "foo")
         .putValue("sdkSecret", "bar")
@@ -67,62 +65,62 @@ public class TapstreamTest extends AbstractIntegrationTestCase {
     Tapstream.create(eq(context), eq("foo"), eq("bar"), Matchers.<com.tapstream.sdk.Config>any());
   }
 
-  @Test @Override public void activityCreate() {
+  @Test public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Test @Override public void activityStart() {
+  @Test public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Test @Override public void activityResume() {
+  @Test public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Test @Override public void activityPause() {
+  @Test public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Test @Override public void activityStop() {
+  @Test public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Test @Override public void activitySaveInstance() {
+  @Test public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Test @Override public void activityDestroy() {
+  @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Test @Override public void track() {
+  @Test public void track() {
     integration.track(new TrackPayloadBuilder().event("foo").build());
     verify(tapstream).fireEvent(eventEq("foo"));
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Test @Override public void alias() {
+  @Test public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Test @Override public void screen() {
+  @Test public void screen() {
     integration.trackAllPages = false;
     integration.trackCategorizedPages = false;
     integration.trackNamedPages = false;
@@ -167,12 +165,12 @@ public class TapstreamTest extends AbstractIntegrationTestCase {
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Test @Override public void flush() {
+  @Test public void flush() {
     integration.flush();
     verifyNoMoreTapstreamInteractions();
   }
 
-  @Test @Override public void identify() {
+  @Test public void identify() {
     Map<String, Object> emptyParams = new HashMap<String, Object>();
     config.globalEventParams = emptyParams;
     integration.identify(new IdentifyPayloadBuilder() //
@@ -188,7 +186,7 @@ public class TapstreamTest extends AbstractIntegrationTestCase {
         .contains(MapEntry.entry("baz", "qux"));
   }
 
-  @Test @Override public void group() {
+  @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
     verifyNoMoreTapstreamInteractions();
   }
@@ -209,17 +207,17 @@ public class TapstreamTest extends AbstractIntegrationTestCase {
       this.name = name;
     }
 
-    @Override public boolean matchesSafely(Event event) {
+    public boolean matchesSafely(Event event) {
       return event.getName().compareTo(name) == 0;
     }
 
-    @Override protected void describeMismatchSafely(Event item, Description mismatchDescription) {
+    protected void describeMismatchSafely(Event item, Description mismatchDescription) {
       super.describeMismatchSafely(item, mismatchDescription);
       mismatchDescription.appendText(item.getName());
       mismatchDescription.appendText(item.getEncodedName());
     }
 
-    @Override public void describeTo(Description description) {
+    public void describeTo(Description description) {
       description.appendText(name);
     }
   }
