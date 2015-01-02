@@ -1,0 +1,47 @@
+apply plugin: 'android-sdk-manager'
+apply plugin: 'com.android.application'
+
+buildscript {
+  dependencies {
+    classpath rootProject.ext.plugins.android
+    classpath rootProject.ext.plugins.sdkManager
+  }
+}
+
+dependencies {
+  // repositories { maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' } }
+  // compile('com.segment.analytics.android:all:2.4.4-SNAPSHOT@aar') {
+  //   transitive = true
+  // }
+  compile project(':analytics-wear')
+  compile rootProject.ext.libraries.supportWearable
+}
+
+android {
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
+
+  defaultConfig {
+    minSdkVersion rootProject.ext.minSdkVersionWear
+    targetSdkVersion rootProject.ext.targetSdkVersion
+    versionCode rootProject.ext.versionCode
+    versionName rootProject.ext.versionName
+  }
+
+  lintOptions {
+    abortOnError false
+  }
+
+  dexOptions {
+    preDexLibraries = rootProject.ext.preDexLibraries
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+    }
+  }
+}
+
+apply from: rootProject.file('gradle/checkstyle-app.gradle')

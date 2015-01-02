@@ -1,0 +1,53 @@
+apply plugin: 'android-sdk-manager'
+apply plugin: 'com.android.library'
+
+buildscript {
+  dependencies {
+    classpath rootProject.ext.plugins.android
+    classpath rootProject.ext.plugins.sdkManager
+  }
+}
+
+dependencies {
+  compile project(':analytics-core')
+  compile project(':analytics-integration-amplitude')
+  compile project(':analytics-integration-appsflyer')
+  compile project(':analytics-integration-bugsnag')
+  compile project(':analytics-integration-countly')
+  compile project(':analytics-integration-crittercism')
+  compile project(':analytics-integration-flurry')
+  compile project(':analytics-integration-google-analytics')
+  compile project(':analytics-integration-kahuna')
+  compile project(':analytics-integration-localytics')
+  compile project(':analytics-integration-leanplum')
+  compile project(':analytics-integration-mixpanel')
+  compile project(':analytics-integration-quantcast')
+  compile project(':analytics-integration-tapstream')
+}
+
+android {
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
+
+  defaultConfig {
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
+    versionCode rootProject.ext.versionCode
+    versionName rootProject.ext.versionName
+  }
+
+  lintOptions {
+    abortOnError false
+  }
+
+  dexOptions {
+    preDexLibraries = rootProject.ext.preDexLibraries
+  }
+
+  packagingOptions {
+    exclude 'LICENSE.txt'
+    exclude 'AndroidManifest.xml'
+  }
+}
+
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
