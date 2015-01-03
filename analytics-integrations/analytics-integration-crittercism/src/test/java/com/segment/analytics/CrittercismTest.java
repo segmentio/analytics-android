@@ -5,6 +5,7 @@ import android.app.Application;
 import android.os.Bundle;
 import com.crittercism.app.Crittercism;
 import com.crittercism.app.CrittercismConfig;
+import com.segment.analytics.TestUtils.JSONObjectMatcher;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -17,7 +18,6 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.TestUtils.JSONObjectMatcher.jsonEq;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -104,7 +104,7 @@ public class CrittercismTest {
     verifyStatic();
     Crittercism.setUsername("foo");
     verifyStatic();
-    Crittercism.setMetadata(jsonEq(traits.toJsonObject()));
+    Crittercism.setMetadata(JSONObjectMatcher.jsonEq(traits.toJsonObject()));
   }
 
   @Test public void group() {
