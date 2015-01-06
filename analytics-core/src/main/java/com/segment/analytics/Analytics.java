@@ -383,7 +383,7 @@ public class Analytics {
    * @param name A name for the screen
    * @param properties {@link Properties} to add extra information to this call
    * @param options To configure the call
-   * @see <a href="http://Segment/docs/tracking-api/page-and-screen/">Screen Documentation</a>
+   * @see <a href="http://segment.com/docs/tracking-api/page-and-screen/">Screen Documentation</a>
    */
   public void screen(String category, String name, Properties properties, Options options) {
     if (isNullOrEmpty(category) && isNullOrEmpty(name)) {

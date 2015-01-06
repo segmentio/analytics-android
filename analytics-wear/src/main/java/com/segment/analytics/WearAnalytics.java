@@ -85,7 +85,7 @@ public class WearAnalytics {
    * @param category A category to describe the screen
    * @param name A name for the screen
    * @param properties {@link Properties} to add extra information to this call
-   * @see <a href="http://Segment/docs/tracking-api/page-and-screen/">Screen Documentation</a>
+   * @see <a href="http://segment.com/docs/tracking-api/page-and-screen/">Screen Documentation</a>
    * @see com.segment.analytics.Analytics#screen(String, String, Properties)
    */
   public void screen(String category, String name, Properties properties) {
