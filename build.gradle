@@ -1,7 +1,7 @@
 // Top-level build file; configuration options common to all sub-projects/modules.
 apply plugin: 'idea'
 
-subprojects {
+allprojects {
   buildscript {
     repositories {
       mavenCentral()
@@ -10,13 +10,6 @@ subprojects {
 
   repositories {
     mavenCentral()
-  }
-
-  configurations {
-    // These are provided internally by Android and can be excluded
-    compile.exclude group: 'org.json', module: 'json'
-    compile.exclude group: 'commons-logging', module: 'commons-logging'
-    compile.exclude group: 'org.apache.httpcomponents', module: 'httpclient'
   }
 
   group = GROUP
