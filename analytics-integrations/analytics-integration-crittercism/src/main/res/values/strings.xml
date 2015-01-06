@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Workaround for http://cl.ly/image/1d1v0l330P2b -->
+  <string name="dummy_value">dummy_value</string>
+</resources>
