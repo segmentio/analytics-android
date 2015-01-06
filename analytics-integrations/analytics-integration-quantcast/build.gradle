@@ -22,6 +22,7 @@ dependencies {
 
 apply from: rootProject.file('gradle/checkstyle-library.gradle')
 apply from: rootProject.file('gradle/attach-jar.gradle')
+apply from: rootProject.file('gradle/attach-jar-with-dependencies.gradle')
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
 
 // todo: move this to the gradle-mvn-push script

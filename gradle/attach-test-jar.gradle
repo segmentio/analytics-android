@@ -3,13 +3,13 @@ android.libraryVariants.all { variant ->
   if (variant.buildType.isDebuggable()) {
     // This will fail if we ever have multiple Debuggable build types
     project.configurations.create "testOutput"
-    def jarTest = project.tasks.create "jarTest", Jar
-    jarTest.classifier = 'test'
-    jarTest.dependsOn variant.testVariant.javaCompile
+    def task = project.tasks.create "jarTest", Jar
+    task.classifier = 'test'
+    task.dependsOn variant.testVariant.javaCompile
     // Include Java classes
-    jarTest.from variant.testVariant.javaCompile.destinationDir
+    task.from variant.testVariant.javaCompile.destinationDir
     // todo: lookup locations from plugin API
-    jarTest.from 'build/test-classes/debug'
-    artifacts.add('testOutput', jarTest);
+    task.from 'build/test-classes/debug'
+    artifacts.add('testOutput', task);
   }
 }

@@ -1,0 +1,47 @@
+android.libraryVariants.all { variant ->
+  // Only attach a jar for non-debug build types.
+  if (!variant.buildType.isDebuggable()) {
+    def name = variant.buildType.name
+    def task = project.tasks.create "fatJar${name.capitalize()}", Jar
+    task.classifier = 'jar-with-dependencies'
+    task.dependsOn variant.javaCompile
+    // Include Java classes
+    task.from variant.javaCompile.destinationDir
+    task.from configurations.compile.collect {
+      if (it.isDirectory()) {
+        return it
+      } else if (it.name.endsWith('.aar')) {
+        def tempDir = "${buildDir}/unpacked/dist/extracted-" + it.name
+        // Unzip the aar
+        def extractAar = project.tasks.create "fatJarExtract${it.name.capitalize()}", Copy
+        extractAar.from zipTree(it).matching {
+          exclude 'R.txt'
+          exclude 'proguard.txt'
+          exclude 'AndroidManifest.xml'
+          exclude 'META-INF/'
+          exclude 'assets/'
+          exclude 'res/'
+          exclude 'aidl/'
+        }
+        extractAar.into file(tempDir)
+        extractAar.execute()
+        // Extract classes.jar
+        def extractClassesJar = project.tasks.create "fatJarExtractClasses${it.name.capitalize()}",
+            Copy
+        extractClassesJar.from zipTree(file(tempDir + "/classes.jar")).matching {
+          exclude 'META-INF/'
+        }
+        extractClassesJar.into file(tempDir)
+        extractClassesJar.setDuplicatesStrategy DuplicatesStrategy.EXCLUDE
+        extractClassesJar.execute()
+        return fileTree(file(tempDir)).matching {
+          exclude '**/BuildConfig.java'
+          exclude 'classes.jar'
+        }
+      } else {
+        return zipTree(it)
+      }
+    }
+    artifacts.add('archives', task);
+  }
+}
