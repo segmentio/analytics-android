@@ -13,30 +13,6 @@ dependencies {
   compile rootProject.ext.libraries.playWearable
 }
 
-android {
-  compileSdkVersion rootProject.ext.compileSdkVersion
-  buildToolsVersion rootProject.ext.buildToolsVersion
-
-  defaultConfig {
-    minSdkVersion rootProject.ext.minSdkVersion
-    targetSdkVersion rootProject.ext.targetSdkVersion
-    versionCode rootProject.ext.versionCode
-    versionName rootProject.ext.versionName
-  }
-
-  lintOptions {
-    abortOnError false
-  }
-
-  dexOptions {
-    preDexLibraries = rootProject.ext.preDexLibraries
-  }
-
-  packagingOptions {
-    exclude 'LICENSE.txt'
-  }
-}
-
 apply from: rootProject.file('gradle/checkstyle-library.gradle')
 apply from: rootProject.file('gradle/attach-lean-jar.gradle')
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

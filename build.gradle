@@ -16,6 +16,40 @@ allprojects {
   version = VERSION_NAME
 }
 
+subprojects {
+  project.plugins.whenPluginAdded { plugin ->
+    if ("com.android.build.gradle.LibraryPlugin".equals(plugin.class.name) ||
+        "com.android.build.gradle.AppPlugin".equals(plugin.class.name)) {
+      
+      android {
+        compileSdkVersion rootProject.ext.compileSdkVersion
+        buildToolsVersion rootProject.ext.buildToolsVersion
+
+        defaultConfig {
+          minSdkVersion rootProject.ext.minSdkVersion
+          targetSdkVersion rootProject.ext.targetSdkVersion
+          versionCode rootProject.ext.versionCode
+          versionName rootProject.ext.versionName
+        }
+
+        dexOptions {
+          preDexLibraries rootProject.ext.preDexLibraries
+        }
+
+        lintOptions {
+          abortOnError false
+        }
+
+        packagingOptions {
+          exclude 'LICENSE.txt'
+        }
+      }
+
+    }
+  }
+}
+
+
 def isTravis = "true".equals(System.getenv("TRAVIS"))
 def preDexEnabled = "true".equals(System.getProperty("pre-dex", "true"))
 
