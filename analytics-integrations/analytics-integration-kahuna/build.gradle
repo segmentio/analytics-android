@@ -9,15 +9,7 @@ buildscript {
   }
 }
 
-apply plugin: 'android-unit-test'
-
-androidUnitTest {
-  testTasks {
-    all {
-      jvmArgs '-noverify'
-    }
-  }
-}
+apply from: rootProject.file('gradle/integration-test.gradle')
 
 dependencies {
   provided project(':analytics-core')
