@@ -13,26 +13,27 @@ import java.util.Map;
 import java.util.Set;
 import org.json.JSONObject;
 
-import static com.segment.analytics.JsonUtils.mapToJson;
-import static com.segment.analytics.Utils.getSegmentSharedPreferences;
-import static com.segment.analytics.Utils.isNullOrEmpty;
+import static com.segment.analytics.internal.JsonUtils.jsonToMap;
+import static com.segment.analytics.internal.JsonUtils.mapToJson;
+import static com.segment.analytics.internal.Utils.getSegmentSharedPreferences;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
  * A class that wraps an existing {@link Map} to expose value type functionality.
- * <p>
- * All {@link java.util.Map} methods will simply be forwarded to a delegate map. This class is
- * meant to subclassed and provide methods to access values in keys.
- * <p>
+ * <p/>
+ * All {@link java.util.Map} methods will simply be forwarded to a delegate map. This class is meant
+ * to subclassed and provide methods to access values in keys.
+ * <p/>
  * Although it lets you use custom objects for values, note that type information is lost during
  * serialization. You should use one of the coercion methods instead to get objects of a concrete
  * type.
  */
-class ValueMap implements Map<String, Object> {
+public class ValueMap implements Map<String, Object> {
   private final Map<String, Object> delegate;
 
   /**
-   * Uses reflection to create an instance of a subclass of {@link ValueMap} as long it declares a
-   * map constructor.
+   * Uses reflection to create an instance of a subclass of {@link ValueMap}. The subclass
+   * <b>must</b> declare a map constructor.
    */
   private static <T extends ValueMap> T createValueMap(Map map, Class<T> clazz) {
     try {
@@ -44,11 +45,11 @@ class ValueMap implements Map<String, Object> {
     }
   }
 
-  ValueMap() {
+  public ValueMap() {
     delegate = new LinkedHashMap<String, Object>();
   }
 
-  ValueMap(Map<String, Object> map) {
+  public ValueMap(Map<String, Object> map) {
     if (map == null) {
       throw new IllegalArgumentException("Map must not be null.");
     }
@@ -116,7 +117,7 @@ class ValueMap implements Map<String, Object> {
   }
 
   /** Helper method to be able to chain put methods. */
-  ValueMap putValue(String key, Object value) {
+  public ValueMap putValue(String key, Object value) {
     delegate.put(key, value);
     return this;
   }
@@ -125,7 +126,7 @@ class ValueMap implements Map<String, Object> {
    * Returns the value mapped by {@code key} if it exists and is a integer or can be coerced to a
    * integer. Returns defaultValue otherwise.
    */
-  int getInt(String key, int defaultValue) {
+  public int getInt(String key, int defaultValue) {
     Object value = get(key);
     if (value instanceof Integer) {
       return (int) value;
@@ -143,10 +144,10 @@ class ValueMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a
-   * long. Returns defaultValue otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a long.
+   * Returns defaultValue otherwise.
    */
-  long getLong(String key, long defaultValue) {
+  public long getLong(String key, long defaultValue) {
     Object value = get(key);
     if (value instanceof Long) {
       return (long) value;
@@ -167,7 +168,7 @@ class ValueMap implements Map<String, Object> {
    * Returns the value mapped by {@code key} if it exists and is a double or can be coerced to a
    * double. Returns defaultValue otherwise.
    */
-  double getDouble(String key, double defaultValue) {
+  public double getDouble(String key, double defaultValue) {
     Object value = get(key);
     if (value instanceof Double) {
       return (double) value;
@@ -185,10 +186,10 @@ class ValueMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a char or can be coerced to a
-   * char. Returns defaultValue otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a char or can be coerced to a char.
+   * Returns defaultValue otherwise.
    */
-  char getChar(String key, char defaultValue) {
+  public char getChar(String key, char defaultValue) {
     Object value = get(key);
     if (value instanceof Character) {
       return (Character) value;
@@ -204,11 +205,11 @@ class ValueMap implements Map<String, Object> {
   /**
    * Returns the value mapped by {@code key} if it exists and is a string or can be coerced to a
    * string. Returns null otherwise.
-   * <p>
+   * <p/>
    * This will return null only if the value does not exist, since all types can have a String
    * representation.
    */
-  String getString(String key) {
+  public String getString(String key) {
     Object value = get(key);
     if (value instanceof String) {
       return (String) value;
@@ -222,7 +223,7 @@ class ValueMap implements Map<String, Object> {
    * Returns the value mapped by {@code key} if it exists and is a boolean or can be coerced to a
    * boolean. Returns defaultValue otherwise.
    */
-  boolean getBoolean(String key, boolean defaultValue) {
+  public boolean getBoolean(String key, boolean defaultValue) {
     Object value = get(key);
     if (value instanceof Boolean) {
       return (boolean) value;
@@ -233,11 +234,10 @@ class ValueMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a enum or can be coerced to a
-   * enum.
+   * Returns the value mapped by {@code key} if it exists and is a enum or can be coerced to a enum.
    * Returns null otherwise.
    */
-  <T extends Enum<T>> T getEnum(Class<T> enumType, String key) {
+  public <T extends Enum<T>> T getEnum(Class<T> enumType, String key) {
     if (enumType == null) {
       throw new IllegalArgumentException("enumType may not be null");
     }
@@ -255,7 +255,7 @@ class ValueMap implements Map<String, Object> {
    * Returns the value mapped by {@code key} if it exists and is a {@link ValueMap}. Returns null
    * otherwise.
    */
-  ValueMap getValueMap(Object key) {
+  public ValueMap getValueMap(Object key) {
     Object value = get(key);
     if (value instanceof ValueMap) {
       return (ValueMap) value;
@@ -271,7 +271,7 @@ class ValueMap implements Map<String, Object> {
    * Returns the value mapped by {@code key} if it exists and if it can be coerced to the given
    * type. The expected subclass MUST have a constructor that accepts a {@link Map}.
    */
-  <T extends ValueMap> T getValueMap(String key, Class<T> clazz) {
+  public <T extends ValueMap> T getValueMap(String key, Class<T> clazz) {
     Object value = get(key);
     return coerceToValueMap(value, clazz);
   }
@@ -292,7 +292,7 @@ class ValueMap implements Map<String, Object> {
    * Returns the value mapped by {@code key} if it exists and is a List of {@code T}. Returns null
    * otherwise.
    */
-  <T extends ValueMap> List<T> getList(Object key, Class<T> clazz) {
+  public <T extends ValueMap> List<T> getList(Object key, Class<T> clazz) {
     Object value = get(key);
     if (value instanceof List) {
       List list = (List) value;
@@ -312,12 +312,12 @@ class ValueMap implements Map<String, Object> {
   }
 
   /** Return a copy of the contents of this map as a {@link JSONObject}. */
-  JSONObject toJsonObject() {
+  public JSONObject toJsonObject() {
     return new JSONObject(delegate);
   }
 
   /** Return a copy of the contents of this map as a {@code Map<String, String>}. */
-  Map<String, String> toStringMap() {
+  public Map<String, String> toStringMap() {
     Map<String, String> map = new HashMap<String, String>();
     for (Map.Entry<String, Object> entry : entrySet()) {
       map.put(entry.getKey(), String.valueOf(entry.getValue()));
@@ -326,26 +326,25 @@ class ValueMap implements Map<String, Object> {
   }
 
   /** A class to let you store arbitrary key - {@link ValueMap} pairs. */
-  static class Cache<T extends ValueMap> {
+  public static class Cache<T extends ValueMap> {
     private final SharedPreferences preferences;
     private final String key;
     private final Class<T> clazz;
     private T value;
 
-    Cache(Context context, String key, Class<T> clazz) {
+    public Cache(Context context, String key, Class<T> clazz) {
       this.preferences = getSegmentSharedPreferences(context);
       this.key = key;
       this.clazz = clazz;
     }
 
-    T get() {
+    public T get() {
       if (value == null) {
         String json = preferences.getString(key, null);
-        if (isNullOrEmpty(json)) {
-          return null;
-        }
+        if (isNullOrEmpty(json)) return null;
+
         try {
-          Map<String, Object> map = JsonUtils.jsonToMap(json);
+          Map<String, Object> map = jsonToMap(json);
           value = create(map);
         } catch (IOException ignored) {
           // todo: log
@@ -355,15 +354,15 @@ class ValueMap implements Map<String, Object> {
       return value;
     }
 
-    boolean isSet() {
+    public boolean isSet() {
       return preferences.contains(key);
     }
 
-    T create(Map<String, Object> map) {
+    public T create(Map<String, Object> map) {
       return ValueMap.createValueMap(map, clazz);
     }
 
-    void set(T value) {
+    public void set(T value) {
       this.value = value;
       try {
         String json = mapToJson(value);
@@ -373,7 +372,7 @@ class ValueMap implements Map<String, Object> {
       }
     }
 
-    void delete() {
+    public void delete() {
       preferences.edit().remove(key).apply();
     }
   }

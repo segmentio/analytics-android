@@ -35,38 +35,43 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import com.segment.analytics.internal.IntegrationManager;
+import com.segment.analytics.internal.Logger;
+import com.segment.analytics.internal.Segment;
+import com.segment.analytics.internal.SegmentHTTPApi;
+import com.segment.analytics.internal.Stats;
+import com.segment.analytics.internal.model.payloads.AliasPayload;
+import com.segment.analytics.internal.model.payloads.BasePayload;
+import com.segment.analytics.internal.model.payloads.GroupPayload;
+import com.segment.analytics.internal.model.payloads.IdentifyPayload;
+import com.segment.analytics.internal.model.payloads.ScreenPayload;
+import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.util.Map;
 
-import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload;
-import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.CREATED;
-import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.DESTROYED;
-import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.PAUSED;
-import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.RESUMED;
-import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.SAVE_INSTANCE;
-import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.STARTED;
-import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type.STOPPED;
-import static com.segment.analytics.Logger.OWNER_MAIN;
-import static com.segment.analytics.Logger.VERB_CREATE;
-import static com.segment.analytics.Utils.checkMain;
-import static com.segment.analytics.Utils.getResourceBooleanOrThrow;
-import static com.segment.analytics.Utils.getResourceIntegerOrThrow;
-import static com.segment.analytics.Utils.getResourceString;
-import static com.segment.analytics.Utils.hasPermission;
-import static com.segment.analytics.Utils.isNullOrEmpty;
+import static com.segment.analytics.internal.IntegrationManager.ActivityLifecyclePayload;
+import static com.segment.analytics.internal.IntegrationManager.ActivityLifecyclePayload.Type;
+import static com.segment.analytics.internal.Logger.OWNER_MAIN;
+import static com.segment.analytics.internal.Logger.VERB_CREATE;
+import static com.segment.analytics.internal.Utils.checkMain;
+import static com.segment.analytics.internal.Utils.getResourceBooleanOrThrow;
+import static com.segment.analytics.internal.Utils.getResourceIntegerOrThrow;
+import static com.segment.analytics.internal.Utils.getResourceString;
+import static com.segment.analytics.internal.Utils.hasPermission;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
  * The entry point into the Analytics for Android SDK.
- * <p>
+ * <p/>
  * The idea is simple: one pipeline for all your data. Segment is the single hub to collect,
  * translate and route your data with the flip of a switch.
- * <p>
+ * <p/>
  * Analytics for Android will automatically batch events, queue them to disk, and upload it
  * periodically to Segment for you. It will also look up your project's settings (that you've
  * configured in the web interface), specifically looking up settings for bundled integrations, and
  * then initialize them for you on the user's phone, and mapping our standardized events to formats
  * they can all understand. You only need to instrument Segment once, then flip a switch to install
  * new tools.
- * <p>
+ * <p/>
  * This class is the main entry point into the client API. Use {@link
  * #with(android.content.Context)} for the global singleton instance or construct your own instance
  * with {@link Builder}.
@@ -80,7 +85,7 @@ public class Analytics {
   static final String FLUSH_INTERVAL_IDENTIFIER = "analytics_flush_interval";
   static final String DEBUGGING_RESOURCE_IDENTIFIER = "analytics_debugging";
   static final Properties EMPTY_PROPERTIES = new Properties();
-  static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
+  public static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
     @Override public void handleMessage(Message msg) {
       switch (msg.what) {
         default:
@@ -102,14 +107,14 @@ public class Analytics {
 
   /**
    * The global default {@link Analytics} instance.
-   * <p>
+   * <p/>
    * This instance is automatically initialized with defaults that are suitable to most
    * implementations.
-   * <p>
+   * <p/>
    * If these settings do not meet the requirements of your application, you can override defaults
    * in {@code analytics.xml}, or you can construct your own instance with full control over the
    * configuration by using {@link Builder}.
-   * <p>
+   * <p/>
    * By default, events are uploaded every 30 seconds, or every 20 events (whichever occurs first),
    * and debugging is disabled.
    */
@@ -174,7 +179,7 @@ public class Analytics {
 
   /**
    * Set the global instance returned from {@link #with}.
-   * <p>
+   * <p/>
    * This method must be called before any calls to {@link #with} and may only be called once.
    *
    * @since 2.3
@@ -203,31 +208,31 @@ public class Analytics {
 
     application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
       @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-        submit(new ActivityLifecyclePayload(CREATED, activity, savedInstanceState));
+        submit(new ActivityLifecyclePayload(Type.CREATED, activity, savedInstanceState));
       }
 
       @Override public void onActivityStarted(Activity activity) {
-        submit(new ActivityLifecyclePayload(STARTED, activity, null));
+        submit(new ActivityLifecyclePayload(Type.STARTED, activity, null));
       }
 
       @Override public void onActivityResumed(Activity activity) {
-        submit(new ActivityLifecyclePayload(RESUMED, activity, null));
+        submit(new ActivityLifecyclePayload(Type.RESUMED, activity, null));
       }
 
       @Override public void onActivityPaused(Activity activity) {
-        submit(new ActivityLifecyclePayload(PAUSED, activity, null));
+        submit(new ActivityLifecyclePayload(Type.PAUSED, activity, null));
       }
 
       @Override public void onActivityStopped(Activity activity) {
-        submit(new ActivityLifecyclePayload(STOPPED, activity, null));
+        submit(new ActivityLifecyclePayload(Type.STOPPED, activity, null));
       }
 
       @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-        submit(new ActivityLifecyclePayload(SAVE_INSTANCE, activity, outState));
+        submit(new ActivityLifecyclePayload(Type.SAVE_INSTANCE, activity, outState));
       }
 
       @Override public void onActivityDestroyed(Activity activity) {
-        submit(new ActivityLifecyclePayload(DESTROYED, activity, null));
+        submit(new ActivityLifecyclePayload(Type.DESTROYED, activity, null));
       }
     });
   }
@@ -263,17 +268,21 @@ public class Analytics {
   /**
    * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
    * also lets you record {@code traits} about the user, like their email, name, account type, etc.
-   * <p>
+   * <p/>
    * Traits and userId will be automatically cached and available on future sessions for the same
    * user. To update a trait on the server, simply call identify with the same user id (or null).
    * You can also use {@link #identify(Traits)} for this purpose.
    *
-   * @param userId Unique identifier which you recognize a user by in your own database. If this is
-   * null or empty, any previous id we have (could be the anonymous id) will be
-   * used.
+   * @param userId    Unique identifier which you recognize a user by in your own database. If this
+   *                  is null or empty, any previous id we have (could be the anonymous id) will be
+   *                  used.
    * @param newTraits Traits about the user
+<<<<<<< HEAD
    * @param options To configure the call
    * @return The previous ID assigned to the user. Use it to call {@link #alias(String, Options)}
+=======
+   * @param options   To configure the call
+>>>>>>> ad73368... Dynamic Class Loading WIP - needs a real CDN and API refactor to hide
    * @throws IllegalArgumentException if userId is null or an empty string
    * @see <a href="https://segment.com/docs/tracking-api/identify/">Identify Documentation</a>
    */
@@ -306,8 +315,14 @@ public class Analytics {
    * The group method lets you associate the current user with a group. It also lets you record
    * custom traits about the group, like industry or number of employees.
    *
+   * The group method lets you associate a user with a group. It also lets you record custom traits
+   * about the group, like industry or number of employees.
+   * <p/>
+   * If you've called {@link #identify(String, Traits, Options)} before, this will automatically
+   * remember the userId. If not, it will fall back to use the anonymousId instead.
+   *
    * @param groupId Unique identifier which you recognize a group by in your own database. Must not
-   * be null or empty.
+   *                be null or empty.
    * @param options To configure the call
    * @throws IllegalArgumentException if groupId is null or an empty string
    * @see <a href="https://segment.com/docs/tracking-api/group/">Group Documentation</a>
@@ -339,12 +354,17 @@ public class Analytics {
 
   /**
    * The track method is how you record any actions your users perform. Each action is known by a
+<<<<<<< HEAD
    * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
    * For example a 'Purchased a Shirt' event might have properties like revenue or size.
+=======
+   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions. For
+   * example a 'Purchased a Shirt' event might have properties like revenue or size.
+>>>>>>> ad73368... Dynamic Class Loading WIP - needs a real CDN and API refactor to hide
    *
-   * @param event Name of the event. Must not be null or empty.
+   * @param event      Name of the event. Must not be null or empty.
    * @param properties {@link Properties} to add extra information to this call
-   * @param options To configure the call
+   * @param options    To configure the call
    * @throws IllegalArgumentException if event name is null or an empty string
    * @see <a href="https://segment.com/docs/tracking-api/track/">Track Documentation</a>
    */
@@ -374,15 +394,15 @@ public class Analytics {
   }
 
   /**
-   * The screen methods let your record whenever a user sees a screen of your mobile app, and
-   * attach a name, category or properties to the screen.
-   * <p>
+   * The screen methods let your record whenever a user sees a screen of your mobile app, and attach
+   * a name, category or properties to the screen.
+   * <p/>
    * Either category or name must be provided.
    *
-   * @param category A category to describe the screen
-   * @param name A name for the screen
+   * @param category   A category to describe the screen
+   * @param name       A name for the screen
    * @param properties {@link Properties} to add extra information to this call
-   * @param options To configure the call
+   * @param options    To configure the call
    * @see <a href="http://segment.com/docs/tracking-api/page-and-screen/">Screen Documentation</a>
    */
   public void screen(String category, String name, Properties properties, Options options) {
@@ -438,7 +458,7 @@ public class Analytics {
   }
 
   /**
-   * Asynchronously flushes all messages in the queue to the server, and tells integrations to do
+   * Asynchronously flushes all messages in the queue to the server, and tell integrations to do
    * the same.
    * <p>
    * Note that this will do nothing for bundled integrations that don't provide an explicit flush
@@ -483,7 +503,7 @@ public class Analytics {
   /**
    * Register to be notified when a bundled integration is ready. See {@link
    * OnIntegrationReadyListener} for more information.
-   * <p>
+   * <p/>
    * This method must be called from the main thread.
    *
    * @since 2.1
@@ -496,16 +516,10 @@ public class Analytics {
   /**
    * Register to be notified when a bundled integration is ready. See {@link
    * OnIntegrationReadyListener} for more information.
-   * <p>
+   * <p/>
    * This method must be called from the main thread.
    * <p>
    * Usage:
-   * {@code
-   * analytics.registerOnIntegrationReady((key, integration) ->
-   * if("Mixpanel".equals(key)) {
-   * ((MixpanelAPI) integration).clearSuperProperties();
-   * }
-   * }
    * <pre> <code>
    *   analytics.registerOnIntegrationReady(new OnIntegrationReadyListener() {
    *     {@literal @}Override public void onIntegrationReady(String key, Object integration) {
@@ -539,22 +553,22 @@ public class Analytics {
   /**
    * A callback interface that is invoked when the Analytics client initializes bundled
    * integrations.
-   * <p>
+   * <p/>
    * In most cases, integrations would have already been initialized, and the callback will be
    * invoked fairly quickly. However there may be a latency the first time the app is launched, and
-   * we don't have settings for bundled integrations yet. This is compounded if the user is
-   * offline on the first run.
+   * we don't have settings for bundled integrations yet. This is compounded if the user is offline
+   * on the first run.
    */
   public interface OnIntegrationReadyListener {
     /**
-     * This method will be invoked once for each integration. The first argument is a
-     * key to uniquely identify each integration (which will the same as the one in our public HTTP
-     * API). The second argument will be the integration object itself, so you can call methods not
+     * This method will be invoked once for each integration. The first argument is a key to
+     * uniquely identify each integration (which will the same as the one in our public HTTP API).
+     * The second argument will be the integration object itself, so you can call methods not
      * exposed as a part of our spec. This is useful if you're doing things like A/B testing.
      *
-     * @param key A unique string to identify an integration.
+     * @param key         A unique string to identify an integration.
      * @param integration The underlying instance that has been initialized with the settings from
-     * Segment
+     *                    Segment
      */
     void onIntegrationReady(String key, Object integration);
   }
@@ -594,9 +608,9 @@ public class Analytics {
     }
 
     /**
-     * Set the queue size at which the client should flush events.
-     * The client will automatically flush events every {@code flushInterval} seconds, or when the
-     * queue reaches {@code queueSize}, whichever occurs first.
+     * Set the queue size at which the client should flush events. The client will automatically
+     * flush events every {@code flushInterval} seconds, or when the queue reaches {@code
+     * queueSize}, whichever occurs first.
      */
     public Builder queueSize(int queueSize) {
       if (queueSize <= 0) {
@@ -607,9 +621,9 @@ public class Analytics {
     }
 
     /**
-     * Set the interval (in seconds) at which the client should flush events.
-     * The client will automatically flush events every {@code flushInterval} seconds, or when the
-     * queue reaches {@code queueSize}, whichever occurs first.
+     * Set the interval (in seconds) at which the client should flush events. The client will
+     * automatically flush events every {@code flushInterval} seconds, or when the queue reaches
+     * {@code queueSize}, whichever occurs first.
      */
     public Builder flushInterval(int flushInterval) {
       if (flushInterval < 1) {
@@ -687,14 +701,14 @@ public class Analytics {
 
       Logger logger = new Logger(debuggingEnabled);
       Stats stats = new Stats();
-      SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(writeKey);
+      SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(application, writeKey);
       IntegrationManager integrationManager =
           IntegrationManager.create(application, segmentHTTPApi, stats, logger, tag,
               debuggingEnabled);
       Segment segment = Segment.create(application, queueSize, flushInterval, segmentHTTPApi,
           integrationManager.bundledIntegrations, tag, stats, logger);
 
-      Traits.Cache traitsCache = new Traits.Cache(application, tag, Traits.class);
+      Traits.Cache traitsCache = new Traits.Cache(application, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
         traitsCache.set(Traits.create(application));
       }

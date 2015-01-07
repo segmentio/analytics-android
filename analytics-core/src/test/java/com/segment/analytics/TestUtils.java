@@ -1,6 +1,11 @@
 package com.segment.analytics;
 
 import android.app.Application;
+import com.segment.analytics.internal.model.payloads.AliasPayload;
+import com.segment.analytics.internal.model.payloads.GroupPayload;
+import com.segment.analytics.internal.model.payloads.IdentifyPayload;
+import com.segment.analytics.internal.model.payloads.ScreenPayload;
+import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.Map;
@@ -17,8 +22,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @Ignore
-final class TestUtils {
-  static final String PROJECT_SETTINGS_JSON_SAMPLE = "{\n"
+public final class TestUtils {
+  public static final String PROJECT_SETTINGS_JSON_SAMPLE = "{\n"
       + "  \"Amplitude\": {\n"
       + "    \"trackNamedPages\": true,\n"
       + "    \"trackCategorizedPages\": true,\n"
@@ -46,7 +51,7 @@ final class TestUtils {
       + "    \"apiKey\": \"l8v1ga655b\"\n"
       + "  }\n"
       + "}";
-  static final String SAMPLE_JSON = "{\n"
+  public static final String SAMPLE_JSON = "{\n"
       + "  \"glossary\": {\n"
       + "    \"title\": \"example glossary\",\n"
       + "    \"GlossDiv\": {\n"
@@ -73,7 +78,7 @@ final class TestUtils {
       + "  }\n"
       + "}";
   // from http://json.org/example
-  static final String SAMPLE_JSON_LIST = "[\n"
+  public static final String SAMPLE_JSON_LIST = "[\n"
       + "        {\"id\": \"Open\"},\n"
       + "        {\"id\": \"OpenNew\", \"label\": \"Open New\"},\n"
       + "        null,\n"
@@ -98,7 +103,7 @@ final class TestUtils {
       + "        {\"id\": \"About\", \"label\": \"About Adobe CVG Viewer...\"}\n"
       + "    ]";
 
-  static Application mockApplication() {
+  public static Application mockApplication() {
     Application application = mock(Application.class);
     when(application.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_GRANTED);
     File parent = Robolectric.getShadowApplication().getFilesDir();
@@ -351,10 +356,10 @@ final class TestUtils {
     }
   }
 
-  static class JSONObjectMatcher extends TypeSafeMatcher<JSONObject> {
+  public static class JSONObjectMatcher extends TypeSafeMatcher<JSONObject> {
     private final JSONObject expected;
 
-    static JSONObject jsonEq(JSONObject expected) {
+    public static JSONObject jsonEq(JSONObject expected) {
       return argThat(new JSONObjectMatcher(expected));
     }
 

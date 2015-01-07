@@ -23,6 +23,6 @@
   ~ SOFTWARE.
   -->
 
-<manifest package="com.segment.analytics.leanplum">
+<manifest package="com.segment.analytics.internal.integrations.leanplum">
   <application/>
 </manifest>

@@ -12,6 +12,7 @@ android.libraryVariants.all { variant ->
         return it
       } else if (it.name.endsWith('.aar')) {
         def tempDir = "${buildDir}/unpacked/dist/extracted-" + it.name
+
         // Unzip the aar
         def extractAar = project.tasks.create "fatJarExtract${it.name.capitalize()}", Copy
         extractAar.from zipTree(it).matching {
@@ -25,6 +26,7 @@ android.libraryVariants.all { variant ->
         }
         extractAar.into file(tempDir)
         extractAar.execute()
+
         // Extract classes.jar
         def extractClassesJar = project.tasks.create "fatJarExtractClasses${it.name.capitalize()}",
             Copy
@@ -34,6 +36,7 @@ android.libraryVariants.all { variant ->
         extractClassesJar.into file(tempDir)
         extractClassesJar.setDuplicatesStrategy DuplicatesStrategy.EXCLUDE
         extractClassesJar.execute()
+
         return fileTree(file(tempDir)).matching {
           exclude '**/BuildConfig.java'
           exclude 'classes.jar'

@@ -25,26 +25,27 @@
 package com.segment.analytics;
 
 import android.content.Context;
+import com.segment.analytics.internal.JsonUtils;
 import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.segment.analytics.Utils.NullableConcurrentHashMap;
-import static com.segment.analytics.Utils.createMap;
-import static com.segment.analytics.Utils.isNullOrEmpty;
-import static com.segment.analytics.Utils.toISO8601Date;
+import static com.segment.analytics.internal.Utils.NullableConcurrentHashMap;
+import static com.segment.analytics.internal.Utils.createMap;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import static com.segment.analytics.internal.Utils.toISO8601Date;
 import static java.util.Collections.unmodifiableMap;
 
 /**
  * A class representing information about a user.
- * <p>
+ * <p/>
  * Traits can be anything you want, but some of them have semantic meaning and we treat them in
  * special ways. For example, whenever we see an email trait, we expect it to be the user's email
  * address. And we'll send this on to integrations that need an email, like Mailchimp. For that
  * reason, you should only use special traits for their intended purpose.
- * <p>
+ * <p/>
  * Traits are persisted to disk, and will be remembered between application and system reboots.
  */
 public class Traits extends ValueMap {
@@ -77,10 +78,10 @@ public class Traits extends ValueMap {
   private static final String INDUSTRY_KEY = "industry";
 
   /**
-   * Create a new Traits instance. Analytics client can be called on any thread, so this instance
-   * is thread safe.
+   * Create a new Traits instance. Analytics client can be called on any thread, so this instance is
+   * thread safe.
    */
-  static Traits create(Context context) {
+  public static Traits create(Context context) {
     Traits traits = new Traits(new NullableConcurrentHashMap<String, Object>());
     traits.putAnonymousId(UUID.randomUUID().toString());
     return traits;
@@ -92,15 +93,15 @@ public class Traits extends ValueMap {
   }
 
   /**
-   * This instance is not thread safe. {@link Traits} are  meant to be attached to a single call
-   * and discarded. If the client is keeping a reference to a {@link Traits} instance that may be
+   * This instance is not thread safe. {@link Traits} are  meant to be attached to a single call and
+   * discarded. If the client is keeping a reference to a {@link Traits} instance that may be
    * accessed by multiple threads, they should synchronize access to this instance.
    */
   public Traits() {
     // Public Constructor
   }
 
-  Traits unmodifiableCopy() {
+  public Traits unmodifiableCopy() {
     LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(this);
     return new Traits(unmodifiableMap(map));
   }
@@ -109,19 +110,19 @@ public class Traits extends ValueMap {
    * Private API, users should call {@link com.segment.analytics.Analytics#identify(String)}
    * instead. Note that this is unable to enforce it, users can easily do traits.put(id, ..);
    */
-  Traits putUserId(String id) {
+  public Traits putUserId(String id) {
     return putValue(ID_KEY, id);
   }
 
-  String userId() {
+  public String userId() {
     return getString(ID_KEY);
   }
 
-  Traits putAnonymousId(String id) {
+  public Traits putAnonymousId(String id) {
     return putValue(ANONYMOUS_ID_KEY, id);
   }
 
-  String anonymousId() {
+  public String anonymousId() {
     return getString(ANONYMOUS_ID_KEY);
   }
 
@@ -161,7 +162,7 @@ public class Traits extends ValueMap {
     return putValue(EMAIL_KEY, email);
   }
 
-  String email() {
+  public String email() {
     return getString(EMAIL_KEY);
   }
 
@@ -173,7 +174,7 @@ public class Traits extends ValueMap {
     return putValue(NAME_KEY, name);
   }
 
-  String name() {
+  public String name() {
     String name = getString(NAME_KEY);
     if (isNullOrEmpty(name)) {
       StringBuilder stringBuilder = new StringBuilder();
@@ -207,7 +208,7 @@ public class Traits extends ValueMap {
     return putValue(AGE_KEY, age);
   }
 
-  int age() {
+  public int age() {
     return getInt(AGE_KEY, 0);
   }
 
@@ -223,7 +224,7 @@ public class Traits extends ValueMap {
     return putValue(GENDER_KEY, gender);
   }
 
-  String gender() {
+  public String gender() {
     return getString(GENDER_KEY);
   }
 
@@ -239,7 +240,7 @@ public class Traits extends ValueMap {
     return putValue(USERNAME_KEY, username);
   }
 
-  String username() {
+  public String username() {
     return getString(USERNAME_KEY);
   }
 
@@ -267,11 +268,11 @@ public class Traits extends ValueMap {
   static class Cache extends ValueMap.Cache<Traits> {
     private static final String TRAITS_CACHE_PREFIX = "traits-";
 
-    Cache(Context context, String tag, Class<Traits> clazz) {
-      super(context, TRAITS_CACHE_PREFIX + tag, clazz);
+    Cache(Context context, String tag) {
+      super(context, TRAITS_CACHE_PREFIX + tag, Traits.class);
     }
 
-    @Override Traits create(Map<String, Object> map) {
+    @Override public Traits create(Map<String, Object> map) {
       // Analytics client can be called on any thread, so this instance is thread safe.
       return new Traits(new NullableConcurrentHashMap<String, Object>(map));
     }

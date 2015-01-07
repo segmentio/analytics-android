@@ -1,5 +1,6 @@
 package com.segment.analytics;
 
+import com.segment.analytics.internal.model.payloads.BasePayload;
 import java.io.IOException;
 import java.util.Map;
 

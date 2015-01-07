@@ -23,6 +23,6 @@
   ~ SOFTWARE.
   -->
 
-<manifest package="com.segment.analytics.flurry">
+<manifest package="com.segment.analytics.internal.integrations.flurry">
   <application/>
 </manifest>

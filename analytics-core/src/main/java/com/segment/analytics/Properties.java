@@ -28,9 +28,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static com.segment.analytics.internal.JsonUtils.mapToJson;
+
 /**
  * A class to attach extra information to specific tracking calls.
- * <p>
+ * <p/>
  * Just like traits, we also accept some properties with semantic meaning, and you should only ever
  * use these property names for that purpose.
  */
@@ -82,7 +84,7 @@ public class Properties extends ValueMap {
     return putValue(REVENUE_KEY, revenue);
   }
 
-  double revenue() {
+  public double revenue() {
     return getDouble(REVENUE_KEY, 0);
   }
 
@@ -94,7 +96,7 @@ public class Properties extends ValueMap {
     return putValue(CURRENCY_KEY, currency);
   }
 
-  String currency() {
+  public String currency() {
     return getString(CURRENCY_KEY);
   }
 
@@ -102,7 +104,7 @@ public class Properties extends ValueMap {
     return putValue(ID_KEY, id);
   }
 
-  String id() {
+  public String id() {
     return getString(ID_KEY);
   }
 
@@ -111,7 +113,7 @@ public class Properties extends ValueMap {
     return putValue(CATEGORY_KEY, category);
   }
 
-  String category() {
+  public String category() {
     return getString(CATEGORY_KEY);
   }
 
@@ -119,7 +121,7 @@ public class Properties extends ValueMap {
     return putValue(NAME_KEY, name);
   }
 
-  String name() {
+  public String name() {
     return getString(NAME_KEY);
   }
 
@@ -145,7 +147,7 @@ public class Properties extends ValueMap {
     return putValue(ORDER_ID_KEY, orderId);
   }
 
-  String orderId() {
+  public String orderId() {
     return getString(ORDER_ID_KEY);
   }
 
@@ -189,7 +191,7 @@ public class Properties extends ValueMap {
     return putValue(PRODUCTS_KEY, products);
   }
 
-  List<Product> products(Product... products) {
+  public List<Product> products(Product... products) {
     return getList(PRODUCTS_KEY, Product.class);
   }
 
@@ -199,7 +201,7 @@ public class Properties extends ValueMap {
     return putValue(SKU_KEY, sku);
   }
 
-  String sku() {
+  public String sku() {
     return getString(SKU_KEY);
   }
 
@@ -207,17 +209,17 @@ public class Properties extends ValueMap {
     return putValue(PRICE_KEY, price);
   }
 
-  double price() {
+  public double price() {
     return getDouble(PRICE_KEY, 0);
   }
 
-  double value() {
+  public double value() {
     return getDouble(VALUE_KEY, 0);
   }
 
   @Override public String toString() {
     try {
-      return "Properties" + JsonUtils.mapToJson(this);
+      return "Properties" + mapToJson(this);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -225,7 +227,7 @@ public class Properties extends ValueMap {
 
   /**
    * A representation of an e-commerce product.
-   * <p>
+   * <p/>
    * Use only when you have multiple products. If you have only one product, {@link Properties} has
    * methods on it directly to attach this information.
    */
@@ -250,19 +252,19 @@ public class Properties extends ValueMap {
       return putValue(NAME_KEY, name);
     }
 
-    String id() {
+    public String id() {
       return getString(ID_KEY);
     }
 
-    String sku() {
+    public String sku() {
       return getString(SKU_KEY);
     }
 
-    String name() {
+    public String name() {
       return getString(NAME_KEY);
     }
 
-    double price() {
+    public double price() {
       return getDouble(PRICE_KEY, 0);
     }
 

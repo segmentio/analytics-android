@@ -23,6 +23,6 @@
   ~ SOFTWARE.
   -->
 
-<manifest package="com.segment.analytics.kahuna">
+<manifest package="com.segment.analytics.internal.integrations.kahuna">
   <application/>
 </manifest>

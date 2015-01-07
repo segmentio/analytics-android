@@ -23,6 +23,6 @@
   ~ SOFTWARE.
   -->
 
-<manifest package="com.segment.analytics.bugsnag">
+<manifest package="com.segment.analytics.internal.integrations.bugsnag">
   <application/>
 </manifest>

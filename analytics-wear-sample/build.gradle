@@ -21,7 +21,7 @@ android {
   defaultConfig {
     minSdkVersion rootProject.ext.minSdkVersionWear
   }
-  
+
   buildTypes {
     release {
       minifyEnabled false

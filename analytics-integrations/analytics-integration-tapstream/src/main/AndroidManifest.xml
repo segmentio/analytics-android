@@ -23,6 +23,6 @@
   ~ SOFTWARE.
   -->
 
-<manifest package="com.segment.analytics.tapstream">
+<manifest package="com.segment.analytics.internal.integrations.tapstream">
   <application/>
 </manifest>

@@ -34,12 +34,14 @@ import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
+import com.segment.analytics.core.BuildConfig;
+import com.segment.analytics.internal.GetAdvertisingIdTask;
+import com.segment.analytics.internal.JsonUtils;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
-import com.segment.analytics.core.BuildConfig;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.Context.CONNECTIVITY_SERVICE;
@@ -47,27 +49,26 @@ import static android.content.Context.TELEPHONY_SERVICE;
 import static android.net.ConnectivityManager.TYPE_BLUETOOTH;
 import static android.net.ConnectivityManager.TYPE_MOBILE;
 import static android.net.ConnectivityManager.TYPE_WIFI;
-import static com.segment.analytics.Utils.NullableConcurrentHashMap;
-import static com.segment.analytics.Utils.createMap;
-import static com.segment.analytics.Utils.getDeviceId;
-import static com.segment.analytics.Utils.getSystemService;
-import static com.segment.analytics.Utils.hasPermission;
-import static com.segment.analytics.Utils.isOnClassPath;
+import static com.segment.analytics.internal.Utils.NullableConcurrentHashMap;
+import static com.segment.analytics.internal.Utils.createMap;
+import static com.segment.analytics.internal.Utils.getDeviceId;
+import static com.segment.analytics.internal.Utils.getSystemService;
+import static com.segment.analytics.internal.Utils.hasPermission;
+import static com.segment.analytics.internal.Utils.isOnClassPath;
 import static java.util.Collections.unmodifiableMap;
 
 /**
  * Context is a dictionary of free-form information about a the state of the device. Context is
  * attached to every outgoing call, if you need to attach information to individual calls, see
  * {@link Properties}.
- * <p>
+ * <p/>
  * You can add any custom data to the context dictionary that you'd like to have access to in the
  * raw logs.
- * <p>
+ * <p/>
  * Some keys in the context dictionary have semantic meaning and will be collected for you
- * automatically, depending on the library you send data from.Some keys need to be manually
- * entered,
+ * automatically, depending on the library you send data from.Some keys need to be manually entered,
  * such as IP Address, speed, etc.
- * <p>
+ * <p/>
  * This is not persisted to disk, and is recomputed each time the app starts. If you set a key
  * manually, you'll have to update it as well for each app start if you want it to persist between
  * sessions.
@@ -147,7 +148,7 @@ public class AnalyticsContext extends ValueMap {
   }
 
   /** The {@link Analytics} client can be called from anywhere, so this needs to be thread safe. */
-  AnalyticsContext(Context context, Traits traits) {
+  public AnalyticsContext(Context context, Traits traits) {
     super(new NullableConcurrentHashMap<String, Object>());
     if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
       // this needs to be done each time since the settings may have been updated
@@ -167,11 +168,12 @@ public class AnalyticsContext extends ValueMap {
 
   // Used to create copies and for tests, reflective operations fail with
   // http://pastebin.com/vDc3qR8n
-  AnalyticsContext(Map<String, Object> delegate) {
+  // todo: hide before v3
+  public AnalyticsContext(Map<String, Object> delegate) {
     super(delegate);
   }
 
-  AnalyticsContext unmodifiableCopy() {
+  public AnalyticsContext unmodifiableCopy() {
     LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(this);
     return new AnalyticsContext(unmodifiableMap(map));
   }
@@ -191,11 +193,11 @@ public class AnalyticsContext extends ValueMap {
     }
   }
 
-  void setTraits(Traits traits) {
+  public void setTraits(Traits traits) {
     put(TRAITS_KEY, traits.unmodifiableCopy()); // copy
   }
 
-  Traits traits() {
+  public Traits traits() {
     return getValueMap(TRAITS_KEY, Traits.class);
   }
 
@@ -221,7 +223,7 @@ public class AnalyticsContext extends ValueMap {
     put(DEVICE_KEY, device);
   }
 
-  void putAdvertisingInfo(String advertisingId, boolean adTrackingEnabled) {
+  public void putAdvertisingInfo(String advertisingId, boolean adTrackingEnabled) {
     ValueMap device = getValueMap(DEVICE_KEY);
     device.put(DEVICE_ADVERTISING_ID_KEY, advertisingId);
     device.put(DEVICE_AD_TRACKING_ENABLED_KEY, adTrackingEnabled);
@@ -248,11 +250,11 @@ public class AnalyticsContext extends ValueMap {
     return this;
   }
 
-  Location location() {
+  public Location location() {
     return getValueMap(LOCATION_KEY, Location.class);
   }
 
-  void putNetwork(Context context) {
+  public void putNetwork(Context context) {
     Map<String, Object> network = createMap();
     if (hasPermission(context, ACCESS_NETWORK_STATE)) {
       ConnectivityManager connectivityManager = getSystemService(context, CONNECTIVITY_SERVICE);
@@ -325,7 +327,7 @@ public class AnalyticsContext extends ValueMap {
     }
   }
 
-  static class Location extends ValueMap {
+  public static class Location extends ValueMap {
     private static final String LOCATION_LATITUDE_KEY = "latitude";
     private static final String LOCATION_LONGITUDE_KEY = "longitude";
     private static final String LOCATION_SPEED_KEY = "speed";
@@ -336,15 +338,15 @@ public class AnalyticsContext extends ValueMap {
       put(LOCATION_SPEED_KEY, speed);
     }
 
-    double latitude() {
+    public double latitude() {
       return getDouble(LOCATION_LATITUDE_KEY, 0.0d);
     }
 
-    double longitude() {
+    public double longitude() {
       return getDouble(LOCATION_LONGITUDE_KEY, 0.0d);
     }
 
-    double speed() {
+    public double speed() {
       return getDouble(LOCATION_SPEED_KEY, 0.0d);
     }
   }

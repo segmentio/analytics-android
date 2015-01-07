@@ -23,6 +23,6 @@
   ~ SOFTWARE.
   -->
 
-<manifest package="com.segment.analytics.countly">
+<manifest package="com.segment.analytics.internal.integrations.countly">
   <application/>
 </manifest>

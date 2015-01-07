@@ -25,9 +25,9 @@
 package com.segment.analytics;
 
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static com.segment.analytics.Utils.createMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Options let you control behaviour for a specific analytics call, including setting a custom
@@ -35,34 +35,34 @@ import static com.segment.analytics.Utils.createMap;
  */
 public class Options {
   /**
-   * A special key , whose value which is respected for all integrations that don't have an
-   * explicit value set for them, a "default" value. See the documentation for {@link
-   * #setIntegration(String, boolean)} how to use this key.
+   * A special key , whose value which is respected for all integrations that don't have an explicit
+   * value set for them, a "default" value. See the documentation for {@link #setIntegration(String,
+   * boolean)} how to use this key.
    */
   public static final String ALL_INTEGRATIONS_KEY = "All";
   private final Map<String, Boolean> integrations; // passed in by the user
   private Date timestamp;
 
   public Options() {
-    integrations = createMap();
+    integrations = new ConcurrentHashMap<>();
     integrations.put(ALL_INTEGRATIONS_KEY, true);
   }
 
   /**
    * Sets whether this call will be sent to the target integration.
-   * <p>
+   * <p/>
    * By default, all integrations are sent a payload, and the value for the {@link
    * #ALL_INTEGRATIONS_KEY} is {@code true}. You can disable specific payloads. For instance,
-   * <code>options.setIntegration("Google Analytics", false).setIntegration("Countly",
-   * false)</code> will send the event to ALL integrations except Google Analytic and Countly.
-   * <p>
+   * <code>options.setIntegration("Google Analytics", false).setIntegration("Countly", false)</code>
+   * will send the event to ALL integrations except Google Analytic and Countly.
+   * <p/>
    * If you want to enable only specific integrations, first override the defaults and then enable
    * specific integrations. For example, <code>options.setIntegration(Options.ALL_INTEGRATIONS_KEY,
    * false).setIntegration("Countly", true).setIntegration("Google Analytics", true)</code> will
    * only send events to ONLY Countly and Google Analytics.
    *
    * @param integrationKey The integration key
-   * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
+   * @param enabled        <code>true</code> for enabled, <code>false</code> for disabled
    * @return This options object for chaining
    */
   public Options setIntegration(String integrationKey, boolean enabled) {
@@ -70,14 +70,14 @@ public class Options {
     return this;
   }
 
-  Map<String, Boolean> integrations() {
-    return integrations;
+  public Map<String, Boolean> integrations() {
+    return new LinkedHashMap<>(integrations); // copy
   }
 
   /**
    * Sets the timestamp of when an analytics call occurred. The timestamp is primarily used for
-   * historical imports or if this event happened in the past. The timestamp is not required, and
-   * if it's not provided, our servers will timestamp the call as if it just happened.
+   * historical imports or if this event happened in the past. The timestamp is not required, and if
+   * it's not provided, our servers will timestamp the call as if it just happened.
    *
    * @param timestamp The time when this event happened
    * @return This options object for chaining
@@ -87,7 +87,7 @@ public class Options {
     return this;
   }
 
-  Date timestamp() {
+  public Date timestamp() {
     return timestamp;
   }
 }

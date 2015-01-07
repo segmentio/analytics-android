@@ -16,7 +16,7 @@ dependencies {
   compile project(':analytics-integrations:analytics-integration-countly')
   compile project(':analytics-integrations:analytics-integration-crittercism')
   compile project(':analytics-integrations:analytics-integration-flurry')
-  compile project(':analytics-integrations:analytics-integration-google-analytics')
+  compile project(':analytics-integrations:analytics-integration-ga')
   compile project(':analytics-integrations:analytics-integration-kahuna')
   compile project(':analytics-integrations:analytics-integration-localytics')
   compile project(':analytics-integrations:analytics-integration-leanplum')

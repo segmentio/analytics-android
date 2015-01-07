@@ -23,6 +23,6 @@
   ~ SOFTWARE.
   -->
 
-<manifest package="com.segment.analytics.amplitude">
+<manifest package="com.segment.analytics.internal.integrations.amplitude">
   <application/>
 </manifest>
