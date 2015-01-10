@@ -75,9 +75,7 @@ public class AnalyticsContext extends ValueMap {
   private static final String APP_KEY = "app";
   private static final String APP_NAME_KEY = "name";
   private static final String APP_VERSION_KEY = "version";
-  private static final String APP_PACKAGE_NAME_KEY = "packageName";
-  private static final String APP_VERSION_CODE_KEY = "versionCode";
-  private static final String APP_VERSION_NAME_KEY = "versionName";
+  private static final String APP_NAMESPACE_KEY = "namespace";
   private static final String APP_BUILD_KEY = "build";
   private static final String CAMPAIGN_KEY = "campaign";
   private static final String CAMPAIGN_NAME_KEY = "name";
@@ -183,10 +181,8 @@ public class AnalyticsContext extends ValueMap {
       Map<String, Object> app = createMap();
       app.put(APP_NAME_KEY, packageInfo.applicationInfo.loadLabel(packageManager));
       app.put(APP_VERSION_KEY, packageInfo.versionName);
-      app.put(APP_PACKAGE_NAME_KEY, packageInfo.packageName);
-      app.put(APP_VERSION_CODE_KEY, packageInfo.versionCode);
-      app.put(APP_VERSION_NAME_KEY, packageInfo.versionName);
-      app.put(APP_BUILD_KEY, packageInfo.packageName + '@' + packageInfo.versionCode);
+      app.put(APP_NAMESPACE_KEY, packageInfo.packageName);
+      app.put(APP_BUILD_KEY, packageInfo.versionCode);
       put(APP_KEY, app);
     } catch (PackageManager.NameNotFoundException e) {
       // ignore
