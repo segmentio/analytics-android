@@ -10,19 +10,19 @@ buildscript {
 
 dependencies {
   compile project(':analytics-core')
-  compile project(':analytics-integrations:analytics-integration-amplitude')
-  compile project(':analytics-integrations:analytics-integration-appsflyer')
-  compile project(':analytics-integrations:analytics-integration-bugsnag')
-  compile project(':analytics-integrations:analytics-integration-countly')
-  compile project(':analytics-integrations:analytics-integration-crittercism')
-  compile project(':analytics-integrations:analytics-integration-flurry')
-  compile project(':analytics-integrations:analytics-integration-ga')
-  compile project(':analytics-integrations:analytics-integration-kahuna')
-  compile project(':analytics-integrations:analytics-integration-localytics')
-  compile project(':analytics-integrations:analytics-integration-leanplum')
-  compile project(':analytics-integrations:analytics-integration-mixpanel')
-  compile project(':analytics-integrations:analytics-integration-quantcast')
-  compile project(':analytics-integrations:analytics-integration-tapstream')
+  compile project(':analytics-integrations:amplitude')
+  compile project(':analytics-integrations:appsflyer')
+  compile project(':analytics-integrations:bugsnag')
+  compile project(':analytics-integrations:countly')
+  compile project(':analytics-integrations:crittercism')
+  compile project(':analytics-integrations:flurry')
+  compile project(':analytics-integrations:google-analytics')
+  compile project(':analytics-integrations:kahuna')
+  compile project(':analytics-integrations:localytics')
+  compile project(':analytics-integrations:leanplum')
+  compile project(':analytics-integrations:mixpanel')
+  compile project(':analytics-integrations:quantcast')
+  compile project(':analytics-integrations:tapstream')
 }
 
 android {
