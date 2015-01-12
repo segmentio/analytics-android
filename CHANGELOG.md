@@ -3,7 +3,7 @@ Version 2.5.1 (December 22nd, 2014)
 * Fix: Update link for hitting our servers
 * Improvement: Depend only on core module of Play Services
 * Improvement: Set Context for Bugsnag integration
-* Improvement: Use Tapstream JAR
+* Improvement: Use Quantast JAR
 
 Version 2.5.0 (December 22nd, 2014)
 ===========================
