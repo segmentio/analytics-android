@@ -10,11 +10,9 @@ import android.os.Message;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.model.ProjectSettings;
 import dalvik.system.DexClassLoader;
-import dalvik.system.DexFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,8 +30,7 @@ import static com.segment.analytics.internal.Utils.isConnected;
 /**
  * The class that forwards operations from the client to integrations, including Segment. It
  * maintains it's own in-memory queue to account for the latency between receiving the first event,
- * fetching settings from the server and enabling the integrations. Once it enables all
- * integrations
+ * fetching settings from the server and enabling the integrations. Once it enables all integrations
  * it replays any events in the queue. This will only affect the first app install, subsequent
  * launches will be use the cached settings on disk.
  */
