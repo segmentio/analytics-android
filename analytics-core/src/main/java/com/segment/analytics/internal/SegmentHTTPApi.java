@@ -127,8 +127,7 @@ public class SegmentHTTPApi {
         // todo: skip downloading for integrations that are already bundled
 
         String fileKey = key.replace(' ', '-').toLowerCase();
-        String jarFile =
-            "analytics-integration-" + fileKey + "-3.0.0-SNAPSHOT-jar-with-dependencies.jar";
+        String jarFile = fileKey + "-3.0.0-SNAPSHOT-jar-with-dependencies.jar";
 
         URL url = new URL("https://dl.dropboxusercontent.com/u/11371156/integrations/" + jarFile);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
