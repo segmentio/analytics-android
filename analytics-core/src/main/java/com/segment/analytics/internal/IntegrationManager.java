@@ -311,7 +311,7 @@ public class IntegrationManager {
       long duration = endTime - startTime;
       logger.debug(integration.key(), Logger.VERB_DISPATCH, operation.id(), "duration: %s",
           duration);
-      stats.dispatchIntegrationOperation(duration);
+      stats.dispatchIntegrationOperation(integration.key(), duration);
     }
   }
 
