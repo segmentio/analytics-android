@@ -113,27 +113,6 @@ public class AnalyticsBuilderTest {
 
   @Test public void invalidQueueSizeThrowsException() throws Exception {
     try {
-      new Builder(context, stubbedKey).maxQueueSize(-1);
-      fail("queueSize < 0 should throw exception.");
-    } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("queueSize must be greater than or equal to zero.");
-    }
-
-    try {
-      new Builder(context, stubbedKey).maxQueueSize(0);
-      fail("queueSize = 0 should throw exception.");
-    } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("queueSize must be greater than or equal to zero.");
-    }
-
-    try {
-      Builder builder = new Builder(context, stubbedKey).maxQueueSize(10);
-      builder.maxQueueSize(20);
-    } catch (IllegalStateException unexpected) {
-      fail("maxQueueSize can be set multiple times.");
-    }
-
-    try {
       new Builder(context, stubbedKey).queueSize(-1);
       fail("queueSize < 0 should throw exception.");
     } catch (IllegalArgumentException expected) {

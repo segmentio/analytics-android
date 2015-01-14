@@ -241,15 +241,6 @@ public class Analytics {
   /**
    * Returns {@code true} if debugging is enabled.
    *
-   * @deprecated Use {@link #isDebugging()} instead.
-   */
-  public boolean isLogging() {
-    return debuggingEnabled;
-  }
-
-  /**
-   * Returns {@code true} if debugging is enabled.
-   *
    * @since 2.3
    */
   public boolean isDebugging() {
@@ -355,13 +346,8 @@ public class Analytics {
 
   /**
    * The track method is how you record any actions your users perform. Each action is known by a
-<<<<<<< HEAD
    * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
    * For example a 'Purchased a Shirt' event might have properties like revenue or size.
-=======
-   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions. For
-   * example a 'Purchased a Shirt' event might have properties like revenue or size.
->>>>>>> ad73368... Dynamic Class Loading WIP - needs a real CDN and API refactor to hide
    *
    * @param event      Name of the event. Must not be null or empty.
    * @param properties {@link Properties} to add extra information to this call
@@ -506,19 +492,6 @@ public class Analytics {
    * OnIntegrationReadyListener} for more information.
    * <p/>
    * This method must be called from the main thread.
-   *
-   * @since 2.1
-   * @deprecated Use {@link #registerOnIntegrationReady(OnIntegrationReadyListener)} instead.
-   */
-  public void onIntegrationReady(OnIntegrationReadyListener onIntegrationReadyListener) {
-    registerOnIntegrationReady(onIntegrationReadyListener);
-  }
-
-  /**
-   * Register to be notified when a bundled integration is ready. See {@link
-   * OnIntegrationReadyListener} for more information.
-   * <p/>
-   * This method must be called from the main thread.
    * <p>
    * Usage:
    * <pre> <code>
@@ -600,15 +573,6 @@ public class Analytics {
     }
 
     /**
-     * Set the queue size at which the client should flush events.
-     *
-     * @deprecated Use {@link #queueSize(int)} instead.
-     */
-    public Builder maxQueueSize(int maxQueueSize) {
-      return queueSize(maxQueueSize);
-    }
-
-    /**
      * Set the queue size at which the client should flush events. The client will automatically
      * flush events every {@code flushInterval} seconds, or when the queue reaches {@code
      * queueSize}, whichever occurs first.
@@ -672,15 +636,6 @@ public class Analytics {
       }
       this.tag = tag;
       return this;
-    }
-
-    /**
-     * Set whether debugging is enabled or not.
-     *
-     * @deprecated Use {@link #debugging(boolean)} instead.
-     */
-    public Builder logging(boolean debuggingEnabled) {
-      return debugging(debuggingEnabled);
     }
 
     /**
