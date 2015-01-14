@@ -52,6 +52,6 @@ public class IdentifyPayload extends BasePayload {
   }
 
   @Override public String toString() {
-    return "IdentifyPayload{\"userId=\"" + userId() + "\"," + traits() + '}';
+    return "IdentifyPayload{\"userId=\"" + userId() + '}';
   }
 }

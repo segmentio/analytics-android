@@ -25,8 +25,7 @@
 package com.segment.analytics;
 
 import android.content.Context;
-import com.segment.analytics.internal.JsonUtils;
-import java.io.IOException;
+import com.segment.analytics.internal.Cartographer;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -257,24 +256,16 @@ public class Traits extends ValueMap {
     return this;
   }
 
-  @Override public String toString() {
-    try {
-      return "Traits" + JsonUtils.mapToJson(this);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   static class Cache extends ValueMap.Cache<Traits> {
     private static final String TRAITS_CACHE_PREFIX = "traits-";
 
-    Cache(Context context, String tag) {
-      super(context, TRAITS_CACHE_PREFIX + tag, Traits.class);
+    Cache(Context context, Cartographer cartographer, String tag) {
+      super(context, cartographer, TRAITS_CACHE_PREFIX + tag, Traits.class);
     }
 
     @Override public Traits create(Map<String, Object> map) {
-      // Analytics client can be called on any thread, so this instance is thread safe.
-      return new Traits(new NullableConcurrentHashMap<String, Object>(map));
+      // Analytics client can be called on any thread, so this instance should be thread safe.
+      return new Traits(new NullableConcurrentHashMap<>(map));
     }
   }
 }

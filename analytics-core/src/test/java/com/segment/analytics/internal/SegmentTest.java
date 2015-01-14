@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -42,16 +43,19 @@ public class SegmentTest {
   Context context;
   QueueFile queueFile;
   Segment segment;
+  Cartographer cartographer;
 
   @Before public void setUp() {
     initMocks(this);
     context = mockApplication();
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
+    cartographer = Cartographer.INSTANCE;
   }
 
   Segment createSegmentIntegration(int maxQueueSize) {
-    return new Segment(context, maxQueueSize, 30, segmentHTTPApi, queueFile,
-        Collections.<String, Boolean>emptyMap(), stats, logger);
+    return new Segment(context, maxQueueSize, 30, segmentHTTPApi,
+        Cartographer.INSTANCE, queueFile, Collections.<String, Boolean>emptyMap(),
+        stats, logger);
   }
 
   QueueFile createQueueFile() throws IOException {
@@ -73,7 +77,7 @@ public class SegmentTest {
 
   @Test public void flushesQueueCorrectly() throws IOException {
     final OutputStream outputStream = mock(OutputStream.class);
-    segmentHTTPApi = new SegmentHTTPApi(Robolectric.application, "foo") {
+    segmentHTTPApi = new SegmentHTTPApi(Robolectric.application, cartographer, "foo") {
       @Override void upload(StreamWriter streamWriter) throws IOException {
         streamWriter.write(outputStream);
       }
@@ -99,7 +103,7 @@ public class SegmentTest {
 
   @Test public void flushesWhenQueueHitsMax() throws IOException {
     final OutputStream outputStream = mock(OutputStream.class);
-    segmentHTTPApi = new SegmentHTTPApi(Robolectric.application, "foo") {
+    segmentHTTPApi = new SegmentHTTPApi(Robolectric.application, cartographer, "foo") {
       @Override void upload(StreamWriter streamWriter) throws IOException {
         streamWriter.write(outputStream);
       }
@@ -196,7 +200,10 @@ public class SegmentTest {
     OutputStream outputStream = mock(OutputStream.class);
     PayloadQueueFileStreamWriter payloadQueueFileStreamWriter =
         new PayloadQueueFileStreamWriter(new LinkedHashMap<String, Boolean>(), queueFile);
-    byte[] data = JsonUtils.mapToJson(payload).getBytes();
+    Cartographer cartographer = Cartographer.INSTANCE;
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    cartographer.toJson(payload, new OutputStreamWriter(bos));
+    byte[] data = bos.toByteArray();
 
     queueFile.add(data);
     queueFile.add(data);

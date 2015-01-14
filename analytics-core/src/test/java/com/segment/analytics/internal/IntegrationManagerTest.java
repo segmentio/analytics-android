@@ -57,13 +57,13 @@ public class IntegrationManagerTest {
     integrationManager.integrations.clear();
     integrationManager.integrations.add(mockIntegration);
 
-    integrationManager.performInitialize(
-        ProjectSettings.create("{\"Foo\":{\"trackNamedPages\":true,\"trackAllPages\":false}}",
-            System.currentTimeMillis()));
+    ValueMap fooMap =
+        new ValueMap().putValue("trackNamedPages", true).putValue("trackAllPages", false);
 
-    verify(mockIntegration).initialize(context,
-        new ValueMap(JsonUtils.jsonToMap("{\"trackNamedPages\":true,\"trackAllPages\":false}")),
-        true);
+    integrationManager.performInitialize(
+        ProjectSettings.create(new ValueMap().putValue("Foo", fooMap), System.currentTimeMillis()));
+
+    verify(mockIntegration).initialize(context, new ValueMap(fooMap), true);
 
     assertThat(integrationManager.initialized).isTrue();
 

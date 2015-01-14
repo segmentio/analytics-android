@@ -25,7 +25,7 @@
 package com.segment.analytics.internal.model;
 
 import com.segment.analytics.ValueMap;
-import com.segment.analytics.internal.JsonUtils;
+import com.segment.analytics.annotations.ForDeserialization;
 import java.io.IOException;
 import java.util.Map;
 
@@ -34,14 +34,12 @@ import static java.util.Collections.unmodifiableMap;
 public class ProjectSettings extends ValueMap {
   private static final String TIMESTAMP_KEY = "timestamp";
 
-  public static ProjectSettings create(String json, long timestamp) throws IOException {
-    Map<String, Object> map = JsonUtils.jsonToMap(json);
+  public static ProjectSettings create(Map<String, Object> map, long timestamp) throws IOException {
     map.put(TIMESTAMP_KEY, timestamp);
     return new ProjectSettings(map);
   }
 
-  // for deserialization
-  private ProjectSettings(Map<String, Object> map) {
+  @ForDeserialization private ProjectSettings(Map<String, Object> map) {
     super(unmodifiableMap(map));
   }
 

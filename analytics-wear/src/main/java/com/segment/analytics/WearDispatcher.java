@@ -10,7 +10,7 @@ import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
-import com.segment.analytics.internal.JsonUtils;
+import com.segment.analytics.internal.Cartographer;
 import com.segment.analytics.internal.Utils;
 import java.io.IOException;
 import java.util.Collection;
@@ -24,9 +24,11 @@ class WearDispatcher {
   final Handler handler;
   final HandlerThread dispatcherThread;
   final GoogleApiClient googleApiClient;
+  final Cartographer cartographer;
 
   WearDispatcher(Context context) {
     googleApiClient = new GoogleApiClient.Builder(context).addApi(Wearable.API).build();
+    cartographer = Cartographer.INSTANCE;
     dispatcherThread = new HandlerThread(DISPATCHER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     dispatcherThread.start();
     handler = new DispatcherHandler(dispatcherThread.getLooper(), this);
@@ -43,7 +45,7 @@ class WearDispatcher {
       try {
         MessageApi.SendMessageResult result =
             Wearable.MessageApi.sendMessage(googleApiClient, node, WearAnalytics.ANALYTICS_PATH,
-                JsonUtils.mapToJson(payload).getBytes()).await();
+                cartographer.toJson(payload).getBytes()).await();
         if (!result.getStatus().isSuccess()) {
           // todo: log error
         }

@@ -5,7 +5,7 @@ import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
 import com.segment.analytics.internal.AbstractIntegration;
-import com.segment.analytics.internal.JsonUtils;
+import com.segment.analytics.internal.Cartographer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -95,8 +95,9 @@ public class BasePayloadTest {
     fakePayload.put("messageId", "a161304c-498c-4830-9291-fcfb8498877b");
     fakePayload.put("timestamp", "2014-12-15T13:32:44-0700");
 
-    String json = JsonUtils.mapToJson(fakePayload);
-    assertThat(json).isEqualTo("{\""
+    Cartographer cartographer = Cartographer.INSTANCE;
+
+    assertThat(cartographer.toJson(fakePayload)).isEqualTo("{\""
         + "messageId\":\"a161304c-498c-4830-9291-fcfb8498877b\",\""
         + "type\":\"alias\",\""
         + "channel\":\"mobile\",\""

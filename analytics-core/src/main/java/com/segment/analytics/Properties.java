@@ -24,11 +24,8 @@
 
 package com.segment.analytics;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
-import static com.segment.analytics.internal.JsonUtils.mapToJson;
 
 /**
  * A class to attach extra information to specific tracking calls.
@@ -215,14 +212,6 @@ public class Properties extends ValueMap {
 
   public double value() {
     return getDouble(VALUE_KEY, 0);
-  }
-
-  @Override public String toString() {
-    try {
-      return "Properties" + mapToJson(this);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   /**

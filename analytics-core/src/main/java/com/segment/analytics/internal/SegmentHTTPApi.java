@@ -25,10 +25,8 @@
 package com.segment.analytics.internal;
 
 import android.content.Context;
-import android.os.Build;
 import android.util.Base64;
 import com.segment.analytics.internal.model.ProjectSettings;
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,6 +37,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 
 import static java.net.HttpURLConnection.HTTP_OK;
@@ -47,20 +46,18 @@ public class SegmentHTTPApi {
   final String writeKey;
   final HttpURLConnectionFactory urlConnectionFactory;
   final Context context;
+  final Cartographer cartographer;
 
-  public SegmentHTTPApi(Context context, String writeKey) {
-    this(context, writeKey, HttpURLConnectionFactory.DEFAULT);
+  public SegmentHTTPApi(Context context, Cartographer cartographer, String writeKey) {
+    this(context, cartographer, HttpURLConnectionFactory.DEFAULT, writeKey);
   }
 
-  SegmentHTTPApi(Context context, String writeKey, HttpURLConnectionFactory urlConnectionFactory) {
-    this.writeKey = writeKey;
-    this.urlConnectionFactory = urlConnectionFactory;
+  SegmentHTTPApi(Context context, Cartographer cartographer,
+      HttpURLConnectionFactory urlConnectionFactory, String writeKey) {
     this.context = context;
-
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
-      // bug in pre-froyo, http://android-developers.blogspot.com/2011/09/androids-http-clients.html
-      System.setProperty("http.keepAlive", "false");
-    }
+    this.cartographer = cartographer;
+    this.urlConnectionFactory = urlConnectionFactory;
+    this.writeKey = writeKey;
   }
 
   /** Consume the InputStream and read it into a string. */
@@ -117,11 +114,10 @@ public class SegmentHTTPApi {
 
     int responseCode = urlConnection.getResponseCode();
     if (responseCode == HTTP_OK) {
-      InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-      String json = readFully(in);
-      in.close();
+      Map<String, Object> map = cartographer //
+          .fromJson(new BufferedReader(new InputStreamReader(urlConnection.getInputStream())));
       urlConnection.disconnect();
-      ProjectSettings projectSettings = ProjectSettings.create(json, System.currentTimeMillis());
+      ProjectSettings projectSettings = ProjectSettings.create(map, System.currentTimeMillis());
       for (String key : projectSettings.keySet()) {
         if (key.contains("Segment") || key.contains("timestamp")) continue;
         // todo: skip downloading for integrations that are already bundled

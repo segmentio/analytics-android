@@ -19,7 +19,6 @@ import java.util.Date;
 import java.util.Map;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
-<<<<<<< HEAD:analytics-core/src/main/java/com/segment/analytics/Segment.java
 import static com.segment.analytics.Logger.OWNER_SEGMENT;
 import static com.segment.analytics.Logger.VERB_ENQUEUE;
 import static com.segment.analytics.Utils.createQueueFile;
@@ -64,11 +63,19 @@ public class Segment {
   final HandlerThread segmentThread;
   final Logger logger;
   final Map<String, Boolean> integrations;
+  final Cartographer cartographer;
   PayloadQueueFileStreamWriter payloadQueueFileStreamWriter;
 
   public static synchronized Segment create(Context context, int flushQueueSize, int flushInterval,
+<<<<<<< HEAD
       SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
       Logger logger) {
+=======
+      SegmentHTTPApi segmentHTTPApi, Cartographer cartographer, Map<String, Boolean> integrations,
+      String tag, Stats stats, Logger logger) {
+    File parent = context.getFilesDir();
+    String filePrefix = tag.replaceAll("[^A-Za-z0-9]", ""); // sanitize input
+>>>>>>> 6e41e6e... Use Cartographer
     QueueFile payloadQueueFile;
     try {
       File parent = context.getFilesDir();
@@ -77,12 +84,13 @@ public class Segment {
     } catch (IOException e) {
       throw new RuntimeException("Could not create disk queue.", e);
     }
-    return new Segment(context, flushQueueSize, flushInterval, segmentHTTPApi, payloadQueueFile,
-        integrations, stats, logger);
+    return new Segment(context, flushQueueSize, flushInterval, segmentHTTPApi, cartographer,
+        payloadQueueFile, integrations, stats, logger);
   }
 
   Segment(Context context, int flushQueueSize, int flushInterval, SegmentHTTPApi segmentHTTPApi,
-      QueueFile payloadQueueFile, Map<String, Boolean> integrations, Stats stats, Logger logger) {
+      Cartographer cartographer, QueueFile payloadQueueFile, Map<String, Boolean> integrations,
+      Stats stats, Logger logger) {
     this.context = context;
     this.flushQueueSize = Math.min(flushQueueSize, MAX_QUEUE_SIZE);
     this.segmentHTTPApi = segmentHTTPApi;
@@ -90,6 +98,7 @@ public class Segment {
     this.stats = stats;
     this.logger = logger;
     this.integrations = integrations;
+    this.cartographer = cartographer;
     this.flushInterval = flushInterval * 1000;
     segmentThread = new HandlerThread(SEGMENT_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     segmentThread.start();
@@ -112,7 +121,7 @@ public class Segment {
       }
     }
     try {
-      String payloadJson = mapToJson(payload);
+      String payloadJson = cartographer.toJson(payload);
       if (isNullOrEmpty(payloadJson) || (payloadJson.length() > MAX_PAYLOAD_SIZE)) {
         throw new IOException("Could not serialize payload " + payload);
       }

@@ -1,5 +1,6 @@
 package com.segment.analytics.internal.model;
 
+import com.segment.analytics.internal.Cartographer;
 import java.io.IOException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,6 +14,7 @@ import static org.assertj.core.api.Assertions.fail;
 public class ProjectSettingsTest {
 
   @Test public void deserialization() throws IOException {
+    Cartographer cartographer = Cartographer.INSTANCE;
     String projectSettingsJson = "{\n"
         + "  \"Amplitude\": {\n"
         + "    \"trackNamedPages\": true,\n"
@@ -42,7 +44,8 @@ public class ProjectSettingsTest {
         + "  }\n"
         + "}";
     ProjectSettings projectSettings =
-        ProjectSettings.create(projectSettingsJson, System.currentTimeMillis());
+        ProjectSettings.create(cartographer.fromJson(projectSettingsJson),
+            System.currentTimeMillis());
 
     assertThat(projectSettings).hasSize(5);
 

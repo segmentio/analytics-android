@@ -2,6 +2,7 @@ package com.segment.analytics;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import com.segment.analytics.internal.Cartographer;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -13,8 +14,6 @@ import java.util.Map;
 import java.util.Set;
 import org.json.JSONObject;
 
-import static com.segment.analytics.internal.JsonUtils.jsonToMap;
-import static com.segment.analytics.internal.JsonUtils.mapToJson;
 import static com.segment.analytics.internal.Utils.getSegmentSharedPreferences;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
@@ -328,11 +327,13 @@ public class ValueMap implements Map<String, Object> {
   /** A class to let you store arbitrary key - {@link ValueMap} pairs. */
   public static class Cache<T extends ValueMap> {
     private final SharedPreferences preferences;
+    private final Cartographer cartographer;
     private final String key;
     private final Class<T> clazz;
     private T value;
 
-    public Cache(Context context, String key, Class<T> clazz) {
+    public Cache(Context context, Cartographer cartographer, String key, Class<T> clazz) {
+      this.cartographer = cartographer;
       this.preferences = getSegmentSharedPreferences(context);
       this.key = key;
       this.clazz = clazz;
@@ -342,12 +343,10 @@ public class ValueMap implements Map<String, Object> {
       if (value == null) {
         String json = preferences.getString(key, null);
         if (isNullOrEmpty(json)) return null;
-
         try {
-          Map<String, Object> map = jsonToMap(json);
+          Map<String, Object> map = cartographer.fromJson(json);
           value = create(map);
         } catch (IOException ignored) {
-          // todo: log
           return null;
         }
       }
@@ -365,10 +364,9 @@ public class ValueMap implements Map<String, Object> {
     public void set(T value) {
       this.value = value;
       try {
-        String json = mapToJson(value);
+        String json = cartographer.toJson(value);
         preferences.edit().putString(key, json).apply();
       } catch (IOException ignored) {
-        // todo: log
       }
     }
 

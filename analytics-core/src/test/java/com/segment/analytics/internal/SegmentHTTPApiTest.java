@@ -25,7 +25,9 @@ public class SegmentHTTPApiTest {
 
   @Before public void setUp() {
     initMocks(this);
-    segmentHTTPApi = new SegmentHTTPApi(Robolectric.application, "foo", factory);
+    segmentHTTPApi =
+        new SegmentHTTPApi(Robolectric.application, Cartographer.INSTANCE, factory,
+            "foo");
   }
 
   @Test public void upload() throws IOException {

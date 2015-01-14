@@ -35,6 +35,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import com.segment.analytics.internal.Cartographer;
 import com.segment.analytics.internal.IntegrationManager;
 import com.segment.analytics.internal.Logger;
 import com.segment.analytics.internal.Segment;
@@ -701,14 +702,16 @@ public class Analytics {
 
       Logger logger = new Logger(debuggingEnabled);
       Stats stats = new Stats();
-      SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(application, writeKey);
+      Cartographer cartographer = Cartographer.INSTANCE;
+      SegmentHTTPApi segmentHTTPApi = new SegmentHTTPApi(application, cartographer, writeKey);
       IntegrationManager integrationManager =
-          IntegrationManager.create(application, segmentHTTPApi, stats, logger, tag,
+          IntegrationManager.create(application, segmentHTTPApi, stats, logger, cartographer, tag,
               debuggingEnabled);
-      Segment segment = Segment.create(application, queueSize, flushInterval, segmentHTTPApi,
-          integrationManager.bundledIntegrations, tag, stats, logger);
+      Segment segment =
+          Segment.create(application, queueSize, flushInterval, segmentHTTPApi, cartographer,
+              integrationManager.bundledIntegrations, tag, stats, logger);
 
-      Traits.Cache traitsCache = new Traits.Cache(application, tag);
+      Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
         traitsCache.set(Traits.create(application));
       }

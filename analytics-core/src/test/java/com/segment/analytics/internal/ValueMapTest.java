@@ -13,7 +13,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.TestUtils.PROJECT_SETTINGS_JSON_SAMPLE;
-import static com.segment.analytics.internal.JsonUtils.jsonToMap;
 import static com.segment.analytics.internal.Utils.NullableConcurrentHashMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -25,10 +24,12 @@ public class ValueMapTest {
   @Mock NullableConcurrentHashMap<String, Object> delegate;
   @Mock Object object;
   ValueMap valueMap;
+  Cartographer cartographer;
 
   @Before public void setUp() {
     initMocks(this);
     valueMap = new ValueMap();
+    cartographer = Cartographer.INSTANCE;
   }
 
   @Test public void disallowsNullMap() throws Exception {
@@ -98,12 +99,12 @@ public class ValueMapTest {
   @Test public void enumDeserialization() throws Exception {
     valueMap.put("value1", MyEnum.VALUE1);
     valueMap.put("value2", MyEnum.VALUE2);
-    String json = JsonUtils.mapToJson(valueMap);
+    String json = cartographer.toJson(valueMap);
     // todo: the ordering may be different on different versions of Java
     assertThat(json).isIn("{\"value2\":\"VALUE2\",\"value1\":\"VALUE1\"}",
         "{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}");
 
-    valueMap = new ValueMap(jsonToMap("{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}"));
+    valueMap = new ValueMap(cartographer.fromJson("{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}"));
     assertThat(valueMap) //
         .contains(MapEntry.entry("value1", "VALUE1")) //
         .contains(MapEntry.entry("value2", "VALUE2"));
@@ -122,14 +123,14 @@ public class ValueMapTest {
     valueMap.put("nested", nested);
 
     assertThat(valueMap).hasSize(1).contains(MapEntry.entry("nested", nested));
-    assertThat(JsonUtils.mapToJson(valueMap)).isEqualTo("{\"nested\":{\"value\":\"box\"}}");
+    assertThat(cartographer.toJson(valueMap)).isEqualTo("{\"nested\":{\"value\":\"box\"}}");
 
-    valueMap = new ValueMap(jsonToMap("{\"nested\":{\"value\":\"box\"}}"));
+    valueMap = new ValueMap(cartographer.fromJson("{\"nested\":{\"value\":\"box\"}}"));
     assertThat(valueMap).hasSize(1).contains(MapEntry.entry("nested", nested));
   }
 
   @Test public void customJsonMapDeserialization() throws Exception {
-    Settings settings = new Settings(PROJECT_SETTINGS_JSON_SAMPLE);
+    Settings settings = new Settings(cartographer.fromJson(PROJECT_SETTINGS_JSON_SAMPLE));
     assertThat(settings).hasSize(4)
         .containsKey("Amplitude")
         .containsKey("Segment")
@@ -156,7 +157,7 @@ public class ValueMapTest {
 
   @Test public void projectSettings() throws Exception {
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection") ValueMap valueMap =
-        new ValueMap(jsonToMap(PROJECT_SETTINGS_JSON_SAMPLE));
+        new ValueMap(cartographer.fromJson(PROJECT_SETTINGS_JSON_SAMPLE));
 
     assertThat(valueMap.getValueMap("Amplitude")).isNotNull()
         .hasSize(4)
@@ -177,8 +178,8 @@ public class ValueMapTest {
   }
 
   static class Settings extends ValueMap {
-    Settings(String json) throws IOException {
-      super(jsonToMap(json));
+    Settings(Map<String, Object> map) throws IOException {
+      super(map);
     }
 
     AmplitudeSettings getAmplitudeSettings() {
@@ -198,7 +199,7 @@ public class ValueMapTest {
 
   static class AmplitudeSettings extends ValueMap {
     AmplitudeSettings(String json) throws IOException {
-      super(jsonToMap(json));
+      throw new AssertionError("string constuctors must not be called when deserializing");
     }
   }
 }

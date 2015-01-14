@@ -62,6 +62,6 @@ public class GroupPayload extends BasePayload {
   }
 
   @Override public String toString() {
-    return "GroupPayload{\"groupId=\"" + groupId() + "\"," + traits() + '}';
+    return "GroupPayload{\"groupId=\"" + groupId() + '}';
   }
 }

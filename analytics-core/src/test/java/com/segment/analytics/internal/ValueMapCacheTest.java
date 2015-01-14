@@ -14,9 +14,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 public class ValueMapCacheTest {
   private ValueMap.Cache<Traits> traitsCache;
+  private Cartographer cartographer;
 
   @Before public void setUp() {
-    traitsCache = new ValueMap.Cache<>(Robolectric.application, "traits-cache-test", Traits.class);
+    cartographer = Cartographer.INSTANCE;
+    traitsCache = new ValueMap.Cache<>(Robolectric.application, cartographer, "traits-cache-test",
+        Traits.class);
     traitsCache.delete();
     assertThat(traitsCache.get()).isNullOrEmpty();
   }
@@ -27,13 +30,14 @@ public class ValueMapCacheTest {
     assertThat(traitsCache.get()).isEqualTo(traits);
   }
 
-  @Test public void cacheWithKeyAndContextHasSameValue() throws Exception {
+  @Test public void cacheWithSameKeyHasSameValue() throws Exception {
     assertThat(traitsCache.isSet()).isFalse();
     Traits traits = new Traits().putValue("foo", "bar");
     traitsCache.set(traits);
 
     ValueMap.Cache<Traits> traitsCacheDuplicate =
-        new ValueMap.Cache<Traits>(Robolectric.application, "traits-cache-test", Traits.class);
+        new ValueMap.Cache<Traits>(Robolectric.application, cartographer, "traits-cache-test",
+            Traits.class);
     assertThat(traitsCacheDuplicate.isSet()).isTrue();
   }
 }

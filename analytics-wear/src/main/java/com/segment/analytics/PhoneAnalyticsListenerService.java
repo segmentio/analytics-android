@@ -19,7 +19,7 @@ package com.segment.analytics;
 import android.annotation.SuppressLint;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.WearableListenerService;
-import com.segment.analytics.internal.JsonUtils;
+import com.segment.analytics.internal.Cartographer;
 import java.io.IOException;
 
 /**
@@ -31,13 +31,15 @@ import java.io.IOException;
  */
 @SuppressLint("Registered")
 public class PhoneAnalyticsListenerService extends WearableListenerService {
+  final Cartographer cartographer = Cartographer.INSTANCE;
+
   @Override public void onMessageReceived(MessageEvent messageEvent) {
     super.onMessageReceived(messageEvent);
 
     if (WearAnalytics.ANALYTICS_PATH.equals(messageEvent.getPath())) {
       WearPayload wearPayload;
       try {
-        wearPayload = new WearPayload(JsonUtils.jsonToMap(new String(messageEvent.getData())));
+        wearPayload = new WearPayload(cartographer.fromJson(new String(messageEvent.getData())));
       } catch (IOException e) {
         getAnalytics().logger.print(e, "Error deserializing payload. Skipping.");
         return;

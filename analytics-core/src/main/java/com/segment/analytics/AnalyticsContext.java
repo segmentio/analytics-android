@@ -36,8 +36,6 @@ import android.view.Display;
 import android.view.WindowManager;
 import com.segment.analytics.core.BuildConfig;
 import com.segment.analytics.internal.GetAdvertisingIdTask;
-import com.segment.analytics.internal.JsonUtils;
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -317,14 +315,6 @@ public class AnalyticsContext extends ValueMap {
   public AnalyticsContext putValue(String key, Object value) {
     super.putValue(key, value);
     return this;
-  }
-
-  @Override public String toString() {
-    try {
-      return "AnalyticsContext" + JsonUtils.mapToJson(this);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   public static class Location extends ValueMap {

@@ -56,10 +56,10 @@ public class IntegrationManager {
   OnIntegrationReadyListener listener;
 
   public static synchronized IntegrationManager create(Context context,
-      SegmentHTTPApi segmentHTTPApi, Stats stats, Logger logger, String tag,
-      boolean debuggingEnabled) {
+      SegmentHTTPApi segmentHTTPApi, Stats stats, Logger logger, Cartographer cartographer,
+      String tag, boolean debuggingEnabled) {
     ValueMap.Cache<ProjectSettings> projectSettingsCache =
-        new ValueMap.Cache<>(context, PROJECT_SETTINGS_CACHE_KEY_PREFIX + tag,
+        new ValueMap.Cache<>(context, cartographer, PROJECT_SETTINGS_CACHE_KEY_PREFIX + tag,
             ProjectSettings.class);
     return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logger,
         debuggingEnabled);
