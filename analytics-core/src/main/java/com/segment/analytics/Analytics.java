@@ -83,7 +83,7 @@ public class Analytics {
   // Resource identifiers to define options in xml
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
   static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
-  static final String FLUSH_INTERVAL_IDENTIFIER = "analytics_flush_interval";
+  static final String FLUSH_INTERVAL_RESOURCE_IDENTIFIER = "analytics_flush_interval";
   static final String DEBUGGING_RESOURCE_IDENTIFIER = "analytics_debugging";
   static final Properties EMPTY_PROPERTIES = new Properties();
   public static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
@@ -129,46 +129,27 @@ public class Analytics {
           String writeKey = getResourceString(context, WRITE_KEY_RESOURCE_IDENTIFIER);
           Builder builder = new Builder(context, writeKey);
           try {
-            // We need the exception to be able to tell if this was not defined, or if it was
-            // incorrectly defined - something we shouldn't ignore
             int queueSize = getResourceIntegerOrThrow(context, QUEUE_SIZE_RESOURCE_IDENTIFIER);
-            if (queueSize <= 0) {
-              throw new IllegalStateException(QUEUE_SIZE_RESOURCE_IDENTIFIER
-                  + "("
-                  + queueSize
-                  + ") may not be zero or negative.");
-            }
             builder.queueSize(queueSize);
-          } catch (Resources.NotFoundException e) {
-            // when queueSize is not defined in xml, we'll use a default option in the builder
+          } catch (Resources.NotFoundException ignored) {
           }
           try {
-            // We need the exception to be able to tell if this was not defined, or if it was
-            // incorrectly defined - something we shouldn't ignore
-            int flushInterval = getResourceIntegerOrThrow(context, FLUSH_INTERVAL_IDENTIFIER);
-            if (flushInterval < 1) {
-              throw new IllegalStateException(FLUSH_INTERVAL_IDENTIFIER
-                  + "("
-                  + flushInterval
-                  + ") may not be zero or negative.");
-            }
+            int flushInterval =
+                getResourceIntegerOrThrow(context, FLUSH_INTERVAL_RESOURCE_IDENTIFIER);
             builder.flushInterval(flushInterval);
-          } catch (Resources.NotFoundException e) {
-            // when flushInterval is not defined in xml, we'll use a default option in the builder
+          } catch (Resources.NotFoundException ignored) {
           }
           try {
             boolean debugging = getResourceBooleanOrThrow(context, DEBUGGING_RESOURCE_IDENTIFIER);
             builder.debugging(debugging);
           } catch (Resources.NotFoundException notFoundException) {
-            // when debugging is not defined in xml, we'll try to figure it out from package flags
             String packageName = context.getPackageName();
             try {
               final int flags =
                   context.getPackageManager().getApplicationInfo(packageName, 0).flags;
               boolean debugging = (flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
               builder.debugging(debugging);
-            } catch (PackageManager.NameNotFoundException nameNotFoundException) {
-              // if we still can't figure it out, we'll use the default options in the builder
+            } catch (PackageManager.NameNotFoundException ignored) {
             }
           }
           singleton = builder.build();
@@ -265,16 +246,13 @@ public class Analytics {
    * user. To update a trait on the server, simply call identify with the same user id (or null).
    * You can also use {@link #identify(Traits)} for this purpose.
    *
-   * @param userId    Unique identifier which you recognize a user by in your own database. If this
-   *                  is null or empty, any previous id we have (could be the anonymous id) will be
-   *                  used.
+   * @param userId Unique identifier which you recognize a user by in your own database. If this
+   * is null or empty, any previous id we have (could be the anonymous id) will be
+   * used.
    * @param newTraits Traits about the user
-<<<<<<< HEAD
    * @param options To configure the call
+   *
    * @return The previous ID assigned to the user. Use it to call {@link #alias(String, Options)}
-=======
-   * @param options   To configure the call
->>>>>>> ad73368... Dynamic Class Loading WIP - needs a real CDN and API refactor to hide
    * @throws IllegalArgumentException if userId is null or an empty string
    * @see <a href="https://segment.com/docs/tracking-api/identify/">Identify Documentation</a>
    */
@@ -314,7 +292,7 @@ public class Analytics {
    * remember the userId. If not, it will fall back to use the anonymousId instead.
    *
    * @param groupId Unique identifier which you recognize a group by in your own database. Must not
-   *                be null or empty.
+   * be null or empty.
    * @param options To configure the call
    * @throws IllegalArgumentException if groupId is null or an empty string
    * @see <a href="https://segment.com/docs/tracking-api/group/">Group Documentation</a>
@@ -349,9 +327,9 @@ public class Analytics {
    * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
    * For example a 'Purchased a Shirt' event might have properties like revenue or size.
    *
-   * @param event      Name of the event. Must not be null or empty.
+   * @param event Name of the event. Must not be null or empty.
    * @param properties {@link Properties} to add extra information to this call
-   * @param options    To configure the call
+   * @param options To configure the call
    * @throws IllegalArgumentException if event name is null or an empty string
    * @see <a href="https://segment.com/docs/tracking-api/track/">Track Documentation</a>
    */
@@ -381,15 +359,16 @@ public class Analytics {
   }
 
   /**
-   * The screen methods let your record whenever a user sees a screen of your mobile app, and attach
+   * The screen methods let your record whenever a user sees a screen of your mobile app, and
+   * attach
    * a name, category or properties to the screen.
    * <p/>
    * Either category or name must be provided.
    *
-   * @param category   A category to describe the screen
-   * @param name       A name for the screen
+   * @param category A category to describe the screen
+   * @param name A name for the screen
    * @param properties {@link Properties} to add extra information to this call
-   * @param options    To configure the call
+   * @param options To configure the call
    * @see <a href="http://segment.com/docs/tracking-api/page-and-screen/">Screen Documentation</a>
    */
   public void screen(String category, String name, Properties properties, Options options) {
@@ -540,9 +519,9 @@ public class Analytics {
      * The second argument will be the integration object itself, so you can call methods not
      * exposed as a part of our spec. This is useful if you're doing things like A/B testing.
      *
-     * @param key         A unique string to identify an integration.
+     * @param key A unique string to identify an integration.
      * @param integration The underlying instance that has been initialized with the settings from
-     *                    Segment
+     * Segment
      */
     void onIntegrationReady(String key, Object integration);
   }

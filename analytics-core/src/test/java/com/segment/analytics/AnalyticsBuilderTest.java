@@ -25,6 +25,7 @@
 package com.segment.analytics;
 
 import android.content.Context;
+import android.content.res.Resources;
 import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,9 +38,15 @@ import static android.Manifest.permission.INTERNET;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static com.segment.analytics.Analytics.Builder;
+import static com.segment.analytics.Analytics.FLUSH_INTERVAL_RESOURCE_IDENTIFIER;
+import static com.segment.analytics.Analytics.QUEUE_SIZE_RESOURCE_IDENTIFIER;
+import static com.segment.analytics.Analytics.WRITE_KEY_RESOURCE_IDENTIFIER;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -88,24 +95,24 @@ public class AnalyticsBuilderTest {
     }
   }
 
-  @Test public void invalidApiKeyThrowsException() throws Exception {
+  @Test public void invalidwriteKeyThrowsException() throws Exception {
     try {
       new Builder(context, null);
-      fail("Null apiKey should throw exception.");
+      fail("Null writeKey should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("writeKey must not be null or empty.");
     }
 
     try {
       new Builder(context, "");
-      fail("Empty apiKey should throw exception.");
+      fail("Empty writeKey should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("writeKey must not be null or empty.");
     }
 
     try {
       new Builder(context, "    ");
-      fail("Blank apiKey should throw exception.");
+      fail("Blank writeKey should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("writeKey must not be null or empty.");
     }
@@ -183,30 +190,111 @@ public class AnalyticsBuilderTest {
   @Test public void invalidTagThrowsException() throws Exception {
     try {
       new Builder(context, stubbedKey).tag(null);
-      fail("Null apiKey should throw exception.");
+      fail("Null writeKey should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("tag must not be null or empty.");
     }
 
     try {
       new Builder(context, stubbedKey).tag("");
-      fail("Empty apiKey should throw exception.");
+      fail("Empty writeKey should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("tag must not be null or empty.");
     }
 
     try {
       new Builder(context, stubbedKey).tag("    ");
-      fail("Blank apiKey should throw exception.");
+      fail("Blank writeKey should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("tag must not be null or empty.");
     }
 
     try {
       new Builder(context, stubbedKey).tag(stubbedKey).tag(stubbedKey);
-      fail("Blank apiKey should throw exception.");
+      fail("Blank writeKey should throw exception.");
     } catch (IllegalStateException expected) {
       assertThat(expected).hasMessage("tag is already set.");
     }
+  }
+
+  @Test public void invalidWriteKey() throws Exception {
+    mockResources(context, null, 20, 30, true);
+    try {
+      Analytics.with(context);
+      fail("Null writeKey should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("writeKey must not be null or empty.");
+    }
+
+    mockResources(context, "", 20, 30, true);
+    try {
+      Analytics.with(context);
+      fail("Empty writeKey should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("writeKey must not be null or empty.");
+    }
+  }
+
+  @Test public void invalidQueueSize() throws Exception {
+    mockResources(context, "foo", -1, 30, true);
+    try {
+      Analytics.with(context);
+      fail("queueSize < 0 should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("queueSize must be greater than or equal to zero.");
+    }
+
+    mockResources(context, "foo", 0, 30, true);
+    try {
+      Analytics.with(context);
+      fail("queueSize = 0 should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("queueSize must be greater than or equal to zero.");
+    }
+  }
+
+  @Test public void invalidFlushInterval() throws Exception {
+    mockResources(context, "foo", 20, -1, true);
+    try {
+      Analytics.with(context);
+      fail("flushInterval < 0 should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("flushInterval must be greater than or equal to 1.");
+    }
+
+    mockResources(context, "foo", 20, 0, true);
+    try {
+      Analytics.with(context);
+      fail("flushInterval = 0 should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("flushInterval must be greater than or equal to 1.");
+    }
+  }
+
+  private void mockResources(Context context, String writeKey, int queueSize, int flushInterval,
+      boolean debugging) {
+    Resources resources = mock(Resources.class);
+    when(context.getResources()).thenReturn(resources);
+
+    when(resources.getIdentifier(eq(WRITE_KEY_RESOURCE_IDENTIFIER), eq("string"),
+        anyString())).thenReturn(1);
+    //noinspection ResourceType
+    when(resources.getString(1)).thenReturn(writeKey);
+
+    when(resources.getIdentifier(eq(QUEUE_SIZE_RESOURCE_IDENTIFIER), eq("integer"), anyString())) //
+        .thenReturn(2);
+    //noinspection ResourceType
+    when(resources.getInteger(2)).thenReturn(queueSize);
+
+    when(resources //
+        .getIdentifier(eq(FLUSH_INTERVAL_RESOURCE_IDENTIFIER), eq("integer"),
+            anyString())).thenReturn(3);
+    //noinspection ResourceType
+    when(resources.getInteger(3)).thenReturn(flushInterval);
+
+    when(resources.getIdentifier(eq(Analytics.DEBUGGING_RESOURCE_IDENTIFIER), eq("bool"),
+        anyString())).thenReturn(4);
+    //noinspection ResourceType
+    when(resources.getBoolean(4)).thenReturn(debugging);
   }
 }

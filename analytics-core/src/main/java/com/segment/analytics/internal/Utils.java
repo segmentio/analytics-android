@@ -146,13 +146,12 @@ public final class Utils {
     if (id != 0) {
       return context.getResources().getBoolean(id);
     } else {
-      // We won't ever have an error thrown since we check the id first, so we'll re-throw it up
-      throw new Resources.NotFoundException("boolean with key " + key + " not found in resources");
+      throw new Resources.NotFoundException();
     }
   }
 
   /**
-   * Get the integer resource for the given key.Throws {@link Resources.NotFoundException} if not
+   * Get the integer resource for the given key. Throws {@link Resources.NotFoundException} if not
    * found.
    */
   public static int getResourceIntegerOrThrow(Context context, String key) {
@@ -160,8 +159,7 @@ public final class Utils {
     if (id != 0) {
       return context.getResources().getInteger(id);
     } else {
-      // We won't ever have an error thrown since we check the id first, so we'll re-throw it up
-      throw new Resources.NotFoundException("integer with key " + key + " not found in resources");
+      throw new Resources.NotFoundException();
     }
   }
 
@@ -171,7 +169,8 @@ public final class Utils {
   }
 
   /**
-   * Returns true if the phone is connected to a network, or if we don't have the permission to find
+   * Returns true if the phone is connected to a network, or if we don't have the permission to
+   * find
    * out. False otherwise.
    */
   public static boolean isConnected(Context context) {
