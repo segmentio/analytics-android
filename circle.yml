@@ -11,4 +11,4 @@ dependencies:
     - .buildscript/install-dependencies.sh
 test:
   override:
-    - ./gradlew build
+    - TERM=dumb ./gradlew build
