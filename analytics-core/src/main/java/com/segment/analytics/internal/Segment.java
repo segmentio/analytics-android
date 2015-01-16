@@ -55,7 +55,7 @@ public class Segment {
 
   final Context context;
   final QueueFile payloadQueueFile;
-  final SegmentHTTPApi segmentHTTPApi;
+  final SegmentClient segmentClient;
   final int flushQueueSize;
   final int flushInterval;
   final Stats stats;
@@ -67,15 +67,10 @@ public class Segment {
   PayloadQueueFileStreamWriter payloadQueueFileStreamWriter;
 
   public static synchronized Segment create(Context context, int flushQueueSize, int flushInterval,
-<<<<<<< HEAD
-      SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
-      Logger logger) {
-=======
-      SegmentHTTPApi segmentHTTPApi, Cartographer cartographer, Map<String, Boolean> integrations,
+      SegmentClient segmentClient, Cartographer cartographer, Map<String, Boolean> integrations,
       String tag, Stats stats, Logger logger) {
     File parent = context.getFilesDir();
     String filePrefix = tag.replaceAll("[^A-Za-z0-9]", ""); // sanitize input
->>>>>>> 6e41e6e... Use Cartographer
     QueueFile payloadQueueFile;
     try {
       File parent = context.getFilesDir();
@@ -84,16 +79,16 @@ public class Segment {
     } catch (IOException e) {
       throw new RuntimeException("Could not create disk queue.", e);
     }
-    return new Segment(context, flushQueueSize, flushInterval, segmentHTTPApi, cartographer,
+    return new Segment(context, flushQueueSize, flushInterval, segmentClient, cartographer,
         payloadQueueFile, integrations, stats, logger);
   }
 
-  Segment(Context context, int flushQueueSize, int flushInterval, SegmentHTTPApi segmentHTTPApi,
+  Segment(Context context, int flushQueueSize, int flushInterval, SegmentClient segmentClient,
       Cartographer cartographer, QueueFile payloadQueueFile, Map<String, Boolean> integrations,
       Stats stats, Logger logger) {
     this.context = context;
     this.flushQueueSize = Math.min(flushQueueSize, MAX_QUEUE_SIZE);
-    this.segmentHTTPApi = segmentHTTPApi;
+    this.segmentClient = segmentClient;
     this.payloadQueueFile = payloadQueueFile;
     this.stats = stats;
     this.logger = logger;
@@ -150,7 +145,7 @@ public class Segment {
           new PayloadQueueFileStreamWriter(integrations, payloadQueueFile);
     }
     try {
-      segmentHTTPApi.upload(payloadQueueFileStreamWriter);
+      segmentClient.upload(payloadQueueFileStreamWriter);
     } catch (IOException e) {
       // There was an error. Reschedule flush for later
       dispatchFlush(flushInterval);
@@ -174,7 +169,7 @@ public class Segment {
     }
   }
 
-  public static class PayloadQueueFileStreamWriter implements SegmentHTTPApi.StreamWriter {
+  public static class PayloadQueueFileStreamWriter implements SegmentClient.StreamWriter {
     private final Map<String, Boolean> integrations;
     private final QueueFile payloadQueueFile;
     /** The number of events uploaded in the last request. todo: should be stateless? */

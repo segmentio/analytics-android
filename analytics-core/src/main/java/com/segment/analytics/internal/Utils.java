@@ -37,6 +37,9 @@ import android.text.TextUtils;
 import java.io.File;
 import java.io.IOException;
 import com.segment.analytics.Analytics;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -216,6 +219,11 @@ public final class Utils {
     if (!isMain()) {
       throw new IllegalStateException("Method call should happen from the main thread.");
     }
+  }
+
+  /** Buffers the given {@code InputStream}. */
+  public static BufferedReader buffer(InputStream is) {
+    return new BufferedReader(new InputStreamReader(is));
   }
 
   /** Returns {@code true} if called on the main thread. */

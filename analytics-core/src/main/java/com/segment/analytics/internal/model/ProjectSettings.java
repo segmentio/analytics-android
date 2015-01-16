@@ -34,7 +34,7 @@ import static java.util.Collections.unmodifiableMap;
 public class ProjectSettings extends ValueMap {
   private static final String TIMESTAMP_KEY = "timestamp";
 
-  public static ProjectSettings create(Map<String, Object> map, long timestamp) throws IOException {
+  public static ProjectSettings create(Map<String, Object> map, long timestamp) {
     map.put(TIMESTAMP_KEY, timestamp);
     return new ProjectSettings(map);
   }

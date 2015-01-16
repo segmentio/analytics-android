@@ -18,29 +18,29 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class SegmentHTTPApiTest {
+public class SegmentClientTest {
 
-  @Mock SegmentHTTPApi.HttpURLConnectionFactory factory;
-  SegmentHTTPApi segmentHTTPApi;
+  @Mock SegmentClient.HttpURLConnectionFactory factory;
+  SegmentClient segmentClient;
 
   @Before public void setUp() {
     initMocks(this);
-    segmentHTTPApi =
-        new SegmentHTTPApi(Robolectric.application, Cartographer.INSTANCE, factory,
+    segmentClient =
+        new SegmentClient(Robolectric.application, Cartographer.INSTANCE, factory,
             "foo");
   }
 
   @Test public void upload() throws IOException {
-    SegmentHTTPApi.StreamWriter writer = mock(SegmentHTTPApi.StreamWriter.class);
+    SegmentClient.StreamWriter writer = mock(SegmentClient.StreamWriter.class);
     HttpsURLConnection urlConnection = mock(HttpsURLConnection.class);
     OutputStream outputStream = new ByteArrayOutputStream();
     when(urlConnection.getOutputStream()).thenReturn(outputStream);
     when(urlConnection.getResponseCode()).thenReturn(200);
-    when(factory.open("v1/import")).thenReturn(urlConnection);
+    when(factory.open("https://api.segment.io/v1/import")).thenReturn(urlConnection);
 
-    segmentHTTPApi.upload(writer);
+    segmentClient.upload(writer);
 
-    verify(factory).open("v1/import");
+    verify(factory).open("https://api.segment.io/v1/import");
     verify(writer).write(outputStream);
   }
 }

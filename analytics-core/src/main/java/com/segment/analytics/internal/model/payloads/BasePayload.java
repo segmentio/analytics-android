@@ -41,7 +41,7 @@ import static com.segment.analytics.internal.Utils.toISO8601Date;
  * directly, but through one if it's subclasses.
  */
 // This ignores projectId, receivedAt and version that are set by the server.
-// sentAt is set on SegmentHTTPApi#BatchPayload
+// sentAt is set on SegmentClient#BatchPayload
 public abstract class BasePayload extends ValueMap
     implements IntegrationManager.IntegrationOperation {
   /** The type of message. */

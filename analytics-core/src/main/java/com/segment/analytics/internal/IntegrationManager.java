@@ -41,7 +41,7 @@ public class IntegrationManager {
   private static final long SETTINGS_ERROR_RETRY_INTERVAL = 1000 * 60; // 1 minute
 
   final Context context;
-  final SegmentHTTPApi segmentHTTPApi;
+  final SegmentClient segmentClient;
   final HandlerThread networkingThread;
   final Handler networkingHandler;
   final Handler integrationManagerHandler;
@@ -56,20 +56,20 @@ public class IntegrationManager {
   OnIntegrationReadyListener listener;
 
   public static synchronized IntegrationManager create(Context context,
-      SegmentHTTPApi segmentHTTPApi, Stats stats, Logger logger, Cartographer cartographer,
+      SegmentClient segmentClient, Stats stats, Logger logger, Cartographer cartographer,
       String tag, boolean debuggingEnabled) {
     ValueMap.Cache<ProjectSettings> projectSettingsCache =
         new ValueMap.Cache<>(context, cartographer, PROJECT_SETTINGS_CACHE_KEY_PREFIX + tag,
             ProjectSettings.class);
-    return new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logger,
+    return new IntegrationManager(context, segmentClient, projectSettingsCache, stats, logger,
         debuggingEnabled);
   }
 
-  IntegrationManager(Context context, SegmentHTTPApi segmentHTTPApi,
+  IntegrationManager(Context context, SegmentClient segmentClient,
       ValueMap.Cache<ProjectSettings> projectSettingsCache, Stats stats, Logger logger,
       boolean debuggingEnabled) {
     this.context = context;
-    this.segmentHTTPApi = segmentHTTPApi;
+    this.segmentClient = segmentClient;
     this.stats = stats;
     this.debuggingEnabled = debuggingEnabled;
     this.logger = logger;
@@ -132,7 +132,7 @@ public class IntegrationManager {
   void performFetch() {
     try {
       if (isConnected(context)) {
-        ProjectSettings projectSettings = segmentHTTPApi.fetchSettings();
+        ProjectSettings projectSettings = segmentClient.fetchSettings();
         projectSettingsCache.set(projectSettings);
         if (!initialized) {
           // It's ok if integrations are being initialized right now (and so initialized will be

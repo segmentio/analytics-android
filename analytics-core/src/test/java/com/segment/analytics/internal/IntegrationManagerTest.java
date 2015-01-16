@@ -28,7 +28,7 @@ public class IntegrationManagerTest {
 
   IntegrationManager integrationManager;
 
-  @Mock SegmentHTTPApi segmentHTTPApi;
+  @Mock SegmentClient segmentClient;
   @Mock Stats stats;
   @Mock ValueMap.Cache<ProjectSettings> projectSettingsCache;
   @Mock Logger logger;
@@ -42,7 +42,7 @@ public class IntegrationManagerTest {
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
 
     integrationManager =
-        new IntegrationManager(context, segmentHTTPApi, projectSettingsCache, stats, logger, true);
+        new IntegrationManager(context, segmentClient, projectSettingsCache, stats, logger, true);
   }
 
   @Test public void addsKeysCorrectly() throws Exception {
