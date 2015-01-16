@@ -2,7 +2,7 @@ machine:
   environment:
     ANDROID_HOME: /home/ubuntu/android
   java:
-    version: oraclejdk7
+    version: oraclejdk8
 dependencies:
   cache_directories:
     - ~/.android
