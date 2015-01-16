@@ -1,0 +1,14 @@
+machine:
+  environment:
+    ANDROID_HOME: /home/ubuntu/android
+  java:
+    version: oraclejdk7
+dependencies:
+  cache_directories:
+    - ~/.android
+    - ~/android
+  override:
+    - .buildscript/install-dependencies.sh
+test:
+  override:
+    - ./gradlew build

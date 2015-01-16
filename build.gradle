@@ -52,7 +52,7 @@ subprojects {
 }
 
 
-def isTravis = "true".equals(System.getenv("TRAVIS"))
+def isCI = "true".equals(System.getenv("CIRCLECI"))
 def preDexEnabled = "true".equals(System.getProperty("preDex", "true"))
 
 ext {
@@ -65,7 +65,7 @@ ext {
   compileSdkVersion = 21
   buildToolsVersion = '21.1.1'
 
-  preDexLibraries = preDexEnabled && !isTravis
+  preDexLibraries = preDexEnabled && !isCI
 }
 
 ext.plugins = [android        : 'com.android.tools.build:gradle:1.0.0',
