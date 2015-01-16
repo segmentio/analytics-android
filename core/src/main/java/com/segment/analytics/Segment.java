@@ -200,6 +200,7 @@ class Segment {
           return true;
         }
       });
+
       writer.endBatchArray().endObject().close();
     }
   }

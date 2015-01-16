@@ -79,6 +79,7 @@ public class SegmentTest {
     };
 
     queueFile = createQueueFile();
+    queueFile.clear();
     segment = createSegmentIntegration(20);
     segment.performEnqueue(payload);
     segment.performEnqueue(payload);
