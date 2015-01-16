@@ -140,7 +140,7 @@ public class JsonSerializationTest {
     double aDouble = random.nextDouble();
     Double aBoxedDouble = Double.valueOf(random.nextDouble());
     char aChar = (char) random.nextInt(256);
-    Character aBoxedChar = Character.valueOf((char) random.nextInt(256));
+    Character aBoxedChar = Character.valueOf((char) random.nextInt(128));
     String aString = UUID.randomUUID().toString();
     boolean aBoolean = random.nextBoolean();
     Boolean aBoxedBoolean = Boolean.valueOf(random.nextBoolean());

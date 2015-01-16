@@ -29,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.UUID;
 
 import static com.segment.analytics.Options.ALL_INTEGRATIONS_KEY;
+import static com.segment.analytics.Utils.isNullOrEmpty;
 import static com.segment.analytics.Utils.toISO8601Date;
 
 /**
@@ -85,7 +86,10 @@ abstract class BasePayload extends ValueMap implements IntegrationManager.Integr
     put(CHANNEL_KEY, Channel.mobile);
     put(CONTEXT_KEY, contextCopy);
     put(ANONYMOUS_ID_KEY, contextCopy.traits().anonymousId());
-    put(USER_ID_KEY, contextCopy.traits().userId());
+    String userId = contextCopy.traits().userId();
+    if (!isNullOrEmpty(userId)) {
+      put(USER_ID_KEY, userId);
+    }
     put(TIMESTAMP_KEY, options.timestamp() == null ? toISO8601Date(new Date())
         : toISO8601Date(options.timestamp()));
     put(INTEGRATIONS_KEY, new LinkedHashMap<String, Boolean>(options.integrations())); // copy

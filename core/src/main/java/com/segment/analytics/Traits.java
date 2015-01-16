@@ -82,9 +82,7 @@ public class Traits extends ValueMap {
    */
   static Traits create(Context context) {
     Traits traits = new Traits(new NullableConcurrentHashMap<String, Object>());
-    String id = UUID.randomUUID().toString(); // only done when creating a new traits object
-    traits.putUserId(id);
-    traits.putAnonymousId(id);
+    traits.putAnonymousId(UUID.randomUUID().toString());
     return traits;
   }
 

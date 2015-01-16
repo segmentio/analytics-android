@@ -24,8 +24,8 @@ public class TraitsTest {
     assertThat(traits).isNotSameAs(Traits.create(Robolectric.application));
   }
 
-  @Test public void newInvocationHasSameAnonymousAndUserId() throws Exception {
-    assertThat(traits.userId()).isEqualTo(traits.anonymousId());
+  @Test public void newInvocationHasNoUserId() throws Exception {
+    assertThat(traits.userId()).isNull();
   }
 
   @Test public void publicConstructorGivesEmptyTraits() throws Exception {
@@ -85,8 +85,7 @@ public class TraitsTest {
     try {
       copy.put("foo", "bar");
       fail("Inserting into copy should throw UnsupportedOperationException");
-    } catch (UnsupportedOperationException expected) {
-
+    } catch (UnsupportedOperationException ignored) {
     }
   }
 }
