@@ -190,28 +190,28 @@ public class AnalyticsBuilderTest {
   @Test public void invalidTagThrowsException() throws Exception {
     try {
       new Builder(context, stubbedKey).tag(null);
-      fail("Null writeKey should throw exception.");
+      fail("Null tag should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("tag must not be null or empty.");
     }
 
     try {
       new Builder(context, stubbedKey).tag("");
-      fail("Empty writeKey should throw exception.");
+      fail("Empty tag should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("tag must not be null or empty.");
     }
 
     try {
       new Builder(context, stubbedKey).tag("    ");
-      fail("Blank writeKey should throw exception.");
+      fail("Blank tag should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("tag must not be null or empty.");
     }
 
     try {
       new Builder(context, stubbedKey).tag(stubbedKey).tag(stubbedKey);
-      fail("Blank writeKey should throw exception.");
+      fail("Tag can only be set once.");
     } catch (IllegalStateException expected) {
       assertThat(expected).hasMessage("tag is already set.");
     }
