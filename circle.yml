@@ -1,8 +1,14 @@
+general:
+  artifacts:
+    - analytics-core/build/test-report
+    - analytics-integrations/*/build/test-report
+
 machine:
   environment:
     ANDROID_HOME: /home/ubuntu/android
   java:
     version: oraclejdk8
+
 dependencies:
   cache_directories:
     - ~/.android
@@ -10,6 +16,7 @@ dependencies:
     - ~/.gradle
   override:
     - .buildscript/install-dependencies.sh
+
 test:
   override:
     - TERM=dumb ./gradlew build
