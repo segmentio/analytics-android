@@ -125,6 +125,11 @@ public class Traits extends ValueMap {
     return getString(ANONYMOUS_ID_KEY);
   }
 
+  String userIdOrAnonymousId() {
+    String userId = userId();
+    return (isNullOrEmpty(userId)) ? anonymousId() : userId;
+  }
+
   public Traits putAddress(String city, String country, String postalCode, String state,
       String street) {
     Map<String, String> address = createMap();

@@ -294,37 +294,27 @@ public class Analytics {
     submit(payload);
   }
 
-  /** @see #group(String, String, Traits, Options) */
+  /** @see #group(String, Traits, Options) */
   public void group(String groupId) {
-    group(null, groupId, null, null);
+    group(groupId, null, null);
   }
 
   /**
-   * The group method lets you associate a user with a group. It also lets you record custom traits
-   * about the group, like industry or number of employees.
-   * <p>
-   * If you've called {@link #identify(String, Traits, Options)} before, this will automatically
-   * remember the userId. If not, it will fall back to use the anonymousId instead.
+   * The group method lets you associate the current user with a group. It also lets you record
+   * custom traits about the group, like industry or number of employees.
    *
-   * @param userId To match up a user with their associated group.
    * @param groupId Unique identifier which you recognize a group by in your own database. Must not
    * be null or empty.
    * @param options To configure the call
    * @throws IllegalArgumentException if groupId is null or an empty string
    * @see <a href="https://Segment/docs/tracking-api/group/">Group Documentation</a>
    */
-  public void group(String userId, String groupId, Traits groupTraits, Options options) {
+  public void group(String groupId, Traits groupTraits, Options options) {
     if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException("groupId must not be null or empty.");
     }
-    if (isNullOrEmpty(userId)) {
-      userId = traitsCache.get().userId();
-    }
-    if (!isNullOrEmpty(groupTraits)) {
-      Traits traits = traitsCache.get();
-      traits.putAll(groupTraits);
-      traitsCache.set(traits);
-      analyticsContext.setTraits(traits);
+    if (groupTraits == null) {
+      groupTraits = new Traits();
     }
     if (options == null) {
       options = defaultOptions;
@@ -421,8 +411,9 @@ public class Analytics {
    * successfully in some of our integrations. You should still call {@link #identify(String,
    * Traits, Options)} with {@code newId} if you want to use it as the default id.
    *
-   * @param previousId The old id we want to map. If it is null, the userId we've cached will
-   * automatically used.
+   * @param previousId The old id we want to map. If it is null, the the previously cached userId
+   * will be used. If the userId has not been set (by calling {@link #identify(String)}), the
+   * anonymous id is used instead.
    * @param newId The newId to map the old id to. Must not be null to empty.
    * @param options To configure the call
    * @throws IllegalArgumentException if newId is null or empty
@@ -433,7 +424,7 @@ public class Analytics {
       throw new IllegalArgumentException("newId must not be null or empty.");
     }
     if (isNullOrEmpty(previousId)) {
-      previousId = traitsCache.get().userId();
+      previousId = traitsCache.get().userIdOrAnonymousId();
     }
     if (options == null) {
       options = defaultOptions;

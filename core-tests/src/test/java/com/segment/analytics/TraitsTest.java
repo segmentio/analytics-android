@@ -32,6 +32,15 @@ public class TraitsTest {
     assertThat(new Traits()).hasSize(0);
   }
 
+  @Test public void userIdOrAnonymousId() throws Exception {
+    assertThat(new Traits().putUserId("foo").putAnonymousId("bar").userIdOrAnonymousId()) //
+        .isEqualTo("foo");
+    assertThat(new Traits().putUserId("foo").userIdOrAnonymousId()).isEqualTo("foo");
+    assertThat(new Traits().putAnonymousId("bar").userIdOrAnonymousId()) //
+        .isEqualTo("bar");
+    assertThat(new Traits().userIdOrAnonymousId()).isNull();
+  }
+
   @Test public void traitsAreMergedCorrectly() throws Exception {
     Traits traits1 = new Traits() //
         .putAge(20)
