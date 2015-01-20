@@ -1,6 +1,5 @@
-package com.segment.analytics.internal.model;
+package com.segment.analytics.internal;
 
-import com.segment.analytics.internal.Cartographer;
 import java.io.IOException;
 import org.junit.Test;
 import org.junit.runner.RunWith;

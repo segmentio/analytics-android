@@ -26,7 +26,6 @@ package com.segment.analytics.internal;
 
 import android.content.Context;
 import android.util.Base64;
-import com.segment.analytics.internal.model.ProjectSettings;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

@@ -22,18 +22,17 @@
  * SOFTWARE.
  */
 
-package com.segment.analytics.internal.model;
+package com.segment.analytics.internal;
 
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.annotations.ForDeserialization;
-import java.io.IOException;
 import java.util.Map;
 
 import static java.util.Collections.unmodifiableMap;
 
-public class ProjectSettings extends ValueMap {
-  public static final String TIMESTAMP_KEY = "timestamp";
-  public static final String SEGMENT_KEY = "Segment.io";
+class ProjectSettings extends ValueMap {
+  static final String TIMESTAMP_KEY = "timestamp";
+  static final String SEGMENT_KEY = "Segment.io";
 
   public static ProjectSettings create(Map<String, Object> map, long timestamp) {
     map.put(TIMESTAMP_KEY, timestamp);

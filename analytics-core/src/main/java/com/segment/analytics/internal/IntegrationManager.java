@@ -8,7 +8,6 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import com.segment.analytics.ValueMap;
-import com.segment.analytics.internal.model.ProjectSettings;
 import dalvik.system.DexClassLoader;
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +28,8 @@ import static com.segment.analytics.Analytics.OnIntegrationReadyListener;
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
 import static com.segment.analytics.internal.Utils.createDirectory;
 import static com.segment.analytics.internal.Utils.isConnected;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import static com.segment.analytics.internal.Utils.panic;
 
 /**
  * The class that forwards operations from the client to integrations, including Segment. It
@@ -133,36 +134,40 @@ public class IntegrationManager {
         .obtainMessage(NetworkingHandler.REQUEST_FETCH_SETTINGS));
   }
 
-  void performFetch() throws IOException {
-    if (isConnected(context)) {
-      ProjectSettings projectSettings = segmentService.fetchSettings();
-      projectSettingsCache.set(projectSettings);
+  void performFetch() {
+    try {
+      if (isConnected(context)) {
+        ProjectSettings projectSettings = segmentService.fetchSettings();
+        projectSettingsCache.set(projectSettings);
 
-      File downloadedJarsDirectory = getJarDownloadDirectory(context);
-      try {
-        createDirectory(downloadedJarsDirectory);
-      } catch (IOException e) {
-        logger.print(e, "Unable to download integrations into " + downloadedJarsDirectory);
-        return;
+        File downloadedJarsDirectory = getJarDownloadDirectory(context);
+        try {
+          createDirectory(downloadedJarsDirectory);
+        } catch (IOException e) {
+          logger.print(e, "Unable to download integrations into " + downloadedJarsDirectory);
+          return;
+        }
+
+        Set<String> bundledIntegrationsKeys = bundledIntegrations.keySet();
+        HashSet<String> skippedIntegrations = new HashSet<>(bundledIntegrationsKeys.size() + 2);
+        skippedIntegrations.addAll(bundledIntegrationsKeys);
+        skippedIntegrations.add(ProjectSettings.SEGMENT_KEY);
+        skippedIntegrations.add(ProjectSettings.TIMESTAMP_KEY);
+
+        for (String key : projectSettings.keySet()) {
+          if (skippedIntegrations.contains(key)) continue;
+
+          String fileName = getFileNameForIntegration(key);
+          String url = "https://dl.dropboxusercontent.com/u/11371156/integrations/" + fileName;
+          File jarFile = new File(downloadedJarsDirectory, fileName);
+          if (!jarFile.exists()) segmentService.downloadFile(url, jarFile);
+        }
+
+        if (!initialized) dispatchInitialize(projectSettings);
+      } else {
+        retryFetch();
       }
-
-      Set<String> bundledIntegrationsKeys = bundledIntegrations.keySet();
-      HashSet<String> skippedIntegrations = new HashSet<>(bundledIntegrationsKeys.size() + 2);
-      skippedIntegrations.addAll(bundledIntegrationsKeys);
-      skippedIntegrations.add(ProjectSettings.SEGMENT_KEY);
-      skippedIntegrations.add(ProjectSettings.TIMESTAMP_KEY);
-
-      for (String key : projectSettings.keySet()) {
-        if (skippedIntegrations.contains(key)) continue;
-
-        String fileName = getFileNameForIntegration(key);
-        String url = "https://dl.dropboxusercontent.com/u/11371156/integrations/" + fileName;
-        File jarFile = new File(downloadedJarsDirectory, fileName);
-        if (!jarFile.exists()) segmentService.downloadFile(url, jarFile);
-      }
-
-      if (!initialized) dispatchInitialize(projectSettings);
-    } else {
+    } catch (IOException e) {
       retryFetch();
     }
   }
@@ -236,6 +241,7 @@ public class IntegrationManager {
       logger.print(e, "Unable to dex downloaded integrations");
       return;
     }
+    ClassLoader defaultClassLoader = context.getClassLoader();
 
     Set<String> bundledIntegrationsKeys = bundledIntegrationsCopy.keySet();
     HashSet<String> skippedIntegrations = new HashSet<>(bundledIntegrationsKeys.size() + 2);
@@ -250,7 +256,7 @@ public class IntegrationManager {
       try {
         DexClassLoader dexClassLoader =
             new DexClassLoader(jarFile.getAbsolutePath(), optimizedDexDirectory.getAbsolutePath(),
-                null, context.getClassLoader());
+                null, defaultClassLoader);
         String className =
             "com.segment.analytics.internal.integrations." + key.replace(" ", "") + "Integration";
         Class integrationClass = dexClassLoader.loadClass(className);
@@ -276,7 +282,7 @@ public class IntegrationManager {
       }
     }
 
-    if (!Utils.isNullOrEmpty(operationQueue)) {
+    if (!isNullOrEmpty(operationQueue)) {
       Iterator<IntegrationOperation> operationIterator = operationQueue.iterator();
       while (operationIterator.hasNext()) {
         IntegrationOperation operation = operationIterator.next();
@@ -398,7 +404,7 @@ public class IntegrationManager {
           integration.onActivityDestroyed(activity);
           break;
         default:
-          Utils.panic("Unknown lifecycle event type!" + type);
+          panic("Unknown lifecycle event type!" + type);
       }
     }
 
@@ -447,14 +453,10 @@ public class IntegrationManager {
     @Override public void handleMessage(final Message msg) {
       switch (msg.what) {
         case REQUEST_FETCH_SETTINGS:
-          try {
-            integrationManager.performFetch();
-          } catch (IOException e) {
-            integrationManager.retryFetch();
-          }
+          integrationManager.performFetch();
           break;
         default:
-          Utils.panic("Unhandled dispatcher message." + msg.what);
+          panic("Unhandled dispatcher message." + msg.what);
       }
     }
   }
@@ -484,7 +486,7 @@ public class IntegrationManager {
               (OnIntegrationReadyListener) msg.obj);
           break;
         default:
-          Utils.panic("Unhandled dispatcher message." + msg.what);
+          panic("Unhandled dispatcher message." + msg.what);
       }
     }
   }
