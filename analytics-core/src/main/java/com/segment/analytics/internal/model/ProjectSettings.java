@@ -32,7 +32,8 @@ import java.util.Map;
 import static java.util.Collections.unmodifiableMap;
 
 public class ProjectSettings extends ValueMap {
-  private static final String TIMESTAMP_KEY = "timestamp";
+  public static final String TIMESTAMP_KEY = "timestamp";
+  public static final String SEGMENT_KEY = "Segment.io";
 
   public static ProjectSettings create(Map<String, Object> map, long timestamp) {
     map.put(TIMESTAMP_KEY, timestamp);

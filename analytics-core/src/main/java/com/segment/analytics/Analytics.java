@@ -39,7 +39,7 @@ import com.segment.analytics.internal.Cartographer;
 import com.segment.analytics.internal.IntegrationManager;
 import com.segment.analytics.internal.Logger;
 import com.segment.analytics.internal.Segment;
-import com.segment.analytics.internal.SegmentClient;
+import com.segment.analytics.internal.SegmentService;
 import com.segment.analytics.internal.Stats;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.BasePayload;
@@ -637,12 +637,12 @@ public class Analytics {
       Logger logger = new Logger(debuggingEnabled);
       Stats stats = new Stats();
       Cartographer cartographer = Cartographer.INSTANCE;
-      SegmentClient segmentClient = new SegmentClient(application, cartographer, writeKey);
+      SegmentService segmentService = new SegmentService(application, cartographer, writeKey);
       IntegrationManager integrationManager =
-          IntegrationManager.create(application, segmentClient, stats, logger, cartographer, tag,
+          IntegrationManager.create(application, segmentService, stats, logger, cartographer, tag,
               debuggingEnabled);
       Segment segment =
-          Segment.create(application, queueSize, flushInterval, segmentClient, cartographer,
+          Segment.create(application, queueSize, flushInterval, segmentService, cartographer,
               integrationManager.bundledIntegrations, tag, stats, logger);
 
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);

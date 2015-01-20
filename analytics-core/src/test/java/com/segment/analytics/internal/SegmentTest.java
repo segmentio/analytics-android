@@ -36,7 +36,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 public class SegmentTest {
 
-  @Mock SegmentClient segmentClient;
+  @Mock SegmentService segmentService;
   @Mock Stats stats;
   @Mock Logger logger;
   @Mock BasePayload payload;
@@ -53,7 +53,7 @@ public class SegmentTest {
   }
 
   Segment createSegmentIntegration(int maxQueueSize) {
-    return new Segment(context, maxQueueSize, 30, segmentClient,
+    return new Segment(context, maxQueueSize, 30, segmentService,
         Cartographer.INSTANCE, queueFile, Collections.<String, Boolean>emptyMap(),
         stats, logger);
   }
@@ -77,7 +77,7 @@ public class SegmentTest {
 
   @Test public void flushesQueueCorrectly() throws IOException {
     final OutputStream outputStream = mock(OutputStream.class);
-    segmentClient = new SegmentClient(Robolectric.application, cartographer, "foo") {
+    segmentService = new SegmentService(Robolectric.application, cartographer, "foo") {
       @Override void upload(StreamWriter streamWriter) throws IOException {
         streamWriter.write(outputStream);
       }
@@ -103,7 +103,7 @@ public class SegmentTest {
 
   @Test public void flushesWhenQueueHitsMax() throws IOException {
     final OutputStream outputStream = mock(OutputStream.class);
-    segmentClient = new SegmentClient(Robolectric.application, cartographer, "foo") {
+    segmentService = new SegmentService(Robolectric.application, cartographer, "foo") {
       @Override void upload(StreamWriter streamWriter) throws IOException {
         streamWriter.write(outputStream);
       }

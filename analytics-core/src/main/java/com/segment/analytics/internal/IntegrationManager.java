@@ -13,11 +13,13 @@ import dalvik.system.DexClassLoader;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -25,12 +27,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Analytics.OnIntegrationReadyListener;
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
+import static com.segment.analytics.internal.Utils.createDirectory;
 import static com.segment.analytics.internal.Utils.isConnected;
 
 /**
  * The class that forwards operations from the client to integrations, including Segment. It
  * maintains it's own in-memory queue to account for the latency between receiving the first event,
- * fetching settings from the server and enabling the integrations. Once it enables all integrations
+ * fetching settings from the server and enabling the integrations. Once it enables all
+ * integrations
  * it replays any events in the queue. This will only affect the first app install, subsequent
  * launches will be use the cached settings on disk.
  */
@@ -38,10 +42,10 @@ public class IntegrationManager {
   private static final String PROJECT_SETTINGS_CACHE_KEY_PREFIX = "project-settings-";
   private static final String MANAGER_THREAD_NAME = THREAD_PREFIX + "IntegrationManager";
   private static final long SETTINGS_REFRESH_INTERVAL = 1000 * 60 * 60 * 24; // 24 hours
-  private static final long SETTINGS_ERROR_RETRY_INTERVAL = 1000 * 60; // 1 minute
+  private static final long SETTINGS_RETRY_INTERVAL = 1000 * 60; // 1 minute
 
   final Context context;
-  final SegmentClient segmentClient;
+  final SegmentService segmentService;
   final HandlerThread networkingThread;
   final Handler networkingHandler;
   final Handler integrationManagerHandler;
@@ -56,20 +60,20 @@ public class IntegrationManager {
   OnIntegrationReadyListener listener;
 
   public static synchronized IntegrationManager create(Context context,
-      SegmentClient segmentClient, Stats stats, Logger logger, Cartographer cartographer,
+      SegmentService segmentService, Stats stats, Logger logger, Cartographer cartographer,
       String tag, boolean debuggingEnabled) {
     ValueMap.Cache<ProjectSettings> projectSettingsCache =
         new ValueMap.Cache<>(context, cartographer, PROJECT_SETTINGS_CACHE_KEY_PREFIX + tag,
             ProjectSettings.class);
-    return new IntegrationManager(context, segmentClient, projectSettingsCache, stats, logger,
+    return new IntegrationManager(context, segmentService, projectSettingsCache, stats, logger,
         debuggingEnabled);
   }
 
-  IntegrationManager(Context context, SegmentClient segmentClient,
+  IntegrationManager(Context context, SegmentService segmentService,
       ValueMap.Cache<ProjectSettings> projectSettingsCache, Stats stats, Logger logger,
       boolean debuggingEnabled) {
     this.context = context;
-    this.segmentClient = segmentClient;
+    this.segmentService = segmentService;
     this.stats = stats;
     this.debuggingEnabled = debuggingEnabled;
     this.logger = logger;
@@ -78,9 +82,6 @@ public class IntegrationManager {
     networkingHandler = new NetworkingHandler(networkingThread.getLooper(), this);
     integrationManagerHandler = new IntegrationHandler(Looper.getMainLooper(), this);
 
-    // Look up all the integrations available on the device. This is done early so that we can
-    // disable sending to these integrations from the server and properly fill the payloads with
-    // this information
     loadBundledIntegration("com.segment.analytics.AmplitudeIntegration");
     loadBundledIntegration("com.segment.analytics.AppsFlyerIntegration");
     loadBundledIntegration("com.segment.analytics.BugsnagIntegration");
@@ -97,14 +98,17 @@ public class IntegrationManager {
 
     this.projectSettingsCache = projectSettingsCache;
 
-    if (!projectSettingsCache.isSet() || projectSettingsCache.get() == null) {
+    if (!projectSettingsCache.isSet()) {
       dispatchFetch();
     } else {
       ProjectSettings projectSettings = projectSettingsCache.get();
-      dispatchInitialize(projectSettings);
-      if (projectSettings.timestamp() + SETTINGS_REFRESH_INTERVAL < System.currentTimeMillis()) {
-        // Update stale settings
+      if (projectSettings == null) {
         dispatchFetch();
+      } else {
+        dispatchInitialize(projectSettings);
+        if (projectSettings.timestamp() + SETTINGS_REFRESH_INTERVAL < System.currentTimeMillis()) {
+          dispatchFetch();
+        }
       }
     }
   }
@@ -125,39 +129,65 @@ public class IntegrationManager {
   }
 
   void dispatchFetch() {
-    networkingHandler.sendMessage(
-        networkingHandler.obtainMessage(NetworkingHandler.REQUEST_FETCH_SETTINGS));
+    networkingHandler.sendMessage(networkingHandler //
+        .obtainMessage(NetworkingHandler.REQUEST_FETCH_SETTINGS));
   }
 
-  void performFetch() {
-    try {
-      if (isConnected(context)) {
-        ProjectSettings projectSettings = segmentClient.fetchSettings();
-        projectSettingsCache.set(projectSettings);
-        if (!initialized) {
-          // It's ok if integrations are being initialized right now (and so initialized will be
-          // false). Since we just dispatch the request, the actual perform method will be able to
-          // see the real value of `initialized` and just skip the operation
-          dispatchInitialize(projectSettings);
-        }
-      } else {
-        retryFetch();
+  void performFetch() throws IOException {
+    if (isConnected(context)) {
+      ProjectSettings projectSettings = segmentService.fetchSettings();
+      projectSettingsCache.set(projectSettings);
+
+      File downloadedJarsDirectory = getJarDownloadDirectory(context);
+      try {
+        createDirectory(downloadedJarsDirectory);
+      } catch (IOException e) {
+        logger.print(e, "Unable to download integrations into " + downloadedJarsDirectory);
+        return;
       }
-    } catch (IOException e) {
+
+      Set<String> bundledIntegrationsKeys = bundledIntegrations.keySet();
+      HashSet<String> skippedIntegrations = new HashSet<>(bundledIntegrationsKeys.size() + 2);
+      skippedIntegrations.addAll(bundledIntegrationsKeys);
+      skippedIntegrations.add(ProjectSettings.SEGMENT_KEY);
+      skippedIntegrations.add(ProjectSettings.TIMESTAMP_KEY);
+
+      for (String key : projectSettings.keySet()) {
+        if (skippedIntegrations.contains(key)) continue;
+
+        String fileName = getFileNameForIntegration(key);
+        String url = "https://dl.dropboxusercontent.com/u/11371156/integrations/" + fileName;
+        File jarFile = new File(downloadedJarsDirectory, fileName);
+        if (!jarFile.exists()) segmentService.downloadFile(url, jarFile);
+      }
+
+      if (!initialized) dispatchInitialize(projectSettings);
+    } else {
       retryFetch();
     }
   }
 
   void retryFetch() {
-    networkingHandler.sendMessageDelayed(
-        networkingHandler.obtainMessage(NetworkingHandler.REQUEST_FETCH_SETTINGS),
-        SETTINGS_ERROR_RETRY_INTERVAL);
+    networkingHandler.sendMessageDelayed(networkingHandler //
+        .obtainMessage(NetworkingHandler.REQUEST_FETCH_SETTINGS), SETTINGS_RETRY_INTERVAL);
   }
 
   void dispatchInitialize(ProjectSettings projectSettings) {
-    integrationManagerHandler.sendMessageAtFrontOfQueue(
-        integrationManagerHandler.obtainMessage(IntegrationHandler.REQUEST_INITIALIZE,
-            projectSettings));
+    integrationManagerHandler.sendMessageAtFrontOfQueue(integrationManagerHandler //
+        .obtainMessage(IntegrationHandler.REQUEST_INITIALIZE, projectSettings));
+  }
+
+  static String getSanitizedKeyForIntegration(String integrationKey) {
+    return integrationKey.replace(' ', '-').toLowerCase();
+  }
+
+  static String getFileNameForIntegration(String integrationKey) {
+    return getSanitizedKeyForIntegration(integrationKey)
+        + "-3.0.0-SNAPSHOT-jar-with-dependencies.jar";
+  }
+
+  static File getJarDownloadDirectory(Context context) {
+    return context.getDir("jars", Context.MODE_PRIVATE);
   }
 
   void performInitialize(ProjectSettings projectSettings) {
@@ -192,58 +222,38 @@ public class IntegrationManager {
       }
     }
 
-    // Initialize any downloaded integrations that were not bundled
+    File downloadedJarsDirectory = getJarDownloadDirectory(context);
+    try {
+      createDirectory(downloadedJarsDirectory);
+    } catch (IOException e) {
+      logger.print(e, "Unable to load downloaded integrations");
+      return;
+    }
+    File optimizedDexDirectory = context.getDir("optimized-dex", Context.MODE_PRIVATE);
+    try {
+      createDirectory(optimizedDexDirectory);
+    } catch (IOException e) {
+      logger.print(e, "Unable to dex downloaded integrations");
+      return;
+    }
+
+    Set<String> bundledIntegrationsKeys = bundledIntegrationsCopy.keySet();
+    HashSet<String> skippedIntegrations = new HashSet<>(bundledIntegrationsKeys.size() + 2);
+    skippedIntegrations.addAll(bundledIntegrationsKeys);
+    skippedIntegrations.add(ProjectSettings.SEGMENT_KEY);
+    skippedIntegrations.add(ProjectSettings.TIMESTAMP_KEY);
+
     for (String key : projectSettings.keySet()) {
-      if (bundledIntegrationsCopy.containsKey(key)) continue;
-      if (key.contains("Segment") || key.contains("timestamp")) continue;
+      if (skippedIntegrations.contains(key)) continue;
 
-      File parent = context.getFilesDir();
-      String fileKey = key.replace(' ', '-').toLowerCase();
-      File directory = new File(parent, fileKey);
-      String jarFilePath = fileKey + "-3.0.0-SNAPSHOT-jar-with-dependencies.jar";
-      File jarFile = new File(directory, jarFilePath);
-      /*
+      File jarFile = new File(downloadedJarsDirectory, getFileNameForIntegration(key));
       try {
-        ZipFile zipFile = new ZipFile(jarFile);
-        for (Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            entries.hasMoreElements(); ) {
-          String name = entries.nextElement().getName();
-          System.out.println("entry: " + name);
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-      */
-
-      /*
-      try {
-        File dexFileOutputDir = context.getDir("dexFileOutput" + fileKey, Context.MODE_PRIVATE);
-        File dexFileOutputFile = new File(dexFileOutputDir, "dex");
-        DexFile dx =
-            DexFile.loadDex(jarFile.getAbsolutePath(), dexFileOutputFile.getAbsolutePath(), 0);
-        // Print all classes in the DexFile
-        for (Enumeration<String> classNames = dx.entries(); classNames.hasMoreElements(); ) {
-          String className = classNames.nextElement();
-          System.out.println("class: " + className);
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-      */
-
-      try {
-        File dexLoaderOutputDir = context.getDir("dexLoaderOutput" + fileKey, Context.MODE_PRIVATE);
         DexClassLoader dexClassLoader =
-            new DexClassLoader(jarFile.getAbsolutePath(), dexLoaderOutputDir.getAbsolutePath(),
+            new DexClassLoader(jarFile.getAbsolutePath(), optimizedDexDirectory.getAbsolutePath(),
                 null, context.getClassLoader());
         String className =
             "com.segment.analytics.internal.integrations." + key.replace(" ", "") + "Integration";
-        // Load the library.
         Class integrationClass = dexClassLoader.loadClass(className);
-        // Cast the return object to the library interface so that the
-        // caller can directly invoke methods in the interface.
-        // Alternatively, the caller can invoke methods through reflection,
-        // which is more verbose.
         AbstractIntegration integration = (AbstractIntegration) integrationClass.newInstance();
         ValueMap settings = projectSettings.getValueMap(key);
         try {
@@ -437,7 +447,11 @@ public class IntegrationManager {
     @Override public void handleMessage(final Message msg) {
       switch (msg.what) {
         case REQUEST_FETCH_SETTINGS:
-          integrationManager.performFetch();
+          try {
+            integrationManager.performFetch();
+          } catch (IOException e) {
+            integrationManager.retryFetch();
+          }
           break;
         default:
           Utils.panic("Unhandled dispatcher message." + msg.what);

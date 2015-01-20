@@ -21,13 +21,13 @@ import java.util.Map;
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Logger.OWNER_SEGMENT;
 import static com.segment.analytics.Logger.VERB_ENQUEUE;
-import static com.segment.analytics.Utils.createQueueFile;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.isNullOrEmpty;
 import static com.segment.analytics.Utils.panic;
 import static com.segment.analytics.Utils.quitThread;
 import static com.segment.analytics.Utils.toISO8601Date;
 import static com.segment.analytics.internal.JsonUtils.mapToJson;
+import static com.segment.analytics.internal.Utils.createDirectory;
 
 /**
  * The actual service that posts data to Segment's servers.
@@ -55,7 +55,7 @@ public class Segment {
 
   final Context context;
   final QueueFile payloadQueueFile;
-  final SegmentClient segmentClient;
+  final SegmentService segmentService;
   final int flushQueueSize;
   final int flushInterval;
   final Stats stats;
@@ -67,28 +67,28 @@ public class Segment {
   PayloadQueueFileStreamWriter payloadQueueFileStreamWriter;
 
   public static synchronized Segment create(Context context, int flushQueueSize, int flushInterval,
-      SegmentClient segmentClient, Cartographer cartographer, Map<String, Boolean> integrations,
+      SegmentService segmentService, Cartographer cartographer, Map<String, Boolean> integrations,
       String tag, Stats stats, Logger logger) {
-    File parent = context.getFilesDir();
+    File queueFolder = context.getDir("disk-queue", Context.MODE_PRIVATE);
     String filePrefix = tag.replaceAll("[^A-Za-z0-9]", ""); // sanitize input
-    QueueFile payloadQueueFile;
+    QueueFile queueFile;
     try {
-      File parent = context.getFilesDir();
-      String filePrefix = tag.replaceAll("[^A-Za-z0-9]", ""); // sanitize input
-      payloadQueueFile = createQueueFile(parent, filePrefix + PAYLOAD_QUEUE_FILE_SUFFIX);
+      createDirectory(queueFolder);
+      queueFile = new QueueFile(new File(queueFolder, filePrefix + PAYLOAD_QUEUE_FILE_SUFFIX));
     } catch (IOException e) {
-      throw new RuntimeException("Could not create disk queue.", e);
+      throw new RuntimeException("Could not create disk queue file (" + filePrefix + ") in " //
+          + queueFolder, e);
     }
-    return new Segment(context, flushQueueSize, flushInterval, segmentClient, cartographer,
-        payloadQueueFile, integrations, stats, logger);
+    return new Segment(context, flushQueueSize, flushInterval, segmentService, cartographer,
+        queueFile, integrations, stats, logger);
   }
 
-  Segment(Context context, int flushQueueSize, int flushInterval, SegmentClient segmentClient,
+  Segment(Context context, int flushQueueSize, int flushInterval, SegmentService segmentService,
       Cartographer cartographer, QueueFile payloadQueueFile, Map<String, Boolean> integrations,
       Stats stats, Logger logger) {
     this.context = context;
     this.flushQueueSize = Math.min(flushQueueSize, MAX_QUEUE_SIZE);
-    this.segmentClient = segmentClient;
+    this.segmentService = segmentService;
     this.payloadQueueFile = payloadQueueFile;
     this.stats = stats;
     this.logger = logger;
@@ -126,7 +126,6 @@ public class Segment {
       logger.error(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), e, "%s", payload);
       return;
     }
-    // Check if we've reached the flushQueueSize
     if (payloadQueueFile.size() >= flushQueueSize) {
       performFlush();
     }
@@ -145,7 +144,7 @@ public class Segment {
           new PayloadQueueFileStreamWriter(integrations, payloadQueueFile);
     }
     try {
-      segmentClient.upload(payloadQueueFileStreamWriter);
+      segmentService.upload(payloadQueueFileStreamWriter);
     } catch (IOException e) {
       // There was an error. Reschedule flush for later
       dispatchFlush(flushInterval);
@@ -160,16 +159,15 @@ public class Segment {
       }
     }
     stats.dispatchFlush(payloadCount);
+
     if (payloadQueueFile.size() > 0) {
-      // There are remaining items in the queue. Flush them.
       performFlush();
     } else {
-      // The queue is empty. Reschedule flush for later
       dispatchFlush(flushInterval);
     }
   }
 
-  public static class PayloadQueueFileStreamWriter implements SegmentClient.StreamWriter {
+  public static class PayloadQueueFileStreamWriter implements SegmentService.StreamWriter {
     private final Map<String, Boolean> integrations;
     private final QueueFile payloadQueueFile;
     /** The number of events uploaded in the last request. todo: should be stateless? */

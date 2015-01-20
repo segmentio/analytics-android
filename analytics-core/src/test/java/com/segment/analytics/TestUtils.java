@@ -13,11 +13,16 @@ import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.json.JSONObject;
 import org.junit.Ignore;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.robolectric.Robolectric;
 
 import static android.Manifest.permission.INTERNET;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -106,9 +111,14 @@ public final class TestUtils {
   public static Application mockApplication() {
     Application application = mock(Application.class);
     when(application.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_GRANTED);
-    File parent = Robolectric.getShadowApplication().getFilesDir();
-    File temp = new File(parent, "temp");
-    when(application.getFilesDir()).thenReturn(temp);
+    final File parent = Robolectric.getShadowApplication().getFilesDir();
+    doAnswer(new Answer() {
+      @Override public Object answer(InvocationOnMock invocation) throws Throwable {
+        Object[] args = invocation.getArguments();
+        String fileName = (String) args[0];
+        return new File(parent, fileName);
+      }
+    }).when(application).getDir(anyString(), anyInt());
     return application;
   }
 

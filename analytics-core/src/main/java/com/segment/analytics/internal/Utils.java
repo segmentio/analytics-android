@@ -38,13 +38,18 @@ import java.io.File;
 import java.io.IOException;
 import com.segment.analytics.Analytics;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -97,6 +102,12 @@ public final class Utils {
   /** Returns true if the map is null or empty, false otherwise. */
   public static boolean isNullOrEmpty(Map map) {
     return map == null || map.size() == 0;
+  }
+
+  public static <T> Set<T> hashSetOf(T... entries) {
+    Set<T> set = new HashSet<>(entries.length);
+    Collections.addAll(set, entries);
+    return set;
   }
 
   /** Creates a unique device id to anonymously identify a user. */
@@ -239,26 +250,6 @@ public final class Utils {
   static void createDirectory(File location) throws IOException {
     if (!(location.exists() || location.mkdirs() || location.isDirectory())) {
       throw new IOException("Could not create directory at " + location);
-    }
-  }
-
-  /**
-   * Create a {@link QueueFile} in the given folder with the given name. This method will throw an
-   * {@link IOException} if the directory doesn't exist and could not be created. If the underlying
-   * file is somehow corrupted, we'll delete it, and try to recreate the file.
-   */
-  public static QueueFile createQueueFile(File folder, String name) throws IOException {
-    createDirectory(folder);
-    File file = new File(folder, name);
-    try {
-      return new QueueFile(file);
-    } catch (IOException e) {
-      //noinspection ResultOfMethodCallIgnored
-      if (file.delete()) {
-        return new QueueFile(file);
-      } else {
-        throw new IOException("Could not create queue file (" + name + ") in " + folder + ".");
-      }
     }
   }
 
