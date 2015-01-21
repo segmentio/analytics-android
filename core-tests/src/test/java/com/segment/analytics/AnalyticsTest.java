@@ -162,4 +162,13 @@ public class AnalyticsTest {
     analytics.getSnapshot();
     verify(stats).createSnapshot();
   }
+
+  @Test public void alias() throws Exception {
+    try {
+      analytics.alias(null);
+      fail("null previous id should throw error");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("previousId must not be null or empty.");
+    }
+  }
 }
