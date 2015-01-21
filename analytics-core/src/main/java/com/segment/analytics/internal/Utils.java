@@ -206,10 +206,21 @@ public final class Utils {
   }
 
   /** Panic from an unrecoverable error. */
-  public static void panic(final String string) {
+  public static RuntimeException panic(Throwable cause, String message) {
+    final RuntimeException exception = new RuntimeException(message, cause);
     Analytics.HANDLER.post(new Runnable() {
       @Override public void run() {
-        throw new AssertionError(string);
+        throw exception;
+      }
+    });
+    return exception;
+  }
+
+  /** Panic from an unrecoverable error. */
+  public static void panic(final String message) {
+    Analytics.HANDLER.post(new Runnable() {
+      @Override public void run() {
+        throw new AssertionError(message);
       }
     });
   }
@@ -247,9 +258,9 @@ public final class Utils {
   }
 
   /** Ensures that a directory is created in the given location, throws an IOException otherwise. */
-  static void createDirectory(File location) throws IOException {
-    if (!(location.exists() || location.mkdirs() || location.isDirectory())) {
-      throw new IOException("Could not create directory at " + location);
+  static void createDirectory(File directory) throws IOException {
+    if (!(directory.exists() || directory.mkdirs() || directory.isDirectory())) {
+      throw new IOException("Could not create directory : " + directory);
     }
   }
 

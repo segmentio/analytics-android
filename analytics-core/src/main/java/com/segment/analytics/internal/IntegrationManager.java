@@ -125,7 +125,7 @@ public class IntegrationManager {
     } catch (InstantiationException e) {
       logger.print(e, "Skipped integration %s as it could not be instantiated.", className);
     } catch (ClassNotFoundException e) {
-      logger.print(null, "Skipped integration %s as it was not bundled.", className);
+      logger.print("Skipped integration %s as it was not bundled.", className);
     } catch (IllegalAccessException e) {
       logger.print(e, "Skipped integration %s as it could not be accessed.", className);
     }
@@ -234,7 +234,7 @@ public class IntegrationManager {
         }
       } else {
         iterator.remove();
-        logger.print(null, "Did not initialize integration %s as it was disabled.", key);
+        logger.print("Did not initialize integration %s as it was disabled.", key);
       }
     }
 
@@ -415,7 +415,7 @@ public class IntegrationManager {
           integration.onActivityDestroyed(activity);
           break;
         default:
-          panic("Unknown lifecycle event type!" + type);
+          panic("Unknown lifecycle event type: " + type);
       }
     }
 
@@ -467,7 +467,7 @@ public class IntegrationManager {
           integrationManager.performFetch();
           break;
         default:
-          panic("Unhandled dispatcher message." + msg.what);
+          panic("Unhandled dispatcher message: " + msg.what);
       }
     }
   }
@@ -497,7 +497,7 @@ public class IntegrationManager {
               (OnIntegrationReadyListener) msg.obj);
           break;
         default:
-          panic("Unhandled dispatcher message." + msg.what);
+          panic("Unhandled dispatcher message: " + msg.what);
       }
     }
   }

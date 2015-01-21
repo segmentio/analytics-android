@@ -38,7 +38,7 @@ import java.net.URL;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 /**
- * HTTP client which can upload payloads and fetch project settings from the Segment public API and
+ * HTTP client which can upload payloads and fetch project settings from the Segment public API, and
  * download a file.
  */
 public class Client {

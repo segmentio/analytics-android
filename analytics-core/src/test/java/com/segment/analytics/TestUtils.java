@@ -19,6 +19,7 @@ import org.robolectric.Robolectric;
 
 import static android.Manifest.permission.INTERNET;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static com.segment.analytics.internal.Utils.panic;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
@@ -393,7 +394,7 @@ public final class TestUtils {
       constructor.setAccessible(true);
       return constructor.newInstance(map);
     } catch (Exception e) {
-      throw new RuntimeException("Could not create instance of " + clazz.getCanonicalName(), e);
+      throw panic(e, "Could not create instance of " + clazz.getCanonicalName());
     }
   }
 }

@@ -91,7 +91,7 @@ public class Stats {
           stats.performIntegrationOperation((Pair<String, Long>) msg.obj);
           break;
         default:
-          panic("Unhandled stats message." + msg.what);
+          panic("Unhandled stats message: " + msg.what);
       }
     }
   }

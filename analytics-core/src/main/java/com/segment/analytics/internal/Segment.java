@@ -6,7 +6,6 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.JsonWriter;
-import android.util.Log;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -36,15 +35,14 @@ public class Segment {
   private static final String SEGMENT_THREAD_NAME = THREAD_PREFIX + "Segment";
   /**
    * Drop old payloads if queue contains more than 1000 items. Since each item can be at most
-   * 450KB, this bounds the queueFile size to ~450MB (ignoring queueFile headers), which leaves
-   * room for QueueFile's 2GB limit.
+   * 450KB, this bounds the queueFile size to ~450MB (ignoring queueFile headers), which also
+   * leaves room for QueueFile's 2GB limit.
    */
   private static final int MAX_QUEUE_SIZE = 1000;
   /**
-   * Our servers only accept payloads <500KB. Any incoming payloads over 500KB will not be sent to
-   * our servers, and we'll batch items so that they don't go over this limit. This limit is 450kb
-   * to account for extra information that is not present in payloads themselves, but is added
-   * later, such as `sentAt`, `integrations` and the json tokens for this extra metadata.
+   * Our servers only accept payloads < 500KB. This limit is 450kb to account for extra information
+   * that is not present in payloads themselves, but is added later, such as `sentAt`,
+   * `integrations` and the json tokens for this extra metadata.
    */
   private static final int MAX_PAYLOAD_SIZE = 450000;
 
@@ -64,14 +62,13 @@ public class Segment {
       Cartographer cartographer, Stats stats, Logger logger, int flushInterval, int flushQueueSize,
       String tag, Map<String, Boolean> integrations) {
     File queueFolder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
-    QueueFile queueFile = null;
+    QueueFile queueFile;
     String fileName = tag.replaceAll("[^A-Za-z0-9]", "");
     try {
       createDirectory(queueFolder);
       queueFile = new QueueFile(new File(queueFolder, fileName + "-payloads-v1"));
     } catch (IOException e) {
-      panic("Could not create disk queue file (" + fileName + ") in " + queueFolder + "." //
-          + Log.getStackTraceString(e));
+      throw panic(e, "Could not create queue file (" + fileName + ") in " + queueFolder + ".");
     }
     return new Segment(context, client, cartographer, queueFile, logger, stats, integrations,
         flushInterval, flushQueueSize);
@@ -102,11 +99,11 @@ public class Segment {
   void performEnqueue(BasePayload payload) {
     final int queueSize = payloadQueueFile.size();
     if (queueSize > MAX_QUEUE_SIZE) {
-      logger.print(null, "Queue has reached limit. Dropping oldest event.");
+      logger.print("Queue has reached limit. Dropping oldest event.");
       try {
         payloadQueueFile.remove();
       } catch (IOException e) {
-        panic("could not remove payload from queue.");
+        throw panic(e, "Could not remove payload from queue.");
       }
     }
     try {
@@ -146,7 +143,7 @@ public class Segment {
         try {
           payloadQueueFile.remove();
         } catch (IOException e) {
-          panic("Unable to remove item from queue. %s" + Log.getStackTraceString(e));
+          throw panic(e, "Unable to remove payload from queue.");
         }
       }
 
@@ -284,7 +281,7 @@ public class Segment {
           segment.performFlush();
           break;
         default:
-          panic("Unknown dispatcher message." + msg.what);
+          panic("Unknown dispatcher message: " + msg.what);
       }
     }
   }
