@@ -251,13 +251,13 @@ public class Analytics {
   }
 
   /** @see #identify(String, Traits, Options) */
-  public void identify(String userId) {
-    identify(userId, null, null);
+  public String identify(String userId) {
+    return identify(userId, null, null);
   }
 
   /** @see #identify(String, Traits, Options) */
-  public void identify(Traits traits) {
-    identify(null, traits, null);
+  public String identify(Traits traits) {
+    return identify(null, traits, null);
   }
 
   /**
@@ -273,10 +273,12 @@ public class Analytics {
    * used.
    * @param newTraits Traits about the user
    * @param options To configure the call
+   * @return The previous ID assigned to the user. Use it to call {@link #alias(String, Options)}
    * @throws IllegalArgumentException if userId is null or an empty string
    * @see <a href="https://Segment/docs/tracking-api/identify/">Identify Documentation</a>
    */
-  public void identify(String userId, Traits newTraits, Options options) {
+  public String identify(String userId, Traits newTraits, Options options) {
+    String previousId = traitsCache.get().userIdOrAnonymousId();
     if (!isNullOrEmpty(userId)) {
       traitsCache.get().putUserId(userId);
     }
@@ -292,6 +294,7 @@ public class Analytics {
 
     BasePayload payload = new IdentifyPayload(analyticsContext, options, traitsCache.get());
     submit(payload);
+    return previousId;
   }
 
   /** @see #group(String, Traits, Options) */
@@ -337,8 +340,7 @@ public class Analytics {
   /**
    * The track method is how you record any actions your users perform. Each action is known by a
    * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
-   * For
-   * example a 'Purchased a Shirt' event might have properties like revenue or size.
+   * For example a 'Purchased a Shirt' event might have properties like revenue or size.
    *
    * @param event Name of the event. Must not be null or empty.
    * @param properties {@link Properties} to add extra information to this call
@@ -373,8 +375,7 @@ public class Analytics {
 
   /**
    * The screen methods let your record whenever a user sees a screen of your mobile app, and
-   * attach
-   * a name, category or properties to the screen.
+   * attach a name, category or properties to the screen.
    * <p>
    * Either category or name must be provided.
    *
@@ -400,31 +401,33 @@ public class Analytics {
     submit(payload);
   }
 
-  /** @see #alias(String, String, Options) */
-  public void alias(String previousId, String newId) {
-    alias(previousId, newId, null);
+  /** @see #alias(String, Options) */
+  public void alias(String previousId) {
+    alias(previousId, null);
   }
 
   /**
    * The alias method is used to merge two user identities, effectively connecting two sets of user
    * data as one. This is an advanced method, but it is required to manage user identities
-   * successfully in some of our integrations. You should still call {@link #identify(String,
-   * Traits, Options)} with {@code newId} if you want to use it as the default id.
+   * successfully in some of our integrations.
+   * <p>
    *
-   * @param previousId The old id we want to map. If it is null, the the previously cached userId
-   * will be used. If the userId has not been set (by calling {@link #identify(String)}), the
-   * anonymous id is used instead.
-   * @param newId The newId to map the old id to. Must not be null to empty.
+   * Usage:
+   * <pre> <code>
+   *   String previousId = analytics.identify(newId);
+   *   analytics.alias(previousId, options);
+   * </code> </pre>
+   *
+   * @param previousId The previous ID for the user that you want to alias from, that you
+   * previously called identify with as their user ID, or their anonymous ID. It can be retrieved
+   * by calling {@link #identify(String, Traits, Options)} (String)}
    * @param options To configure the call
    * @throws IllegalArgumentException if newId is null or empty
    * @see <a href="https://Segment/docs/tracking-api/alias/">Alias Documentation</a>
    */
-  public void alias(String previousId, String newId, Options options) {
-    if (isNullOrEmpty(newId)) {
-      throw new IllegalArgumentException("newId must not be null or empty.");
-    }
+  public void alias(String previousId, Options options) {
     if (isNullOrEmpty(previousId)) {
-      previousId = traitsCache.get().userIdOrAnonymousId();
+      throw new IllegalArgumentException("previousId must not be null or empty.");
     }
     if (options == null) {
       options = defaultOptions;
@@ -435,7 +438,7 @@ public class Analytics {
   }
 
   /**
-   * Asynchronously flushes all messages in the queue to the server, and tell integrations to do
+   * Asynchronously flushes all messages in the queue to the server, and tells integrations to do
    * the same.
    * <p>
    * Note that this will do nothing for bundled integrations that don't provide an explicit flush
@@ -503,6 +506,17 @@ public class Analytics {
    * ((MixpanelAPI) integration).clearSuperProperties();
    * }
    * }
+   * <pre> <code>
+   *   analytics.registerOnIntegrationReady(new OnIntegrationReadyListener() {
+   *     {@literal @}Override public void onIntegrationReady(String key, Object integration) {
+   *       if("Mixpanel".equals(key)) {
+   *         ((MixpanelAPI) integration).clearSuperProperties();
+   *       } else if ("Amplitude".equals(key)) {
+   *         Amplitude.enableLocationListening();
+   *       }
+   *     }
+   *   });
+   * </code> </pre>
    *
    * @since 2.3
    */
