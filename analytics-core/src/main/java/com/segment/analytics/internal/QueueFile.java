@@ -440,14 +440,15 @@ public class QueueFile {
    * added. Continues until all elements are read or {@link ElementVisitor#read reader.read()}
    * returns {@code false}.
    */
-  public synchronized void forEach(ElementVisitor reader) throws IOException {
+  public synchronized int forEach(ElementVisitor reader) throws IOException {
     int position = first.position;
     for (int i = 0; i < elementCount; i++) {
       Element current = readElement(position);
       boolean shouldContinue = reader.read(new ElementInputStream(current), current.length);
-      if (!shouldContinue) break;
+      if (!shouldContinue) return i;
       position = wrapPosition(current.position + Element.HEADER_LENGTH + current.length);
     }
+    return elementCount;
   }
 
   /**

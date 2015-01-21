@@ -26,6 +26,7 @@ package com.segment.analytics.internal;
 
 import android.content.Context;
 import android.util.Base64;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -34,21 +35,22 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import static com.segment.analytics.internal.Utils.buffer;
 import static java.net.HttpURLConnection.HTTP_OK;
 
-public class SegmentService {
-  private static final String API_URL = "https://api.segment.io/";
+/**
+ * HTTP client which can upload payloads and fetch project settings from the Segment public API and
+ * download a file.
+ */
+public class Client {
+  private static final String API_URL = "https://api.segment.io";
   private static final int DEFAULT_READ_TIMEOUT_MILLIS = 20 * 1000; // 20s
   private static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 15 * 1000; // 15s
 
   final String writeKey;
   final Context context;
-  final Cartographer cartographer;
 
-  public SegmentService(Context context, Cartographer cartographer, String writeKey) {
+  public Client(Context context, String writeKey) {
     this.context = context;
-    this.cartographer = cartographer;
     this.writeKey = writeKey;
   }
 
@@ -56,36 +58,50 @@ public class SegmentService {
     HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
     connection.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS);
     connection.setReadTimeout(DEFAULT_READ_TIMEOUT_MILLIS);
+    connection.setDoInput(true);
     return connection;
   }
 
-  void upload(StreamWriter streamWriter) throws IOException {
-    HttpURLConnection connection = openConnection(API_URL + "v1/import");
-    connection.setRequestProperty("Content-Type", "application/json");
-    connection.setRequestProperty("Authorization",
-        "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP));
-    connection.setDoOutput(true);
-    connection.setChunkedStreamingMode(0);
-
-    OutputStream os = connection.getOutputStream();
-    try {
-      streamWriter.write(os);
-    } finally {
-      os.close();
-    }
-
-    try {
-      int responseCode = connection.getResponseCode();
-      if (responseCode != HTTP_OK) {
-        throw new IOException(responseCode + " " + connection.getResponseMessage());
+  private static Response createPostResponse(HttpURLConnection connection) throws IOException {
+    return new Response(connection, null, connection.getOutputStream()) {
+      @Override public void close() throws IOException {
+        try {
+          int responseCode = connection.getResponseCode();
+          if (responseCode != HTTP_OK) {
+            throw new IOException(responseCode + " " + connection.getResponseMessage());
+          }
+        } finally {
+          super.close();
+          os.close();
+        }
       }
-    } finally {
-      connection.disconnect();
-    }
+    };
   }
 
-  ProjectSettings fetchSettings() throws IOException {
-    HttpURLConnection connection = openConnection(API_URL + "project/" + writeKey + "/settings");
+  static String authorizationHeader(String writeKey) {
+    return "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP);
+  }
+
+  Response upload() throws IOException {
+    HttpURLConnection connection = openConnection(API_URL + "/v1/import");
+    connection.setRequestProperty("Content-Type", "application/json");
+    connection.setRequestProperty("Authorization", authorizationHeader(writeKey));
+    connection.setDoOutput(true);
+    connection.setChunkedStreamingMode(0);
+    return createPostResponse(connection);
+  }
+
+  private static Response createGetResponse(HttpURLConnection connection) throws IOException {
+    return new Response(connection, connection.getInputStream(), null) {
+      @Override public void close() throws IOException {
+        super.close();
+        is.close();
+      }
+    };
+  }
+
+  Response fetchSettings() throws IOException {
+    HttpURLConnection connection = openConnection(API_URL + "/project/" + writeKey + "/settings");
     connection.setRequestProperty("Content-Type", "application/json");
 
     int responseCode = connection.getResponseCode();
@@ -93,13 +109,7 @@ public class SegmentService {
       connection.disconnect();
       throw new IOException(responseCode + " " + connection.getResponseMessage());
     }
-
-    try {
-      return ProjectSettings.create(cartographer.fromJson(buffer(connection.getInputStream())),
-          System.currentTimeMillis());
-    } finally {
-      connection.disconnect();
-    }
+    return createGetResponse(connection);
   }
 
   void downloadFile(String url, File location) throws IOException {
@@ -120,8 +130,26 @@ public class SegmentService {
     }
   }
 
-  /** An entity that writes to an {@link OutputStream}. */
-  interface StreamWriter {
-    void write(OutputStream outputStream) throws IOException;
+  /**
+   * Wraps an HTTP response. Callers can either read from the {@link InputStream} or write to the
+   * {@link OutputStream}.
+   */
+  static abstract class Response implements Closeable {
+    protected final HttpURLConnection connection;
+    /** The {@link InputStream}, or null if {@code os} is set. */
+    final InputStream is;
+    /** The {@link OutputStream}, or null if {@code is} is set. */
+    final OutputStream os;
+
+    Response(HttpURLConnection connection, InputStream is, OutputStream os) {
+      if (connection == null) throw new IllegalArgumentException("connection == null");
+      this.connection = connection;
+      this.is = is;
+      this.os = os;
+    }
+
+    @Override public void close() throws IOException {
+      connection.disconnect();
+    }
   }
 }

@@ -26,10 +26,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Analytics.OnIntegrationReadyListener;
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
+import static com.segment.analytics.internal.Utils.buffer;
 import static com.segment.analytics.internal.Utils.createDirectory;
 import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.panic;
+import static java.lang.System.currentTimeMillis;
 
 /**
  * The class that forwards operations from the client to integrations, including Segment. It
@@ -46,7 +48,7 @@ public class IntegrationManager {
   private static final long SETTINGS_RETRY_INTERVAL = 1000 * 60; // 1 minute
 
   final Context context;
-  final SegmentService segmentService;
+  final Client client;
   final HandlerThread networkingThread;
   final Handler networkingHandler;
   final Handler integrationManagerHandler;
@@ -56,28 +58,30 @@ public class IntegrationManager {
   final Logger logger;
   final List<AbstractIntegration> integrations = new CopyOnWriteArrayList<>();
   public final Map<String, Boolean> bundledIntegrations = new ConcurrentHashMap<>();
+  private final Cartographer cartographer;
   Queue<IntegrationOperation> operationQueue;
   boolean initialized;
   OnIntegrationReadyListener listener;
 
-  public static synchronized IntegrationManager create(Context context,
-      SegmentService segmentService, Stats stats, Logger logger, Cartographer cartographer,
-      String tag, boolean debuggingEnabled) {
+  public static synchronized IntegrationManager create(Context context, Cartographer cartographer,
+      Client client, Logger logger, Stats stats, String tag, boolean debuggingEnabled) {
     ValueMap.Cache<ProjectSettings> projectSettingsCache =
         new ValueMap.Cache<>(context, cartographer, PROJECT_SETTINGS_CACHE_KEY_PREFIX + tag,
             ProjectSettings.class);
-    return new IntegrationManager(context, segmentService, projectSettingsCache, stats, logger,
-        debuggingEnabled);
+    return new IntegrationManager(context, client, cartographer, logger, stats,
+        projectSettingsCache, debuggingEnabled);
   }
 
-  IntegrationManager(Context context, SegmentService segmentService,
-      ValueMap.Cache<ProjectSettings> projectSettingsCache, Stats stats, Logger logger,
-      boolean debuggingEnabled) {
+  IntegrationManager(Context context, Client client, Cartographer cartographer, Logger logger,
+      Stats stats, ValueMap.Cache<ProjectSettings> projectSettingsCache, boolean debuggingEnabled) {
     this.context = context;
-    this.segmentService = segmentService;
-    this.stats = stats;
-    this.debuggingEnabled = debuggingEnabled;
+    this.client = client;
+    this.cartographer = cartographer;
     this.logger = logger;
+    this.stats = stats;
+    this.projectSettingsCache = projectSettingsCache;
+    this.debuggingEnabled = debuggingEnabled;
+
     networkingThread = new HandlerThread(MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     networkingThread.start();
     networkingHandler = new NetworkingHandler(networkingThread.getLooper(), this);
@@ -97,8 +101,6 @@ public class IntegrationManager {
     loadBundledIntegration("com.segment.analytics.QuantcastIntegration");
     loadBundledIntegration("com.segment.analytics.TapstreamIntegration");
 
-    this.projectSettingsCache = projectSettingsCache;
-
     if (!projectSettingsCache.isSet()) {
       dispatchFetch();
     } else {
@@ -107,7 +109,7 @@ public class IntegrationManager {
         dispatchFetch();
       } else {
         dispatchInitialize(projectSettings);
-        if (projectSettings.timestamp() + SETTINGS_REFRESH_INTERVAL < System.currentTimeMillis()) {
+        if (projectSettings.timestamp() + SETTINGS_REFRESH_INTERVAL < currentTimeMillis()) {
           dispatchFetch();
         }
       }
@@ -137,8 +139,18 @@ public class IntegrationManager {
   void performFetch() {
     try {
       if (isConnected(context)) {
-        ProjectSettings projectSettings = segmentService.fetchSettings();
-        projectSettingsCache.set(projectSettings);
+        Client.Response response = client.fetchSettings();
+        ProjectSettings projectSettings;
+        try {
+          projectSettings = ProjectSettings.create(cartographer.fromJson(buffer(response.is)),
+              currentTimeMillis());
+          projectSettingsCache.set(projectSettings);
+        } catch (IOException e) {
+          retryFetch();
+          return;
+        } finally {
+          response.close();
+        }
 
         File downloadedJarsDirectory = getJarDownloadDirectory(context);
         try {
@@ -159,8 +171,7 @@ public class IntegrationManager {
 
           String fileName = getFileNameForIntegration(key);
           String url = "https://dl.dropboxusercontent.com/u/11371156/integrations/" + fileName;
-          File jarFile = new File(downloadedJarsDirectory, fileName);
-          if (!jarFile.exists()) segmentService.downloadFile(url, jarFile);
+          client.downloadFile(url, new File(downloadedJarsDirectory, fileName));
         }
 
         if (!initialized) dispatchInitialize(projectSettings);
@@ -320,9 +331,9 @@ public class IntegrationManager {
   private void run(IntegrationOperation operation) {
     for (int i = 0; i < integrations.size(); i++) {
       AbstractIntegration integration = integrations.get(i);
-      long startTime = System.currentTimeMillis();
+      long startTime = currentTimeMillis();
       operation.run(integration);
-      long endTime = System.currentTimeMillis();
+      long endTime = currentTimeMillis();
       long duration = endTime - startTime;
       logger.debug(integration.key(), Logger.VERB_DISPATCH, operation.id(), "duration: %s",
           duration);

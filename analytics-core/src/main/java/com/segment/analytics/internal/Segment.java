@@ -28,17 +28,12 @@ import static com.segment.analytics.Utils.quitThread;
 import static com.segment.analytics.Utils.toISO8601Date;
 import static com.segment.analytics.internal.JsonUtils.mapToJson;
 import static com.segment.analytics.internal.Utils.createDirectory;
+import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
 
-/**
- * The actual service that posts data to Segment's servers.
- *
- * @since 2.3
- */
+/** The component that posts events to Segment's servers. */
 public class Segment {
   private static final Charset UTF_8 = Charset.forName("UTF-8");
-  private static final String SEGMENT_THREAD_NAME = Utils.THREAD_PREFIX + "Segment";
-  private static final String PAYLOAD_QUEUE_FILE_SUFFIX = "-payloads-v1";
-  // we can probably relax/adjust these limits after getting more feedback
+  private static final String SEGMENT_THREAD_NAME = THREAD_PREFIX + "Segment";
   /**
    * Drop old payloads if queue contains more than 1000 items. Since each item can be at most
    * 450KB, this bounds the queueFile size to ~450MB (ignoring queueFile headers), which leaves
@@ -55,7 +50,7 @@ public class Segment {
 
   final Context context;
   final QueueFile payloadQueueFile;
-  final SegmentService segmentService;
+  final Client client;
   final int flushQueueSize;
   final int flushInterval;
   final Stats stats;
@@ -64,31 +59,30 @@ public class Segment {
   final Logger logger;
   final Map<String, Boolean> integrations;
   final Cartographer cartographer;
-  PayloadQueueFileStreamWriter payloadQueueFileStreamWriter;
 
-  public static synchronized Segment create(Context context, int flushQueueSize, int flushInterval,
-      SegmentService segmentService, Cartographer cartographer, Map<String, Boolean> integrations,
-      String tag, Stats stats, Logger logger) {
-    File queueFolder = context.getDir("disk-queue", Context.MODE_PRIVATE);
-    String filePrefix = tag.replaceAll("[^A-Za-z0-9]", ""); // sanitize input
-    QueueFile queueFile;
+  public static synchronized Segment create(Context context, Client client,
+      Cartographer cartographer, Stats stats, Logger logger, int flushInterval, int flushQueueSize,
+      String tag, Map<String, Boolean> integrations) {
+    File queueFolder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
+    QueueFile queueFile = null;
+    String fileName = tag.replaceAll("[^A-Za-z0-9]", "");
     try {
       createDirectory(queueFolder);
-      queueFile = new QueueFile(new File(queueFolder, filePrefix + PAYLOAD_QUEUE_FILE_SUFFIX));
+      queueFile = new QueueFile(new File(queueFolder, fileName + "-payloads-v1"));
     } catch (IOException e) {
-      throw new RuntimeException("Could not create disk queue file (" + filePrefix + ") in " //
-          + queueFolder, e);
+      panic("Could not create disk queue file (" + fileName + ") in " + queueFolder + "." //
+          + Log.getStackTraceString(e));
     }
-    return new Segment(context, flushQueueSize, flushInterval, segmentService, cartographer,
-        queueFile, integrations, stats, logger);
+    return new Segment(context, client, cartographer, queueFile, logger, stats, integrations,
+        flushInterval, flushQueueSize);
   }
 
-  Segment(Context context, int flushQueueSize, int flushInterval, SegmentService segmentService,
-      Cartographer cartographer, QueueFile payloadQueueFile, Map<String, Boolean> integrations,
-      Stats stats, Logger logger) {
+  Segment(Context context, Client client, Cartographer cartographer, QueueFile payloadQueueFile,
+      Logger logger, Stats stats, Map<String, Boolean> integrations, int flushInterval,
+      int flushQueueSize) {
     this.context = context;
     this.flushQueueSize = Math.min(flushQueueSize, MAX_QUEUE_SIZE);
-    this.segmentService = segmentService;
+    this.client = client;
     this.payloadQueueFile = payloadQueueFile;
     this.stats = stats;
     this.logger = logger;
@@ -139,73 +133,60 @@ public class Segment {
   void performFlush() {
     if ((payloadQueueFile.size() < 1) || !isConnected(context)) return;
 
-    if (payloadQueueFileStreamWriter == null) {
-      payloadQueueFileStreamWriter =
-          new PayloadQueueFileStreamWriter(integrations, payloadQueueFile);
-    }
     try {
-      segmentService.upload(payloadQueueFileStreamWriter);
-    } catch (IOException e) {
-      // There was an error. Reschedule flush for later
-      dispatchFlush(flushInterval);
-      return;
-    }
-    int payloadCount = payloadQueueFileStreamWriter.payloadCount;
-    for (int i = 0; i < payloadCount; i++) {
-      try {
-        payloadQueueFile.remove();
-      } catch (IOException e) {
-        panic("Unable to remove item from queue. %s" + Log.getStackTraceString(e));
-      }
-    }
-    stats.dispatchFlush(payloadCount);
+      Client.Response response = client.upload();
+      BatchPayloadWriter writer = new BatchPayloadWriter(response.os).beginObject()
+          .integrations(integrations)
+          .beginBatchArray();
+      int payloadCount = payloadQueueFile.forEach(new PayloadVisitor(writer));
+      writer.endBatchArray().endObject().close();
+      response.close();
 
-    if (payloadQueueFile.size() > 0) {
-      performFlush();
-    } else {
+      for (int i = 0; i < payloadCount; i++) {
+        try {
+          payloadQueueFile.remove();
+        } catch (IOException e) {
+          panic("Unable to remove item from queue. %s" + Log.getStackTraceString(e));
+        }
+      }
+
+      stats.dispatchFlush(payloadCount);
+
+      if (payloadQueueFile.size() > 0) {
+        performFlush();
+      } else {
+        dispatchFlush(flushInterval);
+      }
+    } catch (IOException e) {
       dispatchFlush(flushInterval);
     }
   }
 
-  public static class PayloadQueueFileStreamWriter implements SegmentService.StreamWriter {
-    private final Map<String, Boolean> integrations;
-    private final QueueFile payloadQueueFile;
-    /** The number of events uploaded in the last request. todo: should be stateless? */
+  static class PayloadVisitor implements QueueFile.ElementVisitor {
+    final BatchPayloadWriter writer;
+    int size;
     int payloadCount;
 
-    public PayloadQueueFileStreamWriter(Map<String, Boolean> integrations,
-        QueueFile payloadQueueFile) {
-      this.integrations = integrations;
-      this.payloadQueueFile = payloadQueueFile;
+    PayloadVisitor(BatchPayloadWriter writer) {
+      this.writer = writer;
     }
 
-    @Override public void write(OutputStream outputStream) throws IOException {
-      payloadCount = 0;
-      final BatchPayloadWriter writer = new BatchPayloadWriter(outputStream).beginObject()
-          .integrations(integrations)
-          .beginBatchArray();
-
-      payloadQueueFile.forEach(new QueueFile.ElementVisitor() {
-        int size = 0;
-
-        @Override public boolean read(InputStream in, int length) throws IOException {
-          final int newSize = size + length;
-          if (newSize > MAX_PAYLOAD_SIZE) return false;
-          size = newSize;
-          byte[] data = new byte[length];
-          in.read(data, 0, length);
-          writer.emitPayloadObject(new String(data, UTF_8));
-          payloadCount++;
-          return true;
-        }
-      });
-
-      writer.endBatchArray().endObject().close();
+    @Override public boolean read(InputStream in, int length) throws IOException {
+      final int newSize = size + length;
+      if (newSize > MAX_PAYLOAD_SIZE) {
+        return false;
+      }
+      size = newSize;
+      byte[] data = new byte[length];
+      in.read(data, 0, length);
+      writer.emitPayloadObject(new String(data, UTF_8));
+      payloadCount++;
+      return true;
     }
   }
 
   public void shutdown() {
-    Utils.quitThread(segmentThread);
+    quitThread(segmentThread);
   }
 
   /**
@@ -274,7 +255,7 @@ public class Segment {
        * assumed to have occurred at the same time, and therefore the difference is the local clock
        * skew.
        */
-      jsonWriter.name("sentAt").value(Utils.toISO8601Date(new Date())).endObject();
+      jsonWriter.name("sentAt").value(toISO8601Date(new Date())).endObject();
       return this;
     }
 
