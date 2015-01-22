@@ -24,6 +24,8 @@
 
 package com.segment.analytics.internal;
 
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
@@ -66,8 +68,20 @@ import static android.provider.Settings.Secure.getString;
 
 public final class Utils {
   public static final String THREAD_PREFIX = "SegmentAnalytics-";
-  private static final DateFormat ISO_8601_DATE_FORMAT =
+  @SuppressLint("SimpleDateFormat") private static final DateFormat ISO_8601_DATE_FORMAT =
       new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+  public final static String OWNER_MAIN = "Main";
+  public final static String OWNER_SEGMENT = "Segment";
+  public final static String OWNER_INTEGRATION_MANAGER = "IntegrationManager";
+  public final static String VERB_CREATE = "create";
+  public final static String VERB_DISPATCH = "dispatch";
+  public final static String VERB_ENQUEUE = "enqueue";
+  public final static String VERB_FLUSH = "flush";
+  public final static String VERB_SKIP = "skip";
+  public final static String VERB_INITIALIZE = "initialize";
+  final static String TAG = "Segment";
+  /** [thread] [verb] [id] [extras] */
+  private final static String DEBUG_FORMAT = "%1$-20s %2$-12s %3$-36s %4$s";
 
   /** Returns the date as a string formatted with {@link #ISO_8601_DATE_FORMAT}. */
   public static String toISO8601Date(Date date) {
@@ -198,8 +212,8 @@ public final class Utils {
   }
 
   /** Quit a thread safely if possible. */
-  public static void quitThread(HandlerThread thread) {
-    if (Build.VERSION.SDK_INT < 18) {
+  @TargetApi(18) public static void quitThread(HandlerThread thread) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
       thread.quit();
     } else {
       thread.quitSafely();
@@ -259,26 +273,11 @@ public final class Utils {
   }
 
   /** Ensures that a directory is created in the given location, throws an IOException otherwise. */
-  static void createDirectory(File directory) throws IOException {
-    if (!(directory.exists() || directory.mkdirs() || directory.isDirectory())) {
-      throw new IOException("Could not create directory : " + directory);
+  static void createDirectory(File location) throws IOException {
+    if (!(location.exists() || location.mkdirs() || location.isDirectory())) {
+      throw new IOException("Could not create directory at " + location);
     }
   }
-
-  // Logging
-  final static String TAG = "Segment";
-  /** [thread] [verb] [id] [extras] */
-  private final static String DEBUG_FORMAT = "%1$-20s %2$-12s %3$-36s %4$s";
-
-  public final static String OWNER_MAIN = "Main";
-  public final static String OWNER_SEGMENT = "Segment";
-  public final static String OWNER_INTEGRATION_MANAGER = "IntegrationManager";
-  public final static String VERB_CREATE = "create";
-  public final static String VERB_DISPATCH = "dispatch";
-  public final static String VERB_ENQUEUE = "enqueue";
-  public final static String VERB_FLUSH = "flush";
-  public final static String VERB_SKIP = "skip";
-  public final static String VERB_INITIALIZE = "initialize";
 
   private static String join(Object... parts) {
     if (parts.length == 1) return String.valueOf(parts[0]);
