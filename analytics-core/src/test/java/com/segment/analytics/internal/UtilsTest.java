@@ -42,6 +42,7 @@ import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.error;
 import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import static com.segment.analytics.internal.Utils.print;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
@@ -104,6 +105,22 @@ public class UtilsTest {
             .build());
   }
 
+  @Test public void printMessagesShowInLog() throws Exception {
+    Throwable throwable = new AssertionError("testing");
+    print(throwable, "foo");
+    print("%s-%s", "bar", "baz");
+
+    List<ShadowLog.LogItem> logs = ShadowLog.getLogs();
+    assertThat(logs).hasSize(2)
+        .contains(new LogItemBuilder().type(Log.ERROR).msg("foo").throwable(throwable).build())
+        .contains(new LogItemBuilder().type(Log.DEBUG).msg("bar-baz").build());
+  }
+
+  @Test public void returnsConnectedIfMissingPermission() throws Exception {
+    when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
+    assertThat(isConnected(context)).isTrue();
+  }
+
   static class LogItemBuilder {
     private int type;
     private String tag = TAG; // will be the default tag unless explicitly overriden
@@ -133,10 +150,5 @@ public class UtilsTest {
     public ShadowLog.LogItem build() {
       return new ShadowLog.LogItem(type, tag, msg, throwable);
     }
-  }
-
-  @Test public void returnsConnectedIfMissingPermission() throws Exception {
-    when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
-    assertThat(isConnected(context)).isTrue();
   }
 }

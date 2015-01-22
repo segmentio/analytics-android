@@ -38,6 +38,13 @@ public class SegmentTest {
   Segment segment;
   Cartographer cartographer;
 
+  private static QueueFile createQueueFile() throws IOException {
+    File parent = Robolectric.getShadowApplication().getFilesDir();
+    File queueFile = new File(parent, "wj8s1h5k-payload-v1");
+    queueFile.delete();
+    return new QueueFile(queueFile);
+  }
+
   @Before public void setUp() {
     initMocks(this);
     context = mockApplication();
@@ -52,13 +59,6 @@ public class SegmentTest {
   private Segment createSegmentIntegration(int maxQueueSize) {
     return new Segment(context, client, Cartographer.INSTANCE, queueFile, stats,
         Collections.<String, Boolean>emptyMap(), 30, maxQueueSize, false);
-  }
-
-  private static QueueFile createQueueFile() throws IOException {
-    File parent = Robolectric.getShadowApplication().getFilesDir();
-    File queueFile = new File(parent, "wj8s1h5k-payload-v1");
-    queueFile.delete();
-    return new QueueFile(queueFile);
   }
 
   // todo: add tests that were removed in Client refactor

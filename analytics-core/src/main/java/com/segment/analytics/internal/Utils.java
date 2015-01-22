@@ -307,8 +307,7 @@ public final class Utils {
   }
 
   public static void print(Throwable throwable, String format, Object... extras) {
-    Log.e(TAG, Log.getStackTraceString(throwable));
-    Log.e(TAG, String.format(format, extras));
+    Log.e(TAG, String.format(format, extras), throwable);
   }
 
   static void print(String format, Object... extras) {

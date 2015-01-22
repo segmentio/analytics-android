@@ -61,7 +61,7 @@ public class AnalyticsTest {
     analytics.logout();
     verify(traitsCache).delete();
     verify(traitsCache).set(any(Traits.class));
-    verify(analyticsContext).setTraits(traitsCache.get()); // update the traits in context
+    verify(analyticsContext).setTraits(traitsCache.get());
   }
 
   @Test public void trackFailsForInvalidEvent() {
