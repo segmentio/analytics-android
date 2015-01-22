@@ -4,11 +4,13 @@ import android.content.Context;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import java.io.IOException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLog;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
@@ -40,7 +42,11 @@ public class IntegrationManagerTest {
 
     integrationManager =
         new IntegrationManager(context, client, Cartographer.INSTANCE, stats, projectSettingsCache,
-            true);
+            false);
+  }
+
+  @After public void tearDown() {
+    assertThat(ShadowLog.getLogs()).isEmpty();
   }
 
   @Test public void addsKeysCorrectly() throws Exception {

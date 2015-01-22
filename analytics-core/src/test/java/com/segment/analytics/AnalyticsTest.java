@@ -6,6 +6,7 @@ import com.segment.analytics.internal.IntegrationManager;
 import com.segment.analytics.internal.Segment;
 import com.segment.analytics.internal.Stats;
 import com.segment.analytics.internal.model.payloads.BasePayload;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,6 +14,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
+import org.robolectric.shadows.ShadowLog;
 
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,7 +50,11 @@ public class AnalyticsTest {
     Traits traits = new Traits();
     when(traitsCache.get()).thenReturn(traits);
     analytics = new Analytics(application, integrationManager, segment, stats, traitsCache,
-        analyticsContext, defaultOptions, true);
+        analyticsContext, defaultOptions, false);
+  }
+
+  @After public void tearDown() {
+    assertThat(ShadowLog.getLogs()).isEmpty();
   }
 
   @Test public void logoutClearsTraitsAndUpdatesContext() {

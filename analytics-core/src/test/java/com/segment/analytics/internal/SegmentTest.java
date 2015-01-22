@@ -9,12 +9,14 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLog;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
@@ -43,12 +45,16 @@ public class SegmentTest {
     cartographer = Cartographer.INSTANCE;
   }
 
-  Segment createSegmentIntegration(int maxQueueSize) {
-    return new Segment(context, client, Cartographer.INSTANCE, queueFile, stats,
-        Collections.<String, Boolean>emptyMap(), 30, maxQueueSize, true);
+  @After public void tearDown() {
+    assertThat(ShadowLog.getLogs()).isEmpty();
   }
 
-  QueueFile createQueueFile() throws IOException {
+  private Segment createSegmentIntegration(int maxQueueSize) {
+    return new Segment(context, client, Cartographer.INSTANCE, queueFile, stats,
+        Collections.<String, Boolean>emptyMap(), 30, maxQueueSize, false);
+  }
+
+  private static QueueFile createQueueFile() throws IOException {
     File parent = Robolectric.getShadowApplication().getFilesDir();
     File queueFile = new File(parent, "wj8s1h5k-payload-v1");
     queueFile.delete();
