@@ -37,7 +37,6 @@ import android.os.Looper;
 import android.os.Message;
 import com.segment.analytics.internal.Cartographer;
 import com.segment.analytics.internal.IntegrationManager;
-import com.segment.analytics.internal.Logger;
 import com.segment.analytics.internal.Segment;
 import com.segment.analytics.internal.Client;
 import com.segment.analytics.internal.Stats;
@@ -51,9 +50,10 @@ import java.util.Map;
 
 import static com.segment.analytics.internal.IntegrationManager.ActivityLifecyclePayload;
 import static com.segment.analytics.internal.IntegrationManager.ActivityLifecyclePayload.Type;
-import static com.segment.analytics.internal.Logger.OWNER_MAIN;
-import static com.segment.analytics.internal.Logger.VERB_CREATE;
+import static com.segment.analytics.internal.Utils.OWNER_MAIN;
+import static com.segment.analytics.internal.Utils.VERB_CREATE;
 import static com.segment.analytics.internal.Utils.checkMain;
+import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.getResourceBooleanOrThrow;
 import static com.segment.analytics.internal.Utils.getResourceIntegerOrThrow;
 import static com.segment.analytics.internal.Utils.getResourceString;
@@ -102,7 +102,6 @@ public class Analytics {
   final Traits.Cache traitsCache;
   final AnalyticsContext analyticsContext;
   final Options defaultOptions;
-  final Logger logger;
   final boolean debuggingEnabled;
   boolean shutdown;
 
@@ -177,7 +176,7 @@ public class Analytics {
 
   Analytics(Application application, IntegrationManager integrationManager, Segment segment,
       Stats stats, Traits.Cache traitsCache, AnalyticsContext analyticsContext,
-      Options defaultOptions, Logger logger, boolean debuggingEnabled) {
+      Options defaultOptions, boolean debuggingEnabled) {
     this.application = application;
     this.integrationManager = integrationManager;
     this.segment = segment;
@@ -186,7 +185,6 @@ public class Analytics {
     this.analyticsContext = analyticsContext;
     this.defaultOptions = defaultOptions;
     this.debuggingEnabled = debuggingEnabled;
-    this.logger = logger;
 
     application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
       @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -493,13 +491,17 @@ public class Analytics {
   }
 
   void submit(BasePayload payload) {
-    logger.debug(OWNER_MAIN, VERB_CREATE, payload.id(), "%s", payload);
+    if (debuggingEnabled) {
+      debug(OWNER_MAIN, VERB_CREATE, payload.id(), payload);
+    }
     segment.dispatchEnqueue(payload);
     integrationManager.dispatchOperation(payload);
   }
 
   void submit(ActivityLifecyclePayload payload) {
-    logger.debug(OWNER_MAIN, VERB_CREATE, payload.id(), "%s", payload);
+    if (debuggingEnabled) {
+      debug(OWNER_MAIN, VERB_CREATE, payload.id(), payload);
+    }
     integrationManager.dispatchOperation(payload);
   }
 
@@ -634,15 +636,16 @@ public class Analytics {
       }
       if (isNullOrEmpty(tag)) tag = writeKey;
 
-      Logger logger = new Logger(debuggingEnabled);
       Stats stats = new Stats();
       Cartographer cartographer = Cartographer.INSTANCE;
       Client client = new Client(application, writeKey);
       IntegrationManager integrationManager =
-          IntegrationManager.create(application, cartographer, client, logger, stats, tag,
+          IntegrationManager.create(application, cartographer, client, stats, tag,
               debuggingEnabled);
-      Segment segment = Segment.create(application, client, cartographer, stats, logger,
-          flushInterval, queueSize, tag, integrationManager.bundledIntegrations);
+      Segment segment =
+          Segment.create(application, client, cartographer, stats,
+              integrationManager.bundledIntegrations, tag, flushInterval, queueSize,
+              debuggingEnabled);
 
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
@@ -651,7 +654,7 @@ public class Analytics {
       AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
 
       return new Analytics(application, integrationManager, segment, stats, traitsCache,
-          analyticsContext, defaultOptions, logger, debuggingEnabled);
+          analyticsContext, defaultOptions, debuggingEnabled);
     }
   }
 }

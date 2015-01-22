@@ -36,6 +36,7 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import java.io.File;
 import java.io.IOException;
+import android.util.Log;
 import com.segment.analytics.Analytics;
 import java.io.BufferedReader;
 import java.io.File;
@@ -262,6 +263,56 @@ public final class Utils {
     if (!(directory.exists() || directory.mkdirs() || directory.isDirectory())) {
       throw new IOException("Could not create directory : " + directory);
     }
+  }
+
+  // Logging
+  final static String TAG = "Segment";
+  /** [thread] [verb] [id] [extras] */
+  private final static String DEBUG_FORMAT = "%1$-20s %2$-12s %3$-36s %4$s";
+
+  public final static String OWNER_MAIN = "Main";
+  public final static String OWNER_SEGMENT = "Segment";
+  public final static String OWNER_INTEGRATION_MANAGER = "IntegrationManager";
+  public final static String VERB_CREATE = "create";
+  public final static String VERB_DISPATCH = "dispatch";
+  public final static String VERB_ENQUEUE = "enqueue";
+  public final static String VERB_FLUSH = "flush";
+  public final static String VERB_SKIP = "skip";
+  public final static String VERB_INITIALIZE = "initialize";
+
+  private static String join(Object... parts) {
+    if (parts.length == 1) return String.valueOf(parts[0]);
+
+    StringBuilder sb = new StringBuilder();
+    boolean needsComma = false;
+    //noinspection ForLoopReplaceableByForEach
+    for (int i = 0; i < parts.length; i++) {
+      if (needsComma) {
+        sb.append(", ");
+      } else {
+        needsComma = true;
+      }
+      sb.append(String.valueOf(parts[i]));
+    }
+    return sb.toString();
+  }
+
+  public static void debug(String owner, String verb, String id, Object... extras) {
+    Log.d(TAG, String.format(DEBUG_FORMAT, owner, verb, id, join(extras)));
+  }
+
+  public static void error(String owner, String verb, String id, Throwable cause,
+      Object... extras) {
+    Log.e(TAG, String.format(DEBUG_FORMAT, owner, verb, id, join(extras)), cause);
+  }
+
+  public static void print(Throwable throwable, String format, Object... extras) {
+    Log.e(TAG, Log.getStackTraceString(throwable));
+    Log.e(TAG, String.format(format, extras));
+  }
+
+  static void print(String format, Object... extras) {
+    Log.d(TAG, String.format(format, extras));
   }
 
   private Utils() {

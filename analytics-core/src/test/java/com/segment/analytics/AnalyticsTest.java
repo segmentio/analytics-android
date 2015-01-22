@@ -3,7 +3,6 @@ package com.segment.analytics;
 import android.Manifest;
 import android.app.Application;
 import com.segment.analytics.internal.IntegrationManager;
-import com.segment.analytics.internal.Logger;
 import com.segment.analytics.internal.Segment;
 import com.segment.analytics.internal.Stats;
 import com.segment.analytics.internal.model.payloads.BasePayload;
@@ -34,7 +33,6 @@ public class AnalyticsTest {
   @Mock Traits.Cache traitsCache;
   @Mock AnalyticsContext analyticsContext;
   @Mock Options defaultOptions;
-  @Mock Logger logger;
 
   private Analytics analytics;
 
@@ -50,7 +48,7 @@ public class AnalyticsTest {
     Traits traits = new Traits();
     when(traitsCache.get()).thenReturn(traits);
     analytics = new Analytics(application, integrationManager, segment, stats, traitsCache,
-        analyticsContext, defaultOptions, logger, true);
+        analyticsContext, defaultOptions, true);
   }
 
   @Test public void logoutClearsTraitsAndUpdatesContext() {

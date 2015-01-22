@@ -22,6 +22,10 @@ import com.google.android.gms.wearable.WearableListenerService;
 import com.segment.analytics.internal.Cartographer;
 import java.io.IOException;
 
+import static com.segment.analytics.internal.Utils.OWNER_SEGMENT;
+import static com.segment.analytics.internal.Utils.VERB_DISPATCH;
+import static com.segment.analytics.internal.Utils.error;
+
 /**
  * A {@link WearableListenerService} that listens for analytics events from a wear device.
  * <p/>
@@ -41,7 +45,10 @@ public class PhoneAnalyticsListenerService extends WearableListenerService {
       try {
         wearPayload = new WearPayload(cartographer.fromJson(new String(messageEvent.getData())));
       } catch (IOException e) {
-        getAnalytics().logger.print(e, "Error deserializing payload. Skipping.");
+        if (getAnalytics().debuggingEnabled) {
+          error(OWNER_SEGMENT, VERB_DISPATCH, String.valueOf(messageEvent.getRequestId()), e,
+              messageEvent);
+        }
         return;
       }
       switch (wearPayload.type()) {

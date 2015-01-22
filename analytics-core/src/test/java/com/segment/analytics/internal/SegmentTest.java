@@ -30,7 +30,6 @@ public class SegmentTest {
 
   @Mock Client client;
   @Mock Stats stats;
-  @Mock Logger logger;
   @Mock BasePayload payload;
   Context context;
   QueueFile queueFile;
@@ -45,8 +44,8 @@ public class SegmentTest {
   }
 
   Segment createSegmentIntegration(int maxQueueSize) {
-    return new Segment(context, client, Cartographer.INSTANCE, queueFile, logger, stats,
-        Collections.<String, Boolean>emptyMap(), 30, maxQueueSize);
+    return new Segment(context, client, Cartographer.INSTANCE, queueFile, stats,
+        Collections.<String, Boolean>emptyMap(), 30, maxQueueSize, true);
   }
 
   QueueFile createQueueFile() throws IOException {

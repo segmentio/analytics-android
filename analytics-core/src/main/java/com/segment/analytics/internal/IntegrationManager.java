@@ -22,15 +22,25 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Analytics.OnIntegrationReadyListener;
+import static com.segment.analytics.internal.Utils.OWNER_INTEGRATION_MANAGER;
+import static com.segment.analytics.internal.Utils.VERB_DISPATCH;
+import static com.segment.analytics.internal.Utils.VERB_ENQUEUE;
+import static com.segment.analytics.internal.Utils.VERB_INITIALIZE;
+import static com.segment.analytics.internal.Utils.VERB_SKIP;
+import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
 import static com.segment.analytics.internal.Utils.buffer;
 import static com.segment.analytics.internal.Utils.createDirectory;
+import static com.segment.analytics.internal.Utils.error;
 import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.panic;
+import static com.segment.analytics.internal.Utils.print;
+import static com.segment.analytics.internal.Utils.quitThread;
 import static java.lang.System.currentTimeMillis;
 
 /**
@@ -55,7 +65,6 @@ public class IntegrationManager {
   final Stats stats;
   final boolean debuggingEnabled;
   final ValueMap.Cache<ProjectSettings> projectSettingsCache;
-  final Logger logger;
   final List<AbstractIntegration> integrations = new CopyOnWriteArrayList<>();
   public final Map<String, Boolean> bundledIntegrations = new ConcurrentHashMap<>();
   private final Cartographer cartographer;
@@ -64,20 +73,19 @@ public class IntegrationManager {
   OnIntegrationReadyListener listener;
 
   public static synchronized IntegrationManager create(Context context, Cartographer cartographer,
-      Client client, Logger logger, Stats stats, String tag, boolean debuggingEnabled) {
+      Client client, Stats stats, String tag, boolean debuggingEnabled) {
     ValueMap.Cache<ProjectSettings> projectSettingsCache =
         new ValueMap.Cache<>(context, cartographer, PROJECT_SETTINGS_CACHE_KEY_PREFIX + tag,
             ProjectSettings.class);
-    return new IntegrationManager(context, client, cartographer, logger, stats,
-        projectSettingsCache, debuggingEnabled);
+    return new IntegrationManager(context, client, cartographer, stats, projectSettingsCache,
+        debuggingEnabled);
   }
 
-  IntegrationManager(Context context, Client client, Cartographer cartographer, Logger logger,
-      Stats stats, ValueMap.Cache<ProjectSettings> projectSettingsCache, boolean debuggingEnabled) {
+  IntegrationManager(Context context, Client client, Cartographer cartographer, Stats stats,
+      ValueMap.Cache<ProjectSettings> projectSettingsCache, boolean debuggingEnabled) {
     this.context = context;
     this.client = client;
     this.cartographer = cartographer;
-    this.logger = logger;
     this.stats = stats;
     this.projectSettingsCache = projectSettingsCache;
     this.debuggingEnabled = debuggingEnabled;
@@ -123,11 +131,15 @@ public class IntegrationManager {
       integrations.add(integration);
       bundledIntegrations.put(integration.key(), false);
     } catch (InstantiationException e) {
-      logger.print(e, "Skipped integration %s as it could not be instantiated.", className);
+      throw panic(e, "Could not instantiate " + className);
     } catch (ClassNotFoundException e) {
-      logger.print("Skipped integration %s as it was not bundled.", className);
+      if (debuggingEnabled) {
+        error(OWNER_INTEGRATION_MANAGER, VERB_SKIP, className, e);
+      }
     } catch (IllegalAccessException e) {
-      logger.print(e, "Skipped integration %s as it could not be accessed.", className);
+      if (debuggingEnabled) {
+        error(OWNER_INTEGRATION_MANAGER, VERB_SKIP, className, e);
+      }
     }
   }
 
@@ -156,8 +168,7 @@ public class IntegrationManager {
         try {
           createDirectory(downloadedJarsDirectory);
         } catch (IOException e) {
-          logger.print(e, "Unable to download integrations into " + downloadedJarsDirectory);
-          return;
+          throw panic(e, "Unable to download integrations into " + downloadedJarsDirectory);
         }
 
         Set<String> bundledIntegrationsKeys = bundledIntegrations.keySet();
@@ -220,8 +231,9 @@ public class IntegrationManager {
       if (projectSettings.containsKey(key)) {
         ValueMap settings = projectSettings.getValueMap(key);
         try {
-          logger.debug(Logger.OWNER_INTEGRATION_MANAGER, Logger.VERB_INITIALIZE, key,
-              "settings: %s", settings);
+          if (debuggingEnabled) {
+            debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, key, settings);
+          }
           integration.initialize(context, settings, debuggingEnabled);
           if (listener != null) {
             listener.onIntegrationReady(key, integration.getUnderlyingInstance());
@@ -230,11 +242,12 @@ public class IntegrationManager {
         } catch (IllegalStateException e) {
           iterator.remove();
           bundledIntegrations.remove(key);
-          logger.print(e, "Did not initialize integration %s as it needed more permissions.", key);
+          if (debuggingEnabled) {
+            error(OWNER_INTEGRATION_MANAGER, VERB_SKIP, key, e, settings);
+          }
         }
       } else {
         iterator.remove();
-        logger.print("Did not initialize integration %s as it was disabled.", key);
       }
     }
 
@@ -242,14 +255,18 @@ public class IntegrationManager {
     try {
       createDirectory(downloadedJarsDirectory);
     } catch (IOException e) {
-      logger.print(e, "Unable to load downloaded integrations");
+      if (debuggingEnabled) {
+        print(e, "Unable to load downloaded integrations");
+      }
       return;
     }
     File optimizedDexDirectory = context.getDir("optimized-dex", Context.MODE_PRIVATE);
     try {
       createDirectory(optimizedDexDirectory);
     } catch (IOException e) {
-      logger.print(e, "Unable to dex downloaded integrations");
+      if (debuggingEnabled) {
+        print(e, "Unable to dex downloaded integrations");
+      }
       return;
     }
     ClassLoader defaultClassLoader = context.getClassLoader();
@@ -274,8 +291,9 @@ public class IntegrationManager {
         AbstractIntegration integration = (AbstractIntegration) integrationClass.newInstance();
         ValueMap settings = projectSettings.getValueMap(key);
         try {
-          logger.debug(Logger.OWNER_INTEGRATION_MANAGER, Logger.VERB_INITIALIZE, key,
-              "settings: %s", settings);
+          if (debuggingEnabled) {
+            debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, key, settings);
+          }
           integration.initialize(context, settings, debuggingEnabled);
           integrations.add(integration);
           if (listener != null) {
@@ -286,10 +304,12 @@ public class IntegrationManager {
         } catch (IllegalStateException e) {
           iterator.remove();
           bundledIntegrations.remove(key);
-          logger.print(e, "Did not initialize integration %s as it needed more permissions.", key);
+          if (debuggingEnabled) {
+            error(OWNER_INTEGRATION_MANAGER, VERB_SKIP, key, e, settings);
+          }
         }
       } catch (Exception e) {
-        logger.print(e, "Could not initialize " + key);
+        throw panic(e, "Could not load downloaded integration");
       }
     }
 
@@ -322,7 +342,9 @@ public class IntegrationManager {
       if (operationQueue == null) {
         operationQueue = new ArrayDeque<>();
       }
-      logger.debug(Logger.OWNER_INTEGRATION_MANAGER, Logger.VERB_ENQUEUE, operation.id(), null);
+      if (debuggingEnabled) {
+        debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id());
+      }
       operationQueue.add(operation);
     }
   }
@@ -331,12 +353,14 @@ public class IntegrationManager {
   private void run(IntegrationOperation operation) {
     for (int i = 0; i < integrations.size(); i++) {
       AbstractIntegration integration = integrations.get(i);
-      long startTime = currentTimeMillis();
+      long startTime = System.nanoTime();
       operation.run(integration);
-      long endTime = currentTimeMillis();
+      long endTime = System.nanoTime();
       long duration = endTime - startTime;
-      logger.debug(integration.key(), Logger.VERB_DISPATCH, operation.id(), "duration: %s",
-          duration);
+      if (debuggingEnabled) {
+        debug(OWNER_INTEGRATION_MANAGER, VERB_DISPATCH, operation.id(), integration.key(),
+            TimeUnit.NANOSECONDS.toMillis(duration) + "ms");
+      }
       stats.dispatchIntegrationOperation(integration.key(), duration);
     }
   }
@@ -360,7 +384,7 @@ public class IntegrationManager {
   }
 
   public void shutdown() {
-    Utils.quitThread(networkingThread);
+    quitThread(networkingThread);
     if (operationQueue != null) {
       operationQueue.clear();
       operationQueue = null;

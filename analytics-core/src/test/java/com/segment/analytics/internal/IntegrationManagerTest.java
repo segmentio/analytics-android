@@ -26,13 +26,11 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class IntegrationManagerTest {
 
   IntegrationManager integrationManager;
+  Context context;
 
   @Mock Client client;
   @Mock Stats stats;
   @Mock ValueMap.Cache<ProjectSettings> projectSettingsCache;
-  @Mock Logger logger;
-
-  Context context;
 
   @Before public void setUp() throws IOException {
     initMocks(this);
@@ -41,8 +39,8 @@ public class IntegrationManagerTest {
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
 
     integrationManager =
-        new IntegrationManager(context, client, Cartographer.INSTANCE, logger, stats,
-            projectSettingsCache, true);
+        new IntegrationManager(context, client, Cartographer.INSTANCE, stats, projectSettingsCache,
+            true);
   }
 
   @Test public void addsKeysCorrectly() throws Exception {
