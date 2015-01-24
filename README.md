@@ -5,8 +5,11 @@ analytics-android
 [![Build Status](https://travis-ci.org/segmentio/analytics-android.svg?branch=f2prateek%2Fgradle)](https://travis-ci.org/segmentio/analytics-android)
 [![Javadocs](http://javadoc-badge.appspot.com/com.segment.analytics.android/core.svg?label=javadoc)](http://javadoc-badge.appspot.com/com.segment.analytics.android/core)
 
-
 analytics-android is an Android client for [Segment](https://segment.com)
+
+## Integrating with Segment
+
+Interested in integrating your service with us? Check out our [Partners page](https://segment.com/partners/) for more details.
 
 ## Documentation
 
