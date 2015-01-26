@@ -10,7 +10,8 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
 /**
- * Crittercism is an error reporting tool for your mobile apps. Any time your app crashes or errors.
+ * Crittercism is an error reporting tool for your mobile apps. Any time your app crashes or
+ * errors.
  * Crittercism will collect logs that will help you debug the problem and fix your app.
  *
  * @see <a href="http://crittercism.com">Crittercism</a>

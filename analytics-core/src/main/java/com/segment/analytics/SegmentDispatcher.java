@@ -1,4 +1,4 @@
-package com.segment.analytics.internal;
+package com.segment.analytics;
 
 import android.content.Context;
 import android.os.Handler;
@@ -6,6 +6,8 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.JsonWriter;
+import com.segment.analytics.internal.Cartographer;
+import com.segment.analytics.internal.QueueFile;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -34,7 +36,7 @@ import static com.segment.analytics.internal.Utils.print;
 import static com.segment.analytics.internal.Utils.OWNER_SEGMENT_DISPATCHER;
 
 /** Entity that queues payloads on disks and uploads them periodically. */
-public class SegmentDispatcher {
+class SegmentDispatcher {
   /**
    * Drop old payloads if queue contains more than 1000 items. Since each item can be at most
    * 450KB, this bounds the queueFile size to ~450MB (ignoring headers), which also leaves room for
@@ -42,7 +44,7 @@ public class SegmentDispatcher {
    */
   static final int MAX_QUEUE_SIZE = 1000;
   private static final Charset UTF_8 = Charset.forName("UTF-8");
-  private static final String SEGMENT_THREAD_NAME = THREAD_PREFIX + "Segment";
+  private static final String SEGMENT_THREAD_NAME = THREAD_PREFIX + OWNER_SEGMENT_DISPATCHER;
   /**
    * Our servers only accept payloads < 500KB. This limit is 450kb to account for extra information
    * that is not present in payloads themselves, but is added later, such as {@code sentAt},
@@ -62,7 +64,7 @@ public class SegmentDispatcher {
   final Map<String, Boolean> integrations;
   final Cartographer cartographer;
 
-  public static synchronized SegmentDispatcher create(Context context, Client client,
+  static synchronized SegmentDispatcher create(Context context, Client client,
       Cartographer cartographer, Stats stats, Map<String, Boolean> integrations, String tag,
       int flushInterval, int flushQueueSize, boolean debuggingEnabled) {
     QueueFile queueFile;
@@ -92,17 +94,18 @@ public class SegmentDispatcher {
 
     segmentThread = new HandlerThread(SEGMENT_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     segmentThread.start();
-    handler = new SegmentHandler(segmentThread.getLooper(), this);
+    handler = new SegmentDispatcherHandler(segmentThread.getLooper(), this);
     dispatchFlush(flushInterval);
   }
 
-  public void dispatchEnqueue(BasePayload payload) {
-    handler.sendMessage(handler.obtainMessage(SegmentHandler.REQUEST_ENQUEUE, payload));
+  void dispatchEnqueue(BasePayload payload) {
+    handler.sendMessage(handler.obtainMessage(SegmentDispatcherHandler.REQUEST_ENQUEUE, payload));
   }
 
-  public void dispatchFlush(int delay) {
-    handler.removeMessages(SegmentHandler.REQUEST_FLUSH);
-    handler.sendMessageDelayed(handler.obtainMessage(SegmentHandler.REQUEST_FLUSH), delay);
+  void dispatchFlush(int delay) {
+    handler.removeMessages(SegmentDispatcherHandler.REQUEST_FLUSH);
+    handler.sendMessageDelayed(handler.obtainMessage(SegmentDispatcherHandler.REQUEST_FLUSH),
+        delay);
   }
 
   void performEnqueue(BasePayload payload) {
@@ -164,7 +167,7 @@ public class SegmentDispatcher {
     }
   }
 
-  public void shutdown() {
+  void shutdown() {
     quitThread(segmentThread);
     try {
       queueFile.close();
@@ -266,12 +269,12 @@ public class SegmentDispatcher {
     }
   }
 
-  private static class SegmentHandler extends Handler {
-    static final int REQUEST_ENQUEUE = 0;
-    static final int REQUEST_FLUSH = 1;
+  private static class SegmentDispatcherHandler extends Handler {
+    private static final int REQUEST_ENQUEUE = 0;
+    private static final int REQUEST_FLUSH = 1;
     private final SegmentDispatcher segmentDispatcher;
 
-    SegmentHandler(Looper looper, SegmentDispatcher segmentDispatcher) {
+    SegmentDispatcherHandler(Looper looper, SegmentDispatcher segmentDispatcher) {
       super(looper);
       this.segmentDispatcher = segmentDispatcher;
     }

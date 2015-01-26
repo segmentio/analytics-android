@@ -28,7 +28,7 @@ import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
-import com.segment.analytics.internal.IntegrationManager;
+import com.segment.analytics.internal.IntegrationOperation;
 import java.util.Date;
 import java.util.UUID;
 
@@ -42,13 +42,13 @@ import static com.segment.analytics.internal.Utils.toISO8601Date;
  */
 // This ignores projectId, receivedAt and version that are set by the server.
 // sentAt is set on SegmentClient#BatchPayload
-public abstract class BasePayload extends ValueMap
-    implements IntegrationManager.IntegrationOperation {
+public abstract class BasePayload extends ValueMap implements IntegrationOperation {
   /** The type of message. */
   private static final String TYPE_KEY = "type";
   /**
    * The anonymous ID is an identifier that uniquely (or close enough) identifies the user, but
-   * isn't from your database. This is useful in cases where you are able to uniquely identifier the
+   * isn't from your database. This is useful in cases where you are able to uniquely identifier
+   * the
    * user between visits before they signup thanks to a cookie, or session ID or device ID. In our
    * mobile and browser libraries we will automatically handle sending the anonymous ID.
    */

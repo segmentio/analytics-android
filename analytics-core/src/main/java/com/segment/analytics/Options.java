@@ -35,8 +35,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Options {
   /**
-   * A special key , whose value which is respected for all integrations that don't have an explicit
-   * value set for them, a "default" value. See the documentation for {@link #setIntegration(String,
+   * A special key , whose value which is respected for all integrations that don't have an
+   * explicit
+   * value set for them, a "default" value. See the documentation for {@link
+   * #setIntegration(String,
    * boolean)} how to use this key.
    */
   public static final String ALL_INTEGRATIONS_KEY = "All";
@@ -53,7 +55,8 @@ public class Options {
    * <p/>
    * By default, all integrations are sent a payload, and the value for the {@link
    * #ALL_INTEGRATIONS_KEY} is {@code true}. You can disable specific payloads. For instance,
-   * <code>options.setIntegration("Google Analytics", false).setIntegration("Countly", false)</code>
+   * <code>options.setIntegration("Google Analytics", false).setIntegration("Countly",
+   * false)</code>
    * will send the event to ALL integrations except Google Analytic and Countly.
    * <p/>
    * If you want to enable only specific integrations, first override the defaults and then enable
@@ -62,7 +65,7 @@ public class Options {
    * only send events to ONLY Countly and Google Analytics.
    *
    * @param integrationKey The integration key
-   * @param enabled        <code>true</code> for enabled, <code>false</code> for disabled
+   * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
    * @return This options object for chaining
    */
   public Options setIntegration(String integrationKey, boolean enabled) {
@@ -76,7 +79,8 @@ public class Options {
 
   /**
    * Sets the timestamp of when an analytics call occurred. The timestamp is primarily used for
-   * historical imports or if this event happened in the past. The timestamp is not required, and if
+   * historical imports or if this event happened in the past. The timestamp is not required, and
+   * if
    * it's not provided, our servers will timestamp the call as if it just happened.
    *
    * @param timestamp The time when this event happened

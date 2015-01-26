@@ -5,8 +5,9 @@ import com.segment.analytics.Options;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
-import java.util.LinkedHashMap;
 import org.robolectric.Robolectric;
+
+import static com.segment.analytics.TestUtils.createContext;
 
 public class TrackPayloadBuilder {
   private AnalyticsContext context;
@@ -48,8 +49,7 @@ public class TrackPayloadBuilder {
       event = "bar";
     }
     if (context == null) {
-      context = new AnalyticsContext(new LinkedHashMap<String, Object>());
-      context.setTraits(traits);
+      context = createContext(traits);
     }
     if (properties == null) {
       properties = new Properties();

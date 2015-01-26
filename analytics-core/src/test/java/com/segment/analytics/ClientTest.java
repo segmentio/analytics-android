@@ -1,4 +1,4 @@
-package com.segment.analytics.internal;
+package com.segment.analytics;
 
 import android.app.Activity;
 import android.net.Uri;

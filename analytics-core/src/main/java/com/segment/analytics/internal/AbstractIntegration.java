@@ -16,7 +16,7 @@ import com.segment.analytics.internal.model.payloads.TrackPayload;
  * anyway since not all integrations require all methods to be implemented.
  *
  * @param <T> The type of the backing instance. This isn't strictly necessary, but serves as
- *            documentation for what type to expect with {@link #getUnderlyingInstance()}
+ * documentation for what type to expect with {@link #getUnderlyingInstance()}
  */
 public abstract class AbstractIntegration<T> {
   public static final String VIEWED_EVENT_FORMAT = "Viewed %s Screen";

@@ -57,15 +57,12 @@ import static java.util.Collections.unmodifiableMap;
 
 /**
  * Context is a dictionary of free-form information about a the state of the device. Context is
- * attached to every outgoing call, if you need to attach information to individual calls, see
- * {@link Properties}.
- * <p/>
- * You can add any custom data to the context dictionary that you'd like to have access to in the
- * raw logs.
+ * attached to every outgoing call. You can add any custom data to the context dictionary that
+ * you'd like to have access to in the raw logs.
  * <p/>
  * Some keys in the context dictionary have semantic meaning and will be collected for you
- * automatically, depending on the library you send data from.Some keys need to be manually entered,
- * such as IP Address, speed, etc.
+ * automatically, depending on the library you send data from. Some keys, such as IP address, and
+ * speed need to be manually entered, such as IP Address, speed, etc.
  * <p/>
  * This is not persisted to disk, and is recomputed each time the app starts. If you set a key
  * manually, you'll have to update it as well for each app start if you want it to persist between
@@ -145,29 +142,32 @@ public class AnalyticsContext extends ValueMap {
     }
   }
 
-  /** The {@link Analytics} client can be called from anywhere, so this needs to be thread safe. */
-  public AnalyticsContext(Context context, Traits traits) {
-    super(new NullableConcurrentHashMap<String, Object>());
+  /**
+   * The {@link Analytics} client can be called from anywhere, so the returned instances is thread
+   * safe.
+   */
+  static synchronized AnalyticsContext create(Context context, Traits traits) {
+    AnalyticsContext analyticsContext =
+        new AnalyticsContext(new NullableConcurrentHashMap<String, Object>());
     if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
       // this needs to be done each time since the settings may have been updated
-      new GetAdvertisingIdTask(this).execute(context);
+      new GetAdvertisingIdTask(analyticsContext).execute(context);
     }
-    putApp(context);
-    putDevice(context);
-    putLibrary();
-    put(LOCALE_KEY, Locale.getDefault().getLanguage() + "-" + Locale.getDefault().getCountry());
-    putNetwork(context);
-    putOs();
-    putScreen(context);
-    put(USER_AGENT_KEY, System.getProperty("http.agent"));
-    put(TIMEZONE_KEY, TimeZone.getDefault().getID());
-    setTraits(traits);
+    analyticsContext.putApp(context);
+    analyticsContext.putDevice(context);
+    analyticsContext.putLibrary();
+    analyticsContext.put(LOCALE_KEY,
+        Locale.getDefault().getLanguage() + "-" + Locale.getDefault().getCountry());
+    analyticsContext.putNetwork(context);
+    analyticsContext.putOs();
+    analyticsContext.putScreen(context);
+    analyticsContext.put(USER_AGENT_KEY, System.getProperty("http.agent"));
+    analyticsContext.put(TIMEZONE_KEY, TimeZone.getDefault().getID());
+    analyticsContext.setTraits(traits);
+    return analyticsContext;
   }
 
-  // Used to create copies and for tests, reflective operations fail with
-  // http://pastebin.com/vDc3qR8n
-  // todo: hide before v3
-  public AnalyticsContext(Map<String, Object> delegate) {
+  AnalyticsContext(Map<String, Object> delegate) {
     super(delegate);
   }
 
@@ -191,7 +191,7 @@ public class AnalyticsContext extends ValueMap {
     }
   }
 
-  public void setTraits(Traits traits) {
+  void setTraits(Traits traits) {
     put(TRAITS_KEY, traits.unmodifiableCopy()); // copy
   }
 
@@ -317,6 +317,7 @@ public class AnalyticsContext extends ValueMap {
     return this;
   }
 
+  /** An object representing location information. */
   public static class Location extends ValueMap {
     private static final String LOCATION_LATITUDE_KEY = "latitude";
     private static final String LOCATION_LONGITUDE_KEY = "longitude";

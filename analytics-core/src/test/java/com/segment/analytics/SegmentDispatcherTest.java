@@ -1,8 +1,11 @@
-package com.segment.analytics.internal;
+package com.segment.analytics;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import com.segment.analytics.internal.Cartographer;
+import com.segment.analytics.internal.QueueFile;
+import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import edu.emory.mathcs.backport.java.util.Collections;
 import java.io.ByteArrayOutputStream;
@@ -28,8 +31,8 @@ import org.robolectric.shadows.ShadowLog;
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.Context.CONNECTIVITY_SERVICE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
+import static com.segment.analytics.SegmentDispatcher.MAX_QUEUE_SIZE;
 import static com.segment.analytics.TestUtils.mockApplication;
-import static com.segment.analytics.internal.SegmentDispatcher.MAX_QUEUE_SIZE;
 import static com.segment.analytics.internal.Utils.toISO8601Date;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;

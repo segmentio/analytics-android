@@ -54,10 +54,11 @@ public class WearAnalytics {
 
   /**
    * The track method is how you record any actions your users perform. Each action is known by a
-   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions. For
+   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
+   * For
    * example a 'Purchased a Shirt' event might have properties like revenue or size.
    *
-   * @param event      Name of the event. Must not be null or empty.
+   * @param event Name of the event. Must not be null or empty.
    * @param properties {@link Properties} to add extra information to this call
    * @throws IllegalArgumentException if event name is null or an empty string
    * @see <a href="https://segment.com/docs/tracking-api/track/">Track Documentation</a>
@@ -77,13 +78,14 @@ public class WearAnalytics {
   }
 
   /**
-   * The screen methods let your record whenever a user sees a screen of your mobile app, and attach
+   * The screen methods let your record whenever a user sees a screen of your mobile app, and
+   * attach
    * a name, category or properties to the screen.
    * <p/>
    * Either category or name must be provided.
    *
-   * @param category   A category to describe the screen
-   * @param name       A name for the screen
+   * @param category A category to describe the screen
+   * @param name A name for the screen
    * @param properties {@link Properties} to add extra information to this call
    * @see <a href="http://segment.com/docs/tracking-api/page-and-screen/">Screen Documentation</a>
    * @see com.segment.analytics.Analytics#screen(String, String, Properties)

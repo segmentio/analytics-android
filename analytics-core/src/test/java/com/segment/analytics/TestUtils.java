@@ -8,6 +8,7 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.io.File;
 import java.lang.reflect.Constructor;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -82,6 +83,12 @@ public final class TestUtils {
     }
   }
 
+  public static AnalyticsContext createContext(Traits traits) {
+    AnalyticsContext context = new AnalyticsContext(new LinkedHashMap<String, Object>());
+    context.setTraits(traits);
+    return context;
+  }
+
   private TestUtils() {
     throw new AssertionError("no instances");
   }
@@ -126,7 +133,7 @@ public final class TestUtils {
         event = "bar";
       }
       if (context == null) {
-        context = new AnalyticsContext(Robolectric.application, traits);
+        context = createContext(traits);
       }
       if (properties == null) {
         properties = new Properties();
@@ -163,7 +170,7 @@ public final class TestUtils {
         traits = Traits.create(Robolectric.application);
       }
       if (context == null) {
-        context = new AnalyticsContext(Robolectric.application, traits);
+        context = createContext(traits);
       }
       if (options == null) {
         options = new Options();
@@ -215,7 +222,7 @@ public final class TestUtils {
         traits = Traits.create(Robolectric.application);
       }
       if (context == null) {
-        context = new AnalyticsContext(Robolectric.application, traits);
+        context = createContext(traits);
       }
       if (options == null) {
         options = new Options();
@@ -262,7 +269,7 @@ public final class TestUtils {
         traits = Traits.create(Robolectric.application);
       }
       if (context == null) {
-        context = new AnalyticsContext(Robolectric.application, traits);
+        context = createContext(traits);
       }
       if (options == null) {
         options = new Options();
@@ -314,7 +321,7 @@ public final class TestUtils {
         groupTraits = new Traits();
       }
       if (context == null) {
-        context = new AnalyticsContext(Robolectric.application, traits);
+        context = createContext(traits);
       }
       if (options == null) {
         options = new Options();

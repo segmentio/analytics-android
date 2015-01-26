@@ -5,8 +5,9 @@ import com.segment.analytics.Options;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
-import java.util.LinkedHashMap;
 import org.robolectric.Robolectric;
+
+import static com.segment.analytics.TestUtils.createContext;
 
 public class ScreenPayloadBuilder {
   private AnalyticsContext context;
@@ -51,8 +52,7 @@ public class ScreenPayloadBuilder {
       traits = Traits.create(Robolectric.application);
     }
     if (context == null) {
-      context = new AnalyticsContext(new LinkedHashMap<String, Object>());
-      context.setTraits(traits);
+      context = createContext(traits);
     }
     if (options == null) {
       options = new Options();

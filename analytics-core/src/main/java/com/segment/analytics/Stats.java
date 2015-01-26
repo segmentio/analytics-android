@@ -1,11 +1,11 @@
-package com.segment.analytics.internal;
+package com.segment.analytics;
 
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Pair;
-import com.segment.analytics.StatsSnapshot;
+import com.segment.analytics.internal.Utils;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +14,7 @@ import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.internal.Utils.panic;
 import static com.segment.analytics.internal.Utils.quitThread;
 
-public class Stats {
+class Stats {
   private static final String STATS_THREAD_NAME = Utils.THREAD_PREFIX + "Stats";
 
   final HandlerThread statsThread;
@@ -26,13 +26,13 @@ public class Stats {
   long integrationOperationDuration;
   Map<String, Long> integrationOperationDurationByIntegration = new HashMap<>();
 
-  public Stats() {
+  Stats() {
     statsThread = new HandlerThread(STATS_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     statsThread.start();
     handler = new StatsHandler(statsThread.getLooper(), this);
   }
 
-  public void shutdown() {
+  void shutdown() {
     quitThread(statsThread);
   }
 
@@ -64,7 +64,7 @@ public class Stats {
     }
   }
 
-  public StatsSnapshot createSnapshot() {
+  StatsSnapshot createSnapshot() {
     return new StatsSnapshot(System.currentTimeMillis(), flushCount, flushEventCount,
         integrationOperationCount, integrationOperationDuration,
         Collections.unmodifiableMap(integrationOperationDurationByIntegration));

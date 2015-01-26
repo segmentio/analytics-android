@@ -24,10 +24,10 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.rule.PowerMockRule;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.TestUtils.createContext;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -152,8 +152,7 @@ public class FlurryTest {
 
   @Test public void identifyWithTraits() {
     Traits traits = new Traits().putAge(20).putGender("f").putUserId("bar");
-    AnalyticsContext analyticsContext =
-        new AnalyticsContext(Robolectric.application, traits).putLocation(20, 20, 20);
+    AnalyticsContext analyticsContext = createContext(traits).putLocation(20, 20, 20);
     integration.identify(
         new IdentifyPayloadBuilder().traits(traits).context(analyticsContext).build());
     verifyStatic();

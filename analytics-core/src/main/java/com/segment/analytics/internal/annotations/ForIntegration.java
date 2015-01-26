@@ -14,14 +14,21 @@
  * limitations under the License.
  */
 
-package com.segment.analytics.annotations;
+package com.segment.analytics.internal.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** Annotation type used to indicate that the constructor is created for serialization. */
-@Target(ElementType.CONSTRUCTOR) @Retention(RetentionPolicy.SOURCE)
-public @interface ForDeserialization {
+/**
+ * Annotation type used to indicate that the annotated {@link ElementType} is exposed so that an
+ * {@link com.segment.analytics.internal.AbstractIntegration} can access it.
+ * </p>
+ * Since integrations are downloaded dynamically and loaded in a separate {@link ClassLoader}, they
+ * can't access package protected components. We have to increase the scope to public/protected.
+ */
+@Target({ ElementType.CONSTRUCTOR, ElementType.FIELD, ElementType.METHOD })
+@Retention(RetentionPolicy.SOURCE)
+public @interface ForIntegration {
 }

@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.segment.analytics.internal;
+package com.segment.analytics;
 
 import android.util.Pair;
-import com.segment.analytics.StatsSnapshot;
 import java.io.IOException;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;

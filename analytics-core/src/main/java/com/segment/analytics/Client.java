@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.segment.analytics.internal;
+package com.segment.analytics;
 
 import android.content.Context;
 import android.util.Base64;
@@ -41,7 +41,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
  * HTTP client which can upload payloads and fetch project settings from the Segment public API, and
  * download a file.
  */
-public class Client {
+class Client {
   private static final String API_URL = "https://api.segment.io";
   private static final int DEFAULT_READ_TIMEOUT_MILLIS = 20 * 1000; // 20s
   private static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 15 * 1000; // 15s
@@ -78,7 +78,7 @@ public class Client {
     return "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP);
   }
 
-  public Client(Context context, String writeKey) {
+  Client(Context context, String writeKey) {
     this.context = context;
     this.writeKey = writeKey;
   }

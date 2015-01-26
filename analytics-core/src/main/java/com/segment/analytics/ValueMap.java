@@ -19,10 +19,12 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.panic;
 
 /**
- * A class that wraps an existing {@link Map} to expose value type functionality.
+ * A class that wraps an existing {@link Map} to expose value type functionality. All {@link
+ * java.util.Map} methods will simply be forwarded to a delegate map. This class is meant to
+ * subclassed and provide methods to access values in keys.
  * <p/>
- * All {@link java.util.Map} methods will simply be forwarded to a delegate map. This class is meant
- * to subclassed and provide methods to access values in keys.
+ * Library users won't need to create instances of this class, they can use plain old {@link Map}
+ * instead, and our library will handle serializing them.
  * <p/>
  * Although it lets you use custom objects for values, note that type information is lost during
  * serialization. You should use one of the coercion methods instead to get objects of a concrete
@@ -35,7 +37,7 @@ public class ValueMap implements Map<String, Object> {
    * Uses reflection to create an instance of a subclass of {@link ValueMap}. The subclass
    * <b>must</b> declare a map constructor.
    */
-  private static <T extends ValueMap> T createValueMap(Map map, Class<T> clazz) {
+  static <T extends ValueMap> T createValueMap(Map map, Class<T> clazz) {
     try {
       Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
       constructor.setAccessible(true);
@@ -144,7 +146,8 @@ public class ValueMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a long.
+   * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a
+   * long.
    * Returns defaultValue otherwise.
    */
   public long getLong(String key, long defaultValue) {
@@ -186,7 +189,8 @@ public class ValueMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a char or can be coerced to a char.
+   * Returns the value mapped by {@code key} if it exists and is a char or can be coerced to a
+   * char.
    * Returns defaultValue otherwise.
    */
   public char getChar(String key, char defaultValue) {
@@ -234,7 +238,8 @@ public class ValueMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a enum or can be coerced to a enum.
+   * Returns the value mapped by {@code key} if it exists and is a enum or can be coerced to a
+   * enum.
    * Returns null otherwise.
    */
   public <T extends Enum<T>> T getEnum(Class<T> enumType, String key) {

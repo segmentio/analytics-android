@@ -25,14 +25,14 @@
 package com.segment.analytics.internal;
 
 import com.segment.analytics.ValueMap;
-import com.segment.analytics.annotations.ForDeserialization;
+import com.segment.analytics.internal.annotations.ForDeserialization;
 import java.util.Map;
 
 import static java.util.Collections.unmodifiableMap;
 
-class ProjectSettings extends ValueMap {
-  static final String TIMESTAMP_KEY = "timestamp";
-  static final String SEGMENT_KEY = "Segment.io";
+public class ProjectSettings extends ValueMap {
+  public static final String TIMESTAMP_KEY = "timestamp";
+  public static final String SEGMENT_KEY = "Segment.io";
 
   public static ProjectSettings create(Map<String, Object> map, long timestamp) {
     map.put(TIMESTAMP_KEY, timestamp);

@@ -2,9 +2,6 @@ package com.segment.analytics;
 
 import android.Manifest;
 import android.app.Application;
-import com.segment.analytics.internal.IntegrationManager;
-import com.segment.analytics.internal.SegmentDispatcher;
-import com.segment.analytics.internal.Stats;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import org.junit.After;
 import org.junit.Before;

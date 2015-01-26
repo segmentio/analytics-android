@@ -36,10 +36,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import com.segment.analytics.internal.Cartographer;
-import com.segment.analytics.internal.Client;
-import com.segment.analytics.internal.IntegrationManager;
-import com.segment.analytics.internal.SegmentDispatcher;
-import com.segment.analytics.internal.Stats;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.BasePayload;
@@ -49,8 +45,8 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.util.Map;
 
-import static com.segment.analytics.internal.IntegrationManager.ActivityLifecyclePayload;
-import static com.segment.analytics.internal.IntegrationManager.ActivityLifecyclePayload.Type;
+import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload;
+import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type;
 import static com.segment.analytics.internal.Utils.OWNER_MAIN;
 import static com.segment.analytics.internal.Utils.VERB_CREATE;
 import static com.segment.analytics.internal.Utils.checkMain;
@@ -651,7 +647,7 @@ public class Analytics {
       if (!traitsCache.isSet() || traitsCache.get() == null) {
         traitsCache.set(Traits.create(application));
       }
-      AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
+      AnalyticsContext analyticsContext = AnalyticsContext.create(application, traitsCache.get());
 
       return new Analytics(application, integrationManager, segmentDispatcher, stats, traitsCache,
           analyticsContext, defaultOptions, debuggingEnabled);

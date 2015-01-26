@@ -1,7 +1,10 @@
-package com.segment.analytics.internal;
+package com.segment.analytics;
 
 import android.content.Context;
-import com.segment.analytics.ValueMap;
+import com.segment.analytics.internal.AbstractIntegration;
+import com.segment.analytics.internal.Cartographer;
+import com.segment.analytics.internal.IntegrationOperation;
+import com.segment.analytics.internal.ProjectSettings;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import java.io.IOException;
 import org.junit.After;
@@ -85,7 +88,7 @@ public class IntegrationManagerTest {
     integrationManager.integrations.add(mockIntegration);
     integrationManager.integrations.add(mockIntegration);
 
-    integrationManager.performOperation(new IntegrationManager.IntegrationOperation() {
+    integrationManager.performOperation(new IntegrationOperation() {
       @Override public void run(AbstractIntegration integration) {
         integration.alias(mock(AliasPayload.class));
       }
@@ -96,7 +99,7 @@ public class IntegrationManagerTest {
     });
     verify(mockIntegration, times(3)).alias(any(AliasPayload.class));
 
-    integrationManager.performOperation(new IntegrationManager.IntegrationOperation() {
+    integrationManager.performOperation(new IntegrationOperation() {
       @Override public void run(AbstractIntegration integration) {
         integration.flush();
       }

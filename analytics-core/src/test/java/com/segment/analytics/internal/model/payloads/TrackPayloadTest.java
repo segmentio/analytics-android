@@ -6,22 +6,19 @@ import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.internal.Cartographer;
 import java.io.IOException;
-import java.util.LinkedHashMap;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.TestUtils.createValueMap;
+import static com.segment.analytics.TestUtils.createContext;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 public class TrackPayloadTest {
 
   @Test public void testSerialization() throws IOException {
-    AnalyticsContext analyticsContext =
-        createValueMap(new LinkedHashMap<String, Object>(), AnalyticsContext.class);
-    analyticsContext.setTraits(new Traits());
+    AnalyticsContext analyticsContext = createContext(new Traits());
     TrackPayload trackPayload =
         new TrackPayload(analyticsContext, new Options(), "foo", new Properties());
 

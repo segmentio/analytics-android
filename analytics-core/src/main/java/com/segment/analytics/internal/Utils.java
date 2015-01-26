@@ -73,6 +73,7 @@ public final class Utils {
   public final static String OWNER_INTEGRATION_MANAGER = "IntegrationManager";
   public final static String VERB_CREATE = "create";
   public final static String VERB_DISPATCH = "dispatch";
+  public final static String VERB_DOWNLOAD = "download";
   public final static String VERB_ENQUEUE = "enqueue";
   public final static String VERB_FLUSH = "flush";
   public final static String VERB_SKIP = "skip";
@@ -274,7 +275,7 @@ public final class Utils {
   }
 
   /** Ensures that a directory is created in the given location, throws an IOException otherwise. */
-  static void createDirectory(File location) throws IOException {
+  public static void createDirectory(File location) throws IOException {
     if (!(location.exists() || location.mkdirs() || location.isDirectory())) {
       throw new IOException("Could not create directory at " + location);
     }
@@ -341,6 +342,7 @@ public final class Utils {
   /** A {@link ConcurrentHashMap} that rejects null keys and values instead of failing. */
   public static class NullableConcurrentHashMap<K, V> extends ConcurrentHashMap<K, V> {
     public NullableConcurrentHashMap() {
+      super();
     }
 
     public NullableConcurrentHashMap(Map<? extends K, ? extends V> m) {

@@ -9,6 +9,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.TestUtils.createContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -19,7 +20,7 @@ public class AnalyticsContextTest {
   Traits traits = Traits.create(Robolectric.application);
 
   @Before public void setUp() {
-    analyticsContext = new AnalyticsContext(Robolectric.application, traits);
+    analyticsContext = createContext(traits);
   }
 
   @Test public void copyReturnsSameMappings() {
