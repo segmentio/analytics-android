@@ -57,57 +57,6 @@ public final class TestUtils {
       + "    \"apiKey\": \"l8v1ga655b\"\n"
       + "  }\n"
       + "}";
-  public static final String SAMPLE_JSON = "{\n"
-      + "  \"glossary\": {\n"
-      + "    \"title\": \"example glossary\",\n"
-      + "    \"GlossDiv\": {\n"
-      + "      \"title\": \"S\",\n"
-      + "      \"GlossList\": {\n"
-      + "        \"GlossEntry\": {\n"
-      + "          \"ID\": \"SGML\",\n"
-      + "          \"SortAs\": \"SGML\",\n"
-      + "          \"GlossTerm\": \"Standard Generalized Markup Language\",\n"
-      + "          \"Acronym\": \"SGML\",\n"
-      + "          \"Abbrev\": \"ISO 8879:1986\",\n"
-      + "          \"GlossDef\": {\n"
-      + "            \"para\": "
-      + "\"A meta-markup language, used to decode markup languages such as DocBook.\",\n"
-      + "            \"GlossSeeAlso\": [\n"
-      + "              \"GML\",\n"
-      + "              \"XML\"\n"
-      + "            ]\n"
-      + "          },\n"
-      + "          \"GlossSee\": \"markup\"\n"
-      + "        }\n"
-      + "      }\n"
-      + "    }\n"
-      + "  }\n"
-      + "}";
-  // from http://json.org/example
-  public static final String SAMPLE_JSON_LIST = "[\n"
-      + "        {\"id\": \"Open\"},\n"
-      + "        {\"id\": \"OpenNew\", \"label\": \"Open New\"},\n"
-      + "        null,\n"
-      + "        {\"id\": \"ZoomIn\", \"label\": \"Zoom In\"},\n"
-      + "        {\"id\": \"ZoomOut\", \"label\": \"Zoom Out\"},\n"
-      + "        {\"id\": \"OriginalView\", \"label\": \"Original View\"},\n"
-      + "        null,\n"
-      + "        {\"id\": \"Quality\"},\n"
-      + "        {\"id\": \"Pause\"},\n"
-      + "        {\"id\": \"Mute\"},\n"
-      + "        null,\n"
-      + "        {\"id\": \"Find\", \"label\": \"Find...\"},\n"
-      + "        {\"id\": \"FindAgain\", \"label\": \"Find Again\"},\n"
-      + "        {\"id\": \"Copy\"},\n"
-      + "        {\"id\": \"CopyAgain\", \"label\": \"Copy Again\"},\n"
-      + "        {\"id\": \"CopySVG\", \"label\": \"Copy SVG\"},\n"
-      + "        {\"id\": \"ViewSVG\", \"label\": \"View SVG\"},\n"
-      + "        {\"id\": \"ViewSource\", \"label\": \"View Source\"},\n"
-      + "        {\"id\": \"SaveAs\", \"label\": \"Save As\"},\n"
-      + "        null,\n"
-      + "        {\"id\": \"Help\"},\n"
-      + "        {\"id\": \"About\", \"label\": \"About Adobe CVG Viewer...\"}\n"
-      + "    ]";
 
   public static Application mockApplication() {
     Application application = mock(Application.class);
@@ -121,6 +70,16 @@ public final class TestUtils {
       }
     }).when(application).getDir(anyString(), anyInt());
     return application;
+  }
+
+  public static <T extends ValueMap> T createValueMap(Map map, Class<T> clazz) {
+    try {
+      Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
+      constructor.setAccessible(true);
+      return constructor.newInstance(map);
+    } catch (Exception e) {
+      throw panic(e, "Could not create instance of " + clazz.getCanonicalName());
+    }
   }
 
   private TestUtils() {
@@ -385,16 +344,6 @@ public final class TestUtils {
 
     @Override public void describeTo(Description description) {
       description.appendText(expected.toString());
-    }
-  }
-
-  public static <T extends ValueMap> T createValueMap(Map map, Class<T> clazz) {
-    try {
-      Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
-      constructor.setAccessible(true);
-      return constructor.newInstance(map);
-    } catch (Exception e) {
-      throw panic(e, "Could not create instance of " + clazz.getCanonicalName());
     }
   }
 }

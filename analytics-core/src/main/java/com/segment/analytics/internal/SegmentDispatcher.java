@@ -48,7 +48,7 @@ public class SegmentDispatcher {
    * that is not present in payloads themselves, but is added later, such as {@code sentAt},
    * {@code integrations} and json tokens.
    */
-  private static final int MAX_PAYLOAD_SIZE = 450000;
+  private static final int MAX_PAYLOAD_SIZE = 450000; // 450kb
 
   final Context context;
   final QueueFile queueFile;
