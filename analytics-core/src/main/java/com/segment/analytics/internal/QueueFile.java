@@ -526,6 +526,18 @@ public class QueueFile {
     }
   }
 
+  /**
+   * Removes the eldest {@code n} elements.
+   * todo: make it an atomic operation, being worked in our fork
+   *  
+   * @throws java.util.NoSuchElementException if the queue is empty or will be
+   */
+  public synchronized void remove(int n) throws IOException {
+    for (int i = 0; i < n; i++) {
+        remove();
+    }
+  }
+
   /** Clears this queue. Truncates the file to the initial size. */
   public synchronized void clear() throws IOException {
     raf.seek(0);

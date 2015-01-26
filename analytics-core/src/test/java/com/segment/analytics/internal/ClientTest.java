@@ -63,7 +63,7 @@ public class ClientTest {
     RecordedRequestAssert.assertThat(server.takeRequest())
         .hasRequestLine("POST /v1/import HTTP/1.1")
         .containsHeader("Content-Type", "application/json")
-        .containsHeader("Authorization", Client.authorizationHeader("foo"));
+        .containsHeader("Authorization", "Basic Zm9vOg==");
   }
 
   @Test public void uploadClosesConnections() throws Exception {
@@ -123,11 +123,6 @@ public class ClientTest {
       assertThat(e).hasMessage(204 + " bar");
     }
     verify(mockConnection).disconnect();
-  }
-
-  @Test public void authorizationHeader() throws Exception {
-    assertThat(Client.authorizationHeader("bar")).isEqualTo("Basic YmFyOg==");
-    assertThat(Client.authorizationHeader("l8v1ga655b")).isEqualTo("Basic bDh2MWdhNjU1Yjo=");
   }
 
   @Test public void fetchSettingsClosesConnections() throws Exception {

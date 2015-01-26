@@ -22,7 +22,7 @@ import com.google.android.gms.wearable.WearableListenerService;
 import com.segment.analytics.internal.Cartographer;
 import java.io.IOException;
 
-import static com.segment.analytics.internal.Utils.OWNER_SEGMENT;
+import static com.segment.analytics.internal.Utils.OWNER_SEGMENT_DISPATCHER;
 import static com.segment.analytics.internal.Utils.VERB_DISPATCH;
 import static com.segment.analytics.internal.Utils.error;
 
@@ -46,8 +46,8 @@ public class PhoneAnalyticsListenerService extends WearableListenerService {
         wearPayload = new WearPayload(cartographer.fromJson(new String(messageEvent.getData())));
       } catch (IOException e) {
         if (getAnalytics().debuggingEnabled) {
-          error(OWNER_SEGMENT, VERB_DISPATCH, String.valueOf(messageEvent.getRequestId()), e,
-              messageEvent);
+          error(OWNER_SEGMENT_DISPATCHER, VERB_DISPATCH,
+              String.valueOf(messageEvent.getRequestId()), e, messageEvent);
         }
         return;
       }

@@ -3,7 +3,7 @@ package com.segment.analytics;
 import android.Manifest;
 import android.app.Application;
 import com.segment.analytics.internal.IntegrationManager;
-import com.segment.analytics.internal.Segment;
+import com.segment.analytics.internal.SegmentDispatcher;
 import com.segment.analytics.internal.Stats;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import org.junit.After;
@@ -30,7 +30,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class AnalyticsTest {
   Application application;
   @Mock IntegrationManager integrationManager;
-  @Mock Segment segment;
+  @Mock SegmentDispatcher segmentDispatcher;
   @Mock Stats stats;
   @Mock Traits.Cache traitsCache;
   @Mock AnalyticsContext analyticsContext;
@@ -49,8 +49,9 @@ public class AnalyticsTest {
     application = mockApplication();
     Traits traits = new Traits();
     when(traitsCache.get()).thenReturn(traits);
-    analytics = new Analytics(application, integrationManager, segment, stats, traitsCache,
-        analyticsContext, defaultOptions, false);
+    analytics =
+        new Analytics(application, integrationManager, segmentDispatcher, stats, traitsCache,
+            analyticsContext, defaultOptions, false);
   }
 
   @After public void tearDown() {
@@ -81,12 +82,12 @@ public class AnalyticsTest {
     BasePayload payload = mock(BasePayload.class);
     analytics.submit(payload);
     verify(integrationManager).dispatchOperation(payload);
-    verify(segment).dispatchEnqueue(payload);
+    verify(segmentDispatcher).dispatchEnqueue(payload);
   }
 
   @Test public void flushInvokesFlushes() throws Exception {
     analytics.flush();
-    verify(segment).dispatchFlush(0);
+    verify(segmentDispatcher).dispatchFlush(0);
     verify(integrationManager).dispatchFlush();
   }
 
@@ -95,7 +96,7 @@ public class AnalyticsTest {
     analytics.shutdown();
     verify(integrationManager).shutdown();
     verify(stats).shutdown();
-    verify(segment).shutdown();
+    verify(segmentDispatcher).shutdown();
     assertThat(analytics.shutdown).isTrue();
   }
 

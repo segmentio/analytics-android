@@ -73,7 +73,7 @@ public class Cartographer {
 
   /**
    * Serializes the map into it's json representation into the provided {@link Writer}. If you want
-   * to retrieve the json as a string,  use {@link #toJson(Map)} instead.
+   * to retrieve the json as a string, use {@link #toJson(Map)} instead.
    */
   public void toJson(Map<?, ?> map, Writer writer) throws IOException {
     if (map == null) {

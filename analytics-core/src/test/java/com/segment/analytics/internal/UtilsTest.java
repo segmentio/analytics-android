@@ -33,7 +33,7 @@ import org.robolectric.shadows.ShadowLog;
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static com.segment.analytics.internal.Utils.OWNER_MAIN;
-import static com.segment.analytics.internal.Utils.OWNER_SEGMENT;
+import static com.segment.analytics.internal.Utils.OWNER_SEGMENT_DISPATCHER;
 import static com.segment.analytics.internal.Utils.TAG;
 import static com.segment.analytics.internal.Utils.VERB_DISPATCH;
 import static com.segment.analytics.internal.Utils.VERB_ENQUEUE;
@@ -92,7 +92,7 @@ public class UtilsTest {
   @Test public void errorMessagesShowInLog() throws Exception {
     error(OWNER_MAIN, VERB_FLUSH, "foo", null, "bar", "baz");
     Throwable throwable = new AssertionError("testing");
-    error(OWNER_SEGMENT, VERB_ENQUEUE, "qux", throwable);
+    error(OWNER_SEGMENT_DISPATCHER, VERB_ENQUEUE, "qux", throwable);
 
     List<ShadowLog.LogItem> logs = ShadowLog.getLogs();
     assertThat(logs).hasSize(2)
@@ -101,7 +101,7 @@ public class UtilsTest {
             .build())
         .contains(new LogItemBuilder().type(Log.ERROR)
             .throwable(throwable)
-            .msg("Segment              enqueue      qux                                  ")
+            .msg("SegmentDispatcher    enqueue      qux                                  ")
             .build());
   }
 

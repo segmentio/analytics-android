@@ -36,10 +36,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import com.segment.analytics.internal.Cartographer;
-import com.segment.analytics.internal.IntegrationManager;
-import com.segment.analytics.internal.Segment;
 import com.segment.analytics.internal.Client;
+import com.segment.analytics.internal.IntegrationManager;
+import com.segment.analytics.internal.SegmentDispatcher;
 import com.segment.analytics.internal.Stats;
+import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import com.segment.analytics.internal.model.payloads.GroupPayload;
@@ -80,12 +81,6 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * @see <a href="https://Segment/">Segment</a>
  */
 public class Analytics {
-  // Resource identifiers to define options in xml
-  static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
-  static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
-  static final String FLUSH_INTERVAL_RESOURCE_IDENTIFIER = "analytics_flush_interval";
-  static final String DEBUGGING_RESOURCE_IDENTIFIER = "analytics_debugging";
-  static final Properties EMPTY_PROPERTIES = new Properties();
   public static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
     @Override public void handleMessage(Message msg) {
       switch (msg.what) {
@@ -94,10 +89,16 @@ public class Analytics {
       }
     }
   };
+  // Resource identifiers to define options in xml
+  static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
+  static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
+  static final String FLUSH_INTERVAL_RESOURCE_IDENTIFIER = "analytics_flush_interval";
+  static final String DEBUGGING_RESOURCE_IDENTIFIER = "analytics_debugging";
+  static final Properties EMPTY_PROPERTIES = new Properties();
   static Analytics singleton = null;
   final Application application;
   final IntegrationManager integrationManager;
-  final Segment segment;
+  final SegmentDispatcher segmentDispatcher;
   final Stats stats;
   final Traits.Cache traitsCache;
   final AnalyticsContext analyticsContext;
@@ -174,12 +175,12 @@ public class Analytics {
     }
   }
 
-  Analytics(Application application, IntegrationManager integrationManager, Segment segment,
-      Stats stats, Traits.Cache traitsCache, AnalyticsContext analyticsContext,
-      Options defaultOptions, boolean debuggingEnabled) {
+  Analytics(Application application, IntegrationManager integrationManager,
+      SegmentDispatcher segmentDispatcher, Stats stats, Traits.Cache traitsCache,
+      AnalyticsContext analyticsContext, Options defaultOptions, boolean debuggingEnabled) {
     this.application = application;
     this.integrationManager = integrationManager;
-    this.segment = segment;
+    this.segmentDispatcher = segmentDispatcher;
     this.stats = stats;
     this.traitsCache = traitsCache;
     this.analyticsContext = analyticsContext;
@@ -249,7 +250,6 @@ public class Analytics {
    * used.
    * @param newTraits Traits about the user
    * @param options To configure the call
-   *
    * @return The previous ID assigned to the user. Use it to call {@link #alias(String, Options)}
    * @throws IllegalArgumentException if userId is null or an empty string
    * @see <a href="https://segment.com/docs/tracking-api/identify/">Identify Documentation</a>
@@ -429,7 +429,7 @@ public class Analytics {
    * method.
    */
   public void flush() {
-    segment.dispatchFlush(0);
+    segmentDispatcher.dispatchFlush(0);
     integrationManager.dispatchFlush();
   }
 
@@ -459,7 +459,7 @@ public class Analytics {
       return;
     }
     integrationManager.shutdown();
-    segment.shutdown();
+    segmentDispatcher.shutdown();
     stats.shutdown();
     shutdown = true;
   }
@@ -494,7 +494,7 @@ public class Analytics {
     if (debuggingEnabled) {
       debug(OWNER_MAIN, VERB_CREATE, payload.id(), payload);
     }
-    segment.dispatchEnqueue(payload);
+    segmentDispatcher.dispatchEnqueue(payload);
     integrationManager.dispatchOperation(payload);
   }
 
@@ -533,8 +533,8 @@ public class Analytics {
     private final Application application;
     private String writeKey;
     private String tag;
-    private int queueSize = 20;
-    private int flushInterval = 30;
+    private int queueSize = Utils.DEFAULT_FLUSH_QUEUE_SIZE;
+    private int flushInterval = Utils.DEFAULT_FLUSH_INTERVAL;
     private Options defaultOptions;
     private boolean debuggingEnabled = false;
 
@@ -642,8 +642,8 @@ public class Analytics {
       IntegrationManager integrationManager =
           IntegrationManager.create(application, cartographer, client, stats, tag,
               debuggingEnabled);
-      Segment segment =
-          Segment.create(application, client, cartographer, stats,
+      SegmentDispatcher segmentDispatcher =
+          SegmentDispatcher.create(application, client, cartographer, stats,
               integrationManager.bundledIntegrations, tag, flushInterval, queueSize,
               debuggingEnabled);
 
@@ -653,7 +653,7 @@ public class Analytics {
       }
       AnalyticsContext analyticsContext = new AnalyticsContext(application, traitsCache.get());
 
-      return new Analytics(application, integrationManager, segment, stats, traitsCache,
+      return new Analytics(application, integrationManager, segmentDispatcher, stats, traitsCache,
           analyticsContext, defaultOptions, debuggingEnabled);
     }
   }

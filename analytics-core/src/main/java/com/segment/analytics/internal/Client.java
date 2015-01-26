@@ -49,19 +49,6 @@ public class Client {
   final String writeKey;
   final Context context;
 
-  public Client(Context context, String writeKey) {
-    this.context = context;
-    this.writeKey = writeKey;
-  }
-
-  protected HttpURLConnection openConnection(String url) throws IOException {
-    HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-    connection.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS);
-    connection.setReadTimeout(DEFAULT_READ_TIMEOUT_MILLIS);
-    connection.setDoInput(true);
-    return connection;
-  }
-
   private static Response createPostResponse(HttpURLConnection connection) throws IOException {
     return new Response(connection, null, connection.getOutputStream()) {
       @Override public void close() throws IOException {
@@ -78,8 +65,30 @@ public class Client {
     };
   }
 
-  static String authorizationHeader(String writeKey) {
+  private static Response createGetResponse(HttpURLConnection connection) throws IOException {
+    return new Response(connection, connection.getInputStream(), null) {
+      @Override public void close() throws IOException {
+        super.close();
+        is.close();
+      }
+    };
+  }
+
+  private static String authorizationHeader(String writeKey) {
     return "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP);
+  }
+
+  public Client(Context context, String writeKey) {
+    this.context = context;
+    this.writeKey = writeKey;
+  }
+
+  protected HttpURLConnection openConnection(String url) throws IOException {
+    HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+    connection.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS);
+    connection.setReadTimeout(DEFAULT_READ_TIMEOUT_MILLIS);
+    connection.setDoInput(true);
+    return connection;
   }
 
   Response upload() throws IOException {
@@ -89,15 +98,6 @@ public class Client {
     connection.setDoOutput(true);
     connection.setChunkedStreamingMode(0);
     return createPostResponse(connection);
-  }
-
-  private static Response createGetResponse(HttpURLConnection connection) throws IOException {
-    return new Response(connection, connection.getInputStream(), null) {
-      @Override public void close() throws IOException {
-        super.close();
-        is.close();
-      }
-    };
   }
 
   Response fetchSettings() throws IOException {

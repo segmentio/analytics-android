@@ -31,21 +31,22 @@ import static com.segment.analytics.internal.Utils.createDirectory;
 import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.error;
 import static com.segment.analytics.internal.Utils.print;
+import static com.segment.analytics.internal.Utils.OWNER_SEGMENT_DISPATCHER;
 
-/** The component that posts events to Segment's servers. */
-public class Segment {
+/** Entity that queues payloads on disks and uploads them periodically. */
+public class SegmentDispatcher {
+  /**
+   * Drop old payloads if queue contains more than 1000 items. Since each item can be at most
+   * 450KB, this bounds the queueFile size to ~450MB (ignoring headers), which also leaves room for
+   * QueueFile's 2GB limit.
+   */
+  static final int MAX_QUEUE_SIZE = 1000;
   private static final Charset UTF_8 = Charset.forName("UTF-8");
   private static final String SEGMENT_THREAD_NAME = THREAD_PREFIX + "Segment";
   /**
-   * Drop old payloads if queue contains more than 1000 items. Since each item can be at most
-   * 450KB, this bounds the queueFile size to ~450MB (ignoring queueFile headers), which also
-   * leaves room for QueueFile's 2GB limit.
-   */
-  private static final int MAX_QUEUE_SIZE = 1000;
-  /**
    * Our servers only accept payloads < 500KB. This limit is 450kb to account for extra information
-   * that is not present in payloads themselves, but is added later, such as `sentAt`,
-   * `integrations` and the json tokens for this extra metadata.
+   * that is not present in payloads themselves, but is added later, such as {@code sentAt},
+   * {@code integrations} and json tokens.
    */
   private static final int MAX_PAYLOAD_SIZE = 450000;
 
@@ -61,23 +62,22 @@ public class Segment {
   final Map<String, Boolean> integrations;
   final Cartographer cartographer;
 
-  public static synchronized Segment create(Context context, Client client,
+  public static synchronized SegmentDispatcher create(Context context, Client client,
       Cartographer cartographer, Stats stats, Map<String, Boolean> integrations, String tag,
       int flushInterval, int flushQueueSize, boolean debuggingEnabled) {
-    File queueFolder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
     QueueFile queueFile;
-    String fileName = tag.replaceAll("[^A-Za-z0-9]", "");
     try {
-      createDirectory(queueFolder);
-      queueFile = new QueueFile(new File(queueFolder, fileName + "-payloads-v1"));
+      File folder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
+      String name = tag.replaceAll("[^A-Za-z0-9]", "");
+      queueFile = createQueueFile(folder, name);
     } catch (IOException e) {
-      throw panic(e, "Could not create queue file (" + fileName + ") in " + queueFolder + ".");
+      throw panic(e, "Could not create queue file.");
     }
-    return new Segment(context, client, cartographer, queueFile, stats, integrations, flushInterval,
-        flushQueueSize, debuggingEnabled);
+    return new SegmentDispatcher(context, client, cartographer, queueFile, stats, integrations,
+        flushInterval, flushQueueSize, debuggingEnabled);
   }
 
-  Segment(Context context, Client client, Cartographer cartographer, QueueFile queueFile,
+  SegmentDispatcher(Context context, Client client, Cartographer cartographer, QueueFile queueFile,
       Stats stats, Map<String, Boolean> integrations, int flushInterval, int flushQueueSize,
       boolean debuggingEnabled) {
     this.context = context;
@@ -89,46 +89,15 @@ public class Segment {
     this.integrations = integrations;
     this.cartographer = cartographer;
     this.flushInterval = flushInterval * 1000;
+
     segmentThread = new HandlerThread(SEGMENT_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     segmentThread.start();
     handler = new SegmentHandler(segmentThread.getLooper(), this);
     dispatchFlush(flushInterval);
   }
 
-  public void dispatchEnqueue(final BasePayload payload) {
+  public void dispatchEnqueue(BasePayload payload) {
     handler.sendMessage(handler.obtainMessage(SegmentHandler.REQUEST_ENQUEUE, payload));
-  }
-
-  void performEnqueue(BasePayload payload) {
-    final int queueSize = queueFile.size();
-    if (queueSize > MAX_QUEUE_SIZE) {
-      if (debuggingEnabled) {
-        print("Queue has reached limit. Dropping oldest event.");
-      }
-      try {
-        queueFile.remove();
-      } catch (IOException e) {
-        throw panic(e, "Could not remove payload from queue.");
-      }
-    }
-    try {
-      if (debuggingEnabled) {
-        debug(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), "queueSize: " + queueFile.size());
-      }
-      String payloadJson = cartographer.toJson(payload);
-      if (isNullOrEmpty(payloadJson) || (payloadJson.length() > MAX_PAYLOAD_SIZE)) {
-        throw new IOException("Could not serialize payload " + payload);
-      }
-      queueFile.add(payloadJson.getBytes(UTF_8));
-    } catch (IOException e) {
-      if (debuggingEnabled) {
-        error(OWNER_SEGMENT, VERB_ENQUEUE, payload.id(), e, payload);
-      }
-      return;
-    }
-    if (queueFile.size() >= flushQueueSize) {
-      performFlush();
-    }
   }
 
   public void dispatchFlush(int delay) {
@@ -136,8 +105,38 @@ public class Segment {
     handler.sendMessageDelayed(handler.obtainMessage(SegmentHandler.REQUEST_FLUSH), delay);
   }
 
+  void performEnqueue(BasePayload payload) {
+    if (queueFile.size() >= MAX_QUEUE_SIZE) {
+      try {
+        queueFile.remove();
+      } catch (IOException e) {
+        throw panic(e, "Could not remove payload from queue.");
+      }
+    }
+
+    try {
+      if (debuggingEnabled) {
+        debug(OWNER_SEGMENT_DISPATCHER, VERB_ENQUEUE, payload.id(),
+            "Queue Size: " + queueFile.size());
+      }
+      String payloadJson = cartographer.toJson(payload);
+      if (isNullOrEmpty(payloadJson) || payloadJson.length() > MAX_PAYLOAD_SIZE) {
+        throw new IOException("Could not serialize payload " + payload);
+      }
+      queueFile.add(payloadJson.getBytes(UTF_8));
+    } catch (IOException e) {
+      if (debuggingEnabled) {
+        error(OWNER_SEGMENT_DISPATCHER, VERB_ENQUEUE, payload.id(), e, payload, queueFile);
+      }
+    }
+
+    if (queueFile.size() >= flushQueueSize) {
+      performFlush();
+    }
+  }
+
   void performFlush() {
-    if ((queueFile.size() < 1) || !isConnected(context)) return;
+    if (queueFile.size() < 1 || !isConnected(context)) return;
 
     try {
       Client.Response response = client.upload();
@@ -148,14 +147,11 @@ public class Segment {
       writer.endBatchArray().endObject().close();
       response.close();
 
-      for (int i = 0; i < payloadCount; i++) {
-        try {
-          queueFile.remove();
-        } catch (IOException e) {
-          throw panic(e, "Unable to remove payload from queue.");
-        }
+      try {
+        queueFile.remove(payloadCount);
+      } catch (IOException e) {
+        throw panic(e, "Unable to remove payloads from queueFile: " + queueFile);
       }
-
       stats.dispatchFlush(payloadCount);
 
       if (queueFile.size() > 0) {
@@ -165,6 +161,14 @@ public class Segment {
       }
     } catch (IOException e) {
       dispatchFlush(flushInterval);
+    }
+  }
+
+  public void shutdown() {
+    quitThread(segmentThread);
+    try {
+      queueFile.close();
+    } catch (IOException ignored) {
     }
   }
 
@@ -179,9 +183,7 @@ public class Segment {
 
     @Override public boolean read(InputStream in, int length) throws IOException {
       final int newSize = size + length;
-      if (newSize > MAX_PAYLOAD_SIZE) {
-        return false;
-      }
+      if (newSize > MAX_PAYLOAD_SIZE) return false;
       size = newSize;
       byte[] data = new byte[length];
       in.read(data, 0, length);
@@ -191,16 +193,10 @@ public class Segment {
     }
   }
 
-  public void shutdown() {
-    quitThread(segmentThread);
-  }
-
-  /**
-   * A wrapper class that helps in emitting a JSON formatted batch payload to the underlying
-   * writer.
-   */
+  /** A wrapper that emits a JSON formatted batch payload to the underlying writer. */
   static class BatchPayloadWriter {
     private final JsonWriter jsonWriter;
+    /** Keep around for writing payloads as Strings. */
     private final BufferedWriter bufferedWriter;
     private boolean needsComma = false;
 
@@ -234,8 +230,8 @@ public class Segment {
     }
 
     BatchPayloadWriter emitPayloadObject(String payload) throws IOException {
-      // the payloads already serialized into json when storing into disk, so no need to waste
-      // cycles deserializing them
+      // Payloads already serialized into json when storing on disk. No need to waste cycles
+      // deserializing them
       if (needsComma) {
         bufferedWriter.write(',');
       } else {
@@ -273,21 +269,21 @@ public class Segment {
   private static class SegmentHandler extends Handler {
     static final int REQUEST_ENQUEUE = 0;
     static final int REQUEST_FLUSH = 1;
-    private final Segment segment;
+    private final SegmentDispatcher segmentDispatcher;
 
-    SegmentHandler(Looper looper, Segment segment) {
+    SegmentHandler(Looper looper, SegmentDispatcher segmentDispatcher) {
       super(looper);
-      this.segment = segment;
+      this.segmentDispatcher = segmentDispatcher;
     }
 
     @Override public void handleMessage(final Message msg) {
       switch (msg.what) {
         case REQUEST_ENQUEUE:
           BasePayload payload = (BasePayload) msg.obj;
-          segment.performEnqueue(payload);
+          segmentDispatcher.performEnqueue(payload);
           break;
         case REQUEST_FLUSH:
-          segment.performFlush();
+          segmentDispatcher.performFlush();
           break;
         default:
           panic("Unknown dispatcher message: " + msg.what);

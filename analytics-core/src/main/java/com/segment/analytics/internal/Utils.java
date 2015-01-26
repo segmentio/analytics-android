@@ -68,10 +68,8 @@ import static android.provider.Settings.Secure.getString;
 
 public final class Utils {
   public static final String THREAD_PREFIX = "SegmentAnalytics-";
-  @SuppressLint("SimpleDateFormat") private static final DateFormat ISO_8601_DATE_FORMAT =
-      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
   public final static String OWNER_MAIN = "Main";
-  public final static String OWNER_SEGMENT = "Segment";
+  public final static String OWNER_SEGMENT_DISPATCHER = "SegmentDispatcher";
   public final static String OWNER_INTEGRATION_MANAGER = "IntegrationManager";
   public final static String VERB_CREATE = "create";
   public final static String VERB_DISPATCH = "dispatch";
@@ -79,7 +77,11 @@ public final class Utils {
   public final static String VERB_FLUSH = "flush";
   public final static String VERB_SKIP = "skip";
   public final static String VERB_INITIALIZE = "initialize";
+  public static final int DEFAULT_FLUSH_INTERVAL = 20;
+  public static final int DEFAULT_FLUSH_QUEUE_SIZE = 30;
   final static String TAG = "Segment";
+  @SuppressLint("SimpleDateFormat") private static final DateFormat ISO_8601_DATE_FORMAT =
+      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
   /** [thread] [verb] [id] [extras] */
   private final static String DEBUG_FORMAT = "%1$-20s %2$-12s %3$-36s %4$s";
 
@@ -198,9 +200,8 @@ public final class Utils {
   }
 
   /**
-   * Returns true if the phone is connected to a network, or if we don't have the permission to
-   * find
-   * out. False otherwise.
+   * Returns {@code true} if the phone is connected to a network, or if we don't have the enough
+   * permissions. Returns {@code false} otherwise.
    */
   public static boolean isConnected(Context context) {
     if (!hasPermission(context, ACCESS_NETWORK_STATE)) {
@@ -311,6 +312,26 @@ public final class Utils {
 
   static void print(String format, Object... extras) {
     Log.d(TAG, String.format(format, extras));
+  }
+
+  /**
+   * Create a {@link QueueFile} in the given folder with the given name. This method will throw an
+   * {@link IOException} if the directory doesn't exist and could not be created. If the underlying
+   * file is somehow corrupted, we'll delete it, and try to recreate the file.
+   */
+  public static QueueFile createQueueFile(File folder, String name) throws IOException {
+    createDirectory(folder);
+    File file = new File(folder, name);
+    try {
+      return new QueueFile(file);
+    } catch (IOException e) {
+      //noinspection ResultOfMethodCallIgnored
+      if (file.delete()) {
+        return new QueueFile(file);
+      } else {
+        throw new IOException("Could not create queue file (" + name + ") in " + folder + ".");
+      }
+    }
   }
 
   private Utils() {
