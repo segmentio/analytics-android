@@ -34,6 +34,8 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
+import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -232,6 +234,33 @@ final class Utils {
 
   static <T> Map<String, T> createMap() {
     return new NullableConcurrentHashMap<String, T>();
+  }
+
+  /** Ensures that a directory is created in the given location, throws an IOException otherwise. */
+  static void createDirectory(File location) throws IOException {
+    if (!(location.exists() || location.mkdirs() || location.isDirectory())) {
+      throw new IOException("Could not create directory at " + location);
+    }
+  }
+
+  /**
+   * Create a {@link QueueFile} in the given folder with the given name. This method will throw an
+   * {@link IOException} if the directory doesn't exist and could not be created. If the underlying
+   * file is somehow corrupted, we'll delete it, and try to recreate the file.
+   */
+  public static QueueFile createQueueFile(File folder, String name) throws IOException {
+    createDirectory(folder);
+    File file = new File(folder, name);
+    try {
+      return new QueueFile(file);
+    } catch (IOException e) {
+      //noinspection ResultOfMethodCallIgnored
+      if (file.delete()) {
+        return new QueueFile(file);
+      } else {
+        throw new IOException("Could not create queue file (" + name + ") in " + folder + ".");
+      }
+    }
   }
 
   private Utils() {

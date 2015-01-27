@@ -20,6 +20,7 @@ import java.util.Map;
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Logger.OWNER_SEGMENT;
 import static com.segment.analytics.Logger.VERB_ENQUEUE;
+import static com.segment.analytics.Utils.createQueueFile;
 import static com.segment.analytics.Utils.isConnected;
 import static com.segment.analytics.Utils.isNullOrEmpty;
 import static com.segment.analytics.Utils.panic;
@@ -38,8 +39,8 @@ class Segment {
   // we can probably relax/adjust these limits after getting more feedback
   /**
    * Drop old payloads if queue contains more than 1000 items. Since each item can be at most
-   * 450KB, this bounds the queueFile size to ~450MB (ignoring queueFile headers), which leaves room
-   * for QueueFile's 2GB limit.
+   * 450KB, this bounds the queueFile size to ~450MB (ignoring queueFile headers), which leaves
+   * room for QueueFile's 2GB limit.
    */
   private static final int MAX_QUEUE_SIZE = 1000;
   /**
@@ -66,17 +67,13 @@ class Segment {
   static synchronized Segment create(Context context, int flushQueueSize, int flushInterval,
       SegmentHTTPApi segmentHTTPApi, Map<String, Boolean> integrations, String tag, Stats stats,
       Logger logger) {
-    File parent = context.getFilesDir();
-    String filePrefix = tag.replaceAll("[^A-Za-z0-9]", ""); // sanitize input
     QueueFile payloadQueueFile;
     try {
-      if (parent.exists() || parent.mkdirs() || parent.isDirectory()) {
-        payloadQueueFile = new QueueFile(new File(parent, filePrefix + PAYLOAD_QUEUE_FILE_SUFFIX));
-      } else {
-        throw new IOException();
-      }
+      File parent = context.getFilesDir();
+      String filePrefix = tag.replaceAll("[^A-Za-z0-9]", ""); // sanitize input
+      payloadQueueFile = createQueueFile(parent, filePrefix + PAYLOAD_QUEUE_FILE_SUFFIX);
     } catch (IOException e) {
-      throw new RuntimeException("Could not create disk queue " + filePrefix + " in " + parent, e);
+      throw new RuntimeException("Could not create disk queue.", e);
     }
     return new Segment(context, flushQueueSize, flushInterval, segmentHTTPApi, payloadQueueFile,
         integrations, stats, logger);
