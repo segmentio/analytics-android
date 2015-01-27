@@ -261,7 +261,7 @@ class Segment {
 
     BatchPayloadWriter endBatchArray() throws IOException {
       if (!needsComma) {
-        throw new AssertionError("At least one payload must be provided.");
+        throw new IOException("At least one payload must be provided.");
       }
       jsonWriter.endArray();
       return this;

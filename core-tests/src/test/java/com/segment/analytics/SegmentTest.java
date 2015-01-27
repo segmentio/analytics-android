@@ -185,7 +185,7 @@ public class SegmentTest {
           .endBatchArray()
           .endObject()
           .close();
-    } catch (AssertionError error) {
+    } catch (IOException error) {
       assertThat(error).hasMessage("At least one payload must be provided.");
     }
   }
