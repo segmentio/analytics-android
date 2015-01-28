@@ -43,9 +43,7 @@ import com.segment.analytics.StatsSnapshot;
 public class MainActivity extends Activity {
   /** Returns true if the string is null, or empty (when trimmed). */
   public static boolean isNullOrEmpty(String text) {
-    // Rather than using text.trim().length() == 0, use getTrimmedLength to avoid allocating an
-    // extra string object
-    return TextUtils.isEmpty(text) || TextUtils.getTrimmedLength(text) == 0;
+    return TextUtils.isEmpty(text) || text.trim().length() == 0;
   }
 
   @Override
@@ -114,12 +112,12 @@ public class MainActivity extends Activity {
     findViewById(R.id.action_update_stats).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         StatsSnapshot snapshot = Analytics.with(MainActivity.this).getSnapshot();
-        ((TextView) findViewById(R.id.stat_flushed_events)).setText(
-            "Number of events flushed: " + (snapshot.flushEventCount));
-        ((TextView) findViewById(R.id.stat_flush_count)).setText(
-            "Number of times flushed: " + snapshot.flushCount);
-        ((TextView) findViewById(R.id.stat_flush_count)).setText(
-            "Total operations sent to bundled integrations (this is the total "
+        ((TextView) findViewById(R.id.stat_flushed_events)) //
+            .setText("Number of events flushed: " + (snapshot.flushEventCount));
+        ((TextView) findViewById(R.id.stat_flush_count)) //
+            .setText("Number of times flushed: " + snapshot.flushCount);
+        ((TextView) findViewById(R.id.stat_flush_count)) //
+            .setText("Total operations sent to bundled integrations (this is the total "
                 + "analytics events, flush events, and activity lifecycle events): "
                 + snapshot.integrationOperationCount);
       }
