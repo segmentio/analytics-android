@@ -339,7 +339,7 @@ class IntegrationManager {
       long startTime = System.nanoTime();
       operation.run(integration);
       long endTime = System.nanoTime();
-      long duration = endTime - startTime;
+      long duration = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
       if (debuggingEnabled) {
         debug(OWNER_INTEGRATION_MANAGER, VERB_DISPATCH, operation.id(), integration.key(),
             TimeUnit.NANOSECONDS.toMillis(duration) + "ms");
