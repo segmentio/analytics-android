@@ -315,26 +315,6 @@ public final class Utils {
     Log.d(TAG, String.format(format, extras));
   }
 
-  /**
-   * Create a {@link QueueFile} in the given folder with the given name. This method will throw an
-   * {@link IOException} if the directory doesn't exist and could not be created. If the underlying
-   * file is somehow corrupted, we'll delete it, and try to recreate the file.
-   */
-  public static QueueFile createQueueFile(File folder, String name) throws IOException {
-    createDirectory(folder);
-    File file = new File(folder, name);
-    try {
-      return new QueueFile(file);
-    } catch (IOException e) {
-      //noinspection ResultOfMethodCallIgnored
-      if (file.delete()) {
-        return new QueueFile(file);
-      } else {
-        throw new IOException("Could not create queue file (" + name + ") in " + folder + ".");
-      }
-    }
-  }
-
   private Utils() {
     throw new AssertionError("No instances");
   }

@@ -7,7 +7,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.JsonWriter;
 import com.segment.analytics.internal.Cartographer;
-import com.segment.analytics.internal.QueueFile;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -29,7 +28,7 @@ import static com.segment.analytics.Utils.quitThread;
 import static com.segment.analytics.Utils.toISO8601Date;
 import static com.segment.analytics.internal.Utils.createDirectory;
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
-import static com.segment.analytics.internal.Utils.createDirectory;
+import static com.segment.analytics.internal.Utils.VERB_ENQUEUE;
 import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.error;
 import static com.segment.analytics.internal.Utils.print;
@@ -63,6 +62,26 @@ class SegmentDispatcher {
   final boolean debuggingEnabled;
   final Map<String, Boolean> integrations;
   final Cartographer cartographer;
+
+  /**
+   * Create a {@link QueueFile} in the given folder with the given name. This method will throw an
+   * {@link IOException} if the directory doesn't exist and could not be created. If the underlying
+   * file is somehow corrupted, we'll delete it, and try to recreate the file.
+   */
+  private static QueueFile createQueueFile(File folder, String name) throws IOException {
+    createDirectory(folder);
+    File file = new File(folder, name);
+    try {
+      return new QueueFile(file);
+    } catch (IOException e) {
+      //noinspection ResultOfMethodCallIgnored
+      if (file.delete()) {
+        return new QueueFile(file);
+      } else {
+        throw new IOException("Could not create queue file (" + name + ") in " + folder + ".");
+      }
+    }
+  }
 
   static synchronized SegmentDispatcher create(Context context, Client client,
       Cartographer cartographer, Stats stats, Map<String, Boolean> integrations, String tag,

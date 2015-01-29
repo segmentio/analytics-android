@@ -227,7 +227,7 @@ class IntegrationManager {
 
   private void loadDownloadedIntegrations(ProjectSettings settings) {
     File downloadedJarsDirectory = getJarDownloadDirectory(context);
-    File optimizedDexDirectory = context.getDir("optimized-dex", Context.MODE_PRIVATE);
+    File optimizedDexDirectory = context.getDir("segment-optimized-dex", Context.MODE_PRIVATE);
     try {
       createDirectory(optimizedDexDirectory);
     } catch (IOException e) {
