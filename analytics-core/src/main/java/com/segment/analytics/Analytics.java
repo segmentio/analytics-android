@@ -645,6 +645,9 @@ public class Analytics {
      * <p/>
      * This will skip *ALL* bundled integrations, even if they don't have a server side
      * integration available (e.g. Flurry). Use it with extreme care.
+     *
+     * @see <a href="https://segment.com/help/getting-started/why-bundle-integrations/">Bundled
+     * Integrations</a>
      */
     public Builder skipBundledIntegrations() {
       this.skipBundledIntegrations = false;
