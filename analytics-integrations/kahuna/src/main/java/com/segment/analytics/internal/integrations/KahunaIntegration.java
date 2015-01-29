@@ -13,6 +13,9 @@ import static com.kahuna.sdk.KahunaUserCredentialKeys.FACEBOOK_KEY;
 import static com.kahuna.sdk.KahunaUserCredentialKeys.LINKEDIN_KEY;
 import static com.kahuna.sdk.KahunaUserCredentialKeys.TWITTER_KEY;
 import static com.kahuna.sdk.KahunaUserCredentialKeys.USERNAME_KEY;
+import static com.segment.analytics.Analytics.LogLevel;
+import static com.segment.analytics.Analytics.LogLevel.FULL;
+import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.isOnClassPath;
 
@@ -26,14 +29,14 @@ import static com.segment.analytics.internal.Utils.isOnClassPath;
 public class KahunaIntegration extends AbstractIntegration<Void> {
   static final String KAHUNA_KEY = "Kahuna";
 
-  @Override public void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
+  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
     if (!isOnClassPath("android.support.v4.app.Fragment")) {
       throw new IllegalStateException("Kahuna requires the support library to be bundled.");
     }
     KahunaAnalytics.onAppCreate(context, settings.getString("apiKey"),
         settings.getString("pushSenderId"));
-    KahunaAnalytics.setDebugMode(debuggingEnabled);
+    KahunaAnalytics.setDebugMode(logLevel == INFO || logLevel == FULL);
   }
 
   @Override public String key() {

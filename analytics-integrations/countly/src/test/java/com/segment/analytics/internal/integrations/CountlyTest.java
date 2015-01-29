@@ -21,6 +21,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static android.content.Context.MODE_PRIVATE;
+import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -50,7 +51,7 @@ public class CountlyTest {
         Robolectric.application.getSharedPreferences("countly", MODE_PRIVATE);
     when(context.getSharedPreferences(anyString(), anyInt())).thenReturn(countlyPrefs);
     integration.initialize(context, new ValueMap() //
-        .putValue("serverUrl", "https://countly.com").putValue("appKey", "foo"), true);
+        .putValue("serverUrl", "https://countly.com").putValue("appKey", "foo"), NONE);
     assertThat(integration.countly).isNotNull();
   }
 

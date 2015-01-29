@@ -45,7 +45,7 @@ public class PhoneAnalyticsListenerService extends WearableListenerService {
       try {
         wearPayload = new WearPayload(cartographer.fromJson(new String(messageEvent.getData())));
       } catch (IOException e) {
-        if (getAnalytics().debuggingEnabled) {
+        if (getAnalytics().logLevel.log()) {
           error(OWNER_SEGMENT_DISPATCHER, VERB_DISPATCH,
               String.valueOf(messageEvent.getRequestId()), e, messageEvent);
         }

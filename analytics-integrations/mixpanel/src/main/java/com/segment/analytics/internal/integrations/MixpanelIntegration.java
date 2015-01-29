@@ -13,6 +13,7 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import org.json.JSONObject;
 
+import static com.segment.analytics.Analytics.LogLevel;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
@@ -32,7 +33,7 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   boolean trackNamedPages;
   String token;
 
-  @Override public void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
+  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
     trackAllPages = settings.getBoolean("trackAllPages", false);
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", true);

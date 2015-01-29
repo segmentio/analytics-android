@@ -28,6 +28,7 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.Analytics.LogLevel.FULL;
 import static com.segment.analytics.TestUtils.JSONObjectMatcher.jsonEq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
@@ -55,7 +56,7 @@ public class AmplitudeTest {
         new ValueMap().putValue("apiKey", "foo")
             .putValue("trackAllPages", true)
             .putValue("trackCategorizedPages", false)
-            .putValue("trackNamedPages", true), true);
+            .putValue("trackNamedPages", true), FULL);
     verifyStatic();
     Amplitude.initialize(context, "foo");
     assertThat(integration.trackAllPages).isTrue();
@@ -63,7 +64,7 @@ public class AmplitudeTest {
     assertThat(integration.trackNamedPages).isTrue();
     // Verify default args
     integration.initialize(context, //
-        new ValueMap().putValue("apiKey", "foo"), true);
+        new ValueMap().putValue("apiKey", "foo"), FULL);
     assertThat(integration.trackAllPages).isFalse();
     assertThat(integration.trackCategorizedPages).isFalse();
     assertThat(integration.trackNamedPages).isFalse();

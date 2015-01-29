@@ -17,6 +17,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.Analytics.LogLevel.BASIC;
 import static com.segment.analytics.internal.integrations.AppsFlyerIntegration.AppsFlyer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -40,7 +41,7 @@ public class AppsFlyerTest {
   @Test public void initialize() throws IllegalStateException {
     AppsFlyerIntegration integration = new AppsFlyerIntegration(appsFlyer);
     integration.initialize(context,
-        new ValueMap().putValue("appsFlyerDevKey", "foo").putValue("httpFallback", true), true);
+        new ValueMap().putValue("appsFlyerDevKey", "foo").putValue("httpFallback", true), BASIC);
     verify(appsFlyer).setAppsFlyerKey("foo");
     verify(appsFlyer).setUseHTTPFallback(true);
     assertThat(integration.context).isEqualTo(context);

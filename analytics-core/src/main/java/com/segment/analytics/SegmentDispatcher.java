@@ -28,7 +28,7 @@ import static com.segment.analytics.Utils.quitThread;
 import static com.segment.analytics.Utils.toISO8601Date;
 import static com.segment.analytics.internal.Utils.createDirectory;
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
-import static com.segment.analytics.internal.Utils.VERB_ENQUEUE;
+import static com.segment.analytics.internal.Utils.VERB_FLUSH;
 import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.error;
 import static com.segment.analytics.internal.Utils.print;
@@ -59,7 +59,7 @@ class SegmentDispatcher {
   final Stats stats;
   final Handler handler;
   final HandlerThread segmentThread;
-  final boolean debuggingEnabled;
+  final Analytics.LogLevel logLevel;
   final Map<String, Boolean> integrations;
   final Cartographer cartographer;
 
@@ -85,7 +85,7 @@ class SegmentDispatcher {
 
   static synchronized SegmentDispatcher create(Context context, Client client,
       Cartographer cartographer, Stats stats, Map<String, Boolean> integrations, String tag,
-      int flushInterval, int flushQueueSize, boolean debuggingEnabled) {
+      int flushInterval, int flushQueueSize, Analytics.LogLevel logLevel) {
     QueueFile queueFile;
     try {
       File folder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
@@ -95,18 +95,18 @@ class SegmentDispatcher {
       throw panic(e, "Could not create queue file.");
     }
     return new SegmentDispatcher(context, client, cartographer, queueFile, stats, integrations,
-        flushInterval, flushQueueSize, debuggingEnabled);
+        flushInterval, flushQueueSize, logLevel);
   }
 
   SegmentDispatcher(Context context, Client client, Cartographer cartographer, QueueFile queueFile,
       Stats stats, Map<String, Boolean> integrations, int flushInterval, int flushQueueSize,
-      boolean debuggingEnabled) {
+      Analytics.LogLevel logLevel) {
     this.context = context;
     this.flushQueueSize = Math.min(flushQueueSize, MAX_QUEUE_SIZE);
     this.client = client;
     this.queueFile = queueFile;
     this.stats = stats;
-    this.debuggingEnabled = debuggingEnabled;
+    this.logLevel = logLevel;
     this.integrations = integrations;
     this.cartographer = cartographer;
     this.flushInterval = flushInterval * 1000;
@@ -137,7 +137,7 @@ class SegmentDispatcher {
     }
 
     try {
-      if (debuggingEnabled) {
+      if (logLevel.log()) {
         debug(OWNER_SEGMENT_DISPATCHER, VERB_ENQUEUE, payload.id(),
             "Queue Size: " + queueFile.size());
       }
@@ -147,7 +147,7 @@ class SegmentDispatcher {
       }
       queueFile.add(payloadJson.getBytes(UTF_8));
     } catch (IOException e) {
-      if (debuggingEnabled) {
+      if (logLevel.log()) {
         error(OWNER_SEGMENT_DISPATCHER, VERB_ENQUEUE, payload.id(), e, payload, queueFile);
       }
     }
@@ -168,6 +168,9 @@ class SegmentDispatcher {
       int payloadCount = queueFile.forEach(new PayloadVisitor(writer));
       writer.endBatchArray().endObject().close();
       response.close();
+      if (logLevel.log()) {
+        debug(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, "Flushed " + payloadCount + " events.");
+      }
 
       try {
         queueFile.remove(payloadCount);
@@ -182,6 +185,9 @@ class SegmentDispatcher {
         dispatchFlush(flushInterval);
       }
     } catch (IOException e) {
+      if (logLevel.log()) {
+        error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e);
+      }
       dispatchFlush(flushInterval);
     }
   }

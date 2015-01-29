@@ -68,7 +68,7 @@ class IntegrationManager {
   final Cartographer cartographer;
   final Stats stats;
   final ValueMap.Cache<ProjectSettings> projectSettingsCache;
-  final boolean debuggingEnabled;
+  final Analytics.LogLevel logLevel;
   final HandlerThread integrationManagerThread;
   final Handler integrationManagerHandler;
 
@@ -77,12 +77,12 @@ class IntegrationManager {
   boolean initialized;
 
   static synchronized IntegrationManager create(Context context, Cartographer cartographer,
-      Client client, Stats stats, String tag, boolean debuggingEnabled) {
+      Client client, Stats stats, String tag, Analytics.LogLevel logLevel) {
     ValueMap.Cache<ProjectSettings> projectSettingsCache =
         new ValueMap.Cache<>(context, cartographer, PROJECT_SETTINGS_CACHE_KEY_PREFIX + tag,
             ProjectSettings.class);
     return new IntegrationManager(context, client, cartographer, stats, projectSettingsCache,
-        debuggingEnabled);
+        logLevel);
   }
 
   private static String getSanitizedKeyForIntegration(String integrationKey) {
@@ -99,13 +99,13 @@ class IntegrationManager {
   }
 
   IntegrationManager(Context context, Client client, Cartographer cartographer, Stats stats,
-      ValueMap.Cache<ProjectSettings> projectSettingsCache, boolean debuggingEnabled) {
+      ValueMap.Cache<ProjectSettings> projectSettingsCache, Analytics.LogLevel logLevel) {
     this.context = context;
     this.client = client;
     this.cartographer = cartographer;
     this.stats = stats;
     this.projectSettingsCache = projectSettingsCache;
-    this.debuggingEnabled = debuggingEnabled;
+    this.logLevel = logLevel;
 
     integrationManagerThread =
         new HandlerThread(INTEGRATION_MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
@@ -144,7 +144,7 @@ class IntegrationManager {
       Class clazz = Class.forName(className);
       loadIntegration(clazz);
     } catch (ClassNotFoundException e) {
-      if (debuggingEnabled) {
+      if (logLevel.log()) {
         debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, className);
       }
     }
@@ -188,7 +188,7 @@ class IntegrationManager {
       try {
         createDirectory(downloadedJarsDirectory);
       } catch (IOException e) {
-        if (debuggingEnabled) {
+        if (logLevel.log()) {
           error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, null, e,
               "Unable to download integrations into " + downloadedJarsDirectory);
         }
@@ -231,7 +231,7 @@ class IntegrationManager {
     try {
       createDirectory(optimizedDexDirectory);
     } catch (IOException e) {
-      if (debuggingEnabled) {
+      if (logLevel.log()) {
         print(e, "Unable to dex downloaded integrations");
       }
       return;
@@ -258,7 +258,7 @@ class IntegrationManager {
         Class integrationClass = dexClassLoader.loadClass(className);
         loadIntegration(integrationClass);
       } catch (ClassNotFoundException e) {
-        if (debuggingEnabled) {
+        if (logLevel.log()) {
           error(OWNER_INTEGRATION_MANAGER, VERB_SKIP, className, e);
         }
       }
@@ -277,16 +277,16 @@ class IntegrationManager {
       if (projectSettings.containsKey(key)) {
         ValueMap settings = projectSettings.getValueMap(key);
         try {
-          if (debuggingEnabled) {
+          if (logLevel.log()) {
             debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, key, settings);
           }
-          integration.initialize(context, settings, debuggingEnabled);
+          integration.initialize(context, settings, logLevel);
           if (listener != null) {
             listener.onIntegrationReady(key, integration.getUnderlyingInstance());
             listener = null; // clear the reference
           }
         } catch (IllegalStateException e) {
-          if (debuggingEnabled) {
+          if (logLevel.log()) {
             error(OWNER_INTEGRATION_MANAGER, VERB_SKIP, key, e, settings);
           }
           iterator.remove();
@@ -325,7 +325,7 @@ class IntegrationManager {
       if (operationQueue == null) {
         operationQueue = new ArrayDeque<>();
       }
-      if (debuggingEnabled) {
+      if (logLevel.log()) {
         debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id());
       }
       operationQueue.add(operation);
@@ -340,7 +340,7 @@ class IntegrationManager {
       operation.run(integration);
       long endTime = System.nanoTime();
       long duration = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-      if (debuggingEnabled) {
+      if (logLevel.log()) {
         debug(OWNER_INTEGRATION_MANAGER, VERB_DISPATCH, operation.id(), integration.key(),
             TimeUnit.NANOSECONDS.toMillis(duration) + "ms");
       }

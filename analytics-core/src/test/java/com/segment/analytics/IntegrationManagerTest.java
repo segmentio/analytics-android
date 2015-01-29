@@ -17,6 +17,7 @@ import org.robolectric.shadows.ShadowLog;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
+import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -45,7 +46,7 @@ public class IntegrationManagerTest {
 
     integrationManager =
         new IntegrationManager(context, client, Cartographer.INSTANCE, stats, projectSettingsCache,
-            false);
+            NONE);
   }
 
   @After public void tearDown() {

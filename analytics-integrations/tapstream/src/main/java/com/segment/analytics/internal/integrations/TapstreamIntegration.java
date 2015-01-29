@@ -16,6 +16,9 @@ import com.tapstream.sdk.Logging;
 import com.tapstream.sdk.Tapstream;
 import java.util.Map;
 
+import static com.segment.analytics.Analytics.LogLevel;
+import static com.segment.analytics.Analytics.LogLevel.FULL;
+import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
@@ -35,13 +38,13 @@ public class TapstreamIntegration extends AbstractIntegration<Tapstream> {
   Tapstream tapstream;
   Config config;
 
-  @Override public void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
+  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
     trackAllPages = settings.getBoolean("trackAllPages", true);
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", true);
     trackNamedPages = settings.getBoolean("trackNamedPages", true);
 
-    if (debuggingEnabled) {
+    if (logLevel == INFO || logLevel == FULL) {
       Logging.setLogger(new Logger() {
         @Override public void log(int i, String s) {
           Log.d(TAPSTREAM_KEY, s);

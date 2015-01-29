@@ -23,6 +23,7 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -44,8 +45,7 @@ public class BugsnagTest {
   }
 
   @Test public void initialize() throws IllegalStateException {
-    integration.initialize(context,
-        new ValueMap().putValue("apiKey", "foo").putValue("useSSL", true), true);
+    integration.initialize(context, new ValueMap().putValue("apiKey", "foo"), NONE);
     verifyStatic();
     Bugsnag.init(context, "foo");
   }

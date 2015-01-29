@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import com.localytics.android.LocalyticsAmpSession;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
@@ -13,6 +14,8 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.util.Map;
 
+import static com.segment.analytics.Analytics.LogLevel.FULL;
+import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.isOnClassPath;
@@ -30,13 +33,13 @@ public class LocalyticsIntegration extends AbstractIntegration<LocalyticsAmpSess
   LocalyticsAmpSession session;
   boolean hasSupportLibOnClassPath;
 
-  @Override public void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
+  @Override public void initialize(Context context, ValueMap settings, Analytics.LogLevel logLevel)
       throws IllegalStateException {
     if (!hasPermission(context, Manifest.permission.WAKE_LOCK)) {
       throw new IllegalStateException("localytics requires the wake lock permission");
     }
     session = new LocalyticsAmpSession(context, settings.getString("appKey"));
-    LocalyticsAmpSession.setLoggingEnabled(debuggingEnabled);
+    LocalyticsAmpSession.setLoggingEnabled(logLevel == INFO || logLevel == FULL);
     hasSupportLibOnClassPath = isOnClassPath("android.support.v4.app.FragmentActivity");
   }
 

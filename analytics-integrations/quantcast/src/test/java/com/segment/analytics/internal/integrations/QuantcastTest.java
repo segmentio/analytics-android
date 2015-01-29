@@ -22,6 +22,9 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.Analytics.LogLevel.FULL;
+import static com.segment.analytics.Analytics.LogLevel.INFO;
+import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -44,14 +47,21 @@ public class QuantcastTest {
   }
 
   @Test public void initialize() throws IllegalStateException {
-    integration.initialize(context, new ValueMap().putValue("apiKey", "foo"), false);
+    integration.initialize(context, new ValueMap().putValue("apiKey", "foo"), NONE);
     verifyStatic();
     QuantcastClient.enableLogging(false);
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
-  @Test public void initializeWithDebugging() throws IllegalStateException {
-    integration.initialize(context, new ValueMap().putValue("apiKey", "foo"), true);
+  @Test public void initializeWithDebuggingInfo() throws IllegalStateException {
+    integration.initialize(context, new ValueMap().putValue("apiKey", "foo"), INFO);
+    verifyStatic();
+    QuantcastClient.enableLogging(true);
+    verifyNoMoreInteractions(QuantcastClient.class);
+  }
+
+  @Test public void initializeWithDebuggingFull() throws IllegalStateException {
+    integration.initialize(context, new ValueMap().putValue("apiKey", "foo"), FULL);
     verifyStatic();
     QuantcastClient.enableLogging(true);
     verifyNoMoreInteractions(QuantcastClient.class);

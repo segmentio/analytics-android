@@ -10,6 +10,8 @@ import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
+import static com.segment.analytics.Analytics.LogLevel;
+
 /**
  * A base class for Integrations. An integration will only be created if the server sends us
  * settings for it. <p></p> This could exist as an interface, but we'll want an abstract class
@@ -26,12 +28,12 @@ public abstract class AbstractIntegration<T> {
    * and permission in {@link IllegalStateException}. If this method call completes without an
    * error, the integration is assumed to be initialize and ready.
    */
-  public abstract void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
+  public abstract void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException;
 
   /**
-   * The underlying instance for this provider - used for integration specific actions. This will be
-   * null for SDK's that maintain a shared instance (e.g. Amplitude).
+   * The underlying instance for this provider - used for integration specific actions. This will
+   * return {@code null} for SDK's that maintain a shared instance (e.g. Amplitude).
    */
   public T getUnderlyingInstance() {
     // Only Mixpanel and GoogleAnalytics don't have shared instances so no need to make all

@@ -25,6 +25,7 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -47,7 +48,7 @@ public class CrittercismTest {
   }
 
   @Test public void initialize() throws IllegalStateException {
-    integration.initialize(context, new ValueMap().putValue("appId", "foo"), true);
+    integration.initialize(context, new ValueMap().putValue("appId", "foo"), NONE);
     verifyStatic();
     // todo: verify config params
     Crittercism.initialize(eq(context), eq("foo"), any(CrittercismConfig.class));

@@ -102,7 +102,7 @@ public class Analytics {
   final Traits.Cache traitsCache;
   final AnalyticsContext analyticsContext;
   final Options defaultOptions;
-  final boolean debuggingEnabled;
+  final LogLevel logLevel;
   boolean shutdown;
 
   /**
@@ -140,14 +140,14 @@ public class Analytics {
           }
           try {
             boolean debugging = getResourceBooleanOrThrow(context, DEBUGGING_RESOURCE_IDENTIFIER);
-            builder.debugging(debugging);
+            if (debugging) builder.logLevel(LogLevel.FULL);
           } catch (Resources.NotFoundException notFoundException) {
             String packageName = context.getPackageName();
             try {
               final int flags =
                   context.getPackageManager().getApplicationInfo(packageName, 0).flags;
               boolean debugging = (flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
-              builder.debugging(debugging);
+              if (debugging) builder.logLevel(LogLevel.FULL);
             } catch (PackageManager.NameNotFoundException ignored) {
             }
           }
@@ -176,7 +176,7 @@ public class Analytics {
 
   Analytics(Application application, IntegrationManager integrationManager,
       SegmentDispatcher segmentDispatcher, Stats stats, Traits.Cache traitsCache,
-      AnalyticsContext analyticsContext, Options defaultOptions, boolean debuggingEnabled) {
+      AnalyticsContext analyticsContext, Options defaultOptions, LogLevel logLevel) {
     this.application = application;
     this.integrationManager = integrationManager;
     this.segmentDispatcher = segmentDispatcher;
@@ -184,7 +184,7 @@ public class Analytics {
     this.traitsCache = traitsCache;
     this.analyticsContext = analyticsContext;
     this.defaultOptions = defaultOptions;
-    this.debuggingEnabled = debuggingEnabled;
+    this.logLevel = logLevel;
 
     if (integrationManager != null) {
       application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
@@ -217,15 +217,6 @@ public class Analytics {
         }
       });
     }
-  }
-
-  /**
-   * Returns {@code true} if debugging is enabled.
-   *
-   * @since 2.3
-   */
-  public boolean isDebugging() {
-    return debuggingEnabled;
   }
 
   /** @see #identify(String, Traits, Options) */
@@ -495,12 +486,12 @@ public class Analytics {
   }
 
   void submit(BasePayload payload) {
-    if (debuggingEnabled) {
+    if (logLevel.log()) {
       debug(OWNER_MAIN, VERB_CREATE, payload.id(), payload);
     }
     segmentDispatcher.dispatchEnqueue(payload);
     if (integrationManager == null) {
-      if (debuggingEnabled) {
+      if (logLevel.log()) {
         debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, payload.id());
       }
     } else {
@@ -511,10 +502,25 @@ public class Analytics {
   void submit(ActivityLifecyclePayload payload) {
     // We only register for lifecycle callbacks if integrationManager != null, so this method
     // is never called when integrationManager == null
-    if (debuggingEnabled) {
+    if (logLevel.log()) {
       debug(OWNER_MAIN, VERB_CREATE, payload.id(), payload);
     }
     integrationManager.dispatchOperation(payload);
+  }
+
+  public enum LogLevel {
+    /** No logging. */
+    NONE,
+    /** Log exceptions and events through the SDK. */
+    BASIC,
+    /** Log exceptions, events, and basic logging for bundled integrations. */
+    INFO,
+    /** Log exceptions, events, and full logging for bundled integrations. */
+    FULL;
+
+    public boolean log() {
+      return this != NONE;
+    }
   }
 
   /**
@@ -548,7 +554,7 @@ public class Analytics {
     private int queueSize = Utils.DEFAULT_FLUSH_QUEUE_SIZE;
     private int flushInterval = Utils.DEFAULT_FLUSH_INTERVAL;
     private Options defaultOptions;
-    private boolean debuggingEnabled = false;
+    private LogLevel logLevel = LogLevel.NONE;
     private boolean skipBundledIntegrations = true;
 
     /** Start building a new {@link Analytics} instance. */
@@ -635,8 +641,8 @@ public class Analytics {
     /**
      * Set whether debugging is enabled or not.
      */
-    public Builder debugging(boolean debuggingEnabled) {
-      this.debuggingEnabled = debuggingEnabled;
+    public Builder logLevel(LogLevel logLevel) {
+      this.logLevel = logLevel;
       return this;
     }
 
@@ -667,14 +673,13 @@ public class Analytics {
       IntegrationManager integrationManager = null;
       if (skipBundledIntegrations) {
         integrationManager =
-            IntegrationManager.create(application, cartographer, client, stats, tag,
-                debuggingEnabled);
+            IntegrationManager.create(application, cartographer, client, stats, tag, logLevel);
       }
       SegmentDispatcher segmentDispatcher =
           SegmentDispatcher.create(application, client, cartographer, stats,
               (integrationManager == null) ? Collections.<String, Boolean>emptyMap()
                   : Collections.unmodifiableMap(integrationManager.bundledIntegrations), tag,
-              flushInterval, queueSize, debuggingEnabled);
+              flushInterval, queueSize, logLevel);
 
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
@@ -683,7 +688,7 @@ public class Analytics {
       AnalyticsContext analyticsContext = AnalyticsContext.create(application, traitsCache.get());
 
       return new Analytics(application, integrationManager, segmentDispatcher, stats, traitsCache,
-          analyticsContext, defaultOptions, debuggingEnabled);
+          analyticsContext, defaultOptions, logLevel);
     }
   }
 }

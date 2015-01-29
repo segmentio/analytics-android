@@ -27,6 +27,7 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.TestUtils.createContext;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -55,7 +56,7 @@ public class FlurryTest {
         new ValueMap().putValue("apiKey", apiKey)
             .putValue("sessionContinueSeconds", 20)
             .putValue("captureUncaughtExceptions", true)
-            .putValue("useHttps", false), true);
+            .putValue("useHttps", false), NONE);
     verifyStatic();
     FlurryAgent.setContinueSessionMillis(20000);
     verifyStatic();

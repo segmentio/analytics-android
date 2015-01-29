@@ -30,6 +30,7 @@ import org.robolectric.shadows.ShadowLog;
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.Context.CONNECTIVITY_SERVICE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
+import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.SegmentDispatcher.MAX_QUEUE_SIZE;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static com.segment.analytics.internal.Utils.toISO8601Date;
@@ -357,7 +358,7 @@ public class SegmentDispatcherTest {
     Map<String, Boolean> integrations;
     int flushInterval = Utils.DEFAULT_FLUSH_INTERVAL;
     int flushSize = Utils.DEFAULT_FLUSH_QUEUE_SIZE;
-    boolean debuggingEnabled = false;
+    Analytics.LogLevel logLevel = NONE;
 
     SegmentBuilder() {
       initMocks(this);
@@ -407,8 +408,8 @@ public class SegmentDispatcherTest {
       return this;
     }
 
-    public SegmentBuilder debuggingEnabled(boolean debuggingEnabled) {
-      this.debuggingEnabled = debuggingEnabled;
+    public SegmentBuilder logLevel(Analytics.LogLevel logLevel) {
+      this.logLevel = logLevel;
       return this;
     }
 
@@ -424,7 +425,7 @@ public class SegmentDispatcherTest {
       if (stats == null) stats = mock(Stats.class);
       if (integrations == null) integrations = Collections.emptyMap();
       return new SegmentDispatcher(context, client, cartographer, queueFile, stats, integrations,
-          flushInterval, flushSize, debuggingEnabled);
+          flushInterval, flushSize, logLevel);
     }
   }
 }

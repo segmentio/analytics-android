@@ -25,6 +25,7 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.TestUtils.JSONObjectMatcher.jsonEq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
@@ -61,7 +62,7 @@ public class MixpanelTest {
     adapter.initialize(context, new ValueMap().putValue("token", "foo")
         .putValue("trackAllPages", true)
         .putValue("trackCategorizedPages", false)
-        .putValue("trackNamedPages", true), true);
+        .putValue("trackNamedPages", true), NONE);
     verifyStatic();
     MixpanelAPI.getInstance(context, "foo");
     assertThat(adapter.token).isEqualTo("foo");

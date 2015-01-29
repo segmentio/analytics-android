@@ -9,6 +9,10 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import ly.count.android.api.Countly;
 
+import static com.segment.analytics.Analytics.LogLevel;
+import static com.segment.analytics.Analytics.LogLevel.FULL;
+import static com.segment.analytics.Analytics.LogLevel.INFO;
+
 /**
  * Countly is a general-purpose analytics tool for your mobile apps, with reports like traffic
  * sources, demographics, event tracking and segmentation.
@@ -21,9 +25,10 @@ public class CountlyIntegration extends AbstractIntegration<Countly> {
   static final String COUNTLY_KEY = "Countly";
   Countly countly;
 
-  @Override public void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
+  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
     countly = Countly.sharedInstance();
+    countly.setLoggingEnabled(logLevel == INFO || logLevel == FULL);
     countly.init(context, settings.getString("serverUrl"), settings.getString("appKey"));
   }
 

@@ -13,6 +13,8 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.util.Map;
 
+import static com.segment.analytics.Analytics.LogLevel;
+
 /**
  * Bugsnag is an error tracking service for websites and mobile apps. It automatically captures any
  * errors in your code so that you can find them and resolve them as quickly as possible.
@@ -24,7 +26,7 @@ import java.util.Map;
 public class BugsnagIntegration extends AbstractIntegration<Client> {
   static final String BUGSNAG_KEY = "Bugsnag";
 
-  @Override public void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
+  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
     Bugsnag.init(context, settings.getString("apiKey"));
   }

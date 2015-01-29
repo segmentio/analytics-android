@@ -10,6 +10,9 @@ import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
+import static com.segment.analytics.Analytics.LogLevel;
+import static com.segment.analytics.Analytics.LogLevel.FULL;
+import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.internal.Utils.hasPermission;
 
 /**
@@ -25,13 +28,13 @@ public class QuantcastIntegration extends AbstractIntegration<Void> {
   static final String QUANTCAST_KEY = "Quantcast";
   String apiKey;
 
-  @Override public void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
+  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new IllegalStateException("ACCESS_NETWORK_STATE is required");
     }
     apiKey = settings.getString("apiKey");
-    QuantcastClient.enableLogging(debuggingEnabled);
+    QuantcastClient.enableLogging(logLevel == INFO || logLevel == FULL);
   }
 
   @Override public Void getUnderlyingInstance() {

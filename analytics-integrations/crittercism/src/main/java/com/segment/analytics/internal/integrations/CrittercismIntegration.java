@@ -9,6 +9,8 @@ import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
+import static com.segment.analytics.Analytics.LogLevel;
+
 /**
  * Crittercism is an error reporting tool for your mobile apps. Any time your app crashes or
  * errors.
@@ -21,7 +23,7 @@ import com.segment.analytics.internal.model.payloads.TrackPayload;
 public class CrittercismIntegration extends AbstractIntegration<Void> {
   static final String CRITTERCISM_KEY = "Crittercism";
 
-  @Override public void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
+  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
     CrittercismConfig crittercismConfig = new CrittercismConfig();
     crittercismConfig.setLogcatReportingEnabled(settings.getBoolean("shouldCollectLogcat", false));

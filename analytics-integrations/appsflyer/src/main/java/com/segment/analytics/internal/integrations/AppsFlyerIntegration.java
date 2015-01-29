@@ -8,6 +8,7 @@ import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
+import static com.segment.analytics.Analytics.LogLevel;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
@@ -31,7 +32,7 @@ public class AppsFlyerIntegration extends AbstractIntegration<Void> {
     this.appsFlyer = appsFlyer;
   }
 
-  @Override public void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
+  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new IllegalStateException("AppsFlyer requires the ACCESS_NETWORK_STATE permission");

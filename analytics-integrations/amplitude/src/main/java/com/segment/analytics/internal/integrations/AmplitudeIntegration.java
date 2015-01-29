@@ -11,6 +11,7 @@ import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
+import static com.segment.analytics.Analytics.LogLevel;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
@@ -27,7 +28,7 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
   boolean trackCategorizedPages;
   boolean trackNamedPages;
 
-  @Override public void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
+  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
     trackAllPages = settings.getBoolean("trackAllPages", false);
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", false);

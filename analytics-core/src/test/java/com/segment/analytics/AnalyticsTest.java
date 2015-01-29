@@ -13,6 +13,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
 import org.robolectric.shadows.ShadowLog;
 
+import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,7 +51,7 @@ public class AnalyticsTest {
     when(traitsCache.get()).thenReturn(traits);
     analytics =
         new Analytics(application, integrationManager, segmentDispatcher, stats, traitsCache,
-            analyticsContext, defaultOptions, false);
+            analyticsContext, defaultOptions, NONE);
 
     verify(application) //
         .registerActivityLifecycleCallbacks(any(Application.ActivityLifecycleCallbacks.class));
@@ -144,7 +145,7 @@ public class AnalyticsTest {
     application = mockApplication();
     analytics =
         new Analytics(application, null, segmentDispatcher, stats, traitsCache, analyticsContext,
-            defaultOptions, false);
+            defaultOptions, NONE);
 
     verify(application, never()) //
         .registerActivityLifecycleCallbacks(any(Application.ActivityLifecycleCallbacks.class));

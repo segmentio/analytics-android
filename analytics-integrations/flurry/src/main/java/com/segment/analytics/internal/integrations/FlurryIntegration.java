@@ -12,6 +12,9 @@ import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
+import static com.segment.analytics.Analytics.LogLevel;
+import static com.segment.analytics.Analytics.LogLevel.FULL;
+import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
@@ -27,14 +30,14 @@ public class FlurryIntegration extends AbstractIntegration<Void> {
   static final String FLURRY_KEY = "Flurry";
   String apiKey;
 
-  @Override public void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
+  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
     apiKey = settings.getString("apiKey");
     FlurryAgent.setContinueSessionMillis(settings.getInt("sessionContinueSeconds", 10) * 1000);
     FlurryAgent.setCaptureUncaughtExceptions(
         settings.getBoolean("captureUncaughtExceptions", false));
     FlurryAgent.setUseHttps(settings.getBoolean("useHttps", true));
-    FlurryAgent.setLogEnabled(debuggingEnabled);
+    FlurryAgent.setLogEnabled(logLevel == INFO || logLevel == FULL);
   }
 
   @Override public void onActivityStarted(Activity activity) {

@@ -8,6 +8,7 @@ import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Logger;
 import com.google.android.gms.analytics.Tracker;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.Properties;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
@@ -42,14 +43,16 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   GoogleAnalytics googleAnalyticsInstance;
   boolean sendUserId;
 
-  @Override public void initialize(Context context, ValueMap settings, boolean debuggingEnabled)
+  @Override public void initialize(Context context, ValueMap settings, Analytics.LogLevel logLevel)
       throws IllegalStateException {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new IllegalStateException("Google Analytics requires the access state permission.");
     }
 
     googleAnalyticsInstance = GoogleAnalytics.getInstance(context);
-    if (debuggingEnabled) {
+    if (logLevel == Analytics.LogLevel.INFO) {
+      googleAnalyticsInstance.getLogger().setLogLevel(Logger.LogLevel.INFO);
+    } else if (logLevel == Analytics.LogLevel.FULL) {
       googleAnalyticsInstance.getLogger().setLogLevel(Logger.LogLevel.VERBOSE);
     }
 

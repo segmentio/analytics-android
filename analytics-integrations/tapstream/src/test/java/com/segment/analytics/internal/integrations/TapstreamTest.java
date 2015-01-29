@@ -30,6 +30,7 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.internal.integrations.TapstreamTest.EventMatcher.eventEq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.argThat;
@@ -67,7 +68,7 @@ public class TapstreamTest {
         .putValue("sdkSecret", "bar")
         .putValue("trackAllPages", true)
         .putValue("trackCategorizedPages", false)
-        .putValue("trackNamedPages", true), true);
+        .putValue("trackNamedPages", true), NONE);
     verifyStatic();
     Tapstream.create(eq(context), eq("foo"), eq("bar"), Matchers.<com.tapstream.sdk.Config>any());
   }

@@ -22,6 +22,9 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
 
+import static com.segment.analytics.Analytics.LogLevel.FULL;
+import static com.segment.analytics.Analytics.LogLevel.INFO;
+import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -50,12 +53,14 @@ public class LocalyticsTest {
 
   @Test public void initialize() throws IllegalStateException {
     LocalyticsIntegration integration = new LocalyticsIntegration();
-    integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"), true);
+    integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"), INFO);
     assertThat(integration.session).isNotNull();
     assertThat(LocalyticsSession.isLoggingEnabled()).isTrue();
 
-    integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"),
-        false);
+    integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"), FULL);
+    assertThat(LocalyticsSession.isLoggingEnabled()).isTrue();
+
+    integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"), NONE);
     assertThat(LocalyticsSession.isLoggingEnabled()).isFalse();
   }
 
