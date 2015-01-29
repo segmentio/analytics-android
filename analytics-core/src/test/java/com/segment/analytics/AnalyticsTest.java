@@ -231,6 +231,12 @@ public class AnalyticsTest {
     assertThat(Analytics.with(Robolectric.application)).isSameAs(analytics);
   }
 
+  @Test public void skippingBundledIntegrationsCreatesInstancesCorrectly() {
+    Analytics analytics =
+        new Analytics.Builder(Robolectric.application, "foo").skipBundledIntegrations().build();
+    assertThat(analytics.segmentDispatcher.integrations).isNotNull().isEmpty();
+  }
+
   @Test public void getSnapshotInvokesStats() throws Exception {
     analytics.getSnapshot();
     verify(stats).createSnapshot();
