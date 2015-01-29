@@ -43,12 +43,15 @@ import com.segment.analytics.internal.model.payloads.GroupPayload;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
+import java.util.Collections;
 import java.util.Map;
 
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload;
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type;
+import static com.segment.analytics.internal.Utils.OWNER_INTEGRATION_MANAGER;
 import static com.segment.analytics.internal.Utils.OWNER_MAIN;
 import static com.segment.analytics.internal.Utils.VERB_CREATE;
+import static com.segment.analytics.internal.Utils.VERB_SKIP;
 import static com.segment.analytics.internal.Utils.checkMain;
 import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.getResourceBooleanOrThrow;
@@ -183,35 +186,37 @@ public class Analytics {
     this.defaultOptions = defaultOptions;
     this.debuggingEnabled = debuggingEnabled;
 
-    application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
-      @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-        submit(new ActivityLifecyclePayload(Type.CREATED, activity, savedInstanceState));
-      }
+    if (integrationManager != null) {
+      application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+        @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+          submit(new ActivityLifecyclePayload(Type.CREATED, activity, savedInstanceState));
+        }
 
-      @Override public void onActivityStarted(Activity activity) {
-        submit(new ActivityLifecyclePayload(Type.STARTED, activity, null));
-      }
+        @Override public void onActivityStarted(Activity activity) {
+          submit(new ActivityLifecyclePayload(Type.STARTED, activity, null));
+        }
 
-      @Override public void onActivityResumed(Activity activity) {
-        submit(new ActivityLifecyclePayload(Type.RESUMED, activity, null));
-      }
+        @Override public void onActivityResumed(Activity activity) {
+          submit(new ActivityLifecyclePayload(Type.RESUMED, activity, null));
+        }
 
-      @Override public void onActivityPaused(Activity activity) {
-        submit(new ActivityLifecyclePayload(Type.PAUSED, activity, null));
-      }
+        @Override public void onActivityPaused(Activity activity) {
+          submit(new ActivityLifecyclePayload(Type.PAUSED, activity, null));
+        }
 
-      @Override public void onActivityStopped(Activity activity) {
-        submit(new ActivityLifecyclePayload(Type.STOPPED, activity, null));
-      }
+        @Override public void onActivityStopped(Activity activity) {
+          submit(new ActivityLifecyclePayload(Type.STOPPED, activity, null));
+        }
 
-      @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-        submit(new ActivityLifecyclePayload(Type.SAVE_INSTANCE, activity, outState));
-      }
+        @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+          submit(new ActivityLifecyclePayload(Type.SAVE_INSTANCE, activity, outState));
+        }
 
-      @Override public void onActivityDestroyed(Activity activity) {
-        submit(new ActivityLifecyclePayload(Type.DESTROYED, activity, null));
-      }
-    });
+        @Override public void onActivityDestroyed(Activity activity) {
+          submit(new ActivityLifecyclePayload(Type.DESTROYED, activity, null));
+        }
+      });
+    }
   }
 
   /**
@@ -426,7 +431,7 @@ public class Analytics {
    */
   public void flush() {
     segmentDispatcher.dispatchFlush(0);
-    integrationManager.dispatchFlush();
+    if (integrationManager != null) integrationManager.dispatchFlush();
   }
 
   /** Get the {@link AnalyticsContext} used by this instance. */
@@ -454,7 +459,7 @@ public class Analytics {
     if (shutdown) {
       return;
     }
-    integrationManager.shutdown();
+    if (integrationManager != null) integrationManager.shutdown();
     segmentDispatcher.shutdown();
     stats.shutdown();
     shutdown = true;
@@ -478,12 +483,15 @@ public class Analytics {
    *     }
    *   });
    * </code> </pre>
-   *
-   * @since 2.3
    */
-  public void registerOnIntegrationReady(OnIntegrationReadyListener onIntegrationReadyListener) {
-    checkMain();
-    integrationManager.dispatchRegisterIntegrationInitializedListener(onIntegrationReadyListener);
+  public void //
+  registerOnIntegrationReadyListener(OnIntegrationReadyListener onIntegrationReadyListener) {
+    if (integrationManager != null) {
+      checkMain();
+      integrationManager.dispatchRegisterIntegrationInitializedListener(onIntegrationReadyListener);
+    } else {
+      throw new IllegalStateException("Enable bundled integrations to register for this callback.");
+    }
   }
 
   void submit(BasePayload payload) {
@@ -491,10 +499,18 @@ public class Analytics {
       debug(OWNER_MAIN, VERB_CREATE, payload.id(), payload);
     }
     segmentDispatcher.dispatchEnqueue(payload);
-    integrationManager.dispatchOperation(payload);
+    if (integrationManager == null) {
+      if (debuggingEnabled) {
+        debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, payload.id());
+      }
+    } else {
+      integrationManager.dispatchOperation(payload);
+    }
   }
 
   void submit(ActivityLifecyclePayload payload) {
+    // We only register for lifecycle callbacks if integrationManager != null, so this method
+    // is never called when integrationManager == null
     if (debuggingEnabled) {
       debug(OWNER_MAIN, VERB_CREATE, payload.id(), payload);
     }
@@ -533,6 +549,7 @@ public class Analytics {
     private int flushInterval = Utils.DEFAULT_FLUSH_INTERVAL;
     private Options defaultOptions;
     private boolean debuggingEnabled = false;
+    private boolean skipBundledIntegrations = true;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -617,11 +634,20 @@ public class Analytics {
 
     /**
      * Set whether debugging is enabled or not.
-     *
-     * @since 2.3
      */
     public Builder debugging(boolean debuggingEnabled) {
       this.debuggingEnabled = debuggingEnabled;
+      return this;
+    }
+
+    /**
+     * Disable bundled integrations.
+     * <p/>
+     * This will skip *ALL* bundled integrations, even if they don't have a server side
+     * integration available (e.g. Flurry). Use it with extreme care.
+     */
+    public Builder skipBundledIntegrations() {
+      this.skipBundledIntegrations = false;
       return this;
     }
 
@@ -635,13 +661,17 @@ public class Analytics {
       Stats stats = new Stats();
       Cartographer cartographer = Cartographer.INSTANCE;
       Client client = new Client(application, writeKey);
-      IntegrationManager integrationManager =
-          IntegrationManager.create(application, cartographer, client, stats, tag,
-              debuggingEnabled);
+      IntegrationManager integrationManager = null;
+      if (skipBundledIntegrations) {
+        integrationManager =
+            IntegrationManager.create(application, cartographer, client, stats, tag,
+                debuggingEnabled);
+      }
       SegmentDispatcher segmentDispatcher =
           SegmentDispatcher.create(application, client, cartographer, stats,
-              integrationManager.bundledIntegrations, tag, flushInterval, queueSize,
-              debuggingEnabled);
+              (integrationManager == null) ? Collections.<String, Boolean>emptyMap()
+                  : Collections.unmodifiableMap(integrationManager.bundledIntegrations), tag,
+              flushInterval, queueSize, debuggingEnabled);
 
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {

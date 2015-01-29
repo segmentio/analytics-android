@@ -95,7 +95,7 @@ public class AnalyticsBuilderTest {
     }
   }
 
-  @Test public void invalidwriteKeyThrowsException() throws Exception {
+  @Test public void invalidWriteKeyThrowsException() throws Exception {
     try {
       new Builder(context, null);
       fail("Null writeKey should throw exception.");

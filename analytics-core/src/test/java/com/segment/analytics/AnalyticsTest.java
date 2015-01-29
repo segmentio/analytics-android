@@ -13,11 +13,13 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
 import org.robolectric.shadows.ShadowLog;
 
+import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
@@ -49,6 +51,9 @@ public class AnalyticsTest {
     analytics =
         new Analytics(application, integrationManager, segmentDispatcher, stats, traitsCache,
             analyticsContext, defaultOptions, false);
+
+    verify(application) //
+        .registerActivityLifecycleCallbacks(any(Application.ActivityLifecycleCallbacks.class));
   }
 
   @After public void tearDown() {
@@ -62,7 +67,7 @@ public class AnalyticsTest {
     verify(analyticsContext).setTraits(traitsCache.get());
   }
 
-  @Test public void trackFailsForInvalidEvent() {
+  @Test public void track() {
     try {
       analytics.track(null);
     } catch (IllegalArgumentException e) {
@@ -75,17 +80,90 @@ public class AnalyticsTest {
     }
   }
 
-  @Test public void submitInvokesDispatches() {
+  @Test public void alias() throws Exception {
+    try {
+      analytics.alias(null);
+      fail("null previous id should throw error");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("previousId must not be null or empty.");
+    }
+  }
+
+  @Test public void screen() throws Exception {
+    try {
+      analytics.screen(null, null);
+      fail("null category and name should throw exception");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("either category or name must be provided.");
+    }
+
+    try {
+      analytics.screen("", "");
+      fail("empty category and name should throw exception");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("either category or name must be provided.");
+    }
+  }
+
+  @Test public void group() throws Exception {
+    try {
+      analytics.group(null);
+      fail("null groupid should throw exception");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("groupId must not be null or empty.");
+    }
+
+    try {
+      analytics.group("");
+      fail("empty groupid and name should throw exception");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("groupId must not be null or empty.");
+    }
+  }
+
+  @Test public void submitInvokesDispatch() {
     BasePayload payload = mock(BasePayload.class);
     analytics.submit(payload);
     verify(integrationManager).dispatchOperation(payload);
     verify(segmentDispatcher).dispatchEnqueue(payload);
   }
 
-  @Test public void flushInvokesFlushes() throws Exception {
+  @Test public void submitLifecycleInvokesDispatch() {
+    ActivityLifecyclePayload payload = mock(ActivityLifecyclePayload.class);
+    analytics.submit(payload);
+    verify(integrationManager).dispatchOperation(payload);
+  }
+
+  @Test public void flushInvokesDispatch() throws Exception {
     analytics.flush();
     verify(segmentDispatcher).dispatchFlush(0);
     verify(integrationManager).dispatchFlush();
+  }
+
+  @Test public void nullIntegrationManagerIsIgnored() throws Exception {
+    application = mockApplication();
+    analytics =
+        new Analytics(application, null, segmentDispatcher, stats, traitsCache, analyticsContext,
+            defaultOptions, false);
+
+    verify(application, never()) //
+        .registerActivityLifecycleCallbacks(any(Application.ActivityLifecycleCallbacks.class));
+
+    analytics.submit(mock(BasePayload.class));
+    try {
+      analytics.submit(mock(ActivityLifecyclePayload.class));
+      fail("submitting an activity lifecycle event should fail");
+    } catch (NullPointerException ignored) {
+    }
+    analytics.flush();
+    analytics.shutdown();
+    try {
+      analytics.registerOnIntegrationReadyListener(
+          mock(Analytics.OnIntegrationReadyListener.class));
+      fail("registering callback should fail");
+    } catch (IllegalStateException e) {
+      assertThat(e).hasMessage("Enable bundled integrations to register for this callback.");
+    }
   }
 
   @Test public void shutdown() {
@@ -105,18 +183,6 @@ public class AnalyticsTest {
     verify(stats).shutdown();
     assertThat(analytics.shutdown).isTrue();
   }
-
-  /*
-  @Test public void shutdownDisallowedOnSingletonInstance() throws Exception {
-    Analytics.singleton = null;
-    try {
-      Analytics analytics = Analytics.with(context); // todo: mock apiKey in resources
-      analytics.shutdown();
-      fail("Calling shutdown() on static singleton instance should throw");
-    } catch (UnsupportedOperationException expected) {
-    }
-  }
-  */
 
   @Test public void shutdownDisallowedOnCustomSingletonInstance() throws Exception {
     Analytics.singleton = null;
@@ -168,14 +234,5 @@ public class AnalyticsTest {
   @Test public void getSnapshotInvokesStats() throws Exception {
     analytics.getSnapshot();
     verify(stats).createSnapshot();
-  }
-
-  @Test public void alias() throws Exception {
-    try {
-      analytics.alias(null);
-      fail("null previous id should throw error");
-    } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("previousId must not be null or empty.");
-    }
   }
 }

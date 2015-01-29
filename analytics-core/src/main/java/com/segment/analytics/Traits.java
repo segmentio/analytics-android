@@ -78,8 +78,7 @@ public class Traits extends ValueMap {
 
   /**
    * Create a new Traits instance. Analytics client can be called on any thread, so this instance
-   * is
-   * thread safe.
+   * is thread safe.
    */
   public static Traits create(Context context) {
     Traits traits = new Traits(new NullableConcurrentHashMap<String, Object>());
@@ -94,8 +93,7 @@ public class Traits extends ValueMap {
 
   /**
    * This instance is not thread safe. {@link Traits} are  meant to be attached to a single call
-   * and
-   * discarded. If the client is keeping a reference to a {@link Traits} instance that may be
+   * and discarded. If the client is keeping a reference to a {@link Traits} instance that may be
    * accessed by multiple threads, they should synchronize access to this instance.
    */
   public Traits() {
