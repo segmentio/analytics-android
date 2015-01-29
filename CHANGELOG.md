@@ -1,3 +1,9 @@
+Version 2.6.0 (January 26th, 2014)
+==================================
+* Fix: alias method signature
+* Fix: group method signature
+* Fix: Be more lenient when creating disk queue
+
 Version 2.5.1 (December 22nd, 2014)
 ===================================
 * Fix: Update link for hitting our servers
