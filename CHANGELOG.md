@@ -1,4 +1,4 @@
-Version 2.6.0 (January 26th, 2014)
+Version 2.5.3 (January 26th, 2014)
 ==================================
 * Fix: alias method signature
 * Fix: group method signature
