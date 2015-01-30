@@ -52,7 +52,7 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     googleAnalyticsInstance = GoogleAnalytics.getInstance(context);
     if (logLevel == Analytics.LogLevel.INFO) {
       googleAnalyticsInstance.getLogger().setLogLevel(Logger.LogLevel.INFO);
-    } else if (logLevel == Analytics.LogLevel.FULL) {
+    } else if (logLevel == Analytics.LogLevel.VERBOSE) {
       googleAnalyticsInstance.getLogger().setLogLevel(Logger.LogLevel.VERBOSE);
     }
 

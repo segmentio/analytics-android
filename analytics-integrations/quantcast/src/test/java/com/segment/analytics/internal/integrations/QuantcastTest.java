@@ -22,7 +22,7 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.Analytics.LogLevel.FULL;
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static org.mockito.Mockito.mock;
@@ -61,7 +61,7 @@ public class QuantcastTest {
   }
 
   @Test public void initializeWithDebuggingFull() throws IllegalStateException {
-    integration.initialize(context, new ValueMap().putValue("apiKey", "foo"), FULL);
+    integration.initialize(context, new ValueMap().putValue("apiKey", "foo"), VERBOSE);
     verifyStatic();
     QuantcastClient.enableLogging(true);
     verifyNoMoreInteractions(QuantcastClient.class);

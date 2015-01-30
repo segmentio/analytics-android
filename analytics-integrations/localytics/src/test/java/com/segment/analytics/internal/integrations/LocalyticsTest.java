@@ -22,7 +22,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
 
-import static com.segment.analytics.Analytics.LogLevel.FULL;
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,7 +57,8 @@ public class LocalyticsTest {
     assertThat(integration.session).isNotNull();
     assertThat(LocalyticsSession.isLoggingEnabled()).isTrue();
 
-    integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"), FULL);
+    integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"),
+        VERBOSE);
     assertThat(LocalyticsSession.isLoggingEnabled()).isTrue();
 
     integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"), NONE);

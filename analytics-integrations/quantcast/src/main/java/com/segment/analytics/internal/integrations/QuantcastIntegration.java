@@ -11,7 +11,7 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
 import static com.segment.analytics.Analytics.LogLevel;
-import static com.segment.analytics.Analytics.LogLevel.FULL;
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.internal.Utils.hasPermission;
 
@@ -34,7 +34,7 @@ public class QuantcastIntegration extends AbstractIntegration<Void> {
       throw new IllegalStateException("ACCESS_NETWORK_STATE is required");
     }
     apiKey = settings.getString("apiKey");
-    QuantcastClient.enableLogging(logLevel == INFO || logLevel == FULL);
+    QuantcastClient.enableLogging(logLevel == INFO || logLevel == VERBOSE);
   }
 
   @Override public Void getUnderlyingInstance() {

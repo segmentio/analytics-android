@@ -14,7 +14,7 @@ import static com.kahuna.sdk.KahunaUserCredentialKeys.LINKEDIN_KEY;
 import static com.kahuna.sdk.KahunaUserCredentialKeys.TWITTER_KEY;
 import static com.kahuna.sdk.KahunaUserCredentialKeys.USERNAME_KEY;
 import static com.segment.analytics.Analytics.LogLevel;
-import static com.segment.analytics.Analytics.LogLevel.FULL;
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.isOnClassPath;
@@ -36,7 +36,7 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
     }
     KahunaAnalytics.onAppCreate(context, settings.getString("apiKey"),
         settings.getString("pushSenderId"));
-    KahunaAnalytics.setDebugMode(logLevel == INFO || logLevel == FULL);
+    KahunaAnalytics.setDebugMode(logLevel == INFO || logLevel == VERBOSE);
   }
 
   @Override public String key() {

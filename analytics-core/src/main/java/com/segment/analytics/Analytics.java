@@ -140,14 +140,14 @@ public class Analytics {
           }
           try {
             boolean debugging = getResourceBooleanOrThrow(context, DEBUGGING_RESOURCE_IDENTIFIER);
-            if (debugging) builder.logLevel(LogLevel.FULL);
+            if (debugging) builder.logLevel(LogLevel.VERBOSE);
           } catch (Resources.NotFoundException notFoundException) {
             String packageName = context.getPackageName();
             try {
               final int flags =
                   context.getPackageManager().getApplicationInfo(packageName, 0).flags;
               boolean debugging = (flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
-              if (debugging) builder.logLevel(LogLevel.FULL);
+              if (debugging) builder.logLevel(LogLevel.VERBOSE);
             } catch (PackageManager.NameNotFoundException ignored) {
             }
           }
@@ -515,8 +515,8 @@ public class Analytics {
     BASIC,
     /** Log exceptions, events, and basic logging for bundled integrations. */
     INFO,
-    /** Log exceptions, events, and full logging for bundled integrations. */
-    FULL;
+    /** Log exceptions, events, and verbose logging for bundled integrations. */
+    VERBOSE;
 
     public boolean log() {
       return this != NONE;

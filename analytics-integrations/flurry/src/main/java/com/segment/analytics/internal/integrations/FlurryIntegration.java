@@ -13,7 +13,7 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
 import static com.segment.analytics.Analytics.LogLevel;
-import static com.segment.analytics.Analytics.LogLevel.FULL;
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
@@ -37,7 +37,7 @@ public class FlurryIntegration extends AbstractIntegration<Void> {
     FlurryAgent.setCaptureUncaughtExceptions(
         settings.getBoolean("captureUncaughtExceptions", false));
     FlurryAgent.setUseHttps(settings.getBoolean("useHttps", true));
-    FlurryAgent.setLogEnabled(logLevel == INFO || logLevel == FULL);
+    FlurryAgent.setLogEnabled(logLevel == INFO || logLevel == VERBOSE);
   }
 
   @Override public void onActivityStarted(Activity activity) {

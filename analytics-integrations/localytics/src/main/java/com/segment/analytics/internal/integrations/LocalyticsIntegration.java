@@ -14,7 +14,7 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.util.Map;
 
-import static com.segment.analytics.Analytics.LogLevel.FULL;
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
@@ -39,7 +39,7 @@ public class LocalyticsIntegration extends AbstractIntegration<LocalyticsAmpSess
       throw new IllegalStateException("localytics requires the wake lock permission");
     }
     session = new LocalyticsAmpSession(context, settings.getString("appKey"));
-    LocalyticsAmpSession.setLoggingEnabled(logLevel == INFO || logLevel == FULL);
+    LocalyticsAmpSession.setLoggingEnabled(logLevel == INFO || logLevel == VERBOSE);
     hasSupportLibOnClassPath = isOnClassPath("android.support.v4.app.FragmentActivity");
   }
 

@@ -10,7 +10,7 @@ import com.segment.analytics.internal.model.payloads.TrackPayload;
 import ly.count.android.api.Countly;
 
 import static com.segment.analytics.Analytics.LogLevel;
-import static com.segment.analytics.Analytics.LogLevel.FULL;
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
 
 /**
@@ -28,7 +28,7 @@ public class CountlyIntegration extends AbstractIntegration<Countly> {
   @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
     countly = Countly.sharedInstance();
-    countly.setLoggingEnabled(logLevel == INFO || logLevel == FULL);
+    countly.setLoggingEnabled(logLevel == INFO || logLevel == VERBOSE);
     countly.init(context, settings.getString("serverUrl"), settings.getString("appKey"));
   }
 

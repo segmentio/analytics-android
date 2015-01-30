@@ -17,7 +17,7 @@ import com.tapstream.sdk.Tapstream;
 import java.util.Map;
 
 import static com.segment.analytics.Analytics.LogLevel;
-import static com.segment.analytics.Analytics.LogLevel.FULL;
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
@@ -44,7 +44,7 @@ public class TapstreamIntegration extends AbstractIntegration<Tapstream> {
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", true);
     trackNamedPages = settings.getBoolean("trackNamedPages", true);
 
-    if (logLevel == INFO || logLevel == FULL) {
+    if (logLevel == INFO || logLevel == VERBOSE) {
       Logging.setLogger(new Logger() {
         @Override public void log(int i, String s) {
           Log.d(TAPSTREAM_KEY, s);
