@@ -14,8 +14,8 @@ import static com.kahuna.sdk.KahunaUserCredentialKeys.LINKEDIN_KEY;
 import static com.kahuna.sdk.KahunaUserCredentialKeys.TWITTER_KEY;
 import static com.kahuna.sdk.KahunaUserCredentialKeys.USERNAME_KEY;
 import static com.segment.analytics.Analytics.LogLevel;
-import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.isOnClassPath;
 

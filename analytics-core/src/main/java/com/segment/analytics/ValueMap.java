@@ -2,7 +2,6 @@ package com.segment.analytics;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import com.segment.analytics.internal.Cartographer;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;

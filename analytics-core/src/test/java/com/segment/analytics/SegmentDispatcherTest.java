@@ -3,7 +3,6 @@ package com.segment.analytics;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import com.segment.analytics.internal.Cartographer;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import edu.emory.mathcs.backport.java.util.Collections;

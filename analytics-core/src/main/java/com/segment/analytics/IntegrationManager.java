@@ -8,9 +8,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import com.segment.analytics.internal.AbstractIntegration;
-import com.segment.analytics.internal.Cartographer;
 import com.segment.analytics.internal.IntegrationOperation;
-import com.segment.analytics.internal.ProjectSettings;
 import dalvik.system.DexClassLoader;
 import java.io.File;
 import java.io.IOException;
@@ -54,7 +52,6 @@ import static com.segment.analytics.internal.Utils.quitThread;
  * settings on disk.
  */
 class IntegrationManager {
-  private static final String PROJECT_SETTINGS_CACHE_KEY_PREFIX = "project-settings-";
   private static final String INTEGRATION_MANAGER_THREAD_NAME =
       THREAD_PREFIX + OWNER_INTEGRATION_MANAGER;
   private static final long SETTINGS_REFRESH_INTERVAL = 1000 * 60 * 60 * 24; // 24 hours
@@ -67,7 +64,7 @@ class IntegrationManager {
   final Client client;
   final Cartographer cartographer;
   final Stats stats;
-  final ValueMap.Cache<ProjectSettings> projectSettingsCache;
+  final ProjectSettings.Cache projectSettingsCache;
   final Analytics.LogLevel logLevel;
   final HandlerThread integrationManagerThread;
   final Handler integrationManagerHandler;
@@ -78,9 +75,8 @@ class IntegrationManager {
 
   static synchronized IntegrationManager create(Context context, Cartographer cartographer,
       Client client, Stats stats, String tag, Analytics.LogLevel logLevel) {
-    ValueMap.Cache<ProjectSettings> projectSettingsCache =
-        new ValueMap.Cache<>(context, cartographer, PROJECT_SETTINGS_CACHE_KEY_PREFIX + tag,
-            ProjectSettings.class);
+    ProjectSettings.Cache projectSettingsCache =
+        new ProjectSettings.Cache(context, cartographer, tag);
     return new IntegrationManager(context, client, cartographer, stats, projectSettingsCache,
         logLevel);
   }
@@ -99,7 +95,7 @@ class IntegrationManager {
   }
 
   IntegrationManager(Context context, Client client, Cartographer cartographer, Stats stats,
-      ValueMap.Cache<ProjectSettings> projectSettingsCache, Analytics.LogLevel logLevel) {
+      ProjectSettings.Cache projectSettingsCache, Analytics.LogLevel logLevel) {
     this.context = context;
     this.client = client;
     this.cartographer = cartographer;

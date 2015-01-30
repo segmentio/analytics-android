@@ -1,7 +1,5 @@
-package com.segment.analytics.internal;
+package com.segment.analytics;
 
-import com.segment.analytics.Traits;
-import com.segment.analytics.ValueMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

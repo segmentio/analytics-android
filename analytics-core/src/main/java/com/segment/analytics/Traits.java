@@ -25,7 +25,6 @@
 package com.segment.analytics;
 
 import android.content.Context;
-import com.segment.analytics.internal.Cartographer;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;

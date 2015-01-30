@@ -35,7 +35,6 @@ import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
 import com.segment.analytics.core.BuildConfig;
-import com.segment.analytics.internal.GetAdvertisingIdTask;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;

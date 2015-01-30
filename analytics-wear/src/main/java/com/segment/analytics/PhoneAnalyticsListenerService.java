@@ -19,7 +19,6 @@ package com.segment.analytics;
 import android.annotation.SuppressLint;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.WearableListenerService;
-import com.segment.analytics.internal.Cartographer;
 import java.io.IOException;
 
 import static com.segment.analytics.internal.Utils.OWNER_SEGMENT_DISPATCHER;

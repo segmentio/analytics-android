@@ -1,18 +1,17 @@
-package com.segment.analytics.internal;
+package com.segment.analytics;
 
 import android.content.Context;
 import android.os.AsyncTask;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
-import com.segment.analytics.AnalyticsContext;
 
 /**
  * An {@link AsyncTask} that fetches the advertising info and attaches it to the given {@link
  * AnalyticsContext} instance.
  */
-public class GetAdvertisingIdTask extends AsyncTask<Context, Void, AdvertisingIdClient.Info> {
+class GetAdvertisingIdTask extends AsyncTask<Context, Void, AdvertisingIdClient.Info> {
   final AnalyticsContext analyticsContext;
 
-  public GetAdvertisingIdTask(AnalyticsContext analyticsContext) {
+  GetAdvertisingIdTask(AnalyticsContext analyticsContext) {
     this.analyticsContext = analyticsContext;
   }
 

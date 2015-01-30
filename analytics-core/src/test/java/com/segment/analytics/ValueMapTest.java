@@ -1,6 +1,5 @@
-package com.segment.analytics.internal;
+package com.segment.analytics;
 
-import com.segment.analytics.ValueMap;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -151,7 +150,7 @@ public class ValueMapTest {
     } catch (RuntimeException exception) {
       assertThat(exception) //
           .hasMessage("Could not create instance of "
-              + "com.segment.analytics.internal.ValueMapTest.AmplitudeSettings");
+              + "com.segment.analytics.ValueMapTest.AmplitudeSettings");
     }
   }
 

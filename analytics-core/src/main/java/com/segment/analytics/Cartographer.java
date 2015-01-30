@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.segment.analytics.internal;
+package com.segment.analytics;
 
 import android.util.JsonReader;
 import android.util.JsonToken;
@@ -33,8 +33,8 @@ import java.util.Map;
  * Cartographer creates {@link Map} from JSON encoded streams and encodes Maps to their JSON
  * representation.
  */
-public class Cartographer {
-  public static final Cartographer INSTANCE = new Cartographer();
+class Cartographer {
+  static final Cartographer INSTANCE = new Cartographer();
 
   private Cartographer() {
   }
@@ -43,7 +43,7 @@ public class Cartographer {
    * Deserializes the specified json into a {@link Map}. If you have the Json in a {@link Reader}
    * form instead of a {@link String}, use {@link #fromJson(Reader)} instead.
    */
-  public Map<String, Object> fromJson(String json) throws IOException {
+  Map<String, Object> fromJson(String json) throws IOException {
     return fromJson(new StringReader(json));
   }
 
@@ -51,7 +51,7 @@ public class Cartographer {
    * Deserializes the json read from the specified {@link Reader} into a {@link Map}. If you have
    * the Json in a String form instead of a {@link Reader}, use {@link #fromJson(String)} instead.
    */
-  public Map<String, Object> fromJson(Reader reader) throws IOException {
+  Map<String, Object> fromJson(Reader reader) throws IOException {
     JsonReader jsonReader = new JsonReader(reader);
     try {
       return readerToMap(jsonReader);
@@ -65,7 +65,7 @@ public class Cartographer {
    * write the json to {@link Writer} instead of retrieving it as a String, use {@link #toJson(Map,
    * Writer)} instead.
    */
-  public String toJson(Map<?, ?> map) throws IOException {
+  String toJson(Map<?, ?> map) throws IOException {
     StringWriter stringWriter = new StringWriter();
     toJson(map, stringWriter);
     return stringWriter.toString();
@@ -75,7 +75,7 @@ public class Cartographer {
    * Serializes the map into it's json representation into the provided {@link Writer}. If you want
    * to retrieve the json as a string, use {@link #toJson(Map)} instead.
    */
-  public void toJson(Map<?, ?> map, Writer writer) throws IOException {
+  void toJson(Map<?, ?> map, Writer writer) throws IOException {
     if (map == null) {
       throw new IllegalArgumentException("map == null");
     }

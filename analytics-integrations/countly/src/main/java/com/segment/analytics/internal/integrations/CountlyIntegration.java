@@ -10,8 +10,8 @@ import com.segment.analytics.internal.model.payloads.TrackPayload;
 import ly.count.android.api.Countly;
 
 import static com.segment.analytics.Analytics.LogLevel;
-import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 
 /**
  * Countly is a general-purpose analytics tool for your mobile apps, with reports like traffic

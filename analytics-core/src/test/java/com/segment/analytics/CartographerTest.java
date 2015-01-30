@@ -1,10 +1,6 @@
-package com.segment.analytics.internal.model.payloads;
+package com.segment.analytics;
 
-import com.segment.analytics.AnalyticsContext;
-import com.segment.analytics.Options;
-import com.segment.analytics.Properties;
-import com.segment.analytics.Traits;
-import com.segment.analytics.internal.Cartographer;
+import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.io.IOException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,7 +11,7 @@ import static com.segment.analytics.TestUtils.createContext;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
-public class TrackPayloadTest {
+public class CartographerTest {
 
   @Test public void testSerialization() throws IOException {
     AnalyticsContext analyticsContext = createContext(new Traits());
@@ -26,9 +22,7 @@ public class TrackPayloadTest {
     trackPayload.put("messageId", "a161304c-498c-4830-9291-fcfb8498877b");
     trackPayload.put("timestamp", "2014-12-15T13:32:44-0700");
 
-    Cartographer cartographer = Cartographer.INSTANCE;
-
-    String json = cartographer.toJson(trackPayload);
+    String json = Cartographer.INSTANCE.toJson(trackPayload);
 
     assertThat(json).isEqualTo("{\""
         + "messageId\":\"a161304c-498c-4830-9291-fcfb8498877b\","

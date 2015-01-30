@@ -2,9 +2,7 @@ package com.segment.analytics;
 
 import android.content.Context;
 import com.segment.analytics.internal.AbstractIntegration;
-import com.segment.analytics.internal.Cartographer;
 import com.segment.analytics.internal.IntegrationOperation;
-import com.segment.analytics.internal.ProjectSettings;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import java.io.IOException;
 import org.junit.After;
@@ -36,7 +34,7 @@ public class IntegrationManagerTest {
 
   @Mock Client client;
   @Mock Stats stats;
-  @Mock ValueMap.Cache<ProjectSettings> projectSettingsCache;
+  @Mock ProjectSettings.Cache projectSettingsCache;
 
   @Before public void setUp() throws IOException {
     initMocks(this);

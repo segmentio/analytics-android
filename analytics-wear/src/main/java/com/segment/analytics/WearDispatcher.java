@@ -10,7 +10,6 @@ import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
-import com.segment.analytics.internal.Cartographer;
 import com.segment.analytics.internal.Utils;
 import java.io.IOException;
 import java.util.Collection;

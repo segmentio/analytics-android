@@ -1,4 +1,4 @@
-package com.segment.analytics.internal;
+package com.segment.analytics;
 
 import java.io.IOException;
 import org.junit.Test;

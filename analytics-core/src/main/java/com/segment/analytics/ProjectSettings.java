@@ -22,19 +22,19 @@
  * SOFTWARE.
  */
 
-package com.segment.analytics.internal;
+package com.segment.analytics;
 
-import com.segment.analytics.ValueMap;
+import android.content.Context;
 import com.segment.analytics.internal.annotations.ForDeserialization;
 import java.util.Map;
 
 import static java.util.Collections.unmodifiableMap;
 
-public class ProjectSettings extends ValueMap {
-  public static final String TIMESTAMP_KEY = "timestamp";
-  public static final String SEGMENT_KEY = "Segment.io";
+class ProjectSettings extends ValueMap {
+  static final String TIMESTAMP_KEY = "timestamp";
+  static final String SEGMENT_KEY = "Segment.io";
 
-  public static ProjectSettings create(Map<String, Object> map, long timestamp) {
+  static ProjectSettings create(Map<String, Object> map, long timestamp) {
     map.put(TIMESTAMP_KEY, timestamp);
     return new ProjectSettings(map);
   }
@@ -43,7 +43,19 @@ public class ProjectSettings extends ValueMap {
     super(unmodifiableMap(map));
   }
 
-  public long timestamp() {
+  long timestamp() {
     return getLong(TIMESTAMP_KEY, 0L);
+  }
+
+  static class Cache extends ValueMap.Cache<ProjectSettings> {
+    private static final String PROJECT_SETTINGS_CACHE_KEY_PREFIX = "project-settings-";
+
+    Cache(Context context, Cartographer cartographer, String tag) {
+      super(context, cartographer, PROJECT_SETTINGS_CACHE_KEY_PREFIX + tag, ProjectSettings.class);
+    }
+
+    @Override public ProjectSettings create(Map<String, Object> map) {
+      return new ProjectSettings(map);
+    }
   }
 }

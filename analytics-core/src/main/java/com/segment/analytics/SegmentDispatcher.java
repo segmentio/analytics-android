@@ -6,7 +6,6 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.JsonWriter;
-import com.segment.analytics.internal.Cartographer;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import java.io.BufferedWriter;
 import java.io.File;

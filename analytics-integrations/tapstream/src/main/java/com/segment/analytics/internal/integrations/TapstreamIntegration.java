@@ -17,8 +17,8 @@ import com.tapstream.sdk.Tapstream;
 import java.util.Map;
 
 import static com.segment.analytics.Analytics.LogLevel;
-import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
