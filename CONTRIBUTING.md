@@ -3,7 +3,10 @@
 
 We're huge fans of open-source, and absolutely we love getting good contributions to **analytics-android**! These docs will tell you everything you need to know about how to add your own integration to the library with a pull request, so we can merge it in for everyone else to use.
 
-
+  1. Apply to be a Segment partner: https://segment.com/docs/partners/join-the-platform/
+  2. Complete a Technical Survey: https://segment.com/partners/techqs
+  3. Hear from the Segment team with the details for submitting your pull request.
+  
 ## Getting Setup
 
 To start, we'll get you set up with a development environment. You'll need the [JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html) installed on your computer. If you're on a windows computer, just replace  `./gradlew` with `gradlew.bat` for all the Gradle commands below.
