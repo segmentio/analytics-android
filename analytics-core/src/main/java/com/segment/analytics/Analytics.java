@@ -60,7 +60,7 @@ import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
- * The entry point into the Analytics for Android SDK.
+ * The entry point into the Segment for Android SDK.
  * <p/>
  * The idea is simple: one pipeline for all your data. Segment is the single hub to collect,
  * translate and route your data with the flip of a switch.

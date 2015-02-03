@@ -330,21 +330,21 @@ public class ValueMap implements Map<String, Object> {
   }
 
   /** A class to let you store arbitrary key - {@link ValueMap} pairs. */
-  public static class Cache<T extends ValueMap> {
+  static class Cache<T extends ValueMap> {
     private final SharedPreferences preferences;
     private final Cartographer cartographer;
     private final String key;
     private final Class<T> clazz;
     private T value;
 
-    public Cache(Context context, Cartographer cartographer, String key, Class<T> clazz) {
+    Cache(Context context, Cartographer cartographer, String key, Class<T> clazz) {
       this.cartographer = cartographer;
       this.preferences = getSegmentSharedPreferences(context);
       this.key = key;
       this.clazz = clazz;
     }
 
-    public T get() {
+    T get() {
       if (value == null) {
         String json = preferences.getString(key, null);
         if (isNullOrEmpty(json)) return null;
@@ -358,15 +358,15 @@ public class ValueMap implements Map<String, Object> {
       return value;
     }
 
-    public boolean isSet() {
+    boolean isSet() {
       return preferences.contains(key);
     }
 
-    public T create(Map<String, Object> map) {
+    T create(Map<String, Object> map) {
       return ValueMap.createValueMap(map, clazz);
     }
 
-    public void set(T value) {
+    void set(T value) {
       this.value = value;
       try {
         String json = cartographer.toJson(value);
@@ -375,7 +375,7 @@ public class ValueMap implements Map<String, Object> {
       }
     }
 
-    public void delete() {
+    void delete() {
       preferences.edit().remove(key).apply();
     }
   }

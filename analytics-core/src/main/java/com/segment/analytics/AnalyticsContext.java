@@ -55,7 +55,7 @@ import static com.segment.analytics.internal.Utils.isOnClassPath;
 import static java.util.Collections.unmodifiableMap;
 
 /**
- * Context is a dictionary of free-form information about a the state of the device. Context is
+ * Context is a dictionary of free-form information about the state of the device. Context is
  * attached to every outgoing call. You can add any custom data to the context dictionary that
  * you'd like to have access to in the raw logs.
  * <p/>
@@ -316,7 +316,7 @@ public class AnalyticsContext extends ValueMap {
     return this;
   }
 
-  /** An object representing location information. */
+  /** Representation of location information. */
   public static class Location extends ValueMap {
     private static final String LOCATION_LATITUDE_KEY = "latitude";
     private static final String LOCATION_LONGITUDE_KEY = "longitude";

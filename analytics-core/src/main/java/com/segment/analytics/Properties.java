@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A class to attach extra information to specific tracking calls.
+ * A class to attach extra information to events.
  * <p/>
  * Just like traits, we also accept some properties with semantic meaning, and you should only ever
  * use these property names for that purpose.

@@ -2,7 +2,7 @@ package com.segment.analytics;
 
 import java.util.Map;
 
-/** Value class for stats about an {@link Analytics} client. */
+/** Represents all stats for a {@link Analytics} instance at a single point in time. */
 public class StatsSnapshot {
   /**
    * The time at which the snapshot was created.
