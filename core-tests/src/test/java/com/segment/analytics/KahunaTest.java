@@ -44,7 +44,7 @@ public class KahunaTest extends AbstractIntegrationTestCase {
 
   @Test @Override public void initialize() throws IllegalStateException {
     integration.initialize(context,
-        new ValueMap().putValue("secretKey", "foo").putValue("pushSenderId", "bar"), true);
+        new ValueMap().putValue("apiKey", "foo").putValue("pushSenderId", "bar"), true);
 
     verifyStatic();
     KahunaAnalytics.onAppCreate(context, "foo", "bar");
