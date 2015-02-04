@@ -118,17 +118,7 @@
         android:layout_height="wrap_content"/>
 
     <TextView
-        android:id="@+id/stat_flushed_events"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <TextView
-        android:id="@+id/stat_flush_count"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <TextView
-        android:id="@+id/integration_event_count"
+        android:id="@+id/stats"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 

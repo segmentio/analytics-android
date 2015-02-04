@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +22,8 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
@@ -71,7 +72,7 @@ class IntegrationManager {
 
   Queue<IntegrationOperation> operationQueue;
   OnIntegrationReadyListener listener;
-  boolean initialized;
+  volatile boolean initialized;
 
   static synchronized IntegrationManager create(Context context, Cartographer cartographer,
       Client client, Stats stats, String tag, Analytics.LogLevel logLevel) {
@@ -128,10 +129,10 @@ class IntegrationManager {
       dispatchInitialize(projectSettingsCache.get());
       if (projectSettingsCache.get().timestamp() + SETTINGS_REFRESH_INTERVAL
           < System.currentTimeMillis()) {
-        dispatchFetch();
+        dispatchFetchSettings();
       }
     } else {
-      dispatchFetch();
+      dispatchFetchSettings();
     }
   }
 
@@ -158,62 +159,110 @@ class IntegrationManager {
     }
   }
 
-  void dispatchFetch() {
+  void dispatchFetchSettings() {
     integrationManagerHandler.sendMessage(integrationManagerHandler //
         .obtainMessage(IntegrationManagerHandler.REQUEST_FETCH_SETTINGS));
   }
 
-  void performFetch() {
+  void dispatchRetryFetchSettings() {
+    integrationManagerHandler.sendMessageDelayed(integrationManagerHandler //
+        .obtainMessage(IntegrationManagerHandler.REQUEST_FETCH_SETTINGS), SETTINGS_RETRY_INTERVAL);
+  }
+
+  void performFetchSettings() {
     if (!isConnected(context)) {
-      retryFetch();
+      dispatchRetryFetchSettings();
       return;
     }
 
+    Client.Response response = null;
+    ProjectSettings projectSettings = null;
     try {
-      Client.Response response = client.fetchSettings();
-      ProjectSettings projectSettings;
-      try {
-        projectSettings = ProjectSettings.create(cartographer.fromJson(buffer(response.is)),
-            System.currentTimeMillis());
-        projectSettingsCache.set(projectSettings);
-      } finally {
-        response.close();
-      }
-
-      File downloadedJarsDirectory = getJarDownloadDirectory(context);
-      try {
-        createDirectory(downloadedJarsDirectory);
-      } catch (IOException e) {
-        if (logLevel.log()) {
-          error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, null, e,
-              "Unable to download integrations into " + downloadedJarsDirectory);
-        }
-        return;
-      }
-
-      Set<String> bundledIntegrationsKeys = bundledIntegrations.keySet();
-      HashSet<String> skippedIntegrations = new HashSet<>(bundledIntegrationsKeys.size() + 2);
-      skippedIntegrations.addAll(bundledIntegrationsKeys);
-      skippedIntegrations.add(ProjectSettings.SEGMENT_KEY);
-      skippedIntegrations.add(ProjectSettings.TIMESTAMP_KEY);
-
-      for (String key : projectSettings.keySet()) {
-        if (skippedIntegrations.contains(key)) continue;
-
-        String fileName = getFileNameForIntegration(key);
-        String url = "https://dl.dropboxusercontent.com/u/11371156/integrations/" + fileName;
-        client.downloadFile(url, new File(downloadedJarsDirectory, fileName));
-      }
-
-      if (!initialized) dispatchInitialize(projectSettings);
+      response = client.fetchSettings();
+      projectSettings = ProjectSettings.create(cartographer.fromJson(buffer(response.is)),
+          System.currentTimeMillis());
     } catch (IOException e) {
-      retryFetch();
+      if (logLevel.log()) {
+        error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, null, e, "Unable to fetch settings");
+      }
+      dispatchRetryFetchSettings();
+    } finally {
+      try {
+        if (response != null) response.close();
+      } catch (IOException ignored) {
+      }
+    }
+
+    if (projectSettings != null) {
+      projectSettingsCache.set(projectSettings);
+      downloadJars(projectSettings);
     }
   }
 
-  void retryFetch() {
-    integrationManagerHandler.sendMessageDelayed(integrationManagerHandler //
-        .obtainMessage(IntegrationManagerHandler.REQUEST_FETCH_SETTINGS), SETTINGS_RETRY_INTERVAL);
+  void downloadJars(ProjectSettings projectSettings) {
+    final File downloadedJarsDirectory = getJarDownloadDirectory(context);
+    try {
+      createDirectory(downloadedJarsDirectory);
+    } catch (IOException e) {
+      if (logLevel.log()) {
+        error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, null, e,
+            "Unable to download integrations into " + downloadedJarsDirectory);
+      }
+      return;
+    }
+
+    ExecutorService executorService = Executors.newCachedThreadPool();
+    try {
+      for (final String key : projectSettings.keySet()) {
+        executorService.submit(new Runnable() {
+          @Override public void run() {
+            downloadJar(downloadedJarsDirectory, key);
+          }
+        });
+      }
+    } finally {
+      executorService.shutdown();
+      try {
+        boolean downloaded = executorService.awaitTermination(2, TimeUnit.MINUTES);
+        // Initialize the integrations, regardless of what was downloaded
+        dispatchInitialize(projectSettings);
+        if (!downloaded) {
+          dispatchRetryFetchSettings();
+        }
+      } catch (InterruptedException e) {
+        if (logLevel.log()) error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, null, e);
+      }
+    }
+  }
+
+  void downloadJar(File directory, String key) {
+    if (bundledIntegrations.containsKey(key) || ProjectSettings.TIMESTAMP_KEY.equals(key)) {
+      return;
+    }
+
+    String fileName = getFileNameForIntegration(key);
+    File file = new File(directory, fileName);
+
+    if (file.exists()) {
+      return;
+    }
+
+    if (logLevel.log()) {
+      debug(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, key);
+    }
+
+    String url = "https://dl.dropboxusercontent.com/u/11371156/integrations/" + fileName;
+    File tempFile = new File(directory, "temp-" + fileName);
+    try {
+      client.downloadFile(url, tempFile);
+      if (!tempFile.renameTo(file)) throw new IOException("Rename failed!");
+    } catch (IOException e) {
+      if (logLevel.log()) error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, key, e);
+      //noinspection ResultOfMethodCallIgnored
+      file.delete();
+    } finally {
+      tempFile.delete();
+    }
   }
 
   void dispatchInitialize(ProjectSettings projectSettings) {
@@ -232,19 +281,17 @@ class IntegrationManager {
       }
       return;
     }
-    ClassLoader defaultClassLoader = context.getClassLoader();
 
+    ClassLoader defaultClassLoader = context.getClassLoader();
     Set<String> bundledIntegrationsKeys = bundledIntegrations.keySet();
-    HashSet<String> skippedIntegrations = new HashSet<>(bundledIntegrationsKeys.size() + 2);
-    skippedIntegrations.addAll(bundledIntegrationsKeys);
-    skippedIntegrations.add(ProjectSettings.SEGMENT_KEY);
-    skippedIntegrations.add(ProjectSettings.TIMESTAMP_KEY);
 
     for (String key : settings.keySet()) {
-      if (skippedIntegrations.contains(key)) continue; // skip bundled integrations
-
-      File jarFile = new File(downloadedJarsDirectory, getFileNameForIntegration(key));
-
+      if (bundledIntegrationsKeys.contains(key) || ProjectSettings.TIMESTAMP_KEY.equals(key)) {
+        continue;
+      }
+      String fileName = getFileNameForIntegration(key);
+      File jarFile = new File(downloadedJarsDirectory, fileName);
+      if (!jarFile.exists()) continue;
       DexClassLoader dexClassLoader =
           new DexClassLoader(jarFile.getAbsolutePath(), optimizedDexDirectory.getAbsolutePath(),
               null, defaultClassLoader);
@@ -338,7 +385,7 @@ class IntegrationManager {
       long duration = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
       if (logLevel.log()) {
         debug(OWNER_INTEGRATION_MANAGER, VERB_DISPATCH, operation.id(), integration.key(),
-            TimeUnit.NANOSECONDS.toMillis(duration) + "ms");
+            duration + "ms");
       }
       stats.dispatchIntegrationOperation(integration.key(), duration);
     }
@@ -462,7 +509,7 @@ class IntegrationManager {
     @Override public void handleMessage(final Message msg) {
       switch (msg.what) {
         case REQUEST_FETCH_SETTINGS:
-          integrationManager.performFetch();
+          integrationManager.performFetchSettings();
           break;
         case REQUEST_INITIALIZE:
           integrationManager.performInitialize((ProjectSettings) msg.obj);
