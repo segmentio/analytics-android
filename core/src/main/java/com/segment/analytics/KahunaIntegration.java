@@ -27,7 +27,7 @@ class KahunaIntegration extends AbstractIntegration<Void> {
     if (!isOnClassPath("android.support.v4.app.Fragment")) {
       throw new IllegalStateException("Kahuna requires the support library to be bundled.");
     }
-    KahunaAnalytics.onAppCreate(context, settings.getString("secretKey"),
+    KahunaAnalytics.onAppCreate(context, settings.getString("apiKey"),
         settings.getString("pushSenderId"));
     KahunaAnalytics.setDebugMode(debuggingEnabled);
   }
