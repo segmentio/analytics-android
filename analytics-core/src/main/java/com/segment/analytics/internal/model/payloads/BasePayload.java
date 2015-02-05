@@ -100,10 +100,6 @@ public abstract class BasePayload extends ValueMap implements IntegrationOperati
     put(INTEGRATIONS_KEY, options.integrations()); // copy
   }
 
-  private ValueMap integrations() {
-    return getValueMap(INTEGRATIONS_KEY);
-  }
-
   public Type type() {
     return getEnum(Type.class, TYPE_KEY);
   }
@@ -127,7 +123,7 @@ public abstract class BasePayload extends ValueMap implements IntegrationOperati
 
   final boolean isIntegrationEnabledInPayload(AbstractIntegration integration) {
     boolean enabled = true;
-    ValueMap integrations = integrations();
+    ValueMap integrations = getValueMap(INTEGRATIONS_KEY);
     String key = integration.key();
     if (integrations.containsKey(key)) {
       enabled = integrations.getBoolean(key, true);

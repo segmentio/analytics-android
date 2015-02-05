@@ -29,6 +29,7 @@ import static com.kahuna.sdk.KahunaUserCredentialKeys.LINKEDIN_KEY;
 import static com.kahuna.sdk.KahunaUserCredentialKeys.TWITTER_KEY;
 import static com.kahuna.sdk.KahunaUserCredentialKeys.USERNAME_KEY;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
+import static com.segment.analytics.TestUtils.createTraits;
 import static org.mockito.MockitoAnnotations.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -139,7 +140,7 @@ public class KahunaTest {
 
   @Test public void identify() {
     integration.identify(
-        new IdentifyPayloadBuilder().traits(new Traits().putUserId("foo")).build());
+        new IdentifyPayloadBuilder().traits(createTraits("foo")).build());
     verifyStatic();
     KahunaAnalytics.setUsernameAndEmail("foo", null);
     KahunaAnalytics.setUserCredential(USERNAME_KEY, null);

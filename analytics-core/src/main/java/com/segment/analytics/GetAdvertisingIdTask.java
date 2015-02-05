@@ -26,7 +26,7 @@ class GetAdvertisingIdTask extends AsyncTask<Context, Void, AdvertisingIdClient.
   @Override protected void onPostExecute(AdvertisingIdClient.Info info) {
     super.onPostExecute(info);
     if (info != null) {
-      analyticsContext.putAdvertisingInfo(info.getId(), info.isLimitAdTrackingEnabled());
+      analyticsContext.device().putAdvertisingInfo(info.getId(), info.isLimitAdTrackingEnabled());
     }
   }
 }

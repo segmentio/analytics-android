@@ -437,7 +437,7 @@ public class Analytics {
   /** Clear any information, including traits and user id about the current user. */
   public void logout() {
     traitsCache.delete();
-    traitsCache.set(Traits.create(application));
+    traitsCache.set(Traits.create());
     analyticsContext.setTraits(traitsCache.get());
   }
 
@@ -682,7 +682,7 @@ public class Analytics {
 
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
-        traitsCache.set(Traits.create(application));
+        traitsCache.set(Traits.create());
       }
       AnalyticsContext analyticsContext = AnalyticsContext.create(application, traitsCache.get());
 

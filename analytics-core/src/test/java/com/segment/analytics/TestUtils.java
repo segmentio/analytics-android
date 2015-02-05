@@ -73,6 +73,16 @@ public final class TestUtils {
     return application;
   }
 
+  public static Traits createTraits() {
+    // Proxy to expose factory method for testing
+    return Traits.create();
+  }
+
+  public static Traits createTraits(String userId) {
+    // Proxy to expose putUserID method for testing
+    return new Traits().putUserId(userId);
+  }
+
   public static <T extends ValueMap> T createValueMap(Map map, Class<T> clazz) {
     try {
       Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
@@ -127,7 +137,7 @@ public final class TestUtils {
 
     public TrackPayload build() {
       if (traits == null) {
-        traits = Traits.create(Robolectric.application);
+        traits = Traits.create();
       }
       if (event == null) {
         event = "bar";
@@ -167,7 +177,7 @@ public final class TestUtils {
 
     public IdentifyPayload build() {
       if (traits == null) {
-        traits = Traits.create(Robolectric.application);
+        traits = Traits.create();
       }
       if (context == null) {
         context = createContext(traits);
@@ -219,7 +229,7 @@ public final class TestUtils {
 
     public ScreenPayload build() {
       if (traits == null) {
-        traits = Traits.create(Robolectric.application);
+        traits = Traits.create();
       }
       if (context == null) {
         context = createContext(traits);
@@ -266,7 +276,7 @@ public final class TestUtils {
 
     public AliasPayload build() {
       if (traits == null) {
-        traits = Traits.create(Robolectric.application);
+        traits = Traits.create();
       }
       if (context == null) {
         context = createContext(traits);
@@ -315,7 +325,7 @@ public final class TestUtils {
 
     public GroupPayload build() {
       if (traits == null) {
-        traits = Traits.create(Robolectric.application);
+        traits = Traits.create();
       }
       if (groupTraits == null) {
         groupTraits = new Traits();

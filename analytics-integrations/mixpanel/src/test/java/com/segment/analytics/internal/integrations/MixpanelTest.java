@@ -27,6 +27,7 @@ import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.TestUtils.JSONObjectMatcher.jsonEq;
+import static com.segment.analytics.TestUtils.createTraits;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -171,13 +172,13 @@ public class MixpanelTest {
 
   @Test public void alias() {
     integration.alias(
-        new AliasPayloadBuilder().traits(new Traits().putUserId("foo")).previousId("bar").build());
+        new AliasPayloadBuilder().traits(createTraits("foo")).previousId("bar").build());
     verify(mixpanelAPI).alias("foo", "bar");
     verifyNoMoreMixpanelInteractions();
   }
 
   @Test public void identify() {
-    Traits traits = new Traits().putUserId("foo");
+    Traits traits = createTraits("foo");
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verify(mixpanelAPI).identify("foo");
     verify(mixpanelAPI).registerSuperProperties(jsonEq(traits.toJsonObject()));
@@ -186,7 +187,7 @@ public class MixpanelTest {
 
   @Test public void identifyWithPeople() {
     integration.isPeopleEnabled = true;
-    Traits traits = new Traits().putUserId("foo");
+    Traits traits = createTraits("foo");
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verify(mixpanelAPI).identify("foo");
     verify(mixpanelAPI).registerSuperProperties(jsonEq(traits.toJsonObject()));

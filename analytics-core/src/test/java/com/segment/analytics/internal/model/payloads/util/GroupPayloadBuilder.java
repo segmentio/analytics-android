@@ -4,9 +4,9 @@ import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
 import com.segment.analytics.internal.model.payloads.GroupPayload;
-import org.robolectric.Robolectric;
 
 import static com.segment.analytics.TestUtils.createContext;
+import static com.segment.analytics.TestUtils.createTraits;
 
 public class GroupPayloadBuilder {
   private AnalyticsContext context;
@@ -42,7 +42,7 @@ public class GroupPayloadBuilder {
 
   public GroupPayload build() {
     if (traits == null) {
-      traits = Traits.create(Robolectric.application);
+      traits = createTraits();
     }
     if (groupTraits == null) {
       groupTraits = new Traits();

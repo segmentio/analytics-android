@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 import com.quantcast.measurement.service.QuantcastClient;
-import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
@@ -25,6 +24,7 @@ import org.robolectric.annotation.Config;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
+import static com.segment.analytics.TestUtils.createTraits;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -117,7 +117,7 @@ public class QuantcastTest {
 
   @Test public void identify() {
     integration.identify(new IdentifyPayloadBuilder() //
-        .traits(new Traits().putUserId("bar")).build());
+        .traits(createTraits("bar")).build());
     verifyStatic();
     QuantcastClient.recordUserIdentifier("bar");
     verifyNoMoreInteractions(QuantcastClient.class);

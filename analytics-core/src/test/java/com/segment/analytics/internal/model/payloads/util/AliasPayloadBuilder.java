@@ -4,9 +4,9 @@ import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
-import org.robolectric.Robolectric;
 
 import static com.segment.analytics.TestUtils.createContext;
+import static com.segment.analytics.TestUtils.createTraits;
 
 public class AliasPayloadBuilder {
   private AnalyticsContext context;
@@ -36,7 +36,7 @@ public class AliasPayloadBuilder {
 
   public AliasPayload build() {
     if (traits == null) {
-      traits = Traits.create(Robolectric.application);
+      traits = createTraits();
     }
     if (context == null) {
       context = createContext(traits);

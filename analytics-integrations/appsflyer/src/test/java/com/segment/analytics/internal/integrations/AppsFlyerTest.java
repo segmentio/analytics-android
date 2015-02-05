@@ -18,6 +18,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.Analytics.LogLevel.BASIC;
+import static com.segment.analytics.TestUtils.createTraits;
 import static com.segment.analytics.internal.integrations.AppsFlyerIntegration.AppsFlyer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -92,7 +93,7 @@ public class AppsFlyerTest {
   }
 
   @Test public void identify() {
-    Traits traits = new Traits().putUserId("foo").putEmail("bar");
+    Traits traits = createTraits("foo").putEmail("bar");
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verify(appsFlyer).setAppUserId("foo");
     verify(appsFlyer).setUserEmail("bar");

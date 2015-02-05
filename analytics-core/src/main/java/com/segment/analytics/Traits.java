@@ -25,13 +25,13 @@
 package com.segment.analytics;
 
 import android.content.Context;
+import java.text.ParseException;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import static com.segment.analytics.internal.Utils.NullableConcurrentHashMap;
-import static com.segment.analytics.internal.Utils.createMap;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.toISO8601Date;
 import static java.util.Collections.unmodifiableMap;
@@ -47,12 +47,6 @@ import static java.util.Collections.unmodifiableMap;
  * Traits are persisted to disk, and will be remembered between application and system reboots.
  */
 public class Traits extends ValueMap {
-  private static final String ADDRESS_KEY = "address";
-  private static final String ADDRESS_CITY_KEY = "city";
-  private static final String ADDRESS_COUNTRY_KEY = "country";
-  private static final String ADDRESS_POSTAL_CODE_KEY = "postalCode";
-  private static final String ADDRESS_STATE_KEY = "state";
-  private static final String ADDRESS_STREET_KEY = "street";
   private static final String AVATAR_KEY = "avatar";
   private static final String CREATED_AT_KEY = "createdAt";
   private static final String DESCRIPTION_KEY = "description";
@@ -76,10 +70,10 @@ public class Traits extends ValueMap {
   private static final String INDUSTRY_KEY = "industry";
 
   /**
-   * Create a new Traits instance. Analytics client can be called on any thread, so this instance
-   * is thread safe.
+   * Create a new Traits instance with an anonymous ID. Analytics client can be called on any
+   * thread, so this instance is thread safe.
    */
-  public static Traits create(Context context) {
+  static Traits create() {
     Traits traits = new Traits(new NullableConcurrentHashMap<String, Object>());
     traits.putAnonymousId(UUID.randomUUID().toString());
     return traits;
@@ -90,17 +84,12 @@ public class Traits extends ValueMap {
     super(delegate);
   }
 
-  /**
-   * This instance is not thread safe. {@link Traits} are  meant to be attached to a single call
-   * and discarded. If the client is keeping a reference to a {@link Traits} instance that may be
-   * accessed by multiple threads, they should synchronize access to this instance.
-   */
+  // Public Constructor
   public Traits() {
-    // Public Constructor
   }
 
   public Traits unmodifiableCopy() {
-    LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(this);
+    LinkedHashMap<String, Object> map = new LinkedHashMap<>(this);
     return new Traits(unmodifiableMap(map));
   }
 
@@ -108,7 +97,7 @@ public class Traits extends ValueMap {
    * Private API, users should call {@link com.segment.analytics.Analytics#identify(String)}
    * instead. Note that this is unable to enforce it, users can easily do traits.put(id, ..);
    */
-  public Traits putUserId(String id) {
+  Traits putUserId(String id) {
     return putValue(ID_KEY, id);
   }
 
@@ -116,7 +105,7 @@ public class Traits extends ValueMap {
     return getString(ID_KEY);
   }
 
-  public Traits putAnonymousId(String id) {
+  Traits putAnonymousId(String id) {
     return putValue(ANONYMOUS_ID_KEY, id);
   }
 
@@ -129,33 +118,135 @@ public class Traits extends ValueMap {
     return (isNullOrEmpty(userId)) ? anonymousId() : userId;
   }
 
-  public Traits putAddress(String city, String country, String postalCode, String state,
-      String street) {
-    Map<String, String> address = createMap();
-    address.put(ADDRESS_CITY_KEY, city);
-    address.put(ADDRESS_COUNTRY_KEY, country);
-    address.put(ADDRESS_POSTAL_CODE_KEY, postalCode);
-    address.put(ADDRESS_STATE_KEY, state);
-    address.put(ADDRESS_STREET_KEY, street);
+  // Address
+  private static final String ADDRESS_KEY = "address";
+
+  /** Represents information about the address of a user or group. */
+  public static class Address extends ValueMap {
+    private static final String ADDRESS_CITY_KEY = "city";
+    private static final String ADDRESS_COUNTRY_KEY = "country";
+    private static final String ADDRESS_POSTAL_CODE_KEY = "postalCode";
+    private static final String ADDRESS_STATE_KEY = "state";
+    private static final String ADDRESS_STREET_KEY = "street";
+
+    // Public constructor
+    public Address() {
+    }
+
+    // For deserialization
+    public Address(Map<String, Object> map) {
+      super(map);
+    }
+
+    @Override public Address putValue(String key, Object value) {
+      super.putValue(key, value);
+      return this;
+    }
+
+    public Address putCity(String city) {
+      return putValue(ADDRESS_CITY_KEY, city);
+    }
+
+    public String city() {
+      return getString(ADDRESS_CITY_KEY);
+    }
+
+    public Address putCountry(String country) {
+      return putValue(ADDRESS_COUNTRY_KEY, country);
+    }
+
+    public String country() {
+      return getString(ADDRESS_COUNTRY_KEY);
+    }
+
+    public Address putPostalCode(String postalCode) {
+      return putValue(ADDRESS_POSTAL_CODE_KEY, postalCode);
+    }
+
+    public String postalCode() {
+      return getString(ADDRESS_POSTAL_CODE_KEY);
+    }
+
+    public Address putState(String state) {
+      return putValue(ADDRESS_STATE_KEY, state);
+    }
+
+    public String state() {
+      return getString(ADDRESS_STATE_KEY);
+    }
+
+    public Address putStreet(String street) {
+      return putValue(ADDRESS_STREET_KEY, street);
+    }
+
+    public String street() {
+      return getString(ADDRESS_STREET_KEY);
+    }
+  }
+
+  /** Set an address for the user or group. */
+  public Traits putAddress(Address address) {
     return putValue(ADDRESS_KEY, address);
   }
 
+  public Address address() {
+    return getValueMap(ADDRESS_KEY, Address.class);
+  }
+
+  /** Set the age of a user. */
+  public Traits putAge(int age) {
+    return putValue(AGE_KEY, age);
+  }
+
+  public int age() {
+    return getInt(AGE_KEY, 0);
+  }
+
+  /** Set a URL to an avatar image for the user or group. */
   public Traits putAvatar(String avatar) {
     return putValue(AVATAR_KEY, avatar);
   }
 
-  String avatar() {
+  public String avatar() {
     return getString(AVATAR_KEY);
   }
 
+  /** Set the user's birthday. */
+  public Traits putBirthday(Date birthday) {
+    return putValue(BIRTHDAY_KEY, toISO8601Date(birthday));
+  }
+
+  public Date birthday() {
+    try {
+      return toISO8601Date(getString(BIRTHDAY_KEY));
+    } catch (ParseException e) {
+      return null;
+    }
+  }
+
+  /**
+   * Set the date the user’s or group’s account was first created. We accept date objects and a
+   * wide range of date formats, including ISO strings and Unix timestamps. Feel free to use
+   * whatever format is easiest for you - although ISO string is recommended for Android.
+   */
   public Traits putCreatedAt(String createdAt) {
     return putValue(CREATED_AT_KEY, createdAt);
   }
 
+  public String getCreatedAt() {
+    return getString(CREATED_AT_KEY);
+  }
+
+  /** Set a description of the user or group, like a personal bio. */
   public Traits putDescription(String description) {
     return putValue(DESCRIPTION_KEY, description);
   }
 
+  public String description() {
+    return getString(DESCRIPTION_KEY);
+  }
+
+  /** Set the email address of a user or group. */
   public Traits putEmail(String email) {
     return putValue(EMAIL_KEY, email);
   }
@@ -164,10 +255,63 @@ public class Traits extends ValueMap {
     return getString(EMAIL_KEY);
   }
 
+  /** Set the number of employees of a group, typically used for companies. */
+  public Traits putEmployees(long employees) {
+    return putValue(EMPLOYEES_KEY, employees);
+  }
+
+  public long employees() {
+    return getLong(EMPLOYEES_KEY, 0);
+  }
+
+  /** Set the fax number of a user or group. */
   public Traits putFax(String fax) {
     return putValue(FAX_KEY, fax);
   }
 
+  public String fax() {
+    return getString(FAX_KEY); // todo: maybe remove this, I doubt any bundled integration uses fax
+  }
+
+  /** Set the first name of a user. */
+  public Traits putFirstName(String firstName) {
+    return putValue(FIRST_NAME_KEY, firstName);
+  }
+
+  public String firstName() {
+    return getString(FIRST_NAME_KEY);
+  }
+
+  /** Set the gender of a user. */
+  public Traits putGender(String gender) {
+    return putValue(GENDER_KEY, gender);
+  }
+
+  public String gender() {
+    return getString(GENDER_KEY);
+  }
+
+  /**
+   * Set the industry the user works in, or a group is part of.
+   */
+  public Traits putIndustry(String industry) {
+    return putValue(INDUSTRY_KEY, industry);
+  }
+
+  public String industry() {
+    return getString(INDUSTRY_KEY);
+  }
+
+  /** Set the last name of a user. */
+  public Traits putLastName(String lastName) {
+    return putValue(LAST_NAME_KEY, lastName);
+  }
+
+  public String lastName() {
+    return getString(LAST_NAME_KEY);
+  }
+
+  /** Set the name of a user or group. */
   public Traits putName(String name) {
     return putValue(NAME_KEY, name);
   }
@@ -194,46 +338,31 @@ public class Traits extends ValueMap {
     }
   }
 
+  /** Set the phone number of a user or group. */
   public Traits putPhone(String phone) {
     return putValue(PHONE_KEY, phone);
   }
 
-  public Traits putWebsite(String website) {
-    return putValue(WEBSITE_KEY, website);
+  public String phone() {
+    return getString(PHONE_KEY);
   }
 
-  public Traits putAge(int age) {
-    return putValue(AGE_KEY, age);
-  }
-
-  public int age() {
-    return getInt(AGE_KEY, 0);
-  }
-
-  public Traits putBirthday(Date birthday) {
-    return putValue(BIRTHDAY_KEY, toISO8601Date(birthday));
-  }
-
-  public Traits putFirstName(String firstName) {
-    return putValue(FIRST_NAME_KEY, firstName);
-  }
-
-  public Traits putGender(String gender) {
-    return putValue(GENDER_KEY, gender);
-  }
-
-  public String gender() {
-    return getString(GENDER_KEY);
-  }
-
-  public Traits putLastName(String lastName) {
-    return putValue(LAST_NAME_KEY, lastName);
-  }
-
+  /**
+   * Set the title of a user, usually related to their position at a specific company, for example
+   * "VP of Engineering"
+   */
   public Traits putTitle(String title) {
     return putValue(TITLE_KEY, title);
   }
 
+  public String title() {
+    return getString(TITLE_KEY);
+  }
+
+  /**
+   * Set the user’s username. This should be unique to each user, like the usernames of Twitter or
+   * GitHub.
+   */
   public Traits putUsername(String username) {
     return putValue(USERNAME_KEY, username);
   }
@@ -242,12 +371,13 @@ public class Traits extends ValueMap {
     return getString(USERNAME_KEY);
   }
 
-  public Traits putEmployees(long employees) {
-    return putValue(EMPLOYEES_KEY, employees);
+  /** Set the website of a user or group. */
+  public Traits putWebsite(String website) {
+    return putValue(WEBSITE_KEY, website);
   }
 
-  public Traits putIndustry(String industry) {
-    return putValue(INDUSTRY_KEY, industry);
+  public String website() {
+    return getString(WEBSITE_KEY);
   }
 
   @Override public Traits putValue(String key, Object value) {

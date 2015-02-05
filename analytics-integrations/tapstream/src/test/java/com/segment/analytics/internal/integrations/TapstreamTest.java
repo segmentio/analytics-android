@@ -31,6 +31,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.Analytics.LogLevel.NONE;
+import static com.segment.analytics.TestUtils.createTraits;
 import static com.segment.analytics.internal.integrations.TapstreamTest.EventMatcher.eventEq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.argThat;
@@ -182,7 +183,7 @@ public class TapstreamTest {
     Map<String, Object> emptyParams = new HashMap<String, Object>();
     config.globalEventParams = emptyParams;
     integration.identify(new IdentifyPayloadBuilder() //
-        .traits(new Traits().putUserId("foo")).build());
+        .traits(createTraits("foo")).build());
     assertThat(emptyParams).hasSize(1).contains(MapEntry.entry("userId", "foo"));
 
     Map<String, Object> map = new HashMap<String, Object>();

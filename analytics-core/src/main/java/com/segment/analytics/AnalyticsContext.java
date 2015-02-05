@@ -59,62 +59,19 @@ import static java.util.Collections.unmodifiableMap;
  * attached to every outgoing call. You can add any custom data to the context dictionary that
  * you'd like to have access to in the raw logs.
  * <p/>
+ * This is renamed to AnalyticsContext on Android to avoid confusion with {@link Context} in the
+ * Android framework. Any documentation for Context on our website is referring to AnalyticsContext
+ * on Android.
+ * <p/>
  * Some keys in the context dictionary have semantic meaning and will be collected for you
  * automatically, depending on the library you send data from. Some keys, such as IP address, and
  * speed need to be manually entered, such as IP Address, speed, etc.
  * <p/>
- * This is not persisted to disk, and is recomputed each time the app starts. If you set a key
- * manually, you'll have to update it as well for each app start if you want it to persist between
+ * This is not persisted to disk, and is recomputed each time the app starts. If you set a value
+ * manually, you'll have to set it each time on the app launch if you want it to persist between
  * sessions.
  */
 public class AnalyticsContext extends ValueMap {
-  private static final String APP_KEY = "app";
-  private static final String APP_NAME_KEY = "name";
-  private static final String APP_VERSION_KEY = "version";
-  private static final String APP_NAMESPACE_KEY = "namespace";
-  private static final String APP_BUILD_KEY = "build";
-  private static final String CAMPAIGN_KEY = "campaign";
-  private static final String CAMPAIGN_NAME_KEY = "name";
-  private static final String CAMPAIGN_SOURCE_KEY = "source";
-  private static final String CAMPAIGN_MEDIUM_KEY = "medium";
-  private static final String CAMPAIGN_TERM_KEY = "term";
-  private static final String CAMPAIGN_CONTENT_KEY = "content";
-  private static final String DEVICE_KEY = "device";
-  private static final String DEVICE_ID_KEY = "id";
-  private static final String DEVICE_MANUFACTURER_KEY = "manufacturer";
-  private static final String DEVICE_MODEL_KEY = "model";
-  private static final String DEVICE_NAME_KEY = "name";
-  private static final String DEVICE_BRAND_KEY = "brand";
-  private static final String DEVICE_TOKEN_KEY = "token";
-  private static final String DEVICE_ADVERTISING_ID_KEY = "advertisingId";
-  private static final String DEVICE_AD_TRACKING_ENABLED_KEY = "adTrackingEnabled";
-  private static final String LIBRARY_KEY = "library";
-  private static final String LIBRARY_NAME_KEY = "name";
-  private static final String LIBRARY_VERSION_KEY = "version";
-  private static final String LIBRARY_VERSION_NAME_KEY = "versionName";   // Android Specific
-  private static final String LOCATION_KEY = "location";
-  private static final String NETWORK_KEY = "network";
-  private static final String NETWORK_BLUETOOTH_KEY = "bluetooth";
-  private static final String NETWORK_CARRIER_KEY = "carrier";
-  private static final String NETWORK_CELLULAR_KEY = "cellular";
-  private static final String NETWORK_WIFI_KEY = "wifi";
-  private static final String OS_KEY = "os";
-  private static final String OS_NAME_KEY = "name";
-  private static final String OS_VERSION_KEY = "version";
-  private static final String OS_SDK_KEY = "sdk";  // Android Specific
-  private static final String REFERRER_KEY = "referrer";
-  private static final String REFERRER_ID_KEY = "id";
-  private static final String REFERRER_LINK_KEY = "link";
-  private static final String REFERRER_NAME_KEY = "name";
-  private static final String REFERRER_TYPE_KEY = "type";
-  private static final String REFERRER_URL_KEY = "url";
-  private static final String SCREEN_KEY = "screen";
-  private static final String SCREEN_DENSITY_KEY = "density";
-  private static final String SCREEN_HEIGHT_KEY = "height";
-  private static final String SCREEN_WIDTH_KEY = "width";
-  private static final String SCREEN_DENSITY_DPI_KEY = "densityDpi";
-  private static final String SCREEN_DENSITY_BUCKET_KEY = "densityBucket";
-  private static final String SCREEN_SCALED_DENSITY_KEY = "scaledDensity";
   private static final String LOCALE_KEY = "locale";
   private static final String TRAITS_KEY = "traits";
   private static final String USER_AGENT_KEY = "userAgent";
@@ -142,8 +99,9 @@ public class AnalyticsContext extends ValueMap {
   }
 
   /**
-   * The {@link Analytics} client can be called from anywhere, so the returned instances is thread
-   * safe.
+   * Create a new {@link AnalyticsContext} instance filled in with information from the given
+   * {@link Context}. The {@link Analytics} client can be called from anywhere, so the returned
+   * instances is thread safe.
    */
   static synchronized AnalyticsContext create(Context context, Traits traits) {
     AnalyticsContext analyticsContext =
@@ -166,15 +124,54 @@ public class AnalyticsContext extends ValueMap {
     return analyticsContext;
   }
 
+  // For deserialization and wrapping
   AnalyticsContext(Map<String, Object> delegate) {
     super(delegate);
   }
 
+  @Override
+  public AnalyticsContext putValue(String key, Object value) {
+    super.putValue(key, value);
+    return this;
+  }
+
+  /** Returns an shallow unmodifiable copy of the values in this map. */
   public AnalyticsContext unmodifiableCopy() {
-    LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>(this);
+    LinkedHashMap<String, Object> map = new LinkedHashMap<>(this);
     return new AnalyticsContext(unmodifiableMap(map));
   }
 
+  /**
+   * Attach the given {@link Traits} to this instance. This creates a copy of the given {@code
+   * traits}, so exposing {@link #traits()} to the public API is acceptable.
+   */
+  void setTraits(Traits traits) {
+    put(TRAITS_KEY, traits.unmodifiableCopy());
+  }
+
+  /**
+   * Note: Not for public use. Clients should modify the user's traits with {@link
+   * Analytics#identify(String, Traits, Options)}. Modifying this instance will not reflect changes
+   * to the user.
+   *
+   * Return the {@link Traits} attached to this instance.
+   */
+  public Traits traits() {
+    return getValueMap(TRAITS_KEY, Traits.class);
+  }
+
+  // App
+  private static final String APP_KEY = "app";
+  private static final String APP_NAME_KEY = "name";
+  private static final String APP_VERSION_KEY = "version";
+  private static final String APP_NAMESPACE_KEY = "namespace";
+  private static final String APP_BUILD_KEY = "build";
+
+  /**
+   * Fill this instance with application info from the provided {@link Context}. No need to expose
+   * a getter for this for bundled integrations (they'll automatically fill what they need
+   * themselves).
+   */
   void putApp(Context context) {
     try {
       PackageManager packageManager = context.getPackageManager();
@@ -190,49 +187,155 @@ public class AnalyticsContext extends ValueMap {
     }
   }
 
-  void setTraits(Traits traits) {
-    put(TRAITS_KEY, traits.unmodifiableCopy()); // copy
+  // Campaign
+  private static final String CAMPAIGN_KEY = "campaign";
+
+  /** Set information about the campaign that resulted in the API call. */
+  public AnalyticsContext putCampaign(Campaign campaign) {
+    return putValue(CAMPAIGN_KEY, campaign);
   }
 
-  public Traits traits() {
-    return getValueMap(TRAITS_KEY, Traits.class);
+  public Campaign campaign() {
+    return getValueMap(CAMPAIGN_KEY, Campaign.class);
   }
 
-  public AnalyticsContext putCampaign(String name, String source, String medium, String term,
-      String content) {
-    Map<String, Object> campaign = createMap();
-    campaign.put(CAMPAIGN_NAME_KEY, name);
-    campaign.put(CAMPAIGN_SOURCE_KEY, source);
-    campaign.put(CAMPAIGN_MEDIUM_KEY, medium);
-    campaign.put(CAMPAIGN_TERM_KEY, term);
-    campaign.put(CAMPAIGN_CONTENT_KEY, content);
-    put(CAMPAIGN_KEY, campaign);
+  public static class Campaign extends ValueMap {
+    private static final String CAMPAIGN_NAME_KEY = "name";
+    private static final String CAMPAIGN_SOURCE_KEY = "source";
+    private static final String CAMPAIGN_MEDIUM_KEY = "medium";
+    private static final String CAMPAIGN_TERM_KEY = "term";
+    private static final String CAMPAIGN_CONTENT_KEY = "content";
+
+    /**
+     * Information about the campaign that resulted in the API call, containing name, source,
+     * medium, term and content. This maps directly to the common UTM campaign parameters.
+     */
+    // Public Constructor
+    public Campaign() {
+    }
+
+    // For deserialization
+    private Campaign(Map<String, Object> map) {
+      super(map);
+    }
+
+    @Override public Campaign putValue(String key, Object value) {
+      super.putValue(key, value);
+      return this;
+    }
+
+    /** Set the UTM campaign name. */
+    public Campaign putName(String name) {
+      return putValue(CAMPAIGN_NAME_KEY, name);
+    }
+
+    public String name() {
+      return getString(CAMPAIGN_NAME_KEY);
+    }
+
+    /** Set the UTM campaign source. */
+    public Campaign putSource(String source) {
+      return putValue(CAMPAIGN_SOURCE_KEY, source);
+    }
+
+    public String source() {
+      return getString(CAMPAIGN_SOURCE_KEY);
+    }
+
+    /** Set the UTM campaign medium. */
+    public Campaign putMedium(String medium) {
+      return putValue(CAMPAIGN_MEDIUM_KEY, medium);
+    }
+
+    public String medium() {
+      return getString(CAMPAIGN_MEDIUM_KEY);
+    }
+
+    /** Set the UTM campaign term. */
+    public Campaign putTerm(String term) {
+      return putValue(CAMPAIGN_TERM_KEY, term);
+    }
+
+    public String tern() {
+      return getString(CAMPAIGN_TERM_KEY);
+    }
+
+    /** Set the UTM campaign content. */
+    public Campaign putContent(String content) {
+      return putValue(CAMPAIGN_CONTENT_KEY, content);
+    }
+
+    public String content() {
+      return getString(CAMPAIGN_CONTENT_KEY);
+    }
+  }
+
+  // Device
+  private static final String DEVICE_KEY = "device";
+
+  public static class Device extends ValueMap {
+    private static final String DEVICE_ID_KEY = "id";
+    private static final String DEVICE_MANUFACTURER_KEY = "manufacturer";
+    private static final String DEVICE_MODEL_KEY = "model";
+    private static final String DEVICE_NAME_KEY = "name";
+    private static final String DEVICE_BRAND_KEY = "brand";
+    private static final String DEVICE_TOKEN_KEY = "token";
+    private static final String DEVICE_ADVERTISING_ID_KEY = "advertisingId";
+    private static final String DEVICE_AD_TRACKING_ENABLED_KEY = "adTrackingEnabled";
+
+    private Device() {
+    }
+
+    // For deserialization
+    private Device(Map<String, Object> map) {
+      super(map);
+    }
+
+    @Override public Device putValue(String key, Object value) {
+      super.putValue(key, value);
+      return this;
+    }
+
+    /** Set the advertising information for this device. */
+    void putAdvertisingInfo(String advertisingId, boolean adTrackingEnabled) {
+      put(DEVICE_ADVERTISING_ID_KEY, advertisingId);
+      put(DEVICE_AD_TRACKING_ENABLED_KEY, adTrackingEnabled);
+    }
+
+    /** Set a device token. */
+    public Device putDeviceToken(String token) {
+      return putValue(DEVICE_TOKEN_KEY, token);
+    }
+  }
+
+  /** Fill this instance with device info from the provided {@link Context}. */
+  void putDevice(Context context) {
+    Device device = new Device();
+    put(Device.DEVICE_ID_KEY, getDeviceId(context));
+    put(Device.DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);
+    put(Device.DEVICE_MODEL_KEY, Build.MODEL);
+    put(Device.DEVICE_NAME_KEY, Build.DEVICE);
+    put(Device.DEVICE_BRAND_KEY, Build.BRAND);
+    put(DEVICE_KEY, device);
+  }
+
+  public Device device() {
+    return getValueMap(DEVICE_KEY, Device.class);
+  }
+
+  /** Set a device token. Convenience method for {@link Device#putDeviceToken(String)} */
+  public AnalyticsContext putDeviceToken(String token) {
+    device().putDeviceToken(token);
     return this;
   }
 
-  public void putDevice(Context context) {
-    Map<String, Object> device = createMap();
-    device.put(DEVICE_ID_KEY, getDeviceId(context));
-    device.put(DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);
-    device.put(DEVICE_MODEL_KEY, Build.MODEL);
-    device.put(DEVICE_NAME_KEY, Build.DEVICE);
-    device.put(DEVICE_BRAND_KEY, Build.BRAND);
-    put(DEVICE_KEY, device);
-  }
+  // Library
+  private static final String LIBRARY_KEY = "library";
+  private static final String LIBRARY_NAME_KEY = "name";
+  private static final String LIBRARY_VERSION_KEY = "version";
+  private static final String LIBRARY_VERSION_NAME_KEY = "versionName";   // Android Specific
 
-  public void putAdvertisingInfo(String advertisingId, boolean adTrackingEnabled) {
-    ValueMap device = getValueMap(DEVICE_KEY);
-    device.put(DEVICE_ADVERTISING_ID_KEY, advertisingId);
-    device.put(DEVICE_AD_TRACKING_ENABLED_KEY, adTrackingEnabled);
-    put(DEVICE_KEY, device);
-  }
-
-  public void putDeviceToken(String token) {
-    ValueMap device = getValueMap(DEVICE_KEY);
-    device.put(DEVICE_TOKEN_KEY, token);
-    put(DEVICE_KEY, device);
-  }
-
+  /** Fill this instance with library information. */
   void putLibrary() {
     Map<String, Object> library = createMap();
     library.put(LIBRARY_NAME_KEY, "analytics-android");
@@ -241,17 +344,78 @@ public class AnalyticsContext extends ValueMap {
     put(LIBRARY_KEY, library);
   }
 
-  public AnalyticsContext putLocation(double latitude, double longitude, double speed) {
-    Location location = new Location(latitude, longitude, speed);
-    put(LOCATION_KEY, location);
-    return this;
+  // Location
+  private static final String LOCATION_KEY = "location";
+
+  /** Representation of location information. */
+  public static class Location extends ValueMap {
+    private static final String LOCATION_LATITUDE_KEY = "latitude";
+    private static final String LOCATION_LONGITUDE_KEY = "longitude";
+    private static final String LOCATION_SPEED_KEY = "speed";
+
+    // Public constructor
+    public Location() {
+    }
+
+    // For deserialization
+    private Location(Map<String, Object> map) {
+      super(map);
+    }
+
+    @Override public Location putValue(String key, Object value) {
+      super.putValue(key, value);
+      return this;
+    }
+
+    /** Set the latitude for the location of the device. */
+    public Location putLatitude(double latitude) {
+      return putValue(LOCATION_LATITUDE_KEY, latitude);
+    }
+
+    public double latitude() {
+      return getDouble(LOCATION_LATITUDE_KEY, 0);
+    }
+
+    /** Set the longitude for the location of the device. */
+    public Location putLongitude(double longitude) {
+      return putValue(LOCATION_LONGITUDE_KEY, longitude);
+    }
+
+    public double longitude() {
+      return getDouble(LOCATION_LONGITUDE_KEY, 0);
+    }
+
+    /** Set the speed of the device. */
+    public Location putSpeed(double speed) {
+      return putValue(LOCATION_SPEED_KEY, speed);
+    }
+
+    public double speed() {
+      return getDouble(LOCATION_SPEED_KEY, 0.);
+    }
+  }
+
+  /** Set location information about the device. */
+  public AnalyticsContext putLocation(Location location) {
+    return putValue(LOCATION_KEY, location);
   }
 
   public Location location() {
     return getValueMap(LOCATION_KEY, Location.class);
   }
 
-  public void putNetwork(Context context) {
+  // Network
+  private static final String NETWORK_KEY = "network";
+  private static final String NETWORK_BLUETOOTH_KEY = "bluetooth";
+  private static final String NETWORK_CARRIER_KEY = "carrier";
+  private static final String NETWORK_CELLULAR_KEY = "cellular";
+  private static final String NETWORK_WIFI_KEY = "wifi";
+
+  /**
+   * Fill this instance with network information. No need to expose a getter
+   * for this for bundled integrations (they'll automatically fill what they need themselves)
+   */
+  void putNetwork(Context context) {
     Map<String, Object> network = createMap();
     if (hasPermission(context, ACCESS_NETWORK_STATE)) {
       ConnectivityManager connectivityManager = getSystemService(context, CONNECTIVITY_SERVICE);
@@ -275,6 +439,17 @@ public class AnalyticsContext extends ValueMap {
     put(NETWORK_KEY, network);
   }
 
+  // OS
+  private static final String OS_KEY = "os";
+  private static final String OS_NAME_KEY = "name";
+  private static final String OS_VERSION_KEY = "version";
+  private static final String OS_SDK_KEY = "sdk";  // Android Specific
+
+  /**
+   * Fill this instance with operating system information. No need to expose a
+   * getter for this for bundled integrations (they'll automatically fill what they need
+   * themselves).
+   */
   void putOs() {
     Map<String, Object> os = createMap();
     os.put(OS_NAME_KEY, Build.VERSION.CODENAME);
@@ -283,18 +458,96 @@ public class AnalyticsContext extends ValueMap {
     put(OS_KEY, os);
   }
 
-  public AnalyticsContext putReferrer(String id, String link, String name, String type,
-      String url) {
-    Map<String, Object> referrer = createMap();
-    referrer.put(REFERRER_ID_KEY, id);
-    referrer.put(REFERRER_LINK_KEY, link);
-    referrer.put(REFERRER_NAME_KEY, name);
-    referrer.put(REFERRER_TYPE_KEY, type);
-    referrer.put(REFERRER_URL_KEY, url);
-    put(REFERRER_KEY, referrer);
-    return this;
+  // Referrer
+  private static final String REFERRER_KEY = "referrer";
+
+  /** Information about a referrer. */
+  public static class Referrer extends ValueMap {
+    private static final String REFERRER_ID_KEY = "id";
+    private static final String REFERRER_LINK_KEY = "link";
+    private static final String REFERRER_NAME_KEY = "name";
+    private static final String REFERRER_TYPE_KEY = "type";
+    private static final String REFERRER_URL_KEY = "url";
+
+    // Public constructor
+    public Referrer() {
+    }
+
+    // For deserialization
+    public Referrer(Map<String, Object> map) {
+      super(map);
+    }
+
+    @Override public Referrer putValue(String key, Object value) {
+      super.putValue(key, value);
+      return this;
+    }
+
+    /** Set the referrer ID. */
+    public Referrer putId(String id) {
+      return putValue(REFERRER_ID_KEY, id);
+    }
+
+    public String id() {
+      return getString(REFERRER_ID_KEY);
+    }
+
+    /** Set the referrer link. */
+    public Referrer putLink(String link) {
+      return putValue(REFERRER_LINK_KEY, link);
+    }
+
+    public String link() {
+      return getString(REFERRER_LINK_KEY);
+    }
+
+    /** Set the referrer name. */
+    public Referrer putName(String name) {
+      return putValue(REFERRER_NAME_KEY, name);
+    }
+
+    public String name() {
+      return getString(REFERRER_NAME_KEY);
+    }
+
+    /** Set the referrer type. */
+    public Referrer putType(String type) {
+      return putValue(REFERRER_TYPE_KEY, type);
+    }
+
+    public String type() {
+      return getString(REFERRER_TYPE_KEY);
+    }
+
+    /** Set the referrer url. */
+    public Referrer putTerm(String url) {
+      return putValue(REFERRER_URL_KEY, url);
+    }
+
+    public String url() {
+      return getString(REFERRER_URL_KEY);
+    }
   }
 
+  /** Set the referrer for this session. */
+  public AnalyticsContext putReferrer(Referrer referrer) {
+    return putValue(REFERRER_KEY, referrer);
+  }
+
+  // Screen
+  private static final String SCREEN_KEY = "screen";
+  private static final String SCREEN_DENSITY_KEY = "density";
+  private static final String SCREEN_HEIGHT_KEY = "height";
+  private static final String SCREEN_WIDTH_KEY = "width";
+  private static final String SCREEN_DENSITY_DPI_KEY = "densityDpi";
+  private static final String SCREEN_DENSITY_BUCKET_KEY = "densityBucket";
+  private static final String SCREEN_SCALED_DENSITY_KEY = "scaledDensity";
+
+  /**
+   * Fill this instance with application info from the provided {@link Context}. No need to expose
+   * a getter for this for bundled integrations (they'll automatically fill what they need
+   * themselves).
+   */
   void putScreen(Context context) {
     Map<String, Object> screen = createMap();
     WindowManager manager = getSystemService(context, Context.WINDOW_SERVICE);
@@ -308,36 +561,5 @@ public class AnalyticsContext extends ValueMap {
     screen.put(SCREEN_DENSITY_BUCKET_KEY, getDensityString(displayMetrics));
     screen.put(SCREEN_SCALED_DENSITY_KEY, displayMetrics.scaledDensity);
     put(SCREEN_KEY, screen);
-  }
-
-  @Override
-  public AnalyticsContext putValue(String key, Object value) {
-    super.putValue(key, value);
-    return this;
-  }
-
-  /** Representation of location information. */
-  public static class Location extends ValueMap {
-    private static final String LOCATION_LATITUDE_KEY = "latitude";
-    private static final String LOCATION_LONGITUDE_KEY = "longitude";
-    private static final String LOCATION_SPEED_KEY = "speed";
-
-    Location(double latitude, double longitude, double speed) {
-      put(LOCATION_LATITUDE_KEY, latitude);
-      put(LOCATION_LONGITUDE_KEY, longitude);
-      put(LOCATION_SPEED_KEY, speed);
-    }
-
-    public double latitude() {
-      return getDouble(LOCATION_LATITUDE_KEY, 0.0d);
-    }
-
-    public double longitude() {
-      return getDouble(LOCATION_LONGITUDE_KEY, 0.0d);
-    }
-
-    public double speed() {
-      return getDouble(LOCATION_SPEED_KEY, 0.0d);
-    }
   }
 }

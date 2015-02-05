@@ -29,6 +29,7 @@ import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.TestUtils.createContext;
+import static com.segment.analytics.TestUtils.createTraits;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -143,8 +144,7 @@ public class FlurryTest {
   }
 
   @Test public void identify() {
-    integration.identify(
-        new IdentifyPayloadBuilder().traits(new Traits().putUserId("foo")).build());
+    integration.identify(new IdentifyPayloadBuilder().traits(createTraits("foo")).build());
     verifyStatic();
     FlurryAgent.setUserId("foo");
     verifyStatic();
@@ -152,14 +152,15 @@ public class FlurryTest {
   }
 
   @Test public void identifyWithTraits() {
-    Traits traits = new Traits().putAge(20).putGender("f").putUserId("bar");
-    AnalyticsContext analyticsContext = createContext(traits).putLocation(20, 20, 20);
+    Traits traits = createTraits("bar").putAge(3).putGender("f");
+    AnalyticsContext analyticsContext = createContext(traits).putLocation(
+        new AnalyticsContext.Location().putLatitude(20).putLongitude(20));
     integration.identify(
         new IdentifyPayloadBuilder().traits(traits).context(analyticsContext).build());
     verifyStatic();
     FlurryAgent.setUserId("bar");
     verifyStatic();
-    FlurryAgent.setAge(20);
+    FlurryAgent.setAge(3);
     verifyStatic();
     FlurryAgent.setGender(Constants.FEMALE);
     verifyStatic();

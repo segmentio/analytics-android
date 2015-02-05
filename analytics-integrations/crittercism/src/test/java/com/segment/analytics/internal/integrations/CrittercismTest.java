@@ -26,6 +26,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.Analytics.LogLevel.NONE;
+import static com.segment.analytics.TestUtils.createTraits;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -107,7 +108,7 @@ public class CrittercismTest {
   }
 
   @Test public void identify() {
-    Traits traits = new Traits().putUserId("foo");
+    Traits traits = createTraits("foo");
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verifyStatic();
     Crittercism.setUsername("foo");

@@ -34,33 +34,6 @@ import java.util.Map;
  * use these property names for that purpose.
  */
 public class Properties extends ValueMap {
-  // Common
-  private static final String REVENUE_KEY = "revenue";
-  private static final String VALUE_KEY = "value";
-  private static final String CURRENCY_KEY = "currency";
-
-  // Page
-  private static final String CATEGORY_KEY = "category";
-  private static final String NAME_KEY = "name"; // used by product too
-  private static final String PATH_KEY = "path";
-  private static final String REFERER_KEY = "referer";
-  private static final String TITLE_KEY = "title";
-  private static final String URL_KEY = "url";
-
-  // Transaction
-  private static final String ORDER_ID_KEY = "orderId";
-  private static final String TOTAL_KEY = "total";
-  private static final String SUB_TOTAL_KEY = "subtotal";
-  private static final String SHIPPING_KEY = "shipping";
-  private static final String TAX_KEY = "tax";
-  private static final String DISCOUNT_KEY = "discount";
-  private static final String COUPON_KEY = "coupon";
-  private static final String PRODUCTS_KEY = "products";
-
-  // Product
-  private static final String ID_KEY = "id";
-  private static final String SKU_KEY = "sku";
-  private static final String PRICE_KEY = "price";
 
   public Properties() {
   }
@@ -76,7 +49,14 @@ public class Properties extends ValueMap {
   }
 
   // Common Properties
+  private static final String REVENUE_KEY = "revenue";
+  private static final String CURRENCY_KEY = "currency";
+  private static final String VALUE_KEY = "value";
 
+  /**
+   * Set the amount of revenue an event resulted in. This should be a decimal value in dollars, so
+   * a shirt worth $19.99 would result in a revenue of 19.99.
+   */
   public Properties putRevenue(double revenue) {
     return putValue(REVENUE_KEY, revenue);
   }
@@ -85,10 +65,20 @@ public class Properties extends ValueMap {
     return getDouble(REVENUE_KEY, 0);
   }
 
+  /**
+   * Set an abstract value to associate with an event. This is typically used in situations where
+   * the event doesn’t generate real-dollar revenue, but has an intrinsic value to a marketing
+   * team, like newsletter signups.
+   */
   public Properties putValue(double value) {
     return putValue(VALUE_KEY, value);
   }
 
+  public double value() {
+    return getDouble(VALUE_KEY, 0);
+  }
+
+  /** The currency for the value set in {@link #putRevenue(double)}. */
   public Properties putCurrency(String currency) {
     return putValue(CURRENCY_KEY, currency);
   }
@@ -97,23 +87,86 @@ public class Properties extends ValueMap {
     return getString(CURRENCY_KEY);
   }
 
-  public Properties putId(String id) {
-    return putValue(ID_KEY, id);
+  // Screen Properties
+  private static final String PATH_KEY = "path";
+  private static final String REFERRER_KEY = "referrer";
+  private static final String TITLE_KEY = "title";
+  private static final String URL_KEY = "url";
+
+  /**
+   * Set a path (usually the path of the URL) for the screen.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/page/#properties">Page Properties</a>
+   */
+  public Properties putPath(String path) {
+    return putValue(PATH_KEY, path);
   }
 
-  public String id() {
-    return getString(ID_KEY);
+  public String path() {
+    return getString(PATH_KEY);
   }
 
-  // Page Properties
-  public Properties putCategory(String category) {
-    return putValue(CATEGORY_KEY, category);
+  /**
+   * Set the referrer that led the user to the screen. In the browser it is the document.referrer
+   * property.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/page/#properties">Page Properties</a>
+   */
+  public Properties putReferrer(String referrer) {
+    return putValue(REFERRER_KEY, referrer);
   }
 
-  public String category() {
-    return getString(CATEGORY_KEY);
+  public String referrer() {
+    return getString(REFERRER_KEY);
   }
 
+  /**
+   * Set the title of the screen.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/page/#properties">Page Properties</a>
+   */
+  public Properties putTitle(String title) {
+    return putValue(TITLE_KEY, title);
+  }
+
+  public String title() {
+    return getString(TITLE_KEY);
+  }
+
+  /**
+   * Set a url for the screen.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/page/#properties">Page Properties</a>
+   */
+  public Properties putUrl(String url) {
+    return putValue(URL_KEY, url);
+  }
+
+  public String url() {
+    return getString(URL_KEY);
+  }
+
+  // Ecommerce API
+  private static final String NAME_KEY = "name"; // used by product too
+  private static final String CATEGORY_KEY = "category";
+  private static final String SKU_KEY = "sku";
+  private static final String PRICE_KEY = "price";
+  private static final String ID_KEY = "id";
+  private static final String ORDER_ID_KEY = "orderId";
+  private static final String TOTAL_KEY = "total";
+  private static final String SUBTOTAL_KEY = "subtotal";
+  private static final String SHIPPING_KEY = "shipping";
+  private static final String TAX_KEY = "tax";
+  private static final String DISCOUNT_KEY = "discount";
+  private static final String COUPON_KEY = "coupon";
+  private static final String PRODUCTS_KEY = "products";
+  private static final String REPEAT_KEY = "repeat";
+
+  /**
+   * Set the name of the product associated with an event.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
+   */
   public Properties putName(String name) {
     return putValue(NAME_KEY, name);
   }
@@ -122,78 +175,25 @@ public class Properties extends ValueMap {
     return getString(NAME_KEY);
   }
 
-  public Properties putPath(String path) {
-    return putValue(PATH_KEY, path);
+  /**
+   * Set a category for this action. You’ll want to track all of your product category pages so
+   * you can quickly see which categories are most popular.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
+   */
+  public Properties putCategory(String category) {
+    return putValue(CATEGORY_KEY, category);
   }
 
-  public Properties putReferer(String referer) {
-    return putValue(REFERER_KEY, referer);
+  public String category() {
+    return getString(CATEGORY_KEY);
   }
 
-  public Properties putTitle(String title) {
-    return putValue(TITLE_KEY, title);
-  }
-
-  public Properties putUrl(String url) {
-    return putValue(URL_KEY, url);
-  }
-
-  // Transaction Properties
-
-  public Properties putOrderId(String orderId) {
-    return putValue(ORDER_ID_KEY, orderId);
-  }
-
-  public String orderId() {
-    return getString(ORDER_ID_KEY);
-  }
-
-  public Properties putTotal(long total) {
-    return putValue(TOTAL_KEY, total);
-  }
-
-  public double total() {
-    return getDouble(TOTAL_KEY, 0);
-  }
-
-  public Properties putSubTotal(long subTotal) {
-    return putValue(SUB_TOTAL_KEY, subTotal);
-  }
-
-  public Properties putShipping(double shipping) {
-    return putValue(SHIPPING_KEY, shipping);
-  }
-
-  double shipping() {
-    return getDouble(SHIPPING_KEY, 0);
-  }
-
-  public Properties putTax(double tax) {
-    return putValue(TAX_KEY, tax);
-  }
-
-  double tax() {
-    return getDouble(TAX_KEY, 0);
-  }
-
-  public Properties putDiscount(double discount) {
-    return putValue(DISCOUNT_KEY, discount);
-  }
-
-  public Properties putCoupon(String coupon) {
-    return putValue(COUPON_KEY, coupon);
-  }
-
-  public Properties putProducts(Product... products) {
-    return putValue(PRODUCTS_KEY, products);
-  }
-
-  public List<Product> products(Product... products) {
-    return getList(PRODUCTS_KEY, Product.class);
-  }
-
-  // Product Properties
-
+  /**
+   * Set a sku for the product associated with an event.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
+   */
   public Properties putSku(String sku) {
     return putValue(SKU_KEY, sku);
   }
@@ -202,6 +202,11 @@ public class Properties extends ValueMap {
     return getString(SKU_KEY);
   }
 
+  /**
+   * Set a price (in dollars) for the product associated with an event.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
+   */
   public Properties putPrice(double price) {
     return putValue(PRICE_KEY, price);
   }
@@ -210,15 +215,135 @@ public class Properties extends ValueMap {
     return getDouble(PRICE_KEY, 0);
   }
 
-  public double value() {
-    return getDouble(VALUE_KEY, 0);
+  /**
+   * Set an ID for the product associated with an event.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
+   */
+  public Properties putProductId(String id) {
+    return putValue(ID_KEY, id);
+  }
+
+  public String productId() {
+    return getString(ID_KEY);
+  }
+
+  /**
+   * Set the order ID associated with an event.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
+   */
+  public Properties putOrderId(String orderId) {
+    return putValue(ORDER_ID_KEY, orderId);
+  }
+
+  public String orderId() {
+    return getString(ORDER_ID_KEY);
+  }
+
+  /**
+   * Set the total amount (in dollars) for an order associated with an event.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
+   */
+  public Properties putTotal(double total) {
+    return putValue(TOTAL_KEY, total);
+  }
+
+  public double total() {
+    return getDouble(TOTAL_KEY, 0);
+  }
+
+  /**
+   * Set the subtotal (in dollars) for an order associated with an event (excluding tax and
+   * shipping).
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
+   */
+  public Properties putSubtotal(double subtotal) {
+    return putValue(SUBTOTAL_KEY, subtotal);
+  }
+
+  public double putSubtotal() {
+    return getDouble(SUBTOTAL_KEY, 0);
+  }
+
+  /**
+   * Set the shipping amount (in dollars) for an order associated with an event.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
+   */
+  public Properties putShipping(double shipping) {
+    return putValue(SHIPPING_KEY, shipping);
+  }
+
+  double shipping() {
+    return getDouble(SHIPPING_KEY, 0);
+  }
+
+  /**
+   * Set the tax amount (in dollars) for an order associated with an event.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
+   */
+  public Properties putTax(double tax) {
+    return putValue(TAX_KEY, tax);
+  }
+
+  public double tax() {
+    return getDouble(TAX_KEY, 0);
+  }
+
+  /**
+   * Set the discount amount (in dollars) for an order associated with an event.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
+   */
+  public Properties putDiscount(double discount) {
+    return putValue(DISCOUNT_KEY, discount);
+  }
+
+  /**
+   * Set a coupon name for an order associated with an event.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
+   */
+  public Properties putCoupon(String coupon) {
+    return putValue(COUPON_KEY, coupon);
+  }
+
+  /**
+   * Set the individual products for an order associated with an event.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
+   */
+  public Properties putProducts(Product... products) {
+    return putValue(PRODUCTS_KEY, products);
+  }
+
+  public List<Product> products(Product... products) {
+    return getList(PRODUCTS_KEY, Product.class);
+  }
+
+  /**
+   * Set whether an order associated with an event is from a repeating customer.
+   *
+   * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
+   */
+  public Properties putRepeatCustomer(boolean repeat) {
+    return putValue(REPEAT_KEY, repeat);
+  }
+
+  public boolean isRepeatCustomer() {
+    return getBoolean(REPEAT_KEY, false);
   }
 
   /**
    * A representation of an e-commerce product.
    * <p/>
-   * Use only when you have multiple products. If you have only one product, {@link Properties} has
-   * methods on it directly to attach this information.
+   * Use this only when you have multiple products, usually for the "Completed Order" event. If you
+   * have only one product, {@link Properties} has methods on it directly to attach this
+   * information.
    */
   public static class Product extends ValueMap {
     private static final String ID_KEY = "id";
@@ -226,19 +351,31 @@ public class Properties extends ValueMap {
     private static final String NAME_KEY = "name";
     private static final String PRICE_KEY = "price";
 
+    /**
+     * Create an e-commerce product with the given id, sku and price (in dollars)
+     *
+     * @param id The product ID in your database
+     * @param sku The product SKU
+     * @param price The price of the product (in dollars)
+     */
     public Product(String id, String sku, double price) {
-      putValue(ID_KEY, id);
-      putValue(SKU_KEY, sku);
-      putValue(PRICE_KEY, price);
+      put(ID_KEY, id);
+      put(SKU_KEY, sku);
+      put(PRICE_KEY, price);
     }
 
     // For deserialization
-    Product(Map<String, Object> map) {
+    private Product(Map<String, Object> map) {
       super(map);
     }
 
+    /** Set an optional name for this product. */
     public Product putName(String name) {
       return putValue(NAME_KEY, name);
+    }
+
+    public String name() {
+      return getString(NAME_KEY);
     }
 
     public String id() {
@@ -247,10 +384,6 @@ public class Properties extends ValueMap {
 
     public String sku() {
       return getString(SKU_KEY);
-    }
-
-    public String name() {
-      return getString(NAME_KEY);
     }
 
     public double price() {

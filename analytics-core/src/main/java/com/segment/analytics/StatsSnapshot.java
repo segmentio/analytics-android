@@ -4,17 +4,11 @@ import java.util.Map;
 
 /** Represents all stats for a {@link Analytics} instance at a single point in time. */
 public class StatsSnapshot {
-  /**
-   * The time at which the snapshot was created.
-   */
+  /** The time at which the snapshot was created. */
   public final long timestamp;
-  /**
-   * Number of times we've flushed events to our servers.
-   */
+  /** Number of times we've flushed events to our servers. */
   public final long flushCount;
-  /**
-   * Number of events we've flushed to our servers.
-   */
+  /** Number of events we've flushed to our servers. */
   public final long flushEventCount;
   /**
    * Number of operations sent to all bundled integrations, including lifecycle events and flushes.
@@ -30,9 +24,7 @@ public class StatsSnapshot {
    * flushes.
    */
   public final float integrationOperationAverageDuration;
-  /**
-   * Total time to run operations, including lifecycle events and flushes, by integration.
-   */
+  /** Total time to run operations, including lifecycle events and flushes, by integration. */
   public final Map<String, Long> integrationOperationDurationByIntegration;
 
   public StatsSnapshot(long timestamp, long flushCount, long flushEventCount,

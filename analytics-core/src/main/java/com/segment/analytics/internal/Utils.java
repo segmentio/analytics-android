@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
@@ -89,6 +90,11 @@ public final class Utils {
   /** Returns the date as a string formatted with {@link #ISO_8601_DATE_FORMAT}. */
   public static String toISO8601Date(Date date) {
     return ISO_8601_DATE_FORMAT.format(date);
+  }
+
+  /** Returns the string as a date parsed with {@link #ISO_8601_DATE_FORMAT}. */
+  public static Date toISO8601Date(String date) throws ParseException {
+    return ISO_8601_DATE_FORMAT.parse(date);
   }
 
   /** Returns true if the application has the given permission. */
@@ -281,6 +287,7 @@ public final class Utils {
     }
   }
 
+  /** Return a string with all the given parts joined, separated by {@code ", "}. */
   private static String join(Object... parts) {
     if (parts.length == 1) return String.valueOf(parts[0]);
 

@@ -149,7 +149,7 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
 
     if (PRODUCT_EVENT_NAME_PATTERN.matcher(event).matches()) {
       tracker.send(new HitBuilders.ItemBuilder() //
-          .setTransactionId(properties.id())
+          .setTransactionId(properties.productId())
           .setCurrencyCode(properties.currency())
           .setName(properties.name())
           .setSku(properties.sku())

@@ -24,6 +24,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.Analytics.LogLevel.NONE;
+import static com.segment.analytics.TestUtils.createTraits;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -104,7 +105,7 @@ public class BugsnagTest {
   }
 
   @Test public void identify() {
-    Traits traits = new Traits().putUserId("foo").putEmail("bar").putName("baz");
+    Traits traits = createTraits("foo").putEmail("bar").putName("baz");
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verifyStatic();
     Bugsnag.setUser("foo", "bar", "baz");

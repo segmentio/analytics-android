@@ -30,6 +30,7 @@ import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.TestUtils.JSONObjectMatcher.jsonEq;
+import static com.segment.analytics.TestUtils.createTraits;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -145,7 +146,7 @@ public class AmplitudeTest {
   }
 
   @Test public void identify() {
-    Traits traits = new Traits().putUserId("foo").putAge(20).putFirstName("bar");
+    Traits traits = createTraits("foo").putAge(20).putFirstName("bar");
     IdentifyPayload payload = new IdentifyPayloadBuilder().traits(traits).build();
     integration.identify(payload);
     verifyStatic();

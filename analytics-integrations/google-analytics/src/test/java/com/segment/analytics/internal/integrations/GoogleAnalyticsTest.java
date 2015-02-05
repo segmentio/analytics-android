@@ -26,6 +26,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.TestUtils.createTraits;
 import static org.mockito.Matchers.anyMap;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
@@ -104,7 +105,7 @@ public class GoogleAnalyticsTest {
 
   @Test public void identify() {
     integration.sendUserId = false;
-    Traits traits = new Traits().putAge(20).putUserId("foo");
+    Traits traits = createTraits("foo").putAge(20);
 
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verify(tracker).set("age", "20");
@@ -113,7 +114,7 @@ public class GoogleAnalyticsTest {
   }
 
   @Test public void identifyWithUserId() {
-    Traits traits = new Traits().putAge(20).putUserId("foo");
+    Traits traits = createTraits("foo").putAge(20);
 
     integration.sendUserId = true;
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());

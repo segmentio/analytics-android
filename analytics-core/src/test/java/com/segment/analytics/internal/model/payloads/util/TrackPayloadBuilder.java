@@ -5,9 +5,9 @@ import com.segment.analytics.Options;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
-import org.robolectric.Robolectric;
 
 import static com.segment.analytics.TestUtils.createContext;
+import static com.segment.analytics.TestUtils.createTraits;
 
 public class TrackPayloadBuilder {
   private AnalyticsContext context;
@@ -43,7 +43,7 @@ public class TrackPayloadBuilder {
 
   public TrackPayload build() {
     if (traits == null) {
-      traits = Traits.create(Robolectric.application);
+      traits = createTraits();
     }
     if (event == null) {
       event = "bar";

@@ -5,7 +5,6 @@ import org.assertj.core.data.MapEntry;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -17,11 +16,11 @@ public class TraitsTest {
   Traits traits;
 
   @Before public void setUp() {
-    traits = Traits.create(Robolectric.application);
+    traits = Traits.create();
   }
 
   @Test public void newInvocationHasUniqueId() throws Exception {
-    assertThat(traits).isNotSameAs(Traits.create(Robolectric.application));
+    assertThat(traits).isNotSameAs(Traits.create());
   }
 
   @Test public void newInvocationHasNoUserId() throws Exception {
