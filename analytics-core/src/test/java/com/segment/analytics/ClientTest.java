@@ -56,10 +56,10 @@ public class ClientTest {
   @Test public void upload() throws Exception {
     server.enqueue(new MockResponse());
 
-    Client.Response response = client.upload();
-    assertThat(response.os).isNotNull();
-    assertThat(response.is).isNull();
-    assertThat(response.connection.getResponseCode()).isEqualTo(200); // consume the response
+    Client.Connection connection = client.upload();
+    assertThat(connection.os).isNotNull();
+    assertThat(connection.is).isNull();
+    assertThat(connection.connection.getResponseCode()).isEqualTo(200); // consume the response
     RecordedRequestAssert.assertThat(server.takeRequest())
         .hasRequestLine("POST /v1/import HTTP/1.1")
         .containsHeader("Content-Type", "application/json")
@@ -71,11 +71,11 @@ public class ClientTest {
     when(mockConnection.getOutputStream()).thenReturn(os);
     when(mockConnection.getResponseCode()).thenReturn(200);
 
-    Client.Response response = mockClient.upload();
+    Client.Connection connection = mockClient.upload();
     verify(mockConnection).setDoOutput(true);
     verify(mockConnection).setChunkedStreamingMode(0);
 
-    response.close();
+    connection.close();
     verify(mockConnection).disconnect();
     verify(os).close();
   }
@@ -86,12 +86,12 @@ public class ClientTest {
     when(mockConnection.getResponseCode()).thenReturn(201);
     when(mockConnection.getResponseMessage()).thenReturn("bar");
 
-    Client.Response response = mockClient.upload();
+    Client.Connection connection = mockClient.upload();
     verify(mockConnection).setDoOutput(true);
     verify(mockConnection).setChunkedStreamingMode(0);
 
     try {
-      response.close();
+      connection.close();
       fail("Non 200 return code should throw an exception");
     } catch (IOException e) {
       assertThat(e).hasMessage(201 + " bar");
@@ -103,10 +103,10 @@ public class ClientTest {
   @Test public void fetchSettings() throws Exception {
     server.enqueue(new MockResponse());
 
-    Client.Response response = client.fetchSettings();
-    assertThat(response.os).isNull();
-    assertThat(response.is).isNotNull();
-    assertThat(response.connection.getResponseCode()).isEqualTo(200);
+    Client.Connection connection = client.fetchSettings();
+    assertThat(connection.os).isNull();
+    assertThat(connection.is).isNotNull();
+    assertThat(connection.connection.getResponseCode()).isEqualTo(200);
     RecordedRequestAssert.assertThat(server.takeRequest())
         .hasRequestLine("GET /project/foo/settings HTTP/1.1")
         .containsHeader("Content-Type", "application/json");
@@ -114,13 +114,14 @@ public class ClientTest {
 
   @Test public void fetchSettingsClosesConnectionsAndThrowsExceptionOnFailure() throws Exception {
     when(mockConnection.getResponseCode()).thenReturn(204);
-    when(mockConnection.getResponseMessage()).thenReturn("bar");
+    when(mockConnection.getResponseMessage()) //
+        .thenReturn("no cookies for you http://bit.ly/1EMHBNb");
 
     try {
       mockClient.fetchSettings();
       fail("Non 200 return code should throw an exception");
     } catch (IOException e) {
-      assertThat(e).hasMessage(204 + " bar");
+      assertThat(e).hasMessage("HTTP " + 204 + ": no cookies for you http://bit.ly/1EMHBNb");
     }
     verify(mockConnection).disconnect();
   }
@@ -130,9 +131,9 @@ public class ClientTest {
     when(mockConnection.getInputStream()).thenReturn(is);
     when(mockConnection.getResponseCode()).thenReturn(200);
 
-    Client.Response response = mockClient.fetchSettings();
+    Client.Connection connection = mockClient.fetchSettings();
 
-    response.close();
+    connection.close();
     verify(mockConnection).disconnect();
     verify(is).close();
   }

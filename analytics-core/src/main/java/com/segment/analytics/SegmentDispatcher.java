@@ -161,10 +161,10 @@ class SegmentDispatcher {
   void performFlush() {
     if (queueFile.size() < 1 || !isConnected(context)) return;
 
-    Client.Response response = null;
+    Client.Connection connection = null;
     try {
       // Open a connection.
-      response = client.upload();
+      connection = client.upload();
     } catch (IOException e) {
       if (logLevel.log()) {
         error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, "Could not open connection");
@@ -176,13 +176,13 @@ class SegmentDispatcher {
     int payloadsUploaded;
     try {
       // Write the payloads into the OutputStream.
-      BatchPayloadWriter writer = new BatchPayloadWriter(response.os).beginObject()
+      BatchPayloadWriter writer = new BatchPayloadWriter(connection.os).beginObject()
           .integrations(integrations)
           .beginBatchArray();
       payloadsUploaded = queueFile.forEach(new PayloadWriter(writer));
       writer.endBatchArray().endObject().close();
     } catch (IOException e) {
-      closeQuietly(response);
+      closeQuietly(connection);
       if (logLevel.log()) {
         error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, queueFile);
       }
@@ -192,7 +192,7 @@ class SegmentDispatcher {
 
     try {
       // Upload the payloads.
-      response.close();
+      connection.close();
       if (logLevel.log()) {
         debug(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null,
             "Flushed " + payloadsUploaded + " payloads.");

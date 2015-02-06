@@ -49,12 +49,12 @@ public class SegmentDispatcherTest {
 
   @Rule public TemporaryFolder folder = new TemporaryFolder();
 
-  private static Client.Response mockResponse() {
-    return mockResponse(mock(HttpURLConnection.class));
+  private static Client.Connection mockConnection() {
+    return mockConnection(mock(HttpURLConnection.class));
   }
 
-  private static Client.Response mockResponse(HttpURLConnection connection) {
-    return new Client.Response(connection, mock(InputStream.class), mock(OutputStream.class)) {
+  private static Client.Connection mockConnection(HttpURLConnection connection) {
+    return new Client.Connection(connection, mock(InputStream.class), mock(OutputStream.class)) {
       @Override public void close() throws IOException {
         super.close();
       }
@@ -108,8 +108,8 @@ public class SegmentDispatcherTest {
   @Test public void enqueueMaxTriggersFlush() throws IOException {
     QueueFile queueFile = new QueueFile(new File(folder.getRoot(), "queue-file"));
     Client client = mock(Client.class);
-    Client.Response response = mockResponse();
-    when(client.upload()).thenReturn(response);
+    Client.Connection connection = mockConnection();
+    when(client.upload()).thenReturn(connection);
     SegmentDispatcher segmentDispatcher =
         new SegmentBuilder().client(client).flushSize(5).queueFile(queueFile).build();
     BasePayload payload = mock(BasePayload.class);
@@ -125,8 +125,8 @@ public class SegmentDispatcherTest {
     QueueFile queueFile = new QueueFile(new File(folder.getRoot(), "queue-file"));
     BasePayload payload = mock(BasePayload.class);
     Client client = mock(Client.class);
-    Client.Response response = mockResponse();
-    when(client.upload()).thenReturn(response);
+    Client.Connection connection = mockConnection();
+    when(client.upload()).thenReturn(connection);
     SegmentDispatcher segmentDispatcher =
         new SegmentBuilder().client(client).queueFile(queueFile).build();
 
@@ -154,13 +154,13 @@ public class SegmentDispatcherTest {
     verify(client, never()).upload();
   }
 
-  @Test public void flushClosesResponses() throws IOException {
+  @Test public void flushClosesConnection() throws IOException {
     Client client = mock(Client.class);
     QueueFile queueFile = new QueueFile(new File(folder.getRoot(), "queue-file"));
     queueFile.add("{}".getBytes());
     HttpURLConnection urlConnection = mock(HttpURLConnection.class);
-    Client.Response response = mockResponse(urlConnection);
-    when(client.upload()).thenReturn(response);
+    Client.Connection connection = mockConnection(urlConnection);
+    when(client.upload()).thenReturn(connection);
     SegmentDispatcher segmentDispatcher =
         new SegmentBuilder().client(client).queueFile(queueFile).build();
 

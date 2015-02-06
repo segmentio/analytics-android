@@ -176,11 +176,11 @@ class IntegrationManager {
       return;
     }
 
-    Client.Response response = null;
+    Client.Connection connection = null;
     ProjectSettings projectSettings = null;
     try {
-      response = client.fetchSettings();
-      projectSettings = ProjectSettings.create(cartographer.fromJson(buffer(response.is)),
+      connection = client.fetchSettings();
+      projectSettings = ProjectSettings.create(cartographer.fromJson(buffer(connection.is)),
           System.currentTimeMillis());
     } catch (IOException e) {
       if (logLevel.log()) {
@@ -188,7 +188,7 @@ class IntegrationManager {
       }
       dispatchRetryFetchSettings();
     } finally {
-      closeQuietly(response);
+      closeQuietly(connection);
     }
 
     if (projectSettings != null) {

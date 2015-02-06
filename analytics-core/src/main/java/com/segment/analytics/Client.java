@@ -38,7 +38,8 @@ import java.net.URL;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 /**
- * HTTP client which can upload payloads and fetch project settings from the Segment public API, and
+ * HTTP client which can upload payloads and fetch project settings from the Segment public API,
+ * and
  * download a file.
  */
 class Client {
@@ -49,8 +50,8 @@ class Client {
   final String writeKey;
   final Context context;
 
-  private static Response createPostResponse(HttpURLConnection connection) throws IOException {
-    return new Response(connection, null, connection.getOutputStream()) {
+  private static Connection createPostConnection(HttpURLConnection connection) throws IOException {
+    return new Connection(connection, null, connection.getOutputStream()) {
       @Override public void close() throws IOException {
         try {
           int responseCode = connection.getResponseCode();
@@ -65,8 +66,8 @@ class Client {
     };
   }
 
-  private static Response createGetResponse(HttpURLConnection connection) throws IOException {
-    return new Response(connection, connection.getInputStream(), null) {
+  private static Connection createGetConnection(HttpURLConnection connection) throws IOException {
+    return new Connection(connection, connection.getInputStream(), null) {
       @Override public void close() throws IOException {
         super.close();
         is.close();
@@ -91,25 +92,25 @@ class Client {
     return connection;
   }
 
-  Response upload() throws IOException {
+  Connection upload() throws IOException {
     HttpURLConnection connection = openConnection(API_URL + "/v1/import");
     connection.setRequestProperty("Content-Type", "application/json");
     connection.setRequestProperty("Authorization", authorizationHeader(writeKey));
     connection.setDoOutput(true);
     connection.setChunkedStreamingMode(0);
-    return createPostResponse(connection);
+    return createPostConnection(connection);
   }
 
-  Response fetchSettings() throws IOException {
+  Connection fetchSettings() throws IOException {
     HttpURLConnection connection = openConnection(API_URL + "/project/" + writeKey + "/settings");
     connection.setRequestProperty("Content-Type", "application/json");
 
     int responseCode = connection.getResponseCode();
     if (responseCode != HTTP_OK) {
       connection.disconnect();
-      throw new IOException(responseCode + " " + connection.getResponseMessage());
+      throw new IOException("HTTP " + responseCode + ": " + connection.getResponseMessage());
     }
-    return createGetResponse(connection);
+    return createGetConnection(connection);
   }
 
   void downloadFile(String url, File location) throws IOException {
@@ -132,17 +133,15 @@ class Client {
   }
 
   /**
-   * Wraps an HTTP response. Callers can either read from the {@link InputStream} or write to the
-   * {@link OutputStream}.
+   * Wraps an HTTP connection. Callers can either read from the connection via the {@link
+   * InputStream} or write to the connection via {@link OutputStream}.
    */
-  static abstract class Response implements Closeable {
+  static abstract class Connection implements Closeable {
     protected final HttpURLConnection connection;
-    /** The {@link InputStream}, or null if {@code os} is set. */
     final InputStream is;
-    /** The {@link OutputStream}, or null if {@code is} is set. */
     final OutputStream os;
 
-    Response(HttpURLConnection connection, InputStream is, OutputStream os) {
+    Connection(HttpURLConnection connection, InputStream is, OutputStream os) {
       if (connection == null) throw new IllegalArgumentException("connection == null");
       this.connection = connection;
       this.is = is;
