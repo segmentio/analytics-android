@@ -67,9 +67,7 @@ import static java.util.Collections.unmodifiableMap;
  * automatically, depending on the library you send data from. Some keys, such as IP address, and
  * speed need to be manually entered, such as IP Address, speed, etc.
  * <p/>
- * This is not persisted to disk, and is recomputed each time the app starts. If you set a value
- * manually, you'll have to set it each time on the app launch if you want it to persist between
- * sessions.
+ * AnalyticsContext is not persisted to disk, and is filled each time the app starts.
  */
 public class AnalyticsContext extends ValueMap {
   private static final String LOCALE_KEY = "locale";
@@ -135,15 +133,15 @@ public class AnalyticsContext extends ValueMap {
     return this;
   }
 
-  /** Returns an shallow unmodifiable copy of the values in this map. */
+  /** Returns an unmodifiable shallow copy of the values in this map. */
   public AnalyticsContext unmodifiableCopy() {
     LinkedHashMap<String, Object> map = new LinkedHashMap<>(this);
     return new AnalyticsContext(unmodifiableMap(map));
   }
 
   /**
-   * Attach the given {@link Traits} to this instance. This creates a copy of the given {@code
-   * traits}, so exposing {@link #traits()} to the public API is acceptable.
+   * Attach a copy of the given {@link Traits} to this instance. This creates a copy of the given
+   * {@code traits}, so exposing {@link #traits()} to the public API is acceptable.
    */
   void setTraits(Traits traits) {
     put(TRAITS_KEY, traits.unmodifiableCopy());
@@ -152,7 +150,7 @@ public class AnalyticsContext extends ValueMap {
   /**
    * Note: Not for public use. Clients should modify the user's traits with {@link
    * Analytics#identify(String, Traits, Options)}. Modifying this instance will not reflect changes
-   * to the user.
+   * to the user's information that is passed onto bundled integrations.
    *
    * Return the {@link Traits} attached to this instance.
    */
@@ -199,6 +197,12 @@ public class AnalyticsContext extends ValueMap {
     return getValueMap(CAMPAIGN_KEY, Campaign.class);
   }
 
+  /**
+   * Information about the campaign that resulted in the API call, containing name, source,
+   * medium, term and content. This maps directly to the common UTM campaign parameters.
+   *
+   * @see <a href="https://support.google.com/analytics/answer/1033867?hl=en">UTM parameters</a>
+   */
   public static class Campaign extends ValueMap {
     private static final String CAMPAIGN_NAME_KEY = "name";
     private static final String CAMPAIGN_SOURCE_KEY = "source";
@@ -206,10 +210,6 @@ public class AnalyticsContext extends ValueMap {
     private static final String CAMPAIGN_TERM_KEY = "term";
     private static final String CAMPAIGN_CONTENT_KEY = "content";
 
-    /**
-     * Information about the campaign that resulted in the API call, containing name, source,
-     * medium, term and content. This maps directly to the common UTM campaign parameters.
-     */
     // Public Constructor
     public Campaign() {
     }
@@ -273,6 +273,7 @@ public class AnalyticsContext extends ValueMap {
   // Device
   private static final String DEVICE_KEY = "device";
 
+  /** Information about the device. */
   public static class Device extends ValueMap {
     private static final String DEVICE_ID_KEY = "id";
     private static final String DEVICE_MANUFACTURER_KEY = "manufacturer";
@@ -347,7 +348,7 @@ public class AnalyticsContext extends ValueMap {
   // Location
   private static final String LOCATION_KEY = "location";
 
-  /** Representation of location information. */
+  /** Information about the location of the device. */
   public static class Location extends ValueMap {
     private static final String LOCATION_LATITUDE_KEY = "latitude";
     private static final String LOCATION_LONGITUDE_KEY = "longitude";
@@ -461,7 +462,7 @@ public class AnalyticsContext extends ValueMap {
   // Referrer
   private static final String REFERRER_KEY = "referrer";
 
-  /** Information about a referrer. */
+  /** Information about the referrer that resulted in the API call. */
   public static class Referrer extends ValueMap {
     private static final String REFERRER_ID_KEY = "id";
     private static final String REFERRER_LINK_KEY = "link";

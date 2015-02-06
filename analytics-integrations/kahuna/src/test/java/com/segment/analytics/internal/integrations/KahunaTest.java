@@ -139,8 +139,7 @@ public class KahunaTest {
   }
 
   @Test public void identify() {
-    integration.identify(
-        new IdentifyPayloadBuilder().traits(createTraits("foo")).build());
+    integration.identify(new IdentifyPayloadBuilder().traits(createTraits("foo")).build());
     verifyStatic();
     KahunaAnalytics.setUsernameAndEmail("foo", null);
     KahunaAnalytics.setUserCredential(USERNAME_KEY, null);

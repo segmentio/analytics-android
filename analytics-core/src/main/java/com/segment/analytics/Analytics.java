@@ -105,7 +105,7 @@ public class Analytics {
   boolean shutdown;
 
   /**
-   * The global default {@link Analytics} instance.
+   * Return a reference to the global default {@link Analytics} instance.
    * <p/>
    * This instance is automatically initialized with defaults that are suitable to most
    * implementations.
@@ -218,12 +218,22 @@ public class Analytics {
     }
   }
 
-  /** @see #identify(String, Traits, Options) */
+  /**
+   * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
+   * also lets you record {@code traits} about the user, like their email, name, account type, etc.
+   *
+   * @see #identify(String, Traits, Options)
+   */
   public String identify(String userId) {
     return identify(userId, null, null);
   }
 
-  /** @see #identify(String, Traits, Options) */
+  /**
+   * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
+   * also lets you record {@code traits} about the user, like their email, name, account type, etc.
+   *
+   * @see #identify(String, Traits, Options)
+   */
   public String identify(Traits traits) {
     return identify(null, traits, null);
   }
@@ -265,15 +275,17 @@ public class Analytics {
     return previousId;
   }
 
-  /** @see #group(String, Traits, Options) */
+  /**
+   * The group method lets you associate a user with a group. It also lets you record custom traits
+   * about the group, like industry or number of employees.
+   *
+   * @see #group(String, Traits, Options)
+   */
   public void group(String groupId) {
     group(groupId, null, null);
   }
 
   /**
-   * The group method lets you associate the current user with a group. It also lets you record
-   * custom traits about the group, like industry or number of employees.
-   *
    * The group method lets you associate a user with a group. It also lets you record custom traits
    * about the group, like industry or number of employees.
    * <p/>
@@ -301,12 +313,24 @@ public class Analytics {
     submit(payload);
   }
 
-  /** @see #track(String, Properties, Options) */
+  /**
+   * The track method is how you record any actions your users perform. Each action is known by a
+   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
+   * For example a 'Purchased a Shirt' event might have properties like revenue or size.
+   *
+   * @see #track(String, Properties, Options)
+   */
   public void track(String event) {
     track(event, null, null);
   }
 
-  /** @see #track(String, Properties, Options) */
+  /**
+   * The track method is how you record any actions your users perform. Each action is known by a
+   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
+   * For example a 'Purchased a Shirt' event might have properties like revenue or size.
+   *
+   * @see #track(String, Properties, Options)
+   */
   public void track(String event, Properties properties) {
     track(event, properties, null);
   }
@@ -376,7 +400,13 @@ public class Analytics {
     submit(payload);
   }
 
-  /** @see #alias(String, Options) */
+  /**
+   * The alias method is used to merge two user identities, effectively connecting two sets of user
+   * data as one. This is an advanced method, but it is required to manage user identities
+   * successfully in some of our integrations.
+   *
+   * @see #alias(String, Options)
+   */
   public void alias(String previousId) {
     alias(previousId, null);
   }
@@ -413,8 +443,8 @@ public class Analytics {
   }
 
   /**
-   * Asynchronously flushes all messages in the queue to the server, and tell integrations to do
-   * the same.
+   * Asynchronously flushes all messages in the queue to the server, and tells bundled integrations
+   * to do the same.
    * <p>
    * Note that this will do nothing for bundled integrations that don't provide an explicit flush
    * method.
@@ -425,7 +455,7 @@ public class Analytics {
   }
 
   /** Get the {@link AnalyticsContext} used by this instance. */
-  public AnalyticsContext getAnalyticsContext() {
+  @SuppressWarnings("UnusedDeclaration") public AnalyticsContext getAnalyticsContext() {
     return analyticsContext;
   }
 
@@ -434,7 +464,7 @@ public class Analytics {
     return stats.createSnapshot();
   }
 
-  /** Clear any information, including traits and user id about the current user. */
+  /** Logs out the current user by clearing any information, including traits and user id. */
   public void logout() {
     traitsCache.delete();
     traitsCache.set(Traits.create());
@@ -507,14 +537,21 @@ public class Analytics {
     integrationManager.dispatchOperation(payload);
   }
 
+  /**
+   * Controls logging behaviour.
+   */
   public enum LogLevel {
     /** No logging. */
     NONE,
-    /** Log exceptions and events through the SDK. */
+    /** Log exceptions and events through the SDK only. */
     BASIC,
-    /** Log exceptions, events, and basic logging for bundled integrations. */
+    /**
+     * Log exceptions, events through the SDK, and enable logging for bundled integrations.
+     */
     INFO,
-    /** Log exceptions, events, and verbose logging for bundled integrations. */
+    /**
+     * Log exceptions, events through the SDK, and enable verbose logging for bundled integrations.
+     */
     VERBOSE;
 
     public boolean log() {
@@ -598,8 +635,8 @@ public class Analytics {
     }
 
     /**
-     * Set some default options for all calls. This options should not contain a timestamp. You
-     * won't be able to change the integrations specified in this options object.
+     * Set default options for all calls. This options instance should not contain a timestamp, and
+     * changing the integrations through this instance won't be reflected by the Analytics client.
      */
     public Builder defaultOptions(Options defaultOptions) {
       if (defaultOptions == null) {
@@ -620,11 +657,10 @@ public class Analytics {
     }
 
     /**
-     * Set a tag for this instance. The tag is used to generate keys for caching. By default the
-     * writeKey is used, but you may want to specify an alternative one, if you want the instances
-     * to share different caches. For example, without this tag, all instances with the same
-     * writeKey, will share the same traits. By specifying a custom tag for each instance of the
-     * client, the instances will have a different traits instance.
+     * Set a tag for this instance. The tag is used to generate keys for caching.
+     * </p>
+     * By default the writeKey is used, but you may want to specify an alternative one, if you want
+     * the instances with the same writeKey to share different caches.
      */
     public Builder tag(String tag) {
       if (isNullOrEmpty(tag)) {
@@ -637,9 +673,7 @@ public class Analytics {
       return this;
     }
 
-    /**
-     * Set whether debugging is enabled or not.
-     */
+    /** Set a {@link LogLevel} for this instance. */
     public Builder logLevel(LogLevel logLevel) {
       this.logLevel = logLevel;
       return this;
@@ -649,7 +683,7 @@ public class Analytics {
      * Disable bundled integrations.
      * <p/>
      * This will skip *ALL* bundled integrations, even if they don't have a server side
-     * integration available (e.g. Flurry). Use it with extreme care.
+     * integration available (e.g. Flurry). Use it only if you understand what you are doing.
      *
      * @see <a href="https://segment.com/help/getting-started/why-bundle-integrations/">Bundled
      * Integrations</a>

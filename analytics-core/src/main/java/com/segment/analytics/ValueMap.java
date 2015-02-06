@@ -138,7 +138,6 @@ public class ValueMap implements Map<String, Object> {
       try {
         return Integer.valueOf((String) value);
       } catch (NumberFormatException ignored) {
-        // ignore
       }
     }
     return defaultValue;
@@ -160,7 +159,6 @@ public class ValueMap implements Map<String, Object> {
       try {
         return Long.valueOf((String) value);
       } catch (NumberFormatException ignored) {
-        // ignore
       }
     }
     return defaultValue;
@@ -181,7 +179,6 @@ public class ValueMap implements Map<String, Object> {
       try {
         return Double.valueOf((String) value);
       } catch (NumberFormatException ignored) {
-        // ignore
       }
     }
     return defaultValue;

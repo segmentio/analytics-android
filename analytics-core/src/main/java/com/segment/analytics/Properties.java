@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A class to attach extra information to events.
+ * Properties are a dictionary of free-form information to attach to specific events.
  * <p/>
  * Just like traits, we also accept some properties with semantic meaning, and you should only ever
  * use these property names for that purpose.
@@ -352,7 +352,8 @@ public class Properties extends ValueMap {
     private static final String PRICE_KEY = "price";
 
     /**
-     * Create an e-commerce product with the given id, sku and price (in dollars)
+     * Create an e-commerce product with the given id, sku and price (in dollars). All parameters
+     * are required for our ecommerce API.
      *
      * @param id The product ID in your database
      * @param sku The product SKU
