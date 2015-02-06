@@ -64,7 +64,7 @@ public class UtilsTest {
     assertThat(isNullOrEmpty("a")).isFalse();
 
     assertThat(isNullOrEmpty((Map) null)).isTrue();
-    Map<String, Object> map = new LinkedHashMap<String, Object>(20);
+    Map<String, Object> map = new LinkedHashMap<>(20);
     assertThat(isNullOrEmpty(map)).isTrue();
     map.put("foo", "bar");
     assertThat(isNullOrEmpty(map)).isFalse();
@@ -72,7 +72,7 @@ public class UtilsTest {
     assertThat(isNullOrEmpty(map)).isTrue();
 
     assertThat(isNullOrEmpty((Collection) null)).isTrue();
-    Collection<String> collection = new ArrayList<String>();
+    Collection<String> collection = new ArrayList<>();
     assertThat(isNullOrEmpty(collection)).isTrue();
     collection.add("foo");
     assertThat(isNullOrEmpty(collection)).isFalse();

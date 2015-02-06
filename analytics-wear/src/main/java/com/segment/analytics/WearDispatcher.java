@@ -55,7 +55,7 @@ class WearDispatcher {
   }
 
   private Collection<String> getNodes(GoogleApiClient googleApiClient) {
-    HashSet<String> results = new HashSet<String>();
+    HashSet<String> results = new HashSet<>();
     NodeApi.GetConnectedNodesResult nodes =
         Wearable.NodeApi.getConnectedNodes(googleApiClient).await();
     for (Node node : nodes.getNodes()) {

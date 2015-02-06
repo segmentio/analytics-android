@@ -180,13 +180,13 @@ public class TapstreamTest {
   }
 
   @Test public void identify() {
-    Map<String, Object> emptyParams = new HashMap<String, Object>();
+    Map<String, Object> emptyParams = new HashMap<>();
     config.globalEventParams = emptyParams;
     integration.identify(new IdentifyPayloadBuilder() //
         .traits(createTraits("foo")).build());
     assertThat(emptyParams).hasSize(1).contains(MapEntry.entry("userId", "foo"));
 
-    Map<String, Object> map = new HashMap<String, Object>();
+    Map<String, Object> map = new HashMap<>();
     config.globalEventParams = map;
     Traits traits = new Traits().putValue("foo", "bar").putValue("baz", "qux");
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());

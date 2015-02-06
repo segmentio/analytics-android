@@ -166,7 +166,6 @@ class SegmentDispatcher {
       // Open a connection.
       response = client.upload();
     } catch (IOException e) {
-      closeQuietly(response);
       if (logLevel.log()) {
         error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, "Could not open connection");
       }
@@ -241,6 +240,7 @@ class SegmentDispatcher {
       if (newSize > MAX_PAYLOAD_SIZE) return false;
       size = newSize;
       byte[] data = new byte[length];
+      //noinspection ResultOfMethodCallIgnored
       in.read(data, 0, length);
       writer.emitPayloadObject(new String(data, UTF_8));
       payloadCount++;

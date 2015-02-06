@@ -26,8 +26,8 @@ public class BasePayloadTest {
     when(mockIntegration.key()).thenReturn("foo");
 
     // this should be done with junits params, couldn't get it to work http://pastebin.com/W61q1H3J
-    List<Pair<Options, Boolean>> params = new ArrayList<Pair<Options, Boolean>>();
-    params.add(new Pair<Options, Boolean>(new Options(), true));
+    List<Pair<Options, Boolean>> params = new ArrayList<>();
+    params.add(new Pair<>(new Options(), true));
 
     // Respect "All" capital case
     params.add(new Pair<>(new Options().setIntegration("All", false), false));

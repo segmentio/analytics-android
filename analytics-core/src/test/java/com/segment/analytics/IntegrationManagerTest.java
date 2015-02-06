@@ -81,7 +81,7 @@ public class IntegrationManagerTest {
 
   @Test public void forwardsCorrectly() {
     integrationManager.initialized = true;
-    final AbstractIntegration<Void> mockIntegration = mock(AbstractIntegration.class);
+    AbstractIntegration mockIntegration = mock(AbstractIntegration.class);
     integrationManager.integrations.clear();
     integrationManager.integrations.add(mockIntegration);
     integrationManager.integrations.add(mockIntegration);

@@ -50,11 +50,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -127,12 +124,6 @@ public final class Utils {
   /** Returns true if the map is null or empty, false otherwise. */
   public static boolean isNullOrEmpty(Map map) {
     return map == null || map.size() == 0;
-  }
-
-  public static <T> Set<T> hashSetOf(T... entries) {
-    Set<T> set = new HashSet<>(entries.length);
-    Collections.addAll(set, entries);
-    return set;
   }
 
   /** Creates a unique device id to anonymously identify a user. */

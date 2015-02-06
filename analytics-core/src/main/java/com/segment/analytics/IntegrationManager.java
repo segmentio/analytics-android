@@ -148,7 +148,7 @@ class IntegrationManager {
     }
   }
 
-  private void loadIntegration(Class clazz) {
+  private void loadIntegration(Class<AbstractIntegration> clazz) {
     try {
       Constructor<AbstractIntegration> constructor = clazz.getDeclaredConstructor();
       constructor.setAccessible(true);

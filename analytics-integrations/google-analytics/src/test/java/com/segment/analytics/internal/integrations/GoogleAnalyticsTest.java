@@ -27,7 +27,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.TestUtils.createTraits;
-import static org.mockito.Matchers.anyMap;
+import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -158,7 +158,7 @@ public class GoogleAnalyticsTest {
     integration.screen(new ScreenPayloadBuilder().name("foo").build());
     InOrder inOrder = inOrder(tracker);
     inOrder.verify(tracker).setScreenName("foo");
-    inOrder.verify(tracker).send(anyMap());
+    inOrder.verify(tracker).send(anyMapOf(String.class, String.class));
     inOrder.verify(tracker).setScreenName(null);
     verifyNoMoreGoogleInteractions();
   }

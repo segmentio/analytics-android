@@ -43,8 +43,8 @@ public class ValueMapTest {
     assertThat(valueMap).hasSize(0).isEmpty();
   }
 
-  @SuppressWarnings("ResultOfMethodCallIgnored") @Test public void methodsAreForwardedCorrectly()
-      throws Exception {
+  @SuppressWarnings({ "ResultOfMethodCallIgnored", "SuspiciousMethodCalls" }) //
+  @Test public void methodsAreForwardedCorrectly() {
     valueMap = new ValueMap(delegate);
 
     valueMap.clear();
@@ -68,7 +68,7 @@ public class ValueMapTest {
     valueMap.put("foo", object);
     verify(delegate).put("foo", object);
 
-    Map<String, Object> map = new LinkedHashMap<String, Object>();
+    Map<String, Object> map = new LinkedHashMap<>();
     valueMap.putAll(map);
     verify(delegate).putAll(map);
 

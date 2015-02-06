@@ -101,7 +101,6 @@ public class CrittercismTest {
 
   @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
-    Bundle bundle = mock(Bundle.class);
     integration.onActivityDestroyed(activity);
     verifyStatic();
     verifyNoMoreInteractions(Crittercism.class);

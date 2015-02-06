@@ -211,7 +211,7 @@ public class SegmentDispatcherTest {
     SegmentDispatcher.BatchPayloadWriter batchPayloadWriter =
         new SegmentDispatcher.BatchPayloadWriter(byteArrayOutputStream);
 
-    final HashMap<String, Boolean> integrations = new LinkedHashMap<String, Boolean>();
+    final HashMap<String, Boolean> integrations = new LinkedHashMap<>();
     integrations.put("foo", false);
     integrations.put("bar", true);
 
@@ -239,7 +239,7 @@ public class SegmentDispatcherTest {
     SegmentDispatcher.BatchPayloadWriter batchPayloadWriter =
         new SegmentDispatcher.BatchPayloadWriter(byteArrayOutputStream);
 
-    final HashMap<String, Boolean> integrations = new LinkedHashMap<String, Boolean>();
+    final HashMap<String, Boolean> integrations = new LinkedHashMap<>();
     integrations.put("foo", false);
     integrations.put("bar", true);
 
@@ -262,7 +262,7 @@ public class SegmentDispatcherTest {
     SegmentDispatcher.BatchPayloadWriter batchPayloadWriter =
         new SegmentDispatcher.BatchPayloadWriter(byteArrayOutputStream);
 
-    final HashMap<String, Boolean> integrations = new LinkedHashMap<String, Boolean>();
+    HashMap<String, Boolean> integrations = new LinkedHashMap<>();
     integrations.put("foo", false);
     integrations.put("bar", true);
 

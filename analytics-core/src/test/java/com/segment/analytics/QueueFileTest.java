@@ -203,7 +203,7 @@ import static org.assertj.core.api.Assertions.assertThat;
   @Test public void testAddAndRemoveElements() throws IOException {
     long start = System.nanoTime();
 
-    Queue<byte[]> expected = new LinkedList<byte[]>();
+    Queue<byte[]> expected = new LinkedList<>();
 
     for (int round = 0; round < 5; round++) {
       QueueFile queue = new QueueFile(file);
@@ -242,7 +242,7 @@ import static org.assertj.core.api.Assertions.assertThat;
     // This should result in 3560 bytes.
     int max = 80;
 
-    Queue<byte[]> expected = new LinkedList<byte[]>();
+    Queue<byte[]> expected = new LinkedList<>();
     QueueFile queue = new QueueFile(file);
 
     for (int i = 0; i < max; i++) {

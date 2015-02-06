@@ -20,7 +20,7 @@ import static com.segment.analytics.Analytics.LogLevel;
  * {@link #getUnderlyingInstance()}.
  */
 public abstract class AbstractIntegration<T> {
-  public static final String VIEWED_EVENT_FORMAT = "Viewed %s Screen";
+  protected static final String VIEWED_EVENT_FORMAT = "Viewed %s Screen";
 
   /**
    * Initialize the integration. Implementations should wrap any errors, including missing settings

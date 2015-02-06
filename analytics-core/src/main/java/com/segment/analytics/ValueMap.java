@@ -105,6 +105,7 @@ public class ValueMap implements Map<String, Object> {
     return delegate.values();
   }
 
+  @SuppressWarnings("EqualsWhichDoesntCheckParameterClass") //
   @Override public boolean equals(Object object) {
     return object == this || delegate.equals(object);
   }
@@ -244,6 +245,7 @@ public class ValueMap implements Map<String, Object> {
     }
     Object value = get(key);
     if (enumType.isInstance(value)) {
+      //noinspection unchecked
       return (T) value;
     } else if (value instanceof String) {
       String stringValue = (String) value;
@@ -284,7 +286,10 @@ public class ValueMap implements Map<String, Object> {
    */
   private <T extends ValueMap> T coerceToValueMap(Object object, Class<T> clazz) {
     if (object == null) return null;
-    if (clazz.isInstance(object)) return (T) object;
+    if (clazz.isAssignableFrom(object.getClass())) {
+      //noinspection unchecked
+      return (T) object;
+    }
     if (object instanceof Map) return createValueMap((Map) object, clazz);
     return null;
   }
@@ -298,7 +303,7 @@ public class ValueMap implements Map<String, Object> {
     if (value instanceof List) {
       List list = (List) value;
       try {
-        ArrayList<T> real = new ArrayList<T>();
+        ArrayList<T> real = new ArrayList<>();
         for (Object item : list) {
           T typedValue = coerceToValueMap(item, clazz);
           if (typedValue != null) {
@@ -319,7 +324,7 @@ public class ValueMap implements Map<String, Object> {
 
   /** Return a copy of the contents of this map as a {@code Map<String, String>}. */
   public Map<String, String> toStringMap() {
-    Map<String, String> map = new HashMap<String, String>();
+    Map<String, String> map = new HashMap<>();
     for (Map.Entry<String, Object> entry : entrySet()) {
       map.put(entry.getKey(), String.valueOf(entry.getValue()));
     }

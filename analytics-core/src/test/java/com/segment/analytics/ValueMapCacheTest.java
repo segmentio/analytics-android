@@ -34,7 +34,7 @@ public class ValueMapCacheTest {
     traitsCache.set(traits);
 
     ValueMap.Cache<Traits> traitsCacheDuplicate =
-        new ValueMap.Cache<Traits>(Robolectric.application, cartographer, "traits-cache-test",
+        new ValueMap.Cache<>(Robolectric.application, cartographer, "traits-cache-test",
             Traits.class);
     assertThat(traitsCacheDuplicate.isSet()).isTrue();
   }

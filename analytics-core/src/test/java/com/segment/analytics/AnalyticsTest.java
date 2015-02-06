@@ -109,14 +109,14 @@ public class AnalyticsTest {
   @Test public void group() throws Exception {
     try {
       analytics.group(null);
-      fail("null groupid should throw exception");
+      fail("null groupId should throw exception");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("groupId must not be null or empty.");
     }
 
     try {
       analytics.group("");
-      fail("empty groupid and name should throw exception");
+      fail("empty groupId and name should throw exception");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("groupId must not be null or empty.");
     }
@@ -192,7 +192,7 @@ public class AnalyticsTest {
       Analytics.setSingletonInstance(analytics);
       analytics.shutdown();
       fail("Calling shutdown() on static singleton instance should throw");
-    } catch (UnsupportedOperationException expected) {
+    } catch (UnsupportedOperationException ignored) {
     }
   }
 
