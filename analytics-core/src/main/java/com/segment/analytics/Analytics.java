@@ -25,6 +25,7 @@
 package com.segment.analytics;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
@@ -79,6 +80,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * @see <a href="https://Segment/">Segment</a>
  */
 public class Analytics {
+  @SuppressLint("HandlerLeak") //
   public static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
     @Override public void handleMessage(Message msg) {
       switch (msg.what) {

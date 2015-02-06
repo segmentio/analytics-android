@@ -28,5 +28,7 @@
       android:layout_height="match_parent"
       android:id="@+id/logo"
       android:src="@drawable/icon"
-      android:scaleType="center"/>
+      android:scaleType="center"
+      tools:ignore="ContentDescription"/>
+  
 </LinearLayout>

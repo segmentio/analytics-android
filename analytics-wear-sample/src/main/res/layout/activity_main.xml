@@ -27,5 +27,5 @@
     tools:context=".MainActivity"
     android:padding="32dp"
     android:background="@color/white"
-    tools:deviceIds="wear">
-</android.support.wearable.view.WatchViewStub>
+    tools:deviceIds="wear"
+    tools:ignore="Overdraw"/>
