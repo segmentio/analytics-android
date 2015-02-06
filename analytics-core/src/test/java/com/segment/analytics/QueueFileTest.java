@@ -640,6 +640,22 @@ import static org.assertj.core.api.Assertions.assertThat;
     assertThat(read).isEqualTo(1);
   }
 
+  @Test public void testForEachVisitorEmpty() throws IOException {
+    QueueFile queueFile = new QueueFile(file);
+    queueFile.clear();
+
+    final AtomicBoolean atomicBoolean = new AtomicBoolean(false);
+    final int read = queueFile.forEach(new QueueFile.ElementVisitor() {
+      @Override public boolean read(InputStream in, int length) throws IOException {
+        atomicBoolean.set(true);
+        return false;
+      }
+    });
+
+    assertThat(atomicBoolean.get()).isFalse();
+    assertThat(read).isEqualTo(0);
+  }
+
   @Test public void testForEachVisitorReadWithOffset() throws IOException {
     QueueFile queueFile = new QueueFile(file);
 

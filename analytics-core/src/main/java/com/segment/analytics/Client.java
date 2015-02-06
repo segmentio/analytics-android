@@ -125,6 +125,7 @@ class Client {
         fos.write(buffer, 0, bufferLength);
       }
     } finally {
+      connection.disconnect();
       fos.close();
       is.close();
     }

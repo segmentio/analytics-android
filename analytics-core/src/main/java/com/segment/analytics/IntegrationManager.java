@@ -36,6 +36,7 @@ import static com.segment.analytics.internal.Utils.VERB_ENQUEUE;
 import static com.segment.analytics.internal.Utils.VERB_INITIALIZE;
 import static com.segment.analytics.internal.Utils.VERB_SKIP;
 import static com.segment.analytics.internal.Utils.buffer;
+import static com.segment.analytics.internal.Utils.closeQuietly;
 import static com.segment.analytics.internal.Utils.createDirectory;
 import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.error;
@@ -187,10 +188,7 @@ class IntegrationManager {
       }
       dispatchRetryFetchSettings();
     } finally {
-      try {
-        if (response != null) response.close();
-      } catch (IOException ignored) {
-      }
+      closeQuietly(response);
     }
 
     if (projectSettings != null) {
@@ -252,7 +250,7 @@ class IntegrationManager {
     }
 
     String url = "https://dl.dropboxusercontent.com/u/11371156/integrations/" + fileName;
-    File tempFile = new File(directory, "temp-" + fileName);
+    File tempFile = new File(file.getPath() + ".tmp");
     try {
       client.downloadFile(url, tempFile);
       if (!tempFile.renameTo(file)) throw new IOException("Rename failed!");

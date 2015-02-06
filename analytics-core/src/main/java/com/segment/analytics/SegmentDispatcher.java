@@ -8,6 +8,7 @@ import android.os.Message;
 import android.util.JsonWriter;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +29,7 @@ import static com.segment.analytics.Utils.toISO8601Date;
 import static com.segment.analytics.internal.Utils.createDirectory;
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
 import static com.segment.analytics.internal.Utils.VERB_FLUSH;
+import static com.segment.analytics.internal.Utils.closeQuietly;
 import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.error;
 import static com.segment.analytics.internal.Utils.print;
@@ -159,52 +161,78 @@ class SegmentDispatcher {
   void performFlush() {
     if (queueFile.size() < 1 || !isConnected(context)) return;
 
+    Client.Response response = null;
     try {
-      Client.Response response = client.upload();
+      // Open a connection.
+      response = client.upload();
+    } catch (IOException e) {
+      closeQuietly(response);
+      if (logLevel.log()) {
+        error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, "Could not open connection");
+      }
+      dispatchFlush(flushInterval);
+      return;
+    }
+
+    int payloadsUploaded;
+    try {
+      // Write the payloads into the OutputStream.
       BatchPayloadWriter writer = new BatchPayloadWriter(response.os).beginObject()
           .integrations(integrations)
           .beginBatchArray();
-      int payloadCount = queueFile.forEach(new PayloadVisitor(writer));
+      payloadsUploaded = queueFile.forEach(new PayloadWriter(writer));
       writer.endBatchArray().endObject().close();
+    } catch (IOException e) {
+      closeQuietly(response);
+      if (logLevel.log()) {
+        error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, queueFile);
+      }
+      dispatchFlush(flushInterval);
+      return;
+    }
+
+    try {
+      // Upload the payloads.
       response.close();
       if (logLevel.log()) {
-        debug(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, "Flushed " + payloadCount + " events.");
+        debug(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null,
+            "Flushed " + payloadsUploaded + " payloads.");
       }
-
-      try {
-        queueFile.remove(payloadCount);
-      } catch (IOException e) {
-        throw panic(e, "Unable to remove payloads from queueFile: " + queueFile);
-      }
-      stats.dispatchFlush(payloadCount);
-
-      if (queueFile.size() > 0) {
-        performFlush();
-      } else {
-        dispatchFlush(flushInterval);
-      }
+      stats.dispatchFlush(payloadsUploaded);
     } catch (IOException e) {
       if (logLevel.log()) {
-        error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e);
+        error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, "Could not upload payloads",
+            queueFile);
       }
+      dispatchFlush(flushInterval);
+      return;
+    }
+
+    try {
+      queueFile.remove(payloadsUploaded);
+    } catch (IOException e) {
+      throw panic(e, "Unable to remove payloads from queueFile: " + queueFile);
+    }
+
+    if (queueFile.size() > 0) {
+      // Flush any remaining items.
+      performFlush();
+    } else {
       dispatchFlush(flushInterval);
     }
   }
 
   void shutdown() {
     quitThread(segmentThread);
-    try {
-      queueFile.close();
-    } catch (IOException ignored) {
-    }
+    closeQuietly(queueFile);
   }
 
-  static class PayloadVisitor implements QueueFile.ElementVisitor {
+  static class PayloadWriter implements QueueFile.ElementVisitor {
     final BatchPayloadWriter writer;
     int size;
     int payloadCount;
 
-    PayloadVisitor(BatchPayloadWriter writer) {
+    PayloadWriter(BatchPayloadWriter writer) {
       this.writer = writer;
     }
 
@@ -221,7 +249,7 @@ class SegmentDispatcher {
   }
 
   /** A wrapper that emits a JSON formatted batch payload to the underlying writer. */
-  static class BatchPayloadWriter {
+  static class BatchPayloadWriter implements Closeable {
     private final JsonWriter jsonWriter;
     /** Keep around for writing payloads as Strings. */
     private final BufferedWriter bufferedWriter;
@@ -238,10 +266,6 @@ class SegmentDispatcher {
     }
 
     BatchPayloadWriter integrations(Map<String, Boolean> integrations) throws IOException {
-      /**
-       * A dictionary of integration names that the message should be proxied to. 'All' is a special
-       * name that applies when no key for a specific integration is found, and is case-insensitive.
-       */
       jsonWriter.name("integrations").beginObject();
       for (Map.Entry<String, Boolean> entry : integrations.entrySet()) {
         jsonWriter.name(entry.getKey()).value(entry.getValue());
@@ -288,7 +312,7 @@ class SegmentDispatcher {
       return this;
     }
 
-    void close() throws IOException {
+    public void close() throws IOException {
       jsonWriter.close();
     }
   }

@@ -41,6 +41,7 @@ import java.io.IOException;
 import android.util.Log;
 import com.segment.analytics.Analytics;
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -256,6 +257,18 @@ public final class Utils {
     } catch (ClassNotFoundException e) {
       // ignored
       return false;
+    }
+  }
+
+  /**
+   * Close the given {@link Closeable}. If an exception is thrown during {@link Closeable#close()},
+   * this will quietly ignore it. Does nothing if {@code closeable} is {@code null}.
+   */
+  public static void closeQuietly(Closeable closeable) {
+    if (closeable == null) return;
+    try {
+      closeable.close();
+    } catch (IOException ignored) {
     }
   }
 

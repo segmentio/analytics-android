@@ -279,8 +279,8 @@ public class SegmentDispatcherTest {
   }
 
   @Test public void payloadVisitorReadsOnly450KB() throws IOException {
-    SegmentDispatcher.PayloadVisitor payloadVisitor =
-        new SegmentDispatcher.PayloadVisitor(mock(SegmentDispatcher.BatchPayloadWriter.class));
+    SegmentDispatcher.PayloadWriter payloadWriter =
+        new SegmentDispatcher.PayloadWriter(mock(SegmentDispatcher.BatchPayloadWriter.class));
     byte[] bytes = ("{\n"
         + "        'context': {\n"
         + "          'library': 'analytics-android',\n"
@@ -342,10 +342,10 @@ public class SegmentDispatcherTest {
       queueFile.add(bytes);
     }
 
-    queueFile.forEach(payloadVisitor);
+    queueFile.forEach(payloadWriter);
 
     // Verify only (314 * 1432) = 449648 < 500kb bytes are read
-    assertThat(payloadVisitor.payloadCount).isEqualTo(314);
+    assertThat(payloadWriter.payloadCount).isEqualTo(314);
   }
 
   private static class SegmentBuilder {
