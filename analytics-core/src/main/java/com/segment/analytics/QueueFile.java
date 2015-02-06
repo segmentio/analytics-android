@@ -15,6 +15,7 @@
  */
 package com.segment.analytics;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -51,7 +52,7 @@ import static java.lang.Math.min;
  *
  * @author Bob Lee (bob@squareup.com)
  */
-class QueueFile {
+class QueueFile implements Closeable {
   /** Length of header in bytes. */
   static final int HEADER_LENGTH = 16;
   private static final Logger LOGGER = Logger.getLogger(QueueFile.class.getName());
@@ -432,7 +433,7 @@ class QueueFile {
    */
   synchronized int forEach(ElementVisitor reader) throws IOException {
     int position = first.position;
-    for (int i = 0; i < elementCount; i++) {
+    for (int i = 1; i <= elementCount; i++) {
       Element current = readElement(position);
       boolean shouldContinue = reader.read(new ElementInputStream(current), current.length);
       if (!shouldContinue) return i;
@@ -510,7 +511,7 @@ class QueueFile {
   }
 
   /** Closes the underlying file. */
-  synchronized void close() throws IOException {
+  public synchronized void close() throws IOException {
     raf.close();
   }
 

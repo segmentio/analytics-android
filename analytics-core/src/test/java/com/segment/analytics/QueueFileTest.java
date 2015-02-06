@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.junit.Before;
@@ -614,10 +615,29 @@ import static org.assertj.core.api.Assertions.assertThat;
       }
     };
 
-    queueFile.forEach(elementReader);
+    int read = queueFile.forEach(elementReader);
 
     assertThat(queueFile.peek()).isEqualTo(a);
     assertThat(iteration[0]).isEqualTo(2);
+    assertThat(read).isEqualTo(2);
+  }
+
+  @Test public void testForEachVisitorReadOnlyOne() throws IOException {
+    QueueFile queueFile = new QueueFile(file);
+    queueFile.add(values[0]);
+    queueFile.add(values[1]);
+
+    final AtomicBoolean atomicBoolean = new AtomicBoolean(false);
+
+    final int read = queueFile.forEach(new QueueFile.ElementVisitor() {
+      @Override public boolean read(InputStream in, int length) throws IOException {
+        atomicBoolean.set(true);
+        return false;
+      }
+    });
+
+    assertThat(atomicBoolean.get()).isTrue();
+    assertThat(read).isEqualTo(1);
   }
 
   @Test public void testForEachVisitorReadWithOffset() throws IOException {
