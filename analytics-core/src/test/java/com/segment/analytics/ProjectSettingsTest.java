@@ -38,21 +38,19 @@ public class ProjectSettingsTest {
         + "    ],\n"
         + "    \"legacySuperProperties\": false\n"
         + "  },\n"
-        + "  \"Segment\": {\n"
+        + "  \"Segment.io\": {\n"
         + "    \"apiKey\": \"l8v1ga655b\"\n"
         + "  }\n"
         + "}";
     ProjectSettings projectSettings =
-        ProjectSettings.create(cartographer.fromJson(projectSettingsJson),
-            System.currentTimeMillis());
+        ProjectSettings.create(cartographer.fromJson(projectSettingsJson));
 
-    assertThat(projectSettings).hasSize(5);
+    assertThat(projectSettings).hasSize(4).containsKey("timestamp").doesNotContainKey("Segment.io");
 
     try {
       projectSettings.put("foo", "bar");
       fail("projectSettings should be immutable");
     } catch (UnsupportedOperationException ignored) {
-
     }
   }
 }

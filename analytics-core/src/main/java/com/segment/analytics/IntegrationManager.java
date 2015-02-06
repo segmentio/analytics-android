@@ -177,11 +177,13 @@ class IntegrationManager {
     }
 
     Client.Connection connection = null;
-    ProjectSettings projectSettings = null;
     try {
       connection = client.fetchSettings();
-      projectSettings = ProjectSettings.create(cartographer.fromJson(buffer(connection.is)),
-          System.currentTimeMillis());
+      ProjectSettings projectSettings =
+          ProjectSettings.create(cartographer.fromJson(buffer(connection.is)));
+
+      projectSettingsCache.set(projectSettings);
+      downloadJars(projectSettings);
     } catch (IOException e) {
       if (logLevel.log()) {
         error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, null, e, "Unable to fetch settings");
@@ -189,11 +191,6 @@ class IntegrationManager {
       dispatchRetryFetchSettings();
     } finally {
       closeQuietly(connection);
-    }
-
-    if (projectSettings != null) {
-      projectSettingsCache.set(projectSettings);
-      downloadJars(projectSettings);
     }
   }
 

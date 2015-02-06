@@ -33,8 +33,8 @@ class ProjectSettings extends ValueMap {
   static final String TIMESTAMP_KEY = "timestamp";
   private static final String SEGMENT_KEY = "Segment.io";
 
-  static ProjectSettings create(Map<String, Object> map, long timestamp) {
-    map.put(TIMESTAMP_KEY, timestamp);
+  static ProjectSettings create(Map<String, Object> map) {
+    map.put(TIMESTAMP_KEY, System.currentTimeMillis());
     map.remove(SEGMENT_KEY);
     return new ProjectSettings(map);
   }
