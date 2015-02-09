@@ -251,10 +251,28 @@ public class SegmentDispatcherTest {
         .endObject()
         .close();
 
-    assertThat(byteArrayOutputStream.toString()).isEqualTo(
-        "{\"integrations\":{\"foo\":false,\"bar\":true},\"batch\":[qaz],\"sentAt\":\""
+    assertThat(byteArrayOutputStream.toString()) //
+        .isEqualTo("{\"integrations\":{\"foo\":false,\"bar\":true},\"batch\":[qaz],\"sentAt\":\""
             + toISO8601Date(new Date())
             + "\"}").overridingErrorMessage("its ok if this failed close to midnight!");
+  }
+
+  @Test public void batchPayloadWriterNoIntegrations() throws IOException {
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    SegmentDispatcher.BatchPayloadWriter batchPayloadWriter =
+        new SegmentDispatcher.BatchPayloadWriter(byteArrayOutputStream);
+
+    batchPayloadWriter.beginObject()
+        .integrations(Collections.emptyMap())
+        .beginBatchArray()
+        .emitPayloadObject("foo")
+        .endBatchArray()
+        .endObject()
+        .close();
+
+    assertThat(byteArrayOutputStream.toString()) //
+        .isEqualTo("{\"batch\":[foo],\"sentAt\":\"" + toISO8601Date(new Date()) + "\"}")
+        .overridingErrorMessage("its ok if this failed close to midnight!");
   }
 
   @Test public void batchPayloadWriterFailsForNoItem() throws IOException {

@@ -266,11 +266,13 @@ class SegmentDispatcher {
     }
 
     BatchPayloadWriter integrations(Map<String, Boolean> integrations) throws IOException {
-      jsonWriter.name("integrations").beginObject();
-      for (Map.Entry<String, Boolean> entry : integrations.entrySet()) {
-        jsonWriter.name(entry.getKey()).value(entry.getValue());
+      if (!isNullOrEmpty(integrations)) {
+        jsonWriter.name("integrations").beginObject();
+        for (Map.Entry<String, Boolean> entry : integrations.entrySet()) {
+          jsonWriter.name(entry.getKey()).value(entry.getValue());
+        }
+        jsonWriter.endObject();
       }
-      jsonWriter.endObject();
       return this;
     }
 
