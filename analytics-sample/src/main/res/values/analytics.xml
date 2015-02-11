@@ -24,15 +24,6 @@
   -->
 
 <resources>
-  <!--Your Segment f2prateek/android-sample-app write key-->
+  <!--Your Segment write key-->
   <string name="analytics_write_key">l8v1ga655b</string>
-
-  <!--Whether to print additional log information as you develop.-->
-  <bool name="analytics_debugging">true</bool>
-
-  <!--Size of the queue.-->
-  <integer name="analytics_queue_size">5</integer>
-
-  <!--Flush Interval in seconds.-->
-  <integer name="analytics_flush_interval">15</integer>
 </resources>

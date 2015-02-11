@@ -25,13 +25,11 @@
 package com.segment.analytics;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -54,8 +52,6 @@ import static com.segment.analytics.internal.Utils.VERB_CREATE;
 import static com.segment.analytics.internal.Utils.VERB_SKIP;
 import static com.segment.analytics.internal.Utils.checkMain;
 import static com.segment.analytics.internal.Utils.debug;
-import static com.segment.analytics.internal.Utils.getResourceBooleanOrThrow;
-import static com.segment.analytics.internal.Utils.getResourceIntegerOrThrow;
 import static com.segment.analytics.internal.Utils.getResourceString;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
@@ -80,7 +76,6 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * @see <a href="https://Segment/">Segment</a>
  */
 public class Analytics {
-  @SuppressLint("HandlerLeak") //
   public static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
     @Override public void handleMessage(Message msg) {
       switch (msg.what) {
@@ -91,9 +86,6 @@ public class Analytics {
   };
   // Resource identifiers to define options in xml
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
-  static final String QUEUE_SIZE_RESOURCE_IDENTIFIER = "analytics_queue_size";
-  static final String FLUSH_INTERVAL_RESOURCE_IDENTIFIER = "analytics_flush_interval";
-  static final String DEBUGGING_RESOURCE_IDENTIFIER = "analytics_debugging";
   static final Properties EMPTY_PROPERTIES = new Properties();
   static Analytics singleton = null;
   final Application application;
@@ -128,29 +120,14 @@ public class Analytics {
         if (singleton == null) {
           String writeKey = getResourceString(context, WRITE_KEY_RESOURCE_IDENTIFIER);
           Builder builder = new Builder(context, writeKey);
+          String packageName = context.getPackageName();
           try {
-            int queueSize = getResourceIntegerOrThrow(context, QUEUE_SIZE_RESOURCE_IDENTIFIER);
-            builder.queueSize(queueSize);
-          } catch (Resources.NotFoundException ignored) {
-          }
-          try {
-            int flushInterval =
-                getResourceIntegerOrThrow(context, FLUSH_INTERVAL_RESOURCE_IDENTIFIER);
-            builder.flushInterval(flushInterval);
-          } catch (Resources.NotFoundException ignored) {
-          }
-          try {
-            boolean debugging = getResourceBooleanOrThrow(context, DEBUGGING_RESOURCE_IDENTIFIER);
-            if (debugging) builder.logLevel(LogLevel.VERBOSE);
-          } catch (Resources.NotFoundException notFoundException) {
-            String packageName = context.getPackageName();
-            try {
-              final int flags =
-                  context.getPackageManager().getApplicationInfo(packageName, 0).flags;
-              boolean debugging = (flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
-              if (debugging) builder.logLevel(LogLevel.VERBOSE);
-            } catch (PackageManager.NameNotFoundException ignored) {
+            final int flags = context.getPackageManager().getApplicationInfo(packageName, 0).flags;
+            boolean debugging = (flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+            if (debugging) {
+              builder.logLevel(LogLevel.INFO);
             }
+          } catch (PackageManager.NameNotFoundException ignored) {
           }
           singleton = builder.build();
         }
@@ -542,16 +519,14 @@ public class Analytics {
     integrationManager.dispatchOperation(payload);
   }
 
-  /**
-   * Controls logging behaviour.
-   */
+  /** Controls the level of logging. */
   public enum LogLevel {
     /** No logging. */
     NONE,
-    /** Log exceptions and events through the SDK only. */
+    /** Log exceptions and events through the Segment SDK only. */
     BASIC,
     /**
-     * Log exceptions, events through the SDK, and enable logging for bundled integrations.
+     * Log exceptions, events through the Segment SDK, and enable logging for bundled integrations.
      */
     INFO,
     /**

@@ -28,7 +28,6 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -164,32 +163,6 @@ public final class Utils {
       return context.getResources().getString(id);
     } else {
       return null;
-    }
-  }
-
-  /**
-   * Get the boolean resource for the given key. Throws {@link Resources.NotFoundException} if not
-   * found.
-   */
-  public static boolean getResourceBooleanOrThrow(Context context, String key) {
-    int id = getIdentifier(context, "bool", key);
-    if (id != 0) {
-      return context.getResources().getBoolean(id);
-    } else {
-      throw new Resources.NotFoundException();
-    }
-  }
-
-  /**
-   * Get the integer resource for the given key. Throws {@link Resources.NotFoundException} if not
-   * found.
-   */
-  public static int getResourceIntegerOrThrow(Context context, String key) {
-    int id = getIdentifier(context, "integer", key);
-    if (id != 0) {
-      return context.getResources().getInteger(id);
-    } else {
-      throw new Resources.NotFoundException();
     }
   }
 
