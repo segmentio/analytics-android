@@ -571,7 +571,7 @@ public class Analytics {
     private int flushInterval = Utils.DEFAULT_FLUSH_INTERVAL;
     private Options defaultOptions;
     private LogLevel logLevel = LogLevel.NONE;
-    private boolean skipBundledIntegrations = true;
+    private boolean skipBundledIntegrations = false;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -669,7 +669,7 @@ public class Analytics {
      * Integrations</a>
      */
     public Builder skipBundledIntegrations() {
-      this.skipBundledIntegrations = false;
+      this.skipBundledIntegrations = true;
       return this;
     }
 
@@ -683,16 +683,20 @@ public class Analytics {
       Stats stats = new Stats();
       Cartographer cartographer = Cartographer.INSTANCE;
       Client client = new Client(application, writeKey);
+
       IntegrationManager integrationManager = null;
+      Map<String, Boolean> bundledIntegrations;
       if (skipBundledIntegrations) {
+        bundledIntegrations = Collections.emptyMap();
+      } else {
         integrationManager =
             IntegrationManager.create(application, cartographer, client, stats, tag, logLevel);
+        bundledIntegrations = Collections.unmodifiableMap(integrationManager.bundledIntegrations);
       }
+
       SegmentDispatcher segmentDispatcher =
-          SegmentDispatcher.create(application, client, cartographer, stats,
-              (integrationManager == null) ? Collections.<String, Boolean>emptyMap()
-                  : Collections.unmodifiableMap(integrationManager.bundledIntegrations), tag,
-              flushInterval, queueSize, logLevel);
+          SegmentDispatcher.create(application, client, cartographer, stats, bundledIntegrations,
+              tag, flushInterval, queueSize, logLevel);
 
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
