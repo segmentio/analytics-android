@@ -88,6 +88,14 @@ public class AnalyticsTest {
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("previousId must not be null or empty.");
     }
+
+    analytics.traitsCache.get().clear();
+    try {
+      analytics.alias("foo");
+      fail("null user id should throw error");
+    } catch (IllegalStateException expected) {
+      assertThat(expected).hasMessage("user must be identified with a userId before aliasing.");
+    }
   }
 
   @Test public void screen() throws Exception {
@@ -213,7 +221,6 @@ public class AnalyticsTest {
   @Test public void setSingletonInstanceAfterWithFails() {
     Analytics.singleton = null;
 
-    // Create the default singleton instance.
     Analytics.setSingletonInstance(new Analytics.Builder(Robolectric.application, "foo").build());
 
     Analytics analytics = new Analytics.Builder(Robolectric.application, "foo").build();

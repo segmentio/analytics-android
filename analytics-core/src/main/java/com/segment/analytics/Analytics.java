@@ -436,6 +436,9 @@ public class Analytics {
     if (isNullOrEmpty(previousId)) {
       throw new IllegalArgumentException("previousId must not be null or empty.");
     }
+    if (isNullOrEmpty(traitsCache.get().userId())) {
+      throw new IllegalStateException("user must be identified with a userId before aliasing.");
+    }
     if (options == null) {
       options = defaultOptions;
     }
