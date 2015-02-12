@@ -16,7 +16,8 @@ if [ ! -e $DEPS ]; then
   echo y | android update sdk -u -a -t extra-android-m2repository &&
 
   # Force download of Gradle core and project dependencies.
-  TERM=dumb ./gradlew dependencies &&
+  # ./gradlew dependencies doesn't download all our dependencies :(
+  TERM=dumb ./gradlew build &&
 
   touch $DEPS
 fi
