@@ -241,7 +241,10 @@ class IntegrationManager {
         }
       } catch (InterruptedException e) {
         //noinspection ThrowFromFinallyBlock
-        throw new IOException("Interrupted while waiting for download.", e);
+        if (logLevel.log()) {
+          error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, null, e,
+              "Thread interrupted while waiting for download.");
+        }
       }
     }
   }
