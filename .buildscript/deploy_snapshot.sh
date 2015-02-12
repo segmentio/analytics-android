@@ -23,5 +23,6 @@ elif [ "$CIRCLE_BRANCH" != "$BRANCH" ]; then
 else
   echo "Deploying snapshot..."
   # ORG_GRADLE_PROJECT_FOO makes 'FOO' a gradle property automatically
-  ./gradlew clean build uploadArchives
+  ./gradlew clean uploadArchives
+  echo "Snapshot deployed!"
 fi
