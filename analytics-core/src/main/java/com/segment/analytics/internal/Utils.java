@@ -35,8 +35,6 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import java.io.File;
-import java.io.IOException;
 import android.util.Log;
 import com.segment.analytics.Analytics;
 import java.io.BufferedReader;

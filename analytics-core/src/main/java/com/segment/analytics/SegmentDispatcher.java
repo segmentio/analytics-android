@@ -19,21 +19,19 @@ import java.util.Date;
 import java.util.Map;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
-import static com.segment.analytics.Logger.OWNER_SEGMENT;
-import static com.segment.analytics.Logger.VERB_ENQUEUE;
-import static com.segment.analytics.Utils.isConnected;
-import static com.segment.analytics.Utils.isNullOrEmpty;
-import static com.segment.analytics.Utils.panic;
-import static com.segment.analytics.Utils.quitThread;
-import static com.segment.analytics.Utils.toISO8601Date;
-import static com.segment.analytics.internal.Utils.createDirectory;
+import static com.segment.analytics.internal.Utils.OWNER_SEGMENT_DISPATCHER;
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
+import static com.segment.analytics.internal.Utils.VERB_ENQUEUE;
 import static com.segment.analytics.internal.Utils.VERB_FLUSH;
 import static com.segment.analytics.internal.Utils.closeQuietly;
+import static com.segment.analytics.internal.Utils.createDirectory;
 import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.error;
-import static com.segment.analytics.internal.Utils.print;
-import static com.segment.analytics.internal.Utils.OWNER_SEGMENT_DISPATCHER;
+import static com.segment.analytics.internal.Utils.isConnected;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import static com.segment.analytics.internal.Utils.panic;
+import static com.segment.analytics.internal.Utils.quitThread;
+import static com.segment.analytics.internal.Utils.toISO8601Date;
 
 /** Entity that queues payloads on disks and uploads them periodically. */
 class SegmentDispatcher {
