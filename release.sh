@@ -38,12 +38,12 @@ set -x
 
 # Infer the release version
 newReleaseVersion=$(shtool version release.version)
-newReleaseCode=$(echo $newReleaseVersion | sed -e 's/\.//g')
+newReleaseCode=$(echo ${newReleaseVersion} | sed -e 's/\.//g')
 
 # Update the versions, tag and commit
 sed -i '' "/VERSION_NAME=/s/=.*/=$newReleaseVersion/" gradle.properties
 sed -i '' "/VERSION_CODE=/s/=.*/=$newReleaseCode/" gradle.properties
-git tag -a $newReleaseVersion -m "[gradle-release-task] prepare release $newReleaseVersion"
+git tag -a ${newReleaseVersion} -m "[gradle-release-task] prepare release $newReleaseVersion"
 git commit -a -m "[gradle-release-task] prepare release $newReleaseVersion"
 
 # Build and upload artifacts
@@ -52,7 +52,7 @@ git commit -a -m "[gradle-release-task] prepare release $newReleaseVersion"
 # Prepare for the next version
 shtool version --increase "$1" release.version
 nextReleaseVersion=$(shtool version release.version)
-nextReleaseCode=$(echo $nextReleaseVersion | sed -e 's/\.//g')
+nextReleaseCode=$(echo ${nextReleaseVersion} | sed -e 's/\.//g')
 
 sed -i '' "/VERSION_NAME=/s/=.*/=$nextReleaseVersion-SNAPSHOT/" gradle.properties
 sed -i '' "/VERSION_CODE=/s/=.*/=$nextReleaseCode/" gradle.properties

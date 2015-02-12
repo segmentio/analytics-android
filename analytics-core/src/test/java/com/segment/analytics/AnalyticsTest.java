@@ -1,0 +1,252 @@
+package com.segment.analytics;
+
+import android.Manifest;
+import android.app.Application;
+import com.segment.analytics.internal.model.payloads.BasePayload;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowApplication;
+import org.robolectric.shadows.ShadowLog;
+
+import static com.segment.analytics.Analytics.LogLevel.NONE;
+import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload;
+import static com.segment.analytics.TestUtils.mockApplication;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.Mock;
+import static org.mockito.MockitoAnnotations.initMocks;
+
+@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
+public class AnalyticsTest {
+  Application application;
+  @Mock IntegrationManager integrationManager;
+  @Mock SegmentDispatcher segmentDispatcher;
+  @Mock Stats stats;
+  @Mock Traits.Cache traitsCache;
+  @Mock AnalyticsContext analyticsContext;
+  @Mock Options defaultOptions;
+
+  private Analytics analytics;
+
+  public static void grantPermission(final Application app, final String permission) {
+    ShadowApplication shadowApp = Robolectric.shadowOf(app);
+    shadowApp.grantPermissions(permission);
+  }
+
+  @Before public void setUp() {
+    initMocks(this);
+    grantPermission(Robolectric.application, Manifest.permission.INTERNET);
+    application = mockApplication();
+    Traits traits = new Traits();
+    when(traitsCache.get()).thenReturn(traits);
+    analytics =
+        new Analytics(application, integrationManager, segmentDispatcher, stats, traitsCache,
+            analyticsContext, defaultOptions, NONE);
+
+    verify(application) //
+        .registerActivityLifecycleCallbacks(any(Application.ActivityLifecycleCallbacks.class));
+  }
+
+  @After public void tearDown() {
+    assertThat(ShadowLog.getLogs()).isEmpty();
+  }
+
+  @Test public void logoutClearsTraitsAndUpdatesContext() {
+    analytics.logout();
+    verify(traitsCache).delete();
+    verify(traitsCache).set(any(Traits.class));
+    verify(analyticsContext).setTraits(traitsCache.get());
+  }
+
+  @Test public void track() {
+    try {
+      analytics.track(null);
+    } catch (IllegalArgumentException e) {
+      assertThat(e).hasMessage("event must not be null or empty.");
+    }
+    try {
+      analytics.track("   ");
+    } catch (IllegalArgumentException e) {
+      assertThat(e).hasMessage("event must not be null or empty.");
+    }
+  }
+
+  @Test public void alias() throws Exception {
+    try {
+      analytics.alias(null);
+      fail("null previous id should throw error");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("previousId must not be null or empty.");
+    }
+
+    analytics.traitsCache.get().clear();
+    try {
+      analytics.alias("foo");
+      fail("null user id should throw error");
+    } catch (IllegalStateException expected) {
+      assertThat(expected).hasMessage("user must be identified with a userId before aliasing.");
+    }
+  }
+
+  @Test public void screen() throws Exception {
+    try {
+      analytics.screen(null, null);
+      fail("null category and name should throw exception");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("either category or name must be provided.");
+    }
+
+    try {
+      analytics.screen("", "");
+      fail("empty category and name should throw exception");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("either category or name must be provided.");
+    }
+  }
+
+  @Test public void group() throws Exception {
+    try {
+      analytics.group(null);
+      fail("null groupId should throw exception");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("groupId must not be null or empty.");
+    }
+
+    try {
+      analytics.group("");
+      fail("empty groupId and name should throw exception");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("groupId must not be null or empty.");
+    }
+  }
+
+  @Test public void submitInvokesDispatch() {
+    BasePayload payload = mock(BasePayload.class);
+    analytics.submit(payload);
+    verify(integrationManager).dispatchOperation(payload);
+    verify(segmentDispatcher).dispatchEnqueue(payload);
+  }
+
+  @Test public void submitLifecycleInvokesDispatch() {
+    ActivityLifecyclePayload payload = mock(ActivityLifecyclePayload.class);
+    analytics.submit(payload);
+    verify(integrationManager).dispatchOperation(payload);
+  }
+
+  @Test public void flushInvokesDispatch() throws Exception {
+    analytics.flush();
+    verify(segmentDispatcher).dispatchFlush(0);
+    verify(integrationManager).dispatchFlush();
+  }
+
+  @Test public void nullIntegrationManagerIsIgnored() throws Exception {
+    application = mockApplication();
+    analytics =
+        new Analytics(application, null, segmentDispatcher, stats, traitsCache, analyticsContext,
+            defaultOptions, NONE);
+
+    verify(application, never()) //
+        .registerActivityLifecycleCallbacks(any(Application.ActivityLifecycleCallbacks.class));
+
+    analytics.submit(mock(BasePayload.class));
+    try {
+      analytics.submit(mock(ActivityLifecyclePayload.class));
+      fail("submitting an activity lifecycle event should fail");
+    } catch (NullPointerException ignored) {
+    }
+    analytics.flush();
+    analytics.shutdown();
+    try {
+      analytics.registerOnIntegrationReadyListener(
+          mock(Analytics.OnIntegrationReadyListener.class));
+      fail("registering callback should fail");
+    } catch (IllegalStateException e) {
+      assertThat(e).hasMessage("Enable bundled integrations to register for this callback.");
+    }
+  }
+
+  @Test public void shutdown() {
+    assertThat(analytics.shutdown).isFalse();
+    analytics.shutdown();
+    verify(integrationManager).shutdown();
+    verify(stats).shutdown();
+    verify(segmentDispatcher).shutdown();
+    assertThat(analytics.shutdown).isTrue();
+  }
+
+  @Test public void shutdownTwice() {
+    assertThat(analytics.shutdown).isFalse();
+    analytics.shutdown();
+    analytics.shutdown();
+    verify(integrationManager).shutdown();
+    verify(stats).shutdown();
+    assertThat(analytics.shutdown).isTrue();
+  }
+
+  @Test public void shutdownDisallowedOnCustomSingletonInstance() throws Exception {
+    Analytics.singleton = null;
+    try {
+      Analytics analytics = new Analytics.Builder(Robolectric.application, "foo").build();
+      Analytics.setSingletonInstance(analytics);
+      analytics.shutdown();
+      fail("Calling shutdown() on static singleton instance should throw");
+    } catch (UnsupportedOperationException ignored) {
+    }
+  }
+
+  @Test public void setSingletonInstanceMayOnlyBeCalledOnce() {
+    Analytics.singleton = null;
+
+    Analytics analytics = new Analytics.Builder(Robolectric.application, "foo").build();
+    Analytics.setSingletonInstance(analytics);
+
+    try {
+      Analytics.setSingletonInstance(analytics);
+      fail("Can't set singleton instance twice.");
+    } catch (IllegalStateException e) {
+      assertThat(e).hasMessage("Singleton instance already exists.");
+    }
+  }
+
+  @Test public void setSingletonInstanceAfterWithFails() {
+    Analytics.singleton = null;
+
+    Analytics.setSingletonInstance(new Analytics.Builder(Robolectric.application, "foo").build());
+
+    Analytics analytics = new Analytics.Builder(Robolectric.application, "foo").build();
+    try {
+      Analytics.setSingletonInstance(analytics);
+      fail("Can't set singleton instance after with().");
+    } catch (IllegalStateException e) {
+      assertThat(e).hasMessage("Singleton instance already exists.");
+    }
+  }
+
+  @Test public void setSingleInstanceReturnedFromWith() {
+    Analytics.singleton = null;
+    Analytics analytics = new Analytics.Builder(Robolectric.application, "foo").build();
+    Analytics.setSingletonInstance(analytics);
+    assertThat(Analytics.with(Robolectric.application)).isSameAs(analytics);
+  }
+
+  @Test public void skippingBundledIntegrationsCreatesInstancesCorrectly() {
+    Analytics analytics =
+        new Analytics.Builder(Robolectric.application, "foo").skipBundledIntegrations().build();
+    assertThat(analytics.segmentDispatcher.integrations).isNotNull().isEmpty();
+  }
+
+  @Test public void getSnapshotInvokesStats() throws Exception {
+    analytics.getSnapshot();
+    verify(stats).createSnapshot();
+  }
+}

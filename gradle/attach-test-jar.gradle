@@ -1,0 +1,15 @@
+android.libraryVariants.all { variant ->
+  // Only attach the test jar for debug build types.
+  if (variant.buildType.isDebuggable()) {
+    // This will fail if we ever have multiple Debuggable build types
+    project.configurations.create "testOutput"
+    def task = project.tasks.create "jarTest", Jar
+    task.classifier = 'test'
+    task.dependsOn variant.testVariant.javaCompile
+    // Include Java classes
+    task.from variant.testVariant.javaCompile.destinationDir
+    // todo: lookup locations from plugin API
+    task.from 'build/test-classes/debug'
+    artifacts.add('testOutput', task);
+  }
+}

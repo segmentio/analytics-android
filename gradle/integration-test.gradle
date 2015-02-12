@@ -1,0 +1,9 @@
+apply plugin: 'android-unit-test'
+
+androidUnitTest {
+  testTasks {
+    all {
+      jvmArgs '-noverify'
+    }
+  }
+}

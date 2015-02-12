@@ -2,7 +2,7 @@ analytics-android
 =================
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.segment.analytics.android/core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.segment.analytics.android/core)
-[![Build Status](https://travis-ci.org/segmentio/analytics-android.svg?branch=f2prateek%2Fgradle)](https://travis-ci.org/segmentio/analytics-android)
+[![Circle CI](https://circleci.com/gh/segmentio/analytics-android-private.svg?style=svg)](https://circleci.com/gh/segmentio/analytics-android-private)
 [![Javadocs](http://javadoc-badge.appspot.com/com.segment.analytics.android/core.svg?label=javadoc)](http://javadoc-badge.appspot.com/com.segment.analytics.android/core)
 
 analytics-android is an Android client for [Segment](https://segment.com)
@@ -18,8 +18,7 @@ You can find usage documentation at [https://segment.com/libraries/android](http
 #### Building with Gradle
 
 To build the project with [Gradle](http://tools.android.com/tech-docs/new-build-system/user-guide), you will need to have Java 8 installed, and export a variable `$JAVA_HOME` that points to the installation directory.
-
-If you have an existing Android SDK installed, make sure to export a variable `$ANDROID_HOME` that point to it. Once you've cloned the repo, simply run `./gradlew clean build`, which will automatically download all dependencies, build the project, and run all tests. Run `./gradlew tasks --all` to see all available tasks.
+If you have an existing Android SDK installed, make sure to export a variable `$ANDROID_HOME` that points to it. Once you've cloned the repo, simply run `./gradlew clean build`, which will automatically download all dependencies, build the project, and run all tests. Run `./gradlew tasks --all` to see all available tasks.
 
 Check out how to contribute to the library, or add providers here: [https://segment.com/libraries/android#contributing](https://segment.com/libraries/android#contributing).
 

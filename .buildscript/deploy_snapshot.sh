@@ -21,5 +21,4 @@ elif [ "$TRAVIS_BRANCH" != "$BRANCH" ]; then
 else
   echo "Deploying snapshot..."
   ./gradlew clean build uploadArchives -PNEXUS_USERNAME=$CI_DEPLOY_NEXUS_USERNAME -PNEXUS_PASSWORD=$CI_DEPLOY_NEXUS_PASSWORD
-
 fi
