@@ -6,19 +6,23 @@
 # http://benlimmer.com/2013/12/26/automatically-publish-javadoc-to-gh-pages-with-travis-ci/
 # and https://github.com/square/javawriter
 
-SLUG="segmentio/analytics-android"
+REPO="analytics-android"
+USERNAME="segmentio"
 JDK="oraclejdk8"
 BRANCH="master"
 
-if [ "$TRAVIS_REPO_SLUG" != "$SLUG" ]; then
-  echo "Skipping snapshot deployment: wrong repository. Expected '$SLUG' but was '$TRAVIS_REPO_SLUG'."
-elif [ "$TRAVIS_JDK_VERSION" != "$JDK" ]; then
-  echo "Skipping snapshot deployment: wrong JDK. Expected '$JDK' but was '$TRAVIS_JDK_VERSION'."
-elif [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+if [ "$CIRCLE_PROJECT_REPONAME" != "$REPO" ]; then
+  echo "Skipping snapshot deployment: wrong repository. Expected '$REPO' but was '$CIRCLE_PROJECT_REPONAME'."
+elif [ "$CIRCLE_PROJECT_USERNAME" != "$USERNAME" ]; then
+  echo "Skipping snapshot deployment: wrong owner. Expected '$USERNAME' but was '$CIRCLE_PROJECT_USERNAME'."
+elif [ "$CIRCLE_JDK_VERSION" != "$JDK" ]; then
+  echo "Skipping snapshot deployment: wrong JDK. Expected '$JDK' but was '$CIRCLE_JDK_VERSION'."
+elif [ -z $CI_PULL_REQUEST ]; then
   echo "Skipping snapshot deployment: was pull request."
-elif [ "$TRAVIS_BRANCH" != "$BRANCH" ]; then
-  echo "Skipping snapshot deployment: wrong branch. Expected '$BRANCH' but was '$TRAVIS_BRANCH'."
+elif [ "$CIRCLE_BRANCH" != "$BRANCH" ]; then
+  echo "Skipping snapshot deployment: wrong branch. Expected '$BRANCH' but was '$CIRCLE_BRANCH'."
 else
   echo "Deploying snapshot..."
-  ./gradlew clean build uploadArchives -PNEXUS_USERNAME=$CI_DEPLOY_NEXUS_USERNAME -PNEXUS_PASSWORD=$CI_DEPLOY_NEXUS_PASSWORD
+  # ORG_GRADLE_PROJECT_FOO makes 'FOO' a gradle property automatically
+  ./gradlew clean build uploadArchives
 fi

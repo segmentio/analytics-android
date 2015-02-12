@@ -6,6 +6,7 @@ general:
 machine:
   environment:
     ANDROID_HOME: /home/ubuntu/android
+    CIRCLE_JDK_VERSION: oraclejdk8
   java:
     version: oraclejdk8
 
@@ -15,8 +16,15 @@ dependencies:
     - ~/android
     - ~/.gradle
   override:
-    - .buildscript/install-dependencies.sh
+    - .buildscript/install_dependencies.sh
 
 test:
   override:
     - TERM=dumb ./gradlew build
+
+deployment:
+  snapshots:
+    branch: master
+    owner: segmentio
+    commands:
+      - .buildscript/deploy_snapshot.sh
