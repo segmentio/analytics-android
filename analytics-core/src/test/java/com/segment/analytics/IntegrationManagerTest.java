@@ -43,8 +43,8 @@ public class IntegrationManagerTest {
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
 
     integrationManager =
-        new IntegrationManager(context, client, Cartographer.INSTANCE, stats, projectSettingsCache,
-            NONE);
+        new IntegrationManager(context, client, Cartographer.INSTANCE, stats, false,
+            projectSettingsCache, NONE);
   }
 
   @After public void tearDown() {
@@ -67,7 +67,7 @@ public class IntegrationManagerTest {
     ValueMap fooMap =
         new ValueMap().putValue("trackNamedPages", true).putValue("trackAllPages", false);
 
-    integrationManager.performInitialize(ProjectSettings //
+    integrationManager.performInitializeIntegrations(ProjectSettings //
         .create(new ValueMap().putValue("Foo", fooMap), System.currentTimeMillis()));
 
     verify(mockIntegration).initialize(context, new ValueMap(fooMap), true);

@@ -70,17 +70,19 @@ class IntegrationManager {
   final Analytics.LogLevel logLevel;
   final HandlerThread integrationManagerThread;
   final Handler integrationManagerHandler;
+  final boolean skipDownloadingIntegrations;
 
   Queue<IntegrationOperation> operationQueue;
   OnIntegrationReadyListener listener;
   volatile boolean initialized;
 
   static synchronized IntegrationManager create(Context context, Cartographer cartographer,
-      Client client, Stats stats, String tag, Analytics.LogLevel logLevel) {
+      Client client, Stats stats, boolean skipDownloadingIntegrations, String tag,
+      Analytics.LogLevel logLevel) {
     ProjectSettings.Cache projectSettingsCache =
         new ProjectSettings.Cache(context, cartographer, tag);
-    return new IntegrationManager(context, client, cartographer, stats, projectSettingsCache,
-        logLevel);
+    return new IntegrationManager(context, client, cartographer, stats, skipDownloadingIntegrations,
+        projectSettingsCache, logLevel);
   }
 
   private static String getSanitizedKeyForIntegration(String integrationKey) {
@@ -97,11 +99,13 @@ class IntegrationManager {
   }
 
   IntegrationManager(Context context, Client client, Cartographer cartographer, Stats stats,
-      ProjectSettings.Cache projectSettingsCache, Analytics.LogLevel logLevel) {
+      boolean skipDownloadingIntegrations, ProjectSettings.Cache projectSettingsCache,
+      Analytics.LogLevel logLevel) {
     this.context = context;
     this.client = client;
     this.cartographer = cartographer;
     this.stats = stats;
+    this.skipDownloadingIntegrations = skipDownloadingIntegrations;
     this.projectSettingsCache = projectSettingsCache;
     this.logLevel = logLevel;
 
@@ -127,7 +131,7 @@ class IntegrationManager {
     checkBundledIntegration("com.segment.analytics.internal.integrations.TapstreamIntegration");
 
     if (projectSettingsCache.isSet() && projectSettingsCache.get() != null) {
-      dispatchInitialize(projectSettingsCache.get());
+      dispatchInitializeIntegrations(projectSettingsCache.get());
       if (projectSettingsCache.get().timestamp() + SETTINGS_REFRESH_INTERVAL
           < System.currentTimeMillis()) {
         dispatchFetchSettings();
@@ -137,6 +141,10 @@ class IntegrationManager {
     }
   }
 
+  /**
+   * Checks if an integration with the give class name is available on the classpath, i.e. if it
+   * was bundled at compile time. If it is, this will instantiate the integration.
+   */
   private void checkBundledIntegration(String className) {
     try {
       Class clazz = Class.forName(className);
@@ -148,6 +156,11 @@ class IntegrationManager {
     }
   }
 
+  /**
+   * Instantiates an {@link AbstractIntegration} for the given class. The {@link
+   * AbstractIntegration} *MUST* have an empty constructor. This will also update the {@code
+   * bundledIntegrations} map so that events for this integration aren't sent server side.
+   */
   private void loadIntegration(Class<AbstractIntegration> clazz) {
     try {
       Constructor<AbstractIntegration> constructor = clazz.getDeclaredConstructor();
@@ -183,7 +196,12 @@ class IntegrationManager {
           ProjectSettings.create(cartographer.fromJson(buffer(connection.is)));
 
       projectSettingsCache.set(projectSettings);
-      downloadJars(projectSettings);
+
+      if (skipDownloadingIntegrations) {
+        dispatchInitializeIntegrations(projectSettings);
+      } else {
+        downloadProjectJARs(projectSettings);
+      }
     } catch (IOException e) {
       if (logLevel.log()) {
         error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, null, e, "Unable to fetch settings");
@@ -194,16 +212,13 @@ class IntegrationManager {
     }
   }
 
-  void downloadJars(ProjectSettings projectSettings) {
+  /** Download JARs for the given project settings. */
+  private void downloadProjectJARs(ProjectSettings projectSettings) throws IOException {
     final File downloadedJarsDirectory = getJarDownloadDirectory(context);
     try {
       createDirectory(downloadedJarsDirectory);
     } catch (IOException e) {
-      if (logLevel.log()) {
-        error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, null, e,
-            "Unable to download integrations into " + downloadedJarsDirectory);
-      }
-      return;
+      throw new IOException("Unable to download integrations into " + downloadedJarsDirectory, e);
     }
 
     ExecutorService executorService = Executors.newCachedThreadPool();
@@ -211,7 +226,7 @@ class IntegrationManager {
       for (final String key : projectSettings.keySet()) {
         executorService.submit(new Runnable() {
           @Override public void run() {
-            downloadJar(downloadedJarsDirectory, key);
+            downloadJAR(downloadedJarsDirectory, key);
           }
         });
       }
@@ -220,17 +235,19 @@ class IntegrationManager {
       try {
         boolean downloaded = executorService.awaitTermination(2, TimeUnit.MINUTES);
         // Initialize the integrations, regardless of what was downloaded
-        dispatchInitialize(projectSettings);
+        dispatchInitializeIntegrations(projectSettings);
         if (!downloaded) {
           dispatchRetryFetchSettings();
         }
       } catch (InterruptedException e) {
-        if (logLevel.log()) error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, null, e);
+        //noinspection ThrowFromFinallyBlock
+        throw new IOException("Interrupted while waiting for download.", e);
       }
     }
   }
 
-  void downloadJar(File directory, String key) {
+  /** Download the JARs into the given directory. */
+  private void downloadJAR(File directory, String key) {
     if (bundledIntegrations.containsKey(key) || ProjectSettings.TIMESTAMP_KEY.equals(key)) {
       return;
     }
@@ -250,63 +267,32 @@ class IntegrationManager {
     File tempFile = new File(file.getPath() + ".tmp");
     try {
       client.downloadFile(url, tempFile);
-      if (!tempFile.renameTo(file)) throw new IOException("Rename failed!");
+      if (!tempFile.renameTo(file)) {
+        throw new IOException("Rename failed!");
+      }
     } catch (IOException e) {
-      if (logLevel.log()) error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, key, e);
+      if (logLevel.log()) {
+        error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, key, e);
+      }
       //noinspection ResultOfMethodCallIgnored
       file.delete();
     } finally {
+      //noinspection ResultOfMethodCallIgnored
       tempFile.delete();
     }
   }
 
-  void dispatchInitialize(ProjectSettings projectSettings) {
+  void dispatchInitializeIntegrations(ProjectSettings projectSettings) {
     integrationManagerHandler.sendMessageAtFrontOfQueue(integrationManagerHandler //
-        .obtainMessage(IntegrationManagerHandler.REQUEST_INITIALIZE, projectSettings));
+        .obtainMessage(IntegrationManagerHandler.REQUEST_INITIALIZE_INTEGRATIONS, projectSettings));
   }
 
-  private void loadDownloadedIntegrations(ProjectSettings settings) {
-    File downloadedJarsDirectory = getJarDownloadDirectory(context);
-    File optimizedDexDirectory = context.getDir("segment-optimized-dex", Context.MODE_PRIVATE);
-    try {
-      createDirectory(optimizedDexDirectory);
-    } catch (IOException e) {
-      if (logLevel.log()) {
-        print(e, "Unable to dex downloaded integrations");
-      }
-      return;
-    }
-
-    ClassLoader defaultClassLoader = context.getClassLoader();
-    Set<String> bundledIntegrationsKeys = bundledIntegrations.keySet();
-
-    for (String key : settings.keySet()) {
-      if (bundledIntegrationsKeys.contains(key) || ProjectSettings.TIMESTAMP_KEY.equals(key)) {
-        continue;
-      }
-      String fileName = getFileNameForIntegration(key);
-      File jarFile = new File(downloadedJarsDirectory, fileName);
-      if (!jarFile.exists()) continue;
-      DexClassLoader dexClassLoader =
-          new DexClassLoader(jarFile.getAbsolutePath(), optimizedDexDirectory.getAbsolutePath(),
-              null, defaultClassLoader);
-      String className =
-          "com.segment.analytics.internal.integrations." + key.replace(" ", "") + "Integration";
-      try {
-        Class integrationClass = dexClassLoader.loadClass(className);
-        loadIntegration(integrationClass);
-      } catch (ClassNotFoundException e) {
-        if (logLevel.log()) {
-          error(OWNER_INTEGRATION_MANAGER, VERB_SKIP, className, e);
-        }
-      }
-    }
-  }
-
-  void performInitialize(ProjectSettings projectSettings) {
+  void performInitializeIntegrations(ProjectSettings projectSettings) {
     if (initialized) return;
 
-    loadDownloadedIntegrations(projectSettings);
+    if (!skipDownloadingIntegrations) {
+      loadDownloadedIntegrations(projectSettings);
+    }
 
     Iterator<AbstractIntegration> iterator = integrations.iterator();
     while (iterator.hasNext()) {
@@ -347,6 +333,46 @@ class IntegrationManager {
     initialized = true;
   }
 
+  /** Synchronously load the integrations that have been downloaded. */
+  private void loadDownloadedIntegrations(ProjectSettings settings) {
+    File downloadedJarsDirectory = getJarDownloadDirectory(context);
+    File optimizedDexDirectory = context.getDir("segment-optimized-dex", Context.MODE_PRIVATE);
+    try {
+      createDirectory(optimizedDexDirectory);
+    } catch (IOException e) {
+      if (logLevel.log()) {
+        print(e, "Unable to dex downloaded integrations");
+      }
+      return;
+    }
+
+    ClassLoader defaultClassLoader = context.getClassLoader();
+    Set<String> bundledIntegrationsKeys = bundledIntegrations.keySet();
+
+    for (String key : settings.keySet()) {
+      if (bundledIntegrationsKeys.contains(key) || ProjectSettings.TIMESTAMP_KEY.equals(key)) {
+        continue;
+      }
+      String fileName = getFileNameForIntegration(key);
+      File jarFile = new File(downloadedJarsDirectory, fileName);
+      if (!jarFile.exists()) continue;
+      DexClassLoader dexClassLoader =
+          new DexClassLoader(jarFile.getAbsolutePath(), optimizedDexDirectory.getAbsolutePath(),
+              null, defaultClassLoader);
+      String className =
+          "com.segment.analytics.internal.integrations." + key.replace(" ", "") + "Integration";
+      try {
+        Class integrationClass = dexClassLoader.loadClass(className);
+        loadIntegration(integrationClass);
+      } catch (ClassNotFoundException e) {
+        if (logLevel.log()) {
+          error(OWNER_INTEGRATION_MANAGER, VERB_SKIP, className, e);
+        }
+      }
+    }
+  }
+
+  /** Dispatch a flush request. */
   void dispatchFlush() {
     dispatchOperation(new FlushOperation());
   }
@@ -471,16 +497,13 @@ class IntegrationManager {
   }
 
   static class FlushOperation implements IntegrationOperation {
-    String id;
+    String id = UUID.randomUUID().toString();
 
     @Override public void run(AbstractIntegration integration) {
       integration.flush();
     }
 
     @Override public synchronized String id() {
-      if (id == null) {
-        id = UUID.randomUUID().toString();
-      }
       return id;
     }
 
@@ -491,7 +514,7 @@ class IntegrationManager {
 
   private static class IntegrationManagerHandler extends Handler {
     private static final int REQUEST_FETCH_SETTINGS = 1;
-    private static final int REQUEST_INITIALIZE = 2;
+    private static final int REQUEST_INITIALIZE_INTEGRATIONS = 2;
     private static final int REQUEST_DISPATCH_OPERATION = 3;
     private static final int REQUEST_REGISTER_LISTENER = 4;
     private final IntegrationManager integrationManager;
@@ -506,8 +529,8 @@ class IntegrationManager {
         case REQUEST_FETCH_SETTINGS:
           integrationManager.performFetchSettings();
           break;
-        case REQUEST_INITIALIZE:
-          integrationManager.performInitialize((ProjectSettings) msg.obj);
+        case REQUEST_INITIALIZE_INTEGRATIONS:
+          integrationManager.performInitializeIntegrations((ProjectSettings) msg.obj);
           break;
         case REQUEST_DISPATCH_OPERATION:
           integrationManager.performOperation((IntegrationOperation) msg.obj);

@@ -572,6 +572,7 @@ public class Analytics {
     private Options defaultOptions;
     private LogLevel logLevel = LogLevel.NONE;
     private boolean skipBundledIntegrations = false;
+    private boolean skipDownloadingIntegrations = false;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -607,8 +608,8 @@ public class Analytics {
      * {@code queueSize}, whichever occurs first.
      */
     public Builder flushInterval(int flushInterval) {
-      if (flushInterval < 1) {
-        throw new IllegalArgumentException("flushInterval must be greater than or equal to 1.");
+      if (flushInterval < 10) {
+        throw new IllegalArgumentException("flushInterval must be greater than or equal to 10.");
       }
       this.flushInterval = flushInterval;
       return this;
@@ -662,14 +663,30 @@ public class Analytics {
     /**
      * Disable bundled integrations.
      * <p/>
-     * This will skip *ALL* bundled integrations, even if they don't have a server side
-     * integration available (e.g. Flurry). Use it only if you understand what you are doing.
+     * This will skip *ALL* bundled integrations, even if they don't have a server side integration
+     * available (e.g. Flurry). Use it only if you understand what you are doing.
      *
      * @see <a href="https://segment.com/help/getting-started/why-bundle-integrations/">Bundled
      * Integrations</a>
      */
     public Builder skipBundledIntegrations() {
       this.skipBundledIntegrations = true;
+      return this;
+    }
+
+    /**
+     * Disable downloading bundled integrations.
+     * <p/>
+     * This will skip downloading *ANY* bundled integrations, even if they don't have a server side
+     * integration available (e.g. Flurry) and aren't already bundled. Use it only if you
+     * understand
+     * what you are doing.
+     *
+     * @see <a href="https://segment.com/help/getting-started/why-bundle-integrations/">Bundled
+     * Integrations</a>
+     */
+    public Builder skipDownloadingIntegrations() {
+      this.skipDownloadingIntegrations = true;
       return this;
     }
 
@@ -689,8 +706,8 @@ public class Analytics {
       if (skipBundledIntegrations) {
         bundledIntegrations = Collections.emptyMap();
       } else {
-        integrationManager =
-            IntegrationManager.create(application, cartographer, client, stats, tag, logLevel);
+        integrationManager = IntegrationManager.create(application, cartographer, client, stats,
+            skipDownloadingIntegrations, tag, logLevel);
         bundledIntegrations = Collections.unmodifiableMap(integrationManager.bundledIntegrations);
       }
 

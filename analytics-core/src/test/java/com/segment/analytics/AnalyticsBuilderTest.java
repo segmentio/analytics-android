@@ -146,19 +146,25 @@ public class AnalyticsBuilderTest {
       new Builder(context, stubbedKey).flushInterval(-1);
       fail("flushInterval < 0 should throw exception.");
     } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("flushInterval must be greater than or equal to 1.");
+      assertThat(expected).hasMessage("flushInterval must be greater than or equal to 10.");
     }
 
     try {
       new Builder(context, stubbedKey).flushInterval(0);
-      fail("flushInterval < 1 should throw exception.");
+      fail("flushInterval < 10 should throw exception.");
     } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("flushInterval must be greater than or equal to 1.");
+      assertThat(expected).hasMessage("flushInterval must be greater than or equal to 10.");
     }
 
     try {
-      Builder builder = new Builder(context, stubbedKey).flushInterval(25);
-      builder.flushInterval(10);
+      new Builder(context, stubbedKey).flushInterval(9);
+      fail("flushInterval < 10 should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("flushInterval must be greater than or equal to 10.");
+    }
+
+    try {
+      new Builder(context, stubbedKey).flushInterval(25).flushInterval(10);
     } catch (IllegalStateException unexpected) {
       fail("flushInterval can be set multiple times.");
     }
