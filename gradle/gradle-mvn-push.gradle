@@ -85,11 +85,13 @@ afterEvaluate { project ->
   task androidJavadocs(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    if (JavaVersion.current().isJava8Compatible()) {
-      allprojects {
-        tasks.withType(Javadoc) {
-          options.addStringOption('Xdoclint:none', '-quiet')
-        }
+    classpath += project.android.libraryVariants.toList().first().javaCompile.classpath
+  }
+
+  if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+      tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
       }
     }
   }
