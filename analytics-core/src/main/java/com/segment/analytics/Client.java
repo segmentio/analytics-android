@@ -142,7 +142,9 @@ class Client {
     final OutputStream os;
 
     Connection(HttpURLConnection connection, InputStream is, OutputStream os) {
-      if (connection == null) throw new IllegalArgumentException("connection == null");
+      if (connection == null) {
+        throw new IllegalArgumentException("connection == null");
+      }
       this.connection = connection;
       this.is = is;
       this.os = os;

@@ -88,8 +88,7 @@ class SegmentDispatcher {
     QueueFile queueFile;
     try {
       File folder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
-      String name = tag.replaceAll("[^A-Za-z0-9]", "");
-      queueFile = createQueueFile(folder, name);
+      queueFile = createQueueFile(folder, tag);
     } catch (IOException e) {
       throw panic(e, "Could not create queue file.");
     }

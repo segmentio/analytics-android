@@ -75,6 +75,15 @@ public class AnalyticsBuilderTest {
     }
   }
 
+  @Test public void invalidLogLevelThrowsException() throws Exception {
+    try {
+      new Builder(context, stubbedKey).logLevel(null);
+      fail("Setting null LogLevel should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("LogLevel must not be null.");
+    }
+  }
+
   @Test public void missingInternetPermissionsThrowsException() throws Exception {
     when(context.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_DENIED);
     try {
@@ -132,13 +141,6 @@ public class AnalyticsBuilderTest {
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("queueSize must be greater than or equal to zero.");
     }
-
-    try {
-      Builder builder = new Builder(context, stubbedKey).queueSize(10);
-      builder.queueSize(20);
-    } catch (IllegalStateException unexpected) {
-      fail("queueSize can be set multiple times.");
-    }
   }
 
   @Test public void invalidFlushIntervalThrowsException() throws Exception {
@@ -162,12 +164,6 @@ public class AnalyticsBuilderTest {
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("flushInterval must be greater than or equal to 10.");
     }
-
-    try {
-      new Builder(context, stubbedKey).flushInterval(25).flushInterval(10);
-    } catch (IllegalStateException unexpected) {
-      fail("flushInterval can be set multiple times.");
-    }
   }
 
   @Test public void invalidOptionsThrowsException() throws Exception {
@@ -183,13 +179,6 @@ public class AnalyticsBuilderTest {
       fail("default options with timestamp should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("default option must not contain timestamp.");
-    }
-
-    try {
-      new Builder(context, stubbedKey).defaultOptions(new Options()).defaultOptions(new Options());
-      fail("setting options twice should throw exception.");
-    } catch (IllegalStateException expected) {
-      assertThat(expected).hasMessage("defaultOptions is already set.");
     }
   }
 
@@ -214,17 +203,11 @@ public class AnalyticsBuilderTest {
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("tag must not be null or empty.");
     }
-
-    try {
-      new Builder(context, stubbedKey).tag(stubbedKey).tag(stubbedKey);
-      fail("Tag can only be set once.");
-    } catch (IllegalStateException expected) {
-      assertThat(expected).hasMessage("tag is already set.");
-    }
   }
 
   @Test public void invalidWriteKeyFromResourcesThrowsException() throws Exception {
     mockResources(context, null);
+
     try {
       Analytics.with(context);
       fail("Null writeKey should throw exception.");

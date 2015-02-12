@@ -84,10 +84,10 @@ public class Analytics {
       }
     }
   };
-  // Resource identifiers to define options in xml
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
-  static final Properties EMPTY_PROPERTIES = new Properties();
+  private static final Properties EMPTY_PROPERTIES = new Properties();
   static Analytics singleton = null;
+
   final Application application;
   final IntegrationManager integrationManager;
   final SegmentDispatcher segmentDispatcher;
@@ -120,15 +120,17 @@ public class Analytics {
         if (singleton == null) {
           String writeKey = getResourceString(context, WRITE_KEY_RESOURCE_IDENTIFIER);
           Builder builder = new Builder(context, writeKey);
-          String packageName = context.getPackageName();
+
           try {
-            final int flags = context.getPackageManager().getApplicationInfo(packageName, 0).flags;
+            String packageName = context.getPackageName();
+            int flags = context.getPackageManager().getApplicationInfo(packageName, 0).flags;
             boolean debugging = (flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
             if (debugging) {
               builder.logLevel(LogLevel.INFO);
             }
           } catch (PackageManager.NameNotFoundException ignored) {
           }
+
           singleton = builder.build();
         }
       }
@@ -461,7 +463,9 @@ public class Analytics {
     if (shutdown) {
       return;
     }
-    if (integrationManager != null) integrationManager.shutdown();
+    if (integrationManager != null) {
+      integrationManager.shutdown();
+    }
     segmentDispatcher.shutdown();
     stats.shutdown();
     shutdown = true;
@@ -570,7 +574,7 @@ public class Analytics {
     private int queueSize = Utils.DEFAULT_FLUSH_QUEUE_SIZE;
     private int flushInterval = Utils.DEFAULT_FLUSH_INTERVAL;
     private Options defaultOptions;
-    private LogLevel logLevel = LogLevel.NONE;
+    private LogLevel logLevel;
     private boolean skipBundledIntegrations = false;
     private boolean skipDownloadingIntegrations = false;
 
@@ -616,8 +620,9 @@ public class Analytics {
     }
 
     /**
-     * Set default options for all calls. This options instance should not contain a timestamp, and
-     * changing the integrations through this instance won't be reflected by the Analytics client.
+     * Set some default options for all calls.
+     *
+     * @see {@link Options}
      */
     public Builder defaultOptions(Options defaultOptions) {
       if (defaultOptions == null) {
@@ -625,9 +630,6 @@ public class Analytics {
       }
       if (defaultOptions.timestamp() != null) {
         throw new IllegalArgumentException("default option must not contain timestamp.");
-      }
-      if (this.defaultOptions != null) {
-        throw new IllegalStateException("defaultOptions is already set.");
       }
       // Make a defensive copy
       this.defaultOptions = new Options();
@@ -640,15 +642,12 @@ public class Analytics {
     /**
      * Set a tag for this instance. The tag is used to generate keys for caching.
      * </p>
-     * By default the writeKey is used, but you may want to specify an alternative one, if you want
-     * the instances with the same writeKey to share different caches.
+     * By default the writeKey is used. You may want to specify an alternative one, if you want
+     * the instances with the same writeKey to share different caches (you probably do).
      */
     public Builder tag(String tag) {
       if (isNullOrEmpty(tag)) {
         throw new IllegalArgumentException("tag must not be null or empty.");
-      }
-      if (this.tag != null) {
-        throw new IllegalStateException("tag is already set.");
       }
       this.tag = tag;
       return this;
@@ -656,6 +655,9 @@ public class Analytics {
 
     /** Set a {@link LogLevel} for this instance. */
     public Builder logLevel(LogLevel logLevel) {
+      if (logLevel == null) {
+        throw new IllegalArgumentException("LogLevel must not be null.");
+      }
       this.logLevel = logLevel;
       return this;
     }
@@ -664,7 +666,7 @@ public class Analytics {
      * Disable bundled integrations.
      * <p/>
      * This will skip *ALL* bundled integrations, even if they don't have a server side integration
-     * available (e.g. Flurry). Use it only if you understand what you are doing.
+     * available (e.g. Flurry).
      *
      * @see <a href="https://segment.com/help/getting-started/why-bundle-integrations/">Bundled
      * Integrations</a>
@@ -678,9 +680,7 @@ public class Analytics {
      * Disable downloading bundled integrations.
      * <p/>
      * This will skip downloading *ANY* bundled integrations, even if they don't have a server side
-     * integration available (e.g. Flurry) and aren't already bundled. Use it only if you
-     * understand
-     * what you are doing.
+     * integration available (e.g. Flurry) and aren't already bundled.
      *
      * @see <a href="https://segment.com/help/getting-started/why-bundle-integrations/">Bundled
      * Integrations</a>
@@ -695,7 +695,12 @@ public class Analytics {
       if (defaultOptions == null) {
         defaultOptions = new Options();
       }
-      if (isNullOrEmpty(tag)) tag = writeKey;
+      if (logLevel == null) {
+        logLevel = LogLevel.NONE;
+      }
+      if (isNullOrEmpty(tag)) {
+        tag = writeKey;
+      }
 
       Stats stats = new Stats();
       Cartographer cartographer = Cartographer.INSTANCE;
@@ -717,7 +722,8 @@ public class Analytics {
 
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
-        traitsCache.set(Traits.create());
+        Traits traits = Traits.create();
+        traitsCache.set(traits);
       }
       AnalyticsContext analyticsContext = AnalyticsContext.create(application, traitsCache.get());
 
