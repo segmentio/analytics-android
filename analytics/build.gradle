@@ -1,13 +1,6 @@
 apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
 
-buildscript {
-  dependencies {
-    classpath rootProject.ext.plugins.android
-    classpath rootProject.ext.plugins.sdkManager
-  }
-}
-
 dependencies {
   compile project(':analytics-core')
   compile project(':analytics-integrations:amplitude')
@@ -24,6 +17,8 @@ dependencies {
   compile project(':analytics-integrations:quantcast')
   compile project(':analytics-integrations:tapstream')
 }
+
+apply from: rootProject.file('gradle/android.gradle')
 
 android {
   packagingOptions {
