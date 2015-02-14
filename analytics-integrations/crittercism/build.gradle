@@ -1,25 +1,5 @@
-apply plugin: 'android-sdk-manager'
-apply plugin: 'com.android.library'
-
-buildscript {
-  dependencies {
-    classpath rootProject.ext.plugins.android
-    classpath rootProject.ext.plugins.sdkManager
-    classpath rootProject.ext.plugins.androidUnitTest
-  }
-}
-
-apply from: rootProject.file('gradle/integration-test.gradle')
+apply from: rootProject.file('gradle/integration.gradle')
 
 dependencies {
-  provided project(':analytics-core')
   compile 'com.crittercism:crittercism-android-agent:5.0.3'
-
-  testCompile rootProject.ext.testLibraries
-  testCompile project(path: ':analytics-core', configuration: 'testOutput')
 }
-
-apply from: rootProject.file('gradle/checkstyle-library.gradle')
-apply from: rootProject.file('gradle/attach-jar.gradle')
-apply from: rootProject.file('gradle/attach-jar-with-dependencies.gradle')
-apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

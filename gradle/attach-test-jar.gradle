@@ -1,7 +1,8 @@
+// Attaches a test configuration that includes classes from the test source sets
 android.libraryVariants.all { variant ->
   // Only attach the test jar for debug build types.
   if (variant.buildType.isDebuggable()) {
-    // This will fail if we ever have multiple Debuggable build types
+    // This will fail if we ever have multiple debuggable build types since configuration names must be unique
     project.configurations.create "testOutput"
     def task = project.tasks.create "jarTest", Jar
     task.classifier = 'test'

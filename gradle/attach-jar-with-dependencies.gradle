@@ -1,3 +1,4 @@
+// Attaches a fat JAR to the archives artifact for a library
 android.libraryVariants.all { variant ->
   // Only attach a jar for non-debug build types.
   if (!variant.buildType.isDebuggable()) {

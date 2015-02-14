@@ -1,0 +1,25 @@
+android {
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
+
+  defaultConfig {
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
+    versionCode rootProject.ext.versionCode
+    versionName rootProject.ext.versionName
+  }
+
+  dexOptions {
+    preDexLibraries rootProject.ext.preDexLibraries
+  }
+
+  packagingOptions {
+    exclude 'LICENSE.txt'
+  }
+
+  compileOptions {
+    sourceCompatibility rootProject.ext.compileJavaVersion
+    targetCompatibility rootProject.ext.compileJavaVersion
+  }
+}
+
