@@ -13,6 +13,8 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
 import org.robolectric.shadows.ShadowLog;
 
+import static com.segment.analytics.Analytics.BundledIntegration.BUGSNAG;
+import static com.segment.analytics.Analytics.BundledIntegration.MIXPANEL;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload;
 import static com.segment.analytics.TestUtils.mockApplication;
@@ -167,12 +169,23 @@ public class AnalyticsTest {
     analytics.flush();
     analytics.shutdown();
     try {
-      analytics.registerOnIntegrationReadyListener(
-          mock(Analytics.OnIntegrationReadyListener.class));
+      analytics.onIntegrationReady(BUGSNAG, mock(Analytics.Callback.class));
       fail("registering callback should fail");
     } catch (IllegalStateException e) {
       assertThat(e).hasMessage("Enable bundled integrations to register for this callback.");
     }
+  }
+
+  @Test public void onIntegrationReady() {
+    try {
+      analytics.onIntegrationReady(null, mock(Analytics.Callback.class));
+      fail("registering for null integration should fail");
+    } catch (IllegalArgumentException e) {
+      assertThat(e).hasMessage("bundledIntegration cannot be null.");
+    }
+
+    analytics.onIntegrationReady(MIXPANEL, null);
+    verify(integrationManager).dispatchRegisterCallback(MIXPANEL.key, null);
   }
 
   @Test public void shutdown() {

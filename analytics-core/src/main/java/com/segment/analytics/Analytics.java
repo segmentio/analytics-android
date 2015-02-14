@@ -50,7 +50,6 @@ import static com.segment.analytics.internal.Utils.OWNER_INTEGRATION_MANAGER;
 import static com.segment.analytics.internal.Utils.OWNER_MAIN;
 import static com.segment.analytics.internal.Utils.VERB_CREATE;
 import static com.segment.analytics.internal.Utils.VERB_SKIP;
-import static com.segment.analytics.internal.Utils.checkMain;
 import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.getResourceString;
 import static com.segment.analytics.internal.Utils.hasPermission;
@@ -472,32 +471,42 @@ public class Analytics {
   }
 
   /**
-   * Register to be notified when a bundled integration is ready. See {@link
-   * OnIntegrationReadyListener} for more information.
+   * Register to be notified when a bundled integration is ready.
    * <p/>
-   * This method must be called from the main thread.
-   * <p>
+   * In most cases, integrations would have already been initialized, and the callback will be
+   * invoked fairly quickly. However there may be a latency the first time the app is launched, and
+   * we don't have settings for bundled integrations yet. This is compounded if the user is offline
+   * on the first run.
+   * <p/>
+   * You can only register for one callback per integration at a time, and passing in a {@code
+   * callback} will remove the previous callback for that integration.
+   * </p>
+   * The callback is invoked on the same thread we call integrations on, so if you want to update
+   * the UI, make sure you move off to the main thread.
+   * <p/>
    * Usage:
    * <pre> <code>
-   *   analytics.registerOnIntegrationReady(new OnIntegrationReadyListener() {
-   *     {@literal @}Override public void onIntegrationReady(String key, Object integration) {
-   *       if("Mixpanel".equals(key)) {
-   *         ((MixpanelAPI) integration).clearSuperProperties();
-   *       } else if ("Amplitude".equals(key)) {
-   *         Amplitude.enableLocationListening();
-   *       }
+   *   analytics.onIntegrationReady(BundledIntegration.AMPLITUDE, new Callback() {
+   *     {@literal @}Override public void onIntegrationReady(Object instance) {
+   *       Amplitude.enableLocationListening();
    *     }
    *   });
+   *   analytics.onIntegrationReady(BundledIntegration.MIXPANEL, new Callback() {
+   *     {@literal @}Override public void onIntegrationReady(Object instance) {
+   *       ((MixpanelAPI) instance).clearSuperProperties();
+   *     }
+   *   })*
    * </code> </pre>
    */
-  public void //
-  registerOnIntegrationReadyListener(OnIntegrationReadyListener onIntegrationReadyListener) {
-    if (integrationManager != null) {
-      checkMain();
-      integrationManager.dispatchRegisterIntegrationInitializedListener(onIntegrationReadyListener);
-    } else {
+  public void onIntegrationReady(BundledIntegration bundledIntegration, Callback callback) {
+    if (bundledIntegration == null) {
+      throw new IllegalArgumentException("bundledIntegration cannot be null.");
+    }
+    if (integrationManager == null) {
       throw new IllegalStateException("Enable bundled integrations to register for this callback.");
     }
+
+    integrationManager.dispatchRegisterCallback(bundledIntegration.key, callback);
   }
 
   void submit(BasePayload payload) {
@@ -523,6 +532,29 @@ public class Analytics {
     integrationManager.dispatchOperation(payload);
   }
 
+  public enum BundledIntegration {
+    AMPLITUDE("Amplitude"),
+    APPS_FLYER("AppsFlyer"),
+    BUGSNAG("Bugsnag"),
+    COUNTLY("Countly"),
+    CRITTERCISM("Crittercism"),
+    FLURRY("Flurry"),
+    GOOGLE_ANALYTICS("Google Analytics"),
+    KAHUNA("Kahuna"),
+    LEANPLUM("Leanplum"),
+    LOCALYTICS("Leanplum"),
+    MIXPANEL("Mixpanel"),
+    QUANTCAST("Quancast"),
+    TAPSTREAM("Tapstream");
+
+    /** The key that identifies this integration in our API. */
+    final String key;
+
+    BundledIntegration(String key) {
+      this.key = key;
+    }
+  }
+
   /** Controls the level of logging. */
   public enum LogLevel {
     /** No logging. */
@@ -546,24 +578,15 @@ public class Analytics {
   /**
    * A callback interface that is invoked when the Analytics client initializes bundled
    * integrations.
-   * <p/>
-   * In most cases, integrations would have already been initialized, and the callback will be
-   * invoked fairly quickly. However there may be a latency the first time the app is launched, and
-   * we don't have settings for bundled integrations yet. This is compounded if the user is offline
-   * on the first run.
    */
-  public interface OnIntegrationReadyListener {
+  public interface Callback {
     /**
-     * This method will be invoked once for each integration. The first argument is a key to
-     * uniquely identify each integration (which will the same as the one in our public HTTP API).
-     * The second argument will be the integration object itself, so you can call methods not
-     * exposed as a part of our spec. This is useful if you're doing things like A/B testing.
+     * This method will be invoked once for each callback.
      *
-     * @param key A unique string to identify an integration.
-     * @param integration The underlying instance that has been initialized with the settings from
-     * Segment
+     * @param instance The underlying instance that has been initialized with the settings from
+     * Segment.
      */
-    void onIntegrationReady(String key, Object integration);
+    void onReady(Object instance);
   }
 
   /** Fluent API for creating {@link Analytics} instances. */
