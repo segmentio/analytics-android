@@ -576,7 +576,6 @@ public class Analytics {
     private Options defaultOptions;
     private LogLevel logLevel;
     private boolean skipBundledIntegrations = false;
-    private boolean skipDownloadingIntegrations = false;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -676,20 +675,6 @@ public class Analytics {
       return this;
     }
 
-    /**
-     * Disable downloading bundled integrations.
-     * <p/>
-     * This will skip downloading *ANY* bundled integrations, even if they don't have a server side
-     * integration available (e.g. Flurry) and aren't already bundled.
-     *
-     * @see <a href="https://segment.com/help/getting-started/why-bundle-integrations/">Bundled
-     * Integrations</a>
-     */
-    public Builder skipDownloadingIntegrations() {
-      this.skipDownloadingIntegrations = true;
-      return this;
-    }
-
     /** Create a {@link Analytics} client. */
     public Analytics build() {
       if (defaultOptions == null) {
@@ -711,8 +696,8 @@ public class Analytics {
       if (skipBundledIntegrations) {
         bundledIntegrations = Collections.emptyMap();
       } else {
-        integrationManager = IntegrationManager.create(application, cartographer, client, stats,
-            skipDownloadingIntegrations, tag, logLevel);
+        integrationManager =
+            IntegrationManager.create(application, cartographer, client, stats, tag, logLevel);
         bundledIntegrations = Collections.unmodifiableMap(integrationManager.bundledIntegrations);
       }
 
