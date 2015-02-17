@@ -7,12 +7,14 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Pair;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.IntegrationOperation;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
-import static com.segment.analytics.Analytics.OnIntegrationReadyListener;
+import static com.segment.analytics.Analytics.Callback;
 import static com.segment.analytics.internal.Utils.OWNER_INTEGRATION_MANAGER;
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
 import static com.segment.analytics.internal.Utils.VERB_DISPATCH;
@@ -65,7 +67,7 @@ class IntegrationManager {
   final Handler integrationManagerHandler;
 
   Queue<IntegrationOperation> operationQueue;
-  OnIntegrationReadyListener listener;
+  Map<String, Callback> callbacks;
   volatile boolean initialized;
 
   static synchronized IntegrationManager create(Context context, Cartographer cartographer,
@@ -201,9 +203,11 @@ class IntegrationManager {
             debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, key, settings);
           }
           integration.initialize(context, settings, logLevel);
-          if (listener != null) {
-            listener.onIntegrationReady(key, integration.getUnderlyingInstance());
-            listener = null; // clear the reference
+          if (!isNullOrEmpty(callbacks)) {
+            Callback callback = callbacks.get(key);
+            if (callback != null) {
+              callback.onReady(integration.getUnderlyingInstance());
+            }
           }
         } catch (IllegalStateException e) {
           if (logLevel.log()) {
@@ -215,6 +219,11 @@ class IntegrationManager {
       } else {
         iterator.remove();
       }
+    }
+
+    if (callbacks != null) {
+      callbacks.clear();
+      callbacks = null;
     }
 
     if (!isNullOrEmpty(operationQueue)) {
@@ -269,20 +278,29 @@ class IntegrationManager {
     }
   }
 
-  void dispatchRegisterIntegrationInitializedListener(OnIntegrationReadyListener listener) {
+  void dispatchRegisterCallback(String key, Callback callback) {
     integrationManagerHandler.sendMessage(integrationManagerHandler //
-        .obtainMessage(IntegrationManagerHandler.REQUEST_REGISTER_LISTENER, listener));
+        .obtainMessage(IntegrationManagerHandler.REQUEST_REGISTER_CALLBACK,
+            new Pair<>(key, callback)));
   }
 
-  void performRegisterIntegrationInitializedListener(OnIntegrationReadyListener listener) {
-    if (initialized && listener != null) {
-      // Integrations are already ready, notify the listener right away
+  void performRegisterCallback(String key, Callback callback) {
+    if (initialized && callback != null) {
+      // Integrations are initialized, notify the listener right away
       for (AbstractIntegration abstractIntegration : integrations) {
-        listener.onIntegrationReady(abstractIntegration.key(),
-            abstractIntegration.getUnderlyingInstance());
+        if (key.equals(abstractIntegration.key())) {
+          callback.onReady(abstractIntegration.getUnderlyingInstance());
+        }
       }
     } else {
-      this.listener = listener;
+      if (callbacks == null) {
+        callbacks = new HashMap<>();
+      }
+      if (callback == null) {
+        callbacks.remove(key);
+      } else {
+        callbacks.put(key, callback);
+      }
     }
   }
 
@@ -373,7 +391,7 @@ class IntegrationManager {
     private static final int REQUEST_FETCH_SETTINGS = 1;
     private static final int REQUEST_INITIALIZE_INTEGRATIONS = 2;
     private static final int REQUEST_DISPATCH_OPERATION = 3;
-    private static final int REQUEST_REGISTER_LISTENER = 4;
+    private static final int REQUEST_REGISTER_CALLBACK = 4;
     private final IntegrationManager integrationManager;
 
     IntegrationManagerHandler(Looper looper, IntegrationManager integrationManager) {
@@ -392,9 +410,9 @@ class IntegrationManager {
         case REQUEST_DISPATCH_OPERATION:
           integrationManager.performOperation((IntegrationOperation) msg.obj);
           break;
-        case REQUEST_REGISTER_LISTENER:
-          integrationManager //
-              .performRegisterIntegrationInitializedListener((OnIntegrationReadyListener) msg.obj);
+        case REQUEST_REGISTER_CALLBACK:
+          Pair<String, Analytics.Callback> pair = (Pair<String, Analytics.Callback>) msg.obj;
+          integrationManager.performRegisterCallback(pair.first, pair.second);
           break;
         default:
           panic("Unhandled dispatcher message: " + msg.what);

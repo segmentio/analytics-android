@@ -4,15 +4,19 @@ import android.app.Application;
 import com.segment.analytics.Analytics;
 
 public class SampleApp extends Application {
+  private static final String ANALYTICS_WRITE_KEY = "l8v1ga655b";
+
   @Override public void onCreate() {
     super.onCreate();
 
-    /**
-     * We recommend initializing the client in an application class, because some integrations
-     * (such as Flurry) need to be notified when the activity is started. We automatically listen
-     * for the activity lifecycle but if you initialize in the onCreate of an Activity, the event
-     * has already occurred and we aren't notified.
-     */
+    // Initialize a new instance of the Analytics client.
+    Analytics analytics = new Analytics.Builder(this, ANALYTICS_WRITE_KEY) //
+        .build();
+
+    // Set the initialized instance as a globally accessible instance.
+    Analytics.setSingletonInstance(analytics);
+
+    // Now anytime you call Analytics.with, the custom instance will be returned.
     Analytics.with(this).track("App Launched");
   }
 }

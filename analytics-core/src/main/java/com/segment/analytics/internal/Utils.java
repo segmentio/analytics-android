@@ -32,7 +32,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.HandlerThread;
-import android.os.Looper;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -234,21 +233,9 @@ public final class Utils {
     }
   }
 
-  /** Throw an error if not called on main thread. */
-  public static void checkMain() {
-    if (!isMain()) {
-      throw new IllegalStateException("Method call should happen from the main thread.");
-    }
-  }
-
   /** Buffers the given {@code InputStream}. */
   public static BufferedReader buffer(InputStream is) {
     return new BufferedReader(new InputStreamReader(is));
-  }
-
-  /** Returns {@code true} if called on the main thread. */
-  private static boolean isMain() {
-    return Looper.getMainLooper().getThread() == Thread.currentThread();
   }
 
   public static <T> Map<String, T> createMap() {
