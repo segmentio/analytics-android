@@ -293,12 +293,14 @@ class IntegrationManager {
         }
       }
     } else {
-      if (callbacks == null) {
-        callbacks = new HashMap<>();
-      }
       if (callback == null) {
-        callbacks.remove(key);
+        if (callbacks != null) {
+          callbacks.remove(key);
+        }
       } else {
+        if (callbacks == null) {
+          callbacks = new HashMap<>();
+        }
         callbacks.put(key, callback);
       }
     }
