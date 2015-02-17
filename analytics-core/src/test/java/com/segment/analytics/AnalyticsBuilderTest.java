@@ -33,16 +33,13 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.Manifest.permission.INTERNET;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
-import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static com.segment.analytics.Analytics.Builder;
 import static com.segment.analytics.Analytics.WRITE_KEY_RESOURCE_IDENTIFIER;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -59,7 +56,7 @@ public class AnalyticsBuilderTest {
     context = mockApplication();
   }
 
-  @Test public void nullContextThrowsException() throws Exception {
+  @Test public void invalidContextThrowsException() throws Exception {
     try {
       new Builder(null, null);
       fail("Null context should throw exception.");
@@ -67,40 +64,12 @@ public class AnalyticsBuilderTest {
       assertThat(expected).hasMessage("Context must not be null.");
     }
 
-    try {
-      new Builder(null, stubbedKey);
-      fail("Null context should throw exception.");
-    } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("Context must not be null.");
-    }
-  }
-
-  @Test public void invalidLogLevelThrowsException() throws Exception {
-    try {
-      new Builder(context, stubbedKey).logLevel(null);
-      fail("Setting null LogLevel should throw exception.");
-    } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("LogLevel must not be null.");
-    }
-  }
-
-  @Test public void missingInternetPermissionsThrowsException() throws Exception {
     when(context.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_DENIED);
     try {
       new Builder(context, stubbedKey);
       fail("Missing internet permission should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("INTERNET permission is required.");
-    }
-  }
-
-  @Test public void missingAccessStatePermissionsDoesNotThrowsException() throws Exception {
-    when(context.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_GRANTED);
-    when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
-    try {
-      new Builder(context, stubbedKey);
-    } catch (IllegalArgumentException expected) {
-      fail("Missing access state permission should not throw exception.");
     }
   }
 
@@ -122,6 +91,33 @@ public class AnalyticsBuilderTest {
     try {
       new Builder(context, "    ");
       fail("Blank writeKey should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("writeKey must not be null or empty.");
+    }
+  }
+
+  @Test public void invalidWriteKeyFromResourcesThrowsException() throws Exception {
+    mockWriteKeyInResources(context, null);
+
+    try {
+      Analytics.with(context);
+      fail("Null writeKey should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("writeKey must not be null or empty.");
+    }
+
+    mockWriteKeyInResources(context, "");
+    try {
+      Analytics.with(context);
+      fail("Empty writeKey should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("writeKey must not be null or empty.");
+    }
+
+    mockWriteKeyInResources(context, "   ");
+    try {
+      Analytics.with(context);
+      fail("blank writeKey should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("writeKey must not be null or empty.");
     }
@@ -205,31 +201,21 @@ public class AnalyticsBuilderTest {
     }
   }
 
-  @Test public void invalidWriteKeyFromResourcesThrowsException() throws Exception {
-    mockResources(context, null);
-
+  @Test public void invalidLogLevelThrowsException() throws Exception {
     try {
-      Analytics.with(context);
-      fail("Null writeKey should throw exception.");
+      new Builder(context, stubbedKey).logLevel(null);
+      fail("Setting null LogLevel should throw exception.");
     } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("writeKey must not be null or empty.");
-    }
-
-    mockResources(context, "");
-    try {
-      Analytics.with(context);
-      fail("Empty writeKey should throw exception.");
-    } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("writeKey must not be null or empty.");
+      assertThat(expected).hasMessage("LogLevel must not be null.");
     }
   }
 
-  private void mockResources(Context context, String writeKey) {
+  private void mockWriteKeyInResources(Context context, String writeKey) {
     Resources resources = mock(Resources.class);
     when(context.getResources()).thenReturn(resources);
 
     when(resources.getIdentifier(eq(WRITE_KEY_RESOURCE_IDENTIFIER), eq("string"),
-        anyString())).thenReturn(1);
+        eq("string"))).thenReturn(1);
     //noinspection ResourceType
     when(resources.getString(1)).thenReturn(writeKey);
   }
