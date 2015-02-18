@@ -6,17 +6,12 @@ import android.net.NetworkInfo;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import edu.emory.mathcs.backport.java.util.Collections;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.UUID;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,8 +26,10 @@ import static android.content.Context.CONNECTIVITY_SERVICE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.SegmentDispatcher.MAX_QUEUE_SIZE;
+import static com.segment.analytics.SegmentDispatcher.SegmentDispatcherHandler.REQUEST_FLUSH;
+import static com.segment.analytics.TestUtils.TRACK_PAYLOAD;
+import static com.segment.analytics.TestUtils.TRACK_PAYLOAD_JSON;
 import static com.segment.analytics.TestUtils.mockApplication;
-import static com.segment.analytics.internal.Utils.toISO8601Date;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
@@ -41,6 +38,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -65,43 +63,40 @@ public class SegmentDispatcherTest {
     assertThat(ShadowLog.getLogs()).isEmpty();
   }
 
-  @Test public void enqueueAddsToQueue() throws IOException {
-    QueueFile queueFile = new QueueFile(new File(folder.getRoot(), "queue-file"));
+  @Test public void enqueueAddsToQueueFile() throws IOException {
+    QueueFile queueFile = mock(QueueFile.class);
     SegmentDispatcher segmentDispatcher = new SegmentBuilder().queueFile(queueFile).build();
-    BasePayload payload = mock(BasePayload.class);
 
-    segmentDispatcher.performEnqueue(payload);
-    segmentDispatcher.performEnqueue(payload);
+    segmentDispatcher.performEnqueue(TRACK_PAYLOAD);
 
-    assertThat(segmentDispatcher.queueFile.size()).isEqualTo(2);
-    assertThat(segmentDispatcher.queueFile.peek()).isEqualTo("{}".getBytes());
+    verify(queueFile).add(TRACK_PAYLOAD_JSON.getBytes());
   }
 
   @Test public void enqueueLimitsQueueSize() throws IOException {
     QueueFile queueFile = mock(QueueFile.class);
-    when(queueFile.size()).thenReturn(MAX_QUEUE_SIZE, 0); // we don't need to trigger a real flush
+    // we want to trigger a remove, but not a flush, so return 0 the second time size() is called
+    when(queueFile.size()).thenReturn(MAX_QUEUE_SIZE, 0);
     SegmentDispatcher segmentDispatcher = new SegmentBuilder().queueFile(queueFile).build();
-    BasePayload payload = mock(BasePayload.class);
 
-    segmentDispatcher.performEnqueue(payload);
+    segmentDispatcher.performEnqueue(TRACK_PAYLOAD);
 
     verify(queueFile).remove(); // oldest entry is removed
-    verify(queueFile).add("{}".getBytes()); // newest entry is added
+    verify(queueFile).add(TRACK_PAYLOAD_JSON.getBytes()); // newest entry is added
   }
 
   @Test public void exceptionThrownIfFailedToRemove() throws IOException {
     QueueFile queueFile = mock(QueueFile.class);
-    doThrow(new IOException("mock")).when(queueFile).remove();
-    when(queueFile.size()).thenReturn(MAX_QUEUE_SIZE);
+    doThrow(new IOException("no remove for you.")).when(queueFile).remove();
+    when(queueFile.size()).thenReturn(MAX_QUEUE_SIZE); // trigger a remove
     SegmentDispatcher segmentDispatcher = new SegmentBuilder().queueFile(queueFile).build();
-    BasePayload payload = mock(BasePayload.class);
 
     try {
-      segmentDispatcher.performEnqueue(payload);
-      fail("Expected QueueFile to throw an error.");
+      segmentDispatcher.performEnqueue(TRACK_PAYLOAD);
+      fail("expected QueueFile to throw an error.");
     } catch (RuntimeException expected) {
       assertThat(expected).hasMessage("Could not remove payload from queue.");
-      assertThat(expected.getCause()).hasMessage("mock").isOfAnyClassIn(IOException.class);
+      assertThat(expected.getCause()).hasMessage("no remove for you.")
+          .isInstanceOf(IOException.class);
     }
   }
 
@@ -112,52 +107,69 @@ public class SegmentDispatcherTest {
     when(client.upload()).thenReturn(connection);
     SegmentDispatcher segmentDispatcher =
         new SegmentBuilder().client(client).flushSize(5).queueFile(queueFile).build();
-    BasePayload payload = mock(BasePayload.class);
 
-    for (int i = 0; i < 5; i++) {
-      segmentDispatcher.performEnqueue(payload);
+    for (int i = 0; i < 4; i++) {
+      segmentDispatcher.performEnqueue(TRACK_PAYLOAD);
     }
+    verifyZeroInteractions(client);
+    // Only the last enqueue should trigger an upload.
+    segmentDispatcher.performEnqueue(TRACK_PAYLOAD);
 
     verify(client).upload();
   }
 
   @Test public void flushRemovesItemsFromQueue() throws IOException {
     QueueFile queueFile = new QueueFile(new File(folder.getRoot(), "queue-file"));
-    BasePayload payload = mock(BasePayload.class);
     Client client = mock(Client.class);
-    Client.Connection connection = mockConnection();
-    when(client.upload()).thenReturn(connection);
+    when(client.upload()).thenReturn(mockConnection());
     SegmentDispatcher segmentDispatcher =
         new SegmentBuilder().client(client).queueFile(queueFile).build();
-
-    for (int i = 0; i < 5; i++) {
-      segmentDispatcher.performEnqueue(payload);
+    byte[] bytes = TRACK_PAYLOAD_JSON.getBytes();
+    for (int i = 0; i < 4; i++) {
+      queueFile.add(bytes);
     }
+
     segmentDispatcher.performFlush();
 
     assertThat(queueFile.size()).isEqualTo(0);
   }
 
-  @Test public void flushingWhenDisconnectedSkipsUpload() throws IOException {
-    Context context = mockApplication();
-    ConnectivityManager connectivityManager = mock(ConnectivityManager.class);
+  @Test public void flushWhenDisconnectedSkipsUpload() throws IOException {
     NetworkInfo networkInfo = mock(NetworkInfo.class);
-    Client client = mock(Client.class);
-
-    when(context.getSystemService(CONNECTIVITY_SERVICE)).thenReturn(connectivityManager);
-    when(connectivityManager.getActiveNetworkInfo()).thenReturn(networkInfo);
     when(networkInfo.isConnectedOrConnecting()).thenReturn(false);
-    SegmentDispatcher segmentDispatcher = new SegmentBuilder().context(context).build();
+    ConnectivityManager connectivityManager = mock(ConnectivityManager.class);
+    when(connectivityManager.getActiveNetworkInfo()).thenReturn(networkInfo);
+    Context context = mockApplication();
+    when(context.getSystemService(CONNECTIVITY_SERVICE)).thenReturn(connectivityManager);
+    Client client = mock(Client.class);
+    SegmentDispatcher segmentDispatcher =
+        new SegmentBuilder().context(context).client(client).build();
 
     segmentDispatcher.performFlush();
 
     verify(client, never()).upload();
+    assertThat(segmentDispatcher.handler.hasMessages(REQUEST_FLUSH)).isTrue();
   }
 
-  @Test public void flushClosesConnection() throws IOException {
+  @Test public void flushWhenQueueSizeIsLessThanOneSkipsUpload() throws IOException {
+    QueueFile queueFile = mock(QueueFile.class);
+    when(queueFile.size()).thenReturn(0);
+    Context context = mockApplication();
+    Client client = mock(Client.class);
+    SegmentDispatcher segmentDispatcher =
+        new SegmentBuilder().queueFile(queueFile).context(context).client(client).build();
+
+    segmentDispatcher.performFlush();
+
+    verifyZeroInteractions(context);
+    verify(client, never()).upload();
+    assertThat(segmentDispatcher.handler.hasMessages(REQUEST_FLUSH)).isTrue();
+  }
+
+  @Test public void flushDisconnectsConnection() throws IOException {
     Client client = mock(Client.class);
     QueueFile queueFile = new QueueFile(new File(folder.getRoot(), "queue-file"));
-    queueFile.add("{}".getBytes());
+    queueFile.add(TRACK_PAYLOAD_JSON.getBytes());
     HttpURLConnection urlConnection = mock(HttpURLConnection.class);
     Client.Connection connection = mockConnection(urlConnection);
     when(client.upload()).thenReturn(connection);
@@ -169,29 +181,33 @@ public class SegmentDispatcherTest {
     verify(urlConnection).disconnect();
   }
 
-  @Test public void serializationErrorSkipsPayload() throws IOException {
+  @Test public void serializationErrorSkipsAddingPayload() throws IOException {
     QueueFile queueFile = mock(QueueFile.class);
     Cartographer cartographer = mock(Cartographer.class);
     BasePayload payload = mock(BasePayload.class);
     SegmentDispatcher segmentDispatcher =
         new SegmentBuilder().cartographer(cartographer).queueFile(queueFile).build();
 
+    // Serialized json is null.
     when(cartographer.toJson(anyMap())).thenReturn(null);
     segmentDispatcher.performEnqueue(payload);
     verify(queueFile, never()).add((byte[]) any());
 
+    // Serialized json is empty.
     when(cartographer.toJson(anyMap())).thenReturn("");
     segmentDispatcher.performEnqueue(payload);
     verify(queueFile, never()).add((byte[]) any());
 
+    // Serialized json is too large (> 450kb).
     StringBuilder stringBuilder = new StringBuilder();
-    for (int i = 10; i < 14000; i++) {
-      stringBuilder.append(UUID.randomUUID().toString());
+    for (int i = 0; i < 450001; i++) {
+      stringBuilder.append('a');
     }
     when(cartographer.toJson(anyMap())).thenReturn(stringBuilder.toString());
     segmentDispatcher.performEnqueue(payload);
     verify(queueFile, never()).add((byte[]) any());
 
+    // Serializing json throws exception.
     doThrow(new IOException("mock")).when(cartographer).toJson(anyMap());
     segmentDispatcher.performEnqueue(payload);
     verify(queueFile, never()).add((byte[]) any());
@@ -204,96 +220,6 @@ public class SegmentDispatcherTest {
     segmentDispatcher.shutdown();
 
     verify(queueFile).close();
-  }
-
-  @Test public void batchPayloadWriter() throws IOException {
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    SegmentDispatcher.BatchPayloadWriter batchPayloadWriter =
-        new SegmentDispatcher.BatchPayloadWriter(byteArrayOutputStream);
-
-    final HashMap<String, Boolean> integrations = new LinkedHashMap<>();
-    integrations.put("foo", false);
-    integrations.put("bar", true);
-
-    batchPayloadWriter.beginObject()
-        .integrations(integrations)
-        .beginBatchArray()
-        .emitPayloadObject("foobarbazqux")
-        .emitPayloadObject("{}")
-        .emitPayloadObject("2")
-        .endBatchArray()
-        .endObject()
-        .close();
-
-    assertThat(byteArrayOutputStream.toString()) //
-        .overridingErrorMessage("It's OK if this failed close to midnight!")
-        .isEqualTo("{\"integrations\":{\"foo\":false,\"bar\":true},"
-            + "\"batch\":[foobarbazqux,{},2],"
-            + "\"sentAt\":\""
-            + toISO8601Date(new Date())
-            + "\"}");
-  }
-
-  @Test public void batchPayloadWriterSingleItem() throws IOException {
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    SegmentDispatcher.BatchPayloadWriter batchPayloadWriter =
-        new SegmentDispatcher.BatchPayloadWriter(byteArrayOutputStream);
-
-    final HashMap<String, Boolean> integrations = new LinkedHashMap<>();
-    integrations.put("foo", false);
-    integrations.put("bar", true);
-
-    batchPayloadWriter.beginObject()
-        .integrations(integrations)
-        .beginBatchArray()
-        .emitPayloadObject("qaz")
-        .endBatchArray()
-        .endObject()
-        .close();
-
-    assertThat(byteArrayOutputStream.toString()) //
-        .isEqualTo("{\"integrations\":{\"foo\":false,\"bar\":true},\"batch\":[qaz],\"sentAt\":\""
-            + toISO8601Date(new Date())
-            + "\"}").overridingErrorMessage("its ok if this failed close to midnight!");
-  }
-
-  @Test public void batchPayloadWriterNoIntegrations() throws IOException {
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    SegmentDispatcher.BatchPayloadWriter batchPayloadWriter =
-        new SegmentDispatcher.BatchPayloadWriter(byteArrayOutputStream);
-
-    batchPayloadWriter.beginObject()
-        .integrations(Collections.emptyMap())
-        .beginBatchArray()
-        .emitPayloadObject("foo")
-        .endBatchArray()
-        .endObject()
-        .close();
-
-    assertThat(byteArrayOutputStream.toString()) //
-        .isEqualTo("{\"batch\":[foo],\"sentAt\":\"" + toISO8601Date(new Date()) + "\"}")
-        .overridingErrorMessage("its ok if this failed close to midnight!");
-  }
-
-  @Test public void batchPayloadWriterFailsForNoItem() throws IOException {
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    SegmentDispatcher.BatchPayloadWriter batchPayloadWriter =
-        new SegmentDispatcher.BatchPayloadWriter(byteArrayOutputStream);
-
-    HashMap<String, Boolean> integrations = new LinkedHashMap<>();
-    integrations.put("foo", false);
-    integrations.put("bar", true);
-
-    try {
-      batchPayloadWriter.beginObject()
-          .integrations(integrations)
-          .beginBatchArray()
-          .endBatchArray()
-          .endObject()
-          .close();
-    } catch (IOException exception) {
-      assertThat(exception).hasMessage("At least one payload must be provided.");
-    }
   }
 
   @Test public void payloadVisitorReadsOnly450KB() throws IOException {
@@ -355,7 +281,7 @@ public class SegmentDispatcherTest {
         + "        }\n"
         + "      }").getBytes(); // length 1432
     QueueFile queueFile = new QueueFile(new File(folder.getRoot(), "queue-file"));
-    // Fill the fill to ~716kb of payload
+    // Fill the payload with (1432 * 500) = ~716kb of data
     for (int i = 0; i < 500; i++) {
       queueFile.add(bytes);
     }

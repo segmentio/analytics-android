@@ -59,6 +59,30 @@ public final class TestUtils {
       + "  }\n"
       + "}";
 
+  static final String TRACK_PAYLOAD_JSON;
+  static final TrackPayload TRACK_PAYLOAD;
+
+  static {
+    TRACK_PAYLOAD_JSON = "{\""
+        + "messageId\":\"a161304c-498c-4830-9291-fcfb8498877b\","
+        + "\"type\":\"track\","
+        + "\"channel\":\"mobile\","
+        + "\"context\":{\"traits\":{}},"
+        + "\"anonymousId\":null,"
+        + "\"timestamp\":\"2014-12-15T13:32:44-0700\","
+        + "\"integrations\":"
+        + "{\"All\":true},"
+        + "\"event\":\"foo\","
+        + "\"properties\":{}"
+        + "}";
+
+    AnalyticsContext analyticsContext = createContext(new Traits());
+    TRACK_PAYLOAD = new TrackPayload(analyticsContext, new Options(), "foo", new Properties());
+    // put some predictable values for automatically generated data
+    TRACK_PAYLOAD.put("messageId", "a161304c-498c-4830-9291-fcfb8498877b");
+    TRACK_PAYLOAD.put("timestamp", "2014-12-15T13:32:44-0700");
+  }
+
   public static Application mockApplication() {
     Application application = mock(Application.class);
     when(application.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_GRANTED);

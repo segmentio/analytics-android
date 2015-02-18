@@ -27,8 +27,6 @@ package com.segment.analytics;
 import android.content.Context;
 import android.util.Base64;
 import java.io.Closeable;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,8 +36,7 @@ import java.net.URL;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 /**
- * HTTP client which can upload payloads and fetch project settings from the Segment public API,
- * and download a file.
+ * HTTP client which can upload payloads and fetch project settings from the Segment public API.
  */
 class Client {
   private static final String API_URL = "https://api.segment.io";
@@ -55,7 +52,7 @@ class Client {
         try {
           int responseCode = connection.getResponseCode();
           if (responseCode != HTTP_OK) {
-            throw new IOException(responseCode + " " + connection.getResponseMessage());
+            throw new UploadException(responseCode, connection.getResponseMessage());
           }
         } finally {
           super.close();
@@ -112,22 +109,15 @@ class Client {
     return createGetConnection(connection);
   }
 
-  void downloadFile(String url, File location) throws IOException {
-    HttpURLConnection connection = openConnection(url);
-    connection.setInstanceFollowRedirects(true);
-    connection.connect();
+  /** Represents an exception during uploading events that shouldn't be retried. */
+  static class UploadException extends IOException {
+    final int responseCode;
+    final String responseMessage;
 
-    FileOutputStream fos = new FileOutputStream(location);
-    InputStream is = connection.getInputStream();
-    byte[] buffer = new byte[1024];
-    try {
-      for (int bufferLength; (bufferLength = is.read(buffer)) > 0; ) {
-        fos.write(buffer, 0, bufferLength);
-      }
-    } finally {
-      connection.disconnect();
-      fos.close();
-      is.close();
+    UploadException(int responseCode, String responseMessage) {
+      super("HTTP " + responseCode + ": " + responseMessage);
+      this.responseCode = responseCode;
+      this.responseMessage = responseMessage;
     }
   }
 

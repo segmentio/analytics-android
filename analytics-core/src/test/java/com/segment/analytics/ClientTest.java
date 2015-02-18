@@ -5,7 +5,6 @@ import android.net.Uri;
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.RecordedRequest;
 import com.squareup.okhttp.mockwebserver.rule.MockWebServerRule;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -66,7 +65,7 @@ public class ClientTest {
         .containsHeader("Authorization", "Basic Zm9vOg==");
   }
 
-  @Test public void uploadClosesConnections() throws Exception {
+  @Test public void closingUploadConnectionClosesStreams() throws Exception {
     OutputStream os = mock(OutputStream.class);
     when(mockConnection.getOutputStream()).thenReturn(os);
     when(mockConnection.getResponseCode()).thenReturn(200);
@@ -80,7 +79,7 @@ public class ClientTest {
     verify(os).close();
   }
 
-  @Test public void uploadClosesConnectionsAndThrowsExceptionOnFailure() throws Exception {
+  @Test public void uploadFailureClosesStreamsAndThrowsException() throws Exception {
     OutputStream os = mock(OutputStream.class);
     when(mockConnection.getOutputStream()).thenReturn(os);
     when(mockConnection.getResponseCode()).thenReturn(201);
@@ -93,8 +92,8 @@ public class ClientTest {
     try {
       connection.close();
       fail("Non 200 return code should throw an exception");
-    } catch (IOException e) {
-      assertThat(e).hasMessage(201 + " bar");
+    } catch (Client.UploadException e) {
+      assertThat(e).hasMessage("HTTP " + 201 + ": bar");
     }
     verify(mockConnection).disconnect();
     verify(os).close();
@@ -112,7 +111,7 @@ public class ClientTest {
         .containsHeader("Content-Type", "application/json");
   }
 
-  @Test public void fetchSettingsClosesConnectionsAndThrowsExceptionOnFailure() throws Exception {
+  @Test public void fetchSettingsFailureClosesStreamsAndThrowsException() throws Exception {
     when(mockConnection.getResponseCode()).thenReturn(204);
     when(mockConnection.getResponseMessage()) //
         .thenReturn("no cookies for you http://bit.ly/1EMHBNb");
@@ -126,7 +125,7 @@ public class ClientTest {
     verify(mockConnection).disconnect();
   }
 
-  @Test public void fetchSettingsClosesConnections() throws Exception {
+  @Test public void closingFetchSettingsClosesStreams() throws Exception {
     InputStream is = mock(InputStream.class);
     when(mockConnection.getInputStream()).thenReturn(is);
     when(mockConnection.getResponseCode()).thenReturn(200);
@@ -136,16 +135,6 @@ public class ClientTest {
     connection.close();
     verify(mockConnection).disconnect();
     verify(is).close();
-  }
-
-  @Test public void downloadFile() throws Exception {
-    server.enqueue(new MockResponse().setBody("foo")); // todo: test with a real file
-    File file = new File(folder.getRoot(), "bar.jar");
-    assertThat(file).doesNotExist();
-
-    client.downloadFile("http://localhost/bar.jar", file);
-
-    assertThat(file).exists().hasContent("foo");
   }
 
   static class RecordedRequestAssert

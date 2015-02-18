@@ -85,16 +85,15 @@ public class Analytics {
   };
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
   private static final Properties EMPTY_PROPERTIES = new Properties();
-  static Analytics singleton = null;
+  volatile static Analytics singleton = null;
 
-  final Application application;
-  final IntegrationManager integrationManager;
   final SegmentDispatcher segmentDispatcher;
-  final Stats stats;
-  final Traits.Cache traitsCache;
-  final AnalyticsContext analyticsContext;
-  final Options defaultOptions;
   final LogLevel logLevel;
+  private final IntegrationManager integrationManager;
+  private final Stats stats;
+  private final Options defaultOptions;
+  private final Traits.Cache traitsCache;
+  private final AnalyticsContext analyticsContext;
   boolean shutdown;
 
   /**
@@ -141,8 +140,6 @@ public class Analytics {
    * Set the global instance returned from {@link #with}.
    * <p/>
    * This method must be called before any calls to {@link #with} and may only be called once.
-   *
-   * @since 2.3
    */
   public static void setSingletonInstance(Analytics analytics) {
     synchronized (Analytics.class) {
@@ -156,7 +153,6 @@ public class Analytics {
   Analytics(Application application, IntegrationManager integrationManager,
       SegmentDispatcher segmentDispatcher, Stats stats, Traits.Cache traitsCache,
       AnalyticsContext analyticsContext, Options defaultOptions, LogLevel logLevel) {
-    this.application = application;
     this.integrationManager = integrationManager;
     this.segmentDispatcher = segmentDispatcher;
     this.stats = stats;
@@ -198,9 +194,12 @@ public class Analytics {
     }
   }
 
+  // Analytics API
+
   /**
    * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
    * also lets you record {@code traits} about the user, like their email, name, account type, etc.
+   * This method will simply set the userId for the current user.
    *
    * @see #identify(String, Traits, Options)
    */
@@ -211,6 +210,7 @@ public class Analytics {
   /**
    * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
    * also lets you record {@code traits} about the user, like their email, name, account type, etc.
+   * This method will simply add the given traits to the user profile.
    *
    * @see #identify(String, Traits, Options)
    */
@@ -223,8 +223,8 @@ public class Analytics {
    * also lets you record {@code traits} about the user, like their email, name, account type, etc.
    * <p/>
    * Traits and userId will be automatically cached and available on future sessions for the same
-   * user. To update a trait on the server, simply call identify with the same user id (or null).
-   * You can also use {@link #identify(Traits)} for this purpose.
+   * user. To update a trait on the server, call identify with the same user id (or null). You can
+   * also use {@link #identify(Traits)} for this purpose.
    *
    * @param userId Unique identifier which you recognize a user by in your own database. If this
    * is null or empty, any previous id we have (could be the anonymous id) will be
@@ -232,22 +232,28 @@ public class Analytics {
    * @param newTraits Traits about the user
    * @param options To configure the call
    * @return The previous ID assigned to the user. Use it to call {@link #alias(String, Options)}
-   * @throws IllegalArgumentException if userId is null or an empty string
+   * @throws IllegalArgumentException if both {@code userId} and {@code newTraits} are not provided
    * @see <a href="https://segment.com/docs/tracking-api/identify/">Identify Documentation</a>
    */
   public String identify(String userId, Traits newTraits, Options options) {
-    String previousId = traitsCache.get().userIdOrAnonymousId();
-    if (!isNullOrEmpty(userId)) {
-      traitsCache.get().putUserId(userId);
+    if (isNullOrEmpty(userId) && isNullOrEmpty(newTraits)) {
+      throw new IllegalArgumentException("Either userId or some traits must be provided.");
     }
-    if (options == null) {
-      options = defaultOptions;
+
+    Traits traits = traitsCache.get();
+    String previousId = traits.userIdOrAnonymousId();
+    if (!isNullOrEmpty(userId)) {
+      traits.putUserId(userId);
     }
     if (!isNullOrEmpty(newTraits)) {
-      Traits traits = traitsCache.get();
       traits.putAll(newTraits);
-      traitsCache.set(traits);
-      analyticsContext.setTraits(traits);
+    }
+
+    traitsCache.set(traits); // Save the new traits
+    analyticsContext.setTraits(traits); // Update the references
+
+    if (options == null) {
+      options = defaultOptions;
     }
 
     BasePayload payload = new IdentifyPayload(analyticsContext, options, traitsCache.get());
@@ -425,12 +431,11 @@ public class Analytics {
     submit(payload);
   }
 
+  // Android API
+
   /**
    * Asynchronously flushes all messages in the queue to the server, and tells bundled integrations
    * to do the same.
-   * <p>
-   * Note that this will do nothing for bundled integrations that don't provide an explicit flush
-   * method.
    */
   public void flush() {
     segmentDispatcher.dispatchFlush(0);
@@ -508,6 +513,8 @@ public class Analytics {
 
     integrationManager.dispatchRegisterCallback(bundledIntegration.key, callback);
   }
+
+  // Internal API
 
   void submit(BasePayload payload) {
     if (logLevel.log()) {

@@ -156,9 +156,12 @@ class SegmentDispatcher {
   }
 
   void performFlush() {
-    if (queueFile.size() < 1 || !isConnected(context)) return;
+    if (queueFile.size() < 1 || !isConnected(context)) {
+      dispatchFlush(flushInterval);
+      return;
+    }
 
-    Client.Connection connection = null;
+    Client.Connection connection;
     try {
       // Open a connection.
       connection = client.upload();
@@ -195,6 +198,10 @@ class SegmentDispatcher {
             "Flushed " + payloadsUploaded + " payloads.");
       }
       stats.dispatchFlush(payloadsUploaded);
+    } catch (Client.UploadException e) {
+      if (logLevel.log()) {
+        error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, "Could not upload payloads");
+      }
     } catch (IOException e) {
       if (logLevel.log()) {
         error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, "Could not upload payloads",
@@ -211,8 +218,7 @@ class SegmentDispatcher {
     }
 
     if (queueFile.size() > 0) {
-      // Flush any remaining items.
-      performFlush();
+      performFlush(); // Flush any remaining items.
     } else {
       dispatchFlush(flushInterval);
     }
@@ -316,9 +322,9 @@ class SegmentDispatcher {
     }
   }
 
-  private static class SegmentDispatcherHandler extends Handler {
+  static class SegmentDispatcherHandler extends Handler {
+    static final int REQUEST_FLUSH = 1;
     private static final int REQUEST_ENQUEUE = 0;
-    private static final int REQUEST_FLUSH = 1;
     private final SegmentDispatcher segmentDispatcher;
 
     SegmentDispatcherHandler(Looper looper, SegmentDispatcher segmentDispatcher) {
