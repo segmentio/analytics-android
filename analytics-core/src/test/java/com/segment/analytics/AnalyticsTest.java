@@ -3,7 +3,6 @@ package com.segment.analytics;
 import android.Manifest;
 import android.app.Application;
 import com.segment.analytics.internal.model.payloads.BasePayload;
-import java.util.LinkedHashMap;
 import org.assertj.core.data.MapEntry;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -21,6 +20,7 @@ import static com.segment.analytics.Analytics.BundledIntegration.BUGSNAG;
 import static com.segment.analytics.Analytics.BundledIntegration.MIXPANEL;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload;
+import static com.segment.analytics.TestUtils.createContext;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,8 +57,7 @@ public class AnalyticsTest {
     application = mockApplication();
     traits = Traits.create();
     when(traitsCache.get()).thenReturn(traits);
-    analyticsContext = new AnalyticsContext(new LinkedHashMap<String, Object>());
-    analyticsContext.setTraits(traits);
+    analyticsContext = createContext(traits);
     analytics =
         new Analytics(application, integrationManager, segmentDispatcher, stats, traitsCache,
             analyticsContext, defaultOptions, NONE);
