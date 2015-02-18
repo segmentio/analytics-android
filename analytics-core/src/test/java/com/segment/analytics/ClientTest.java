@@ -5,7 +5,6 @@ import android.net.Uri;
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.RecordedRequest;
 import com.squareup.okhttp.mockwebserver.rule.MockWebServerRule;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -136,16 +135,6 @@ public class ClientTest {
     connection.close();
     verify(mockConnection).disconnect();
     verify(is).close();
-  }
-
-  @Test public void downloadFile() throws Exception {
-    server.enqueue(new MockResponse().setBody("foo")); // todo: test with a real file
-    File file = new File(folder.getRoot(), "bar.jar");
-    assertThat(file).doesNotExist();
-
-    client.downloadFile("http://localhost/bar.jar", file);
-
-    assertThat(file).exists().hasContent("foo");
   }
 
   static class RecordedRequestAssert
