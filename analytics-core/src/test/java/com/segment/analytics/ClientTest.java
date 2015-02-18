@@ -65,7 +65,7 @@ public class ClientTest {
         .containsHeader("Authorization", "Basic Zm9vOg==");
   }
 
-  @Test public void uploadClosesConnections() throws Exception {
+  @Test public void closingUploadConnectionClosesStreams() throws Exception {
     OutputStream os = mock(OutputStream.class);
     when(mockConnection.getOutputStream()).thenReturn(os);
     when(mockConnection.getResponseCode()).thenReturn(200);
@@ -79,7 +79,7 @@ public class ClientTest {
     verify(os).close();
   }
 
-  @Test public void uploadClosesConnectionsAndThrowsExceptionOnFailure() throws Exception {
+  @Test public void uploadFailureClosesStreamsAndThrowsException() throws Exception {
     OutputStream os = mock(OutputStream.class);
     when(mockConnection.getOutputStream()).thenReturn(os);
     when(mockConnection.getResponseCode()).thenReturn(201);
@@ -92,8 +92,8 @@ public class ClientTest {
     try {
       connection.close();
       fail("Non 200 return code should throw an exception");
-    } catch (IOException e) {
-      assertThat(e).hasMessage(201 + " bar");
+    } catch (Client.UploadException e) {
+      assertThat(e).hasMessage("HTTP " + 201 + ": bar");
     }
     verify(mockConnection).disconnect();
     verify(os).close();
@@ -111,7 +111,7 @@ public class ClientTest {
         .containsHeader("Content-Type", "application/json");
   }
 
-  @Test public void fetchSettingsClosesConnectionsAndThrowsExceptionOnFailure() throws Exception {
+  @Test public void fetchSettingsFailureClosesStreamsAndThrowsException() throws Exception {
     when(mockConnection.getResponseCode()).thenReturn(204);
     when(mockConnection.getResponseMessage()) //
         .thenReturn("no cookies for you http://bit.ly/1EMHBNb");
@@ -125,7 +125,7 @@ public class ClientTest {
     verify(mockConnection).disconnect();
   }
 
-  @Test public void fetchSettingsClosesConnections() throws Exception {
+  @Test public void closingFetchSettingsClosesStreams() throws Exception {
     InputStream is = mock(InputStream.class);
     when(mockConnection.getInputStream()).thenReturn(is);
     when(mockConnection.getResponseCode()).thenReturn(200);

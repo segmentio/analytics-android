@@ -52,7 +52,7 @@ class Client {
         try {
           int responseCode = connection.getResponseCode();
           if (responseCode != HTTP_OK) {
-            throw new IOException(responseCode + " " + connection.getResponseMessage());
+            throw new UploadException(responseCode, connection.getResponseMessage());
           }
         } finally {
           super.close();
@@ -107,6 +107,18 @@ class Client {
       throw new IOException("HTTP " + responseCode + ": " + connection.getResponseMessage());
     }
     return createGetConnection(connection);
+  }
+
+  /** Represents an exception during uploading events that shouldn't be retried. */
+  static class UploadException extends IOException {
+    final int responseCode;
+    final String responseMessage;
+
+    UploadException(int responseCode, String responseMessage) {
+      super("HTTP " + responseCode + ": " + responseMessage);
+      this.responseCode = responseCode;
+      this.responseMessage = responseMessage;
+    }
   }
 
   /**

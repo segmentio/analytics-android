@@ -195,6 +195,10 @@ class SegmentDispatcher {
             "Flushed " + payloadsUploaded + " payloads.");
       }
       stats.dispatchFlush(payloadsUploaded);
+    } catch (Client.UploadException e) {
+      if (logLevel.log()) {
+        error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, "Could not upload payloads");
+      }
     } catch (IOException e) {
       if (logLevel.log()) {
         error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, "Could not upload payloads",
@@ -211,8 +215,7 @@ class SegmentDispatcher {
     }
 
     if (queueFile.size() > 0) {
-      // Flush any remaining items.
-      performFlush();
+      performFlush(); // Flush any remaining items.
     } else {
       dispatchFlush(flushInterval);
     }
