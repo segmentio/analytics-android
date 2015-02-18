@@ -156,9 +156,12 @@ class SegmentDispatcher {
   }
 
   void performFlush() {
-    if (queueFile.size() < 1 || !isConnected(context)) return;
+    if (queueFile.size() < 1 || !isConnected(context)) {
+      dispatchFlush(flushInterval);
+      return;
+    }
 
-    Client.Connection connection = null;
+    Client.Connection connection;
     try {
       // Open a connection.
       connection = client.upload();
@@ -319,9 +322,9 @@ class SegmentDispatcher {
     }
   }
 
-  private static class SegmentDispatcherHandler extends Handler {
+  static class SegmentDispatcherHandler extends Handler {
+    static final int REQUEST_FLUSH = 1;
     private static final int REQUEST_ENQUEUE = 0;
-    private static final int REQUEST_FLUSH = 1;
     private final SegmentDispatcher segmentDispatcher;
 
     SegmentDispatcherHandler(Looper looper, SegmentDispatcher segmentDispatcher) {
