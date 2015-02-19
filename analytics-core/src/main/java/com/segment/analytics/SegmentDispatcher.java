@@ -147,7 +147,7 @@ class SegmentDispatcher {
 
     try {
       if (logLevel.log()) {
-        debug(OWNER_SEGMENT_DISPATCHER, VERB_ENQUEUE, payload.id(),
+        debug(OWNER_SEGMENT_DISPATCHER, VERB_ENQUEUE, payload.messageId(),
             "Queue Size: " + queueFile.size());
       }
       String payloadJson = cartographer.toJson(payload);
@@ -157,7 +157,7 @@ class SegmentDispatcher {
       queueFile.add(payloadJson.getBytes(UTF_8));
     } catch (IOException e) {
       if (logLevel.log()) {
-        error(OWNER_SEGMENT_DISPATCHER, VERB_ENQUEUE, payload.id(), e, payload, queueFile);
+        error(OWNER_SEGMENT_DISPATCHER, VERB_ENQUEUE, payload.messageId(), e, payload, queueFile);
       }
     }
 

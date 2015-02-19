@@ -27,7 +27,6 @@ package com.segment.analytics.internal.model.payloads;
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Properties;
-import com.segment.analytics.internal.AbstractIntegration;
 
 public class TrackPayload extends BasePayload {
   /**
@@ -56,10 +55,6 @@ public class TrackPayload extends BasePayload {
 
   public Properties properties() {
     return getValueMap(PROPERTIES_KEY, Properties.class);
-  }
-
-  @Override public void run(AbstractIntegration integration) {
-    if (isIntegrationEnabledInPayload(integration)) integration.track(this);
   }
 
   @Override public String toString() {

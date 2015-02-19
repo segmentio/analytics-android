@@ -27,7 +27,6 @@ package com.segment.analytics.internal.model.payloads;
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
-import com.segment.analytics.internal.AbstractIntegration;
 
 public class GroupPayload extends BasePayload {
   /**
@@ -55,10 +54,6 @@ public class GroupPayload extends BasePayload {
 
   public Traits traits() {
     return getValueMap(TRAITS_KEY, Traits.class);
-  }
-
-  @Override public void run(AbstractIntegration integration) {
-    if (isIntegrationEnabledInPayload(integration)) integration.group(this);
   }
 
   @Override public String toString() {

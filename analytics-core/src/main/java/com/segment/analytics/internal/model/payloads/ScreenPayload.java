@@ -27,7 +27,6 @@ package com.segment.analytics.internal.model.payloads;
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Properties;
-import com.segment.analytics.internal.AbstractIntegration;
 
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
@@ -69,10 +68,6 @@ public class ScreenPayload extends BasePayload {
 
   public Properties properties() {
     return (Properties) get(PROPERTIES_KEY);
-  }
-
-  @Override public void run(AbstractIntegration integration) {
-    if (isIntegrationEnabledInPayload(integration)) integration.screen(this);
   }
 
   @Override public String toString() {

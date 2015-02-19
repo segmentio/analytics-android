@@ -27,12 +27,9 @@ package com.segment.analytics.internal.model.payloads;
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.ValueMap;
-import com.segment.analytics.internal.AbstractIntegration;
-import com.segment.analytics.internal.IntegrationOperation;
 import java.util.Date;
 import java.util.UUID;
 
-import static com.segment.analytics.Options.ALL_INTEGRATIONS_KEY;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.toISO8601Date;
 
@@ -42,12 +39,7 @@ import static com.segment.analytics.internal.Utils.toISO8601Date;
  */
 // This ignores projectId, receivedAt and version that are set by the server.
 // sentAt is set on SegmentClient#BatchPayload
-public abstract class BasePayload extends ValueMap implements IntegrationOperation {
-  /**
-   * The user ID is an identifier that unique identifies the user in your database. Ideally it
-   * should not be an email address, because emails can change, whereas a database ID can't.
-   */
-  static final String USER_ID_KEY = "userId";
+public abstract class BasePayload extends ValueMap {
   /** The type of message. */
   private static final String TYPE_KEY = "type";
   /**
@@ -83,6 +75,11 @@ public abstract class BasePayload extends ValueMap implements IntegrationOperati
   private static final String INTEGRATIONS_KEY = "integrations";
   /** The timestamp when the message took place. This should be an ISO-8601-formatted string. */
   private static final String TIMESTAMP_KEY = "timestamp";
+  /**
+   * The user ID is an identifier that unique identifies the user in your database. Ideally it
+   * should not be an email address, because emails can change, whereas a database ID can't.
+   */
+  protected static final String USER_ID_KEY = "userId";
 
   public BasePayload(Type type, AnalyticsContext context, Options options) {
     AnalyticsContext contextCopy = context.unmodifiableCopy();
@@ -111,6 +108,14 @@ public abstract class BasePayload extends ValueMap implements IntegrationOperati
     return getString(ANONYMOUS_ID_KEY);
   }
 
+  public String messageId() {
+    return getString(MESSAGE_ID);
+  }
+
+  public ValueMap integrations() {
+    return getValueMap(INTEGRATIONS_KEY);
+  }
+
   public AnalyticsContext context() {
     return getValueMap(CONTEXT_KEY, AnalyticsContext.class);
   }
@@ -118,22 +123,6 @@ public abstract class BasePayload extends ValueMap implements IntegrationOperati
   @Override public BasePayload putValue(String key, Object value) {
     super.putValue(key, value);
     return this;
-  }
-
-  @Override public String id() {
-    return getString(MESSAGE_ID);
-  }
-
-  final boolean isIntegrationEnabledInPayload(AbstractIntegration integration) {
-    boolean enabled = true;
-    ValueMap integrations = getValueMap(INTEGRATIONS_KEY);
-    String key = integration.key();
-    if (integrations.containsKey(key)) {
-      enabled = integrations.getBoolean(key, true);
-    } else if (integrations.containsKey(ALL_INTEGRATIONS_KEY)) {
-      enabled = integrations.getBoolean(ALL_INTEGRATIONS_KEY, true);
-    }
-    return enabled;
   }
 
   /** @see #TYPE_KEY */

@@ -107,7 +107,7 @@ public class ClientTest {
     assertThat(connection.is).isNotNull();
     assertThat(connection.connection.getResponseCode()).isEqualTo(200);
     RecordedRequestAssert.assertThat(server.takeRequest())
-        .hasRequestLine("GET /project/foo/settings HTTP/1.1")
+        .hasRequestLine("GET /v1/projects/foo/settings HTTP/1.1")
         .containsHeader("Content-Type", "application/json");
   }
 

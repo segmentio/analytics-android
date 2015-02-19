@@ -39,7 +39,6 @@ import static java.net.HttpURLConnection.HTTP_OK;
  * HTTP client which can upload payloads and fetch project settings from the Segment public API.
  */
 class Client {
-  private static final String API_URL = "https://api.segment.io";
   private static final int DEFAULT_READ_TIMEOUT_MILLIS = 20 * 1000; // 20s
   private static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 15 * 1000; // 15s
 
@@ -89,7 +88,7 @@ class Client {
   }
 
   Connection upload() throws IOException {
-    HttpURLConnection connection = openConnection(API_URL + "/v1/import");
+    HttpURLConnection connection = openConnection("https://api.segment.io/v1/import");
     connection.setRequestProperty("Content-Type", "application/json");
     connection.setRequestProperty("Authorization", authorizationHeader(writeKey));
     connection.setDoOutput(true);
@@ -98,7 +97,8 @@ class Client {
   }
 
   Connection fetchSettings() throws IOException {
-    HttpURLConnection connection = openConnection(API_URL + "/project/" + writeKey + "/settings");
+    HttpURLConnection connection =
+        openConnection("http://cdn.segment.com/v1/projects/" + writeKey + "/settings");
     connection.setRequestProperty("Content-Type", "application/json");
 
     int responseCode = connection.getResponseCode();

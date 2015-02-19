@@ -10,11 +10,13 @@ public class SampleApp extends Application {
     super.onCreate();
 
     // Initialize a new instance of the Analytics client.
-    Analytics analytics = new Analytics.Builder(this, ANALYTICS_WRITE_KEY) //
-        .build();
+    Analytics.Builder builder = new Analytics.Builder(this, ANALYTICS_WRITE_KEY);
+    if (BuildConfig.DEBUG) {
+      builder.logLevel(Analytics.LogLevel.BASIC);
+    }
 
     // Set the initialized instance as a globally accessible instance.
-    Analytics.setSingletonInstance(analytics);
+    Analytics.setSingletonInstance(builder.build());
 
     // Now anytime you call Analytics.with, the custom instance will be returned.
     Analytics.with(this).track("App Launched");

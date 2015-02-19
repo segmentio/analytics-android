@@ -522,15 +522,15 @@ public class Analytics {
 
   void submit(BasePayload payload) {
     if (logLevel.log()) {
-      debug(OWNER_MAIN, VERB_CREATE, payload.id(), payload);
+      debug(OWNER_MAIN, VERB_CREATE, payload.messageId(), payload);
     }
     segmentDispatcher.dispatchEnqueue(payload);
     if (integrationManager == null) {
       if (logLevel.log()) {
-        debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, payload.id());
+        debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, payload.messageId());
       }
     } else {
-      integrationManager.dispatchOperation(payload);
+      integrationManager.dispatchPayload(payload);
     }
   }
 
@@ -540,7 +540,7 @@ public class Analytics {
     if (logLevel.log()) {
       debug(OWNER_MAIN, VERB_CREATE, payload.id(), payload);
     }
-    integrationManager.dispatchOperation(payload);
+    integrationManager.dispatchLifecyclePayload(payload);
   }
 
   public enum BundledIntegration {

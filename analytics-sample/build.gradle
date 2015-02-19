@@ -4,7 +4,7 @@ apply plugin: 'com.android.application'
 apply from: rootProject.file('gradle/android.gradle')
 
 dependencies {
-  compile project(':analytics-core')
+  compile project(':analytics')
 
   // only required for Android Wear apps
   compile project(':analytics-wear')

@@ -32,6 +32,9 @@ import static java.util.Collections.unmodifiableMap;
 class ProjectSettings extends ValueMap {
   private static final String TIMESTAMP_KEY = "timestamp";
   private static final String SEGMENT_KEY = "Segment.io";
+  private static final String PLAN_KEY = "plan";
+  private static final String INTEGRATIONS_KEY = "integrations";
+  private static final String TRACKING_PLAN_KEY = "track";
 
   static ProjectSettings create(Map<String, Object> map) {
     map.put(TIMESTAMP_KEY, System.currentTimeMillis());
@@ -47,8 +50,24 @@ class ProjectSettings extends ValueMap {
     return getLong(TIMESTAMP_KEY, 0L);
   }
 
+  ValueMap plan() {
+    return getValueMap(PLAN_KEY);
+  }
+
+  ValueMap trackingPlan() {
+    ValueMap plan = plan();
+    if (plan == null) {
+      return null;
+    }
+    return plan.getValueMap(TRACKING_PLAN_KEY);
+  }
+
+  ValueMap integrations() {
+    return getValueMap(INTEGRATIONS_KEY);
+  }
+
   static class Cache extends ValueMap.Cache<ProjectSettings> {
-    private static final String PROJECT_SETTINGS_CACHE_KEY_PREFIX = "project-settings-";
+    private static final String PROJECT_SETTINGS_CACHE_KEY_PREFIX = "project-settings-plan-";
 
     Cache(Context context, Cartographer cartographer, String tag) {
       super(context, cartographer, PROJECT_SETTINGS_CACHE_KEY_PREFIX + tag, ProjectSettings.class);

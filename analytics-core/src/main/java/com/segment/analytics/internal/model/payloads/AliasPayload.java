@@ -26,7 +26,6 @@ package com.segment.analytics.internal.model.payloads;
 
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
-import com.segment.analytics.internal.AbstractIntegration;
 
 public class AliasPayload extends BasePayload {
   /**
@@ -43,10 +42,6 @@ public class AliasPayload extends BasePayload {
 
   public String previousId() {
     return getString(PREVIOUS_ID_KEY);
-  }
-
-  @Override public void run(AbstractIntegration integration) {
-    if (isIntegrationEnabledInPayload(integration)) integration.alias(this);
   }
 
   @Override public String toString() {
