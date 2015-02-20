@@ -5,15 +5,19 @@ import android.content.Context;
 import android.os.Bundle;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.segment.analytics.Properties;
+import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import static com.segment.analytics.Analytics.LogLevel;
+import static com.segment.analytics.internal.Utils.OWNER_INTEGRATION_MANAGER;
+import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
@@ -32,9 +36,30 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   boolean trackCategorizedPages;
   boolean trackNamedPages;
   String token;
+  LogLevel logLevel;
+
+  private static void addSpecialProperties(JSONObject jsonObject, Traits traits)
+      throws JSONException {
+    jsonObject.put("$email", traits.email());
+    jsonObject.remove("email");
+    jsonObject.put("$phone", traits.phone());
+    jsonObject.remove("phone");
+    jsonObject.put("$first_name", traits.firstName());
+    jsonObject.remove("firstName");
+    jsonObject.put("$last_name", traits.lastName());
+    jsonObject.remove("lastName");
+    jsonObject.put("$name", traits.name());
+    jsonObject.remove("name");
+    jsonObject.put("$username", traits.username());
+    jsonObject.remove("username");
+    jsonObject.put("$create", traits.createdAt());
+    jsonObject.remove("createdAt");
+  }
 
   @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
+    this.logLevel = logLevel;
+
     trackAllPages = settings.getBoolean("trackAllPages", false);
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", true);
     trackNamedPages = settings.getBoolean("trackNamedPages", true);
@@ -67,6 +92,14 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     String userId = identify.userId();
     mixpanelAPI.identify(userId);
     JSONObject traits = identify.traits().toJsonObject();
+    try {
+      addSpecialProperties(traits, identify.traits());
+    } catch (JSONException e) {
+      if (logLevel.log()) {
+        debug(OWNER_INTEGRATION_MANAGER, MIXPANEL_KEY, identify.id());
+      }
+    }
+
     mixpanelAPI.registerSuperProperties(traits);
     if (isPeopleEnabled) {
       MixpanelAPI.People people = mixpanelAPI.getPeople();
