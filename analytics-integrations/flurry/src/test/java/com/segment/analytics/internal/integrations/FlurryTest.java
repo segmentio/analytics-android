@@ -40,7 +40,6 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(FlurryAgent.class)
 public class FlurryTest {
-  final String apiKey = "foo";
   @Rule public PowerMockRule rule = new PowerMockRule();
   @MockitoAnnotations.Mock Application context;
   FlurryIntegration integration;
@@ -49,21 +48,26 @@ public class FlurryTest {
     initMocks(this);
     PowerMockito.mockStatic(FlurryAgent.class);
     integration = new FlurryIntegration();
-    integration.apiKey = apiKey;
   }
 
   @Test public void initialize() throws IllegalStateException {
     integration.initialize(context, //
-        new ValueMap().putValue("apiKey", apiKey)
+        new ValueMap().putValue("apiKey", "foo")
             .putValue("sessionContinueSeconds", 20)
             .putValue("captureUncaughtExceptions", true)
-            .putValue("useHttps", false), NONE);
+            .putValue("reportLocation", false), NONE);
     verifyStatic();
     FlurryAgent.setContinueSessionMillis(20000);
     verifyStatic();
     FlurryAgent.setCaptureUncaughtExceptions(true);
     verifyStatic();
-    FlurryAgent.setUseHttps(false);
+    FlurryAgent.setReportLocation(false);
+    verifyStatic();
+    FlurryAgent.setLogEnabled(false);
+    verifyStatic();
+    FlurryAgent.setLogEvents(false);
+    verifyStatic();
+    FlurryAgent.init(context, "foo");
   }
 
   @Test public void activityCreate() {
@@ -78,7 +82,7 @@ public class FlurryTest {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
     verifyStatic();
-    FlurryAgent.onStartSession(activity, apiKey);
+    FlurryAgent.onStartSession(activity);
   }
 
   @Test public void activityResume() {

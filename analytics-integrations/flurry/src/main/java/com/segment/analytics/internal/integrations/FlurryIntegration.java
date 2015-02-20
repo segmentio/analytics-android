@@ -28,21 +28,22 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  */
 public class FlurryIntegration extends AbstractIntegration<Void> {
   static final String FLURRY_KEY = "Flurry";
-  String apiKey;
 
   @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
-    apiKey = settings.getString("apiKey");
+    // TODO: is Google Play Services and the support lib absolutely required?
     FlurryAgent.setContinueSessionMillis(settings.getInt("sessionContinueSeconds", 10) * 1000);
     FlurryAgent.setCaptureUncaughtExceptions(
         settings.getBoolean("captureUncaughtExceptions", false));
-    FlurryAgent.setUseHttps(settings.getBoolean("useHttps", true));
+    FlurryAgent.setReportLocation(settings.getBoolean("reportLocation", true));
     FlurryAgent.setLogEnabled(logLevel == INFO || logLevel == VERBOSE);
+    FlurryAgent.setLogEvents(logLevel == VERBOSE);
+    FlurryAgent.init(context, settings.getString("apiKey"));
   }
 
   @Override public void onActivityStarted(Activity activity) {
     super.onActivityStarted(activity);
-    FlurryAgent.onStartSession(activity, apiKey);
+    FlurryAgent.onStartSession(activity);
   }
 
   @Override public void onActivityStopped(Activity activity) {

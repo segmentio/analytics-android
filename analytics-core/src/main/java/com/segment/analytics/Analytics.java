@@ -573,7 +573,8 @@ public class Analytics {
      */
     INFO,
     /**
-     * Log exceptions, events through the SDK, and enable verbose logging for bundled integrations.
+     * Log exceptions, events through the SDK, and enable verbose logging for bundled integrations
+     * that support it.
      */
     VERBOSE;
 

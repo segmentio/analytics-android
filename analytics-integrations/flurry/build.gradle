@@ -1,5 +1,5 @@
 apply from: rootProject.file('gradle/integration.gradle')
 
 dependencies {
-  compile files('libs/Flurry-4.1.0.jar')
+  compile files('libs/Flurry-5.3.0.jar')
 }
