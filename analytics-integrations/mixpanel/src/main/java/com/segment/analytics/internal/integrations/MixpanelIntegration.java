@@ -115,7 +115,13 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
 
   @Override public void alias(AliasPayload alias) {
     super.alias(alias);
-    mixpanelAPI.alias(alias.userId(), alias.previousId());
+    String previousId = alias.previousId();
+    if (previousId.equals(alias.anonymousId())) {
+      // If the previous ID is an anonymous ID, pass null to mixpanel, which has generated it's own
+      // anonymous ID
+      previousId = null;
+    }
+    mixpanelAPI.alias(alias.userId(), previousId);
   }
 
   @Override public void screen(ScreenPayload screen) {

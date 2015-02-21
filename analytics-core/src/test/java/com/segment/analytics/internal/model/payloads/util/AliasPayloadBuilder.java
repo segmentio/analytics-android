@@ -11,7 +11,7 @@ import static com.segment.analytics.TestUtils.createTraits;
 public class AliasPayloadBuilder {
   private AnalyticsContext context;
   private Traits traits;
-  private String previousId;
+  private String newId;
   private Options options;
 
   public AliasPayloadBuilder traits(Traits traits) {
@@ -24,8 +24,8 @@ public class AliasPayloadBuilder {
     return this;
   }
 
-  public AliasPayloadBuilder previousId(String previousId) {
-    this.previousId = previousId;
+  public AliasPayloadBuilder newId(String newId) {
+    this.newId = newId;
     return this;
   }
 
@@ -44,9 +44,9 @@ public class AliasPayloadBuilder {
     if (options == null) {
       options = new Options();
     }
-    if (previousId == null) {
-      previousId = "foo";
+    if (newId == null) {
+      newId = "foo";
     }
-    return new AliasPayload(context, options, previousId);
+    return new AliasPayload(context, options, newId);
   }
 }

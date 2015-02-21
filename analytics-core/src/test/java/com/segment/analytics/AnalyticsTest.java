@@ -2,6 +2,7 @@ package com.segment.analytics;
 
 import android.Manifest;
 import android.app.Application;
+import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import org.assertj.core.data.MapEntry;
 import org.hamcrest.Description;
@@ -10,6 +11,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -151,17 +153,18 @@ public class AnalyticsTest {
   @Test public void alias() throws Exception {
     try {
       analytics.alias(null);
-      fail("null previous id should throw error");
+      fail("null new id should throw error");
     } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("previousId must not be null or empty.");
+      assertThat(expected).hasMessage("newId must not be null or empty.");
     }
 
-    try {
-      analytics.alias("foo");
-      fail("alias without identifying should throw");
-    } catch (IllegalStateException expected) {
-      assertThat(expected).hasMessage("user must be identified with a userId before aliasing.");
-    }
+    String anonymousId = traits.anonymousId();
+    analytics.alias("foo");
+    ArgumentCaptor<AliasPayload> payloadArgumentCaptor =
+        ArgumentCaptor.forClass(AliasPayload.class);
+    verify(segmentDispatcher).dispatchEnqueue(payloadArgumentCaptor.capture());
+    assertThat(payloadArgumentCaptor.getValue()).containsEntry("previousId", anonymousId)
+        .containsEntry("userId", "foo");
   }
 
   @Test public void submitInvokesDispatch() {
