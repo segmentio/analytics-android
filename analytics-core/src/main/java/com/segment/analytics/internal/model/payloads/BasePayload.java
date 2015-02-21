@@ -82,7 +82,7 @@ public abstract class BasePayload extends ValueMap implements IntegrationOperati
    * The user ID is an identifier that unique identifies the user in your database. Ideally it
    * should not be an email address, because emails can change, whereas a database ID can't.
    */
-  private static final String USER_ID_KEY = "userId";
+  static final String USER_ID_KEY = "userId";
 
   public BasePayload(Type type, AnalyticsContext context, Options options) {
     AnalyticsContext contextCopy = context.unmodifiableCopy();
@@ -106,6 +106,10 @@ public abstract class BasePayload extends ValueMap implements IntegrationOperati
 
   public String userId() {
     return getString(USER_ID_KEY);
+  }
+
+  public String anonymousId() {
+    return getString(ANONYMOUS_ID_KEY);
   }
 
   public AnalyticsContext context() {

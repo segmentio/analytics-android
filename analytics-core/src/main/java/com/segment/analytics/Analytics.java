@@ -203,8 +203,8 @@ public class Analytics {
    *
    * @see #identify(String, Traits, Options)
    */
-  public String identify(String userId) {
-    return identify(userId, null, null);
+  public void identify(String userId) {
+    identify(userId, null, null);
   }
 
   /**
@@ -214,8 +214,8 @@ public class Analytics {
    *
    * @see #identify(String, Traits, Options)
    */
-  public String identify(Traits traits) {
-    return identify(null, traits, null);
+  public void identify(Traits traits) {
+    identify(null, traits, null);
   }
 
   /**
@@ -231,17 +231,15 @@ public class Analytics {
    * used.
    * @param newTraits Traits about the user
    * @param options To configure the call
-   * @return The previous ID assigned to the user. Use it to call {@link #alias(String, Options)}
    * @throws IllegalArgumentException if both {@code userId} and {@code newTraits} are not provided
    * @see <a href="https://segment.com/docs/tracking-api/identify/">Identify Documentation</a>
    */
-  public String identify(String userId, Traits newTraits, Options options) {
+  public void identify(String userId, Traits newTraits, Options options) {
     if (isNullOrEmpty(userId) && isNullOrEmpty(newTraits)) {
       throw new IllegalArgumentException("Either userId or some traits must be provided.");
     }
 
     Traits traits = traitsCache.get();
-    String previousId = traits.userIdOrAnonymousId();
     if (!isNullOrEmpty(userId)) {
       traits.putUserId(userId);
     }
@@ -258,7 +256,6 @@ public class Analytics {
 
     BasePayload payload = new IdentifyPayload(analyticsContext, options, traitsCache.get());
     submit(payload);
-    return previousId;
   }
 
   /**
@@ -393,8 +390,8 @@ public class Analytics {
    *
    * @see #alias(String, Options)
    */
-  public void alias(String previousId) {
-    alias(previousId, null);
+  public void alias(String newId) {
+    alias(newId, null);
   }
 
   /**
@@ -405,29 +402,26 @@ public class Analytics {
    *
    * Usage:
    * <pre> <code>
-   *   String previousId = analytics.identify(newId);
-   *   analytics.alias(previousId, options);
+   *   analytics.track("user did something");
+   *   analytics.alias(newId, previousId);
+   *   analytics.identify(newId);
    * </code> </pre>
    *
-   * @param previousId The previous ID for the user that you want to alias from, that you
-   * previously called identify with as their user ID, or their anonymous ID. It can be retrieved
-   * by calling {@link #identify(String, Traits, Options)} (String)}
+   * @param newId The new ID you want to alias the existing ID to. The existing ID will be either
+   * the previousId if you have called identify, or the anonymous ID.
    * @param options To configure the call
    * @throws IllegalArgumentException if newId is null or empty
    * @see <a href="https://segment.com/docs/tracking-api/alias/">Alias Documentation</a>
    */
-  public void alias(String previousId, Options options) {
-    if (isNullOrEmpty(previousId)) {
-      throw new IllegalArgumentException("previousId must not be null or empty.");
-    }
-    if (isNullOrEmpty(traitsCache.get().userId())) {
-      throw new IllegalStateException("user must be identified with a userId before aliasing.");
+  public void alias(String newId, Options options) {
+    if (isNullOrEmpty(newId)) {
+      throw new IllegalArgumentException("newId must not be null or empty.");
     }
     if (options == null) {
       options = defaultOptions;
     }
 
-    BasePayload payload = new AliasPayload(analyticsContext, options, previousId);
+    BasePayload payload = new AliasPayload(analyticsContext, options, newId);
     submit(payload);
   }
 

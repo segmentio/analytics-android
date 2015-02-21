@@ -113,7 +113,11 @@ public class Traits extends ValueMap {
     return getString(ANONYMOUS_ID_KEY);
   }
 
-  String userIdOrAnonymousId() {
+  /**
+   * Returns the currentId the user is identified with. This could be the user id or the
+   * anonymous ID.
+   */
+  public String currentId() {
     String userId = userId();
     return (isNullOrEmpty(userId)) ? anonymousId() : userId;
   }

@@ -171,9 +171,16 @@ public class MixpanelTest {
   }
 
   @Test public void alias() {
-    integration.alias(
-        new AliasPayloadBuilder().traits(createTraits("foo")).previousId("bar").build());
-    verify(mixpanelAPI).alias("foo", "bar");
+    integration.alias(new AliasPayloadBuilder().traits(createTraits("foo")).newId("bar") //
+        .build());
+    verify(mixpanelAPI).alias("bar", "foo");
+    verifyNoMoreMixpanelInteractions();
+  }
+
+  @Test public void aliasWithoutAnonymousId() {
+    integration.alias(new AliasPayloadBuilder().traits(new Traits() //
+        .putValue("anonymousId", "qaz")).newId("qux").build());
+    verify(mixpanelAPI).alias("qux", null);
     verifyNoMoreMixpanelInteractions();
   }
 
