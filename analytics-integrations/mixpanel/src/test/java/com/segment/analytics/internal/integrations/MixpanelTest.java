@@ -13,6 +13,7 @@ import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder
 import com.segment.analytics.internal.model.payloads.util.ScreenPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
 import java.util.Random;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Rule;
@@ -194,6 +195,31 @@ public class MixpanelTest {
     verify(mixpanelAPI).getPeople();
     verify(people).identify("foo");
     verify(people).set(jsonEq(traits.toJsonObject()));
+    verifyNoMoreMixpanelInteractions();
+  }
+
+  @Test public void identifyWithSpecialProperties() throws JSONException {
+    integration.isPeopleEnabled = true;
+    Traits traits = createTraits("foo").putEmail("friends@segment.com")
+        .putPhone("1-844-611-0621")
+        .putCreatedAt("15th Feb, 2015")
+        .putUsername("segmentio");
+    JSONObject expected = new JSONObject();
+    expected.put("userId", "foo");
+    expected.put("$email", traits.email());
+    expected.put("$phone", traits.phone());
+    expected.put("$first_name", traits.firstName());
+    expected.put("$last_name", traits.lastName());
+    expected.put("$name", traits.name());
+    expected.put("$username", traits.username());
+    expected.put("$create", traits.createdAt());
+
+    integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
+    verify(mixpanelAPI).identify("foo");
+    verify(mixpanelAPI).registerSuperProperties(jsonEq(expected));
+    verify(mixpanelAPI).getPeople();
+    verify(people).identify("foo");
+    verify(people).set(jsonEq(expected));
     verifyNoMoreMixpanelInteractions();
   }
 

@@ -233,7 +233,7 @@ public class Traits extends ValueMap {
     return putValue(CREATED_AT_KEY, createdAt);
   }
 
-  public String getCreatedAt() {
+  public String createdAt() {
     return getString(CREATED_AT_KEY);
   }
 
@@ -318,16 +318,20 @@ public class Traits extends ValueMap {
 
   public String name() {
     String name = getString(NAME_KEY);
+    if (isNullOrEmpty(name) && isNullOrEmpty(firstName()) && isNullOrEmpty(lastName())) {
+      return null;
+    }
+
     if (isNullOrEmpty(name)) {
       StringBuilder stringBuilder = new StringBuilder();
-      String firstName = getString(FIRST_NAME_KEY);
+      String firstName = firstName();
       boolean appendSpace = false;
       if (!isNullOrEmpty(firstName)) {
         appendSpace = true;
         stringBuilder.append(firstName);
       }
 
-      String lastName = getString(LAST_NAME_KEY);
+      String lastName = lastName();
       if (!isNullOrEmpty(lastName)) {
         if (appendSpace) stringBuilder.append(' ');
         stringBuilder.append(lastName);

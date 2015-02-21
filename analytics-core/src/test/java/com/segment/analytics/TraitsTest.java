@@ -63,20 +63,6 @@ public class TraitsTest {
     assertThat(traits1.name()).isEqualTo("Prateek Srivastava");
   }
 
-  @Test public void firstAndLastNameSetGivesFullName() throws Exception {
-    traits.putFirstName("prateek");
-    traits.putLastName("srivastava");
-    assertThat(traits.name()).isEqualTo("prateek srivastava");
-
-    traits.clear();
-    traits.putFirstName("prateek");
-    assertThat(traits.name()).isEqualTo("prateek");
-
-    traits.clear();
-    traits.putLastName("srivastava");
-    assertThat(traits.name()).isEqualTo("srivastava");
-  }
-
   @Test public void copyReturnsSameMappings() {
     Traits copy = traits.unmodifiableCopy();
 
@@ -95,5 +81,21 @@ public class TraitsTest {
       fail("Inserting into copy should throw UnsupportedOperationException");
     } catch (UnsupportedOperationException ignored) {
     }
+  }
+
+  @Test public void name() {
+    assertThat(traits.name()).isNull();
+
+    traits.putFirstName("prateek");
+    traits.putLastName("srivastava");
+    assertThat(traits.name()).isEqualTo("prateek srivastava");
+
+    traits.clear();
+    traits.putFirstName("prateek");
+    assertThat(traits.name()).isEqualTo("prateek");
+
+    traits.clear();
+    traits.putLastName("srivastava");
+    assertThat(traits.name()).isEqualTo("srivastava");
   }
 }
