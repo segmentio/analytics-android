@@ -605,7 +605,7 @@ public class Analytics {
     private int flushInterval = Utils.DEFAULT_FLUSH_INTERVAL;
     private Options defaultOptions;
     private LogLevel logLevel;
-    private boolean skipBundledIntegrations = false;
+    private boolean bundledIntegrationsEnabled = true;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -692,7 +692,8 @@ public class Analytics {
     }
 
     /**
-     * Disable bundled integrations.
+     * Disable bundled integrations. Events will only be sent to our servers, which will then
+     * forward it to the respective integrations.
      * <p/>
      * This will skip *ALL* bundled integrations, even if they don't have a server side integration
      * available (e.g. Flurry).
@@ -700,8 +701,8 @@ public class Analytics {
      * @see <a href="https://segment.com/help/getting-started/why-bundle-integrations/">Bundled
      * Integrations</a>
      */
-    public Builder skipBundledIntegrations() {
-      this.skipBundledIntegrations = true;
+    public Builder disableBundledIntegrations() {
+      this.bundledIntegrationsEnabled = true;
       return this;
     }
 
@@ -723,12 +724,13 @@ public class Analytics {
 
       IntegrationManager integrationManager = null;
       Map<String, Boolean> bundledIntegrations;
-      if (skipBundledIntegrations) {
-        bundledIntegrations = Collections.emptyMap();
-      } else {
+
+      if (bundledIntegrationsEnabled) {
         integrationManager =
             IntegrationManager.create(application, cartographer, client, stats, tag, logLevel);
         bundledIntegrations = Collections.unmodifiableMap(integrationManager.bundledIntegrations);
+      } else {
+        bundledIntegrations = Collections.emptyMap();
       }
 
       SegmentDispatcher segmentDispatcher =

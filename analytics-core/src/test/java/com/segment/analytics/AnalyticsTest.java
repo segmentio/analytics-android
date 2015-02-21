@@ -312,7 +312,7 @@ public class AnalyticsTest {
 
   @Test public void skippingBundledIntegrationsCreatesInstancesCorrectly() {
     Analytics analytics =
-        new Analytics.Builder(Robolectric.application, "foo").skipBundledIntegrations().build();
+        new Analytics.Builder(Robolectric.application, "foo").disableBundledIntegrations().build();
     assertThat(analytics.segmentDispatcher.integrations).isNotNull().isEmpty();
   }
 
