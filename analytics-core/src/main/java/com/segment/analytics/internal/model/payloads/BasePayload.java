@@ -43,6 +43,11 @@ import static com.segment.analytics.internal.Utils.toISO8601Date;
 // This ignores projectId, receivedAt and version that are set by the server.
 // sentAt is set on SegmentClient#BatchPayload
 public abstract class BasePayload extends ValueMap implements IntegrationOperation {
+  /**
+   * The user ID is an identifier that unique identifies the user in your database. Ideally it
+   * should not be an email address, because emails can change, whereas a database ID can't.
+   */
+  static final String USER_ID_KEY = "userId";
   /** The type of message. */
   private static final String TYPE_KEY = "type";
   /**
@@ -78,11 +83,6 @@ public abstract class BasePayload extends ValueMap implements IntegrationOperati
   private static final String INTEGRATIONS_KEY = "integrations";
   /** The timestamp when the message took place. This should be an ISO-8601-formatted string. */
   private static final String TIMESTAMP_KEY = "timestamp";
-  /**
-   * The user ID is an identifier that unique identifies the user in your database. Ideally it
-   * should not be an email address, because emails can change, whereas a database ID can't.
-   */
-  static final String USER_ID_KEY = "userId";
 
   public BasePayload(Type type, AnalyticsContext context, Options options) {
     AnalyticsContext contextCopy = context.unmodifiableCopy();

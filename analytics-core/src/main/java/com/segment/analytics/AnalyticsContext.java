@@ -74,6 +74,44 @@ public class AnalyticsContext extends ValueMap {
   private static final String TRAITS_KEY = "traits";
   private static final String USER_AGENT_KEY = "userAgent";
   private static final String TIMEZONE_KEY = "timezone";
+  // App
+  private static final String APP_KEY = "app";
+  private static final String APP_NAME_KEY = "name";
+  private static final String APP_VERSION_KEY = "version";
+  private static final String APP_NAMESPACE_KEY = "namespace";
+  private static final String APP_BUILD_KEY = "build";
+  // Campaign
+  private static final String CAMPAIGN_KEY = "campaign";
+  // Device
+  private static final String DEVICE_KEY = "device";
+  // Library
+  private static final String LIBRARY_KEY = "library";
+  private static final String LIBRARY_NAME_KEY = "name";
+  private static final String LIBRARY_VERSION_KEY = "version";
+  private static final String LIBRARY_VERSION_NAME_KEY = "versionName";   // Android Specific
+  // Location
+  private static final String LOCATION_KEY = "location";
+  // Network
+  private static final String NETWORK_KEY = "network";
+  private static final String NETWORK_BLUETOOTH_KEY = "bluetooth";
+  private static final String NETWORK_CARRIER_KEY = "carrier";
+  private static final String NETWORK_CELLULAR_KEY = "cellular";
+  private static final String NETWORK_WIFI_KEY = "wifi";
+  // OS
+  private static final String OS_KEY = "os";
+  private static final String OS_NAME_KEY = "name";
+  private static final String OS_VERSION_KEY = "version";
+  private static final String OS_SDK_KEY = "sdk";  // Android Specific
+  // Referrer
+  private static final String REFERRER_KEY = "referrer";
+  // Screen
+  private static final String SCREEN_KEY = "screen";
+  private static final String SCREEN_DENSITY_KEY = "density";
+  private static final String SCREEN_HEIGHT_KEY = "height";
+  private static final String SCREEN_WIDTH_KEY = "width";
+  private static final String SCREEN_DENSITY_DPI_KEY = "densityDpi";
+  private static final String SCREEN_DENSITY_BUCKET_KEY = "densityBucket";
+  private static final String SCREEN_SCALED_DENSITY_KEY = "scaledDensity";
 
   private static String getDensityString(DisplayMetrics displayMetrics) {
     switch (displayMetrics.densityDpi) {
@@ -158,13 +196,6 @@ public class AnalyticsContext extends ValueMap {
     return getValueMap(TRAITS_KEY, Traits.class);
   }
 
-  // App
-  private static final String APP_KEY = "app";
-  private static final String APP_NAME_KEY = "name";
-  private static final String APP_VERSION_KEY = "version";
-  private static final String APP_NAMESPACE_KEY = "namespace";
-  private static final String APP_BUILD_KEY = "build";
-
   /**
    * Fill this instance with application info from the provided {@link Context}. No need to expose
    * a getter for this for bundled integrations (they'll automatically fill what they need
@@ -185,9 +216,6 @@ public class AnalyticsContext extends ValueMap {
     }
   }
 
-  // Campaign
-  private static final String CAMPAIGN_KEY = "campaign";
-
   /** Set information about the campaign that resulted in the API call. */
   public AnalyticsContext putCampaign(Campaign campaign) {
     return putValue(CAMPAIGN_KEY, campaign);
@@ -195,6 +223,111 @@ public class AnalyticsContext extends ValueMap {
 
   public Campaign campaign() {
     return getValueMap(CAMPAIGN_KEY, Campaign.class);
+  }
+
+  /** Fill this instance with device info from the provided {@link Context}. */
+  void putDevice(Context context) {
+    Device device = new Device();
+    put(Device.DEVICE_ID_KEY, getDeviceId(context));
+    put(Device.DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);
+    put(Device.DEVICE_MODEL_KEY, Build.MODEL);
+    put(Device.DEVICE_NAME_KEY, Build.DEVICE);
+    put(Device.DEVICE_BRAND_KEY, Build.BRAND);
+    put(DEVICE_KEY, device);
+  }
+
+  public Device device() {
+    return getValueMap(DEVICE_KEY, Device.class);
+  }
+
+  /** Set a device token. Convenience method for {@link Device#putDeviceToken(String)} */
+  public AnalyticsContext putDeviceToken(String token) {
+    device().putDeviceToken(token);
+    return this;
+  }
+
+  /** Fill this instance with library information. */
+  void putLibrary() {
+    Map<String, Object> library = createMap();
+    library.put(LIBRARY_NAME_KEY, "analytics-android");
+    library.put(LIBRARY_VERSION_KEY, BuildConfig.VERSION_CODE);
+    library.put(LIBRARY_VERSION_NAME_KEY, BuildConfig.VERSION_NAME);
+    put(LIBRARY_KEY, library);
+  }
+
+  /** Set location information about the device. */
+  public AnalyticsContext putLocation(Location location) {
+    return putValue(LOCATION_KEY, location);
+  }
+
+  public Location location() {
+    return getValueMap(LOCATION_KEY, Location.class);
+  }
+
+  /**
+   * Fill this instance with network information. No need to expose a getter
+   * for this for bundled integrations (they'll automatically fill what they need themselves)
+   */
+  void putNetwork(Context context) {
+    Map<String, Object> network = createMap();
+    if (hasPermission(context, ACCESS_NETWORK_STATE)) {
+      ConnectivityManager connectivityManager = getSystemService(context, CONNECTIVITY_SERVICE);
+      if (connectivityManager != null) {
+        NetworkInfo wifiInfo = connectivityManager.getNetworkInfo(TYPE_WIFI);
+        network.put(NETWORK_WIFI_KEY, wifiInfo != null && wifiInfo.isConnected());
+        NetworkInfo bluetoothInfo = connectivityManager.getNetworkInfo(TYPE_BLUETOOTH);
+        network.put(NETWORK_BLUETOOTH_KEY, bluetoothInfo != null && bluetoothInfo.isConnected());
+        NetworkInfo cellularInfo = connectivityManager.getNetworkInfo(TYPE_MOBILE);
+        network.put(NETWORK_CELLULAR_KEY, cellularInfo != null && cellularInfo.isConnected());
+      }
+    }
+
+    TelephonyManager telephonyManager = getSystemService(context, TELEPHONY_SERVICE);
+    if (telephonyManager != null) {
+      network.put(NETWORK_CARRIER_KEY, telephonyManager.getNetworkOperatorName());
+    } else {
+      network.put(NETWORK_CARRIER_KEY, "unknown");
+    }
+
+    put(NETWORK_KEY, network);
+  }
+
+  /**
+   * Fill this instance with operating system information. No need to expose a
+   * getter for this for bundled integrations (they'll automatically fill what they need
+   * themselves).
+   */
+  void putOs() {
+    Map<String, Object> os = createMap();
+    os.put(OS_NAME_KEY, Build.VERSION.CODENAME);
+    os.put(OS_VERSION_KEY, Build.VERSION.RELEASE);
+    os.put(OS_SDK_KEY, Build.VERSION.SDK_INT);
+    put(OS_KEY, os);
+  }
+
+  /** Set the referrer for this session. */
+  public AnalyticsContext putReferrer(Referrer referrer) {
+    return putValue(REFERRER_KEY, referrer);
+  }
+
+  /**
+   * Fill this instance with application info from the provided {@link Context}. No need to expose
+   * a getter for this for bundled integrations (they'll automatically fill what they need
+   * themselves).
+   */
+  void putScreen(Context context) {
+    Map<String, Object> screen = createMap();
+    WindowManager manager = getSystemService(context, Context.WINDOW_SERVICE);
+    Display display = manager.getDefaultDisplay();
+    DisplayMetrics displayMetrics = new DisplayMetrics();
+    display.getMetrics(displayMetrics);
+    screen.put(SCREEN_DENSITY_KEY, displayMetrics.density);
+    screen.put(SCREEN_HEIGHT_KEY, displayMetrics.heightPixels);
+    screen.put(SCREEN_WIDTH_KEY, displayMetrics.widthPixels);
+    screen.put(SCREEN_DENSITY_DPI_KEY, displayMetrics.densityDpi);
+    screen.put(SCREEN_DENSITY_BUCKET_KEY, getDensityString(displayMetrics));
+    screen.put(SCREEN_SCALED_DENSITY_KEY, displayMetrics.scaledDensity);
+    put(SCREEN_KEY, screen);
   }
 
   /**
@@ -270,9 +403,6 @@ public class AnalyticsContext extends ValueMap {
     }
   }
 
-  // Device
-  private static final String DEVICE_KEY = "device";
-
   /** Information about the device. */
   public static class Device extends ValueMap {
     private static final String DEVICE_ID_KEY = "id";
@@ -308,45 +438,6 @@ public class AnalyticsContext extends ValueMap {
       return putValue(DEVICE_TOKEN_KEY, token);
     }
   }
-
-  /** Fill this instance with device info from the provided {@link Context}. */
-  void putDevice(Context context) {
-    Device device = new Device();
-    put(Device.DEVICE_ID_KEY, getDeviceId(context));
-    put(Device.DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);
-    put(Device.DEVICE_MODEL_KEY, Build.MODEL);
-    put(Device.DEVICE_NAME_KEY, Build.DEVICE);
-    put(Device.DEVICE_BRAND_KEY, Build.BRAND);
-    put(DEVICE_KEY, device);
-  }
-
-  public Device device() {
-    return getValueMap(DEVICE_KEY, Device.class);
-  }
-
-  /** Set a device token. Convenience method for {@link Device#putDeviceToken(String)} */
-  public AnalyticsContext putDeviceToken(String token) {
-    device().putDeviceToken(token);
-    return this;
-  }
-
-  // Library
-  private static final String LIBRARY_KEY = "library";
-  private static final String LIBRARY_NAME_KEY = "name";
-  private static final String LIBRARY_VERSION_KEY = "version";
-  private static final String LIBRARY_VERSION_NAME_KEY = "versionName";   // Android Specific
-
-  /** Fill this instance with library information. */
-  void putLibrary() {
-    Map<String, Object> library = createMap();
-    library.put(LIBRARY_NAME_KEY, "analytics-android");
-    library.put(LIBRARY_VERSION_KEY, BuildConfig.VERSION_CODE);
-    library.put(LIBRARY_VERSION_NAME_KEY, BuildConfig.VERSION_NAME);
-    put(LIBRARY_KEY, library);
-  }
-
-  // Location
-  private static final String LOCATION_KEY = "location";
 
   /** Information about the location of the device. */
   public static class Location extends ValueMap {
@@ -395,72 +486,6 @@ public class AnalyticsContext extends ValueMap {
       return getDouble(LOCATION_SPEED_KEY, 0.);
     }
   }
-
-  /** Set location information about the device. */
-  public AnalyticsContext putLocation(Location location) {
-    return putValue(LOCATION_KEY, location);
-  }
-
-  public Location location() {
-    return getValueMap(LOCATION_KEY, Location.class);
-  }
-
-  // Network
-  private static final String NETWORK_KEY = "network";
-  private static final String NETWORK_BLUETOOTH_KEY = "bluetooth";
-  private static final String NETWORK_CARRIER_KEY = "carrier";
-  private static final String NETWORK_CELLULAR_KEY = "cellular";
-  private static final String NETWORK_WIFI_KEY = "wifi";
-
-  /**
-   * Fill this instance with network information. No need to expose a getter
-   * for this for bundled integrations (they'll automatically fill what they need themselves)
-   */
-  void putNetwork(Context context) {
-    Map<String, Object> network = createMap();
-    if (hasPermission(context, ACCESS_NETWORK_STATE)) {
-      ConnectivityManager connectivityManager = getSystemService(context, CONNECTIVITY_SERVICE);
-      if (connectivityManager != null) {
-        NetworkInfo wifiInfo = connectivityManager.getNetworkInfo(TYPE_WIFI);
-        network.put(NETWORK_WIFI_KEY, wifiInfo != null && wifiInfo.isConnected());
-        NetworkInfo bluetoothInfo = connectivityManager.getNetworkInfo(TYPE_BLUETOOTH);
-        network.put(NETWORK_BLUETOOTH_KEY, bluetoothInfo != null && bluetoothInfo.isConnected());
-        NetworkInfo cellularInfo = connectivityManager.getNetworkInfo(TYPE_MOBILE);
-        network.put(NETWORK_CELLULAR_KEY, cellularInfo != null && cellularInfo.isConnected());
-      }
-    }
-
-    TelephonyManager telephonyManager = getSystemService(context, TELEPHONY_SERVICE);
-    if (telephonyManager != null) {
-      network.put(NETWORK_CARRIER_KEY, telephonyManager.getNetworkOperatorName());
-    } else {
-      network.put(NETWORK_CARRIER_KEY, "unknown");
-    }
-
-    put(NETWORK_KEY, network);
-  }
-
-  // OS
-  private static final String OS_KEY = "os";
-  private static final String OS_NAME_KEY = "name";
-  private static final String OS_VERSION_KEY = "version";
-  private static final String OS_SDK_KEY = "sdk";  // Android Specific
-
-  /**
-   * Fill this instance with operating system information. No need to expose a
-   * getter for this for bundled integrations (they'll automatically fill what they need
-   * themselves).
-   */
-  void putOs() {
-    Map<String, Object> os = createMap();
-    os.put(OS_NAME_KEY, Build.VERSION.CODENAME);
-    os.put(OS_VERSION_KEY, Build.VERSION.RELEASE);
-    os.put(OS_SDK_KEY, Build.VERSION.SDK_INT);
-    put(OS_KEY, os);
-  }
-
-  // Referrer
-  private static final String REFERRER_KEY = "referrer";
 
   /** Information about the referrer that resulted in the API call. */
   public static class Referrer extends ValueMap {
@@ -528,39 +553,5 @@ public class AnalyticsContext extends ValueMap {
     public String url() {
       return getString(REFERRER_URL_KEY);
     }
-  }
-
-  /** Set the referrer for this session. */
-  public AnalyticsContext putReferrer(Referrer referrer) {
-    return putValue(REFERRER_KEY, referrer);
-  }
-
-  // Screen
-  private static final String SCREEN_KEY = "screen";
-  private static final String SCREEN_DENSITY_KEY = "density";
-  private static final String SCREEN_HEIGHT_KEY = "height";
-  private static final String SCREEN_WIDTH_KEY = "width";
-  private static final String SCREEN_DENSITY_DPI_KEY = "densityDpi";
-  private static final String SCREEN_DENSITY_BUCKET_KEY = "densityBucket";
-  private static final String SCREEN_SCALED_DENSITY_KEY = "scaledDensity";
-
-  /**
-   * Fill this instance with application info from the provided {@link Context}. No need to expose
-   * a getter for this for bundled integrations (they'll automatically fill what they need
-   * themselves).
-   */
-  void putScreen(Context context) {
-    Map<String, Object> screen = createMap();
-    WindowManager manager = getSystemService(context, Context.WINDOW_SERVICE);
-    Display display = manager.getDefaultDisplay();
-    DisplayMetrics displayMetrics = new DisplayMetrics();
-    display.getMetrics(displayMetrics);
-    screen.put(SCREEN_DENSITY_KEY, displayMetrics.density);
-    screen.put(SCREEN_HEIGHT_KEY, displayMetrics.heightPixels);
-    screen.put(SCREEN_WIDTH_KEY, displayMetrics.widthPixels);
-    screen.put(SCREEN_DENSITY_DPI_KEY, displayMetrics.densityDpi);
-    screen.put(SCREEN_DENSITY_BUCKET_KEY, getDensityString(displayMetrics));
-    screen.put(SCREEN_SCALED_DENSITY_KEY, displayMetrics.scaledDensity);
-    put(SCREEN_KEY, screen);
   }
 }

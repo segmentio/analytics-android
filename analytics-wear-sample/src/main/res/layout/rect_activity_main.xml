@@ -30,5 +30,5 @@
       android:src="@drawable/icon"
       android:scaleType="center"
       tools:ignore="ContentDescription"/>
-  
+
 </LinearLayout>

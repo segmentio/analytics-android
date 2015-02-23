@@ -68,6 +68,8 @@ public class Traits extends ValueMap {
   // For Group calls
   private static final String EMPLOYEES_KEY = "employees";
   private static final String INDUSTRY_KEY = "industry";
+  // Address
+  private static final String ADDRESS_KEY = "address";
 
   /**
    * Create a new Traits instance with an anonymous ID. Analytics client can be called on any
@@ -120,72 +122,6 @@ public class Traits extends ValueMap {
   public String currentId() {
     String userId = userId();
     return (isNullOrEmpty(userId)) ? anonymousId() : userId;
-  }
-
-  // Address
-  private static final String ADDRESS_KEY = "address";
-
-  /** Represents information about the address of a user or group. */
-  public static class Address extends ValueMap {
-    private static final String ADDRESS_CITY_KEY = "city";
-    private static final String ADDRESS_COUNTRY_KEY = "country";
-    private static final String ADDRESS_POSTAL_CODE_KEY = "postalCode";
-    private static final String ADDRESS_STATE_KEY = "state";
-    private static final String ADDRESS_STREET_KEY = "street";
-
-    // Public constructor
-    public Address() {
-    }
-
-    // For deserialization
-    public Address(Map<String, Object> map) {
-      super(map);
-    }
-
-    @Override public Address putValue(String key, Object value) {
-      super.putValue(key, value);
-      return this;
-    }
-
-    public Address putCity(String city) {
-      return putValue(ADDRESS_CITY_KEY, city);
-    }
-
-    public String city() {
-      return getString(ADDRESS_CITY_KEY);
-    }
-
-    public Address putCountry(String country) {
-      return putValue(ADDRESS_COUNTRY_KEY, country);
-    }
-
-    public String country() {
-      return getString(ADDRESS_COUNTRY_KEY);
-    }
-
-    public Address putPostalCode(String postalCode) {
-      return putValue(ADDRESS_POSTAL_CODE_KEY, postalCode);
-    }
-
-    public String postalCode() {
-      return getString(ADDRESS_POSTAL_CODE_KEY);
-    }
-
-    public Address putState(String state) {
-      return putValue(ADDRESS_STATE_KEY, state);
-    }
-
-    public String state() {
-      return getString(ADDRESS_STATE_KEY);
-    }
-
-    public Address putStreet(String street) {
-      return putValue(ADDRESS_STREET_KEY, street);
-    }
-
-    public String street() {
-      return getString(ADDRESS_STREET_KEY);
-    }
   }
 
   /** Set an address for the user or group. */
@@ -391,6 +327,69 @@ public class Traits extends ValueMap {
   @Override public Traits putValue(String key, Object value) {
     super.putValue(key, value);
     return this;
+  }
+
+  /** Represents information about the address of a user or group. */
+  public static class Address extends ValueMap {
+    private static final String ADDRESS_CITY_KEY = "city";
+    private static final String ADDRESS_COUNTRY_KEY = "country";
+    private static final String ADDRESS_POSTAL_CODE_KEY = "postalCode";
+    private static final String ADDRESS_STATE_KEY = "state";
+    private static final String ADDRESS_STREET_KEY = "street";
+
+    // Public constructor
+    public Address() {
+    }
+
+    // For deserialization
+    public Address(Map<String, Object> map) {
+      super(map);
+    }
+
+    @Override public Address putValue(String key, Object value) {
+      super.putValue(key, value);
+      return this;
+    }
+
+    public Address putCity(String city) {
+      return putValue(ADDRESS_CITY_KEY, city);
+    }
+
+    public String city() {
+      return getString(ADDRESS_CITY_KEY);
+    }
+
+    public Address putCountry(String country) {
+      return putValue(ADDRESS_COUNTRY_KEY, country);
+    }
+
+    public String country() {
+      return getString(ADDRESS_COUNTRY_KEY);
+    }
+
+    public Address putPostalCode(String postalCode) {
+      return putValue(ADDRESS_POSTAL_CODE_KEY, postalCode);
+    }
+
+    public String postalCode() {
+      return getString(ADDRESS_POSTAL_CODE_KEY);
+    }
+
+    public Address putState(String state) {
+      return putValue(ADDRESS_STATE_KEY, state);
+    }
+
+    public String state() {
+      return getString(ADDRESS_STATE_KEY);
+    }
+
+    public Address putStreet(String street) {
+      return putValue(ADDRESS_STREET_KEY, street);
+    }
+
+    public String street() {
+      return getString(ADDRESS_STREET_KEY);
+    }
   }
 
   static class Cache extends ValueMap.Cache<Traits> {

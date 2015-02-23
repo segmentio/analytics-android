@@ -200,6 +200,12 @@ public class GoogleAnalyticsTest {
     return new PatternAssert(pattern);
   }
 
+  private void verifyNoMoreGoogleInteractions() {
+    verifyNoMoreInteractions(GoogleAnalytics.class);
+    verifyNoMoreInteractions(googleAnalytics);
+    verifyNoMoreInteractions(tracker);
+  }
+
   static class PatternAssert extends AbstractAssert<PatternAssert, Pattern> {
     public PatternAssert(Pattern actual) {
       super(actual, PatternAssert.class);
@@ -222,11 +228,5 @@ public class GoogleAnalyticsTest {
           .isFalse();
       return this;
     }
-  }
-
-  private void verifyNoMoreGoogleInteractions() {
-    verifyNoMoreInteractions(GoogleAnalytics.class);
-    verifyNoMoreInteractions(googleAnalytics);
-    verifyNoMoreInteractions(tracker);
   }
 }

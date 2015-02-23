@@ -35,6 +35,31 @@ import java.util.Map;
  */
 public class Properties extends ValueMap {
 
+  // Common Properties
+  private static final String REVENUE_KEY = "revenue";
+  private static final String CURRENCY_KEY = "currency";
+  private static final String VALUE_KEY = "value";
+  // Screen Properties
+  private static final String PATH_KEY = "path";
+  private static final String REFERRER_KEY = "referrer";
+  private static final String TITLE_KEY = "title";
+  private static final String URL_KEY = "url";
+  // Ecommerce API
+  private static final String NAME_KEY = "name"; // used by product too
+  private static final String CATEGORY_KEY = "category";
+  private static final String SKU_KEY = "sku";
+  private static final String PRICE_KEY = "price";
+  private static final String ID_KEY = "id";
+  private static final String ORDER_ID_KEY = "orderId";
+  private static final String TOTAL_KEY = "total";
+  private static final String SUBTOTAL_KEY = "subtotal";
+  private static final String SHIPPING_KEY = "shipping";
+  private static final String TAX_KEY = "tax";
+  private static final String DISCOUNT_KEY = "discount";
+  private static final String COUPON_KEY = "coupon";
+  private static final String PRODUCTS_KEY = "products";
+  private static final String REPEAT_KEY = "repeat";
+
   public Properties() {
   }
 
@@ -47,11 +72,6 @@ public class Properties extends ValueMap {
     super.putValue(key, value);
     return this;
   }
-
-  // Common Properties
-  private static final String REVENUE_KEY = "revenue";
-  private static final String CURRENCY_KEY = "currency";
-  private static final String VALUE_KEY = "value";
 
   /**
    * Set the amount of revenue an event resulted in. This should be a decimal value in dollars, so
@@ -86,12 +106,6 @@ public class Properties extends ValueMap {
   public String currency() {
     return getString(CURRENCY_KEY);
   }
-
-  // Screen Properties
-  private static final String PATH_KEY = "path";
-  private static final String REFERRER_KEY = "referrer";
-  private static final String TITLE_KEY = "title";
-  private static final String URL_KEY = "url";
 
   /**
    * Set a path (usually the path of the URL) for the screen.
@@ -145,22 +159,6 @@ public class Properties extends ValueMap {
   public String url() {
     return getString(URL_KEY);
   }
-
-  // Ecommerce API
-  private static final String NAME_KEY = "name"; // used by product too
-  private static final String CATEGORY_KEY = "category";
-  private static final String SKU_KEY = "sku";
-  private static final String PRICE_KEY = "price";
-  private static final String ID_KEY = "id";
-  private static final String ORDER_ID_KEY = "orderId";
-  private static final String TOTAL_KEY = "total";
-  private static final String SUBTOTAL_KEY = "subtotal";
-  private static final String SHIPPING_KEY = "shipping";
-  private static final String TAX_KEY = "tax";
-  private static final String DISCOUNT_KEY = "discount";
-  private static final String COUPON_KEY = "coupon";
-  private static final String PRODUCTS_KEY = "products";
-  private static final String REPEAT_KEY = "repeat";
 
   /**
    * Set the name of the product associated with an event.
