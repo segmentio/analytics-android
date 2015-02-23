@@ -95,8 +95,7 @@ public abstract class BasePayload extends ValueMap implements IntegrationOperati
     if (!isNullOrEmpty(userId)) {
       put(USER_ID_KEY, userId);
     }
-    put(TIMESTAMP_KEY, options.timestamp() == null ? toISO8601Date(new Date())
-        : toISO8601Date(options.timestamp()));
+    put(TIMESTAMP_KEY, toISO8601Date(new Date()));
     put(INTEGRATIONS_KEY, options.integrations()); // copy
   }
 

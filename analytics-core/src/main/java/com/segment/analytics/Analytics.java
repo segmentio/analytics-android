@@ -43,6 +43,7 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload;
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type;
@@ -594,10 +595,10 @@ public class Analytics {
   public static class Builder {
     private final Application application;
     private String writeKey;
-    private String tag;
-    private int queueSize = Utils.DEFAULT_FLUSH_QUEUE_SIZE;
-    private int flushInterval = Utils.DEFAULT_FLUSH_INTERVAL;
+    private int flushQueueSize = Utils.DEFAULT_FLUSH_QUEUE_SIZE;
+    private long flushIntervalInMillis = Utils.DEFAULT_FLUSH_INTERVAL;
     private Options defaultOptions;
+    private String tag;
     private LogLevel logLevel;
     private boolean bundledIntegrationsEnabled = true;
 
@@ -609,36 +610,47 @@ public class Analytics {
       if (!hasPermission(context, Manifest.permission.INTERNET)) {
         throw new IllegalArgumentException("INTERNET permission is required.");
       }
+      application = (Application) context.getApplicationContext();
+      if (application == null) {
+        throw new IllegalArgumentException("Application context must not be null.");
+      }
+
       if (isNullOrEmpty(writeKey)) {
         throw new IllegalArgumentException("writeKey must not be null or empty.");
       }
-      application = (Application) context.getApplicationContext();
       this.writeKey = writeKey;
     }
 
     /**
      * Set the queue size at which the client should flush events. The client will automatically
-     * flush events every {@code flushInterval} seconds, or when the queue reaches {@code
-     * queueSize}, whichever occurs first.
+     * flush events every {@code flushInterval} duration, or when the queue reaches {@code
+     * flushQueueSize}, whichever occurs first.
+     *
+     * @throws IllegalArgumentException if the flushQueueSize is less than or equal to zero.
      */
-    public Builder queueSize(int queueSize) {
-      if (queueSize <= 0) {
-        throw new IllegalArgumentException("queueSize must be greater than or equal to zero.");
+    public Builder flushQueueSize(int flushQueueSize) {
+      if (flushQueueSize <= 0) {
+        throw new IllegalArgumentException("flushQueueSize must be greater than or equal to zero.");
       }
-      this.queueSize = queueSize;
+      this.flushQueueSize = flushQueueSize;
       return this;
     }
 
     /**
-     * Set the interval (in seconds) at which the client should flush events. The client will
-     * automatically flush events every {@code flushInterval} seconds, or when the queue reaches
-     * {@code queueSize}, whichever occurs first.
+     * Set the interval at which the client should flush events. The client will automatically
+     * flush events every {@code flushInterval} duration, or when the queue reaches {@code
+     * flushQueueSize}, whichever occurs first.
+     *
+     * @throws IllegalArgumentException if the flushInterval is less than or equal to zero.
      */
-    public Builder flushInterval(int flushInterval) {
-      if (flushInterval < 10) {
-        throw new IllegalArgumentException("flushInterval must be greater than or equal to 10.");
+    public Builder flushInterval(long flushInterval, TimeUnit timeUnit) {
+      if (timeUnit == null) {
+        throw new IllegalArgumentException("timeUnit must not be null.");
       }
-      this.flushInterval = flushInterval;
+      if (flushInterval <= 0) {
+        throw new IllegalArgumentException("flushInterval must be greater than zero.");
+      }
+      this.flushIntervalInMillis = timeUnit.toMillis(flushInterval);
       return this;
     }
 
@@ -650,9 +662,6 @@ public class Analytics {
     public Builder defaultOptions(Options defaultOptions) {
       if (defaultOptions == null) {
         throw new IllegalArgumentException("defaultOptions must not be null.");
-      }
-      if (defaultOptions.timestamp() != null) {
-        throw new IllegalArgumentException("default option must not contain timestamp.");
       }
       // Make a defensive copy
       this.defaultOptions = new Options();
@@ -667,6 +676,8 @@ public class Analytics {
      * </p>
      * By default the writeKey is used. You may want to specify an alternative one, if you want
      * the instances with the same writeKey to share different caches (you probably do).
+     *
+     * @throws IllegalArgumentException if the tag is null or empty.
      */
     public Builder tag(String tag) {
       if (isNullOrEmpty(tag)) {
@@ -729,7 +740,7 @@ public class Analytics {
 
       SegmentDispatcher segmentDispatcher =
           SegmentDispatcher.create(application, client, cartographer, stats, bundledIntegrations,
-              tag, flushInterval, queueSize, logLevel);
+              tag, flushIntervalInMillis, flushQueueSize, logLevel);
 
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {

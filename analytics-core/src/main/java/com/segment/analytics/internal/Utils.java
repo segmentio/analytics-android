@@ -73,7 +73,7 @@ public final class Utils {
   public final static String VERB_FLUSH = "flush";
   public final static String VERB_SKIP = "skip";
   public final static String VERB_INITIALIZE = "initialize";
-  public static final int DEFAULT_FLUSH_INTERVAL = 20;
+  public static final int DEFAULT_FLUSH_INTERVAL = 20 * 1000; // 20s
   public static final int DEFAULT_FLUSH_QUEUE_SIZE = 30;
   final static String TAG = "Segment";
   @SuppressLint("SimpleDateFormat") private static final DateFormat ISO_8601_DATE_FORMAT =

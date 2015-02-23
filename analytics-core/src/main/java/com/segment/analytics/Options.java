@@ -24,7 +24,6 @@
 
 package com.segment.analytics;
 
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,7 +41,6 @@ public class Options {
   public static final String ALL_INTEGRATIONS_KEY = "All";
 
   private final Map<String, Boolean> integrations; // passed in by the user
-  private Date timestamp;
 
   public Options() {
     integrations = new ConcurrentHashMap<>();
@@ -50,7 +48,7 @@ public class Options {
   }
 
   /**
-   * Sets whether this action will be sent to the target integration.
+   * Sets whether an action will be sent to the target integration.
    * <p/>
    * By default, all integrations are sent a payload, and the value for the {@link
    * #ALL_INTEGRATIONS_KEY} is {@code true}. You can disable specific payloads.
@@ -74,25 +72,21 @@ public class Options {
     return this;
   }
 
-  /** Returns a copy of settings for integrations. */
-  public Map<String, Boolean> integrations() {
-    return new LinkedHashMap<>(integrations);
-  }
-
   /**
-   * Sets the timestamp of when an analytics action occurred. The timestamp is primarily used for
-   * historical imports or if this event happened in the past. The timestamp is not required, and
-   * if it is not provided, the client library will timestamp the call as if it just happened.
+   * Sets whether an action will be sent to the target integration.
    *
-   * @param timestamp The time when this event happened
+   * @param bundledIntegration The target integration
+   * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
    * @return This options object for chaining
+   * @see {@link #setIntegration(String, boolean)}
    */
-  public Options setTimestamp(Date timestamp) {
-    this.timestamp = timestamp;
+  public Options setIntegration(Analytics.BundledIntegration bundledIntegration, boolean enabled) {
+    integrations.put(bundledIntegration.key, enabled);
     return this;
   }
 
-  public Date timestamp() {
-    return timestamp;
+  /** Returns a copy of settings for integrations. */
+  public Map<String, Boolean> integrations() {
+    return new LinkedHashMap<>(integrations);
   }
 }
