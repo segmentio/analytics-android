@@ -6,6 +6,7 @@ import android.content.Context;
 import android.os.Bundle;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
+import com.leanplum.LeanplumPushService;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
@@ -14,6 +15,7 @@ import com.segment.analytics.internal.model.payloads.TrackPayload;
 
 import static com.segment.analytics.Analytics.LogLevel;
 import static com.segment.analytics.internal.Utils.hasPermission;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
  * Leanplum enables mobile teams to quickly go from insight to action using the lean cycle of
@@ -42,6 +44,18 @@ public class LeanplumIntegration extends AbstractIntegration<Void> {
       Leanplum.enableVerboseLoggingInDevelopmentMode();
     }
     */
+
+    boolean useLeanplumSenderId = settings.getBoolean("useLeanplumSenderId", false);
+    String gcmSenderId = settings.getString("gcmSenderId");
+
+    if (useLeanplumSenderId && !isNullOrEmpty(gcmSenderId)) {
+      LeanplumPushService.setGcmSenderIds(gcmSenderId, LeanplumPushService.LEANPLUM_SENDER_ID);
+    } else if (useLeanplumSenderId) {
+      LeanplumPushService.setGcmSenderId(LeanplumPushService.LEANPLUM_SENDER_ID);
+    } else if (!isNullOrEmpty(gcmSenderId)) {
+      LeanplumPushService.setGcmSenderId(gcmSenderId);
+    }
+
     Leanplum.setAppIdForProductionMode(settings.getString("appId"),
         settings.getString("clientKey"));
     Leanplum.start(context);

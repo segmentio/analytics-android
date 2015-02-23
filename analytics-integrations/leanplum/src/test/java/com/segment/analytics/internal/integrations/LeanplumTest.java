@@ -51,8 +51,8 @@ public class LeanplumTest {
   }
 
   @Test public void initialize() {
-    integration.initialize(context,
-        new ValueMap().putValue("appId", "foo").putValue("clientKey", "bar"), NONE);
+    integration.initialize(context, new ValueMap().putValue("appId", "foo") //
+        .putValue("clientKey", "bar"), NONE);
     verifyStatic();
     Leanplum.setAppIdForProductionMode("foo", "bar");
     verifyStatic();
