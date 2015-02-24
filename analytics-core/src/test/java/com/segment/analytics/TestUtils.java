@@ -1,6 +1,7 @@
 package com.segment.analytics;
 
 import android.app.Application;
+import android.support.annotation.NonNull;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.GroupPayload;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
@@ -8,8 +9,13 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.io.File;
 import java.lang.reflect.Constructor;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.AbstractExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.json.JSONObject;
@@ -385,6 +391,35 @@ public final class TestUtils {
 
     @Override public void describeTo(Description description) {
       description.appendText(expected.toString());
+    }
+  }
+
+  public static class SynchronousExecutor extends AbstractExecutorService {
+    private final AtomicBoolean terminated = new AtomicBoolean(false);
+
+    @Override public void shutdown() {
+      terminated.set(true);
+    }
+
+    @NonNull @Override public List<Runnable> shutdownNow() {
+      return Collections.emptyList();
+    }
+
+    @Override public boolean isShutdown() {
+      return terminated.get();
+    }
+
+    @Override public boolean isTerminated() {
+      return terminated.get();
+    }
+
+    @Override public boolean awaitTermination(long timeout, TimeUnit unit)
+        throws InterruptedException {
+      return false;
+    }
+
+    @Override public void execute(Runnable command) {
+      command.run();
     }
   }
 }

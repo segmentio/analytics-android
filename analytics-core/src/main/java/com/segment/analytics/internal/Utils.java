@@ -25,13 +25,11 @@
 package com.segment.analytics.internal;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
-import android.os.HandlerThread;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -179,15 +177,6 @@ public final class Utils {
     ConnectivityManager cm = getSystemService(context, CONNECTIVITY_SERVICE);
     NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
     return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
-  }
-
-  /** Quit a thread safely if possible. */
-  @TargetApi(18) public static void quitThread(HandlerThread thread) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      thread.quit();
-    } else {
-      thread.quitSafely();
-    }
   }
 
   /** Panic from an unrecoverable error. */

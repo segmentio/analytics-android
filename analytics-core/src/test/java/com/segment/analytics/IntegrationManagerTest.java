@@ -5,10 +5,13 @@ import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.IntegrationOperation;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import java.io.IOException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
@@ -16,6 +19,7 @@ import org.robolectric.shadows.ShadowLog;
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
+import static com.segment.analytics.TestUtils.SynchronousExecutor;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -35,6 +39,7 @@ public class IntegrationManagerTest {
   @Mock Client client;
   @Mock Stats stats;
   @Mock ProjectSettings.Cache projectSettingsCache;
+  ExecutorService networkExecutor;
 
   @Before public void setUp() throws IOException {
     initMocks(this);
@@ -42,9 +47,11 @@ public class IntegrationManagerTest {
     context = mockApplication();
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
 
+    networkExecutor = Mockito.spy(new SynchronousExecutor());
+
     integrationManager =
-        new IntegrationManager(context, client, Cartographer.INSTANCE, stats, projectSettingsCache,
-            NONE);
+        new IntegrationManager(context, client, networkExecutor, Cartographer.INSTANCE, stats,
+            projectSettingsCache, NONE);
   }
 
   @After public void tearDown() {
@@ -77,6 +84,12 @@ public class IntegrationManagerTest {
     // exercise a bug where we added an integration twice, once on load and once on initialize
     assertThat(integrationManager.integrations).containsExactly(mockIntegration);
     */
+  }
+
+  @Test public void fetchSettingsSubmitsToExecutor() throws Exception {
+    integrationManager.performFetchSettings();
+
+    verify(networkExecutor).submit(any(Callable.class));
   }
 
   @Test public void forwardsCorrectly() {

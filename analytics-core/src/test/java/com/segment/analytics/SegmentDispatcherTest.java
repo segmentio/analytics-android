@@ -12,6 +12,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,6 +29,7 @@ import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.SegmentDispatcher.MAX_QUEUE_SIZE;
 import static com.segment.analytics.SegmentDispatcher.SegmentDispatcherHandler.REQUEST_FLUSH;
+import static com.segment.analytics.TestUtils.SynchronousExecutor;
 import static com.segment.analytics.TestUtils.TRACK_PAYLOAD;
 import static com.segment.analytics.TestUtils.TRACK_PAYLOAD_JSON;
 import static com.segment.analytics.TestUtils.mockApplication;
@@ -37,6 +40,7 @@ import static org.mockito.Matchers.anyMap;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -132,6 +136,18 @@ public class SegmentDispatcherTest {
     segmentDispatcher.performFlush();
 
     assertThat(queueFile.size()).isEqualTo(0);
+  }
+
+  @Test public void flushSubmitsToExecutor() throws IOException {
+    ExecutorService executor = spy(new SynchronousExecutor());
+    QueueFile queueFile = mock(QueueFile.class);
+    when(queueFile.size()).thenReturn(1);
+    SegmentDispatcher dispatcher =
+        new SegmentBuilder().queueFile(queueFile).networkExecutor(executor).build();
+
+    dispatcher.performFlush();
+
+    verify(executor).submit(any(Callable.class));
   }
 
   @Test public void flushWhenDisconnectedSkipsUpload() throws IOException {
@@ -302,6 +318,7 @@ public class SegmentDispatcherTest {
     int flushInterval = Utils.DEFAULT_FLUSH_INTERVAL;
     int flushSize = Utils.DEFAULT_FLUSH_QUEUE_SIZE;
     Analytics.LogLevel logLevel = NONE;
+    ExecutorService networkExecutor;
 
     SegmentBuilder() {
       initMocks(this);
@@ -356,6 +373,11 @@ public class SegmentDispatcherTest {
       return this;
     }
 
+    public SegmentBuilder networkExecutor(ExecutorService networkExecutor) {
+      this.networkExecutor = networkExecutor;
+      return this;
+    }
+
     SegmentDispatcher build() {
       if (context == null) {
         context = mockApplication();
@@ -367,8 +389,9 @@ public class SegmentDispatcherTest {
       if (queueFile == null) queueFile = mock(QueueFile.class);
       if (stats == null) stats = mock(Stats.class);
       if (integrations == null) integrations = Collections.emptyMap();
-      return new SegmentDispatcher(context, client, cartographer, queueFile, stats, integrations,
-          flushInterval, flushSize, logLevel);
+      if (networkExecutor == null) networkExecutor = new SynchronousExecutor();
+      return new SegmentDispatcher(context, client, cartographer, networkExecutor, queueFile, stats,
+          integrations, flushInterval, flushSize, logLevel);
     }
   }
 }
