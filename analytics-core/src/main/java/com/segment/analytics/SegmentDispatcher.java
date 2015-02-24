@@ -53,8 +53,8 @@ class SegmentDispatcher {
   final Context context;
   final QueueFile queueFile;
   final Client client;
+  final long flushIntervalInMillis;
   final int flushQueueSize;
-  final int flushInterval;
   final Stats stats;
   final Handler handler;
   final HandlerThread segmentThread;
@@ -84,7 +84,7 @@ class SegmentDispatcher {
 
   static synchronized SegmentDispatcher create(Context context, Client client,
       Cartographer cartographer, Stats stats, Map<String, Boolean> integrations, String tag,
-      int flushInterval, int flushQueueSize, Analytics.LogLevel logLevel) {
+      long flushIntervalInMillis, int flushQueueSize, Analytics.LogLevel logLevel) {
     QueueFile queueFile;
     try {
       File folder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
@@ -93,33 +93,38 @@ class SegmentDispatcher {
       throw panic(e, "Could not create queue file.");
     }
     return new SegmentDispatcher(context, client, cartographer, queueFile, stats, integrations,
-        flushInterval, flushQueueSize, logLevel);
+        flushIntervalInMillis, flushQueueSize, logLevel);
   }
 
   SegmentDispatcher(Context context, Client client, Cartographer cartographer, QueueFile queueFile,
-      Stats stats, Map<String, Boolean> integrations, int flushInterval, int flushQueueSize,
-      Analytics.LogLevel logLevel) {
+      Stats stats, Map<String, Boolean> integrations, long flushIntervalInMillis,
+      int flushQueueSize, Analytics.LogLevel logLevel) {
     this.context = context;
-    this.flushQueueSize = Math.min(flushQueueSize, MAX_QUEUE_SIZE);
     this.client = client;
     this.queueFile = queueFile;
     this.stats = stats;
     this.logLevel = logLevel;
     this.integrations = integrations;
     this.cartographer = cartographer;
-    this.flushInterval = flushInterval * 1000;
+    this.flushIntervalInMillis = flushIntervalInMillis;
+    this.flushQueueSize = flushQueueSize;
 
     segmentThread = new HandlerThread(SEGMENT_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     segmentThread.start();
     handler = new SegmentDispatcherHandler(segmentThread.getLooper(), this);
-    dispatchFlush(flushInterval);
+
+    if (queueFile.size() >= flushQueueSize) {
+      dispatchFlush(0);
+    } else {
+      dispatchFlush(flushIntervalInMillis);
+    }
   }
 
   void dispatchEnqueue(BasePayload payload) {
     handler.sendMessage(handler.obtainMessage(SegmentDispatcherHandler.REQUEST_ENQUEUE, payload));
   }
 
-  void dispatchFlush(int delay) {
+  void dispatchFlush(long delay) {
     handler.removeMessages(SegmentDispatcherHandler.REQUEST_FLUSH);
     handler.sendMessageDelayed(handler.obtainMessage(SegmentDispatcherHandler.REQUEST_FLUSH),
         delay);
@@ -157,7 +162,7 @@ class SegmentDispatcher {
 
   void performFlush() {
     if (queueFile.size() < 1 || !isConnected(context)) {
-      dispatchFlush(flushInterval);
+      dispatchFlush(flushIntervalInMillis);
       return;
     }
 
@@ -169,7 +174,7 @@ class SegmentDispatcher {
       if (logLevel.log()) {
         error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, "Could not open connection");
       }
-      dispatchFlush(flushInterval);
+      dispatchFlush(flushIntervalInMillis);
       return;
     }
 
@@ -186,7 +191,7 @@ class SegmentDispatcher {
       if (logLevel.log()) {
         error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, queueFile);
       }
-      dispatchFlush(flushInterval);
+      dispatchFlush(flushIntervalInMillis);
       return;
     }
 
@@ -207,7 +212,7 @@ class SegmentDispatcher {
         error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, "Could not upload payloads",
             queueFile);
       }
-      dispatchFlush(flushInterval);
+      dispatchFlush(flushIntervalInMillis);
       return;
     }
 
@@ -220,7 +225,7 @@ class SegmentDispatcher {
     if (queueFile.size() > 0) {
       performFlush(); // Flush any remaining items.
     } else {
-      dispatchFlush(flushInterval);
+      dispatchFlush(flushIntervalInMillis);
     }
   }
 

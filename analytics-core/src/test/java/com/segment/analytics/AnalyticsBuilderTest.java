@@ -24,9 +24,10 @@
 
 package com.segment.analytics;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.res.Resources;
-import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,12 +49,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 public class AnalyticsBuilderTest {
   final String stubbedKey = "stub";
-  Context context;
+  Application context;
 
   @Before
   public void setUp() {
     initMocks(this);
     context = mockApplication();
+    when(context.getApplicationContext()).thenReturn(context);
   }
 
   @Test public void invalidContextThrowsException() throws Exception {
@@ -125,40 +127,33 @@ public class AnalyticsBuilderTest {
 
   @Test public void invalidQueueSizeThrowsException() throws Exception {
     try {
-      new Builder(context, stubbedKey).queueSize(-1);
+      new Builder(context, stubbedKey).flushQueueSize(-1);
       fail("queueSize < 0 should throw exception.");
     } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("queueSize must be greater than or equal to zero.");
+      assertThat(expected).hasMessage("flushQueueSize must be greater than or equal to zero.");
     }
 
     try {
-      new Builder(context, stubbedKey).queueSize(0);
+      new Builder(context, stubbedKey).flushQueueSize(0);
       fail("queueSize = 0 should throw exception.");
     } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("queueSize must be greater than or equal to zero.");
+      assertThat(expected).hasMessage("flushQueueSize must be greater than or equal to zero.");
     }
   }
 
   @Test public void invalidFlushIntervalThrowsException() throws Exception {
     try {
-      new Builder(context, stubbedKey).flushInterval(-1);
+      new Builder(context, stubbedKey).flushInterval(-1, TimeUnit.DAYS);
       fail("flushInterval < 0 should throw exception.");
     } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("flushInterval must be greater than or equal to 10.");
+      assertThat(expected).hasMessage("flushInterval must be greater than zero.");
     }
 
     try {
-      new Builder(context, stubbedKey).flushInterval(0);
-      fail("flushInterval < 10 should throw exception.");
+      new Builder(context, stubbedKey).flushInterval(1, null);
+      fail("null unit should throw exception.");
     } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("flushInterval must be greater than or equal to 10.");
-    }
-
-    try {
-      new Builder(context, stubbedKey).flushInterval(9);
-      fail("flushInterval < 10 should throw exception.");
-    } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("flushInterval must be greater than or equal to 10.");
+      assertThat(expected).hasMessage("timeUnit must not be null.");
     }
   }
 
@@ -168,13 +163,6 @@ public class AnalyticsBuilderTest {
       fail("null options should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("defaultOptions must not be null.");
-    }
-
-    try {
-      new Builder(context, stubbedKey).defaultOptions(new Options().setTimestamp(new Date()));
-      fail("default options with timestamp should throw exception.");
-    } catch (IllegalArgumentException expected) {
-      assertThat(expected).hasMessage("default option must not contain timestamp.");
     }
   }
 

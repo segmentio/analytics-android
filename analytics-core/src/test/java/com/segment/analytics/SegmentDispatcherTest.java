@@ -74,8 +74,8 @@ public class SegmentDispatcherTest {
 
   @Test public void enqueueLimitsQueueSize() throws IOException {
     QueueFile queueFile = mock(QueueFile.class);
-    // we want to trigger a remove, but not a flush, so return 0 the second time size() is called
-    when(queueFile.size()).thenReturn(MAX_QUEUE_SIZE, 0);
+    // we want to trigger a remove, but not a flush
+    when(queueFile.size()).thenReturn(0, MAX_QUEUE_SIZE, 0);
     SegmentDispatcher segmentDispatcher = new SegmentBuilder().queueFile(queueFile).build();
 
     segmentDispatcher.performEnqueue(TRACK_PAYLOAD);
