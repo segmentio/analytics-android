@@ -20,7 +20,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
@@ -39,7 +42,6 @@ import static com.segment.analytics.internal.Utils.error;
 import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.panic;
-import static com.segment.analytics.internal.Utils.quitThread;
 
 /**
  * The class that forwards operations from the client to integrations, including Segment. It
@@ -65,23 +67,27 @@ class IntegrationManager {
   final Analytics.LogLevel logLevel;
   final HandlerThread integrationManagerThread;
   final Handler integrationManagerHandler;
+  final ExecutorService networkExecutor;
 
   Queue<IntegrationOperation> operationQueue;
   Map<String, Callback> callbacks;
   volatile boolean initialized;
 
   static synchronized IntegrationManager create(Context context, Cartographer cartographer,
-      Client client, Stats stats, String tag, Analytics.LogLevel logLevel) {
+      Client client, ExecutorService networkExecutor, Stats stats, String tag,
+      Analytics.LogLevel logLevel) {
     ProjectSettings.Cache projectSettingsCache =
         new ProjectSettings.Cache(context, cartographer, tag);
-    return new IntegrationManager(context, client, cartographer, stats, projectSettingsCache,
-        logLevel);
+    return new IntegrationManager(context, client, networkExecutor, cartographer, stats,
+        projectSettingsCache, logLevel);
   }
 
-  IntegrationManager(Context context, Client client, Cartographer cartographer, Stats stats,
-      ProjectSettings.Cache projectSettingsCache, Analytics.LogLevel logLevel) {
+  IntegrationManager(Context context, Client client, ExecutorService networkExecutor,
+      Cartographer cartographer, Stats stats, ProjectSettings.Cache projectSettingsCache,
+      Analytics.LogLevel logLevel) {
     this.context = context;
     this.client = client;
+    this.networkExecutor = networkExecutor;
     this.cartographer = cartographer;
     this.stats = stats;
     this.projectSettingsCache = projectSettingsCache;
@@ -167,18 +173,38 @@ class IntegrationManager {
       return;
     }
 
-    Client.Connection connection = null;
     try {
-      connection = client.fetchSettings();
-      Map<String, Object> map = cartographer.fromJson(buffer(connection.is));
-      ProjectSettings projectSettings = ProjectSettings.create(map);
+      ProjectSettings projectSettings = networkExecutor.submit(new Callable<ProjectSettings>() {
+        @Override public ProjectSettings call() throws Exception {
+          return fetchSettings();
+        }
+      }).get();
       projectSettingsCache.set(projectSettings);
       dispatchInitializeIntegrations(projectSettings);
-    } catch (IOException e) {
+    } catch (InterruptedException e) {
+      if (logLevel.log()) {
+        error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, null, e,
+            "Interrupted while fetching settings.");
+      }
+    } catch (ExecutionException e) {
       if (logLevel.log()) {
         error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, null, e, "Unable to fetch settings");
       }
       dispatchRetryFetchSettings();
+    }
+  }
+
+  private ProjectSettings fetchSettings() throws IOException {
+    Client.Connection connection = null;
+    try {
+      connection = client.fetchSettings();
+      Map<String, Object> map = cartographer.fromJson(buffer(connection.is));
+      return ProjectSettings.create(map);
+    } catch (IOException e) {
+      if (logLevel.log()) {
+        error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, null, e, "Unable to fetch settings");
+      }
+      throw e;
     } finally {
       closeQuietly(connection);
     }
@@ -307,7 +333,7 @@ class IntegrationManager {
   }
 
   void shutdown() {
-    quitThread(integrationManagerThread);
+    integrationManagerThread.quit();
     if (operationQueue != null) {
       operationQueue.clear();
       operationQueue = null;

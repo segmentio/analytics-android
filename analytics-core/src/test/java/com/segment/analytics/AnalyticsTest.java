@@ -43,9 +43,10 @@ public class AnalyticsTest {
   @Mock SegmentDispatcher segmentDispatcher;
   @Mock Stats stats;
   @Mock Traits.Cache traitsCache;
+  @Mock Analytics.AnalyticsExecutorService networkExecutor;
+  @Mock Options defaultOptions;
   Traits traits;
   AnalyticsContext analyticsContext;
-  @Mock Options defaultOptions;
 
   private Analytics analytics;
 
@@ -61,8 +62,8 @@ public class AnalyticsTest {
     when(traitsCache.get()).thenReturn(traits);
     analyticsContext = createContext(traits);
     analytics =
-        new Analytics(application, integrationManager, segmentDispatcher, stats, traitsCache,
-            analyticsContext, defaultOptions, NONE);
+        new Analytics(application, networkExecutor, integrationManager, segmentDispatcher, stats,
+            traitsCache, analyticsContext, defaultOptions, NONE);
 
     // Used by singleton tests
     grantPermission(Robolectric.application, Manifest.permission.INTERNET);
@@ -215,8 +216,8 @@ public class AnalyticsTest {
   @Test public void nullIntegrationManagerIsIgnored() throws Exception {
     application = mockApplication();
     analytics =
-        new Analytics(application, null, segmentDispatcher, stats, traitsCache, analyticsContext,
-            defaultOptions, NONE);
+        new Analytics(application, networkExecutor, null, segmentDispatcher, stats, traitsCache,
+            analyticsContext, defaultOptions, NONE);
 
     verify(application, never()) //
         .registerActivityLifecycleCallbacks(any(Application.ActivityLifecycleCallbacks.class));
@@ -255,6 +256,7 @@ public class AnalyticsTest {
     verify(integrationManager).shutdown();
     verify(stats).shutdown();
     verify(segmentDispatcher).shutdown();
+    verify(networkExecutor).shutdown();
     assertThat(analytics.shutdown).isTrue();
   }
 

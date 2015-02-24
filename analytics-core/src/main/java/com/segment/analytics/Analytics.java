@@ -43,6 +43,9 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload;
@@ -90,6 +93,7 @@ public class Analytics {
 
   final SegmentDispatcher segmentDispatcher;
   final LogLevel logLevel;
+  private final ExecutorService networkExecutor;
   private final IntegrationManager integrationManager;
   private final Stats stats;
   private final Options defaultOptions;
@@ -151,9 +155,11 @@ public class Analytics {
     }
   }
 
-  Analytics(Application application, IntegrationManager integrationManager,
-      SegmentDispatcher segmentDispatcher, Stats stats, Traits.Cache traitsCache,
-      AnalyticsContext analyticsContext, Options defaultOptions, LogLevel logLevel) {
+  Analytics(Application application, ExecutorService networkExecutor,
+      IntegrationManager integrationManager, SegmentDispatcher segmentDispatcher, Stats stats,
+      Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions,
+      LogLevel logLevel) {
+    this.networkExecutor = networkExecutor;
     this.integrationManager = integrationManager;
     this.segmentDispatcher = segmentDispatcher;
     this.stats = stats;
@@ -462,6 +468,9 @@ public class Analytics {
     if (shutdown) {
       return;
     }
+    if (networkExecutor instanceof AnalyticsExecutorService) {
+      networkExecutor.shutdown();
+    }
     if (integrationManager != null) {
       integrationManager.shutdown();
     }
@@ -591,6 +600,17 @@ public class Analytics {
     void onReady(Object instance);
   }
 
+  static class AnalyticsExecutorService extends ThreadPoolExecutor {
+    private static final int DEFAULT_THREAD_COUNT = 1;
+    // At most we perform two network requests concurrently
+    private static final int MAX_THREAD_COUNT = 2;
+
+    AnalyticsExecutorService() {
+      super(DEFAULT_THREAD_COUNT, MAX_THREAD_COUNT, 0, TimeUnit.MILLISECONDS,
+          new SynchronousQueue<Runnable>());
+    }
+  }
+
   /** Fluent API for creating {@link Analytics} instances. */
   public static class Builder {
     private final Application application;
@@ -601,6 +621,7 @@ public class Analytics {
     private String tag;
     private LogLevel logLevel;
     private boolean bundledIntegrationsEnabled = true;
+    private ExecutorService networkExecutor;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -711,6 +732,19 @@ public class Analytics {
       return this;
     }
 
+    /**
+     * Specify the executor service for loading images in the background.
+     * <p>
+     * Note: Calling {@link Analytics#shutdown()} will not shutdown supplied executors.
+     */
+    public Builder networkExecutor(ExecutorService networkExecutor) {
+      if (networkExecutor == null) {
+        throw new IllegalArgumentException("Executor service must not be null.");
+      }
+      this.networkExecutor = networkExecutor;
+      return this;
+    }
+
     /** Create a {@link Analytics} client. */
     public Analytics build() {
       if (defaultOptions == null) {
@@ -722,6 +756,9 @@ public class Analytics {
       if (isNullOrEmpty(tag)) {
         tag = writeKey;
       }
+      if (networkExecutor == null) {
+        networkExecutor = new AnalyticsExecutorService();
+      }
 
       Stats stats = new Stats();
       Cartographer cartographer = Cartographer.INSTANCE;
@@ -732,15 +769,16 @@ public class Analytics {
 
       if (bundledIntegrationsEnabled) {
         integrationManager =
-            IntegrationManager.create(application, cartographer, client, stats, tag, logLevel);
+            IntegrationManager.create(application, cartographer, client, networkExecutor, stats,
+                tag, logLevel);
         bundledIntegrations = Collections.unmodifiableMap(integrationManager.bundledIntegrations);
       } else {
         bundledIntegrations = Collections.emptyMap();
       }
 
       SegmentDispatcher segmentDispatcher =
-          SegmentDispatcher.create(application, client, cartographer, stats, bundledIntegrations,
-              tag, flushIntervalInMillis, flushQueueSize, logLevel);
+          SegmentDispatcher.create(application, client, cartographer, networkExecutor, stats,
+              bundledIntegrations, tag, flushIntervalInMillis, flushQueueSize, logLevel);
 
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
@@ -749,8 +787,8 @@ public class Analytics {
       }
       AnalyticsContext analyticsContext = AnalyticsContext.create(application, traitsCache.get());
 
-      return new Analytics(application, integrationManager, segmentDispatcher, stats, traitsCache,
-          analyticsContext, defaultOptions, logLevel);
+      return new Analytics(application, networkExecutor, integrationManager, segmentDispatcher,
+          stats, traitsCache, analyticsContext, defaultOptions, logLevel);
     }
   }
 }

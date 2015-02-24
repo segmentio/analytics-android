@@ -75,6 +75,15 @@ public class AnalyticsBuilderTest {
     }
   }
 
+  @Test public void invalidExecutorThrowsException() throws Exception {
+    try {
+      new Builder(context, stubbedKey).networkExecutor(null);
+      fail("Null executor should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("Executor service must not be null.");
+    }
+  }
+
   @Test public void invalidWriteKeyThrowsException() throws Exception {
     try {
       new Builder(context, null);

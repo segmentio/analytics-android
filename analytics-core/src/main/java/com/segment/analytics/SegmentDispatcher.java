@@ -17,6 +17,9 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.internal.Utils.OWNER_SEGMENT_DISPATCHER;
@@ -30,7 +33,6 @@ import static com.segment.analytics.internal.Utils.error;
 import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.panic;
-import static com.segment.analytics.internal.Utils.quitThread;
 import static com.segment.analytics.internal.Utils.toISO8601Date;
 
 /** Entity that queues payloads on disks and uploads them periodically. */
@@ -44,7 +46,7 @@ class SegmentDispatcher {
   private static final Charset UTF_8 = Charset.forName("UTF-8");
   private static final String SEGMENT_THREAD_NAME = THREAD_PREFIX + OWNER_SEGMENT_DISPATCHER;
   /**
-   * Our servers only accept payloads < 500KB. This limit is 450kb to account for extra information
+   * Our servers only accept payloads < 500KB. This limit is 450kb to account for extra data
    * that is not present in payloads themselves, but is added later, such as {@code sentAt},
    * {@code integrations} and json tokens.
    */
@@ -61,6 +63,7 @@ class SegmentDispatcher {
   final Analytics.LogLevel logLevel;
   final Map<String, Boolean> integrations;
   final Cartographer cartographer;
+  private final ExecutorService networkExecutor;
 
   /**
    * Create a {@link QueueFile} in the given folder with the given name. This method will throw an
@@ -83,8 +86,9 @@ class SegmentDispatcher {
   }
 
   static synchronized SegmentDispatcher create(Context context, Client client,
-      Cartographer cartographer, Stats stats, Map<String, Boolean> integrations, String tag,
-      long flushIntervalInMillis, int flushQueueSize, Analytics.LogLevel logLevel) {
+      Cartographer cartographer, ExecutorService networkExecutor, Stats stats,
+      Map<String, Boolean> integrations, String tag, long flushIntervalInMillis, int flushQueueSize,
+      Analytics.LogLevel logLevel) {
     QueueFile queueFile;
     try {
       File folder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
@@ -92,15 +96,17 @@ class SegmentDispatcher {
     } catch (IOException e) {
       throw panic(e, "Could not create queue file.");
     }
-    return new SegmentDispatcher(context, client, cartographer, queueFile, stats, integrations,
-        flushIntervalInMillis, flushQueueSize, logLevel);
+    return new SegmentDispatcher(context, client, cartographer, networkExecutor, queueFile, stats,
+        integrations, flushIntervalInMillis, flushQueueSize, logLevel);
   }
 
-  SegmentDispatcher(Context context, Client client, Cartographer cartographer, QueueFile queueFile,
-      Stats stats, Map<String, Boolean> integrations, long flushIntervalInMillis,
-      int flushQueueSize, Analytics.LogLevel logLevel) {
+  SegmentDispatcher(Context context, Client client, Cartographer cartographer,
+      ExecutorService networkExecutor, QueueFile queueFile, Stats stats,
+      Map<String, Boolean> integrations, long flushIntervalInMillis, int flushQueueSize,
+      Analytics.LogLevel logLevel) {
     this.context = context;
     this.client = client;
+    this.networkExecutor = networkExecutor;
     this.queueFile = queueFile;
     this.stats = stats;
     this.logLevel = logLevel;
@@ -160,12 +166,7 @@ class SegmentDispatcher {
     }
   }
 
-  void performFlush() {
-    if (queueFile.size() < 1 || !isConnected(context)) {
-      dispatchFlush(flushIntervalInMillis);
-      return;
-    }
-
+  private int flush() throws IOException {
     Client.Connection connection;
     try {
       // Open a connection.
@@ -174,8 +175,7 @@ class SegmentDispatcher {
       if (logLevel.log()) {
         error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, "Could not open connection");
       }
-      dispatchFlush(flushIntervalInMillis);
-      return;
+      throw e;
     }
 
     int payloadsUploaded;
@@ -184,26 +184,24 @@ class SegmentDispatcher {
       BatchPayloadWriter writer = new BatchPayloadWriter(connection.os).beginObject()
           .integrations(integrations)
           .beginBatchArray();
-      payloadsUploaded = queueFile.forEach(new PayloadWriter(writer));
+      PayloadWriter payloadWriter = new PayloadWriter(writer);
+      queueFile.forEach(payloadWriter);
       writer.endBatchArray().endObject().close();
+      // Don't use the result of QueueFiles#forEach, since we may or may not read the last element.
+      payloadsUploaded = payloadWriter.payloadCount;
     } catch (IOException e) {
       closeQuietly(connection);
       if (logLevel.log()) {
         error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, queueFile);
       }
-      dispatchFlush(flushIntervalInMillis);
-      return;
+      throw e;
     }
 
     try {
       // Upload the payloads.
       connection.close();
-      if (logLevel.log()) {
-        debug(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null,
-            "Flushed " + payloadsUploaded + " payloads.");
-      }
-      stats.dispatchFlush(payloadsUploaded);
     } catch (Client.UploadException e) {
+      // simply log proceed to remove the rejected payloads from the queue
       if (logLevel.log()) {
         error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, "Could not upload payloads");
       }
@@ -212,25 +210,51 @@ class SegmentDispatcher {
         error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, "Could not upload payloads",
             queueFile);
       }
+      throw e;
+    }
+
+    return payloadsUploaded;
+  }
+
+  void performFlush() {
+    if (queueFile.size() < 1 || !isConnected(context)) {
       dispatchFlush(flushIntervalInMillis);
       return;
     }
 
     try {
-      queueFile.remove(payloadsUploaded);
-    } catch (IOException e) {
-      throw panic(e, "Unable to remove payloads from queueFile: " + queueFile);
-    }
+      int payloadsUploaded = networkExecutor.submit(new Callable<Integer>() {
+        @Override public Integer call() throws Exception {
+          return flush();
+        }
+      }).get();
 
-    if (queueFile.size() > 0) {
-      performFlush(); // Flush any remaining items.
-    } else {
+      try {
+        queueFile.remove(payloadsUploaded);
+      } catch (IOException e) {
+        throw panic(e, "Unable to remove payloads from queueFile: " + queueFile);
+      }
+
+      if (queueFile.size() > 0) {
+        performFlush(); // Flush any remaining items.
+      } else {
+        dispatchFlush(flushIntervalInMillis);
+      }
+    } catch (InterruptedException e) {
+      if (logLevel.log()) {
+        error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e,
+            "Interrupted while waiting for flush.");
+      }
+    } catch (ExecutionException e) {
+      if (logLevel.log()) {
+        error(OWNER_SEGMENT_DISPATCHER, VERB_FLUSH, null, e, "Could not upload payloads.");
+      }
       dispatchFlush(flushIntervalInMillis);
     }
   }
 
   void shutdown() {
-    quitThread(segmentThread);
+    segmentThread.quit();
     closeQuietly(queueFile);
   }
 

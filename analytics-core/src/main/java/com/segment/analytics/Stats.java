@@ -12,7 +12,6 @@ import java.util.Map;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.internal.Utils.panic;
-import static com.segment.analytics.internal.Utils.quitThread;
 
 class Stats {
   private static final String STATS_THREAD_NAME = Utils.THREAD_PREFIX + "Stats";
@@ -33,7 +32,7 @@ class Stats {
   }
 
   void shutdown() {
-    quitThread(statsThread);
+    statsThread.quit();
   }
 
   void dispatchFlush(int eventCount) {
