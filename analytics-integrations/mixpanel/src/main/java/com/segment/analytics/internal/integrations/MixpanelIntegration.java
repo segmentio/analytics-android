@@ -96,7 +96,7 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
       addSpecialProperties(traits, identify.traits());
     } catch (JSONException e) {
       if (logLevel.log()) {
-        debug(OWNER_INTEGRATION_MANAGER, MIXPANEL_KEY, identify.id());
+        debug(OWNER_INTEGRATION_MANAGER, MIXPANEL_KEY, identify.messageId());
       }
     }
 

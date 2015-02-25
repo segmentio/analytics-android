@@ -9,7 +9,12 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Pair;
 import com.segment.analytics.internal.AbstractIntegration;
-import com.segment.analytics.internal.IntegrationOperation;
+import com.segment.analytics.internal.model.payloads.AliasPayload;
+import com.segment.analytics.internal.model.payloads.BasePayload;
+import com.segment.analytics.internal.model.payloads.GroupPayload;
+import com.segment.analytics.internal.model.payloads.IdentifyPayload;
+import com.segment.analytics.internal.model.payloads.ScreenPayload;
+import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayDeque;
@@ -28,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Analytics.Callback;
+import static com.segment.analytics.Options.ALL_INTEGRATIONS_KEY;
 import static com.segment.analytics.internal.Utils.OWNER_INTEGRATION_MANAGER;
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
 import static com.segment.analytics.internal.Utils.VERB_DISPATCH;
@@ -127,9 +133,9 @@ class IntegrationManager {
 
   /**
    * Checks if an integration with the give class name is available on the classpath, i.e. if it
-   * was bundled at compile time. If it is, this will instantiate the integration.
+   * was bundled at compile time. If it is, this will attempt to load the integration.
    */
-  private void checkBundledIntegration(String className) {
+  void checkBundledIntegration(String className) {
     try {
       Class clazz = Class.forName(className);
       loadIntegration(clazz);
@@ -141,9 +147,11 @@ class IntegrationManager {
   }
 
   /**
-   * Instantiates an {@link AbstractIntegration} for the given class. The {@link
+   * Instantiates an instance of {@link AbstractIntegration} for the given class. The {@link
    * AbstractIntegration} *MUST* have an empty constructor. This will also update the {@code
    * bundledIntegrations} map so that events for this integration aren't sent server side.
+   * <p/>
+   * This will not initialize the integration.
    */
   private void loadIntegration(Class<AbstractIntegration> clazz) {
     try {
@@ -218,12 +226,13 @@ class IntegrationManager {
   void performInitializeIntegrations(ProjectSettings projectSettings) {
     if (initialized) return;
 
+    ValueMap integrationSettings = projectSettings.integrations();
     Iterator<AbstractIntegration> iterator = integrations.iterator();
     while (iterator.hasNext()) {
       AbstractIntegration integration = iterator.next();
       String key = integration.key();
-      if (projectSettings.containsKey(key)) {
-        ValueMap settings = projectSettings.getValueMap(key);
+      if (!isNullOrEmpty(integrationSettings) || integrationSettings.containsKey(key)) {
+        ValueMap settings = integrationSettings.getValueMap(key);
         try {
           if (logLevel.log()) {
             debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, key, settings);
@@ -264,14 +273,20 @@ class IntegrationManager {
     initialized = true;
   }
 
-  /** Dispatch a flush request. */
   void dispatchFlush() {
-    dispatchOperation(new FlushOperation());
+    integrationManagerHandler.sendMessage(integrationManagerHandler //
+        .obtainMessage(IntegrationManagerHandler.REQUEST_DISPATCH_OPERATION, new FlushOperation()));
   }
 
-  void dispatchOperation(IntegrationOperation operation) {
+  void dispatchPayload(BasePayload payload) {
     integrationManagerHandler.sendMessage(integrationManagerHandler //
-        .obtainMessage(IntegrationManagerHandler.REQUEST_DISPATCH_OPERATION, operation));
+        .obtainMessage(IntegrationManagerHandler.REQUEST_DISPATCH_OPERATION,
+            new PayloadOperation(payload)));
+  }
+
+  void dispatchLifecyclePayload(ActivityLifecyclePayload payload) {
+    integrationManagerHandler.sendMessage(integrationManagerHandler //
+        .obtainMessage(IntegrationManagerHandler.REQUEST_DISPATCH_OPERATION, payload));
   }
 
   void performOperation(IntegrationOperation operation) {
@@ -289,11 +304,11 @@ class IntegrationManager {
   }
 
   /** Runs the given operation on all Bundled integrations. */
-  private void run(IntegrationOperation operation) {
+  void run(IntegrationOperation operation) {
     for (int i = 0; i < integrations.size(); i++) {
       AbstractIntegration integration = integrations.get(i);
       long startTime = System.nanoTime();
-      operation.run(integration);
+      operation.run(integration, projectSettingsCache.get());
       long endTime = System.nanoTime();
       long duration = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
       if (logLevel.log()) {
@@ -340,6 +355,15 @@ class IntegrationManager {
     }
   }
 
+  /** Abstraction for a task that a {@link AbstractIntegration} can execute. */
+  interface IntegrationOperation {
+    /** Run this operation on the given integration. */
+    void run(AbstractIntegration integration, ProjectSettings projectSettings);
+
+    /** Return a unique ID to identify this operation. */
+    String id();
+  }
+
   static class ActivityLifecyclePayload implements IntegrationOperation {
     final Type type;
     final Bundle bundle;
@@ -358,7 +382,7 @@ class IntegrationManager {
       return activity;
     }
 
-    @Override public void run(AbstractIntegration integration) {
+    @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
       switch (type) {
         case CREATED:
           integration.onActivityCreated(activity, bundle);
@@ -399,10 +423,92 @@ class IntegrationManager {
     }
   }
 
+  static class PayloadOperation implements IntegrationOperation {
+    final BasePayload payload;
+
+    static boolean isIntegrationEnabled(ValueMap integrations, AbstractIntegration integration) {
+      if (isNullOrEmpty(integrations)) {
+        return true;
+      }
+      boolean enabled = true;
+      String key = integration.key();
+      if (integrations.containsKey(key)) {
+        enabled = integrations.getBoolean(key, true);
+      } else if (integrations.containsKey(ALL_INTEGRATIONS_KEY)) {
+        enabled = integrations.getBoolean(ALL_INTEGRATIONS_KEY, true);
+      }
+      return enabled;
+    }
+
+    static boolean isIntegrationEnabledInPlan(ValueMap plan, AbstractIntegration integration) {
+      boolean eventEnabled = plan.getBoolean("enabled", true);
+      if (eventEnabled) {
+        // The event is enabled in the tracking plan. Check if there is an integration
+        // specific setting.
+        ValueMap integrationPlan = plan.getValueMap("integrations");
+        if (!isIntegrationEnabled(integrationPlan, integration)) {
+          eventEnabled = false;
+        }
+      }
+      return eventEnabled;
+    }
+
+    PayloadOperation(BasePayload payload) {
+      this.payload = payload;
+    }
+
+    @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
+      if (!isIntegrationEnabled(payload.integrations(), integration)) {
+        return;
+      }
+
+      BasePayload.Type type = payload.type();
+      switch (type) {
+        case track:
+          TrackPayload trackPayload = (TrackPayload) payload;
+          ValueMap trackingPlan = projectSettings.trackingPlan();
+          boolean trackEnabled = true;
+
+          // If tracking plan is empty, leave the event enabled.
+          if (!isNullOrEmpty(trackingPlan)) {
+            String event = trackPayload.event();
+            // If tracking plan has no settings for the event, leave the event enabled.
+            if (trackingPlan.containsKey(event)) {
+              ValueMap eventPlan = trackingPlan.getValueMap(event);
+              trackEnabled = isIntegrationEnabledInPlan(eventPlan, integration);
+            }
+          }
+
+          if (trackEnabled) {
+            integration.track(trackPayload);
+          }
+          break;
+        case identify:
+          integration.identify((IdentifyPayload) payload);
+          break;
+        case alias:
+          integration.alias((AliasPayload) payload);
+          break;
+        case group:
+          integration.group((GroupPayload) payload);
+          break;
+        case screen:
+          integration.screen((ScreenPayload) payload);
+          break;
+        default:
+          panic("Unknown payload type: " + type);
+      }
+    }
+
+    @Override public String id() {
+      return payload.messageId();
+    }
+  }
+
   static class FlushOperation implements IntegrationOperation {
     String id = UUID.randomUUID().toString();
 
-    @Override public void run(AbstractIntegration integration) {
+    @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
       integration.flush();
     }
 
@@ -415,9 +521,9 @@ class IntegrationManager {
     }
   }
 
-  private static class IntegrationManagerHandler extends Handler {
-    private static final int REQUEST_FETCH_SETTINGS = 1;
-    private static final int REQUEST_INITIALIZE_INTEGRATIONS = 2;
+  static class IntegrationManagerHandler extends Handler {
+    static final int REQUEST_FETCH_SETTINGS = 1;
+    static final int REQUEST_INITIALIZE_INTEGRATIONS = 2;
     private static final int REQUEST_DISPATCH_OPERATION = 3;
     private static final int REQUEST_REGISTER_CALLBACK = 4;
     private final IntegrationManager integrationManager;
@@ -439,6 +545,7 @@ class IntegrationManager {
           integrationManager.performOperation((IntegrationOperation) msg.obj);
           break;
         case REQUEST_REGISTER_CALLBACK:
+          //noinspection unchecked
           Pair<String, Analytics.Callback> pair = (Pair<String, Analytics.Callback>) msg.obj;
           integrationManager.performRegisterCallback(pair.first, pair.second);
           break;

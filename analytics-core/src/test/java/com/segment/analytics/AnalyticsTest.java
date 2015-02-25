@@ -173,8 +173,16 @@ public class AnalyticsTest {
 
     analytics.submit(payload);
 
-    verify(integrationManager).dispatchOperation(payload);
+    verify(integrationManager).dispatchPayload(payload);
     verify(segmentDispatcher).dispatchEnqueue(payload);
+  }
+
+  @Test public void submitLifecycleInvokesDispatch() {
+    ActivityLifecyclePayload payload = mock(ActivityLifecyclePayload.class);
+
+    analytics.submit(payload);
+
+    verify(integrationManager).dispatchLifecyclePayload(payload);
   }
 
   @Test public void flushInvokesDispatch() throws Exception {
@@ -205,12 +213,6 @@ public class AnalyticsTest {
       }
     }));
     assertThat(analyticsContext.traits()).hasSize(1).containsKey("anonymousId");
-  }
-
-  @Test public void submitLifecycleInvokesDispatch() {
-    ActivityLifecyclePayload payload = mock(ActivityLifecyclePayload.class);
-    analytics.submit(payload);
-    verify(integrationManager).dispatchOperation(payload);
   }
 
   @Test public void nullIntegrationManagerIsIgnored() throws Exception {
