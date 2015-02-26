@@ -231,8 +231,8 @@ class IntegrationManager {
     while (iterator.hasNext()) {
       AbstractIntegration integration = iterator.next();
       String key = integration.key();
-      if (!isNullOrEmpty(integrationSettings) || integrationSettings.containsKey(key)) {
-        ValueMap settings = integrationSettings.getValueMap(key);
+      ValueMap settings = integrationSettings.getValueMap(key);
+      if (!isNullOrEmpty(settings)) {
         try {
           if (logLevel.log()) {
             debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, key, settings);
@@ -244,7 +244,7 @@ class IntegrationManager {
               callback.onReady(integration.getUnderlyingInstance());
             }
           }
-        } catch (IllegalStateException e) {
+        } catch (Exception e) {
           if (logLevel.log()) {
             error(OWNER_INTEGRATION_MANAGER, VERB_SKIP, key, e, settings);
           }
@@ -252,6 +252,7 @@ class IntegrationManager {
           bundledIntegrations.remove(key);
         }
       } else {
+        bundledIntegrations.remove(key);
         iterator.remove();
       }
     }
