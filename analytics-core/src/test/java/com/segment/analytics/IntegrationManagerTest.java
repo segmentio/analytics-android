@@ -126,6 +126,34 @@ public class IntegrationManagerTest {
     assertThat(integrationManager.integrations).isEmpty();
   }
 
+  @Test public void handlesIntegrationThrowingExceptionGracefully() throws IOException {
+    ProjectSettings projectSettings = createProjectSettings("{\n"
+        + "  \"integrations\": {\n"
+        + "    \"bad\": {\n"
+        + "        \"enabled\": true\n"
+        + "    }\n"
+        + "  }\n"
+        + "}");
+    AbstractIntegration<Void> badIntegration = new AbstractIntegration<Void>() {
+      @Override public void initialize(Context context, ValueMap settings,
+          Analytics.LogLevel logLevel) throws IllegalStateException {
+        throw new NullPointerException("mock");
+      }
+
+      @Override public String key() {
+        return "bad";
+      }
+    };
+    integrationManager.bundledIntegrations.put("bad", false);
+    integrationManager.integrations.add(badIntegration);
+
+    integrationManager.performInitializeIntegrations(projectSettings);
+
+    assertThat(integrationManager.bundledIntegrations).isEmpty();
+    assertThat(integrationManager.integrations).isEmpty();
+  }
+
+
   @Test public void skipsFetchingSettingsIfDisconnected() {
     NetworkInfo networkInfo = mock(NetworkInfo.class);
     when(networkInfo.isConnectedOrConnecting()).thenReturn(false);
