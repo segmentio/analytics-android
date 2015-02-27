@@ -25,13 +25,11 @@
 package com.segment.analytics;
 
 import android.content.Context;
-import android.util.Base64;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
@@ -39,11 +37,9 @@ import static java.net.HttpURLConnection.HTTP_OK;
  * HTTP client which can upload payloads and fetch project settings from the Segment public API.
  */
 class Client {
-  private static final int DEFAULT_READ_TIMEOUT_MILLIS = 20 * 1000; // 20s
-  private static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 15 * 1000; // 15s
-
-  final String writeKey;
   final Context context;
+  final Analytics.ConnectionFactory connectionFactory;
+  final String writeKey;
 
   private static Connection createPostConnection(HttpURLConnection connection) throws IOException {
     return new Connection(connection, null, connection.getOutputStream()) {
@@ -70,37 +66,19 @@ class Client {
     };
   }
 
-  private static String authorizationHeader(String writeKey) {
-    return "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP);
-  }
-
-  Client(Context context, String writeKey) {
+  Client(Context context, String writeKey, Analytics.ConnectionFactory connectionFactory) {
     this.context = context;
     this.writeKey = writeKey;
-  }
-
-  protected HttpURLConnection openConnection(String url) throws IOException {
-    HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-    connection.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS);
-    connection.setReadTimeout(DEFAULT_READ_TIMEOUT_MILLIS);
-    connection.setDoInput(true);
-    return connection;
+    this.connectionFactory = connectionFactory;
   }
 
   Connection upload() throws IOException {
-    HttpURLConnection connection = openConnection("https://api.segment.io/v1/import");
-    connection.setRequestProperty("Content-Type", "application/json");
-    connection.setRequestProperty("Authorization", authorizationHeader(writeKey));
-    connection.setDoOutput(true);
-    connection.setChunkedStreamingMode(0);
+    HttpURLConnection connection = connectionFactory.upload(writeKey);
     return createPostConnection(connection);
   }
 
   Connection fetchSettings() throws IOException {
-    HttpURLConnection connection =
-        openConnection("http://cdn.segment.com/v1/projects/" + writeKey + "/settings");
-    connection.setRequestProperty("Content-Type", "application/json");
-
+    HttpURLConnection connection = connectionFactory.projectSettings(writeKey);
     int responseCode = connection.getResponseCode();
     if (responseCode != HTTP_OK) {
       connection.disconnect();
