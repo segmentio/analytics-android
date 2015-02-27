@@ -39,17 +39,19 @@ public class ClientTest {
   @Before public void setUp() {
     Activity activity = Robolectric.buildActivity(Activity.class).get();
     mockConnection = mock(HttpURLConnection.class);
-    client = new Client(activity, "foo") {
+
+    client = new Client(activity, "foo", new Analytics.ConnectionFactory() {
       @Override protected HttpURLConnection openConnection(String url) throws IOException {
         String path = Uri.parse(url).getPath();
         return (HttpURLConnection) server.getUrl(path).openConnection();
       }
-    };
-    mockClient = new Client(activity, "foo") {
+    });
+
+    mockClient = new Client(activity, "foo", new Analytics.ConnectionFactory() {
       @Override protected HttpURLConnection openConnection(String url) throws IOException {
         return mockConnection;
       }
-    };
+    });
   }
 
   @Test public void upload() throws Exception {
