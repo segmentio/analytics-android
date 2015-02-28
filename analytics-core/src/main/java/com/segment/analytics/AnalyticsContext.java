@@ -88,7 +88,6 @@ public class AnalyticsContext extends ValueMap {
   private static final String LIBRARY_KEY = "library";
   private static final String LIBRARY_NAME_KEY = "name";
   private static final String LIBRARY_VERSION_KEY = "version";
-  private static final String LIBRARY_VERSION_NAME_KEY = "versionName";   // Android Specific
   // Location
   private static final String LOCATION_KEY = "location";
   // Network
@@ -101,7 +100,6 @@ public class AnalyticsContext extends ValueMap {
   private static final String OS_KEY = "os";
   private static final String OS_NAME_KEY = "name";
   private static final String OS_VERSION_KEY = "version";
-  private static final String OS_SDK_KEY = "sdk";  // Android Specific
   // Referrer
   private static final String REFERRER_KEY = "referrer";
   // Screen
@@ -109,30 +107,6 @@ public class AnalyticsContext extends ValueMap {
   private static final String SCREEN_DENSITY_KEY = "density";
   private static final String SCREEN_HEIGHT_KEY = "height";
   private static final String SCREEN_WIDTH_KEY = "width";
-  private static final String SCREEN_DENSITY_DPI_KEY = "densityDpi";
-  private static final String SCREEN_DENSITY_BUCKET_KEY = "densityBucket";
-  private static final String SCREEN_SCALED_DENSITY_KEY = "scaledDensity";
-
-  private static String getDensityString(DisplayMetrics displayMetrics) {
-    switch (displayMetrics.densityDpi) {
-      case DisplayMetrics.DENSITY_LOW:
-        return "ldpi";
-      case DisplayMetrics.DENSITY_MEDIUM:
-        return "mdpi";
-      case DisplayMetrics.DENSITY_HIGH:
-        return "hdpi";
-      case DisplayMetrics.DENSITY_XHIGH:
-        return "xhdpi";
-      case DisplayMetrics.DENSITY_XXHIGH:
-        return "xxhdpi";
-      case DisplayMetrics.DENSITY_XXXHIGH:
-        return "xxxhdpi";
-      case DisplayMetrics.DENSITY_TV:
-        return "tvdpi";
-      default:
-        return "unknown";
-    }
-  }
 
   /**
    * Create a new {@link AnalyticsContext} instance filled in with information from the given
@@ -250,8 +224,7 @@ public class AnalyticsContext extends ValueMap {
   void putLibrary() {
     Map<String, Object> library = createMap();
     library.put(LIBRARY_NAME_KEY, "analytics-android");
-    library.put(LIBRARY_VERSION_KEY, BuildConfig.VERSION_CODE);
-    library.put(LIBRARY_VERSION_NAME_KEY, BuildConfig.VERSION_NAME);
+    library.put(LIBRARY_VERSION_KEY, BuildConfig.VERSION_NAME);
     put(LIBRARY_KEY, library);
   }
 
@@ -292,16 +265,11 @@ public class AnalyticsContext extends ValueMap {
     put(NETWORK_KEY, network);
   }
 
-  /**
-   * Fill this instance with operating system information. No need to expose a
-   * getter for this for bundled integrations (they'll automatically fill what they need
-   * themselves).
-   */
+  /** Fill this instance with operating system information. */
   void putOs() {
     Map<String, Object> os = createMap();
-    os.put(OS_NAME_KEY, Build.VERSION.CODENAME);
+    os.put(OS_NAME_KEY, "Android");
     os.put(OS_VERSION_KEY, Build.VERSION.RELEASE);
-    os.put(OS_SDK_KEY, Build.VERSION.SDK_INT);
     put(OS_KEY, os);
   }
 
@@ -324,9 +292,6 @@ public class AnalyticsContext extends ValueMap {
     screen.put(SCREEN_DENSITY_KEY, displayMetrics.density);
     screen.put(SCREEN_HEIGHT_KEY, displayMetrics.heightPixels);
     screen.put(SCREEN_WIDTH_KEY, displayMetrics.widthPixels);
-    screen.put(SCREEN_DENSITY_DPI_KEY, displayMetrics.densityDpi);
-    screen.put(SCREEN_DENSITY_BUCKET_KEY, getDensityString(displayMetrics));
-    screen.put(SCREEN_SCALED_DENSITY_KEY, displayMetrics.scaledDensity);
     put(SCREEN_KEY, screen);
   }
 
