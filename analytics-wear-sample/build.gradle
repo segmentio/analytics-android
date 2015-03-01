@@ -9,6 +9,7 @@ android {
 }
 
 dependencies {
+  compile project(':analytics-core')
   compile project(':analytics-wear')
   compile rootProject.ext.libraries.supportWearable
 }
