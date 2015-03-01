@@ -52,7 +52,7 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     jsonObject.remove("name");
     jsonObject.put("$username", traits.username());
     jsonObject.remove("username");
-    jsonObject.put("$create", traits.createdAt());
+    jsonObject.put("$created", traits.createdAt());
     jsonObject.remove("createdAt");
   }
 

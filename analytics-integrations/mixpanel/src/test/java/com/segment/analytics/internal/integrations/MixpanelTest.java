@@ -219,7 +219,7 @@ public class MixpanelTest {
     expected.put("$last_name", traits.lastName());
     expected.put("$name", traits.name());
     expected.put("$username", traits.username());
-    expected.put("$create", traits.createdAt());
+    expected.put("$created", traits.createdAt());
 
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verify(mixpanelAPI).identify("foo");
