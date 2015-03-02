@@ -43,6 +43,7 @@ import static com.segment.analytics.TestUtils.mockApplication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -295,6 +296,27 @@ public class IntegrationManagerTest {
     verify(mockIntegration).track(trackPayload);
   }
 
+  @Test public void trackPlanEnablesEventForSegment() throws IOException {
+    TrackPayload trackPayload = new TestUtils.TrackPayloadBuilder().event("bar").build();
+    ProjectSettings projectSettings = createProjectSettings("{\n"
+        + "  \"plan\": {\n"
+        + "    \"track\": {\n"
+        + "      \"bar\": {\n"
+        + "        \"enabled\": true,\n"
+        + "        \"integrations\": {\n"
+        + "          \"All\": false\n"
+        + "        }\n"
+        + "      }\n"
+        + "    }\n"
+        + "  }\n"
+        + "}");
+
+    when(mockIntegration.key()).thenReturn("Segment.io");
+    IntegrationOperation.track(trackPayload).run(mockIntegration, projectSettings);
+
+    verify(mockIntegration).track(trackPayload);
+  }
+
   @Test public void trackPlanDisablesEvent() throws IOException {
     TrackPayload trackPayload = new TestUtils.TrackPayloadBuilder().event("bar").build();
     ProjectSettings projectSettings = createProjectSettings("{\n"
@@ -392,7 +414,7 @@ public class IntegrationManagerTest {
 
     IntegrationOperation.track(trackPayload).run(mockIntegration, projectSettings);
 
-    verify(mockIntegration).key();
+    verify(mockIntegration, atLeastOnce()).key();
     verifyNoMoreInteractions(mockIntegration);
   }
 
@@ -413,7 +435,7 @@ public class IntegrationManagerTest {
 
     IntegrationOperation.track(trackPayload).run(mockIntegration, projectSettings);
 
-    verify(mockIntegration).key();
+    verify(mockIntegration, atLeastOnce()).key();
     verifyNoMoreInteractions(mockIntegration);
   }
 

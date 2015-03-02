@@ -19,6 +19,10 @@ abstract class IntegrationOperation {
     if (isNullOrEmpty(integrations)) {
       return true;
     }
+    if (SegmentDispatcher.SEGMENT_KEY.equals(integration.key())) {
+      // Always send to Segment
+      return true;
+    }
     boolean enabled = true;
     String key = integration.key();
     if (integrations.containsKey(key)) {
@@ -32,12 +36,9 @@ abstract class IntegrationOperation {
   static boolean isIntegrationEnabledInPlan(ValueMap plan, AbstractIntegration integration) {
     boolean eventEnabled = plan.getBoolean("enabled", true);
     if (eventEnabled) {
-      // The event is enabled in the tracking plan. Check if there is an integration
-      // specific setting.
+      // Check if there is an integration specific setting.
       ValueMap integrationPlan = plan.getValueMap("integrations");
-      if (!isIntegrationEnabled(integrationPlan, integration)) {
-        eventEnabled = false;
-      }
+      eventEnabled = isIntegrationEnabled(integrationPlan, integration);
     }
     return eventEnabled;
   }
