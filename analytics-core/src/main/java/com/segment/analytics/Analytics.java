@@ -555,7 +555,7 @@ public class Analytics {
     LEANPLUM("Leanplum"),
     LOCALYTICS("Leanplum"),
     MIXPANEL("Mixpanel"),
-    QUANTCAST("Quancast"),
+    QUANTCAST("Quantcast"),
     TAPSTREAM("Tapstream");
 
     /** The key that identifies this integration in our API. */
