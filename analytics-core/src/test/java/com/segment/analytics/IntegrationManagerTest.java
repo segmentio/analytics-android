@@ -27,7 +27,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
@@ -46,6 +45,7 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -80,7 +80,7 @@ public class IntegrationManagerTest {
 
     when(mockIntegration.key()).thenReturn("foo");
 
-    networkExecutor = Mockito.spy(new SynchronousExecutor());
+    networkExecutor = spy(new SynchronousExecutor());
 
     integrationManager =
         new IntegrationManager(application, client, networkExecutor, Cartographer.INSTANCE, stats,
@@ -115,6 +115,13 @@ public class IntegrationManagerTest {
 
     assertThat(integrationManager.bundledIntegrations).isEmpty();
     assertThat(integrationManager.integrations).isEmpty();
+  }
+
+  @Test public void shutdown() {
+    integrationManager.shutdown();
+
+    verify(application).unregisterActivityLifecycleCallbacks(integrationManager);
+    assertThat(integrationManager.operationQueue).isNull();
   }
 
   @Test public void handlesIntegrationThrowingExceptionGracefully() throws IOException {

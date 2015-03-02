@@ -245,8 +245,8 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
           bundledIntegrations.remove(key);
         }
       } else {
-        bundledIntegrations.remove(key);
         iterator.remove();
+        bundledIntegrations.remove(key);
       }
     }
 
