@@ -4,7 +4,7 @@ apply plugin: 'com.android.library'
 apply from: rootProject.file('gradle/android.gradle')
 
 dependencies {
-  compile project(':analytics-core')
+  provided project(':analytics-core')
   compile rootProject.ext.libraries.playWearable
 }
 
