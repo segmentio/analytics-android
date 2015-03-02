@@ -31,14 +31,12 @@ import static java.util.Collections.unmodifiableMap;
 
 class ProjectSettings extends ValueMap {
   private static final String TIMESTAMP_KEY = "timestamp";
-  private static final String SEGMENT_KEY = "Segment.io";
   private static final String PLAN_KEY = "plan";
   private static final String INTEGRATIONS_KEY = "integrations";
   private static final String TRACKING_PLAN_KEY = "track";
 
   static ProjectSettings create(Map<String, Object> map) {
     map.put(TIMESTAMP_KEY, System.currentTimeMillis());
-    map.remove(SEGMENT_KEY);
     return new ProjectSettings(map);
   }
 

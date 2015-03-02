@@ -68,6 +68,9 @@ public class Options {
    * @return This options object for chaining
    */
   public Options setIntegration(String integrationKey, boolean enabled) {
+    if (SegmentDispatcher.SEGMENT_KEY.equals(integrationKey)) {
+      throw new IllegalArgumentException("Segment integration cannot be disabled");
+    }
     integrations.put(integrationKey, enabled);
     return this;
   }
@@ -78,10 +81,10 @@ public class Options {
    * @param bundledIntegration The target integration
    * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
    * @return This options object for chaining
-   * @see {@link #setIntegration(String, boolean)}
+   * @see {@link Options#setIntegration(String, boolean)}
    */
   public Options setIntegration(Analytics.BundledIntegration bundledIntegration, boolean enabled) {
-    integrations.put(bundledIntegration.key, enabled);
+    setIntegration(bundledIntegration.key, enabled);
     return this;
   }
 

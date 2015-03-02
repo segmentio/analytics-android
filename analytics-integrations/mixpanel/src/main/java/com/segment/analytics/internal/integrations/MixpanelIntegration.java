@@ -16,7 +16,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import static com.segment.analytics.Analytics.LogLevel;
-import static com.segment.analytics.internal.Utils.OWNER_INTEGRATION_MANAGER;
 import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
@@ -96,7 +95,7 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
       addSpecialProperties(traits, identify.traits());
     } catch (JSONException e) {
       if (logLevel.log()) {
-        debug(OWNER_INTEGRATION_MANAGER, MIXPANEL_KEY, identify.messageId());
+        debug("Could not add special properties to JSONObject for Mixpanel Integration");
       }
     }
 
