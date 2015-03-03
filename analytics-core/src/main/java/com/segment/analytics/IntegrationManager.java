@@ -1,7 +1,7 @@
 package com.segment.analytics;
 
 import android.app.Activity;
-import android.content.Context;
+import android.app.Application;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -15,16 +15,15 @@ import com.segment.analytics.internal.model.payloads.GroupPayload;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -33,14 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Analytics.Callback;
-import static com.segment.analytics.Options.ALL_INTEGRATIONS_KEY;
-import static com.segment.analytics.internal.Utils.OWNER_INTEGRATION_MANAGER;
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
-import static com.segment.analytics.internal.Utils.VERB_DISPATCH;
-import static com.segment.analytics.internal.Utils.VERB_DOWNLOAD;
-import static com.segment.analytics.internal.Utils.VERB_ENQUEUE;
-import static com.segment.analytics.internal.Utils.VERB_INITIALIZE;
-import static com.segment.analytics.internal.Utils.VERB_SKIP;
 import static com.segment.analytics.internal.Utils.buffer;
 import static com.segment.analytics.internal.Utils.closeQuietly;
 import static com.segment.analytics.internal.Utils.debug;
@@ -51,21 +43,21 @@ import static com.segment.analytics.internal.Utils.panic;
 
 /**
  * The class that forwards operations from the client to integrations, including Segment. It
- * maintains it's own in-memory queue to account for the latency between receiving the first event,
- * fetching settings from the server and enabling the integrations. Once it enables all
- * integrations,it replays any events in the queue. Subsequent launches will be use the cached
- * settings on disk.
+ * maintains it's own in-memory queue to queue events while we're fetching the project settings
+ * from
+ * our server. Once it enables all integrations,it replays any events in the queue. Subsequent
+ * launches will be use the cached settings on disk.
  */
-class IntegrationManager {
+class IntegrationManager implements Application.ActivityLifecycleCallbacks {
   private static final String INTEGRATION_MANAGER_THREAD_NAME =
-      THREAD_PREFIX + OWNER_INTEGRATION_MANAGER;
+      THREAD_PREFIX + "IntegrationManager";
   private static final long SETTINGS_REFRESH_INTERVAL = 1000 * 60 * 60 * 24; // 24 hours
   private static final long SETTINGS_RETRY_INTERVAL = 1000 * 60; // 1 minute
 
   final Map<String, Boolean> bundledIntegrations = new ConcurrentHashMap<>();
   final List<AbstractIntegration> integrations = new ArrayList<>();
 
-  final Context context;
+  final Application application;
   final Client client;
   final Cartographer cartographer;
   final Stats stats;
@@ -74,24 +66,25 @@ class IntegrationManager {
   final HandlerThread integrationManagerThread;
   final Handler integrationManagerHandler;
   final ExecutorService networkExecutor;
+  final SegmentDispatcher segmentDispatcher; // Keep around for shutdown
 
   Queue<IntegrationOperation> operationQueue;
   Map<String, Callback> callbacks;
   volatile boolean initialized;
 
-  static synchronized IntegrationManager create(Context context, Cartographer cartographer,
+  static synchronized IntegrationManager create(Application application, Cartographer cartographer,
       Client client, ExecutorService networkExecutor, Stats stats, String tag,
-      Analytics.LogLevel logLevel) {
+      Analytics.LogLevel logLevel, long flushIntervalInMillis, int flushQueueSize) {
     ProjectSettings.Cache projectSettingsCache =
-        new ProjectSettings.Cache(context, cartographer, tag);
-    return new IntegrationManager(context, client, networkExecutor, cartographer, stats,
-        projectSettingsCache, logLevel);
+        new ProjectSettings.Cache(application, cartographer, tag);
+    return new IntegrationManager(application, client, networkExecutor, cartographer, stats,
+        projectSettingsCache, logLevel, tag, flushIntervalInMillis, flushQueueSize);
   }
 
-  IntegrationManager(Context context, Client client, ExecutorService networkExecutor,
+  IntegrationManager(Application application, Client client, ExecutorService networkExecutor,
       Cartographer cartographer, Stats stats, ProjectSettings.Cache projectSettingsCache,
-      Analytics.LogLevel logLevel) {
-    this.context = context;
+      Analytics.LogLevel logLevel, String tag, long flushIntervalInMillis, int flushQueueSize) {
+    this.application = application;
     this.client = client;
     this.networkExecutor = networkExecutor;
     this.cartographer = cartographer;
@@ -99,26 +92,20 @@ class IntegrationManager {
     this.projectSettingsCache = projectSettingsCache;
     this.logLevel = logLevel;
 
+    application.registerActivityLifecycleCallbacks(this);
+
     integrationManagerThread =
         new HandlerThread(INTEGRATION_MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     integrationManagerThread.start();
     integrationManagerHandler =
         new IntegrationManagerHandler(integrationManagerThread.getLooper(), this);
 
-    checkBundledIntegration("com.segment.analytics.internal.integrations.AmplitudeIntegration");
-    checkBundledIntegration("com.segment.analytics.internal.integrations.AppsFlyerIntegration");
-    checkBundledIntegration("com.segment.analytics.internal.integrations.BugsnagIntegration");
-    checkBundledIntegration("com.segment.analytics.internal.integrations.CountlyIntegration");
-    checkBundledIntegration("com.segment.analytics.internal.integrations.CrittercismIntegration");
-    checkBundledIntegration("com.segment.analytics.internal.integrations.FlurryIntegration");
-    checkBundledIntegration(
-        "com.segment.analytics.internal.integrations.GoogleAnalyticsIntegration");
-    checkBundledIntegration("com.segment.analytics.internal.integrations.KahunaIntegration");
-    checkBundledIntegration("com.segment.analytics.internal.integrations.LeanplumIntegration");
-    checkBundledIntegration("com.segment.analytics.internal.integrations.LocalyticsIntegration");
-    checkBundledIntegration("com.segment.analytics.internal.integrations.MixpanelIntegration");
-    checkBundledIntegration("com.segment.analytics.internal.integrations.QuantcastIntegration");
-    checkBundledIntegration("com.segment.analytics.internal.integrations.TapstreamIntegration");
+    loadIntegrations();
+    segmentDispatcher =
+        SegmentDispatcher.create(application, client, cartographer, networkExecutor, stats,
+            Collections.unmodifiableMap(bundledIntegrations), tag, flushIntervalInMillis,
+            flushQueueSize, logLevel);
+    integrations.add(segmentDispatcher);
 
     if (projectSettingsCache.isSet() && projectSettingsCache.get() != null) {
       dispatchInitializeIntegrations(projectSettingsCache.get());
@@ -131,17 +118,33 @@ class IntegrationManager {
     }
   }
 
+  private void loadIntegrations() {
+    loadIntegration("com.segment.analytics.internal.integrations.AmplitudeIntegration");
+    loadIntegration("com.segment.analytics.internal.integrations.AppsFlyerIntegration");
+    loadIntegration("com.segment.analytics.internal.integrations.BugsnagIntegration");
+    loadIntegration("com.segment.analytics.internal.integrations.CountlyIntegration");
+    loadIntegration("com.segment.analytics.internal.integrations.CrittercismIntegration");
+    loadIntegration("com.segment.analytics.internal.integrations.FlurryIntegration");
+    loadIntegration("com.segment.analytics.internal.integrations.GoogleAnalyticsIntegration");
+    loadIntegration("com.segment.analytics.internal.integrations.KahunaIntegration");
+    loadIntegration("com.segment.analytics.internal.integrations.LeanplumIntegration");
+    loadIntegration("com.segment.analytics.internal.integrations.LocalyticsIntegration");
+    loadIntegration("com.segment.analytics.internal.integrations.MixpanelIntegration");
+    loadIntegration("com.segment.analytics.internal.integrations.QuantcastIntegration");
+    loadIntegration("com.segment.analytics.internal.integrations.TapstreamIntegration");
+  }
+
   /**
    * Checks if an integration with the give class name is available on the classpath, i.e. if it
    * was bundled at compile time. If it is, this will attempt to load the integration.
    */
-  void checkBundledIntegration(String className) {
+  void loadIntegration(String className) {
     try {
       Class clazz = Class.forName(className);
       loadIntegration(clazz);
     } catch (ClassNotFoundException e) {
       if (logLevel.log()) {
-        debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, className);
+        debug("Integration for class %s not bundled.", className);
       }
     }
   }
@@ -176,7 +179,7 @@ class IntegrationManager {
   }
 
   void performFetchSettings() {
-    if (!isConnected(context)) {
+    if (!isConnected(application)) {
       dispatchRetryFetchSettings();
       return;
     }
@@ -184,37 +187,27 @@ class IntegrationManager {
     try {
       ProjectSettings projectSettings = networkExecutor.submit(new Callable<ProjectSettings>() {
         @Override public ProjectSettings call() throws Exception {
-          return fetchSettings();
+          Client.Connection connection = null;
+          try {
+            connection = client.fetchSettings();
+            Map<String, Object> map = cartographer.fromJson(buffer(connection.is));
+            return ProjectSettings.create(map);
+          } finally {
+            closeQuietly(connection);
+          }
         }
       }).get();
       projectSettingsCache.set(projectSettings);
       dispatchInitializeIntegrations(projectSettings);
     } catch (InterruptedException e) {
       if (logLevel.log()) {
-        error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, null, e,
-            "Interrupted while fetching settings.");
+        error(e, "Thread interrupted while fetching settings.");
       }
     } catch (ExecutionException e) {
       if (logLevel.log()) {
-        error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, null, e, "Unable to fetch settings");
+        error(e, "Unable to fetch settings. Retrying in %s ms.", SETTINGS_RETRY_INTERVAL);
       }
       dispatchRetryFetchSettings();
-    }
-  }
-
-  private ProjectSettings fetchSettings() throws IOException {
-    Client.Connection connection = null;
-    try {
-      connection = client.fetchSettings();
-      Map<String, Object> map = cartographer.fromJson(buffer(connection.is));
-      return ProjectSettings.create(map);
-    } catch (IOException e) {
-      if (logLevel.log()) {
-        error(OWNER_INTEGRATION_MANAGER, VERB_DOWNLOAD, null, e, "Unable to fetch settings");
-      }
-      throw e;
-    } finally {
-      closeQuietly(connection);
     }
   }
 
@@ -235,9 +228,9 @@ class IntegrationManager {
       if (!isNullOrEmpty(settings)) {
         try {
           if (logLevel.log()) {
-            debug(OWNER_INTEGRATION_MANAGER, VERB_INITIALIZE, key, settings);
+            debug("Initializing integration %s with settings %s.", key, settings);
           }
-          integration.initialize(context, settings, logLevel);
+          integration.initialize(application, settings, logLevel);
           if (!isNullOrEmpty(callbacks)) {
             Callback callback = callbacks.get(key);
             if (callback != null) {
@@ -246,14 +239,14 @@ class IntegrationManager {
           }
         } catch (Exception e) {
           if (logLevel.log()) {
-            error(OWNER_INTEGRATION_MANAGER, VERB_SKIP, key, e, settings);
+            error(e, "Could not initialize integration %s.", key);
           }
           iterator.remove();
           bundledIntegrations.remove(key);
         }
       } else {
-        bundledIntegrations.remove(key);
         iterator.remove();
+        bundledIntegrations.remove(key);
       }
     }
 
@@ -262,6 +255,11 @@ class IntegrationManager {
       callbacks = null;
     }
 
+    replay();
+    initialized = true;
+  }
+
+  private void replay() {
     if (!isNullOrEmpty(operationQueue)) {
       Iterator<IntegrationOperation> operationIterator = operationQueue.iterator();
       while (operationIterator.hasNext()) {
@@ -271,40 +269,90 @@ class IntegrationManager {
       }
     }
     operationQueue = null;
-    initialized = true;
+  }
+
+  @Override public void onActivityCreated(final Activity activity,
+      final Bundle savedInstanceState) {
+    dispatchEnqueue(IntegrationOperation.onActivityCreated(activity, savedInstanceState));
+  }
+
+  @Override public void onActivityStarted(Activity activity) {
+    dispatchEnqueue(IntegrationOperation.onActivityStarted(activity));
+  }
+
+  @Override public void onActivityResumed(Activity activity) {
+    dispatchEnqueue(IntegrationOperation.onActivityResumed(activity));
+  }
+
+  @Override public void onActivityPaused(Activity activity) {
+    dispatchEnqueue(IntegrationOperation.onActivityPaused(activity));
+  }
+
+  @Override public void onActivityStopped(Activity activity) {
+    dispatchEnqueue(IntegrationOperation.onActivityStopped(activity));
+  }
+
+  @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+    dispatchEnqueue(IntegrationOperation.onActivitySaveInstanceState(activity, outState));
+  }
+
+  @Override public void onActivityDestroyed(Activity activity) {
+    dispatchEnqueue(IntegrationOperation.onActivityDestroyed(activity));
+  }
+
+  private void dispatchEnqueue(IntegrationOperation operation) {
+    integrationManagerHandler.sendMessage(integrationManagerHandler //
+        .obtainMessage(IntegrationManagerHandler.REQUEST_ENQUEUE_OPERATION, operation));
   }
 
   void dispatchFlush() {
-    integrationManagerHandler.sendMessage(integrationManagerHandler //
-        .obtainMessage(IntegrationManagerHandler.REQUEST_DISPATCH_OPERATION, new FlushOperation()));
+    dispatchEnqueue(IntegrationOperation.flush());
   }
 
-  void dispatchPayload(BasePayload payload) {
+  void dispatchEnqueue(BasePayload basePayload) {
     integrationManagerHandler.sendMessage(integrationManagerHandler //
-        .obtainMessage(IntegrationManagerHandler.REQUEST_DISPATCH_OPERATION,
-            new PayloadOperation(payload)));
+        .obtainMessage(IntegrationManagerHandler.REQUEST_ENQUEUE_PAYLOAD, basePayload));
   }
 
-  void dispatchLifecyclePayload(ActivityLifecyclePayload payload) {
-    integrationManagerHandler.sendMessage(integrationManagerHandler //
-        .obtainMessage(IntegrationManagerHandler.REQUEST_DISPATCH_OPERATION, payload));
+  void performEnqueue(BasePayload payload) {
+    IntegrationOperation operation;
+    switch (payload.type()) {
+      case identify:
+        operation = IntegrationOperation.identify((IdentifyPayload) payload);
+        break;
+      case alias:
+        operation = IntegrationOperation.alias((AliasPayload) payload);
+        break;
+      case group:
+        operation = IntegrationOperation.group((GroupPayload) payload);
+        break;
+      case track:
+        operation = IntegrationOperation.track((TrackPayload) payload);
+        break;
+      case screen:
+        operation = IntegrationOperation.screen((ScreenPayload) payload);
+        break;
+      default:
+        throw new AssertionError("unknown type " + payload.type());
+    }
+    performEnqueue(operation);
   }
 
-  void performOperation(IntegrationOperation operation) {
+  void performEnqueue(IntegrationOperation operation) {
     if (initialized) {
       run(operation);
     } else {
+      if (logLevel.log()) {
+        debug("Enqueuing action %s.", operation);
+      }
       if (operationQueue == null) {
         operationQueue = new ArrayDeque<>();
-      }
-      if (logLevel.log()) {
-        debug(OWNER_INTEGRATION_MANAGER, VERB_ENQUEUE, operation.id());
       }
       operationQueue.add(operation);
     }
   }
 
-  /** Runs the given operation on all Bundled integrations. */
+  /** Runs the given operation on all bundled integrations. */
   void run(IntegrationOperation operation) {
     for (int i = 0; i < integrations.size(); i++) {
       AbstractIntegration integration = integrations.get(i);
@@ -313,8 +361,7 @@ class IntegrationManager {
       long endTime = System.nanoTime();
       long duration = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
       if (logLevel.log()) {
-        debug(OWNER_INTEGRATION_MANAGER, VERB_DISPATCH, operation.id(), integration.key(),
-            duration + "ms");
+        debug("Took %s ms to run action %s on %s.", duration, operation, integration.key());
       }
       stats.dispatchIntegrationOperation(integration.key(), duration);
     }
@@ -349,184 +396,21 @@ class IntegrationManager {
   }
 
   void shutdown() {
+    application.unregisterActivityLifecycleCallbacks(this);
     integrationManagerThread.quit();
+    segmentDispatcher.shutdown();
     if (operationQueue != null) {
       operationQueue.clear();
       operationQueue = null;
     }
   }
 
-  /** Abstraction for a task that a {@link AbstractIntegration} can execute. */
-  interface IntegrationOperation {
-    /** Run this operation on the given integration. */
-    void run(AbstractIntegration integration, ProjectSettings projectSettings);
-
-    /** Return a unique ID to identify this operation. */
-    String id();
-  }
-
-  static class ActivityLifecyclePayload implements IntegrationOperation {
-    final Type type;
-    final Bundle bundle;
-    final Activity activity;
-    final String id;
-
-    ActivityLifecyclePayload(Type type, Activity activity, Bundle bundle) {
-      this.type = type;
-      this.bundle = bundle;
-      this.id = UUID.randomUUID().toString();
-      // Ideally we would store a weak reference, but it doesn't work for stop/destroy events
-      this.activity = activity;
-    }
-
-    Activity getActivity() {
-      return activity;
-    }
-
-    @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
-      switch (type) {
-        case CREATED:
-          integration.onActivityCreated(activity, bundle);
-          break;
-        case STARTED:
-          integration.onActivityStarted(activity);
-          break;
-        case RESUMED:
-          integration.onActivityResumed(activity);
-          break;
-        case PAUSED:
-          integration.onActivityPaused(activity);
-          break;
-        case STOPPED:
-          integration.onActivityStopped(activity);
-          break;
-        case SAVE_INSTANCE:
-          integration.onActivitySaveInstanceState(activity, bundle);
-          break;
-        case DESTROYED:
-          integration.onActivityDestroyed(activity);
-          break;
-        default:
-          panic("Unknown lifecycle event type: " + type);
-      }
-    }
-
-    @Override public String id() {
-      return id;
-    }
-
-    @Override public String toString() {
-      return "ActivityLifecycle{" + type + '}';
-    }
-
-    enum Type {
-      CREATED, STARTED, RESUMED, PAUSED, STOPPED, SAVE_INSTANCE, DESTROYED
-    }
-  }
-
-  static class PayloadOperation implements IntegrationOperation {
-    final BasePayload payload;
-
-    static boolean isIntegrationEnabled(ValueMap integrations, AbstractIntegration integration) {
-      if (isNullOrEmpty(integrations)) {
-        return true;
-      }
-      boolean enabled = true;
-      String key = integration.key();
-      if (integrations.containsKey(key)) {
-        enabled = integrations.getBoolean(key, true);
-      } else if (integrations.containsKey(ALL_INTEGRATIONS_KEY)) {
-        enabled = integrations.getBoolean(ALL_INTEGRATIONS_KEY, true);
-      }
-      return enabled;
-    }
-
-    static boolean isIntegrationEnabledInPlan(ValueMap plan, AbstractIntegration integration) {
-      boolean eventEnabled = plan.getBoolean("enabled", true);
-      if (eventEnabled) {
-        // The event is enabled in the tracking plan. Check if there is an integration
-        // specific setting.
-        ValueMap integrationPlan = plan.getValueMap("integrations");
-        if (!isIntegrationEnabled(integrationPlan, integration)) {
-          eventEnabled = false;
-        }
-      }
-      return eventEnabled;
-    }
-
-    PayloadOperation(BasePayload payload) {
-      this.payload = payload;
-    }
-
-    @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
-      if (!isIntegrationEnabled(payload.integrations(), integration)) {
-        return;
-      }
-
-      BasePayload.Type type = payload.type();
-      switch (type) {
-        case track:
-          TrackPayload trackPayload = (TrackPayload) payload;
-          ValueMap trackingPlan = projectSettings.trackingPlan();
-          boolean trackEnabled = true;
-
-          // If tracking plan is empty, leave the event enabled.
-          if (!isNullOrEmpty(trackingPlan)) {
-            String event = trackPayload.event();
-            // If tracking plan has no settings for the event, leave the event enabled.
-            if (trackingPlan.containsKey(event)) {
-              ValueMap eventPlan = trackingPlan.getValueMap(event);
-              trackEnabled = isIntegrationEnabledInPlan(eventPlan, integration);
-            }
-          }
-
-          if (trackEnabled) {
-            integration.track(trackPayload);
-          }
-          break;
-        case identify:
-          integration.identify((IdentifyPayload) payload);
-          break;
-        case alias:
-          integration.alias((AliasPayload) payload);
-          break;
-        case group:
-          integration.group((GroupPayload) payload);
-          break;
-        case screen:
-          integration.screen((ScreenPayload) payload);
-          break;
-        default:
-          panic("Unknown payload type: " + type);
-      }
-    }
-
-    @Override public String id() {
-      return payload.messageId();
-    }
-  }
-
-  static class FlushOperation implements IntegrationOperation {
-    String id = UUID.randomUUID().toString();
-
-    @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
-      integration.flush();
-    }
-
-    @Override public synchronized String id() {
-      return id;
-    }
-
-    @Override public String toString() {
-      return getClass().getCanonicalName();
-    }
-  }
-
   static class IntegrationManagerHandler extends Handler {
     static final int REQUEST_FETCH_SETTINGS = 1;
     static final int REQUEST_INITIALIZE_INTEGRATIONS = 2;
-    private static final int REQUEST_DISPATCH_OPERATION = 3;
-    private static final int REQUEST_REGISTER_CALLBACK = 4;
+    private static final int REQUEST_ENQUEUE_OPERATION = 3;
+    private static final int REQUEST_ENQUEUE_PAYLOAD = 4;
+    private static final int REQUEST_REGISTER_CALLBACK = 5;
     private final IntegrationManager integrationManager;
 
     IntegrationManagerHandler(Looper looper, IntegrationManager integrationManager) {
@@ -542,8 +426,11 @@ class IntegrationManager {
         case REQUEST_INITIALIZE_INTEGRATIONS:
           integrationManager.performInitializeIntegrations((ProjectSettings) msg.obj);
           break;
-        case REQUEST_DISPATCH_OPERATION:
-          integrationManager.performOperation((IntegrationOperation) msg.obj);
+        case REQUEST_ENQUEUE_OPERATION:
+          integrationManager.performEnqueue((IntegrationOperation) msg.obj);
+          break;
+        case REQUEST_ENQUEUE_PAYLOAD:
+          integrationManager.performEnqueue((BasePayload) msg.obj);
           break;
         case REQUEST_REGISTER_CALLBACK:
           //noinspection unchecked

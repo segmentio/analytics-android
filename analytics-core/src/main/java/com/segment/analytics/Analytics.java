@@ -25,12 +25,10 @@
 package com.segment.analytics;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -41,20 +39,12 @@ import com.segment.analytics.internal.model.payloads.GroupPayload;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload;
-import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload.Type;
-import static com.segment.analytics.internal.Utils.OWNER_INTEGRATION_MANAGER;
-import static com.segment.analytics.internal.Utils.OWNER_MAIN;
-import static com.segment.analytics.internal.Utils.VERB_CREATE;
-import static com.segment.analytics.internal.Utils.VERB_SKIP;
-import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.getResourceString;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
@@ -91,7 +81,6 @@ public class Analytics {
   private static final Properties EMPTY_PROPERTIES = new Properties();
   volatile static Analytics singleton = null;
 
-  final SegmentDispatcher segmentDispatcher;
   final LogLevel logLevel;
   private final ExecutorService networkExecutor;
   private final IntegrationManager integrationManager;
@@ -156,49 +145,15 @@ public class Analytics {
   }
 
   Analytics(Application application, ExecutorService networkExecutor,
-      IntegrationManager integrationManager, SegmentDispatcher segmentDispatcher, Stats stats,
-      Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions,
-      LogLevel logLevel) {
+      IntegrationManager integrationManager, Stats stats, Traits.Cache traitsCache,
+      AnalyticsContext analyticsContext, Options defaultOptions, LogLevel logLevel) {
     this.networkExecutor = networkExecutor;
     this.integrationManager = integrationManager;
-    this.segmentDispatcher = segmentDispatcher;
     this.stats = stats;
     this.traitsCache = traitsCache;
     this.analyticsContext = analyticsContext;
     this.defaultOptions = defaultOptions;
     this.logLevel = logLevel;
-
-    if (integrationManager != null) {
-      application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
-        @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-          submit(new ActivityLifecyclePayload(Type.CREATED, activity, savedInstanceState));
-        }
-
-        @Override public void onActivityStarted(Activity activity) {
-          submit(new ActivityLifecyclePayload(Type.STARTED, activity, null));
-        }
-
-        @Override public void onActivityResumed(Activity activity) {
-          submit(new ActivityLifecyclePayload(Type.RESUMED, activity, null));
-        }
-
-        @Override public void onActivityPaused(Activity activity) {
-          submit(new ActivityLifecyclePayload(Type.PAUSED, activity, null));
-        }
-
-        @Override public void onActivityStopped(Activity activity) {
-          submit(new ActivityLifecyclePayload(Type.STOPPED, activity, null));
-        }
-
-        @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-          submit(new ActivityLifecyclePayload(Type.SAVE_INSTANCE, activity, outState));
-        }
-
-        @Override public void onActivityDestroyed(Activity activity) {
-          submit(new ActivityLifecyclePayload(Type.DESTROYED, activity, null));
-        }
-      });
-    }
   }
 
   // Analytics API
@@ -261,7 +216,7 @@ public class Analytics {
       options = defaultOptions;
     }
 
-    BasePayload payload = new IdentifyPayload(analyticsContext, options, traitsCache.get());
+    IdentifyPayload payload = new IdentifyPayload(analyticsContext, options, traitsCache.get());
     submit(payload);
   }
 
@@ -299,7 +254,7 @@ public class Analytics {
       options = defaultOptions;
     }
 
-    BasePayload payload = new GroupPayload(analyticsContext, options, groupId, groupTraits);
+    GroupPayload payload = new GroupPayload(analyticsContext, options, groupId, groupTraits);
     submit(payload);
   }
 
@@ -347,7 +302,7 @@ public class Analytics {
       options = defaultOptions;
     }
 
-    BasePayload payload = new TrackPayload(analyticsContext, options, event, properties);
+    TrackPayload payload = new TrackPayload(analyticsContext, options, event, properties);
     submit(payload);
   }
 
@@ -386,7 +341,8 @@ public class Analytics {
       options = defaultOptions;
     }
 
-    BasePayload payload = new ScreenPayload(analyticsContext, options, category, name, properties);
+    ScreenPayload payload =
+        new ScreenPayload(analyticsContext, options, category, name, properties);
     submit(payload);
   }
 
@@ -428,19 +384,20 @@ public class Analytics {
       options = defaultOptions;
     }
 
-    BasePayload payload = new AliasPayload(analyticsContext, options, newId);
+    AliasPayload payload = new AliasPayload(analyticsContext, options, newId);
     submit(payload);
   }
 
-  // Android API
+  void submit(BasePayload payload) {
+    integrationManager.dispatchEnqueue(payload);
+  }
 
   /**
    * Asynchronously flushes all messages in the queue to the server, and tells bundled integrations
    * to do the same.
    */
   public void flush() {
-    segmentDispatcher.dispatchFlush(0);
-    if (integrationManager != null) integrationManager.dispatchFlush();
+    integrationManager.dispatchFlush();
   }
 
   /** Get the {@link AnalyticsContext} used by this instance. */
@@ -471,10 +428,7 @@ public class Analytics {
     if (networkExecutor instanceof AnalyticsExecutorService) {
       networkExecutor.shutdown();
     }
-    if (integrationManager != null) {
-      integrationManager.shutdown();
-    }
-    segmentDispatcher.shutdown();
+    integrationManager.shutdown();
     stats.shutdown();
     shutdown = true;
   }
@@ -516,31 +470,6 @@ public class Analytics {
     }
 
     integrationManager.dispatchRegisterCallback(bundledIntegration.key, callback);
-  }
-
-  // Internal API
-
-  void submit(BasePayload payload) {
-    if (logLevel.log()) {
-      debug(OWNER_MAIN, VERB_CREATE, payload.messageId(), payload);
-    }
-    segmentDispatcher.dispatchEnqueue(payload);
-    if (integrationManager == null) {
-      if (logLevel.log()) {
-        debug(OWNER_INTEGRATION_MANAGER, VERB_SKIP, payload.messageId());
-      }
-    } else {
-      integrationManager.dispatchPayload(payload);
-    }
-  }
-
-  void submit(ActivityLifecyclePayload payload) {
-    // We only register for lifecycle callbacks if integrationManager != null, so this method
-    // is never called when integrationManager == null
-    if (logLevel.log()) {
-      debug(OWNER_MAIN, VERB_CREATE, payload.id(), payload);
-    }
-    integrationManager.dispatchLifecyclePayload(payload);
   }
 
   public enum BundledIntegration {
@@ -621,7 +550,6 @@ public class Analytics {
     private Options defaultOptions;
     private String tag;
     private LogLevel logLevel;
-    private boolean bundledIntegrationsEnabled = true;
     private ExecutorService networkExecutor;
 
     /** Start building a new {@link Analytics} instance. */
@@ -718,18 +646,8 @@ public class Analytics {
       return this;
     }
 
-    /**
-     * Disable bundled integrations. Events will only be sent to our servers, which will then
-     * forward it to the respective integrations.
-     * <p/>
-     * This will skip *ALL* bundled integrations, even if they don't have a server side integration
-     * available (e.g. Flurry).
-     *
-     * @see <a href="https://segment.com/help/getting-started/why-bundle-integrations/">Bundled
-     * Integrations</a>
-     */
-    public Builder disableBundledIntegrations() {
-      this.bundledIntegrationsEnabled = true;
+    /** @deprecated As of {@code 3.1.0}, this method does nothing. */
+    @Deprecated public Builder disableBundledIntegrations() {
       return this;
     }
 
@@ -765,21 +683,10 @@ public class Analytics {
       Cartographer cartographer = Cartographer.INSTANCE;
       Client client = new Client(application, writeKey);
 
-      IntegrationManager integrationManager = null;
+      IntegrationManager integrationManager =
+          IntegrationManager.create(application, cartographer, client, networkExecutor, stats, tag,
+              logLevel, flushIntervalInMillis, flushQueueSize);
       Map<String, Boolean> bundledIntegrations;
-
-      if (bundledIntegrationsEnabled) {
-        integrationManager =
-            IntegrationManager.create(application, cartographer, client, networkExecutor, stats,
-                tag, logLevel);
-        bundledIntegrations = Collections.unmodifiableMap(integrationManager.bundledIntegrations);
-      } else {
-        bundledIntegrations = Collections.emptyMap();
-      }
-
-      SegmentDispatcher segmentDispatcher =
-          SegmentDispatcher.create(application, client, cartographer, networkExecutor, stats,
-              bundledIntegrations, tag, flushIntervalInMillis, flushQueueSize, logLevel);
 
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
@@ -788,8 +695,8 @@ public class Analytics {
       }
       AnalyticsContext analyticsContext = AnalyticsContext.create(application, traitsCache.get());
 
-      return new Analytics(application, networkExecutor, integrationManager, segmentDispatcher,
-          stats, traitsCache, analyticsContext, defaultOptions, logLevel);
+      return new Analytics(application, networkExecutor, integrationManager, stats, traitsCache,
+          analyticsContext, defaultOptions, logLevel);
     }
   }
 }

@@ -61,23 +61,11 @@ import static android.provider.Settings.Secure.getString;
 
 public final class Utils {
   public static final String THREAD_PREFIX = "SegmentAnalytics-";
-  public final static String OWNER_MAIN = "Main";
-  public final static String OWNER_SEGMENT_DISPATCHER = "SegmentDispatcher";
-  public final static String OWNER_INTEGRATION_MANAGER = "IntegrationManager";
-  public final static String VERB_CREATE = "create";
-  public final static String VERB_DISPATCH = "dispatch";
-  public final static String VERB_DOWNLOAD = "download";
-  public final static String VERB_ENQUEUE = "enqueue";
-  public final static String VERB_FLUSH = "flush";
-  public final static String VERB_SKIP = "skip";
-  public final static String VERB_INITIALIZE = "initialize";
   public static final int DEFAULT_FLUSH_INTERVAL = 20 * 1000; // 20s
   public static final int DEFAULT_FLUSH_QUEUE_SIZE = 30;
   final static String TAG = "Segment";
   @SuppressLint("SimpleDateFormat") private static final DateFormat ISO_8601_DATE_FORMAT =
       new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-  /** [thread] [verb] [id] [extras] */
-  private final static String DEBUG_FORMAT = "%1$-20s %2$-12s %3$-36s %4$s";
 
   /** Returns the date as a string formatted with {@link #ISO_8601_DATE_FORMAT}. */
   public static String toISO8601Date(Date date) {
@@ -238,39 +226,12 @@ public final class Utils {
     }
   }
 
-  /** Return a string with all the given parts joined, separated by {@code ", "}. */
-  private static String join(Object... parts) {
-    if (parts.length == 1) return String.valueOf(parts[0]);
-
-    StringBuilder sb = new StringBuilder();
-    boolean needsComma = false;
-    //noinspection ForLoopReplaceableByForEach
-    for (int i = 0; i < parts.length; i++) {
-      if (needsComma) {
-        sb.append(", ");
-      } else {
-        needsComma = true;
-      }
-      sb.append(String.valueOf(parts[i]));
-    }
-    return sb.toString();
+  public static void debug(String format, Object... extra) {
+    Log.d(TAG, String.format(format, extra));
   }
 
-  public static void debug(String owner, String verb, String id, Object... extras) {
-    Log.d(TAG, String.format(DEBUG_FORMAT, owner, verb, id, join(extras)));
-  }
-
-  public static void error(String owner, String verb, String id, Throwable cause,
-      Object... extras) {
-    Log.e(TAG, String.format(DEBUG_FORMAT, owner, verb, id, join(extras)), cause);
-  }
-
-  public static void print(Throwable throwable, String format, Object... extras) {
-    Log.e(TAG, String.format(format, extras), throwable);
-  }
-
-  static void print(String format, Object... extras) {
-    Log.d(TAG, String.format(format, extras));
+  public static void error(Throwable error, String format, Object... extra) {
+    Log.e(TAG, String.format(format, extra), error);
   }
 
   private Utils() {

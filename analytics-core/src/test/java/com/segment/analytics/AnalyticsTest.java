@@ -18,19 +18,15 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
 import org.robolectric.shadows.ShadowLog;
 
-import static com.segment.analytics.Analytics.BundledIntegration.BUGSNAG;
 import static com.segment.analytics.Analytics.BundledIntegration.MIXPANEL;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
-import static com.segment.analytics.IntegrationManager.ActivityLifecyclePayload;
 import static com.segment.analytics.TestUtils.createContext;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
@@ -40,7 +36,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class AnalyticsTest {
   Application application;
   @Mock IntegrationManager integrationManager;
-  @Mock SegmentDispatcher segmentDispatcher;
   @Mock Stats stats;
   @Mock Traits.Cache traitsCache;
   @Mock Analytics.AnalyticsExecutorService networkExecutor;
@@ -61,9 +56,8 @@ public class AnalyticsTest {
     traits = Traits.create();
     when(traitsCache.get()).thenReturn(traits);
     analyticsContext = createContext(traits);
-    analytics =
-        new Analytics(application, networkExecutor, integrationManager, segmentDispatcher, stats,
-            traitsCache, analyticsContext, defaultOptions, NONE);
+    analytics = new Analytics(application, networkExecutor, integrationManager, stats, traitsCache,
+        analyticsContext, defaultOptions, NONE);
 
     // Used by singleton tests
     grantPermission(Robolectric.application, Manifest.permission.INTERNET);
@@ -71,11 +65,6 @@ public class AnalyticsTest {
 
   @After public void tearDown() {
     assertThat(ShadowLog.getLogs()).isEmpty();
-  }
-
-  @Test public void registersForCallbacks() {
-    verify(application) //
-        .registerActivityLifecycleCallbacks(any(Application.ActivityLifecycleCallbacks.class));
   }
 
   @Test public void identify() {
@@ -94,7 +83,7 @@ public class AnalyticsTest {
     assertThat(analyticsContext.traits()).contains(MapEntry.entry("userId", "foo"))
         .contains(MapEntry.entry("bar", "qaz"));
     verify(traitsCache).set(traits);
-    verify(segmentDispatcher).dispatchEnqueue(argThat(new TypeSafeMatcher<BasePayload>() {
+    verify(integrationManager).dispatchEnqueue(argThat(new TypeSafeMatcher<BasePayload>() {
       @Override protected boolean matchesSafely(BasePayload item) {
         // Exercises a bug where payloads didn't pick up userId in identify correctly.
         // https://github.com/segmentio/analytics-android/issues/169
@@ -163,7 +152,7 @@ public class AnalyticsTest {
     analytics.alias("foo");
     ArgumentCaptor<AliasPayload> payloadArgumentCaptor =
         ArgumentCaptor.forClass(AliasPayload.class);
-    verify(segmentDispatcher).dispatchEnqueue(payloadArgumentCaptor.capture());
+    verify(integrationManager).dispatchEnqueue(payloadArgumentCaptor.capture());
     assertThat(payloadArgumentCaptor.getValue()).containsEntry("previousId", anonymousId)
         .containsEntry("userId", "foo");
   }
@@ -173,22 +162,12 @@ public class AnalyticsTest {
 
     analytics.submit(payload);
 
-    verify(integrationManager).dispatchPayload(payload);
-    verify(segmentDispatcher).dispatchEnqueue(payload);
-  }
-
-  @Test public void submitLifecycleInvokesDispatch() {
-    ActivityLifecyclePayload payload = mock(ActivityLifecyclePayload.class);
-
-    analytics.submit(payload);
-
-    verify(integrationManager).dispatchLifecyclePayload(payload);
+    verify(integrationManager).dispatchEnqueue(payload);
   }
 
   @Test public void flushInvokesDispatch() throws Exception {
     analytics.flush();
 
-    verify(segmentDispatcher).dispatchFlush(0);
     verify(integrationManager).dispatchFlush();
   }
 
@@ -215,31 +194,6 @@ public class AnalyticsTest {
     assertThat(analyticsContext.traits()).hasSize(1).containsKey("anonymousId");
   }
 
-  @Test public void nullIntegrationManagerIsIgnored() throws Exception {
-    application = mockApplication();
-    analytics =
-        new Analytics(application, networkExecutor, null, segmentDispatcher, stats, traitsCache,
-            analyticsContext, defaultOptions, NONE);
-
-    verify(application, never()) //
-        .registerActivityLifecycleCallbacks(any(Application.ActivityLifecycleCallbacks.class));
-
-    analytics.submit(mock(BasePayload.class));
-    try {
-      analytics.submit(mock(ActivityLifecyclePayload.class));
-      fail("submitting an activity lifecycle event should fail");
-    } catch (NullPointerException ignored) {
-    }
-    analytics.flush();
-    analytics.shutdown();
-    try {
-      analytics.onIntegrationReady(BUGSNAG, mock(Analytics.Callback.class));
-      fail("registering callback should fail");
-    } catch (IllegalStateException e) {
-      assertThat(e).hasMessage("Enable bundled integrations to register for this callback.");
-    }
-  }
-
   @Test public void onIntegrationReady() {
     try {
       analytics.onIntegrationReady(null, mock(Analytics.Callback.class));
@@ -257,7 +211,6 @@ public class AnalyticsTest {
     analytics.shutdown();
     verify(integrationManager).shutdown();
     verify(stats).shutdown();
-    verify(segmentDispatcher).shutdown();
     verify(networkExecutor).shutdown();
     assertThat(analytics.shutdown).isTrue();
   }
@@ -315,12 +268,6 @@ public class AnalyticsTest {
     Analytics analytics = new Analytics.Builder(Robolectric.application, "foo").build();
     Analytics.setSingletonInstance(analytics);
     assertThat(Analytics.with(Robolectric.application)).isSameAs(analytics);
-  }
-
-  @Test public void skippingBundledIntegrationsCreatesInstancesCorrectly() {
-    Analytics analytics =
-        new Analytics.Builder(Robolectric.application, "foo").disableBundledIntegrations().build();
-    assertThat(analytics.segmentDispatcher.integrations).isNotNull().isEmpty();
   }
 
   @Test public void getSnapshotInvokesStats() throws Exception {
