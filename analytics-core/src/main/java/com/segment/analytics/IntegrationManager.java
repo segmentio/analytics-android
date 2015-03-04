@@ -173,7 +173,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
         .obtainMessage(IntegrationManagerHandler.REQUEST_FETCH_SETTINGS));
   }
 
-  void dispatchRetryFetchSettings() {
+  private void dispatchRetryFetchSettings() {
     integrationManagerHandler.sendMessageDelayed(integrationManagerHandler //
         .obtainMessage(IntegrationManagerHandler.REQUEST_FETCH_SETTINGS), SETTINGS_RETRY_INTERVAL);
   }
@@ -225,24 +225,26 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
       AbstractIntegration integration = iterator.next();
       String key = integration.key();
       ValueMap settings = integrationSettings.getValueMap(key);
+      boolean initializedIntegration = false;
       if (!isNullOrEmpty(settings)) {
+        if (logLevel.log()) {
+          debug("Initializing integration %s with settings %s.", key, settings);
+        }
         try {
-          if (logLevel.log()) {
-            debug("Initializing integration %s with settings %s.", key, settings);
-          }
           integration.initialize(application, settings, logLevel);
-          if (!isNullOrEmpty(callbacks)) {
-            Callback callback = callbacks.get(key);
-            if (callback != null) {
-              callback.onReady(integration.getUnderlyingInstance());
-            }
-          }
+          initializedIntegration = true;
         } catch (Exception e) {
           if (logLevel.log()) {
             error(e, "Could not initialize integration %s.", key);
           }
-          iterator.remove();
-          bundledIntegrations.remove(key);
+        }
+      }
+      if (initializedIntegration) {
+        if (!isNullOrEmpty(callbacks)) {
+          Callback callback = callbacks.get(key);
+          if (callback != null) {
+            callback.onReady(integration.getUnderlyingInstance());
+          }
         }
       } else {
         iterator.remove();
@@ -251,6 +253,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     }
 
     if (callbacks != null) {
+      // clear out callbacks for integrations that may not have been initialized
       callbacks.clear();
       callbacks = null;
     }
