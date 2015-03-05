@@ -2,5 +2,5 @@ apply from: rootProject.file('gradle/integration.gradle')
 
 dependencies {
   provided rootProject.ext.libraries.supportLib
-  compile files('libs/Tapstream-2.7.1.jar')
+  compile files('libs/Tapstream-2.8.2.jar')
 }
