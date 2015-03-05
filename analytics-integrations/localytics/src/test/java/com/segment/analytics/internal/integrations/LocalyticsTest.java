@@ -1,12 +1,10 @@
 package com.segment.analytics.internal.integrations;
 
-import android.Manifest;
 import android.app.Activity;
-import android.app.Application;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import com.localytics.android.LocalyticsAmpSession;
-import com.localytics.android.LocalyticsSession;
+import com.localytics.android.Localytics;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
@@ -15,120 +13,148 @@ import com.segment.analytics.internal.model.payloads.util.ScreenPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
 import java.util.HashMap;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowApplication;
 
 import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.MockitoAnnotations.Mock;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
+@PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*", "org.json.*" })
+@PrepareForTest(Localytics.class)
 public class LocalyticsTest {
-  @Mock LocalyticsAmpSession session;
-  @Mock Application context;
+  @Rule public PowerMockRule rule = new PowerMockRule();
   LocalyticsIntegration integration;
-
-  public static void grantPermission(final Application app, final String permission) {
-    ShadowApplication shadowApp = Robolectric.shadowOf(app);
-    shadowApp.grantPermissions(permission);
-  }
 
   @Before public void setUp() {
     initMocks(this);
-    grantPermission(Robolectric.application, Manifest.permission.WAKE_LOCK);
+    PowerMockito.mockStatic(Localytics.class);
+
     integration = new LocalyticsIntegration();
-    integration.session = session;
     integration.hasSupportLibOnClassPath = true;
   }
 
   @Test public void initialize() throws IllegalStateException {
     LocalyticsIntegration integration = new LocalyticsIntegration();
-    integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"), INFO);
-    assertThat(integration.session).isNotNull();
-    assertThat(LocalyticsSession.isLoggingEnabled()).isTrue();
 
+    PowerMockito.mockStatic(Localytics.class);
+    integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"), INFO);
+    verifyStatic();
+    Localytics.integrate(Robolectric.application, "foo");
+    verifyStatic();
+    Localytics.setLoggingEnabled(true);
+
+    PowerMockito.mockStatic(Localytics.class);
     integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"),
         VERBOSE);
-    assertThat(LocalyticsSession.isLoggingEnabled()).isTrue();
+    verifyStatic();
+    Localytics.integrate(Robolectric.application, "foo");
+    verifyStatic();
+    Localytics.setLoggingEnabled(true);
 
+    PowerMockito.mockStatic(Localytics.class);
     integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"), NONE);
-    assertThat(LocalyticsSession.isLoggingEnabled()).isFalse();
+    verifyStatic();
+    Localytics.integrate(Robolectric.application, "foo");
+    verifyStatic();
+    Localytics.setLoggingEnabled(false);
   }
 
   @Test public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
-    verify(session).open();
-    verify(session).upload();
-    verifyNoMoreInteractions(session);
+    PowerMockito.verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
-    verifyNoMoreInteractions(session);
+    PowerMockito.verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void activityResume() {
     Activity activity = mock(Activity.class);
+    Intent intent = mock(Intent.class);
+    when(activity.getIntent()).thenReturn(intent);
     integration.onActivityResumed(activity);
-    verify(session).open();
-    verify(session).upload();
-    verifyNoMoreInteractions(session);
+    verifyStatic();
+    Localytics.openSession();
+    verifyStatic();
+    Localytics.upload();
+    verifyStatic();
+    Localytics.handleTestMode(intent);
+    verifyStatic();
+    PowerMockito.verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void activityResumeCompat() {
     FragmentActivity activity = mock(FragmentActivity.class);
     integration.onActivityResumed(activity);
-    verify(session).open();
-    verify(session).upload();
-    verify(session).attach(activity);
+    verifyStatic();
+    Localytics.openSession();
+    verifyStatic();
+    Localytics.upload();
+    verifyStatic();
+    Localytics.setInAppMessageDisplayActivity(activity);
+    verifyStatic();
+    PowerMockito.verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
-    verify(session).close();
-    verify(session).upload();
-    verifyNoMoreInteractions(session);
+    verifyStatic();
+    Localytics.closeSession();
+    verifyStatic();
+    Localytics.upload();
+    PowerMockito.verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void activityPauseCompat() {
     FragmentActivity activity = mock(FragmentActivity.class);
     integration.onActivityPaused(activity);
-    verify(session).detach();
-    verify(session).close();
-    verify(session).upload();
+    verifyStatic();
+    Localytics.dismissCurrentInAppMessage();
+    verifyStatic();
+    Localytics.clearInAppMessageDisplayActivity();
+    verifyStatic();
+    Localytics.closeSession();
+    verifyStatic();
+    Localytics.upload();
+    PowerMockito.verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
-    verifyNoMoreInteractions(session);
+    PowerMockito.verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
-    verifyNoMoreInteractions(session);
+    PowerMockito.verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
-    verifyNoMoreInteractions(session);
+    PowerMockito.verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void identify() {
@@ -137,33 +163,39 @@ public class LocalyticsTest {
 
   @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
-    verifyNoMoreInteractions(session);
+    PowerMockito.verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void flush() {
     integration.flush();
-    verify(session).upload();
+    verifyStatic();
+    Localytics.upload();
+    PowerMockito.verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void screen() {
     integration.screen(new ScreenPayloadBuilder().category("foo").name("bar").build());
-    verify(session).tagScreen("bar");
+    verifyStatic();
+    Localytics.tagScreen("bar");
 
     integration.screen(new ScreenPayloadBuilder().name("baz").build());
-    verify(session).tagScreen("baz");
+    verifyStatic();
+    Localytics.tagScreen("baz");
 
     integration.screen(new ScreenPayloadBuilder().category("qux").build());
-    verify(session).tagScreen("qux");
+    verifyStatic();
+    Localytics.tagScreen("qux");
   }
 
   @Test public void track() {
     integration.track(new TrackPayloadBuilder().event("foo").build());
-    verify(session).tagEvent("foo", new HashMap<String, String>());
+    verifyStatic();
+    Localytics.tagEvent("foo", new HashMap<String, String>());
   }
 
   @Test public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
-    verifyNoMoreInteractions(session);
+    PowerMockito.verifyNoMoreInteractions(Localytics.class);
   }
 }
 

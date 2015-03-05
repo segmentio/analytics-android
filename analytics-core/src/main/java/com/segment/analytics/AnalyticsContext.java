@@ -448,7 +448,7 @@ public class AnalyticsContext extends ValueMap {
     }
 
     public double speed() {
-      return getDouble(LOCATION_SPEED_KEY, 0.);
+      return getDouble(LOCATION_SPEED_KEY, 0);
     }
   }
 
