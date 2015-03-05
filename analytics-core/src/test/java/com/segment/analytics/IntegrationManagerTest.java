@@ -152,6 +152,46 @@ public class IntegrationManagerTest {
     assertThat(integrationManager.integrations).isEmpty();
   }
 
+  @Test public void handlesIntegrationSettingsEmptyGracefully() throws IOException {
+    ProjectSettings projectSettings = createProjectSettings("{\n" //
+        + "  \"integrations\": {\n" //
+        + "    \"bad\": {\n" //
+        + "    }\n" //
+        + "  }\n" //
+        + "}");
+
+    AbstractIntegration badIntegration = mock(AbstractIntegration.class);
+    when(badIntegration.key()).thenReturn("bad");
+    integrationManager.bundledIntegrations.put("bad", false);
+    integrationManager.integrations.add(badIntegration);
+
+    integrationManager.performInitializeIntegrations(projectSettings);
+
+    verify(badIntegration, times(0)).initialize(any(Context.class), any(ProjectSettings.class),
+        any(Analytics.LogLevel.class));
+
+    assertThat(integrationManager.bundledIntegrations).isEmpty();
+    assertThat(integrationManager.integrations).isEmpty();
+  }
+
+  @Test public void handlesIntegrationSettingsNullGracefully() throws IOException {
+    ProjectSettings projectSettings = ProjectSettings.create(
+        new ValueMap().putValue("integrations", new ValueMap().putValue("bad", null)));
+
+    AbstractIntegration badIntegration = mock(AbstractIntegration.class);
+    when(badIntegration.key()).thenReturn("bad");
+    integrationManager.bundledIntegrations.put("bad", false);
+    integrationManager.integrations.add(badIntegration);
+
+    integrationManager.performInitializeIntegrations(projectSettings);
+
+    verify(badIntegration, times(0)).initialize(any(Context.class), any(ProjectSettings.class),
+        any(Analytics.LogLevel.class));
+
+    assertThat(integrationManager.bundledIntegrations).isEmpty();
+    assertThat(integrationManager.integrations).isEmpty();
+  }
+
   @Test public void skipsFetchingSettingsIfDisconnected() {
     NetworkInfo networkInfo = mock(NetworkInfo.class);
     when(networkInfo.isConnectedOrConnecting()).thenReturn(false);

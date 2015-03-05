@@ -220,9 +220,30 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     if (initialized) return;
 
     ValueMap integrationSettings = projectSettings.integrations();
-    if (logLevel.log()) {
-      debug("Initializing integrations with %s.", integrationSettings);
+    if (isNullOrEmpty(integrationSettings)) {
+      if (logLevel.log()) {
+        debug("No integrations enabled in %s.", projectSettings);
+      }
+      bundledIntegrations.clear();
+      integrations.clear();
+    } else {
+      if (logLevel.log()) {
+        debug("Initializing integrations with %s.", integrationSettings);
+      }
+      initializeIntegrations(integrationSettings);
     }
+
+    if (callbacks != null) {
+      // clear out callbacks for integrations that may not have been initialized
+      callbacks.clear();
+      callbacks = null;
+    }
+
+    replay();
+    initialized = true;
+  }
+
+  private void initializeIntegrations(ValueMap integrationSettings) {
     Iterator<AbstractIntegration> iterator = integrations.iterator();
     while (iterator.hasNext()) {
       AbstractIntegration integration = iterator.next();
@@ -254,15 +275,6 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
         bundledIntegrations.remove(key);
       }
     }
-
-    if (callbacks != null) {
-      // clear out callbacks for integrations that may not have been initialized
-      callbacks.clear();
-      callbacks = null;
-    }
-
-    replay();
-    initialized = true;
   }
 
   private void replay() {
