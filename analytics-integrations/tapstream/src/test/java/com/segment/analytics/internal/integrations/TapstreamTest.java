@@ -3,6 +3,7 @@ package com.segment.analytics.internal.integrations;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
+import com.segment.analytics.Randoms;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
@@ -14,7 +15,6 @@ import com.tapstream.sdk.Event;
 import com.tapstream.sdk.Tapstream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import org.assertj.core.data.MapEntry;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -140,8 +140,8 @@ public class TapstreamTest {
 
   @Test public void screenAllPages() {
     integration.trackAllPages = true;
-    integration.trackCategorizedPages = new Random().nextBoolean();
-    integration.trackNamedPages = new Random().nextBoolean();
+    integration.trackCategorizedPages = Randoms.nextBoolean();
+    integration.trackNamedPages = Randoms.nextBoolean();
 
     integration.screen(new ScreenPayloadBuilder().name("foo").build());
     verify(tapstream).fireEvent(eventEq("viewed foo screen"));

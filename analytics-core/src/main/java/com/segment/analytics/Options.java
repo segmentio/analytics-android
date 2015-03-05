@@ -69,7 +69,7 @@ public class Options {
    */
   public Options setIntegration(String integrationKey, boolean enabled) {
     if (SegmentDispatcher.SEGMENT_KEY.equals(integrationKey)) {
-      throw new IllegalArgumentException("Segment integration cannot be disabled");
+      throw new IllegalArgumentException("Segment integration cannot be enabled or disabled.");
     }
     integrations.put(integrationKey, enabled);
     return this;
