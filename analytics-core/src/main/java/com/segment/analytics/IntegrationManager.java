@@ -220,6 +220,9 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     if (initialized) return;
 
     ValueMap integrationSettings = projectSettings.integrations();
+    if (logLevel.log()) {
+      debug("Initializing integrations with %s.", integrationSettings);
+    }
     Iterator<AbstractIntegration> iterator = integrations.iterator();
     while (iterator.hasNext()) {
       AbstractIntegration integration = iterator.next();
