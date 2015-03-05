@@ -13,6 +13,8 @@ import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.ScreenPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
+import java.util.Arrays;
+import java.util.Collections;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -30,8 +32,10 @@ import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.TestUtils.JSONObjectMatcher.jsonEq;
 import static com.segment.analytics.TestUtils.createTraits;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -53,24 +57,48 @@ public class MixpanelTest {
   @Before public void setUp() {
     initMocks(this);
     mockStatic(MixpanelAPI.class);
+    PowerMockito.when(MixpanelAPI.getInstance(context, "foo")).thenReturn(mixpanelAPI);
     integration = new MixpanelIntegration();
     when(mixpanelAPI.getPeople()).thenReturn(people);
     integration.mixpanelAPI = mixpanelAPI;
+    integration.people = people;
     integration.isPeopleEnabled = false;
+    integration.increments = Collections.emptySet();
   }
 
   @Test public void initialize() throws IllegalStateException {
-    MixpanelIntegration adapter = new MixpanelIntegration();
-    adapter.initialize(context, new ValueMap().putValue("token", "foo")
+    MixpanelIntegration integration = new MixpanelIntegration();
+    integration.initialize(context, new ValueMap().putValue("token", "foo")
         .putValue("trackAllPages", true)
         .putValue("trackCategorizedPages", false)
         .putValue("trackNamedPages", true), NONE);
     verifyStatic();
     MixpanelAPI.getInstance(context, "foo");
-    assertThat(adapter.token).isEqualTo("foo");
-    assertThat(adapter.trackAllPages).isTrue();
-    assertThat(adapter.trackCategorizedPages).isFalse();
-    assertThat(adapter.trackNamedPages).isTrue();
+    verify(mixpanelAPI, never()).getPeople();
+    assertThat(integration.token).isEqualTo("foo");
+    assertThat(integration.trackAllPages).isTrue();
+    assertThat(integration.trackCategorizedPages).isFalse();
+    assertThat(integration.trackNamedPages).isTrue();
+    assertThat(integration.increments).isNotNull().isEmpty();
+  }
+
+  @Test public void initializeWithIncrementsAndPeople() throws IllegalStateException {
+    MixpanelIntegration integration = new MixpanelIntegration();
+    integration.initialize(context, new ValueMap().putValue("token", "foo")
+        .putValue("people", true)
+        .putValue("trackAllPages", true)
+        .putValue("trackCategorizedPages", false)
+        .putValue("trackNamedPages", true)
+        .putValue("increments", Arrays.asList("baz", "qaz", "qux")), NONE);
+    verifyStatic();
+    MixpanelAPI.getInstance(context, "foo");
+    verify(mixpanelAPI).getPeople();
+    assertThat(integration.token).isEqualTo("foo");
+    assertThat(integration.trackAllPages).isTrue();
+    assertThat(integration.trackCategorizedPages).isFalse();
+    assertThat(integration.trackNamedPages).isTrue();
+    verify(mixpanelAPI).getPeople();
+    assertThat(integration.increments).containsExactly("qux", "baz", "qaz");
   }
 
   @Test public void activityCreate() {
@@ -171,6 +199,24 @@ public class MixpanelTest {
     verifyNoMoreMixpanelInteractions();
   }
 
+  @Test public void trackIncrement() {
+    integration.isPeopleEnabled = true;
+    integration.increments = Collections.singleton("baz");
+
+    integration.track(new TrackPayloadBuilder().event("baz").build());
+
+    verify(people).increment("baz", 1);
+    verify(people).set(eq("Last baz"), any());
+    verifyNoMoreMixpanelInteractions();
+  }
+
+  @Test public void trackIncrementWithoutPeople() {
+    // Disabling people should do a regular track call
+    integration.track(new TrackPayloadBuilder().event("baz").build());
+    verify(mixpanelAPI).track(eq("baz"), jsonEq(new JSONObject()));
+    verifyNoMoreMixpanelInteractions();
+  }
+
   @Test public void alias() {
     integration.alias(new AliasPayloadBuilder().traits(createTraits("foo")).newId("bar") //
         .build());
@@ -199,7 +245,6 @@ public class MixpanelTest {
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verify(mixpanelAPI).identify("foo");
     verify(mixpanelAPI).registerSuperProperties(jsonEq(traits.toJsonObject()));
-    verify(mixpanelAPI).getPeople();
     verify(people).identify("foo");
     verify(people).set(jsonEq(traits.toJsonObject()));
     verifyNoMoreMixpanelInteractions();
@@ -224,7 +269,6 @@ public class MixpanelTest {
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verify(mixpanelAPI).identify("foo");
     verify(mixpanelAPI).registerSuperProperties(jsonEq(expected));
-    verify(mixpanelAPI).getPeople();
     verify(people).identify("foo");
     verify(people).set(jsonEq(expected));
     verifyNoMoreMixpanelInteractions();
@@ -256,7 +300,6 @@ public class MixpanelTest {
     Properties properties = new Properties().putRevenue(20);
     integration.event("foo", properties);
     verify(mixpanelAPI).track(eq("foo"), jsonEq(properties.toJsonObject()));
-    verify(mixpanelAPI).getPeople();
     verify(people).trackCharge(eq(20.0), jsonEq(properties.toJsonObject()));
     verifyNoMoreMixpanelInteractions();
   }
