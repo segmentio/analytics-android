@@ -79,10 +79,24 @@ public class ClientTest {
     verify(os).close();
   }
 
+  @Test public void closingUploadConnectionClosesStreamsForNon200Response() throws Exception {
+    OutputStream os = mock(OutputStream.class);
+    when(mockConnection.getOutputStream()).thenReturn(os);
+    when(mockConnection.getResponseCode()).thenReturn(202);
+
+    Client.Connection connection = mockClient.upload();
+    verify(mockConnection).setDoOutput(true);
+    verify(mockConnection).setChunkedStreamingMode(0);
+
+    connection.close();
+    verify(mockConnection).disconnect();
+    verify(os).close();
+  }
+
   @Test public void uploadFailureClosesStreamsAndThrowsException() throws Exception {
     OutputStream os = mock(OutputStream.class);
     when(mockConnection.getOutputStream()).thenReturn(os);
-    when(mockConnection.getResponseCode()).thenReturn(201);
+    when(mockConnection.getResponseCode()).thenReturn(300);
     when(mockConnection.getResponseMessage()).thenReturn("bar");
 
     Client.Connection connection = mockClient.upload();
@@ -91,9 +105,9 @@ public class ClientTest {
 
     try {
       connection.close();
-      fail("Non 200 return code should throw an exception");
+      fail(">= 300 return code should throw an exception");
     } catch (Client.UploadException e) {
-      assertThat(e).hasMessage("HTTP " + 201 + ": bar");
+      assertThat(e).hasMessage("HTTP " + 300 + ": bar");
     }
     verify(mockConnection).disconnect();
     verify(os).close();

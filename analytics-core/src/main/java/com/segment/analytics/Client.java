@@ -50,7 +50,7 @@ class Client {
       @Override public void close() throws IOException {
         try {
           int responseCode = connection.getResponseCode();
-          if (responseCode != HTTP_OK) {
+          if (responseCode >= 300) {
             throw new UploadException(responseCode, connection.getResponseMessage());
           }
         } finally {
@@ -109,7 +109,7 @@ class Client {
     return createGetConnection(connection);
   }
 
-  /** Represents an exception during uploading events that shouldn't be retried. */
+  /** Represents an exception during uploading events that should not be retried. */
   static class UploadException extends IOException {
     final int responseCode;
     final String responseMessage;
