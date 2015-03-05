@@ -5,6 +5,7 @@ import android.app.Application;
 import android.os.Bundle;
 import com.amplitude.api.Amplitude;
 import com.segment.analytics.Properties;
+import com.segment.analytics.Randoms;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
@@ -14,7 +15,6 @@ import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.ScreenPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
-import java.util.Random;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Rule;
@@ -197,8 +197,8 @@ public class AmplitudeTest {
   @Test
   public void screenTrackAllPages() {
     integration.trackAllPages = true;
-    integration.trackCategorizedPages = new Random().nextBoolean();
-    integration.trackNamedPages = new Random().nextBoolean();
+    integration.trackCategorizedPages = Randoms.nextBoolean();
+    integration.trackNamedPages = Randoms.nextBoolean();
 
     integration.screen(new ScreenPayloadBuilder().category("foo").build());
     verifyAmplitudeLoggedEvent("Viewed foo Screen", new JSONObject());
