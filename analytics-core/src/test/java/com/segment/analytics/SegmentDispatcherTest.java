@@ -215,9 +215,9 @@ public class SegmentDispatcherTest {
     segmentDispatcher.performEnqueue(payload);
     verify(queueFile, never()).add((byte[]) any());
 
-    // Serialized json is too large (> 450kb).
+    // Serialized json is too large (> 15kb).
     StringBuilder stringBuilder = new StringBuilder();
-    for (int i = 0; i < 450001; i++) {
+    for (int i = 0; i < SegmentDispatcher.MAX_PAYLOAD_SIZE + 1; i++) {
       stringBuilder.append('a');
     }
     when(cartographer.toJson(anyMap())).thenReturn(stringBuilder.toString());
@@ -239,7 +239,7 @@ public class SegmentDispatcherTest {
     verify(queueFile).close();
   }
 
-  @Test public void payloadVisitorReadsOnly450KB() throws IOException {
+  @Test public void payloadVisitorReadsOnly475KB() throws IOException {
     SegmentDispatcher.PayloadWriter payloadWriter =
         new SegmentDispatcher.PayloadWriter(mock(SegmentDispatcher.BatchPayloadWriter.class));
     byte[] bytes = ("{\n"
@@ -305,8 +305,8 @@ public class SegmentDispatcherTest {
 
     queueFile.forEach(payloadWriter);
 
-    // Verify only (314 * 1432) = 449648 < 500kb bytes are read
-    assertThat(payloadWriter.payloadCount).isEqualTo(314);
+    // Verify only (331 * 1432) = 473992 < 475KB bytes are read
+    assertThat(payloadWriter.payloadCount).isEqualTo(331);
   }
 
   private static class SegmentBuilder {
