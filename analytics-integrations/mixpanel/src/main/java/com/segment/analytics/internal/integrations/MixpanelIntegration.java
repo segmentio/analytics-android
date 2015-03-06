@@ -12,6 +12,11 @@ import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -30,12 +35,14 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   static final String MIXPANEL_KEY = "Mixpanel";
   MixpanelAPI mixpanelAPI;
+  MixpanelAPI.People people;
   boolean isPeopleEnabled;
   boolean trackAllPages;
   boolean trackCategorizedPages;
   boolean trackNamedPages;
   String token;
   LogLevel logLevel;
+  Set<String> increments;
 
   private static void addSpecialProperties(JSONObject jsonObject, Traits traits)
       throws JSONException {
@@ -55,6 +62,22 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     jsonObject.remove("createdAt");
   }
 
+  static Set<String> getStringSet(ValueMap valueMap, Object key) {
+    try {
+      List<Object> incrementEvents = (List<Object>) valueMap.get(key);
+      if (isNullOrEmpty(incrementEvents)) {
+        return Collections.emptySet();
+      }
+      Set<String> stringSet = new HashSet<>(incrementEvents.size());
+      for (int i = 0; i < incrementEvents.size(); i++) {
+        stringSet.add((String) incrementEvents.get(i));
+      }
+      return stringSet;
+    } catch (ClassCastException e) {
+      return Collections.emptySet();
+    }
+  }
+
   @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
     this.logLevel = logLevel;
@@ -63,10 +86,13 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", true);
     trackNamedPages = settings.getBoolean("trackNamedPages", true);
     isPeopleEnabled = settings.getBoolean("people", false);
-
     token = settings.getString("token");
+    increments = getStringSet(settings, "increments");
 
     mixpanelAPI = MixpanelAPI.getInstance(context, token);
+    if (isPeopleEnabled) {
+      people = mixpanelAPI.getPeople();
+    }
   }
 
   @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -101,7 +127,6 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
 
     mixpanelAPI.registerSuperProperties(traits);
     if (isPeopleEnabled) {
-      MixpanelAPI.People people = mixpanelAPI.getPeople();
       people.identify(userId);
       people.set(traits);
     }
@@ -134,7 +159,14 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   }
 
   @Override public void track(TrackPayload track) {
-    event(track.event(), track.properties());
+    String event = track.event();
+
+    if (increments.contains(event) && isPeopleEnabled) {
+      people.increment(event, 1);
+      people.set("Last " + event, new Date());
+    } else {
+      event(track.event(), track.properties());
+    }
   }
 
   void event(String name, Properties properties) {
@@ -143,7 +175,7 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     if (isPeopleEnabled) {
       double revenue = properties.revenue();
       if (revenue != 0) {
-        mixpanelAPI.getPeople().trackCharge(revenue, props);
+        people.trackCharge(revenue, props);
       }
     }
   }
