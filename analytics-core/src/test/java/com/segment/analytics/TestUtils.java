@@ -10,6 +10,7 @@ import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Ignore;
 import org.mockito.invocation.InvocationOnMock;
@@ -380,13 +382,33 @@ public final class TestUtils {
       return argThat(new JSONObjectMatcher(expected));
     }
 
+    /** Returns true if all the keys in expected are present and the same in actual. */
+    static boolean contains(JSONObject expected, JSONObject actual) {
+      try {
+        Iterator<String> keys = expected.keys();
+        while (keys.hasNext()) {
+          String key = keys.next();
+
+          if (!actual.has(key)) {
+            return false;
+          }
+          Object value = actual.get(key);
+          if (!value.equals(expected.get(key))) {
+            return false;
+          }
+        }
+      } catch (JSONException e) {
+        return false;
+      }
+      return true;
+    }
+
     private JSONObjectMatcher(JSONObject expected) {
       this.expected = expected;
     }
 
-    @Override public boolean matchesSafely(JSONObject jsonObject) {
-      // todo: this relies on having the same order
-      return expected.toString().equals(jsonObject.toString());
+    @Override public boolean matchesSafely(JSONObject actual) {
+      return contains(expected, actual) && contains(actual, expected);
     }
 
     @Override public void describeTo(Description description) {

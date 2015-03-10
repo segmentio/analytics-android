@@ -250,21 +250,43 @@ public class MixpanelTest {
     verifyNoMoreMixpanelInteractions();
   }
 
-  @Test public void identifyWithSpecialProperties() throws JSONException {
+  @Test public void gidentifyWithSpecialProperties() throws JSONException {
     integration.isPeopleEnabled = true;
-    Traits traits = createTraits("foo").putEmail("friends@segment.com")
+    Traits traits = createTraits("foo")
+        .putEmail("friends@segment.com")
+        .putFirstName("prateek")
+        .putLastName("srivastava")
         .putPhone("1-844-611-0621")
         .putCreatedAt("15th Feb, 2015")
         .putUsername("segmentio");
     JSONObject expected = new JSONObject();
     expected.put("userId", "foo");
-    expected.put("$email", traits.email());
-    expected.put("$phone", traits.phone());
-    expected.put("$first_name", traits.firstName());
-    expected.put("$last_name", traits.lastName());
-    expected.put("$name", traits.name());
-    expected.put("$username", traits.username());
-    expected.put("$created", traits.createdAt());
+    expected.put("$email", "friends@segment.com");
+    expected.put("$first_name", "prateek");
+    expected.put("$last_name", "srivastava");
+    expected.put("$name", "prateek srivastava");
+    expected.put("$phone", "1-844-611-0621");
+    expected.put("$username", "segmentio");
+    expected.put("$created", "15th Feb, 2015");
+
+    integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
+    verify(mixpanelAPI).identify("foo");
+    verify(mixpanelAPI).registerSuperProperties(jsonEq(expected));
+    verify(people).identify("foo");
+    verify(people).set(jsonEq(expected));
+    verifyNoMoreMixpanelInteractions();
+  }
+
+  @Test public void identifyWithSpecialPropertiesAsNull() throws JSONException {
+    integration.isPeopleEnabled = true;
+    Traits traits = createTraits("foo")
+        .putFirstName(null)
+        .putPhone("1-844-611-0621")
+        .putUsername("segmentio");
+    JSONObject expected = new JSONObject();
+    expected.put("userId", "foo");
+    expected.put("$phone", "1-844-611-0621");
+    expected.put("$username", "segmentio");
 
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verify(mixpanelAPI).identify("foo");

@@ -44,22 +44,32 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   LogLevel logLevel;
   Set<String> increments;
 
-  private static void addSpecialProperties(JSONObject jsonObject, Traits traits)
+  private static void transformSpecialProperties(JSONObject jsonObject, Traits traits)
       throws JSONException {
-    jsonObject.put("$email", traits.email());
+    putIfNotNull(traits.email(), jsonObject, "$email");
+    putIfNotNull(traits.phone(), jsonObject, "$phone");
+    putIfNotNull(traits.firstName(), jsonObject, "$first_name");
+    putIfNotNull(traits.lastName(), jsonObject, "$last_name");
+    putIfNotNull(traits.name(), jsonObject, "$name");
+    putIfNotNull(traits.username(), jsonObject, "$username");
+    putIfNotNull(traits.createdAt(), jsonObject, "$created");
+
     jsonObject.remove("email");
-    jsonObject.put("$phone", traits.phone());
     jsonObject.remove("phone");
-    jsonObject.put("$first_name", traits.firstName());
     jsonObject.remove("firstName");
-    jsonObject.put("$last_name", traits.lastName());
     jsonObject.remove("lastName");
-    jsonObject.put("$name", traits.name());
     jsonObject.remove("name");
-    jsonObject.put("$username", traits.username());
     jsonObject.remove("username");
-    jsonObject.put("$created", traits.createdAt());
     jsonObject.remove("createdAt");
+  }
+
+  private static void putIfNotNull(Object value, JSONObject target, String key) {
+    if (value != null) {
+      try {
+        target.put(key, value);
+      } catch (JSONException ignored) {
+      }
+    }
   }
 
   static Set<String> getStringSet(ValueMap valueMap, Object key) {
@@ -118,7 +128,7 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     mixpanelAPI.identify(userId);
     JSONObject traits = identify.traits().toJsonObject();
     try {
-      addSpecialProperties(traits, identify.traits());
+      transformSpecialProperties(traits, identify.traits());
     } catch (JSONException e) {
       if (logLevel.log()) {
         debug("Could not add special properties to JSONObject for Mixpanel Integration");
