@@ -48,15 +48,16 @@ class SegmentDispatcher extends AbstractIntegration {
    * QueueFile's 2GB limit.
    */
   static final int MAX_QUEUE_SIZE = 1000;
+  /** Our servers only accept payloads < 15kb. */
+  static final int MAX_PAYLOAD_SIZE = 15000; // 15kb
   private static final Charset UTF_8 = Charset.forName("UTF-8");
   private static final String SEGMENT_THREAD_NAME = THREAD_PREFIX + "SegmentDispatcher";
   /**
-   * Our servers only accept payloads < 500KB. This limit is 450kb to account for extra data
+   * Our servers only accept batches < 500KB. This limit is 475kb to account for extra data
    * that is not present in payloads themselves, but is added later, such as {@code sentAt},
    * {@code integrations} and json tokens.
    */
-  private static final int MAX_PAYLOAD_SIZE = 450000; // 450kb
-
+  private static final int MAX_BATCH_SIZE = 475000; // 475kb
   final Context context;
   final QueueFile queueFile;
   final Client client;
@@ -292,7 +293,7 @@ class SegmentDispatcher extends AbstractIntegration {
 
     @Override public boolean read(InputStream in, int length) throws IOException {
       final int newSize = size + length;
-      if (newSize > MAX_PAYLOAD_SIZE) return false;
+      if (newSize > MAX_BATCH_SIZE) return false;
       size = newSize;
       byte[] data = new byte[length];
       //noinspection ResultOfMethodCallIgnored
