@@ -51,6 +51,7 @@ import static com.segment.analytics.internal.Utils.createMap;
 import static com.segment.analytics.internal.Utils.getDeviceId;
 import static com.segment.analytics.internal.Utils.getSystemService;
 import static com.segment.analytics.internal.Utils.hasPermission;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.isOnClassPath;
 import static java.util.Collections.unmodifiableMap;
 
@@ -116,10 +117,6 @@ public class AnalyticsContext extends ValueMap {
   static synchronized AnalyticsContext create(Context context, Traits traits) {
     AnalyticsContext analyticsContext =
         new AnalyticsContext(new NullableConcurrentHashMap<String, Object>());
-    if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
-      // this needs to be done each time since the settings may have been updated
-      new GetAdvertisingIdTask(analyticsContext).execute(context);
-    }
     analyticsContext.putApp(context);
     analyticsContext.putDevice(context);
     analyticsContext.putLibrary();
@@ -128,15 +125,32 @@ public class AnalyticsContext extends ValueMap {
     analyticsContext.putNetwork(context);
     analyticsContext.putOs();
     analyticsContext.putScreen(context);
-    analyticsContext.put(USER_AGENT_KEY, System.getProperty("http.agent"));
-    analyticsContext.put(TIMEZONE_KEY, TimeZone.getDefault().getID());
+    putUndefinedIfNull(analyticsContext, USER_AGENT_KEY, System.getProperty("http.agent"));
+    putUndefinedIfNull(analyticsContext, TIMEZONE_KEY, TimeZone.getDefault().getID());
     analyticsContext.setTraits(traits);
     return analyticsContext;
+  }
+
+  static void putUndefinedIfNull(Map<String, Object> target, String key, CharSequence value) {
+    if (isNullOrEmpty(value)) {
+      target.put(key, "undefined");
+    } else {
+      target.put(key, value);
+    }
   }
 
   // For deserialization and wrapping
   AnalyticsContext(Map<String, Object> delegate) {
     super(delegate);
+  }
+
+  void attachAdvertisingId(Context context) {
+    // This is done as an extra step so we don't run into errors like this for testing
+    // http://pastebin.com/gyWJKWiu
+    if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
+      // this needs to be done each time since the settings may have been updated
+      new GetAdvertisingIdTask(this).execute(context);
+    }
   }
 
   @Override
@@ -180,9 +194,9 @@ public class AnalyticsContext extends ValueMap {
       PackageManager packageManager = context.getPackageManager();
       PackageInfo packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
       Map<String, Object> app = createMap();
-      app.put(APP_NAME_KEY, packageInfo.applicationInfo.loadLabel(packageManager));
-      app.put(APP_VERSION_KEY, packageInfo.versionName);
-      app.put(APP_NAMESPACE_KEY, packageInfo.packageName);
+      putUndefinedIfNull(app, APP_NAME_KEY, packageInfo.applicationInfo.loadLabel(packageManager));
+      putUndefinedIfNull(app, APP_VERSION_KEY, packageInfo.versionName);
+      putUndefinedIfNull(app, APP_NAMESPACE_KEY, packageInfo.packageName);
       app.put(APP_BUILD_KEY, packageInfo.versionCode);
       put(APP_KEY, app);
     } catch (PackageManager.NameNotFoundException e) {
@@ -202,11 +216,10 @@ public class AnalyticsContext extends ValueMap {
   /** Fill this instance with device info from the provided {@link Context}. */
   void putDevice(Context context) {
     Device device = new Device();
-    put(Device.DEVICE_ID_KEY, getDeviceId(context));
-    put(Device.DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);
-    put(Device.DEVICE_MODEL_KEY, Build.MODEL);
-    put(Device.DEVICE_NAME_KEY, Build.DEVICE);
-    put(Device.DEVICE_BRAND_KEY, Build.BRAND);
+    device.put(Device.DEVICE_ID_KEY, getDeviceId(context));
+    device.put(Device.DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);
+    device.put(Device.DEVICE_MODEL_KEY, Build.MODEL);
+    device.put(Device.DEVICE_NAME_KEY, Build.DEVICE);
     put(DEVICE_KEY, device);
   }
 
@@ -374,7 +387,6 @@ public class AnalyticsContext extends ValueMap {
     private static final String DEVICE_MANUFACTURER_KEY = "manufacturer";
     private static final String DEVICE_MODEL_KEY = "model";
     private static final String DEVICE_NAME_KEY = "name";
-    private static final String DEVICE_BRAND_KEY = "brand";
     private static final String DEVICE_TOKEN_KEY = "token";
     private static final String DEVICE_ADVERTISING_ID_KEY = "advertisingId";
     private static final String DEVICE_AD_TRACKING_ENABLED_KEY = "adTrackingEnabled";

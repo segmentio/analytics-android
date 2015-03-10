@@ -694,6 +694,7 @@ public class Analytics {
         traitsCache.set(traits);
       }
       AnalyticsContext analyticsContext = AnalyticsContext.create(application, traitsCache.get());
+      analyticsContext.attachAdvertisingId(application);
 
       return new Analytics(application, networkExecutor, integrationManager, stats, traitsCache,
           analyticsContext, defaultOptions, logLevel);
