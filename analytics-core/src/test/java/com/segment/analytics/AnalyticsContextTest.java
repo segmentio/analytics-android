@@ -1,10 +1,12 @@
 package com.segment.analytics;
 
+import com.segment.analytics.core.BuildConfig;
 import java.util.Map;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -16,10 +18,53 @@ import static org.assertj.core.api.Assertions.fail;
 public class AnalyticsContextTest {
 
   AnalyticsContext analyticsContext;
-  Traits traits = Traits.create();
+  Traits traits;
 
   @Before public void setUp() {
+    traits = Traits.create();
     analyticsContext = createContext(traits);
+  }
+
+  @Test public void create() {
+    analyticsContext = AnalyticsContext.create(Robolectric.application, traits);
+    assertThat(analyticsContext) //
+        .containsKey("app") //
+        .containsKey("device") //
+        .containsKey("library") //
+        .containsEntry("locale", "en-US") //
+        .containsKey("network") //
+        .containsKey("os") //
+        .containsKey("screen").containsEntry("userAgent", "undefined") //
+        .containsKey("timezone") // value depends on where the tests are run
+        .containsKey("traits");
+
+    assertThat(analyticsContext.getValueMap("app")) //
+        .containsEntry("name", "org.robolectric.default")
+        .containsEntry("version", "undefined")
+        .containsEntry("namespace", "org.robolectric.default")
+        .containsEntry("build", 0);
+
+    assertThat(analyticsContext.getValueMap("device")) //
+        .containsEntry("id", "unknown")
+        .containsEntry("manufacturer", "unknown")
+        .containsEntry("model", "unknown")
+        .containsEntry("name", "unknown");
+
+    assertThat(analyticsContext.getValueMap("library")) //
+        .containsEntry("name", "analytics-android")
+        .containsEntry("version", BuildConfig.VERSION_NAME);
+
+    // TODO: mock network state?
+    assertThat(analyticsContext.getValueMap("network")).isEmpty();
+
+    assertThat(analyticsContext.getValueMap("os")) //
+        .containsEntry("name", "Android") //
+        .containsEntry("version", "unknown");
+
+    assertThat(analyticsContext.getValueMap("screen")) //
+        .containsEntry("density", 1.5f) //
+        .containsEntry("width", 480) //
+        .containsEntry("height", 800);
   }
 
   @Test public void copyReturnsSameMappings() {

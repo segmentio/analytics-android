@@ -94,8 +94,8 @@ public final class Utils {
   }
 
   /** Returns true if the string is null, or empty (once trimmed). */
-  public static boolean isNullOrEmpty(String text) {
-    return TextUtils.isEmpty(text) || text.trim().length() == 0;
+  public static boolean isNullOrEmpty(CharSequence text) {
+    return TextUtils.isEmpty(text) || TextUtils.getTrimmedLength(text) == 0;
   }
 
   /** Returns true if the collection or has a size 0. */
