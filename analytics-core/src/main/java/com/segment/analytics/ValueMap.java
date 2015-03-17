@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import static com.segment.analytics.internal.Utils.getSegmentSharedPreferences;
@@ -319,7 +320,20 @@ public class ValueMap implements Map<String, Object> {
 
   /** Return a copy of the contents of this map as a {@link JSONObject}. */
   public JSONObject toJsonObject() {
-    return new JSONObject(delegate);
+    // Simply using the map constructor will add any null values as a NULL json token.
+    // This differs from the #put methods which will remove any null values.
+    // To keep parity, lets reject nulls as well.
+    JSONObject jsonObject = new JSONObject();
+    for (Map.Entry<String, Object> entry : entrySet()) {
+      Object value = entry.getValue();
+      if (value != null) {
+        try {
+          jsonObject.put(entry.getKey(), entry.getValue());
+        } catch (JSONException ignored) {
+        }
+      }
+    }
+    return jsonObject;
   }
 
   /** Return a copy of the contents of this map as a {@code Map<String, String>}. */
