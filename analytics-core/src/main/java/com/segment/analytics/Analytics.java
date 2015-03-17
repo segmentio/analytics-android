@@ -686,7 +686,6 @@ public class Analytics {
       IntegrationManager integrationManager =
           IntegrationManager.create(application, cartographer, client, networkExecutor, stats, tag,
               logLevel, flushIntervalInMillis, flushQueueSize);
-      Map<String, Boolean> bundledIntegrations;
 
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
