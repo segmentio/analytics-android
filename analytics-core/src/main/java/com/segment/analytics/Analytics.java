@@ -27,8 +27,10 @@ package com.segment.analytics;
 import android.Manifest;
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -45,6 +47,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static com.segment.analytics.AnalyticsContext.Campaign;
 import static com.segment.analytics.internal.Utils.getResourceString;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
@@ -400,6 +403,28 @@ public class Analytics {
     integrationManager.dispatchFlush();
   }
 
+  /** Package protected, users should this use this from {@link InstallReferrerReceiver}. */
+  void setInstallReferrer(Context context, Intent intent) {
+    if (intent == null) {
+      return; // todo: throw?
+    }
+
+    Bundle extras = intent.getExtras();
+    if (extras == null) {
+      return;
+    }
+
+    String referrer = extras.getString("referrer");
+    if (isNullOrEmpty(referrer)) {
+      return;
+    }
+
+    Campaign campaign = Campaign.parse(referrer);
+    analyticsContext.putCampaign(campaign);
+
+    integrationManager.dispatchInstallReferrer(campaign, context, intent);
+  }
+
   /** Get the {@link AnalyticsContext} used by this instance. */
   @SuppressWarnings("UnusedDeclaration") public AnalyticsContext getAnalyticsContext() {
     return analyticsContext;
@@ -686,7 +711,6 @@ public class Analytics {
       IntegrationManager integrationManager =
           IntegrationManager.create(application, cartographer, client, networkExecutor, stats, tag,
               logLevel, flushIntervalInMillis, flushQueueSize);
-      Map<String, Boolean> bundledIntegrations;
 
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {

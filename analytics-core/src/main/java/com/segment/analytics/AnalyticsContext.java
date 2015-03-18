@@ -29,6 +29,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
@@ -321,6 +322,15 @@ public class AnalyticsContext extends ValueMap {
     private static final String CAMPAIGN_TERM_KEY = "term";
     private static final String CAMPAIGN_CONTENT_KEY = "content";
 
+    static Campaign parse(String referrer) {
+      Uri uri = Uri.parse(referrer);
+      return new Campaign().putName(uri.getQueryParameter("utm_campaign"))
+          .putSource(uri.getQueryParameter("utm_source"))
+          .putMedium(uri.getQueryParameter("utm_medium"))
+          .putTerm(uri.getQueryParameter("utm_term"))
+          .putContent(uri.getQueryParameter("utm_content"));
+    }
+
     // Public Constructor
     public Campaign() {
     }
@@ -367,7 +377,7 @@ public class AnalyticsContext extends ValueMap {
       return putValue(CAMPAIGN_TERM_KEY, term);
     }
 
-    public String tern() {
+    public String term() {
       return getString(CAMPAIGN_TERM_KEY);
     }
 
@@ -378,6 +388,21 @@ public class AnalyticsContext extends ValueMap {
 
     public String content() {
       return getString(CAMPAIGN_CONTENT_KEY);
+    }
+
+    @Override public String toString() {
+      return "Campaign{"
+          + "name="
+          + name()
+          + ", source="
+          + source()
+          + ", medium="
+          + medium()
+          + ", term="
+          + term()
+          + ", content="
+          + content()
+          + '}';
     }
   }
 

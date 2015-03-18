@@ -2,6 +2,7 @@ package com.segment.analytics.internal;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
@@ -11,6 +12,7 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
 import static com.segment.analytics.Analytics.LogLevel;
+import static com.segment.analytics.AnalyticsContext.Campaign;
 
 /**
  * A base class for all bundled integrations.
@@ -82,6 +84,10 @@ public abstract class AbstractIntegration<T> {
   }
 
   public void flush() {
+
+  }
+
+  public void installReferrer(Campaign campaign, Intent intent, Context context) {
 
   }
 }

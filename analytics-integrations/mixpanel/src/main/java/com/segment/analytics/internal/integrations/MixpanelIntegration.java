@@ -2,7 +2,9 @@ package com.segment.analytics.internal.integrations;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import com.mixpanel.android.mpmetrics.InstallReferrerReceiver;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
@@ -21,6 +23,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import static com.segment.analytics.Analytics.LogLevel;
+import static com.segment.analytics.AnalyticsContext.Campaign;
 import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
@@ -167,6 +170,12 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     } else {
       event(track.event(), track.properties());
     }
+  }
+
+  @Override public void installReferrer(Campaign campaign, Intent intent, Context context) {
+    super.installReferrer(campaign, intent, context);
+
+    new InstallReferrerReceiver().onReceive(context, intent);
   }
 
   void event(String name, Properties properties) {
