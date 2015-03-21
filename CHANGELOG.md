@@ -1,3 +1,9 @@
+Version 3.0.1 (March 20th, 2015)
+===============================
+* Enhancement: Update Kahuna integration
+* Enhancement: Update payload limits
+* Enhancement: Fix some context fields
+
 Version 3.0.1 (March 5th, 2015)
 ===============================
 * Fix: AAR packaging for error 'module depends on libraries but is not a library itself'
