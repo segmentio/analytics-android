@@ -66,26 +66,28 @@ public class TapstreamIntegration extends AbstractIntegration<Tapstream> {
     return TAPSTREAM_KEY;
   }
 
-  @Override public void track(TrackPayload track) {
-    super.track(track);
+  @Override public boolean track(TrackPayload track) {
     tapstream.fireEvent(makeEvent(track.event(), track.properties()));
+    return true;
   }
 
-  @Override public void screen(ScreenPayload screen) {
-    super.screen(screen);
+  @Override public boolean screen(ScreenPayload screen) {
     if (trackAllPages) {
-      tapstream.fireEvent(
-          makeEvent(String.format(VIEWED_EVENT_FORMAT, screen.event()), screen.properties()));
+      return screenEvent(screen.event(), screen.properties());
     } else if (trackCategorizedPages && !isNullOrEmpty(screen.category())) {
-      tapstream.fireEvent(
-          makeEvent(String.format(VIEWED_EVENT_FORMAT, screen.category()), screen.properties()));
+      return screenEvent(screen.category(), screen.properties());
     } else if (trackNamedPages && !isNullOrEmpty(screen.name())) {
-      tapstream.fireEvent(
-          makeEvent(String.format(VIEWED_EVENT_FORMAT, screen.name()), screen.properties()));
+      return screenEvent(screen.name(), screen.properties());
     }
+    return true;
   }
 
-  private Event makeEvent(String name, Properties properties) {
+  private boolean screenEvent(String eventName, Properties properties) {
+    tapstream.fireEvent(makeEvent(String.format(VIEWED_EVENT_FORMAT, eventName), properties));
+    return true;
+  }
+
+  private static Event makeEvent(String name, Properties properties) {
     Event event = new Event(name, false);
     for (Map.Entry<String, Object> entry : properties.entrySet()) {
       event.addPair(entry.getKey(), entry.getValue());
@@ -93,10 +95,10 @@ public class TapstreamIntegration extends AbstractIntegration<Tapstream> {
     return event;
   }
 
-  @Override public void identify(IdentifyPayload identify) {
-    super.identify(identify);
+  @Override public boolean identify(IdentifyPayload identify) {
     for (Map.Entry<String, Object> entry : identify.traits().entrySet()) {
       config.globalEventParams.put(entry.getKey(), entry.getValue());
     }
+    return true;
   }
 }

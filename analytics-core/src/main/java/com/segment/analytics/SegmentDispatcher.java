@@ -141,28 +141,29 @@ class SegmentDispatcher extends AbstractIntegration {
     return SEGMENT_KEY;
   }
 
-  @Override public void identify(IdentifyPayload identify) {
-    dispatchEnqueue(identify);
+  @Override public boolean identify(IdentifyPayload identify) {
+    return dispatchEnqueue(identify);
   }
 
-  @Override public void group(GroupPayload group) {
-    dispatchEnqueue(group);
+  @Override public boolean group(GroupPayload group) {
+    return dispatchEnqueue(group);
   }
 
-  @Override public void track(TrackPayload track) {
-    dispatchEnqueue(track);
+  @Override public boolean track(TrackPayload track) {
+    return dispatchEnqueue(track);
   }
 
-  @Override public void alias(AliasPayload alias) {
-    dispatchEnqueue(alias);
+  @Override public boolean alias(AliasPayload alias) {
+    return dispatchEnqueue(alias);
   }
 
-  @Override public void screen(ScreenPayload screen) {
-    dispatchEnqueue(screen);
+  @Override public boolean screen(ScreenPayload screen) {
+    return dispatchEnqueue(screen);
   }
 
-  private void dispatchEnqueue(BasePayload payload) {
+  private boolean dispatchEnqueue(BasePayload payload) {
     handler.sendMessage(handler.obtainMessage(SegmentDispatcherHandler.REQUEST_ENQUEUE, payload));
+    return true;
   }
 
   void performEnqueue(BasePayload payload) {
@@ -201,8 +202,9 @@ class SegmentDispatcher extends AbstractIntegration {
     }
   }
 
-  @Override public void flush() {
+  @Override public boolean flush() {
     handler.sendMessage(handler.obtainMessage(SegmentDispatcherHandler.REQUEST_FLUSH));
+    return true;
   }
 
   void scheduleFlush() {

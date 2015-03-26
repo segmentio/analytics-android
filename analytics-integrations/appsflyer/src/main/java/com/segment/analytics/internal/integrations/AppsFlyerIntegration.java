@@ -46,25 +46,26 @@ public class AppsFlyerIntegration extends AbstractIntegration<Void> {
     return APPS_FLYER_KEY;
   }
 
-  @Override public void track(TrackPayload track) {
-    super.track(track);
+  @Override public boolean track(TrackPayload track) {
     String currency = track.properties().currency();
     if (!isNullOrEmpty(currency)) {
       appsFlyer.setCurrencyCode(track.properties().currency());
     }
     appsFlyer.sendTrackingWithEvent(context, track.event(),
         String.valueOf(track.properties().value()));
+    return true;
   }
 
-  @Override public void identify(IdentifyPayload identify) {
-    super.identify(identify);
+  @Override public boolean identify(IdentifyPayload identify) {
     appsFlyer.setAppUserId(identify.userId());
     appsFlyer.setUserEmail(identify.traits().email());
+    return true;
   }
 
   /**
    * We can't mock AppsFlyerLib even with PowerMock, so we make a wrapper that can be tested.
-   * <p></p> The relevant error which prevents the AppsFlyerLib class from being mocked
+   * We can't test this wrapper for the same reason, but it's better than nothing.
+   * <p>The relevant error which prevents the AppsFlyerLib class from being mocked
    * http://pastebin.com/jdZi9jPt
    */
   interface AppsFlyer {
@@ -81,8 +82,8 @@ public class AppsFlyerIntegration extends AbstractIntegration<Void> {
         AppsFlyerLib.setCurrencyCode(currencyCode);
       }
 
-      @Override public void sendTrackingWithEvent(Context context, String eventName,
-          String eventValue) {
+      @Override
+      public void sendTrackingWithEvent(Context context, String eventName, String eventValue) {
         AppsFlyerLib.sendTrackingWithEvent(context, eventName, eventValue);
       }
 

@@ -40,24 +40,24 @@ public class CrittercismIntegration extends AbstractIntegration<Void> {
     return CRITTERCISM_KEY;
   }
 
-  @Override public void identify(IdentifyPayload identify) {
-    super.identify(identify);
+  @Override public boolean identify(IdentifyPayload identify) {
     Crittercism.setUsername(identify.userId());
     Crittercism.setMetadata(identify.traits().toJsonObject());
+    return true;
   }
 
-  @Override public void screen(ScreenPayload screen) {
-    super.screen(screen);
+  @Override public boolean screen(ScreenPayload screen) {
     Crittercism.leaveBreadcrumb(String.format(VIEWED_EVENT_FORMAT, screen.event()));
+    return true;
   }
 
-  @Override public void track(TrackPayload track) {
-    super.track(track);
+  @Override public boolean track(TrackPayload track) {
     Crittercism.leaveBreadcrumb(track.event());
+    return true;
   }
 
-  @Override public void flush() {
-    super.flush();
+  @Override public boolean flush() {
     Crittercism.sendAppLoadData();
+    return true;
   }
 }

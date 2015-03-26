@@ -40,29 +40,28 @@ public class CountlyIntegration extends AbstractIntegration<Countly> {
     return COUNTLY_KEY;
   }
 
-  @Override public void onActivityStarted(Activity activity) {
-    super.onActivityStarted(activity);
+  @Override public boolean onActivityStarted(Activity activity) {
     countly.onStart();
+    return true;
   }
 
-  @Override public void onActivityStopped(Activity activity) {
-    super.onActivityStopped(activity);
+  @Override public boolean onActivityStopped(Activity activity) {
     countly.onStop();
+    return true;
   }
 
-  @Override public void track(TrackPayload track) {
-    super.track(track);
-    event(track.event(), track.properties());
+  @Override public boolean track(TrackPayload track) {
+    return event(track.event(), track.properties());
   }
 
-  @Override public void screen(ScreenPayload screen) {
-    super.screen(screen);
-    event(String.format(VIEWED_EVENT_FORMAT, screen.event()), screen.properties());
+  @Override public boolean screen(ScreenPayload screen) {
+    return event(String.format(VIEWED_EVENT_FORMAT, screen.event()), screen.properties());
   }
 
-  private void event(String name, Properties properties) {
+  private boolean event(String name, Properties properties) {
     int count = properties.getInt("count", 1);
     double sum = properties.getDouble("sum", 0);
     countly.recordEvent(name, properties.toStringMap(), count, sum);
+    return true;
   }
 }

@@ -289,8 +289,8 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     operationQueue = null;
   }
 
-  @Override public void onActivityCreated(final Activity activity,
-      final Bundle savedInstanceState) {
+  @Override
+  public void onActivityCreated(final Activity activity, final Bundle savedInstanceState) {
     dispatchEnqueue(IntegrationOperation.onActivityCreated(activity, savedInstanceState));
   }
 
@@ -375,11 +375,18 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     for (int i = 0; i < integrations.size(); i++) {
       AbstractIntegration integration = integrations.get(i);
       long startTime = System.nanoTime();
-      operation.run(integration, projectSettingsCache.get());
+      boolean ran = operation.run(integration, projectSettingsCache.get());
       long endTime = System.nanoTime();
       long duration = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
       if (logLevel.log()) {
-        debug("Took %s ms to run action %s on %s.", duration, operation, integration.key());
+        if (ran) {
+          debug("Took %s ms to run action %s on %s.", duration, operation, integration.key());
+        } else {
+          String text = "Did not run action %s on %s. "
+              + "The integration either does not need use this action,"
+              + " or the event was disabled in the tracking plan.";
+          debug(text, duration, operation, integration.key());
+        }
       }
       stats.dispatchIntegrationOperation(integration.key(), duration);
     }

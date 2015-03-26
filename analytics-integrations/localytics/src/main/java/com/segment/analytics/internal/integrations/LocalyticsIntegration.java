@@ -43,9 +43,7 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
     return LOCALYTICS_KEY;
   }
 
-  @Override public void onActivityResumed(Activity activity) {
-    super.onActivityResumed(activity);
-
+  @Override public boolean onActivityResumed(Activity activity) {
     Localytics.openSession();
     Localytics.upload();
 
@@ -60,11 +58,10 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
     if (intent != null) {
       Localytics.handleTestMode(intent);
     }
+    return true;
   }
 
-  @Override public void onActivityPaused(Activity activity) {
-    super.onActivityPaused(activity);
-
+  @Override public boolean onActivityPaused(Activity activity) {
     if (hasSupportLibOnClassPath) {
       if (activity instanceof android.support.v4.app.FragmentActivity) {
         Localytics.dismissCurrentInAppMessage();
@@ -74,17 +71,15 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
 
     Localytics.closeSession();
     Localytics.upload();
+    return true;
   }
 
-  @Override public void flush() {
-    super.flush();
-
+  @Override public boolean flush() {
     Localytics.upload();
+    return true;
   }
 
-  @Override public void identify(IdentifyPayload identify) {
-    super.identify(identify);
-
+  @Override public boolean identify(IdentifyPayload identify) {
     setContext(identify.context());
     Traits traits = identify.traits();
 
@@ -104,20 +99,19 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
     for (Map.Entry<String, Object> entry : traits.entrySet()) {
       Localytics.setIdentifier(entry.getKey(), String.valueOf(entry.getValue()));
     }
+    return true;
   }
 
-  @Override public void screen(ScreenPayload screen) {
-    super.screen(screen);
-
+  @Override public boolean screen(ScreenPayload screen) {
     setContext(screen.context());
     Localytics.tagScreen(screen.event());
+    return true;
   }
 
-  @Override public void track(TrackPayload track) {
-    super.track(track);
-
+  @Override public boolean track(TrackPayload track) {
     setContext(track.context());
     Localytics.tagEvent(track.event(), track.properties().toStringMap());
+    return true;
   }
 
   private void setContext(AnalyticsContext context) {
