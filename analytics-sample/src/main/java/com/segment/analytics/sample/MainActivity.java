@@ -56,12 +56,12 @@ public class MainActivity extends Activity {
   private void initViews() {
     findViewById(R.id.action_track_a).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
-        Analytics.with(MainActivity.this).track("Button A clicked");
+        Analytics.with(MainActivity.this).track("Button A Clicked");
       }
     });
     findViewById(R.id.action_track_b).setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
-        Analytics.with(MainActivity.this).track("Button B clicked");
+        Analytics.with(MainActivity.this).track("Button B Clicked");
       }
     });
     findViewById(R.id.action_track_c).setOnClickListener(new View.OnClickListener() {
@@ -71,7 +71,7 @@ public class MainActivity extends Activity {
           @Override protected Void doInBackground(Void... params) {
             // This is a bad use of AsyncTask! But it's just to demonstrate that the Analytics
             // client can be safely called from multiple threads.
-            Analytics.with(MainActivity.this).track("Button C clicked");
+            Analytics.with(MainActivity.this).track("Button C Clicked");
             return null;
           }
         };
