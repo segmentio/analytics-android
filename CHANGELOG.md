@@ -1,4 +1,4 @@
-Version 3.0.1 (March 20th, 2015)
+Version 3.0.2 (March 20th, 2015)
 ===============================
 * Enhancement: Update Kahuna integration
 * Enhancement: Update payload limits
