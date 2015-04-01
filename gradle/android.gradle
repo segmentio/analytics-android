@@ -21,5 +21,10 @@ android {
     sourceCompatibility rootProject.ext.compileJavaVersion
     targetCompatibility rootProject.ext.compileJavaVersion
   }
-}
 
+  // Ignore InvalidPackage from okio package.
+  // See https://github.com/square/okio/issues/58
+  lintOptions {
+    lintConfig file(new File(System.getProperty("user.dir"), "./gradle/lint.xml"))
+  }
+}
