@@ -32,6 +32,7 @@ import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Base64;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.BasePayload;
@@ -39,6 +40,9 @@ import com.segment.analytics.internal.model.payloads.GroupPayload;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
@@ -551,6 +555,7 @@ public class Analytics {
     private String tag;
     private LogLevel logLevel;
     private ExecutorService networkExecutor;
+    private ConnectionFactory connectionFactory;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -652,15 +657,30 @@ public class Analytics {
     }
 
     /**
-     * Specify the executor service for loading images in the background.
-     * <p>
+     * Specify the executor service for making network calls in the background.
+     * <p/>
      * Note: Calling {@link Analytics#shutdown()} will not shutdown supplied executors.
+     * <p/>
+     * Use it with care! http://bit.ly/1JVlA2e
      */
     public Builder networkExecutor(ExecutorService networkExecutor) {
       if (networkExecutor == null) {
         throw new IllegalArgumentException("Executor service must not be null.");
       }
       this.networkExecutor = networkExecutor;
+      return this;
+    }
+
+    /**
+     * Specify the connection factory for customizing how {@link HttpURLConnection} is created.
+     * <p/>
+     * Use it with care! http://bit.ly/1JVlA2e
+     */
+    public Builder connectionFactory(ConnectionFactory connectionFactory) {
+      if (connectionFactory == null) {
+        throw new IllegalArgumentException("ConnectionFactory must not be null.");
+      }
+      this.connectionFactory = connectionFactory;
       return this;
     }
 
@@ -678,10 +698,13 @@ public class Analytics {
       if (networkExecutor == null) {
         networkExecutor = new AnalyticsExecutorService();
       }
+      if (connectionFactory == null) {
+        connectionFactory = new ConnectionFactory();
+      }
 
       Stats stats = new Stats();
       Cartographer cartographer = Cartographer.INSTANCE;
-      Client client = new Client(application, writeKey);
+      Client client = new Client(application, writeKey, connectionFactory);
 
       IntegrationManager integrationManager =
           IntegrationManager.create(application, cartographer, client, networkExecutor, stats, tag,
@@ -697,6 +720,52 @@ public class Analytics {
 
       return new Analytics(application, networkExecutor, integrationManager, stats, traitsCache,
           analyticsContext, defaultOptions, logLevel);
+    }
+  }
+
+  /**
+   * Abstraction to customize how connections are created. This is can be used to point our SDK at
+   * your proxy server for instance.
+   */
+  public static class ConnectionFactory {
+    private static final int DEFAULT_READ_TIMEOUT_MILLIS = 20 * 1000; // 20s
+    private static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 15 * 1000; // 15s
+
+    private String authorizationHeader(String writeKey) {
+      return "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP);
+    }
+
+    /** Return a {@link HttpURLConnection} that reads JSON formatted project settings. */
+    public HttpURLConnection projectSettings(String writeKey) throws IOException {
+      HttpURLConnection connection =
+          openConnection("http://cdn.segment.com/v1/projects/" + writeKey + "/settings");
+      connection.setRequestProperty("Content-Type", "application/json");
+      return connection;
+    }
+
+    /**
+     * Return a {@link HttpURLConnection} that writes batched payloads to {@code
+     * https://api.segment.io/v1/import}.
+     */
+    public HttpURLConnection upload(String writeKey) throws IOException {
+      HttpURLConnection connection = openConnection("https://api.segment.io/v1/import");
+      connection.setRequestProperty("Content-Type", "application/json");
+      connection.setRequestProperty("Authorization", authorizationHeader(writeKey));
+      connection.setDoOutput(true);
+      connection.setChunkedStreamingMode(0);
+      return connection;
+    }
+
+    /**
+     * Configures defaults for connections opened with both {@link #upload(String)} and {@link
+     * #projectSettings(String)}.
+     */
+    protected HttpURLConnection openConnection(String url) throws IOException {
+      HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+      connection.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS);
+      connection.setReadTimeout(DEFAULT_READ_TIMEOUT_MILLIS);
+      connection.setDoInput(true);
+      return connection;
     }
   }
 }
