@@ -49,17 +49,18 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
       throw new IllegalStateException("Google Analytics requires the access state permission.");
     }
 
+    String mobileTrackingId = settings.getString("mobileTrackingId");
+    if (isNullOrEmpty(mobileTrackingId)) {
+      throw new IllegalStateException("mobileTrackingId is required.");
+    }
+    tracker = googleAnalyticsInstance.newTracker(mobileTrackingId);
+
     googleAnalyticsInstance = GoogleAnalytics.getInstance(context);
     if (logLevel == Analytics.LogLevel.INFO) {
       googleAnalyticsInstance.getLogger().setLogLevel(Logger.LogLevel.INFO);
     } else if (logLevel == Analytics.LogLevel.VERBOSE) {
       googleAnalyticsInstance.getLogger().setLogLevel(Logger.LogLevel.VERBOSE);
     }
-
-    // Look up the mobileTrackingId, if unavailable, fallback to the trackingId
-    String trackingId = settings.getString("mobileTrackingId");
-    if (isNullOrEmpty(trackingId)) trackingId = settings.getString("trackingId");
-    tracker = googleAnalyticsInstance.newTracker(trackingId);
 
     tracker.setAnonymizeIp(settings.getBoolean("anonymizeIp", false));
     if (settings.getBoolean("reportUncaughtExceptions", false)) {
