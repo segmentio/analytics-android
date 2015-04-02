@@ -38,7 +38,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
  */
 class Client {
   final Context context;
-  final Analytics.ConnectionFactory connectionFactory;
+  final ConnectionFactory connectionFactory;
   final String writeKey;
 
   private static Connection createPostConnection(HttpURLConnection connection) throws IOException {
@@ -66,7 +66,7 @@ class Client {
     };
   }
 
-  Client(Context context, String writeKey, Analytics.ConnectionFactory connectionFactory) {
+  Client(Context context, String writeKey, ConnectionFactory connectionFactory) {
     this.context = context;
     this.writeKey = writeKey;
     this.connectionFactory = connectionFactory;
