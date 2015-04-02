@@ -250,7 +250,7 @@ public class MixpanelTest {
     verifyNoMoreMixpanelInteractions();
   }
 
-  @Test public void identifyWithSpecialProperties() throws JSONException {
+  @Test public void identifyWithSuperProperties() throws JSONException {
     integration.isPeopleEnabled = true;
     Traits traits = createTraits("foo").putEmail("friends@segment.com")
         .putPhone("1-844-611-0621")

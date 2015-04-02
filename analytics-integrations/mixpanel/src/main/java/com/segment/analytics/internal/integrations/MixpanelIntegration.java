@@ -44,7 +44,7 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   LogLevel logLevel;
   Set<String> increments;
 
-  private static void addSpecialProperties(JSONObject jsonObject, Traits traits)
+  private static void registerSuperProperties(JSONObject jsonObject, Traits traits)
       throws JSONException {
     jsonObject.put("$email", traits.email());
     jsonObject.remove("email");
@@ -118,10 +118,10 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     mixpanelAPI.identify(userId);
     JSONObject traits = identify.traits().toJsonObject();
     try {
-      addSpecialProperties(traits, identify.traits());
+      registerSuperProperties(traits, identify.traits());
     } catch (JSONException e) {
       if (logLevel.log()) {
-        debug("Could not add special properties to JSONObject for Mixpanel Integration");
+        debug("Could not add super properties to JSONObject for Mixpanel Integration");
       }
     }
 
