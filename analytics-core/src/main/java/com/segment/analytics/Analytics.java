@@ -370,7 +370,7 @@ public class Analytics {
    * Usage:
    * <pre> <code>
    *   analytics.track("user did something");
-   *   analytics.alias(newId, previousId);
+   *   analytics.alias(newId);
    *   analytics.identify(newId);
    * </code> </pre>
    *
