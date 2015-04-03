@@ -16,6 +16,7 @@ import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
+import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,7 +36,6 @@ import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.error;
 import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
-import static com.segment.analytics.internal.Utils.panic;
 import static com.segment.analytics.internal.Utils.toISO8601Date;
 
 /** Entity that queues payloads on disks and uploads them periodically. */
@@ -100,7 +100,7 @@ class SegmentDispatcher extends AbstractIntegration {
       File folder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
       queueFile = createQueueFile(folder, tag);
     } catch (IOException e) {
-      throw panic(e, "Could not create queue file.");
+      throw new IOError(e);
     }
     return new SegmentDispatcher(context, client, cartographer, networkExecutor, queueFile, stats,
         bundledIntegrations, flushIntervalInMillis, flushQueueSize, logLevel);
@@ -173,7 +173,7 @@ class SegmentDispatcher extends AbstractIntegration {
       try {
         queueFile.remove();
       } catch (IOException e) {
-        throw panic(e, "Could not remove payload from queue.");
+        throw new IOError(e);
       }
     }
 
@@ -257,7 +257,9 @@ class SegmentDispatcher extends AbstractIntegration {
       try {
         queueFile.remove(payloadsUploaded);
       } catch (IOException e) {
-        throw panic(e, "Unable to remove payloads from queueFile: " + queueFile);
+        IOException ioException = new IOException("Unable to remove " //
+            + payloadsUploaded + " payload(s) from queueFile: " + queueFile, e);
+        throw new IOError(ioException);
       }
 
       if (queueFile.size() > 0) {
@@ -395,7 +397,7 @@ class SegmentDispatcher extends AbstractIntegration {
           segmentDispatcher.performFlush();
           break;
         default:
-          panic("Unknown dispatcher message: " + msg.what);
+          throw new AssertionError("Unknown dispatcher message: " + msg.what);
       }
     }
   }

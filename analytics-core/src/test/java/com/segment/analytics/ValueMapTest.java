@@ -147,10 +147,12 @@ public class ValueMapTest {
 
     try {
       settings.getAmplitudeSettings();
-    } catch (RuntimeException exception) {
+    } catch (AssertionError exception) {
       assertThat(exception) //
-          .hasMessage("Could not create instance of "
-              + "com.segment.analytics.ValueMapTest.AmplitudeSettings");
+          .hasMessage(
+              "Could not create instance of com.segment.analytics.ValueMapTest.AmplitudeSettings.\n"
+                  + "java.lang.NoSuchMethodException: "
+                  + "com.segment.analytics.ValueMapTest$AmplitudeSettings.<init>(java.util.Map)");
     }
   }
 

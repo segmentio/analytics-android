@@ -26,7 +26,6 @@ import org.robolectric.Robolectric;
 
 import static android.Manifest.permission.INTERNET;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
-import static com.segment.analytics.internal.Utils.panic;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
@@ -34,8 +33,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@Ignore
-public final class TestUtils {
+@Ignore public final class TestUtils {
   public static final String PROJECT_SETTINGS_JSON_SAMPLE = "{\n"
       + "  \"Amplitude\": {\n"
       + "    \"trackNamedPages\": true,\n"
@@ -119,7 +117,8 @@ public final class TestUtils {
       constructor.setAccessible(true);
       return constructor.newInstance(map);
     } catch (Exception e) {
-      throw panic(e, "Could not create instance of " + clazz.getCanonicalName());
+      throw new AssertionError(
+          "Could not create instance of " + clazz.getCanonicalName() + ".\n" + e);
     }
   }
 

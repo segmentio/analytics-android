@@ -109,9 +109,11 @@ public class IntegrationManagerTest {
       integrationManager //
           .loadIntegration("com.segment.analytics.integrations.InvalidIntegration");
       fail("loading an integration with no-args constructor should throw exception.");
-    } catch (RuntimeException e) {
-      assertThat(e).hasMessage("Could not instantiate class.")
-          .hasRootCauseExactlyInstanceOf(NoSuchMethodException.class);
+    } catch (AssertionError e) {
+      assertThat(e).hasMessage(
+          "Could not create instance of com.segment.analytics.integrations.InvalidIntegration.\n"
+              + "java.lang.NoSuchMethodException: "
+              + "com.segment.analytics.integrations.InvalidIntegration.<init>()");
     }
 
     assertThat(integrationManager.bundledIntegrations).isEmpty();
@@ -134,8 +136,9 @@ public class IntegrationManagerTest {
         + "  }\n"
         + "}");
     AbstractIntegration<Void> badIntegration = new AbstractIntegration<Void>() {
-      @Override public void initialize(Context context, ValueMap settings,
-          Analytics.LogLevel logLevel) throws IllegalStateException {
+      @Override
+      public void initialize(Context context, ValueMap settings, Analytics.LogLevel logLevel)
+          throws IllegalStateException {
         throw new NullPointerException("mock");
       }
 
