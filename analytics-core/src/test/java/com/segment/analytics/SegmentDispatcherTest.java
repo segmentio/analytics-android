@@ -7,6 +7,7 @@ import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import edu.emory.mathcs.backport.java.util.Collections;
 import java.io.File;
+import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -98,8 +99,8 @@ public class SegmentDispatcherTest {
     try {
       segmentDispatcher.performEnqueue(TRACK_PAYLOAD);
       fail("expected QueueFile to throw an error.");
-    } catch (RuntimeException expected) {
-      assertThat(expected).hasMessage("Could not remove payload from queue.");
+    } catch (IOError expected) {
+      assertThat(expected).hasMessage("java.io.IOException: no remove for you.");
       assertThat(expected.getCause()).hasMessage("no remove for you.")
           .isInstanceOf(IOException.class);
     }

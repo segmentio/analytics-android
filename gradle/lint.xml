@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lint>
-    <issue id="InvalidPackage">
-        <ignore regexp="okio-\d+.\d+.\d+.jar" />
-    </issue>
+  <issue id="InvalidPackage">
+    <ignore regexp="okio-\d+.\d+.\d+.jar"/>
+  </issue>
 </lint>

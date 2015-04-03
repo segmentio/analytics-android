@@ -15,7 +15,6 @@ import org.json.JSONObject;
 
 import static com.segment.analytics.internal.Utils.getSegmentSharedPreferences;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
-import static com.segment.analytics.internal.Utils.panic;
 
 /**
  * A class that wraps an existing {@link Map} to expose value type functionality. All {@link
@@ -42,7 +41,8 @@ public class ValueMap implements Map<String, Object> {
       constructor.setAccessible(true);
       return constructor.newInstance(map);
     } catch (Exception e) {
-      throw panic(e, "Could not create instance of " + clazz.getCanonicalName());
+      throw new AssertionError(
+          "Could not create instance of " + clazz.getCanonicalName() + ".\n" + e);
     }
   }
 

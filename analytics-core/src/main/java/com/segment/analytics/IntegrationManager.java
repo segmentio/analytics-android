@@ -39,7 +39,6 @@ import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.error;
 import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
-import static com.segment.analytics.internal.Utils.panic;
 
 /**
  * The class that forwards operations from the client to integrations, including Segment. It
@@ -164,7 +163,8 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
       integrations.add(integration);
       bundledIntegrations.put(integration.key(), false);
     } catch (Exception e) {
-      throw panic(e, "Could not instantiate class.");
+      throw new AssertionError(
+          "Could not create instance of " + clazz.getCanonicalName() + ".\n" + e);
     }
   }
 
@@ -289,8 +289,8 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     operationQueue = null;
   }
 
-  @Override public void onActivityCreated(final Activity activity,
-      final Bundle savedInstanceState) {
+  @Override
+  public void onActivityCreated(final Activity activity, final Bundle savedInstanceState) {
     dispatchEnqueue(IntegrationOperation.onActivityCreated(activity, savedInstanceState));
   }
 
@@ -456,7 +456,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
           integrationManager.performRegisterCallback(pair.first, pair.second);
           break;
         default:
-          panic("Unhandled dispatcher message: " + msg.what);
+          throw new AssertionError("Unknown Integration Manager handler message: " + msg);
       }
     }
   }

@@ -33,7 +33,6 @@ import android.os.Build;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
-import com.segment.analytics.Analytics;
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
@@ -88,8 +87,8 @@ public final class Utils {
   }
 
   /** Returns the system service for the given string. */
-  @SuppressWarnings("unchecked")
-  public static <T> T getSystemService(Context context, String serviceConstant) {
+  @SuppressWarnings("unchecked") public static <T> T getSystemService(Context context,
+      String serviceConstant) {
     return (T) context.getSystemService(serviceConstant);
   }
 
@@ -165,26 +164,6 @@ public final class Utils {
     ConnectivityManager cm = getSystemService(context, CONNECTIVITY_SERVICE);
     NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
     return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
-  }
-
-  /** Panic from an unrecoverable error. */
-  public static RuntimeException panic(Throwable cause, String message) {
-    final RuntimeException exception = new RuntimeException(message, cause);
-    Analytics.HANDLER.post(new Runnable() {
-      @Override public void run() {
-        throw exception;
-      }
-    });
-    return exception;
-  }
-
-  /** Panic from an unrecoverable error. */
-  public static void panic(final String message) {
-    Analytics.HANDLER.post(new Runnable() {
-      @Override public void run() {
-        throw new AssertionError(message);
-      }
-    });
   }
 
   /** Return {@code true} if a class with the given name is found. */
