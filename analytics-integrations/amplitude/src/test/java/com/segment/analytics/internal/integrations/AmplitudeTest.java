@@ -3,7 +3,7 @@ package com.segment.analytics.internal.integrations;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
-import com.amplitude.api.Amplitude;
+import com.amplitude.api.AmplitudeClient;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Randoms;
 import com.segment.analytics.Traits;
@@ -34,35 +34,41 @@ import static com.segment.analytics.TestUtils.createTraits;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
-import static org.powermock.api.mockito.PowerMockito.verifyStatic;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*", "org.json.*" })
-@PrepareForTest(Amplitude.class)
-public class AmplitudeTest {
+@PrepareForTest(AmplitudeClient.class) public class AmplitudeTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @MockitoAnnotations.Mock Application context;
+  @MockitoAnnotations.Mock AmplitudeClient amplitude;
   AmplitudeIntegration integration;
 
   @Before public void setUp() {
     initMocks(this);
-    PowerMockito.mockStatic(Amplitude.class);
     integration = new AmplitudeIntegration();
+    integration.amplitude = amplitude;
   }
 
   @Test public void initialize() {
+    integration = new AmplitudeIntegration();
+
+    PowerMockito.mockStatic(AmplitudeClient.class);
+    PowerMockito.when(AmplitudeClient.getInstance()).thenReturn(amplitude);
+
     integration.initialize(context, //
         new ValueMap().putValue("apiKey", "foo")
             .putValue("trackAllPages", true)
             .putValue("trackCategorizedPages", false)
             .putValue("trackNamedPages", true), VERBOSE);
-    verifyStatic();
-    Amplitude.initialize(context, "foo");
+
+    verify(amplitude).initialize(context, "foo");
     assertThat(integration.trackAllPages).isTrue();
     assertThat(integration.trackCategorizedPages).isFalse();
     assertThat(integration.trackNamedPages).isTrue();
+
     // Verify default args
     integration.initialize(context, //
         new ValueMap().putValue("apiKey", "foo"), VERBOSE);
@@ -74,60 +80,74 @@ public class AmplitudeTest {
   @Test public void activityCreate() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
+
     integration.onActivityCreated(activity, bundle);
-    verifyNoMoreInteractions(Amplitude.class);
+
+    verifyNoMoreInteractions(amplitude);
   }
 
   @Test public void activityStart() {
     Activity activity = mock(Activity.class);
+
     integration.onActivityStarted(activity);
-    verifyNoMoreInteractions(Amplitude.class);
+
+    verifyNoMoreInteractions(amplitude);
   }
 
   @Test public void activityResume() {
     Activity activity = mock(Activity.class);
+
     integration.onActivityResumed(activity);
-    verifyStatic();
-    Amplitude.startSession();
+
+    verify(amplitude).startSession();
   }
 
   @Test public void activityPause() {
     Activity activity = mock(Activity.class);
+
     integration.onActivityPaused(activity);
-    verifyStatic();
-    Amplitude.endSession();
+
+    verify(amplitude).endSession();
   }
 
   @Test public void activityStop() {
     Activity activity = mock(Activity.class);
+
     integration.onActivityStopped(activity);
-    verifyNoMoreInteractions(Amplitude.class);
+
+    verifyNoMoreInteractions(amplitude);
   }
 
   @Test public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
+
     integration.onActivitySaveInstanceState(activity, bundle);
-    verifyNoMoreInteractions(Amplitude.class);
+
+    verifyNoMoreInteractions(amplitude);
   }
 
   @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
+
     integration.onActivityDestroyed(activity);
-    verifyNoMoreInteractions(Amplitude.class);
+
+    verifyNoMoreInteractions(amplitude);
   }
 
   @Test public void track() {
     Properties properties = new Properties();
+
     integration.track(new TrackPayloadBuilder().event("foo").properties(properties).build());
-    verifyStatic();
-    Amplitude.logEvent(eq("foo"), jsonEq(properties.toJsonObject()));
-    verifyNoMoreInteractions(Amplitude.class);
+
+    verify(amplitude).logEvent(eq("foo"), jsonEq(properties.toJsonObject()));
+    verifyNoMoreInteractions(amplitude);
   }
 
   public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
-    verifyNoMoreInteractions(Amplitude.class);
+
+    verifyNoMoreInteractions(amplitude);
   }
 
   @Test public void trackWithRevenue() {
@@ -138,38 +158,40 @@ public class AmplitudeTest {
         .putValue("receiptSignature", "qux");
     TrackPayload trackPayload =
         new TrackPayloadBuilder().event("foo").properties(properties).build();
+
     integration.track(trackPayload);
-    verifyStatic();
-    Amplitude.logEvent(eq("foo"), jsonEq(properties.toJsonObject()));
-    verifyStatic();
-    Amplitude.logRevenue("bar", 10, 20, "baz", "qux");
+
+    verify(amplitude).logEvent(eq("foo"), jsonEq(properties.toJsonObject()));
+    verify(amplitude).logRevenue("bar", 10, 20, "baz", "qux");
   }
 
   @Test public void identify() {
     Traits traits = createTraits("foo").putAge(20).putFirstName("bar");
     IdentifyPayload payload = new IdentifyPayloadBuilder().traits(traits).build();
+
     integration.identify(payload);
-    verifyStatic();
-    Amplitude.setUserId("foo");
-    verifyStatic();
-    Amplitude.setUserProperties(jsonEq(traits.toJsonObject()));
+
+    verify(amplitude).setUserId("foo");
+    verify(amplitude).setUserProperties(jsonEq(traits.toJsonObject()));
   }
 
   @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
-    verifyNoMoreInteractions(Amplitude.class);
+
+    verifyNoMoreInteractions(amplitude);
   }
 
   @Test public void screen() {
     integration.trackAllPages = false;
     integration.trackCategorizedPages = false;
     integration.trackNamedPages = false;
+
     integration.screen(new ScreenPayloadBuilder().category("foo").build());
-    verifyNoMoreInteractions(Amplitude.class);
+
+    verifyNoMoreInteractions(amplitude);
   }
 
-  @Test
-  public void screenTrackNamedPages() {
+  @Test public void screenTrackNamedPages() {
     integration.trackAllPages = false;
     integration.trackCategorizedPages = false;
     integration.trackNamedPages = true;
@@ -178,11 +200,10 @@ public class AmplitudeTest {
     verifyAmplitudeLoggedEvent("Viewed bar Screen", new JSONObject());
 
     integration.screen(new ScreenPayloadBuilder().category("foo").build());
-    verifyNoMoreInteractions(Amplitude.class);
+    verifyNoMoreInteractions(amplitude);
   }
 
-  @Test
-  public void screenTrackCategorizedPages() {
+  @Test public void screenTrackCategorizedPages() {
     integration.trackAllPages = false;
     integration.trackCategorizedPages = true;
     integration.trackNamedPages = false;
@@ -191,11 +212,10 @@ public class AmplitudeTest {
     verifyAmplitudeLoggedEvent("Viewed foo Screen", new JSONObject());
 
     integration.screen(new ScreenPayloadBuilder().name("foo").build());
-    verifyNoMoreInteractions(Amplitude.class);
+    verifyNoMoreInteractions(amplitude);
   }
 
-  @Test
-  public void screenTrackAllPages() {
+  @Test public void screenTrackAllPages() {
     integration.trackAllPages = true;
     integration.trackCategorizedPages = Randoms.nextBoolean();
     integration.trackNamedPages = Randoms.nextBoolean();
@@ -212,12 +232,11 @@ public class AmplitudeTest {
 
   @Test public void flush() {
     integration.flush();
-    verifyStatic();
-    Amplitude.uploadEvents();
+
+    verify(amplitude).uploadEvents();
   }
 
   private void verifyAmplitudeLoggedEvent(String event, JSONObject jsonObject) {
-    verifyStatic();
-    Amplitude.logEvent(eq(event), jsonEq(jsonObject));
+    verify(amplitude).logEvent(eq(event), jsonEq(jsonObject));
   }
 }
