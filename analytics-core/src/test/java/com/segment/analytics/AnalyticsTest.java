@@ -2,6 +2,9 @@ package com.segment.analytics;
 
 import android.Manifest;
 import android.app.Application;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import org.assertj.core.data.MapEntry;
@@ -20,6 +23,7 @@ import org.robolectric.shadows.ShadowLog;
 
 import static com.segment.analytics.Analytics.BundledIntegration.MIXPANEL;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
+import static com.segment.analytics.AnalyticsContext.Campaign;
 import static com.segment.analytics.TestUtils.createContext;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
@@ -165,10 +169,36 @@ public class AnalyticsTest {
     verify(integrationManager).dispatchEnqueue(payload);
   }
 
-  @Test public void flushInvokesDispatch() throws Exception {
+  @Test public void flushInvokesDispatch() {
     analytics.flush();
 
     verify(integrationManager).dispatchFlush();
+  }
+
+  @Test public void installReferrerInvokesDispatch() {
+    Context context = mock(Context.class);
+    Intent intent = new Intent();
+    Bundle bundle = new Bundle();
+    bundle.putString("referrer", "http://segment.com?"
+        + "utm_campaign=blog&"
+        + "utm_medium=social&"
+        + "utm_source=facebook&"
+        + "utm_term=marketing+software&"
+        + "utm_content=sidebarlink");
+    intent.putExtras(bundle);
+
+    analytics.setInstallReferrer(context, intent);
+
+    assertThat(analyticsContext).containsKey("campaign");
+    Campaign campaign = analyticsContext.getValueMap("campaign", Campaign.class);
+    assertThat(campaign).hasSize(5)
+        .containsEntry("name", "blog")
+        .containsEntry("medium", "social")
+        .containsEntry("source", "facebook")
+        .containsEntry("term", "marketing software")
+        .containsEntry("content", "sidebarlink");
+
+    verify(integrationManager).dispatchInstallReferrer(campaign, context, intent);
   }
 
   @Test public void getSnapshot() throws Exception {

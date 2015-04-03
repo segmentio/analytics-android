@@ -2,6 +2,8 @@ package com.segment.analytics;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -32,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.Analytics.Callback;
+import static com.segment.analytics.AnalyticsContext.Campaign;
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
 import static com.segment.analytics.internal.Utils.buffer;
 import static com.segment.analytics.internal.Utils.closeQuietly;
@@ -325,6 +328,10 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
 
   void dispatchFlush() {
     dispatchEnqueue(IntegrationOperation.flush());
+  }
+
+  void dispatchInstallReferrer(Campaign campaign, Context context, Intent intent) {
+    dispatchEnqueue(IntegrationOperation.installReferrer(campaign, context, intent));
   }
 
   void dispatchEnqueue(BasePayload basePayload) {

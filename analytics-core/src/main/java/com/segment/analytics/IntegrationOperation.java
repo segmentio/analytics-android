@@ -1,6 +1,8 @@
 package com.segment.analytics;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
@@ -9,6 +11,7 @@ import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
+import static com.segment.analytics.AnalyticsContext.Campaign;
 import static com.segment.analytics.Options.ALL_INTEGRATIONS_KEY;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
@@ -211,6 +214,19 @@ abstract class IntegrationOperation {
 
       @Override public String toString() {
         return "Flush";
+      }
+    };
+  }
+
+  static IntegrationOperation installReferrer(final Campaign campaign, final Context context,
+      final Intent intent) {
+    return new IntegrationOperation() {
+      @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
+        integration.installReferrer(campaign, intent, context);
+      }
+
+      @Override public String toString() {
+        return "InstallReferrer{" + "campaign=" + campaign + ", intent=" + intent + '}';
       }
     };
   }

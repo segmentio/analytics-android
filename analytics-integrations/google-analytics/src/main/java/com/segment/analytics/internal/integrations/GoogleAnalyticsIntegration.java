@@ -3,12 +3,15 @@ package com.segment.analytics.internal.integrations;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import com.google.android.gms.analytics.ExceptionReporter;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Logger;
 import com.google.android.gms.analytics.Tracker;
+import com.google.android.gms.tagmanager.InstallReferrerReceiver;
 import com.segment.analytics.Analytics;
+import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Properties;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
@@ -161,6 +164,13 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
       return true;
     }
     return false;
+  }
+
+  @Override public void installReferrer(AnalyticsContext.Campaign campaign, Intent intent,
+      Context context) {
+    super.installReferrer(campaign, intent, context);
+
+    new InstallReferrerReceiver().onReceive(context, intent);
   }
 
   @Override public Tracker getUnderlyingInstance() {

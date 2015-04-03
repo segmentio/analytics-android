@@ -2,7 +2,9 @@ package com.segment.analytics.internal.integrations;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
+import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Properties;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
@@ -13,6 +15,7 @@ import com.tapstream.sdk.Config;
 import com.tapstream.sdk.Event;
 import com.tapstream.sdk.Logger;
 import com.tapstream.sdk.Logging;
+import com.tapstream.sdk.ReferrerReceiver;
 import com.tapstream.sdk.Tapstream;
 import java.util.Map;
 
@@ -83,6 +86,13 @@ public class TapstreamIntegration extends AbstractIntegration<Tapstream> {
       tapstream.fireEvent(
           makeEvent(String.format(VIEWED_EVENT_FORMAT, screen.name()), screen.properties()));
     }
+  }
+
+  @Override public void installReferrer(AnalyticsContext.Campaign campaign, Intent intent,
+      Context context) {
+    super.installReferrer(campaign, intent, context);
+
+    new ReferrerReceiver().onReceive(context, intent);
   }
 
   private Event makeEvent(String name, Properties properties) {

@@ -78,6 +78,21 @@ public class AnalyticsContextTest {
     }
   }
 
+  @Test public void referrer() {
+    String referrer = "http://segment.com?"
+        + "utm_campaign=blog&"
+        + "utm_medium=social&"
+        + "utm_source=facebook&"
+        + "utm_term=marketing+software&"
+        + "utm_content=sidebarlink";
+    assertThat(AnalyticsContext.Campaign.parse(referrer)).hasSize(5)
+        .containsEntry("name", "blog")
+        .containsEntry("medium", "social")
+        .containsEntry("source", "facebook")
+        .containsEntry("term", "marketing software")
+        .containsEntry("content", "sidebarlink");
+  }
+
   @Test public void copyIsImmutable() {
     AnalyticsContext copy = analyticsContext.unmodifiableCopy();
 
