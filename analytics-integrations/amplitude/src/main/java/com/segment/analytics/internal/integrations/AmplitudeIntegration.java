@@ -2,7 +2,7 @@ package com.segment.analytics.internal.integrations;
 
 import android.app.Activity;
 import android.content.Context;
-import com.amplitude.api.Amplitude;
+import com.amplitude.api.AmplitudeClient;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
@@ -27,13 +27,15 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
   boolean trackAllPages;
   boolean trackCategorizedPages;
   boolean trackNamedPages;
+  AmplitudeClient amplitude;
 
   @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
     trackAllPages = settings.getBoolean("trackAllPages", false);
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", false);
     trackNamedPages = settings.getBoolean("trackNamedPages", false);
-    Amplitude.initialize(context, settings.getString("apiKey"));
+    amplitude = AmplitudeClient.getInstance();
+    amplitude.initialize(context, settings.getString("apiKey"));
   }
 
   @Override public Void getUnderlyingInstance() {
@@ -46,20 +48,20 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
 
   @Override public void onActivityResumed(Activity activity) {
     super.onActivityResumed(activity);
-    Amplitude.startSession();
+    amplitude.startSession();
   }
 
   @Override public void onActivityPaused(Activity activity) {
     super.onActivityPaused(activity);
-    Amplitude.endSession();
+    amplitude.endSession();
   }
 
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
     String userId = identify.userId();
     Traits traits = identify.traits();
-    Amplitude.setUserId(userId);
-    Amplitude.setUserProperties(traits.toJsonObject());
+    amplitude.setUserId(userId);
+    amplitude.setUserProperties(traits.toJsonObject());
   }
 
   @Override public void screen(ScreenPayload screen) {
@@ -79,19 +81,19 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
   }
 
   private void event(String name, Properties properties) {
-    Amplitude.logEvent(name, properties.toJsonObject());
+    amplitude.logEvent(name, properties.toJsonObject());
     double revenue = properties.getDouble("revenue", -1);
     if (revenue != -1) {
       String productId = properties.getString("productId");
       int quantity = properties.getInt("quantity", 0);
       String receipt = properties.getString("receipt");
       String receiptSignature = properties.getString("receiptSignature");
-      Amplitude.logRevenue(productId, quantity, revenue, receipt, receiptSignature);
+      amplitude.logRevenue(productId, quantity, revenue, receipt, receiptSignature);
     }
   }
 
   @Override public void flush() {
     super.flush();
-    Amplitude.uploadEvents();
+    amplitude.uploadEvents();
   }
 }
