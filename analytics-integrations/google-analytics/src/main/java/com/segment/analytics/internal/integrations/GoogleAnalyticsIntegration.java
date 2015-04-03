@@ -72,28 +72,28 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     sendUserId = settings.getBoolean("sendUserId", false);
   }
 
-  @Override public void onActivityStarted(Activity activity) {
-    super.onActivityStarted(activity);
+  @Override public boolean onActivityStarted(Activity activity) {
     googleAnalyticsInstance.reportActivityStart(activity);
+    return true;
   }
 
-  @Override public void onActivityStopped(Activity activity) {
-    super.onActivityStopped(activity);
+  @Override public boolean onActivityStopped(Activity activity) {
     googleAnalyticsInstance.reportActivityStop(activity);
+    return true;
   }
 
-  @Override public void screen(ScreenPayload screen) {
-    super.screen(screen);
+  @Override public boolean screen(ScreenPayload screen) {
     String screenName = screen.event();
     if (handleProductEvent(screenName, screen.category(), screen.properties())) {
-      return;
+      return true;
     }
     tracker.setScreenName(screenName);
     tracker.send(new HitBuilders.AppViewBuilder().build());
     tracker.setScreenName(null);
+    return true;
   }
 
-  @Override public void identify(IdentifyPayload identify) {
+  @Override public boolean identify(IdentifyPayload identify) {
     super.identify(identify);
     if (sendUserId) {
       tracker.set("&uid", identify.userId());
@@ -101,13 +101,14 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     for (Map.Entry<String, Object> entry : identify.traits().entrySet()) {
       tracker.set(entry.getKey(), String.valueOf(entry.getValue()));
     }
+    return true;
   }
 
-  @Override public void track(TrackPayload track) {
+  @Override public boolean track(TrackPayload track) {
     Properties properties = track.properties();
     String event = track.event();
     if (handleProductEvent(event, properties.category(), properties)) {
-      return;
+      return true;
     }
     if (COMPLETED_ORDER_PATTERN.matcher(event).matches()) {
       List<Properties.Product> products = properties.products();
@@ -138,10 +139,12 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
         .setLabel(label)
         .setValue((int) properties.value())
         .build());
+    return true;
   }
 
-  @Override public void flush() {
+  @Override public boolean flush() {
     googleAnalyticsInstance.dispatchLocalHits();
+    return true;
   }
 
   /** Check if event is an ecommerce event. If it is, do it and return true, else return false. */

@@ -39,28 +39,28 @@ public class BugsnagIntegration extends AbstractIntegration<Client> {
     return BUGSNAG_KEY;
   }
 
-  @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-    super.onActivityCreated(activity, savedInstanceState);
+  @Override public boolean onActivityCreated(Activity activity, Bundle savedInstanceState) {
     Bugsnag.setContext(activity.getLocalClassName());
+    return true;
   }
 
-  @Override public void identify(IdentifyPayload identify) {
-    super.identify(identify);
+  @Override public boolean identify(IdentifyPayload identify) {
     Traits traits = identify.traits();
     Bugsnag.setUser(traits.userId(), traits.email(), traits.name());
     final String userKey = "User";
     for (Map.Entry<String, Object> entry : traits.entrySet()) {
       Bugsnag.addToTab(userKey, entry.getKey(), entry.getValue());
     }
+    return true;
   }
 
-  @Override public void screen(ScreenPayload screen) {
-    super.screen(screen);
+  @Override public boolean screen(ScreenPayload screen) {
     Bugsnag.leaveBreadcrumb(String.format(VIEWED_EVENT_FORMAT, screen.event()));
+    return true;
   }
 
-  @Override public void track(TrackPayload track) {
-    super.track(track);
+  @Override public boolean track(TrackPayload track) {
     Bugsnag.leaveBreadcrumb(track.event());
+    return true;
   }
 }

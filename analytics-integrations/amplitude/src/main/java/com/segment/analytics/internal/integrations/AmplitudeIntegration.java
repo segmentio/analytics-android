@@ -44,41 +44,40 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
     return AMPLITUDE_KEY;
   }
 
-  @Override public void onActivityResumed(Activity activity) {
-    super.onActivityResumed(activity);
+  @Override public boolean onActivityResumed(Activity activity) {
     Amplitude.startSession();
+    return true;
   }
 
-  @Override public void onActivityPaused(Activity activity) {
-    super.onActivityPaused(activity);
+  @Override public boolean onActivityPaused(Activity activity) {
     Amplitude.endSession();
+    return true;
   }
 
-  @Override public void identify(IdentifyPayload identify) {
-    super.identify(identify);
+  @Override public boolean identify(IdentifyPayload identify) {
     String userId = identify.userId();
     Traits traits = identify.traits();
     Amplitude.setUserId(userId);
     Amplitude.setUserProperties(traits.toJsonObject());
+    return true;
   }
 
-  @Override public void screen(ScreenPayload screen) {
-    super.screen(screen);
+  @Override public boolean screen(ScreenPayload screen) {
     if (trackAllPages) {
-      event(String.format(VIEWED_EVENT_FORMAT, screen.event()), screen.properties());
+      return event(String.format(VIEWED_EVENT_FORMAT, screen.event()), screen.properties());
     } else if (trackCategorizedPages && !isNullOrEmpty(screen.category())) {
-      event(String.format(VIEWED_EVENT_FORMAT, screen.category()), screen.properties());
+      return event(String.format(VIEWED_EVENT_FORMAT, screen.category()), screen.properties());
     } else if (trackNamedPages && !isNullOrEmpty(screen.name())) {
-      event(String.format(VIEWED_EVENT_FORMAT, screen.name()), screen.properties());
+      return event(String.format(VIEWED_EVENT_FORMAT, screen.name()), screen.properties());
     }
+    return false;
   }
 
-  @Override public void track(TrackPayload track) {
-    super.track(track);
-    event(track.event(), track.properties());
+  @Override public boolean track(TrackPayload track) {
+    return event(track.event(), track.properties());
   }
 
-  private void event(String name, Properties properties) {
+  private boolean event(String name, Properties properties) {
     Amplitude.logEvent(name, properties.toJsonObject());
     double revenue = properties.getDouble("revenue", -1);
     if (revenue != -1) {
@@ -88,10 +87,11 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
       String receiptSignature = properties.getString("receiptSignature");
       Amplitude.logRevenue(productId, quantity, revenue, receipt, receiptSignature);
     }
+    return true;
   }
 
-  @Override public void flush() {
-    super.flush();
+  @Override public boolean flush() {
     Amplitude.uploadEvents();
+    return true;
   }
 }

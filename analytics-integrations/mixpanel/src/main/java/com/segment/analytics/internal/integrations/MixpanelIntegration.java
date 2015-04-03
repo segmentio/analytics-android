@@ -95,13 +95,13 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     }
   }
 
-  @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-    super.onActivityCreated(activity, savedInstanceState);
-
+  @Override public boolean onActivityCreated(Activity activity, Bundle savedInstanceState) {
     // This is needed to trigger a call to #checkIntentForInboundAppLink.
     // From Mixpanel's source, this won't trigger a creation of another instance. It caches
     // instances by the application context and token, both of which remain the same.
     MixpanelAPI.getInstance(activity, token);
+
+    return true;
   }
 
   @Override public MixpanelAPI getUnderlyingInstance() {
@@ -112,8 +112,7 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     return MIXPANEL_KEY;
   }
 
-  @Override public void identify(IdentifyPayload identify) {
-    super.identify(identify);
+  @Override public boolean identify(IdentifyPayload identify) {
     String userId = identify.userId();
     mixpanelAPI.identify(userId);
     JSONObject traits = identify.traits().toJsonObject();
@@ -130,15 +129,15 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
       people.identify(userId);
       people.set(traits);
     }
+    return true;
   }
 
-  @Override public void flush() {
-    super.flush();
+  @Override public boolean flush() {
     mixpanelAPI.flush();
+    return true;
   }
 
-  @Override public void alias(AliasPayload alias) {
-    super.alias(alias);
+  @Override public boolean alias(AliasPayload alias) {
     String previousId = alias.previousId();
     if (previousId.equals(alias.anonymousId())) {
       // If the previous ID is an anonymous ID, pass null to mixpanel, which has generated it's own
@@ -146,19 +145,21 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
       previousId = null;
     }
     mixpanelAPI.alias(alias.userId(), previousId);
+    return true;
   }
 
-  @Override public void screen(ScreenPayload screen) {
+  @Override public boolean screen(ScreenPayload screen) {
     if (trackAllPages) {
-      event(String.format(VIEWED_EVENT_FORMAT, screen.event()), screen.properties());
+      return event(String.format(VIEWED_EVENT_FORMAT, screen.event()), screen.properties());
     } else if (trackCategorizedPages && !isNullOrEmpty(screen.category())) {
-      event(String.format(VIEWED_EVENT_FORMAT, screen.category()), screen.properties());
+      return event(String.format(VIEWED_EVENT_FORMAT, screen.category()), screen.properties());
     } else if (trackNamedPages && !isNullOrEmpty(screen.name())) {
-      event(String.format(VIEWED_EVENT_FORMAT, screen.name()), screen.properties());
+      return event(String.format(VIEWED_EVENT_FORMAT, screen.name()), screen.properties());
     }
+    return false;
   }
 
-  @Override public void track(TrackPayload track) {
+  @Override public boolean track(TrackPayload track) {
     String event = track.event();
 
     if (increments.contains(event) && isPeopleEnabled) {
@@ -167,9 +168,10 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     } else {
       event(track.event(), track.properties());
     }
+    return true;
   }
 
-  void event(String name, Properties properties) {
+  boolean event(String name, Properties properties) {
     JSONObject props = properties.toJsonObject();
     mixpanelAPI.track(name, props);
     if (isPeopleEnabled) {
@@ -178,5 +180,6 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
         people.trackCharge(revenue, props);
       }
     }
+    return true;
   }
 }

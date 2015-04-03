@@ -43,19 +43,17 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
     return KAHUNA_KEY;
   }
 
-  @Override public void onActivityStarted(Activity activity) {
-    super.onActivityStarted(activity);
+  @Override public boolean onActivityStarted(Activity activity) {
     KahunaAnalytics.start();
+    return true;
   }
 
-  @Override public void onActivityStopped(Activity activity) {
-    super.onActivityStopped(activity);
+  @Override public boolean onActivityStopped(Activity activity) {
     KahunaAnalytics.stop();
+    return true;
   }
 
-  @Override public void identify(IdentifyPayload identify) {
-    super.identify(identify);
-
+  @Override public boolean identify(IdentifyPayload identify) {
     String username = identify.traits().username();
     KahunaAnalytics.setUsernameAndEmail(isNullOrEmpty(username) ? identify.userId() : username,
         identify.traits().email());
@@ -67,12 +65,12 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
     KahunaAnalytics.setUserCredential(LINKEDIN_KEY, identify.traits().getString("linkedin"));
 
     KahunaAnalytics.setUserAttributes(identify.traits().toStringMap());
+    return true;
   }
 
-  @Override public void track(TrackPayload track) {
-    super.track(track);
-
+  @Override public boolean track(TrackPayload track) {
     KahunaAnalytics.trackEvent(track.event(), track.properties().getInt("count", 0),
         (int) track.properties().value());
+    return true;
   }
 }

@@ -31,7 +31,6 @@ public class FlurryIntegration extends AbstractIntegration<Void> {
 
   @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
-    // TODO: is Google Play Services and the support lib absolutely required?
     FlurryAgent.setContinueSessionMillis(settings.getInt("sessionContinueSeconds", 10) * 1000);
     FlurryAgent.setCaptureUncaughtExceptions(
         settings.getBoolean("captureUncaughtExceptions", false));
@@ -41,30 +40,29 @@ public class FlurryIntegration extends AbstractIntegration<Void> {
     FlurryAgent.init(context, settings.getString("apiKey"));
   }
 
-  @Override public void onActivityStarted(Activity activity) {
-    super.onActivityStarted(activity);
+  @Override public boolean onActivityStarted(Activity activity) {
     FlurryAgent.onStartSession(activity);
+    return true;
   }
 
-  @Override public void onActivityStopped(Activity activity) {
-    super.onActivityStopped(activity);
+  @Override public boolean onActivityStopped(Activity activity) {
     FlurryAgent.onEndSession(activity);
+    return true;
   }
 
-  @Override public void screen(ScreenPayload screen) {
-    super.screen(screen);
+  @Override public boolean screen(ScreenPayload screen) {
     // todo: verify behaviour here, iOS SDK only does pageView, not event
     FlurryAgent.onPageView();
     FlurryAgent.logEvent(screen.event(), screen.properties().toStringMap());
+    return true;
   }
 
-  @Override public void track(TrackPayload track) {
-    super.track(track);
+  @Override public boolean track(TrackPayload track) {
     FlurryAgent.logEvent(track.event(), track.properties().toStringMap());
+    return true;
   }
 
-  @Override public void identify(IdentifyPayload identify) {
-    super.identify(identify);
+  @Override public boolean identify(IdentifyPayload identify) {
     Traits traits = identify.traits();
     FlurryAgent.setUserId(identify.userId());
     int age = traits.age();
@@ -85,6 +83,7 @@ public class FlurryIntegration extends AbstractIntegration<Void> {
     if (location != null) {
       FlurryAgent.setLocation((float) location.latitude(), (float) location.longitude());
     }
+    return true;
   }
 
   @Override public Void getUnderlyingInstance() {

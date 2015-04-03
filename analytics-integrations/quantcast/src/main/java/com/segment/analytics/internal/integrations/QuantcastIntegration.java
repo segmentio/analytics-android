@@ -45,28 +45,28 @@ public class QuantcastIntegration extends AbstractIntegration<Void> {
     return QUANTCAST_KEY;
   }
 
-  @Override public void onActivityStarted(Activity activity) {
-    super.onActivityStarted(activity);
+  @Override public boolean onActivityStarted(Activity activity) {
     QuantcastClient.activityStart(activity, apiKey, null, null);
+    return true;
   }
 
-  @Override public void onActivityStopped(Activity activity) {
-    super.onActivityStopped(activity);
+  @Override public boolean onActivityStopped(Activity activity) {
     QuantcastClient.activityStop();
+    return true;
   }
 
-  @Override public void identify(IdentifyPayload identify) {
-    super.identify(identify);
+  @Override public boolean identify(IdentifyPayload identify) {
     QuantcastClient.recordUserIdentifier(identify.userId());
+    return true;
   }
 
-  @Override public void screen(ScreenPayload screen) {
-    super.screen(screen);
+  @Override public boolean screen(ScreenPayload screen) {
     QuantcastClient.logEvent(String.format(VIEWED_EVENT_FORMAT, screen.event()));
+    return true;
   }
 
-  @Override public void track(TrackPayload track) {
-    super.track(track);
+  @Override public boolean track(TrackPayload track) {
     QuantcastClient.logEvent(track.event());
+    return true;
   }
 }

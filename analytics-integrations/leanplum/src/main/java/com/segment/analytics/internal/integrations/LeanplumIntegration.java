@@ -61,41 +61,41 @@ public class LeanplumIntegration extends AbstractIntegration<Void> {
     Leanplum.start(context);
   }
 
-  @Override public void track(TrackPayload track) {
-    super.track(track);
+  @Override public boolean track(TrackPayload track) {
     Leanplum.track(track.event(),
         track.properties().price() == 0 ? track.properties().price() : track.properties().value(),
         track.properties());
+    return true;
   }
 
-  @Override public void screen(ScreenPayload screen) {
-    super.screen(screen);
+  @Override public boolean screen(ScreenPayload screen) {
     Leanplum.advanceTo(screen.name(), screen.category(), screen.properties());
+    return true;
   }
 
-  @Override public void identify(IdentifyPayload identify) {
-    super.identify(identify);
+  @Override public boolean identify(IdentifyPayload identify) {
     Leanplum.setUserAttributes(identify.userId(), identify.traits());
+    return true;
   }
 
-  @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-    super.onActivityCreated(activity, savedInstanceState);
+  @Override public boolean onActivityCreated(Activity activity, Bundle savedInstanceState) {
     helper = new LeanplumActivityHelper(activity);
+    return true;
   }
 
-  @Override public void onActivityResumed(Activity activity) {
-    super.onActivityResumed(activity);
+  @Override public boolean onActivityResumed(Activity activity) {
     helper.onResume();
+    return true;
   }
 
-  @Override public void onActivityPaused(Activity activity) {
-    super.onActivityPaused(activity);
+  @Override public boolean onActivityPaused(Activity activity) {
     helper.onPause();
+    return true;
   }
 
-  @Override public void onActivityStopped(Activity activity) {
-    super.onActivityStopped(activity);
+  @Override public boolean onActivityStopped(Activity activity) {
     helper.onStop();
+    return true;
   }
 
   @Override public String key() {

@@ -42,46 +42,56 @@ public abstract class AbstractIntegration<T> {
   public abstract String key();
 
   // Application Callbacks, same as Application$ActivityLifecycleCallbacks
-  public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-
+  public boolean onActivityCreated(Activity activity, Bundle savedInstanceState) {
+    return false;
   }
 
-  public void onActivityStarted(Activity activity) {
-
+  public boolean onActivityStarted(Activity activity) {
+    return false;
   }
 
-  public void onActivityResumed(Activity activity) {
+  public boolean onActivityResumed(Activity activity) {
+    return false;
   }
 
-  public void onActivityPaused(Activity activity) {
+  public boolean onActivityPaused(Activity activity) {
+    return false;
   }
 
-  public void onActivityStopped(Activity activity) {
+  public boolean onActivityStopped(Activity activity) {
+    return false;
   }
 
-  public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+  public boolean onActivitySaveInstanceState(Activity activity, Bundle outState) {
+    return false;
   }
 
-  public void onActivityDestroyed(Activity activity) {
+  public boolean onActivityDestroyed(Activity activity) {
+    return false;
   }
 
   // Analytics Actions
-  public void identify(IdentifyPayload identify) {
+  public boolean identify(IdentifyPayload identify) {
+    return false;
   }
 
-  public void group(GroupPayload group) {
+  public boolean group(GroupPayload group) {
+    return false;
   }
 
-  public void track(TrackPayload track) {
+  public boolean track(TrackPayload track) {
+    return false;
   }
 
-  public void alias(AliasPayload alias) {
+  public boolean alias(AliasPayload alias) {
+    return false;
   }
 
-  public void screen(ScreenPayload screen) {
+  public boolean screen(ScreenPayload screen) {
+    return false;
   }
 
-  public void flush() {
-
+  public boolean flush() {
+    return false;
   }
 }

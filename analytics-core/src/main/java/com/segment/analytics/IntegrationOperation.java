@@ -45,8 +45,9 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation onActivityCreated(final Activity activity, final Bundle bundle) {
     return new IntegrationOperation() {
-      @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
-        integration.onActivityCreated(activity, bundle);
+      @Override
+      public boolean run(AbstractIntegration integration, ProjectSettings projectSettings) {
+        return integration.onActivityCreated(activity, bundle);
       }
 
       @Override public String toString() {
@@ -57,8 +58,9 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation onActivityStarted(final Activity activity) {
     return new IntegrationOperation() {
-      @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
-        integration.onActivityStarted(activity);
+      @Override
+      public boolean run(AbstractIntegration integration, ProjectSettings projectSettings) {
+        return integration.onActivityStarted(activity);
       }
 
       @Override public String toString() {
@@ -69,8 +71,9 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation onActivityResumed(final Activity activity) {
     return new IntegrationOperation() {
-      @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
-        integration.onActivityResumed(activity);
+      @Override
+      public boolean run(AbstractIntegration integration, ProjectSettings projectSettings) {
+        return integration.onActivityResumed(activity);
       }
 
       @Override public String toString() {
@@ -81,8 +84,9 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation onActivityPaused(final Activity activity) {
     return new IntegrationOperation() {
-      @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
-        integration.onActivityPaused(activity);
+      @Override
+      public boolean run(AbstractIntegration integration, ProjectSettings projectSettings) {
+        return integration.onActivityPaused(activity);
       }
 
       @Override public String toString() {
@@ -93,8 +97,9 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation onActivityStopped(final Activity activity) {
     return new IntegrationOperation() {
-      @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
-        integration.onActivityStopped(activity);
+      @Override
+      public boolean run(AbstractIntegration integration, ProjectSettings projectSettings) {
+        return integration.onActivityStopped(activity);
       }
 
       @Override public String toString() {
@@ -106,8 +111,9 @@ abstract class IntegrationOperation {
   static IntegrationOperation onActivitySaveInstanceState(final Activity activity,
       final Bundle bundle) {
     return new IntegrationOperation() {
-      @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
-        integration.onActivitySaveInstanceState(activity, bundle);
+      @Override
+      public boolean run(AbstractIntegration integration, ProjectSettings projectSettings) {
+        return integration.onActivitySaveInstanceState(activity, bundle);
       }
 
       @Override public String toString() {
@@ -118,8 +124,9 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation onActivityDestroyed(final Activity activity) {
     return new IntegrationOperation() {
-      @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
-        integration.onActivityDestroyed(activity);
+      @Override
+      public boolean run(AbstractIntegration integration, ProjectSettings projectSettings) {
+        return integration.onActivityDestroyed(activity);
       }
 
       @Override public String toString() {
@@ -130,8 +137,9 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation identify(final IdentifyPayload identifyPayload) {
     return new IntegrationOperation() {
-      @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
-        integration.identify(identifyPayload);
+      @Override
+      public boolean run(AbstractIntegration integration, ProjectSettings projectSettings) {
+        return integration.identify(identifyPayload);
       }
 
       @Override public String toString() {
@@ -142,8 +150,9 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation group(final GroupPayload groupPayload) {
     return new IntegrationOperation() {
-      @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
-        integration.group(groupPayload);
+      @Override
+      public boolean run(AbstractIntegration integration, ProjectSettings projectSettings) {
+        return integration.group(groupPayload);
       }
 
       @Override public String toString() {
@@ -154,7 +163,8 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation track(final TrackPayload trackPayload) {
     return new IntegrationOperation() {
-      @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
+      @Override
+      public boolean run(AbstractIntegration integration, ProjectSettings projectSettings) {
         ValueMap trackingPlan = projectSettings.trackingPlan();
         boolean trackEnabled = true;
 
@@ -169,8 +179,10 @@ abstract class IntegrationOperation {
         }
 
         if (trackEnabled) {
-          integration.track(trackPayload);
+          return integration.track(trackPayload);
         }
+
+        return false;
       }
 
       @Override public String toString() {
@@ -181,8 +193,9 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation screen(final ScreenPayload screenPayload) {
     return new IntegrationOperation() {
-      @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
-        integration.screen(screenPayload);
+      @Override
+      public boolean run(AbstractIntegration integration, ProjectSettings projectSettings) {
+        return integration.screen(screenPayload);
       }
 
       @Override public String toString() {
@@ -193,8 +206,9 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation alias(final AliasPayload aliasPayload) {
     return new IntegrationOperation() {
-      @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
-        integration.alias(aliasPayload);
+      @Override
+      public boolean run(AbstractIntegration integration, ProjectSettings projectSettings) {
+        return integration.alias(aliasPayload);
       }
 
       @Override public String toString() {
@@ -205,8 +219,9 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation flush() {
     return new IntegrationOperation() {
-      @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
-        integration.flush();
+      @Override
+      public boolean run(AbstractIntegration integration, ProjectSettings projectSettings) {
+        return integration.flush();
       }
 
       @Override public String toString() {
@@ -216,5 +231,5 @@ abstract class IntegrationOperation {
   }
 
   /** Run this operation on the given integration. */
-  abstract void run(AbstractIntegration integration, ProjectSettings projectSettings);
+  abstract boolean run(AbstractIntegration integration, ProjectSettings projectSettings);
 }
