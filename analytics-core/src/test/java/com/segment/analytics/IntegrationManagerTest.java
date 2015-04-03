@@ -504,6 +504,9 @@ public class IntegrationManagerTest {
     params.add(new Pair<>(new Options().setIntegration("bar", true), true));
     params.add(new Pair<>(new Options().setIntegration("bar", false), true));
 
+    // Non-boolean value implies integration is enabled
+    params.add(new Pair<>(new Options().setIntegrationOptions("bar", new ValueMap()), true));
+
     for (Pair<Options, Boolean> param : params) {
       AnalyticsContext analyticsContext = createContext(new Traits());
       BasePayload payload = new AliasPayload(analyticsContext, param.first, "foo");
