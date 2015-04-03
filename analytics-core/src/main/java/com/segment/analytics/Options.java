@@ -40,7 +40,7 @@ public class Options {
    */
   public static final String ALL_INTEGRATIONS_KEY = "All";
 
-  private final Map<String, Boolean> integrations; // passed in by the user
+  private final Map<String, Object> integrations; // passed in by the user
 
   public Options() {
     integrations = new ConcurrentHashMap<>();
@@ -76,7 +76,8 @@ public class Options {
   }
 
   /**
-   * Sets whether an action will be sent to the target integration.
+   * Sets whether an action will be sent to the target integration. Same as {@link
+   * #setIntegration(String, boolean)} but type safe for bundled integrations.
    *
    * @param bundledIntegration The target integration
    * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
@@ -88,8 +89,34 @@ public class Options {
     return this;
   }
 
+  /**
+   * Attach some integration specific options for this call.
+   *
+   * @param integrationKey The target integration key
+   * @param options A map of data that will be used by the integration
+   * @return This options object for chaining
+   */
+  public Options setIntegrationOptions(String integrationKey, Map<String, Object> options) {
+    integrations.put(integrationKey, options);
+    return this;
+  }
+
+  /**
+   * Attach some integration specific options for this call. Same as
+   * {@link #setIntegrationOptions(String, Map)} but type safe for bundled integrations.
+   *
+   * @param bundledIntegration The target integration
+   * @param options A map of data that will be used by the integration
+   * @return This options object for chaining
+   */
+  public Options setIntegrationOptions(Analytics.BundledIntegration bundledIntegration,
+      Map<String, Object> options) {
+    integrations.put(bundledIntegration.key, options);
+    return this;
+  }
+
   /** Returns a copy of settings for integrations. */
-  public Map<String, Boolean> integrations() {
+  public Map<String, Object> integrations() {
     return new LinkedHashMap<>(integrations);
   }
 }

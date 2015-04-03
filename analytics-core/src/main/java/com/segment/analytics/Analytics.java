@@ -606,7 +606,8 @@ public class Analytics {
     }
 
     /**
-     * Set some default options for all calls.
+     * Set some default options for all calls. This will only be used to figure out which
+     * integrations should be enabled or not for actions by default.
      *
      * @see {@link Options}
      */
@@ -616,8 +617,13 @@ public class Analytics {
       }
       // Make a defensive copy
       this.defaultOptions = new Options();
-      for (Map.Entry<String, Boolean> entry : defaultOptions.integrations().entrySet()) {
-        this.defaultOptions.setIntegration(entry.getKey(), entry.getValue());
+      for (Map.Entry<String, Object> entry : defaultOptions.integrations().entrySet()) {
+        if (entry.getValue() instanceof Boolean) {
+          this.defaultOptions.setIntegration(entry.getKey(), (Boolean) entry.getValue());
+        } else {
+          // A value is provided for an integration, and it is not a boolean. Assume it is enabled.
+          this.defaultOptions.setIntegration(entry.getKey(), true);
+        }
       }
       return this;
     }
@@ -668,7 +674,7 @@ public class Analytics {
     }
 
     /**
-     * Specify the connection factory for customizing how {@link HttpURLConnection} is created.
+     * Specify the connection factory for customizing how connections are created.
      * <p/>
      * Use it with care! http://bit.ly/1JVlA2e
      */
@@ -718,6 +724,4 @@ public class Analytics {
           analyticsContext, defaultOptions, logLevel);
     }
   }
-
-
 }

@@ -45,9 +45,8 @@ public abstract class BasePayload extends ValueMap {
   /**
    * The anonymous ID is an identifier that uniquely (or close enough) identifies the user, but
    * isn't from your database. This is useful in cases where you are able to uniquely identifier
-   * the
-   * user between visits before they signup thanks to a cookie, or session ID or device ID. In our
-   * mobile and browser libraries we will automatically handle sending the anonymous ID.
+   * the user between visits before they signup thanks to a cookie, or session ID or device ID. In
+   * our mobile and browser libraries we will automatically handle sending the anonymous ID.
    */
   private static final String ANONYMOUS_ID_KEY = "anonymousId";
   /**
@@ -57,9 +56,7 @@ public abstract class BasePayload extends ValueMap {
    * This is always {@link Channel#mobile} for us.
    */
   private static final String CHANNEL_KEY = "channel";
-  /**
-   * A randomly generated unique id for this message. Used to track payload lifecycle.
-   */
+  /** A randomly generated unique id for this message. */
   private static final String MESSAGE_ID = "messageId";
   /**
    * The context is a dictionary of extra information that provides useful context about a message,
@@ -93,7 +90,7 @@ public abstract class BasePayload extends ValueMap {
       put(USER_ID_KEY, userId);
     }
     put(TIMESTAMP_KEY, toISO8601Date(new Date()));
-    put(INTEGRATIONS_KEY, options.integrations()); // copy
+    put(INTEGRATIONS_KEY, options.integrations()); // uses a copy
   }
 
   public Type type() {
