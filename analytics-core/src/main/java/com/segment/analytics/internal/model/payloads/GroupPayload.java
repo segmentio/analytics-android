@@ -29,6 +29,7 @@ import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
 
 public class GroupPayload extends BasePayload {
+
   /**
    * A unique identifier that refers to the group in your database. For example, if your product
    * groups people by "organization" you would use the organization's ID in your database as the

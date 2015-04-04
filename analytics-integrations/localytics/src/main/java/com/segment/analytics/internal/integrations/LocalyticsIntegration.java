@@ -29,6 +29,7 @@ import static com.segment.analytics.internal.Utils.isOnClassPath;
  * @see <a href="http://www.localytics.com/docs/android-integration/">Localytics Android SDK</a>
  */
 public class LocalyticsIntegration extends AbstractIntegration<Void> {
+
   static final String LOCALYTICS_KEY = "Localytics";
   boolean hasSupportLibOnClassPath;
 

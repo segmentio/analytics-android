@@ -1,4 +1,5 @@
 include 'analytics-core'
+include 'analytics-core-tests'
 include 'analytics-integrations:amplitude'
 include 'analytics-integrations:appsflyer'
 include 'analytics-integrations:bugsnag'

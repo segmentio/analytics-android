@@ -25,6 +25,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * @see <a href="https://segment.com/docs/integrations/leanplum/">Leanplum Integration</a>
  */
 public class LeanplumIntegration extends AbstractIntegration<Void> {
+
   static final String LEANPLUM_KEY = "Leanplum";
   LeanplumActivityHelper helper;
 

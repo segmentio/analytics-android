@@ -1,4 +1,3 @@
-apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
 
 apply from: rootProject.file('gradle/android.gradle')
@@ -11,7 +10,7 @@ android {
 dependencies {
   compile project(':analytics-core')
   compile project(':analytics-wear')
-  compile rootProject.ext.libraries.supportWearable
+  compile 'com.google.android.support:wearable:1.1.0'
 }
 
 apply from: rootProject.file('gradle/checkstyle-app.gradle')

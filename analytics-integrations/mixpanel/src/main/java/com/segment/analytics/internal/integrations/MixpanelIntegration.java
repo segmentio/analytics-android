@@ -33,6 +33,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * @see <a href="https://github.com/mixpanel/mixpanel-android">Mixpanel Android SDK</a>
  */
 public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
+
   static final String MIXPANEL_KEY = "Mixpanel";
   MixpanelAPI mixpanelAPI;
   MixpanelAPI.People people;

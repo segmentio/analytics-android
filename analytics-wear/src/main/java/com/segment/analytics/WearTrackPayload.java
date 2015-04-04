@@ -3,6 +3,7 @@ package com.segment.analytics;
 import java.util.Map;
 
 class WearTrackPayload extends ValueMap {
+
   private static final String EVENT_KEY = "event";
   private static final String PROPERTIES_KEY = "properties";
 

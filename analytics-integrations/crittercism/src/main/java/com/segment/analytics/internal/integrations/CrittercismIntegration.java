@@ -21,6 +21,7 @@ import static com.segment.analytics.Analytics.LogLevel;
  * @see <a href="http://docs.crittercism.com/android/android.html">Crittercism Android SDK</a>
  */
 public class CrittercismIntegration extends AbstractIntegration<Void> {
+
   static final String CRITTERCISM_KEY = "Crittercism";
 
   @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)

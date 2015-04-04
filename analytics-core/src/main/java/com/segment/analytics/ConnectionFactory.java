@@ -10,6 +10,7 @@ import java.net.URL;
  * your proxy server for instance.
  */
 public class ConnectionFactory {
+
   private static final int DEFAULT_READ_TIMEOUT_MILLIS = 20 * 1000; // 20s
   private static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 15 * 1000; // 15s
 

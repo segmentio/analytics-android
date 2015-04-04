@@ -27,6 +27,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * Android SDK</a>
  */
 public class FlurryIntegration extends AbstractIntegration<Void> {
+
   static final String FLURRY_KEY = "Flurry";
 
   @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)

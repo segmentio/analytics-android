@@ -37,6 +37,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
  * HTTP client which can upload payloads and fetch project settings from the Segment public API.
  */
 class Client {
+
   final Context context;
   final ConnectionFactory connectionFactory;
   final String writeKey;
@@ -89,6 +90,7 @@ class Client {
 
   /** Represents an exception during uploading events that should not be retried. */
   static class UploadException extends IOException {
+
     final int responseCode;
     final String responseMessage;
 
@@ -104,6 +106,7 @@ class Client {
    * InputStream} or write to the connection via {@link OutputStream}.
    */
   static abstract class Connection implements Closeable {
+
     protected final HttpURLConnection connection;
     final InputStream is;
     final OutputStream os;

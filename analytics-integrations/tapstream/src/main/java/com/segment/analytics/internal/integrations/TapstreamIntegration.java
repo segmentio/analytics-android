@@ -31,6 +31,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * SDK</a>
  */
 public class TapstreamIntegration extends AbstractIntegration<Tapstream> {
+
   static final String TAPSTREAM_KEY = "Tapstream";
   boolean trackAllPages;
   boolean trackCategorizedPages;

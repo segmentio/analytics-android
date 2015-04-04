@@ -59,6 +59,7 @@ import static android.provider.Settings.Secure.ANDROID_ID;
 import static android.provider.Settings.Secure.getString;
 
 public final class Utils {
+
   public static final String THREAD_PREFIX = "SegmentAnalytics-";
   public static final int DEFAULT_FLUSH_INTERVAL = 20 * 1000; // 20s
   public static final int DEFAULT_FLUSH_QUEUE_SIZE = 30;
@@ -219,6 +220,7 @@ public final class Utils {
 
   /** A {@link ConcurrentHashMap} that rejects null keys and values instead of failing. */
   public static class NullableConcurrentHashMap<K, V> extends ConcurrentHashMap<K, V> {
+
     public NullableConcurrentHashMap() {
       super();
     }

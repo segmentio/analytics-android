@@ -70,6 +70,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * @see <a href="https://Segment/">Segment</a>
  */
 public class Analytics {
+
   public static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
     @Override public void handleMessage(Message msg) {
       switch (msg.what) {
@@ -525,6 +526,7 @@ public class Analytics {
    * integrations.
    */
   public interface Callback {
+
     /**
      * This method will be invoked once for each callback.
      *
@@ -535,6 +537,7 @@ public class Analytics {
   }
 
   static class AnalyticsExecutorService extends ThreadPoolExecutor {
+
     private static final int DEFAULT_THREAD_COUNT = 1;
     // At most we perform two network requests concurrently
     private static final int MAX_THREAD_COUNT = 2;
@@ -547,6 +550,7 @@ public class Analytics {
 
   /** Fluent API for creating {@link Analytics} instances. */
   public static class Builder {
+
     private final Application application;
     private String writeKey;
     private int flushQueueSize = Utils.DEFAULT_FLUSH_QUEUE_SIZE;

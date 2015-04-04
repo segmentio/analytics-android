@@ -1,24 +1,12 @@
 // Defines configuration common to all our integrations
-apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
 
 apply from: rootProject.file('gradle/android.gradle')
 
-apply plugin: 'android-unit-test'
-
-androidUnitTest {
-  testTasks {
-    all {
-      jvmArgs '-noverify'
-    }
-  }
-}
-
 dependencies {
-  provided project(':analytics-core')
+  compile project(':analytics-core')
 
-  testCompile rootProject.ext.testLibraries
-  testCompile project(path: ':analytics-core', configuration: 'testOutput')
+  testCompile project(':analytics-core-tests')
 }
 
 apply from: rootProject.file('gradle/checkstyle-library.gradle')

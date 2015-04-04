@@ -13,6 +13,7 @@ import java.util.Map;
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
 class Stats {
+
   private static final String STATS_THREAD_NAME = Utils.THREAD_PREFIX + "Stats";
 
   final HandlerThread statsThread;
@@ -69,6 +70,7 @@ class Stats {
   }
 
   private static class StatsHandler extends Handler {
+
     private static final int TRACK_FLUSH = 1;
     private static final int TRACK_INTEGRATION_OPERATION = 2;
 

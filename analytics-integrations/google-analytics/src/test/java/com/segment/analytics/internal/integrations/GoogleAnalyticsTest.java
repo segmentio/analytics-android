@@ -8,6 +8,7 @@ import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
+import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
@@ -23,7 +24,7 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.TestUtils.createTraits;
@@ -35,11 +36,13 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 
-@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(GoogleAnalytics.class)
 // todo: These tests do not run in the IDE http://pastebin.com/YZZTcZa8
 public class GoogleAnalyticsTest {
+
   GoogleAnalyticsIntegration integration;
   @Mock GoogleAnalytics googleAnalytics;
   @Mock Tracker tracker;
@@ -207,6 +210,7 @@ public class GoogleAnalyticsTest {
   }
 
   static class PatternAssert extends AbstractAssert<PatternAssert, Pattern> {
+
     public PatternAssert(Pattern actual) {
       super(actual, PatternAssert.class);
     }

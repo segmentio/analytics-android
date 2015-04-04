@@ -40,6 +40,7 @@ import static com.segment.analytics.internal.Utils.toISO8601Date;
 // This ignores projectId, receivedAt and version that are set by the server.
 // sentAt is set on SegmentClient#BatchPayload
 public abstract class BasePayload extends ValueMap {
+
   /** The type of message. */
   private static final String TYPE_KEY = "type";
   /**

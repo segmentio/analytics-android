@@ -48,6 +48,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * launches will be use the cached settings on disk.
  */
 class IntegrationManager implements Application.ActivityLifecycleCallbacks {
+
   private static final String INTEGRATION_MANAGER_THREAD_NAME =
       THREAD_PREFIX + "IntegrationManager";
   private static final long SETTINGS_REFRESH_INTERVAL = 1000 * 60 * 60 * 24; // 24 hours
@@ -427,6 +428,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
   }
 
   static class IntegrationManagerHandler extends Handler {
+
     static final int REQUEST_FETCH_SETTINGS = 1;
     static final int REQUEST_INITIALIZE_INTEGRATIONS = 2;
     private static final int REQUEST_ENQUEUE_OPERATION = 3;

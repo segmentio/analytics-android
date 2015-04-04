@@ -31,6 +31,7 @@ import com.segment.analytics.Properties;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 public class ScreenPayload extends BasePayload {
+
   /** The category of the page or screen. We recommend using title case, like "Docs". */
   private static final String CATEGORY_KEY = "category";
 

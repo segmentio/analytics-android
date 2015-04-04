@@ -40,6 +40,7 @@ import static com.segment.analytics.internal.Utils.toISO8601Date;
 
 /** Entity that queues payloads on disks and uploads them periodically. */
 class SegmentDispatcher extends AbstractIntegration {
+
   static final String SEGMENT_KEY = "Segment.io";
 
   /**
@@ -285,6 +286,7 @@ class SegmentDispatcher extends AbstractIntegration {
   }
 
   static class PayloadWriter implements QueueFile.ElementVisitor {
+
     final BatchPayloadWriter writer;
     int size;
     int payloadCount;
@@ -308,6 +310,7 @@ class SegmentDispatcher extends AbstractIntegration {
 
   /** A wrapper that emits a JSON formatted batch payload to the underlying writer. */
   static class BatchPayloadWriter implements Closeable {
+
     private final JsonWriter jsonWriter;
     /** Keep around for writing payloads as Strings. */
     private final BufferedWriter bufferedWriter;
@@ -378,6 +381,7 @@ class SegmentDispatcher extends AbstractIntegration {
   }
 
   static class SegmentDispatcherHandler extends Handler {
+
     static final int REQUEST_FLUSH = 1;
     private static final int REQUEST_ENQUEUE = 0;
     private final SegmentDispatcher segmentDispatcher;

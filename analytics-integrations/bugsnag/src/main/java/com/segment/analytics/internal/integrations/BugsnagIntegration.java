@@ -24,6 +24,7 @@ import static com.segment.analytics.Analytics.LogLevel;
  * @see <a href="https://github.com/bugsnag/bugsnag-android">Bugsnag Android SDK</a>
  */
 public class BugsnagIntegration extends AbstractIntegration<Client> {
+
   static final String BUGSNAG_KEY = "Bugsnag";
 
   @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)

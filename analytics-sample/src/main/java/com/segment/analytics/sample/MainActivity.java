@@ -41,13 +41,13 @@ import com.segment.analytics.Analytics;
 import com.segment.analytics.StatsSnapshot;
 
 public class MainActivity extends Activity {
+
   /** Returns true if the string is null, or empty (when trimmed). */
   public static boolean isNullOrEmpty(String text) {
     return TextUtils.isEmpty(text) || text.trim().length() == 0;
   }
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
+  @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
     initViews();
@@ -117,14 +117,12 @@ public class MainActivity extends Activity {
     });
   }
 
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
+  @Override public boolean onCreateOptionsMenu(Menu menu) {
     getMenuInflater().inflate(R.menu.main, menu);
     return true;
   }
 
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
+  @Override public boolean onOptionsItemSelected(MenuItem item) {
     int id = item.getItemId();
     if (id == R.id.action_view_docs) {
       Intent intent = new Intent(Intent.ACTION_VIEW,

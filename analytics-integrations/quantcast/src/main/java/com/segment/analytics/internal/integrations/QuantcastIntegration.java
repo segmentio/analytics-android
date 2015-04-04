@@ -25,6 +25,7 @@ import static com.segment.analytics.internal.Utils.hasPermission;
  * Android SDK</a>
  */
 public class QuantcastIntegration extends AbstractIntegration<Void> {
+
   static final String QUANTCAST_KEY = "Quantcast";
   String apiKey;
 

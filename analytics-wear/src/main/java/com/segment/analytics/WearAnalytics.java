@@ -30,6 +30,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * through your host app (that runs on an Android phone).
  */
 public class WearAnalytics {
+
   static final String ANALYTICS_PATH = "/analytics";
   static WearAnalytics singleton;
   final WearDispatcher dispatcher;
