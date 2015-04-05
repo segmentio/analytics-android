@@ -20,7 +20,7 @@ public class ConnectionFactory {
   /** Return a {@link HttpURLConnection} that reads JSON formatted project settings. */
   public HttpURLConnection projectSettings(String writeKey) throws IOException {
     HttpURLConnection connection =
-        openConnection("http://cdn.segment.com/v1/projects/" + writeKey + "/settings");
+        openConnection("https://cdn.segment.com/v1/projects/" + writeKey + "/settings");
     connection.setRequestProperty("Content-Type", "application/json");
     return connection;
   }
