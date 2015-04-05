@@ -1,0 +1,39 @@
+language: android
+
+jdk:
+  - oraclejdk8
+  #  - oraclejdk7
+  #  - openjdk7
+
+notifications:
+  email: false
+  slack:
+    secure: CwD2A4aKRQfTkPnAixS1LE7lk5ZrwDKiKQfGAyo23mpX8Ql5oy4nosiqXKaeHxcL8tQduBFlfCC7+mGQ9HIWot0S2fTIk6K0pJ5NGD9gXGXw/5qh5WVCtbQrlDQ4TTsUGpdXKummIAeWHeE3LN8MHW6X7eNjLVyu8BdOOFhdQVE=
+
+env:
+  global:
+    - secure: "UkhSARTvNrd+TUC9eexaaGBjZ0w6mA+q45XEpb27txa3osgEFfNk833lgNbjO8nfgBc69o7naxJp2K6QBCCfTFsSVaIYUIn3W5iXMqLXTqMz4QRdNYjQ58Upnd7AsqkWdlXBu4IKTlwgYpbcfod8umKC1muxWstpoEHJjLJbMgw="
+    - secure: "HpR5YhoAMyywjhTNn5btNlwSXumSeZZEEYn6wOkOODJobN+UfkmTDHn6XCj58LcbTTPz6KOMDyjruXuq4RL3Lrg1Ehi+3stVhI8OP6wqUo3ZQw4nvdq5V9bsy15GSiDx0Fgy2QFEJ+4d3lEcNQ5jRhUUvxOWIJyrudMQjzvXXtQ="
+
+branches:
+  except:
+    - gh-pages
+
+android:
+  components:
+    - platform-tools
+    - tools
+
+    - build-tools-21.1.1
+
+    - android-21
+
+    - extra-google-google_play_services
+    - extra-google-m2repository
+    - extra-android-m2repository
+
+script:
+  - ./gradlew build
+
+after_success:
+  - .buildscript/deploy_snapshot.sh
