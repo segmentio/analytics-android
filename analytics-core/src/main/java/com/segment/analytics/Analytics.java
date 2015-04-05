@@ -45,6 +45,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.getResourceString;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
@@ -389,6 +390,9 @@ public class Analytics {
   }
 
   void submit(BasePayload payload) {
+    if (logLevel.log()) {
+      debug("Created payload %s.", payload);
+    }
     integrationManager.dispatchEnqueue(payload);
   }
 
