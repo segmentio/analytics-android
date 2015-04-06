@@ -372,6 +372,9 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
 
   /** Runs the given operation on all bundled integrations. */
   void run(IntegrationOperation operation) {
+    if (logLevel.log()) {
+      debug("Running %s on %s integrations.", operation, integrations.size());
+    }
     for (int i = 0; i < integrations.size(); i++) {
       AbstractIntegration integration = integrations.get(i);
       long startTime = System.nanoTime();
