@@ -133,9 +133,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 
     try {
       new QueueFile(file);
-      fail("Should have complained about bad header length");
+      fail("Should have complained about bad header length.");
     } catch (IOException ex) {
-      assertThat(ex).hasMessage("File is corrupt; length stored in header is 0.");
+      assertThat(ex).hasMessage("File is corrupt; length stored in header (0) is invalid.");
+    }
+  }
+
+  @Test public void testNegativeSizeInHeaderComplains() throws IOException {
+    RandomAccessFile emptyFile = new RandomAccessFile(file, "rwd");
+    emptyFile.seek(0);
+    emptyFile.writeInt(-2147483648);
+    emptyFile.setLength(4096);
+    emptyFile.getChannel().force(true);
+    emptyFile.close();
+
+    try {
+      new QueueFile(file);
+      fail("Should have complained about bad header length.");
+    } catch (IOException ex) {
+      assertThat(ex) //
+          .hasMessage("File is corrupt; length stored in header (-2147483648) is invalid.");
     }
   }
 
@@ -354,8 +371,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     assertThat(queueFile.peek()).isEqualTo(values[99]);
   }
 
-  @SuppressWarnings("deprecation") @Test
-  public void testPeekWithElementReader() throws IOException {
+  @SuppressWarnings("deprecation") @Test public void testPeekWithElementReader()
+      throws IOException {
     QueueFile queueFile = new QueueFile(file);
     final byte[] a = {
         1, 2
@@ -508,8 +525,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     assertThat(iteration[0]).isEqualTo(2);
   }
 
-  @SuppressWarnings("deprecation") @Test
-  public void testForEachReadWithOffset() throws IOException {
+  @SuppressWarnings("deprecation") @Test public void testForEachReadWithOffset()
+      throws IOException {
     QueueFile queueFile = new QueueFile(file);
 
     queueFile.add(new byte[] {
