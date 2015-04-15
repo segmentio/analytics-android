@@ -29,6 +29,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * type.
  */
 public class ValueMap implements Map<String, Object> {
+
   private final Map<String, Object> delegate;
 
   /**
@@ -333,6 +334,7 @@ public class ValueMap implements Map<String, Object> {
 
   /** A class to let you store arbitrary key - {@link ValueMap} pairs. */
   static class Cache<T extends ValueMap> {
+
     private final SharedPreferences preferences;
     private final Cartographer cartographer;
     private final String key;

@@ -23,6 +23,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * @see <a href="https://github.com/amplitude/Amplitude-Android">Amplitude Android SDK</a>
  */
 public class AmplitudeIntegration extends AbstractIntegration<Void> {
+
   static final String AMPLITUDE_KEY = "Amplitude";
   boolean trackAllPages;
   boolean trackCategorizedPages;

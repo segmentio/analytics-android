@@ -32,6 +32,7 @@ import static com.segment.analytics.internal.Utils.error;
  */
 @SuppressLint("Registered")
 public class PhoneAnalyticsListenerService extends WearableListenerService {
+
   final Cartographer cartographer = Cartographer.INSTANCE;
 
   @Override public void onMessageReceived(MessageEvent messageEvent) {

@@ -5,18 +5,18 @@ general:
 
 machine:
   environment:
-    ANDROID_HOME: /home/ubuntu/android
     CIRCLE_JDK_VERSION: oraclejdk8
   java:
     version: oraclejdk8
 
 dependencies:
   cache_directories:
-    - ~/.android
-    - ~/android
+#    - ~/.android
+#    - ~/android
     - ~/.gradle
   override:
-    - .buildscript/install_dependencies.sh
+    - echo y | android update sdk -u -a -t build-tools-21.1.1
+    - TERM=dumb ./gradlew dependencies
 
 test:
   override:

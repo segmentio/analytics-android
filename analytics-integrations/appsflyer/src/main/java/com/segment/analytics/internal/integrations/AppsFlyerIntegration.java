@@ -20,6 +20,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * @see <a href="http://www.appsflyer.com/">AppsFlyer Website</a>
  */
 public class AppsFlyerIntegration extends AbstractIntegration<Void> {
+
   static final String APPS_FLYER_KEY = "AppsFlyer";
   final AppsFlyer appsFlyer;
   Context context;
@@ -68,6 +69,7 @@ public class AppsFlyerIntegration extends AbstractIntegration<Void> {
    * http://pastebin.com/jdZi9jPt
    */
   interface AppsFlyer {
+
     AppsFlyer DEFAULT = new AppsFlyer() {
       @Override public void setAppsFlyerKey(String key) {
         AppsFlyerLib.setAppsFlyerKey(key);
@@ -81,8 +83,8 @@ public class AppsFlyerIntegration extends AbstractIntegration<Void> {
         AppsFlyerLib.setCurrencyCode(currencyCode);
       }
 
-      @Override public void sendTrackingWithEvent(Context context, String eventName,
-          String eventValue) {
+      @Override
+      public void sendTrackingWithEvent(Context context, String eventName, String eventValue) {
         AppsFlyerLib.sendTrackingWithEvent(context, eventName, eventValue);
       }
 

@@ -8,6 +8,7 @@ import com.segment.analytics.Properties;
 import com.segment.analytics.Randoms;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
+import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
@@ -21,16 +22,17 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.rule.PowerMockRule;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.Analytics.LogLevel.NONE;
-import static com.segment.analytics.TestUtils.JSONObjectMatcher.jsonEq;
 import static com.segment.analytics.TestUtils.createTraits;
+import static com.segment.analytics.TestUtils.jsonEq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -39,15 +41,16 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
-@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*", "org.json.*" })
 @PrepareForTest(MixpanelAPI.class)
 public class MixpanelTest {
+
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Mock MixpanelAPI mixpanelAPI;
   @Mock Application context;

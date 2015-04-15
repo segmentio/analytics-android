@@ -29,6 +29,7 @@ import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
 
 public class IdentifyPayload extends BasePayload {
+
   /**
    * A dictionary of traits you know about a user, for example email or name. We have a collection
    * of special traits that we recognize with semantic meaning, which you should always use when

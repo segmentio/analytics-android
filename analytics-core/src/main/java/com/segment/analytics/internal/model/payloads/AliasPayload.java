@@ -28,6 +28,7 @@ import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 
 public class AliasPayload extends BasePayload {
+
   /**
    * The previous ID for the user that you want to alias from, that you previously called identify
    * with as their user ID, or the anonymous ID if you haven't identified the user yet.

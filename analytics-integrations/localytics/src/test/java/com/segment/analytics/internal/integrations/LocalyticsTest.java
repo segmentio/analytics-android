@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import com.localytics.android.Localytics;
 import com.segment.analytics.ValueMap;
+import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
@@ -20,8 +21,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.rule.PowerMockRule;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.Analytics.LogLevel.INFO;
@@ -32,10 +33,12 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
-@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*", "org.json.*" })
 @PrepareForTest(Localytics.class)
 public class LocalyticsTest {
+
   @Rule public PowerMockRule rule = new PowerMockRule();
   LocalyticsIntegration integration;
 
@@ -51,24 +54,26 @@ public class LocalyticsTest {
     LocalyticsIntegration integration = new LocalyticsIntegration();
 
     PowerMockito.mockStatic(Localytics.class);
-    integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"), INFO);
+    integration.initialize(RuntimeEnvironment.application, new ValueMap().putValue("appKey", "foo"),
+        INFO);
     verifyStatic();
-    Localytics.integrate(Robolectric.application, "foo");
+    Localytics.integrate(RuntimeEnvironment.application, "foo");
     verifyStatic();
     Localytics.setLoggingEnabled(true);
 
     PowerMockito.mockStatic(Localytics.class);
-    integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"),
+    integration.initialize(RuntimeEnvironment.application, new ValueMap().putValue("appKey", "foo"),
         VERBOSE);
     verifyStatic();
-    Localytics.integrate(Robolectric.application, "foo");
+    Localytics.integrate(RuntimeEnvironment.application, "foo");
     verifyStatic();
     Localytics.setLoggingEnabled(true);
 
     PowerMockito.mockStatic(Localytics.class);
-    integration.initialize(Robolectric.application, new ValueMap().putValue("appKey", "foo"), NONE);
+    integration.initialize(RuntimeEnvironment.application, new ValueMap().putValue("appKey", "foo"),
+        NONE);
     verifyStatic();
-    Localytics.integrate(Robolectric.application, "foo");
+    Localytics.integrate(RuntimeEnvironment.application, "foo");
     verifyStatic();
     Localytics.setLoggingEnabled(false);
   }

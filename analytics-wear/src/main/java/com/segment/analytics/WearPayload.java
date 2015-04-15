@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Map;
 
 class WearPayload extends ValueMap {
+
   /** Type of the payload */
   private static final String TYPE_KEY = "type";
 

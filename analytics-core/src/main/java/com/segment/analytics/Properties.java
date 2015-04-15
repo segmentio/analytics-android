@@ -344,6 +344,7 @@ public class Properties extends ValueMap {
    * information.
    */
   public static class Product extends ValueMap {
+
     private static final String ID_KEY = "id";
     private static final String SKU_KEY = "sku";
     private static final String NAME_KEY = "name";

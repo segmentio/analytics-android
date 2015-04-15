@@ -30,6 +30,7 @@ import java.util.Map;
 import static java.util.Collections.unmodifiableMap;
 
 class ProjectSettings extends ValueMap {
+
   private static final String TIMESTAMP_KEY = "timestamp";
   private static final String PLAN_KEY = "plan";
   private static final String INTEGRATIONS_KEY = "integrations";
@@ -65,6 +66,7 @@ class ProjectSettings extends ValueMap {
   }
 
   static class Cache extends ValueMap.Cache<ProjectSettings> {
+
     private static final String PROJECT_SETTINGS_CACHE_KEY_PREFIX = "project-settings-plan-";
 
     Cache(Context context, Cartographer cartographer, String tag) {

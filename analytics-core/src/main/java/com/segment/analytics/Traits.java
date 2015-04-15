@@ -47,6 +47,7 @@ import static java.util.Collections.unmodifiableMap;
  * Traits are persisted to disk, and will be remembered between application and system reboots.
  */
 public class Traits extends ValueMap {
+
   private static final String AVATAR_KEY = "avatar";
   private static final String CREATED_AT_KEY = "createdAt";
   private static final String DESCRIPTION_KEY = "description";
@@ -331,6 +332,7 @@ public class Traits extends ValueMap {
 
   /** Represents information about the address of a user or group. */
   public static class Address extends ValueMap {
+
     private static final String ADDRESS_CITY_KEY = "city";
     private static final String ADDRESS_COUNTRY_KEY = "country";
     private static final String ADDRESS_POSTAL_CODE_KEY = "postalCode";
@@ -393,6 +395,7 @@ public class Traits extends ValueMap {
   }
 
   static class Cache extends ValueMap.Cache<Traits> {
+
     private static final String TRAITS_CACHE_PREFIX = "traits-";
 
     Cache(Context context, Cartographer cartographer, String tag) {

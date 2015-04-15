@@ -8,8 +8,7 @@ import com.segment.analytics.WearAnalytics;
 
 public class MainActivity extends Activity {
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
+  @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
     WearAnalytics.with(this).screen("Viewed Main Activity (Wear)", null, null);
@@ -18,8 +17,7 @@ public class MainActivity extends Activity {
 
     final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
     stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
-      @Override
-      public void onLayoutInflated(WatchViewStub stub) {
+      @Override public void onLayoutInflated(WatchViewStub stub) {
         View view = findViewById(R.id.logo);
         view.setOnClickListener(new View.OnClickListener() {
           @Override public void onClick(View view) {

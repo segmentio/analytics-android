@@ -71,6 +71,7 @@ import static java.util.Collections.unmodifiableMap;
  * AnalyticsContext is not persisted to disk, and is filled each time the app starts.
  */
 public class AnalyticsContext extends ValueMap {
+
   private static final String LOCALE_KEY = "locale";
   private static final String TRAITS_KEY = "traits";
   private static final String USER_AGENT_KEY = "userAgent";
@@ -153,8 +154,7 @@ public class AnalyticsContext extends ValueMap {
     }
   }
 
-  @Override
-  public AnalyticsContext putValue(String key, Object value) {
+  @Override public AnalyticsContext putValue(String key, Object value) {
     super.putValue(key, value);
     return this;
   }
@@ -315,6 +315,7 @@ public class AnalyticsContext extends ValueMap {
    * @see <a href="https://support.google.com/analytics/answer/1033867?hl=en">UTM parameters</a>
    */
   public static class Campaign extends ValueMap {
+
     private static final String CAMPAIGN_NAME_KEY = "name";
     private static final String CAMPAIGN_SOURCE_KEY = "source";
     private static final String CAMPAIGN_MEDIUM_KEY = "medium";
@@ -383,6 +384,7 @@ public class AnalyticsContext extends ValueMap {
 
   /** Information about the device. */
   public static class Device extends ValueMap {
+
     private static final String DEVICE_ID_KEY = "id";
     private static final String DEVICE_MANUFACTURER_KEY = "manufacturer";
     private static final String DEVICE_MODEL_KEY = "model";
@@ -418,6 +420,7 @@ public class AnalyticsContext extends ValueMap {
 
   /** Information about the location of the device. */
   public static class Location extends ValueMap {
+
     private static final String LOCATION_LATITUDE_KEY = "latitude";
     private static final String LOCATION_LONGITUDE_KEY = "longitude";
     private static final String LOCATION_SPEED_KEY = "speed";
@@ -466,6 +469,7 @@ public class AnalyticsContext extends ValueMap {
 
   /** Information about the referrer that resulted in the API call. */
   public static class Referrer extends ValueMap {
+
     private static final String REFERRER_ID_KEY = "id";
     private static final String REFERRER_LINK_KEY = "link";
     private static final String REFERRER_NAME_KEY = "name";

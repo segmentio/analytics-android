@@ -27,6 +27,7 @@ import static com.segment.analytics.internal.Utils.isOnClassPath;
  * @see <a href="http://app.usekahuna.com/tap/getstarted/android/">Kahuna Android SDK</a>
  */
 public class KahunaIntegration extends AbstractIntegration<Void> {
+
   static final String KAHUNA_KEY = "Kahuna";
 
   @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)

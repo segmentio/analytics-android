@@ -3,6 +3,7 @@ package com.segment.analytics;
 import java.util.Map;
 
 class WearScreenPayload extends ValueMap {
+
   private static final String CATEGORY_KEY = "category";
   private static final String NAME_KEY = "name";
   private static final String PROPERTIES_KEY = "properties";

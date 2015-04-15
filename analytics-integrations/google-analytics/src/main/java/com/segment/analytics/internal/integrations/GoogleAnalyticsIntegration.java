@@ -33,6 +33,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * Analyitcs Android SDK</a>
  */
 public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
+
   static final String DEFAULT_CATEGORY = "All";
   static final Pattern COMPLETED_ORDER_PATTERN =
       Pattern.compile("completed *order", Pattern.CASE_INSENSITIVE);

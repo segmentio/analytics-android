@@ -1,25 +1,8 @@
-apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
 
 apply from: rootProject.file('gradle/android.gradle')
 
-apply plugin: 'android-unit-test'
-
-androidUnitTest {
-  testTasks {
-    all {
-      jvmArgs '-noverify'
-    }
-  }
-}
-
-dependencies {
-  provided rootProject.ext.libraries.googleAnalytics
-  testCompile rootProject.ext.testLibraries
-}
-
 apply from: rootProject.file('gradle/checkstyle-library.gradle')
 apply from: rootProject.file('gradle/attach-jar.gradle')
-apply from: rootProject.file('gradle/attach-test-jar.gradle')
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
 

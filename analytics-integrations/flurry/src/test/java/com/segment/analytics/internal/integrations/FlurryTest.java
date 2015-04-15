@@ -8,6 +8,7 @@ import com.flurry.android.FlurryAgent;
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
+import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
@@ -19,12 +20,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.rule.PowerMockRule;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.Analytics.LogLevel.NONE;
@@ -36,12 +37,14 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
-@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 @PrepareForTest(FlurryAgent.class)
 public class FlurryTest {
+
   @Rule public PowerMockRule rule = new PowerMockRule();
-  @MockitoAnnotations.Mock Application context;
+  @Mock Application context;
   FlurryIntegration integration;
 
   @Before public void setUp() {

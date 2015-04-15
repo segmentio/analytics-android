@@ -4,6 +4,7 @@ import java.util.Map;
 
 /** Represents all stats for a {@link Analytics} instance at a single point in time. */
 public class StatsSnapshot {
+
   /** The time at which the snapshot was created. */
   public final long timestamp;
   /** Number of times we've flushed events to our servers. */

@@ -4,6 +4,7 @@ import android.app.Application;
 import com.segment.analytics.Analytics;
 
 public class SampleApp extends Application {
+
   private static final String ANALYTICS_WRITE_KEY = "l8v1ga655b";
 
   @Override public void onCreate() {

@@ -8,6 +8,7 @@ import com.segment.analytics.Properties;
 import com.segment.analytics.Randoms;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
+import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
@@ -20,30 +21,33 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.rule.PowerMockRule;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
-import static com.segment.analytics.TestUtils.JSONObjectMatcher.jsonEq;
 import static com.segment.analytics.TestUtils.createTraits;
+import static com.segment.analytics.TestUtils.jsonEq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.MockitoAnnotations.initMocks;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.MockitoAnnotations.initMocks;
 
-@RunWith(RobolectricTestRunner.class) @Config(emulateSdk = 18, manifest = Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*", "org.json.*" })
-@PrepareForTest(AmplitudeClient.class) public class AmplitudeTest {
+@PrepareForTest(AmplitudeClient.class)
+public class AmplitudeTest {
+
   @Rule public PowerMockRule rule = new PowerMockRule();
-  @MockitoAnnotations.Mock Application context;
-  @MockitoAnnotations.Mock AmplitudeClient amplitude;
+  @Mock Application context;
+  @Mock AmplitudeClient amplitude;
   AmplitudeIntegration integration;
 
   @Before public void setUp() {

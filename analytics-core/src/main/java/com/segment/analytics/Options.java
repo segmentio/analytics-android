@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * timestamp and disabling integrations on demand.
  */
 public class Options {
+
   /**
    * A special key, whose value which is respected for all integrations, a "default" value, unless
    * explicitly overridden. See the documentation for {@link #setIntegration(String, boolean)} on

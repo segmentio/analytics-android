@@ -34,6 +34,7 @@ import java.util.Map;
  * representation.
  */
 class Cartographer {
+
   static final Cartographer INSTANCE = new Cartographer();
 
   private Cartographer() {

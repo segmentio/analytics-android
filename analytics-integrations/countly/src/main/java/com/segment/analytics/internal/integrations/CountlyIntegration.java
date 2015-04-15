@@ -22,6 +22,7 @@ import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
  * @see <a href="https://github.com/Countly/countly-sdk-android">Countly Android SDK</a>
  */
 public class CountlyIntegration extends AbstractIntegration<Countly> {
+
   static final String COUNTLY_KEY = "Countly";
   Countly countly;
 

@@ -1,11 +1,10 @@
-apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
 
 apply from: rootProject.file('gradle/android.gradle')
 
 dependencies {
-  provided project(':analytics-core')
-  compile rootProject.ext.libraries.playWearable
+  compile project(':analytics-core')
+  compile 'com.google.android.gms:play-services-wearable:7.0.0'
 }
 
 apply from: rootProject.file('gradle/checkstyle-library.gradle')

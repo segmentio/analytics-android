@@ -1,6 +1,6 @@
 apply from: rootProject.file('gradle/integration.gradle')
 
 dependencies {
-  provided rootProject.ext.libraries.supportLib
+  compile rootProject.ext.supportLib
   compile files('libs/Quantcast-1.2.5.jar')
 }

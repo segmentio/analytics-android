@@ -49,6 +49,7 @@ import static java.lang.Math.min;
  * @author Bob Lee (bob@squareup.com)
  */
 class QueueFile implements Closeable {
+
   private static final Logger LOGGER = Logger.getLogger(QueueFile.class.getName());
 
   /** Initial file size in bytes. */
@@ -429,6 +430,7 @@ class QueueFile implements Closeable {
   }
 
   private final class ElementInputStream extends InputStream {
+
     private int position;
     private int remaining;
 
@@ -565,6 +567,7 @@ class QueueFile implements Closeable {
 
   /** A pointer to an element. */
   static class Element {
+
     static final Element NULL = new Element(0, 0);
 
     /** Length of element header in bytes. */
@@ -603,6 +606,7 @@ class QueueFile implements Closeable {
    * the bytes into a byte[].  Can opt to skip remaining elements.
    */
   interface ElementVisitor {
+
     /**
      * Called once per element.
      *
