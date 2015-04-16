@@ -115,10 +115,10 @@ public class KahunaTest {
     KahunaAnalytics.trackEvent("foo", 0, 0);
 
     integration.track(new TrackPayloadBuilder().event("bar")
-        .properties(new Properties().putValue("count", 3).putValue(10))
+        .properties(new Properties().putValue("quantity", 3).putRevenue(10))
         .build());
     verifyStatic();
-    KahunaAnalytics.trackEvent("bar", 3, 10);
+    KahunaAnalytics.trackEvent("bar", 3, 1000);
   }
 
   @Test public void alias() {
