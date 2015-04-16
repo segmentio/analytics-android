@@ -172,4 +172,10 @@ public class KahunaTest {
     verifyStatic();
     KahunaAnalytics.setUserCredential(LINKEDIN_KEY, "quux");
   }
+
+  @Test public void reset() {
+    integration.reset();
+    verifyStatic();
+    KahunaAnalytics.logout();
+  }
 }

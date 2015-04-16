@@ -316,6 +316,9 @@ public class IntegrationManagerTest {
 
     IntegrationOperation.flush().run(mockIntegration, projectSettings);
     verify(mockIntegration).flush();
+
+    IntegrationOperation.reset().run(mockIntegration, projectSettings);
+    verify(mockIntegration).reset();
   }
 
   @Test public void trackWithoutPlan() throws IOException {

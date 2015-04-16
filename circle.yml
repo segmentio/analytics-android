@@ -15,7 +15,7 @@ dependencies:
 #    - ~/android
     - ~/.gradle
   override:
-    - echo y | android update sdk -u -a -t build-tools-21.1.1
+    - echo y | android update sdk -u -a -t build-tools-21.1.2
     - TERM=dumb ./gradlew dependencies
 
 test:

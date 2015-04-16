@@ -201,4 +201,9 @@ public class CrittercismTest {
     verifyStatic();
     Crittercism.sendAppLoadData();
   }
+
+  @Test public void reset() {
+    integration.reset();
+    verifyNoMoreInteractions(Crittercism.class);
+  }
 }

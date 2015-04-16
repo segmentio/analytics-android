@@ -85,4 +85,8 @@ public abstract class AbstractIntegration<T> {
   public void flush() {
 
   }
+
+  public void reset() {
+
+  }
 }
