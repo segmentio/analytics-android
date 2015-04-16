@@ -73,7 +73,8 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
   @Override public void track(TrackPayload track) {
     super.track(track);
 
-    KahunaAnalytics.trackEvent(track.event(), track.properties().getInt("count", 0),
-        (int) track.properties().value());
+    // Although not documented, Kahuna wants revenue in cents
+    KahunaAnalytics.trackEvent(track.event(), track.properties().getInt("quantity", 0),
+        (int) (track.properties().revenue() * 100));
   }
 }
