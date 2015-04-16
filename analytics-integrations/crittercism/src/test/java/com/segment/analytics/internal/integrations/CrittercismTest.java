@@ -13,6 +13,8 @@ import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.ScreenPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,7 +30,8 @@ import org.robolectric.annotation.Config;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.TestUtils.createTraits;
 import static com.segment.analytics.TestUtils.jsonEq;
-import static org.mockito.Matchers.any;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -53,9 +56,60 @@ public class CrittercismTest {
 
   @Test public void initialize() throws IllegalStateException {
     integration.initialize(context, new ValueMap().putValue("appId", "foo"), NONE);
+
+    CrittercismConfig expectedConfig = new CrittercismConfig();
     verifyStatic();
-    // todo: verify config params
-    Crittercism.initialize(eq(context), eq("foo"), any(CrittercismConfig.class));
+    Crittercism.initialize(eq(context), eq("foo"), configEq(expectedConfig));
+  }
+
+  @Test public void initializeWithArgs() throws IllegalStateException {
+    integration.initialize(context, new ValueMap().putValue("appId", "bar")
+        .putValue("shouldCollectLogcat", true)
+        .putValue("includeVersionCode", true)
+        .putValue("customVersionName", "qaz")
+        .putValue("enableServiceMonitoring", false), NONE);
+
+    CrittercismConfig expectedConfig = new CrittercismConfig();
+    expectedConfig.setLogcatReportingEnabled(true);
+    expectedConfig.setVersionCodeToBeIncludedInVersionString(true);
+    expectedConfig.setCustomVersionName("qaz");
+    expectedConfig.setServiceMonitoringEnabled(false);
+    verifyStatic();
+    Crittercism.initialize(eq(context), eq("bar"), configEq(expectedConfig));
+  }
+
+  public static CrittercismConfig configEq(CrittercismConfig crittercismConfig) {
+    return argThat(new CrittercismConfigMatcher(crittercismConfig));
+  }
+
+  public static class CrittercismConfigMatcher extends TypeSafeMatcher<CrittercismConfig> {
+
+    private final CrittercismConfig expected;
+
+    CrittercismConfigMatcher(CrittercismConfig expected) {
+      this.expected = expected;
+    }
+
+    @Override protected boolean matchesSafely(CrittercismConfig item) {
+      try {
+        assertThat(expected).isEqualToComparingFieldByField(item);
+        return true;
+      } catch (AssertionError e) {
+        return false;
+      }
+    }
+
+    @Override public void describeTo(Description description) {
+      print(expected, description);
+    }
+
+    static void print(CrittercismConfig config, Description description) {
+      description.appendText("reportLogcat: " + config.isLogcatReportingEnabled());
+      boolean includeVersionCode = config.isVersionCodeToBeIncludedInVersionString();
+      description.appendText(", includeVersionCode: " + includeVersionCode);
+      description.appendText(", customVersionName: " + config.getCustomVersionName());
+      description.appendText(", enableServiceMonitoring: " + config.isServiceMonitoringEnabled());
+    }
   }
 
   @Test public void activityCreate() {

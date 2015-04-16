@@ -10,6 +10,7 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
 import static com.segment.analytics.Analytics.LogLevel;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
  * Crittercism is an error reporting tool for your mobile apps. Any time your app crashes or
@@ -26,11 +27,21 @@ public class CrittercismIntegration extends AbstractIntegration<Void> {
 
   @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
-    CrittercismConfig crittercismConfig = new CrittercismConfig();
-    crittercismConfig.setLogcatReportingEnabled(settings.getBoolean("shouldCollectLogcat", false));
-    crittercismConfig.setVersionCodeToBeIncludedInVersionString(
-        settings.getBoolean("includeVersionCode", false));
-    Crittercism.initialize(context, settings.getString("appId"), crittercismConfig);
+    CrittercismConfig config = new CrittercismConfig();
+
+    config.setLogcatReportingEnabled(settings.getBoolean("shouldCollectLogcat", false));
+
+    boolean includeVersionCode = settings.getBoolean("includeVersionCode", false);
+    config.setVersionCodeToBeIncludedInVersionString(includeVersionCode);
+
+    String customVersionName = settings.getString("customVersionName");
+    if (!isNullOrEmpty(customVersionName)) {
+      config.setCustomVersionName(customVersionName);
+    }
+
+    config.setServiceMonitoringEnabled(settings.getBoolean("enableServiceMonitoring", true));
+
+    Crittercism.initialize(context, settings.getString("appId"), config);
   }
 
   @Override public Void getUnderlyingInstance() {
