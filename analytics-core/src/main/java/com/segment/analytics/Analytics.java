@@ -493,6 +493,7 @@ public class Analytics {
   public enum BundledIntegration {
     AMPLITUDE("Amplitude"),
     APPS_FLYER("AppsFlyer"),
+    APPTIMIZE("Apptimize"),
     BUGSNAG("Bugsnag"),
     COUNTLY("Countly"),
     CRITTERCISM("Crittercism"),
