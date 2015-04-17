@@ -9,9 +9,9 @@ import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
+import java.util.Map.Entry;
 
 import static com.segment.analytics.Analytics.LogLevel;
-import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
@@ -27,9 +27,6 @@ public class ApptimizeIntegration extends AbstractIntegration<Void> {
 
   @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
       throws IllegalStateException {
-    if (!hasPermission(context, Manifest.permission.INTERNET)) {
-      throw new IllegalStateException("Apptimize requires INTERNET permission");
-    }
     Apptimize.setup(context, settings.getString("appkey"));
   }
 
@@ -37,52 +34,25 @@ public class ApptimizeIntegration extends AbstractIntegration<Void> {
     return APPTIMIZE_KEY;
   }
 
-  void addAttributeIfNotZero(String name, int value) {
-    if (value > 0) {
-      Apptimize.setUserAttribute(name, value);
-    }
-  }
-
-  void addAttributeIfNotNull(String name, String value) {
-    if (!isNullOrEmpty(value)) {
-      Apptimize.setUserAttribute(name, value);
-    }
-  }
-
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
-    Apptimize.setUserAttribute("user_id", identify.userId());
-
-    Traits traits = identify.traits();
-    addAttributeIfNotZero("age", traits.age());
-    addAttributeIfNotNull("createdAt", traits.createdAt());
-    addAttributeIfNotNull("description", traits.description());
-    addAttributeIfNotNull("email", traits.email());
-    addAttributeIfNotZero("employees", (int) traits.employees());
-    addAttributeIfNotNull("fax", traits.fax());
-    addAttributeIfNotNull("firstName", traits.firstName());
-    addAttributeIfNotNull("gender", traits.gender());
-    addAttributeIfNotNull("lastName", traits.lastName());
-    addAttributeIfNotNull("phone", traits.phone());
-    addAttributeIfNotNull("title", traits.title());
-    addAttributeIfNotNull("username", traits.username());
-    addAttributeIfNotNull("website", traits.website());
+    for (Entry<String, Object> entry: identify.traits().entrySet()) {
+      if (entry.getValue() instanceof Integer) {
+        Apptimize.setUserAttribute(entry.getKey(), (Integer) entry.getValue());
+      } else if (entry.getValue() instanceof String) {
+        Apptimize.setUserAttribute(entry.getKey(), (String) entry.getValue());
+      }
+    }
   }
 
   @Override public void track(TrackPayload track) {
     super.track(track);
-    if (track.properties().containsKey("value")) {
-      Object value = track.properties().get("value");
-      if (value instanceof Double) {
-        Apptimize.track(track.event(), (double) value);
-        return;
-      }
-      if (value instanceof Number) {
-        Apptimize.track(track.event(), ((Number) value).doubleValue());
-        return;
-      }
+    Double value = track.properties().getDouble("value", Double.MIN_VALUE);
+    if (value.equals(Double.MIN_VALUE)) {
+      Apptimize.track(track.event());
+    } else {
+      Apptimize.track(track.event(), value);
     }
-    Apptimize.track(track.event());
   }
 
 

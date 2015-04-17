@@ -139,7 +139,7 @@ public class ApptimizeTest {
   @Test public void identify() {
     integration.identify(new IdentifyPayloadBuilder().traits(createTraits("randoUserId")).build());
     verifyStatic();
-    Apptimize.setUserAttribute("user_id", "randoUserId");
+    Apptimize.setUserAttribute("userId", "randoUserId");
     verifyStatic();
     verifyNoMoreInteractions(Apptimize.class);
   }
@@ -147,47 +147,14 @@ public class ApptimizeTest {
   @Test public void identifyTraits() {
     Traits traits = createTraits("randoUserId")
       .putAge(78)
-      .putCreatedAt("March 15, 1935")
-      .putDescription("apptiDescription")
-      .putEmail("rando@apptimize.com")
-      .putEmployees(39)
-      .putFax("898-121-2211")
-      .putFirstName("Frank")
-      .putLastName("Sawyer")
-      .putGender("Female")
-      .putPhone("1-333-5908-1251")
-      .putTitle("CFO")
-      .putUsername("randoApptimize")
-      .putWebsite("trade.com"); 
+      .putCreatedAt("March 15, 1935");
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verifyStatic();
-    Apptimize.setUserAttribute("user_id", "randoUserId");
+    Apptimize.setUserAttribute("userId", "randoUserId");
     verifyStatic();
     Apptimize.setUserAttribute("age", 78);
     verifyStatic();
     Apptimize.setUserAttribute("createdAt", "March 15, 1935");
-    verifyStatic();
-    Apptimize.setUserAttribute("description", "apptiDescription");
-    verifyStatic();
-    Apptimize.setUserAttribute("email", "rando@apptimize.com");
-    verifyStatic();
-    Apptimize.setUserAttribute("employees", 39);
-    verifyStatic();
-    Apptimize.setUserAttribute("fax", "898-121-2211");
-    verifyStatic();
-    Apptimize.setUserAttribute("firstName", "Frank");
-    verifyStatic();
-    Apptimize.setUserAttribute("lastName", "Sawyer");
-    verifyStatic();
-    Apptimize.setUserAttribute("gender", "Female");
-    verifyStatic();
-    Apptimize.setUserAttribute("phone", "1-333-5908-1251");
-    verifyStatic();
-    Apptimize.setUserAttribute("title", "CFO");
-    verifyStatic();
-    Apptimize.setUserAttribute("username", "randoApptimize");
-    verifyStatic();
-    Apptimize.setUserAttribute("website", "trade.com");
     verifyStatic();
     verifyNoMoreInteractions(Apptimize.class);
   }
