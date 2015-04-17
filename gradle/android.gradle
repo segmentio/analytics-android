@@ -23,6 +23,6 @@ android {
   }
 
   lintOptions {
-    disable 'InvalidPackage'
+    lintConfig file(new File(System.getProperty("user.dir"), "./gradle/lint.xml"))
   }
 }

@@ -35,7 +35,7 @@ ext {
   minSdkVersionWear = 21
   targetSdkVersion = 21
   compileSdkVersion = 21
-  buildToolsVersion = '21.1.1'
+  buildToolsVersion = '21.1.2'
 
   compileJavaVersion = JavaVersion.VERSION_1_7
 

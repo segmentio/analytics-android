@@ -138,6 +138,11 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     mixpanelAPI.flush();
   }
 
+  @Override public void reset() {
+    super.reset();
+    mixpanelAPI.reset();
+  }
+
   @Override public void alias(AliasPayload alias) {
     super.alias(alias);
     String previousId = alias.previousId();

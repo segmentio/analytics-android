@@ -240,6 +240,12 @@ public class AmplitudeTest {
     verify(amplitude).uploadEvents();
   }
 
+  @Test public void reset() {
+    integration.reset();
+
+    verifyNoMoreInteractions(amplitude);
+  }
+
   private void verifyAmplitudeLoggedEvent(String event, JSONObject jsonObject) {
     verify(amplitude).logEvent(eq(event), jsonEq(jsonObject));
   }

@@ -172,6 +172,11 @@ public class GoogleAnalyticsTest {
     verifyNoMoreGoogleInteractions();
   }
 
+  @Test public void reset() {
+    integration.reset();
+    verifyNoMoreGoogleInteractions();
+  }
+
   @Test public void completedOrderEventsAreDetectedCorrectly() {
     assertThat(GoogleAnalyticsIntegration.COMPLETED_ORDER_PATTERN) //
         .matches("Completed Order")

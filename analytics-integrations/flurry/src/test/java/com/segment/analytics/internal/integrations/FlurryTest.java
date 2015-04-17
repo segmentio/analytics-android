@@ -172,13 +172,16 @@ public class FlurryTest {
     FlurryAgent.setGender(Constants.FEMALE);
     verifyStatic();
     FlurryAgent.setLocation(20, 20);
-    verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
   @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
-    verifyStatic();
+    verifyNoMoreInteractions(FlurryAgent.class);
+  }
+
+  @Test public void reset() {
+    integration.reset();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 }

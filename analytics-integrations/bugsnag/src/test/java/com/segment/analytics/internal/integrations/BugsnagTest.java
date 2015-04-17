@@ -146,7 +146,11 @@ public class BugsnagTest {
 
   @Test public void flush() {
     integration.flush();
-    verifyStatic();
+    verifyNoMoreInteractions(Bugsnag.class);
+  }
+
+  @Test public void reset() {
+    integration.reset();
     verifyNoMoreInteractions(Bugsnag.class);
   }
 }

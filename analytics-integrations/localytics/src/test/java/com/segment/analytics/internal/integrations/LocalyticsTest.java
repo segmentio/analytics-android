@@ -178,6 +178,11 @@ public class LocalyticsTest {
     PowerMockito.verifyNoMoreInteractions(Localytics.class);
   }
 
+  @Test public void reset() {
+    integration.reset();
+    PowerMockito.verifyNoMoreInteractions(Localytics.class);
+  }
+
   @Test public void screen() {
     integration.screen(new ScreenPayloadBuilder().category("foo").name("bar").build());
     verifyStatic();

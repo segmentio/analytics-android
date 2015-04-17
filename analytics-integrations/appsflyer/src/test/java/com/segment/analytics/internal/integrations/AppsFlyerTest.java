@@ -129,4 +129,9 @@ public class AppsFlyerTest {
     integration.flush();
     verifyNoMoreInteractions(appsFlyer);
   }
+
+  @Test public void reset() {
+    integration.reset();
+    verifyNoMoreInteractions(appsFlyer);
+  }
 }

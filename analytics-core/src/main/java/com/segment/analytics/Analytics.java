@@ -415,11 +415,24 @@ public class Analytics {
     return stats.createSnapshot();
   }
 
-  /** Logs out the current user by clearing any information, including traits and user id. */
-  public void logout() {
+  /**
+   * Logs out the current user by clearing any information, including traits and user id.
+   *
+   * @deprecated Use {@link #reset()} instead.
+   */
+  @Deprecated public void logout() {
+    reset();
+  }
+
+  /**
+   * Log out the current user by clearing any stored information, including traits and user id. Any
+   * events that have been queued will still be uploaded at a later time.
+   */
+  public void reset() {
     traitsCache.delete();
     traitsCache.set(Traits.create());
     analyticsContext.setTraits(traitsCache.get());
+    integrationManager.dispatchReset();
   }
 
   /** Stops this instance from accepting further requests. */
