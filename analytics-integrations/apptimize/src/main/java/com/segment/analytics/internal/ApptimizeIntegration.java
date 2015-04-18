@@ -41,14 +41,16 @@ public class ApptimizeIntegration extends AbstractIntegration<Void> {
         Apptimize.setUserAttribute(entry.getKey(), (Integer) entry.getValue());
       } else if (entry.getValue() instanceof String) {
         Apptimize.setUserAttribute(entry.getKey(), (String) entry.getValue());
+      } else {
+        Apptimize.setUserAttribute(entry.getKey(), String.valueOf(entry.getValue()));
       }
     }
   }
 
   @Override public void track(TrackPayload track) {
     super.track(track);
-    Double value = track.properties().getDouble("value", Double.MIN_VALUE);
-    if (value.equals(Double.MIN_VALUE)) {
+    double value = track.properties().getDouble("value", Double.MIN_VALUE);
+    if (value == Double.MIN_VALUE) {
       Apptimize.track(track.event());
     } else {
       Apptimize.track(track.event(), value);
