@@ -1,3 +1,17 @@
+Version 3.0.3 (In Progress)
+===============================
+* Feature: Add reset method
+* Feature: Add Apptimize Integration
+* Feature: Send custom options to integrations
+* Feature: Add ability to set a custom connection factory (Beta API)
+* Fix: Attach JAR for core artifact
+* Enhancement: Update Crittercism Integration
+* Enhancement: Update Amplitude Integration
+* Fix: Send Kahuna quantity and revenue for track calls
+* Fix: Guard against negative file length in QueueFile. This is a potential fix for [#172](https://github.com/segmentio/analytics-android/issues/172)
+* Enhancement: Log when an event is created
+* Enhancement: Log when no integrations are enabled
+
 Version 3.0.2 (March 20th, 2015)
 ===============================
 * Enhancement: Update Kahuna integration

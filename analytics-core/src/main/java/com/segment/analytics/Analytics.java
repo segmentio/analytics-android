@@ -698,6 +698,7 @@ public class Analytics {
     /**
      * Specify the connection factory for customizing how connections are created.
      * <p/>
+     * This is a beta API, and might be changed in the future.
      * Use it with care! http://bit.ly/1JVlA2e
      */
     public Builder connectionFactory(ConnectionFactory connectionFactory) {

@@ -43,8 +43,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 /**
  * The class that forwards operations from the client to integrations, including Segment. It
  * maintains it's own in-memory queue to queue events while we're fetching the project settings
- * from
- * our server. Once it enables all integrations,it replays any events in the queue. Subsequent
+ * from our server. Once it enables all integrations,it replays any events in the queue. Subsequent
  * launches will be use the cached settings on disk.
  */
 class IntegrationManager implements Application.ActivityLifecycleCallbacks {
@@ -224,7 +223,8 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     ValueMap integrationSettings = projectSettings.integrations();
     if (isNullOrEmpty(integrationSettings)) {
       if (logLevel.log()) {
-        debug("No integrations enabled in %s.", projectSettings);
+        error(null, "No integrations enabled in %s. Make sure you have the correct writeKey.",
+            projectSettings);
       }
       bundledIntegrations.clear();
       integrations.clear();
