@@ -4,6 +4,7 @@ dependencies {
   compile project(':analytics-core')
   compile project(':analytics-integrations:amplitude')
   compile project(':analytics-integrations:appsflyer')
+  compile project(':analytics-integrations:apptimize')
   compile project(':analytics-integrations:bugsnag')
   compile project(':analytics-integrations:countly')
   compile project(':analytics-integrations:crittercism')
