@@ -203,6 +203,11 @@ public class TapstreamTest {
     verifyNoMoreTapstreamInteractions();
   }
 
+  @Test public void reset() {
+    integration.reset();
+    verifyNoMoreTapstreamInteractions();
+  }
+
   private void verifyNoMoreTapstreamInteractions() {
     PowerMockito.verifyNoMoreInteractions(Tapstream.class);
     verifyNoMoreInteractions(tapstream);
