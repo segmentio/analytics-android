@@ -158,4 +158,9 @@ public class QuantcastTest {
     integration.flush();
     verifyNoMoreInteractions(QuantcastClient.class);
   }
+
+  @Test public void reset() {
+    integration.reset();
+    verifyNoMoreInteractions(QuantcastClient.class);
+  }
 }
