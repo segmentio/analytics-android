@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
@@ -15,6 +16,7 @@ import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
 import java.util.HashMap;
 import ly.count.android.api.Countly;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -37,6 +39,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 @Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
 public class CountlyTest {
 
+  @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Countly countly;
   @Mock Application context;
   CountlyIntegration integration;

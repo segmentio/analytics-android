@@ -3,6 +3,7 @@ package com.segment.analytics.internal.integrations;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
+import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
@@ -13,6 +14,7 @@ import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder
 import com.segment.analytics.internal.model.payloads.util.ScreenPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -32,9 +34,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 @Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
 public class AppsFlyerTest {
 
-  AppsFlyerIntegration integration;
+  @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Application context;
   @Mock AppsFlyer appsFlyer;
+  AppsFlyerIntegration integration;
 
   @Before public void setUp() {
     initMocks(this);

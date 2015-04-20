@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 import com.quantcast.measurement.service.QuantcastClient;
+import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
@@ -39,6 +40,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 public class QuantcastTest {
 
   @Rule public PowerMockRule rule = new PowerMockRule();
+  @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Application context;
   QuantcastIntegration integration;
 
