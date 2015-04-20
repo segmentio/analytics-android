@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import com.localytics.android.Localytics;
+import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
@@ -41,6 +42,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 public class LocalyticsTest {
 
   @Rule public PowerMockRule rule = new PowerMockRule();
+  @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   LocalyticsIntegration integration;
 
   @Before public void setUp() {

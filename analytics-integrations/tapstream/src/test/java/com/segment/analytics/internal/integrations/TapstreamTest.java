@@ -3,6 +3,7 @@ package com.segment.analytics.internal.integrations;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
+import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Randoms;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
@@ -52,6 +53,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 public class TapstreamTest {
 
   @Rule public PowerMockRule rule = new PowerMockRule();
+  @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Tapstream tapstream;
   @Mock com.tapstream.sdk.Config config;
   @Mock Application context;

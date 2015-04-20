@@ -6,6 +6,7 @@ import android.os.Bundle;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
+import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.core.tests.BuildConfig;
@@ -18,6 +19,7 @@ import java.util.regex.Pattern;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
@@ -43,6 +45,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 // todo: These tests do not run in the IDE http://pastebin.com/YZZTcZa8
 public class GoogleAnalyticsTest {
 
+  @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   GoogleAnalyticsIntegration integration;
   @Mock GoogleAnalytics googleAnalytics;
   @Mock Tracker tracker;

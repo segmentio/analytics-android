@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
+import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Randoms;
 import com.segment.analytics.Traits;
@@ -52,6 +53,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 public class MixpanelTest {
 
   @Rule public PowerMockRule rule = new PowerMockRule();
+  @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock MixpanelAPI mixpanelAPI;
   @Mock Application context;
   @Mock MixpanelAPI.People people;

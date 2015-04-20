@@ -6,6 +6,7 @@ import android.os.Bundle;
 import com.flurry.android.Constants;
 import com.flurry.android.FlurryAgent;
 import com.segment.analytics.AnalyticsContext;
+import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
@@ -44,6 +45,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 public class FlurryTest {
 
   @Rule public PowerMockRule rule = new PowerMockRule();
+  @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Application context;
   FlurryIntegration integration;
 

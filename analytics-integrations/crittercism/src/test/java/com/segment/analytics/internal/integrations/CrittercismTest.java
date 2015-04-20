@@ -5,6 +5,7 @@ import android.app.Application;
 import android.os.Bundle;
 import com.crittercism.app.Crittercism;
 import com.crittercism.app.CrittercismConfig;
+import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
@@ -19,7 +20,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -45,7 +46,8 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 public class CrittercismTest {
 
   @Rule public PowerMockRule rule = new PowerMockRule();
-  @MockitoAnnotations.Mock Application context;
+  @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
+  @Mock Application context;
   CrittercismIntegration integration;
 
   @Before public void setUp() {

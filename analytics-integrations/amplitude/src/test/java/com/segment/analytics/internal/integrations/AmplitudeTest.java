@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 import com.amplitude.api.AmplitudeClient;
+import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Randoms;
 import com.segment.analytics.Traits;
@@ -45,7 +46,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 @PrepareForTest(AmplitudeClient.class)
 public class AmplitudeTest {
 
-  @Rule public PowerMockRule rule = new PowerMockRule();
+  @Rule public PowerMockRule powerMockRule = new PowerMockRule();
+  @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Application context;
   @Mock AmplitudeClient amplitude;
   AmplitudeIntegration integration;
@@ -245,7 +247,6 @@ public class AmplitudeTest {
 
     verifyNoMoreInteractions(amplitude);
   }
-
 
   private void verifyAmplitudeLoggedEvent(String event, JSONObject jsonObject) {
     verify(amplitude).logEvent(eq(event), jsonEq(jsonObject));
