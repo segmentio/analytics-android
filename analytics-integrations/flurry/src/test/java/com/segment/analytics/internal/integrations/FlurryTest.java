@@ -77,7 +77,6 @@ public class FlurryTest {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
-    verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
@@ -91,14 +90,12 @@ public class FlurryTest {
   @Test public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
-    verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
   @Test public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
-    verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
@@ -113,14 +110,12 @@ public class FlurryTest {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
-    verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
   @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
-    verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
@@ -134,7 +129,6 @@ public class FlurryTest {
 
   @Test public void flush() {
     integration.flush();
-    verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
@@ -146,7 +140,6 @@ public class FlurryTest {
 
   @Test public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
-    verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
@@ -154,7 +147,6 @@ public class FlurryTest {
     integration.identify(new IdentifyPayloadBuilder().traits(createTraits("foo")).build());
     verifyStatic();
     FlurryAgent.setUserId("foo");
-    verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
@@ -172,13 +164,16 @@ public class FlurryTest {
     FlurryAgent.setGender(Constants.FEMALE);
     verifyStatic();
     FlurryAgent.setLocation(20, 20);
-    verifyStatic();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 
   @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
-    verifyStatic();
+    verifyNoMoreInteractions(FlurryAgent.class);
+  }
+
+  @Test public void reset() {
+    integration.reset();
     verifyNoMoreInteractions(FlurryAgent.class);
   }
 }
