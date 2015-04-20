@@ -203,7 +203,7 @@ public class LocalyticsTest {
     integration.alias(new AliasPayloadBuilder().build());
     verifyNoMoreInteractions(Localytics.class);
   }
-  
+
   @Test public void reset() {
     integration.reset();
     verifyNoMoreInteractions(Localytics.class);
