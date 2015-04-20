@@ -675,7 +675,7 @@ public class Analytics {
       return this;
     }
 
-    /** @deprecated As of {@code 3.1.0}, this method does nothing. */
+    /** @deprecated As of {@code 3.0.1}, this method does nothing. */
     @Deprecated public Builder disableBundledIntegrations() {
       return this;
     }
