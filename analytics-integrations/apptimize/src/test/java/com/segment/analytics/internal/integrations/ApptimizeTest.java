@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 import com.apptimize.Apptimize;
+import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
@@ -39,6 +40,7 @@ import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 @PrepareForTest(Apptimize.class)
 public class ApptimizeTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
+  @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Application context;
   ApptimizeIntegration integration;
 
