@@ -116,35 +116,30 @@ public class CrittercismTest {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
-    verifyStatic();
     verifyNoMoreInteractions(Crittercism.class);
   }
 
   @Test public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
-    verifyStatic();
     verifyNoMoreInteractions(Crittercism.class);
   }
 
   @Test public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
-    verifyStatic();
     verifyNoMoreInteractions(Crittercism.class);
   }
 
   @Test public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
-    verifyStatic();
     verifyNoMoreInteractions(Crittercism.class);
   }
 
   @Test public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
-    verifyStatic();
     verifyNoMoreInteractions(Crittercism.class);
   }
 
@@ -152,14 +147,12 @@ public class CrittercismTest {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
-    verifyStatic();
     verifyNoMoreInteractions(Crittercism.class);
   }
 
   @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
-    verifyStatic();
     verifyNoMoreInteractions(Crittercism.class);
   }
 
@@ -174,7 +167,6 @@ public class CrittercismTest {
 
   @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
-    verifyStatic();
     verifyNoMoreInteractions(Crittercism.class);
   }
 
@@ -192,7 +184,6 @@ public class CrittercismTest {
 
   @Test public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
-    verifyStatic();
     verifyNoMoreInteractions(Crittercism.class);
   }
 
@@ -200,5 +191,10 @@ public class CrittercismTest {
     integration.flush();
     verifyStatic();
     Crittercism.sendAppLoadData();
+  }
+
+  @Test public void reset() {
+    integration.reset();
+    verifyNoMoreInteractions(Crittercism.class);
   }
 }
