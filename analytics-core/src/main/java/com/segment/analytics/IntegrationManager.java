@@ -328,6 +328,10 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     dispatchEnqueue(IntegrationOperation.flush());
   }
 
+  public void dispatchReset() {
+    dispatchEnqueue(IntegrationOperation.reset());
+  }
+
   void dispatchEnqueue(BasePayload basePayload) {
     integrationManagerHandler.sendMessage(integrationManagerHandler //
         .obtainMessage(IntegrationManagerHandler.REQUEST_ENQUEUE_PAYLOAD, basePayload));

@@ -215,6 +215,18 @@ abstract class IntegrationOperation {
     };
   }
 
+  static IntegrationOperation reset() {
+    return new IntegrationOperation() {
+      @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
+        integration.reset();
+      }
+
+      @Override public String toString() {
+        return "Reset";
+      }
+    };
+  }
+
   /** Run this operation on the given integration. */
   abstract void run(AbstractIntegration integration, ProjectSettings projectSettings);
 }

@@ -77,4 +77,10 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
     KahunaAnalytics.trackEvent(track.event(), track.properties().getInt("quantity", 0),
         (int) (track.properties().revenue() * 100));
   }
+
+  @Override public void reset() {
+    super.reset();
+
+    KahunaAnalytics.logout();
+  }
 }
