@@ -74,21 +74,18 @@ public class BugsnagTest {
   @Test public void activityResume() {
     Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
-    verifyStatic();
     verifyNoMoreInteractions(Bugsnag.class);
   }
 
   @Test public void activityPause() {
     Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
-    verifyStatic();
     verifyNoMoreInteractions(Bugsnag.class);
   }
 
   @Test public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
-    verifyStatic();
     verifyNoMoreInteractions(Bugsnag.class);
   }
 
@@ -96,14 +93,12 @@ public class BugsnagTest {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
-    verifyStatic();
     verifyNoMoreInteractions(Bugsnag.class);
   }
 
   @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
-    verifyStatic();
     verifyNoMoreInteractions(Bugsnag.class);
   }
 
@@ -134,7 +129,6 @@ public class BugsnagTest {
 
   @Test public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
-    verifyStatic();
     verifyNoMoreInteractions(Bugsnag.class);
   }
 
@@ -146,7 +140,11 @@ public class BugsnagTest {
 
   @Test public void flush() {
     integration.flush();
-    verifyStatic();
+    verifyNoMoreInteractions(Bugsnag.class);
+  }
+
+  @Test public void reset() {
+    integration.reset();
     verifyNoMoreInteractions(Bugsnag.class);
   }
 }

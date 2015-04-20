@@ -117,7 +117,6 @@ public class LeanplumTest {
 
   @Test public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
-    verifyStatic();
     verifyNoMoreInteractions(Leanplum.class);
   }
 
@@ -136,13 +135,16 @@ public class LeanplumTest {
 
   @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
-    verifyStatic();
     verifyNoMoreInteractions(Leanplum.class);
   }
 
   @Test public void flush() {
     integration.flush();
-    verifyStatic();
+    verifyNoMoreInteractions(Leanplum.class);
+  }
+
+  @Test public void reset() {
+    integration.reset();
     verifyNoMoreInteractions(Leanplum.class);
   }
 }

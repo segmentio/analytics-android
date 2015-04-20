@@ -142,4 +142,9 @@ public class CountlyTest {
     integration.flush();
     verifyNoMoreInteractions(countly);
   }
+
+  @Test public void reset() {
+    integration.reset();
+    verifyNoMoreInteractions(countly);
+  }
 }

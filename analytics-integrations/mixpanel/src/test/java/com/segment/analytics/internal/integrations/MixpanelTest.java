@@ -313,6 +313,12 @@ public class MixpanelTest {
     verifyNoMoreMixpanelInteractions();
   }
 
+  @Test public void reset() {
+    integration.reset();
+    verify(mixpanelAPI).reset();
+    verifyNoMoreMixpanelInteractions();
+  }
+
   private void verifyNoMoreMixpanelInteractions() {
     PowerMockito.verifyNoMoreInteractions(MixpanelAPI.class);
     verifyNoMoreInteractions(mixpanelAPI);

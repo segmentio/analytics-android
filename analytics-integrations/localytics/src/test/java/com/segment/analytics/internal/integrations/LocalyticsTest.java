@@ -31,6 +31,7 @@ import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 @RunWith(RobolectricGradleTestRunner.class)
@@ -82,13 +83,13 @@ public class LocalyticsTest {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
-    PowerMockito.verifyNoMoreInteractions(Localytics.class);
+    verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void activityStart() {
     Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
-    PowerMockito.verifyNoMoreInteractions(Localytics.class);
+    verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void activityResume() {
@@ -103,7 +104,7 @@ public class LocalyticsTest {
     verifyStatic();
     Localytics.handleTestMode(intent);
     verifyStatic();
-    PowerMockito.verifyNoMoreInteractions(Localytics.class);
+    verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void activityResumeCompat() {
@@ -116,7 +117,7 @@ public class LocalyticsTest {
     verifyStatic();
     Localytics.setInAppMessageDisplayActivity(activity);
     verifyStatic();
-    PowerMockito.verifyNoMoreInteractions(Localytics.class);
+    verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void activityPause() {
@@ -126,7 +127,7 @@ public class LocalyticsTest {
     Localytics.closeSession();
     verifyStatic();
     Localytics.upload();
-    PowerMockito.verifyNoMoreInteractions(Localytics.class);
+    verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void activityPauseCompat() {
@@ -140,26 +141,26 @@ public class LocalyticsTest {
     Localytics.closeSession();
     verifyStatic();
     Localytics.upload();
-    PowerMockito.verifyNoMoreInteractions(Localytics.class);
+    verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void activityStop() {
     Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
-    PowerMockito.verifyNoMoreInteractions(Localytics.class);
+    verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void activitySaveInstance() {
     Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
-    PowerMockito.verifyNoMoreInteractions(Localytics.class);
+    verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void activityDestroy() {
     Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
-    PowerMockito.verifyNoMoreInteractions(Localytics.class);
+    verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void identify() {
@@ -168,14 +169,14 @@ public class LocalyticsTest {
 
   @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
-    PowerMockito.verifyNoMoreInteractions(Localytics.class);
+    verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void flush() {
     integration.flush();
     verifyStatic();
     Localytics.upload();
-    PowerMockito.verifyNoMoreInteractions(Localytics.class);
+    verifyNoMoreInteractions(Localytics.class);
   }
 
   @Test public void screen() {
@@ -200,7 +201,12 @@ public class LocalyticsTest {
 
   @Test public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
-    PowerMockito.verifyNoMoreInteractions(Localytics.class);
+    verifyNoMoreInteractions(Localytics.class);
+  }
+
+  @Test public void reset() {
+    integration.reset();
+    verifyNoMoreInteractions(Localytics.class);
   }
 }
 
