@@ -13,7 +13,7 @@ import static junit.framework.Assert.fail;
  * will verify that the test class has methods for all methods that an integration can implement.
  */
 public class IntegrationTestRule implements TestRule {
-  List<String> expectedMethodNames =
+  private static final List<String> EXPECTED_METHOD_NAMES =
       Arrays.asList("initialize", "activityCreate", "activityStart", "activityResume",
           "activityPause", "activityStop", "activitySaveInstance", "activityDestroy", "identify",
           "group", "track", "alias", "screen", "flush", "reset");
@@ -21,7 +21,7 @@ public class IntegrationTestRule implements TestRule {
   @Override public Statement apply(Statement base, Description description) {
     Class<?> testClass = description.getTestClass();
 
-    for (String methodName : expectedMethodNames) {
+    for (String methodName : EXPECTED_METHOD_NAMES) {
       try {
         testClass.getMethod(methodName);
       } catch (NoSuchMethodException e) {
