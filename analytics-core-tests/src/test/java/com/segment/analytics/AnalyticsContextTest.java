@@ -41,9 +41,9 @@ public class AnalyticsContextTest {
 
     assertThat(analyticsContext.getValueMap("app")) //
         .containsEntry("name", "com.segment.analytics.core.tests")
-        .containsEntry("version", "3.0.3-SNAPSHOT")
+        .containsEntry("version", BuildConfig.VERSION_NAME)
         .containsEntry("namespace", "com.segment.analytics.core.tests")
-        .containsEntry("build", 303);
+        .containsEntry("build", BuildConfig.VERSION_CODE);
 
     assertThat(analyticsContext.getValueMap("device")) //
         .containsEntry("id", "unknown")
