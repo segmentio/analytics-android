@@ -1,9 +1,9 @@
-Version 3.0.3 (In Progress)
+Version 3.1.0 (April 21st, 2015)
 ===============================
 * Feature: Add reset method
 * Feature: Add Apptimize Integration
-* Feature: Send custom options to integrations
-* Feature: Add ability to set a custom connection factory (Beta API)
+* Feature: Add APIs to send custom options to integrations
+* Feature: Add ability to set a custom connection factory (Beta)
 * Fix: Attach JAR for core artifact
 * Enhancement: Update Crittercism Integration
 * Enhancement: Update Amplitude Integration
