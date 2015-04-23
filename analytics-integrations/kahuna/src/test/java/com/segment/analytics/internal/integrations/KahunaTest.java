@@ -125,10 +125,9 @@ public class KahunaTest {
   }
 
   @Test public void alias() {
-//    integration.alias(new AliasPayloadBuilder().traits(new Traits()
-//            .putValue("userId", "abcd")).build());
-//    verifyStatic();
-//    KahunaAnalytics.setUserCredential(USER_ID_KEY, "abcd");
+    integration.alias(new AliasPayloadBuilder().newId("myUserId").build());
+    verifyStatic();
+    KahunaAnalytics.setUserCredential(USER_ID_KEY, "myUserId");
   }
 
   @Test public void screen() {
@@ -151,10 +150,10 @@ public class KahunaTest {
     verifyStatic();
     KahunaAnalytics.setUserCredential(USER_ID_KEY, null);
 
-    Traits traits = createTraits(USERNAME_KEY);
+    Traits traits = createTraits("someId");
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
     verifyStatic();
-    KahunaAnalytics.setUserCredential(USER_ID_KEY, USERNAME_KEY);
+    KahunaAnalytics.setUserCredential(USER_ID_KEY, "someId");
   }
 
   @Test public void identifyWithSocialAttributes() {
