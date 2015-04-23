@@ -2,6 +2,7 @@ package com.segment.analytics.internal.integrations;
 
 import android.app.Activity;
 import android.content.Context;
+import android.text.TextUtils;
 
 import com.kahuna.sdk.KahunaAnalytics;
 import com.segment.analytics.Traits;
@@ -46,6 +47,10 @@ import static com.segment.analytics.internal.Utils.isOnClassPath;
 public class KahunaIntegration extends AbstractIntegration<Void> {
 
   static final String KAHUNA_KEY = "Kahuna";
+  static final String SEGMENT_REVENUE_KEY = "revenue";
+  static final String SEGMENT_QUANTITY_KEY = "quantity";
+  boolean trackAllPages;
+
   static final Set<String> SUPPORTED_KAHUNA_CREDENTIALS = new HashSet<>(Arrays.asList(USERNAME_KEY,
           EMAIL_KEY, FACEBOOK_KEY, TWITTER_KEY, LINKEDIN_KEY, INSTALL_TOKEN_KEY, GOOGLE_PLUS_ID));
 
@@ -54,8 +59,10 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
     if (!isOnClassPath("android.support.v4.app.Fragment")) {
       throw new IllegalStateException("Kahuna requires the support library to be bundled.");
     }
+    trackAllPages = settings.getBoolean("trackAllPages", false);
+
     KahunaAnalytics.onAppCreate(context, settings.getString("apiKey"),
-        settings.getString("pushSenderId"));
+             settings.getString("pushSenderId"));
     KahunaAnalytics.setDebugMode(logLevel == INFO || logLevel == VERBOSE);
   }
 
@@ -105,9 +112,35 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
   @Override public void track(TrackPayload track) {
     super.track(track);
 
-    // Although not documented, Kahuna wants revenue in cents
-    KahunaAnalytics.trackEvent(track.event(), track.properties().getInt("quantity", 0),
-            (int) (track.properties().revenue() * 100));
+    if (track == null || TextUtils.isEmpty(track.event()))
+      return;
+
+    String kahunaEventName = track.event();
+
+    if (track.properties() == null) {
+      KahunaAnalytics.trackEvent(kahunaEventName);
+    } else {
+      Object revenueObject = track.properties().get(SEGMENT_REVENUE_KEY);
+      Object quantityObject = track.properties().get(SEGMENT_QUANTITY_KEY);
+      if (revenueObject == null && quantityObject == null) {
+        KahunaAnalytics.trackEvent(kahunaEventName);
+      } else {
+        int kahunaValue = (revenueObject == null) ? 0 : (int) track.properties().revenue() * 100;
+        int kahunaCount = (quantityObject == null) ? 0 : track.properties().getInt(SEGMENT_QUANTITY_KEY, 0);
+        KahunaAnalytics.trackEvent(kahunaEventName, kahunaCount, kahunaValue);
+      }
+    }
+  }
+
+  @Override public void screen(ScreenPayload screen) {
+    super.screen(screen);
+
+    // TODO: Segment is still working on the trackAllPages setting, currently it is defaulted to false.
+    if (trackAllPages) {
+      if (screen != null && screen.name() != null) {
+        KahunaAnalytics.trackEvent("Viewed " + screen.name() + " Screen");
+      }
+    }
   }
 
   @Override public void reset() {
@@ -118,10 +151,6 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
 
   @Override public void alias(AliasPayload alias) {
     // TODO: call integration's alias method
-  }
-
-  @Override public void screen(ScreenPayload screen) {
-    // TODO: call integration's screen method
   }
 
   private static String getISO8601StringForDate(Date date) {
