@@ -148,7 +148,7 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
   }
 
   @Override public void alias(AliasPayload alias) {
-    // TODO: call integration's alias method
+    KahunaAnalytics.setUserCredential(USER_ID_KEY, alias.userId());
   }
 
   private static String getISO8601StringForDate(Date date) {
