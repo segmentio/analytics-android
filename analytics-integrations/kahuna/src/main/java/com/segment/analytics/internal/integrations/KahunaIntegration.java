@@ -87,21 +87,18 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
 
     Traits identityTraits = identify.traits();
     Map<String, String> userAttributes = new HashMap<>();
-    for(String key : identityTraits.keySet()) {
-      if(identityTraits.get(key) == null) {
+    for (String key : identityTraits.keySet()) {
+      if (identityTraits.get(key) == null) {
         continue; // Skip null value objects.
-      }
-      else if(SUPPORTED_KAHUNA_CREDENTIALS.contains(key)) {
+      } else if (SUPPORTED_KAHUNA_CREDENTIALS.contains(key)) {
         KahunaAnalytics.setUserCredential(key, identityTraits.getString(key));
-      }
-      else {
+      } else {
         // We'll track unsupported Kahuna User Credentials as Kahuna User Attributes instead
         // and make sure to format any Date objects appropriately.
         Object value = identityTraits.get(key);
-        if(value instanceof Date) {
+        if (value instanceof Date) {
           userAttributes.put(key, getISO8601StringForDate((Date) value));
-        }
-        else {
+        } else {
           userAttributes.put(key, String.valueOf(value));
         }
       }
@@ -125,8 +122,9 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
       if (revenueObject == null && quantityObject == null) {
         KahunaAnalytics.trackEvent(kahunaEventName);
       } else {
-        int kahunaValue = (revenueObject == null) ? 0 : (int) track.properties().revenue() * 100;
-        int kahunaCount = (quantityObject == null) ? 0 : track.properties().getInt(SEGMENT_QUANTITY_KEY, 0);
+        int kahunaValue = (revenueObject == null) ? 0 : (int) (track.properties().revenue() * 100);
+        int kahunaCount = (quantityObject == null) ? 0
+                : track.properties().getInt(SEGMENT_QUANTITY_KEY, 0);
         KahunaAnalytics.trackEvent(kahunaEventName, kahunaCount, kahunaValue);
       }
     }
@@ -135,7 +133,7 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
   @Override public void screen(ScreenPayload screen) {
     super.screen(screen);
 
-    // TODO: Segment is still working on the trackAllPages setting, currently it is defaulted to false.
+    // TODO: Segment is working on the trackAllPages setting, currently it is defaulted to false.
     if (trackAllPages) {
       if (screen != null && screen.name() != null) {
         KahunaAnalytics.trackEvent("Viewed " + screen.name() + " Screen");
