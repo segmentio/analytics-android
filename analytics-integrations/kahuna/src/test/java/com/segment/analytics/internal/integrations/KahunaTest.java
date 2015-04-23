@@ -31,6 +31,7 @@ import static com.kahuna.sdk.KahunaUserCredentialKeys.FACEBOOK_KEY;
 import static com.kahuna.sdk.KahunaUserCredentialKeys.LINKEDIN_KEY;
 import static com.kahuna.sdk.KahunaUserCredentialKeys.TWITTER_KEY;
 import static com.kahuna.sdk.KahunaUserCredentialKeys.USERNAME_KEY;
+import static com.kahuna.sdk.KahunaUserCredentialKeys.USER_ID_KEY;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.TestUtils.createTraits;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -57,7 +58,7 @@ public class KahunaTest {
 
   @Test public void initialize() throws IllegalStateException {
     integration.initialize(context,
-        new ValueMap().putValue("apiKey", "foo").putValue("pushSenderId", "bar"), NONE);
+            new ValueMap().putValue("apiKey", "foo").putValue("pushSenderId", "bar"), NONE);
 
     verifyStatic();
     KahunaAnalytics.onAppCreate(context, "foo", "bar");
@@ -114,18 +115,20 @@ public class KahunaTest {
   @Test public void track() {
     integration.track(new TrackPayloadBuilder().event("foo").build());
     verifyStatic();
-    KahunaAnalytics.trackEvent("foo", 0, 0);
+    KahunaAnalytics.trackEvent("foo");
 
     integration.track(new TrackPayloadBuilder().event("bar")
-        .properties(new Properties().putValue("quantity", 3).putRevenue(10))
-        .build());
+            .properties(new Properties().putValue("quantity", 3).putRevenue(10))
+            .build());
     verifyStatic();
     KahunaAnalytics.trackEvent("bar", 3, 1000);
   }
 
   @Test public void alias() {
-    integration.alias(new AliasPayloadBuilder().build());
-    verifyNoMoreInteractions(KahunaAnalytics.class);
+//    integration.alias(new AliasPayloadBuilder().traits(new Traits()
+//            .putValue("userId", "abcd")).build());
+//    verifyStatic();
+//    KahunaAnalytics.setUserCredential(USER_ID_KEY, "abcd");
   }
 
   @Test public void screen() {
@@ -144,25 +147,23 @@ public class KahunaTest {
   }
 
   @Test public void identify() {
-    integration.identify(new IdentifyPayloadBuilder().traits(createTraits("foo")).build());
+    integration.identify(new IdentifyPayloadBuilder().build());
     verifyStatic();
-    KahunaAnalytics.setUsernameAndEmail("foo", null);
-    KahunaAnalytics.setUserCredential(USERNAME_KEY, null);
-    KahunaAnalytics.setUserCredential(EMAIL_KEY, null);
-    KahunaAnalytics.setUserCredential(FACEBOOK_KEY, null);
-    KahunaAnalytics.setUserCredential(TWITTER_KEY, null);
-    KahunaAnalytics.setUserCredential(LINKEDIN_KEY, null);
+    KahunaAnalytics.setUserCredential(USER_ID_KEY, null);
+
+    Traits traits = createTraits(USERNAME_KEY);
+    integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
+    verifyStatic();
+    KahunaAnalytics.setUserCredential(USER_ID_KEY, USERNAME_KEY);
   }
 
   @Test public void identifyWithSocialAttributes() {
     Traits traits = new Traits().putUsername("foo")
-        .putEmail("bar")
-        .putValue("facebook", "baz")
-        .putValue("twitter", "qux")
-        .putValue("linkedin", "quux");
+            .putEmail("bar")
+            .putValue(FACEBOOK_KEY, "baz")
+            .putValue(TWITTER_KEY, "qux")
+            .putValue(LINKEDIN_KEY, "quux");
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
-    verifyStatic();
-    KahunaAnalytics.setUsernameAndEmail("foo", "bar");
     verifyStatic();
     KahunaAnalytics.setUserCredential(USERNAME_KEY, "foo");
     verifyStatic();
