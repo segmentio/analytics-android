@@ -125,6 +125,9 @@ public class KahunaEcommerceHelper {
 
       Map<String, String> userAttributes = KahunaAnalytics.getUserAttributes();
       userAttributes.put(LAST_VIEWED_CATEGORY, NONE);
+      if (userAttributes.get(CATEGORIES_VIEWED) == null) {
+        userAttributes.put(CATEGORIES_VIEWED, NONE);
+      }
       KahunaAnalytics.setUserAttributes(userAttributes);
 
     }
