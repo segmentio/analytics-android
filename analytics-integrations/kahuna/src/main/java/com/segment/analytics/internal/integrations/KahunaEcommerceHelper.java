@@ -33,13 +33,14 @@ public class KahunaEcommerceHelper {
   private static final String LAST_PRODUCT_VIEWED_NAME = "Last Product Viewed Name";
   private static final String LAST_PRODUCT_VIEWED_ID = "Last Product Viewed Id";
   private static final String LAST_PRODUCT_ADDED_TO_CART_NAME = "Last Product Added To Cart Name";
-  private static final String LAST_PRODUCT_ADDED_TO_CART_CATEGORY = "Last Product Added To Cart Category";
+  private static final String LAST_PRODUCT_ADDED_TO_CART_CATEGORY
+          = "Last Product Added To Cart Category";
   private static final String LAST_PURCHASE_DISCOUNT = "Last Purchase Discount";
 
   private static final int MAX_CATEGORIES_VIEWED_ENTRIES = 50;
 
   public void process(TrackPayload track) {
-    if (track != null && !TextUtils.isEmpty(track.event()) && track.properties()!= null) {
+    if (track != null && !TextUtils.isEmpty(track.event()) && track.properties() != null) {
 
       if (SEG_VIEWED_PRODUCT_CATEGORY.equalsIgnoreCase(track.event())) {
 
@@ -65,7 +66,7 @@ public class KahunaEcommerceHelper {
   }
 
   private void processCompletedOrderDiscount(TrackPayload track) {
-    String discountString= track.properties().getString(SEG_DISCOUNT_KEY);
+    String discountString = track.properties().getString(SEG_DISCOUNT_KEY);
     if (!TextUtils.isEmpty(discountString)) {
       Map<String, String> userAttributes = KahunaAnalytics.getUserAttributes();
       userAttributes.put(LAST_PURCHASE_DISCOUNT, discountString);
