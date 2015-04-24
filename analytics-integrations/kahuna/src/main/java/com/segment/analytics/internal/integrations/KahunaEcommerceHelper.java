@@ -112,7 +112,6 @@ public class KahunaEcommerceHelper {
       if (KahunaAnalytics.getUserAttributes().containsKey(CATEGORIES_VIEWED)) {
         String serializedCategories = KahunaAnalytics.getUserAttributes().get(CATEGORIES_VIEWED);
         kahunaCategoriesSet.addAll(Arrays.asList(serializedCategories.split(",")));
-        kahunaCategoriesSet.remove(NONE);
       }
 
       kahunaCategoriesSet.add(track.properties().category());
