@@ -50,6 +50,7 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
   static final String SEGMENT_REVENUE_KEY = "revenue";
   static final String SEGMENT_QUANTITY_KEY = "quantity";
   boolean trackAllPages;
+  KahunaEcommerceHelper kahunaEcommerceHelper = new KahunaEcommerceHelper();
 
   static final Set<String> SUPPORTED_KAHUNA_CREDENTIALS = new HashSet<>(Arrays.asList(USERNAME_KEY,
           EMAIL_KEY, FACEBOOK_KEY, TWITTER_KEY, LINKEDIN_KEY, INSTALL_TOKEN_KEY, GOOGLE_PLUS_ID));
@@ -113,6 +114,8 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
       return;
 
     String kahunaEventName = track.event();
+
+    kahunaEcommerceHelper.process(track);
 
     if (track.properties() == null) {
       KahunaAnalytics.trackEvent(kahunaEventName);
