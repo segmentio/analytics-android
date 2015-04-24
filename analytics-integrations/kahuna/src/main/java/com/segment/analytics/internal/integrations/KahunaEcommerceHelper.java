@@ -38,6 +38,7 @@ public class KahunaEcommerceHelper {
   private static final String LAST_PURCHASE_DISCOUNT = "Last Purchase Discount";
 
   private static final int MAX_CATEGORIES_VIEWED_ENTRIES = 50;
+  private static final String NONE = "None";
 
   public void process(TrackPayload track) {
     if (track != null && !TextUtils.isEmpty(track.event()) && track.properties() != null) {
@@ -49,7 +50,6 @@ public class KahunaEcommerceHelper {
       } else if (SEG_VIEWED_PRODUCT.equalsIgnoreCase(track.event())) {
 
         processViewedProductName(track);
-        processViewedProductId(track);
         processProductCategory(track);
 
       } else if (SEG_ADDED_PRODUCT.equalsIgnoreCase(track.event())) {
@@ -90,18 +90,6 @@ public class KahunaEcommerceHelper {
     }
   }
 
-  private void processViewedProductId(TrackPayload track) {
-    if (!TextUtils.isEmpty(track.properties().productId())) {
-      Map<String, String> userAttributes = KahunaAnalytics.getUserAttributes();
-      userAttributes.put(LAST_PRODUCT_VIEWED_ID, track.properties().productId());
-      KahunaAnalytics.setUserAttributes(userAttributes);
-    } else {
-      Map<String, String> userAttributes = KahunaAnalytics.getUserAttributes();
-      userAttributes.put(LAST_PRODUCT_VIEWED_ID, "");
-      KahunaAnalytics.setUserAttributes(userAttributes);
-    }
-  }
-
   private void processViewedProductName(TrackPayload track) {
     if (!TextUtils.isEmpty(track.properties().name())) {
       Map<String, String> userAttributes = KahunaAnalytics.getUserAttributes();
@@ -124,12 +112,19 @@ public class KahunaEcommerceHelper {
       if (KahunaAnalytics.getUserAttributes().containsKey(CATEGORIES_VIEWED)) {
         String serializedCategories = KahunaAnalytics.getUserAttributes().get(CATEGORIES_VIEWED);
         kahunaCategoriesSet.addAll(Arrays.asList(serializedCategories.split(",")));
+        kahunaCategoriesSet.remove(NONE);
       }
 
       kahunaCategoriesSet.add(track.properties().category());
       Map<String, String> userAttributes = KahunaAnalytics.getUserAttributes();
       userAttributes.put(CATEGORIES_VIEWED, TextUtils.join(",", kahunaCategoriesSet));
       userAttributes.put(LAST_VIEWED_CATEGORY, track.properties().category());
+      KahunaAnalytics.setUserAttributes(userAttributes);
+
+    } else {
+
+      Map<String, String> userAttributes = KahunaAnalytics.getUserAttributes();
+      userAttributes.put(LAST_VIEWED_CATEGORY, NONE);
       KahunaAnalytics.setUserAttributes(userAttributes);
 
     }
