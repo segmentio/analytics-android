@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 import com.bugsnag.android.Bugsnag;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
@@ -25,7 +26,6 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.TestUtils.createTraits;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -42,16 +42,18 @@ public class BugsnagTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Application context;
+  @Mock Analytics analytics;
   BugsnagIntegration integration;
 
   @Before public void setUp() {
     initMocks(this);
+    when(analytics.getApplication()).thenReturn(context);
     PowerMockito.mockStatic(Bugsnag.class);
     integration = new BugsnagIntegration();
   }
 
   @Test public void initialize() throws IllegalStateException {
-    integration.initialize(context, new ValueMap().putValue("apiKey", "foo"), NONE);
+    integration.initialize(analytics, new ValueMap().putValue("apiKey", "foo"));
     verifyStatic();
     Bugsnag.init(context, "foo");
   }
