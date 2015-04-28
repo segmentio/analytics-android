@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import com.localytics.android.Localytics;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
@@ -25,6 +26,7 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.mockito.Mock;
 
 import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
@@ -43,6 +45,7 @@ public class LocalyticsTest {
 
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
+  @Mock Analytics analytics;
   LocalyticsIntegration integration;
 
   @Before public void setUp() {
@@ -53,32 +56,45 @@ public class LocalyticsTest {
     integration.hasSupportLibOnClassPath = true;
   }
 
-  @Test public void initialize() throws IllegalStateException {
+@Test public void initialize() throws IllegalStateException {
+    when(analytics.getApplication()).thenReturn(RuntimeEnvironment.application);
+    when(analytics.getLogLevel()).thenReturn(NONE);
     LocalyticsIntegration integration = new LocalyticsIntegration();
 
-    PowerMockito.mockStatic(Localytics.class);
-    integration.initialize(RuntimeEnvironment.application, new ValueMap().putValue("appKey", "foo"),
-        INFO);
-    verifyStatic();
-    Localytics.integrate(RuntimeEnvironment.application, "foo");
-    verifyStatic();
-    Localytics.setLoggingEnabled(true);
+    integration.initialize(analytics, new ValueMap().putValue("appKey", "foo"));
 
-    PowerMockito.mockStatic(Localytics.class);
-    integration.initialize(RuntimeEnvironment.application, new ValueMap().putValue("appKey", "foo"),
-        VERBOSE);
-    verifyStatic();
-    Localytics.integrate(RuntimeEnvironment.application, "foo");
-    verifyStatic();
-    Localytics.setLoggingEnabled(true);
-
-    PowerMockito.mockStatic(Localytics.class);
-    integration.initialize(RuntimeEnvironment.application, new ValueMap().putValue("appKey", "foo"),
-        NONE);
     verifyStatic();
     Localytics.integrate(RuntimeEnvironment.application, "foo");
     verifyStatic();
     Localytics.setLoggingEnabled(false);
+  }
+
+  @Test public void initializeWithVerbose() throws IllegalStateException {
+    when(analytics.getApplication()).thenReturn(RuntimeEnvironment.application);
+    when(analytics.getLogLevel()).thenReturn(VERBOSE);
+    LocalyticsIntegration integration = new LocalyticsIntegration();
+    PowerMockito.mockStatic(Localytics.class);
+
+    integration.initialize(analytics, new ValueMap().putValue("appKey", "foo"));
+
+    verifyStatic();
+    Localytics.integrate(RuntimeEnvironment.application, "foo");
+    verifyStatic();
+    Localytics.setLoggingEnabled(true);
+  }
+
+  @Test public void initializeWithInfo() throws IllegalStateException {
+    when(analytics.getApplication()).thenReturn(RuntimeEnvironment.application);
+    when(analytics.getLogLevel()).thenReturn(INFO);
+    LocalyticsIntegration integration = new LocalyticsIntegration();
+    PowerMockito.mockStatic(Localytics.class);
+
+    integration.initialize(analytics, new ValueMap().putValue("appKey", "foo"));
+
+    verifyStatic();
+    Localytics.integrate(RuntimeEnvironment.application, "foo");
+    verifyStatic();
+    Localytics.setLoggingEnabled(true);
   }
 
   @Test public void activityCreate() {

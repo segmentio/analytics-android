@@ -1,7 +1,6 @@
 package com.segment.analytics.internal.integrations;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import com.localytics.android.Localytics;
@@ -15,6 +14,7 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.util.Map;
 
+import static com.segment.analytics.Analytics.LogLevel;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
@@ -33,9 +33,10 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
   static final String LOCALYTICS_KEY = "Localytics";
   boolean hasSupportLibOnClassPath;
 
-  @Override public void initialize(Context context, ValueMap settings, Analytics.LogLevel logLevel)
+  @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
-    Localytics.integrate(context, settings.getString("appKey"));
+    Localytics.integrate(analytics.getApplication(), settings.getString("appKey"));
+    LogLevel logLevel = analytics.getLogLevel();
     Localytics.setLoggingEnabled(logLevel == INFO || logLevel == VERBOSE);
     hasSupportLibOnClassPath = isOnClassPath("android.support.v4.app.FragmentActivity");
   }
