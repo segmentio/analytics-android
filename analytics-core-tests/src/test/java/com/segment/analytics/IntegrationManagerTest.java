@@ -70,6 +70,7 @@ public class IntegrationManagerTest {
   ExecutorService networkExecutor;
   @Mock ProjectSettings projectSettings;
   @Mock AbstractIntegration mockIntegration;
+  @Mock Analytics analytics;
   Application application;
   IntegrationManager integrationManager;
 
@@ -90,9 +91,12 @@ public class IntegrationManagerTest {
 
     networkExecutor = spy(new SynchronousExecutor());
 
+    when(analytics.getApplication()).thenReturn(application);
+    when(analytics.getLogLevel()).thenReturn(NONE);
+
     integrationManager =
-        new IntegrationManager(application, client, networkExecutor, Cartographer.INSTANCE, stats,
-            projectSettingsCache, NONE, "foo", 30, 20);
+        new IntegrationManager(analytics, client, networkExecutor, Cartographer.INSTANCE, stats,
+            projectSettingsCache, "foo", 30, 20);
 
     integrationManager.bundledIntegrations.clear();
     integrationManager.integrations.clear();

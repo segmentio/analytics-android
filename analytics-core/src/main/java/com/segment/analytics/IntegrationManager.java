@@ -56,6 +56,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
   final Map<String, Boolean> bundledIntegrations = new ConcurrentHashMap<>();
   final List<AbstractIntegration> integrations = new ArrayList<>();
 
+  final Analytics analytics;
   final Application application;
   final Client client;
   final Cartographer cartographer;
@@ -71,25 +72,26 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
   Map<String, Callback> callbacks;
   volatile boolean initialized;
 
-  static synchronized IntegrationManager create(Application application, Cartographer cartographer,
+  static synchronized IntegrationManager create(Analytics analytics, Cartographer cartographer,
       Client client, ExecutorService networkExecutor, Stats stats, String tag,
-      Analytics.LogLevel logLevel, long flushIntervalInMillis, int flushQueueSize) {
+      long flushIntervalInMillis, int flushQueueSize) {
     ProjectSettings.Cache projectSettingsCache =
-        new ProjectSettings.Cache(application, cartographer, tag);
-    return new IntegrationManager(application, client, networkExecutor, cartographer, stats,
-        projectSettingsCache, logLevel, tag, flushIntervalInMillis, flushQueueSize);
+        new ProjectSettings.Cache(analytics.getApplication(), cartographer, tag);
+    return new IntegrationManager(analytics, client, networkExecutor, cartographer, stats,
+        projectSettingsCache, tag, flushIntervalInMillis, flushQueueSize);
   }
 
-  IntegrationManager(Application application, Client client, ExecutorService networkExecutor,
+  IntegrationManager(Analytics analytics, Client client, ExecutorService networkExecutor,
       Cartographer cartographer, Stats stats, ProjectSettings.Cache projectSettingsCache,
-      Analytics.LogLevel logLevel, String tag, long flushIntervalInMillis, int flushQueueSize) {
-    this.application = application;
+      String tag, long flushIntervalInMillis, int flushQueueSize) {
+    this.analytics = analytics;
+    this.application = analytics.getApplication();
     this.client = client;
     this.networkExecutor = networkExecutor;
     this.cartographer = cartographer;
     this.stats = stats;
     this.projectSettingsCache = projectSettingsCache;
-    this.logLevel = logLevel;
+    this.logLevel = analytics.getLogLevel();
 
     application.registerActivityLifecycleCallbacks(this);
 
@@ -430,6 +432,11 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
       operationQueue.clear();
       operationQueue = null;
     }
+  }
+
+  interface Factory {
+    // todo: remove circular dependency!!!
+    IntegrationManager create(Analytics analytics);
   }
 
   static class IntegrationManagerHandler extends Handler {

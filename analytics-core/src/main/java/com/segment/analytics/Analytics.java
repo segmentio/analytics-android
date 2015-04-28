@@ -147,16 +147,18 @@ public class Analytics {
   }
 
   Analytics(Application application, ExecutorService networkExecutor,
-      IntegrationManager integrationManager, Stats stats, Traits.Cache traitsCache,
-      AnalyticsContext analyticsContext, Options defaultOptions, LogLevel logLevel) {
+      IntegrationManager.Factory integrationManagerFactory, Stats stats,
+      Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions,
+      LogLevel logLevel) {
     this.application = application;
     this.networkExecutor = networkExecutor;
-    this.integrationManager = integrationManager;
     this.stats = stats;
     this.traitsCache = traitsCache;
     this.analyticsContext = analyticsContext;
     this.defaultOptions = defaultOptions;
     this.logLevel = logLevel;
+    // This needs to be last so that the analytics instance members are assigned first
+    this.integrationManager = integrationManagerFactory.create(this);
   }
 
   // Analytics API
@@ -738,13 +740,16 @@ public class Analytics {
         connectionFactory = new ConnectionFactory();
       }
 
-      Stats stats = new Stats();
-      Cartographer cartographer = Cartographer.INSTANCE;
-      Client client = new Client(application, writeKey, connectionFactory);
+      final Stats stats = new Stats();
+      final Cartographer cartographer = Cartographer.INSTANCE;
+      final Client client = new Client(application, writeKey, connectionFactory);
 
-      IntegrationManager integrationManager =
-          IntegrationManager.create(application, cartographer, client, networkExecutor, stats, tag,
-              logLevel, flushIntervalInMillis, flushQueueSize);
+      IntegrationManager.Factory integrationManagerFactory = new IntegrationManager.Factory() {
+        @Override public IntegrationManager create(Analytics analytics) {
+          return IntegrationManager.create(analytics, cartographer, client, networkExecutor,
+              stats, tag, flushIntervalInMillis, flushQueueSize);
+        }
+      };
 
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
@@ -754,8 +759,8 @@ public class Analytics {
       AnalyticsContext analyticsContext = AnalyticsContext.create(application, traitsCache.get());
       analyticsContext.attachAdvertisingId(application);
 
-      return new Analytics(application, networkExecutor, integrationManager, stats, traitsCache,
-          analyticsContext, defaultOptions, logLevel);
+      return new Analytics(application, networkExecutor, integrationManagerFactory, stats,
+          traitsCache, analyticsContext, defaultOptions, logLevel);
     }
   }
 }
