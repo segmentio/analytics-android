@@ -48,13 +48,15 @@ public class ApptimizeTest {
 
   @Before public void setUp() {
     initMocks(this);
-    when(analytics.getApplication()).thenReturn(context);
     PowerMockito.mockStatic(Apptimize.class);
     integration = new ApptimizeIntegration();
   }
 
   @Test public void initialize() {
+    when(analytics.getApplication()).thenReturn(context);
+
     integration.initialize(analytics, new ValueMap().putValue("appkey", "foo"));
+
     verifyStatic();
     Apptimize.setup(context, "foo");
   }
