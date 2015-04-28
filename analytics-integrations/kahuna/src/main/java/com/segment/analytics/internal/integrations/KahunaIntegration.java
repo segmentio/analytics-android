@@ -1,8 +1,8 @@
 package com.segment.analytics.internal.integrations;
 
 import android.app.Activity;
-import android.content.Context;
 import com.kahuna.sdk.KahunaAnalytics;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
@@ -30,13 +30,16 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
 
   static final String KAHUNA_KEY = "Kahuna";
 
-  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
+  @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
     if (!isOnClassPath("android.support.v4.app.Fragment")) {
       throw new IllegalStateException("Kahuna requires the support library to be bundled.");
     }
-    KahunaAnalytics.onAppCreate(context, settings.getString("apiKey"),
+
+    KahunaAnalytics.onAppCreate(analytics.getApplication(), settings.getString("apiKey"),
         settings.getString("pushSenderId"));
+
+    LogLevel logLevel = analytics.getLogLevel();
     KahunaAnalytics.setDebugMode(logLevel == INFO || logLevel == VERBOSE);
   }
 
