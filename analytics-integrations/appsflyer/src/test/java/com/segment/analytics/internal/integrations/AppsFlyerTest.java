@@ -44,15 +44,17 @@ public class AppsFlyerTest {
 
   @Before public void setUp() {
     initMocks(this);
-    when(analytics.getApplication()).thenReturn(context);
     integration = new AppsFlyerIntegration(appsFlyer);
     integration.context = context;
   }
 
   @Test public void initialize() throws IllegalStateException {
+    when(analytics.getApplication()).thenReturn(context);
     AppsFlyerIntegration integration = new AppsFlyerIntegration(appsFlyer);
+
     integration.initialize(analytics, new ValueMap() //
         .putValue("appsFlyerDevKey", "foo").putValue("httpFallback", true));
+
     verify(appsFlyer).setAppsFlyerKey("foo");
     verify(appsFlyer).setUseHTTPFallback(true);
     assertThat(integration.context).isEqualTo(context);
