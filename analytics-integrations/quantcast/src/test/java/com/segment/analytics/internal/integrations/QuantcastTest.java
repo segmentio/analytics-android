@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 import com.quantcast.measurement.service.QuantcastClient;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
@@ -29,6 +30,7 @@ import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.TestUtils.createTraits;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
@@ -42,6 +44,7 @@ public class QuantcastTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Application context;
+  @Mock Analytics analytics;
   QuantcastIntegration integration;
 
   @Before public void setUp() {
@@ -52,21 +55,33 @@ public class QuantcastTest {
   }
 
   @Test public void initialize() throws IllegalStateException {
-    integration.initialize(context, new ValueMap().putValue("apiKey", "foo"), NONE);
+    when(analytics.getApplication()).thenReturn(context);
+    when(analytics.getLogLevel()).thenReturn(NONE);
+
+    integration.initialize(analytics, new ValueMap().putValue("apiKey", "foo"));
+
     verifyStatic();
     QuantcastClient.enableLogging(false);
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
   @Test public void initializeWithDebuggingInfo() throws IllegalStateException {
-    integration.initialize(context, new ValueMap().putValue("apiKey", "foo"), INFO);
+    when(analytics.getApplication()).thenReturn(context);
+    when(analytics.getLogLevel()).thenReturn(INFO);
+
+    integration.initialize(analytics, new ValueMap().putValue("apiKey", "foo"));
+
     verifyStatic();
     QuantcastClient.enableLogging(true);
     verifyNoMoreInteractions(QuantcastClient.class);
   }
 
   @Test public void initializeWithDebuggingFull() throws IllegalStateException {
-    integration.initialize(context, new ValueMap().putValue("apiKey", "foo"), VERBOSE);
+    when(analytics.getApplication()).thenReturn(context);
+    when(analytics.getLogLevel()).thenReturn(VERBOSE);
+
+    integration.initialize(analytics, new ValueMap().putValue("apiKey", "foo"));
+
     verifyStatic();
     QuantcastClient.enableLogging(true);
     verifyNoMoreInteractions(QuantcastClient.class);
