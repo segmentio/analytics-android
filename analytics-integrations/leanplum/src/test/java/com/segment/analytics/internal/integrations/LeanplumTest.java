@@ -5,6 +5,7 @@ import android.app.Application;
 import android.os.Bundle;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
@@ -27,11 +28,11 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.TestUtils.createTraits;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
@@ -45,6 +46,7 @@ public class LeanplumTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Application context;
+  @Mock Analytics analytics;
   LeanplumIntegration integration;
   LeanplumActivityHelper leanplumActivityHelper;
 
@@ -56,8 +58,12 @@ public class LeanplumTest {
   }
 
   @Test public void initialize() {
-    integration.initialize(context, new ValueMap().putValue("appId", "foo") //
-        .putValue("clientKey", "bar"), NONE);
+    when(analytics.getApplication()).thenReturn(context);
+
+    integration.initialize(analytics, new ValueMap() //
+        .putValue("appId", "foo") //
+        .putValue("clientKey", "bar"));
+
     verifyStatic();
     Leanplum.setAppIdForProductionMode("foo", "bar");
     verifyStatic();
