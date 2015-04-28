@@ -3,6 +3,7 @@ package com.segment.analytics.internal.integrations;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Randoms;
 import com.segment.analytics.Traits;
@@ -57,6 +58,7 @@ public class TapstreamTest {
   @Mock Tapstream tapstream;
   @Mock com.tapstream.sdk.Config config;
   @Mock Application context;
+  @Mock Analytics analytics;
   TapstreamIntegration integration;
 
   @Before public void setUp() {
@@ -69,12 +71,15 @@ public class TapstreamTest {
   }
 
   @Test public void initialize() throws IllegalStateException {
+    when(analytics.getApplication()).thenReturn(context);
+
     TapstreamIntegration adapter = new TapstreamIntegration();
-    adapter.initialize(context, new ValueMap().putValue("accountName", "foo")
+    adapter.initialize(analytics, new ValueMap() //
+        .putValue("accountName", "foo")
         .putValue("sdkSecret", "bar")
         .putValue("trackAllPages", true)
         .putValue("trackCategorizedPages", false)
-        .putValue("trackNamedPages", true), NONE);
+        .putValue("trackNamedPages", true));
     verifyStatic();
     Tapstream.create(eq(context), eq("foo"), eq("bar"), Matchers.<com.tapstream.sdk.Config>any());
   }
