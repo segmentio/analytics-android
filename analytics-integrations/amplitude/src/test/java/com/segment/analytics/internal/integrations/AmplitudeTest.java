@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 import com.amplitude.api.AmplitudeClient;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Randoms;
@@ -30,12 +31,12 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.TestUtils.createTraits;
 import static com.segment.analytics.TestUtils.jsonEq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -50,10 +51,12 @@ public class AmplitudeTest {
   @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Application context;
   @Mock AmplitudeClient amplitude;
+  @Mock Analytics analytics;
   AmplitudeIntegration integration;
 
   @Before public void setUp() {
     initMocks(this);
+    when(analytics.getApplication()).thenReturn(context);
     integration = new AmplitudeIntegration();
     integration.amplitude = amplitude;
   }
@@ -64,11 +67,11 @@ public class AmplitudeTest {
     PowerMockito.mockStatic(AmplitudeClient.class);
     PowerMockito.when(AmplitudeClient.getInstance()).thenReturn(amplitude);
 
-    integration.initialize(context, //
+    integration.initialize(analytics, //
         new ValueMap().putValue("apiKey", "foo")
             .putValue("trackAllPages", true)
             .putValue("trackCategorizedPages", false)
-            .putValue("trackNamedPages", true), VERBOSE);
+            .putValue("trackNamedPages", true));
 
     verify(amplitude).initialize(context, "foo");
     assertThat(integration.trackAllPages).isTrue();
@@ -76,8 +79,7 @@ public class AmplitudeTest {
     assertThat(integration.trackNamedPages).isTrue();
 
     // Verify default args
-    integration.initialize(context, //
-        new ValueMap().putValue("apiKey", "foo"), VERBOSE);
+    integration.initialize(analytics, new ValueMap().putValue("apiKey", "foo"));
     assertThat(integration.trackAllPages).isFalse();
     assertThat(integration.trackCategorizedPages).isFalse();
     assertThat(integration.trackNamedPages).isFalse();
