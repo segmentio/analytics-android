@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.ValueMap;
@@ -25,7 +26,6 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import static android.content.Context.MODE_PRIVATE;
-import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -34,6 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static com.segment.analytics.Analytics.LogLevel.NONE;
 
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
@@ -42,6 +43,7 @@ public class CountlyTest {
   @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Countly countly;
   @Mock Application context;
+  @Mock Analytics analytics;
   CountlyIntegration integration;
 
   @Before public void setUp() {
@@ -52,13 +54,16 @@ public class CountlyTest {
   }
 
   @Test public void initialize() throws IllegalStateException {
+    when(analytics.getApplication()).thenReturn(context);
+    when(analytics.getLogLevel()).thenReturn(NONE);
+
     integration.countly = null;
     SharedPreferences countlyPrefs =
         RuntimeEnvironment.application.getSharedPreferences("countly", MODE_PRIVATE);
     when(context.getSharedPreferences(anyString(), anyInt())).thenReturn(countlyPrefs);
-    integration.initialize(context, new ValueMap() //
+    integration.initialize(analytics, new ValueMap() //
         .putValue("serverUrl", "https://countly.com") //
-        .putValue("appKey", "foo"), NONE);
+        .putValue("appKey", "foo"));
     assertThat(integration.countly).isNotNull();
   }
 

@@ -1,7 +1,7 @@
 package com.segment.analytics.internal.integrations;
 
 import android.app.Activity;
-import android.content.Context;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.Properties;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
@@ -26,11 +26,14 @@ public class CountlyIntegration extends AbstractIntegration<Countly> {
   static final String COUNTLY_KEY = "Countly";
   Countly countly;
 
-  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
+  @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
     countly = Countly.sharedInstance();
+    LogLevel logLevel = analytics.getLogLevel();
     countly.setLoggingEnabled(logLevel == INFO || logLevel == VERBOSE);
-    countly.init(context, settings.getString("serverUrl"), settings.getString("appKey"));
+    String serverUrl = settings.getString("serverUrl");
+    String appKey = settings.getString("appKey");
+    countly.init(analytics.getApplication(), serverUrl, appKey);
   }
 
   @Override public Countly getUnderlyingInstance() {
