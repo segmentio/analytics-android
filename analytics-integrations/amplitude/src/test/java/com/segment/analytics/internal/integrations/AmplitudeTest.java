@@ -56,16 +56,15 @@ public class AmplitudeTest {
 
   @Before public void setUp() {
     initMocks(this);
-    when(analytics.getApplication()).thenReturn(context);
     integration = new AmplitudeIntegration();
     integration.amplitude = amplitude;
   }
 
   @Test public void initialize() {
     integration = new AmplitudeIntegration();
-
     PowerMockito.mockStatic(AmplitudeClient.class);
     PowerMockito.when(AmplitudeClient.getInstance()).thenReturn(amplitude);
+    when(analytics.getApplication()).thenReturn(context);
 
     integration.initialize(analytics, //
         new ValueMap().putValue("apiKey", "foo")
@@ -77,6 +76,13 @@ public class AmplitudeTest {
     assertThat(integration.trackAllPages).isTrue();
     assertThat(integration.trackCategorizedPages).isFalse();
     assertThat(integration.trackNamedPages).isTrue();
+  }
+
+  @Test public void initializeWithDefaultArguments() {
+    integration = new AmplitudeIntegration();
+    PowerMockito.mockStatic(AmplitudeClient.class);
+    PowerMockito.when(AmplitudeClient.getInstance()).thenReturn(amplitude);
+    when(analytics.getApplication()).thenReturn(context);
 
     // Verify default args
     integration.initialize(analytics, new ValueMap().putValue("apiKey", "foo"));
