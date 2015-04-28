@@ -5,6 +5,7 @@ import android.app.Application;
 import android.os.Bundle;
 import com.flurry.android.Constants;
 import com.flurry.android.FlurryAgent;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Traits;
@@ -34,6 +35,7 @@ import static com.segment.analytics.TestUtils.createContext;
 import static com.segment.analytics.TestUtils.createTraits;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
@@ -47,6 +49,7 @@ public class FlurryTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Application context;
+  @Mock Analytics analytics;
   FlurryIntegration integration;
 
   @Before public void setUp() {
@@ -56,11 +59,14 @@ public class FlurryTest {
   }
 
   @Test public void initialize() throws IllegalStateException {
-    integration.initialize(context, //
-        new ValueMap().putValue("apiKey", "foo")
-            .putValue("sessionContinueSeconds", 20)
-            .putValue("captureUncaughtExceptions", true)
-            .putValue("reportLocation", false), NONE);
+    when(analytics.getApplication()).thenReturn(context);
+
+    integration.initialize(analytics, new ValueMap() //
+        .putValue("apiKey", "foo")
+        .putValue("sessionContinueSeconds", 20)
+        .putValue("captureUncaughtExceptions", true)
+        .putValue("reportLocation", false));
+
     verifyStatic();
     FlurryAgent.setContinueSessionMillis(20000);
     verifyStatic();

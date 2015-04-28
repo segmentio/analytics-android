@@ -1,9 +1,9 @@
 package com.segment.analytics.internal.integrations;
 
 import android.app.Activity;
-import android.content.Context;
 import com.flurry.android.Constants;
 import com.flurry.android.FlurryAgent;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
@@ -30,16 +30,19 @@ public class FlurryIntegration extends AbstractIntegration<Void> {
 
   static final String FLURRY_KEY = "Flurry";
 
-  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
+  @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
-    // TODO: is Google Play Services and the support lib absolutely required?
-    FlurryAgent.setContinueSessionMillis(settings.getInt("sessionContinueSeconds", 10) * 1000);
-    FlurryAgent.setCaptureUncaughtExceptions(
-        settings.getBoolean("captureUncaughtExceptions", false));
-    FlurryAgent.setReportLocation(settings.getBoolean("reportLocation", true));
+    int sessionContinueSeconds = settings.getInt("sessionContinueSeconds", 10) * 1000;
+    boolean captureUncaughtExceptions = settings.getBoolean("captureUncaughtExceptions", false);
+    boolean reportLocation = settings.getBoolean("reportLocation", true);
+    LogLevel logLevel = analytics.getLogLevel();
+
+    FlurryAgent.setContinueSessionMillis(sessionContinueSeconds);
+    FlurryAgent.setCaptureUncaughtExceptions(captureUncaughtExceptions);
+    FlurryAgent.setReportLocation(reportLocation);
     FlurryAgent.setLogEnabled(logLevel == INFO || logLevel == VERBOSE);
     FlurryAgent.setLogEvents(logLevel == VERBOSE);
-    FlurryAgent.init(context, settings.getString("apiKey"));
+    FlurryAgent.init(analytics.getApplication(), settings.getString("apiKey"));
   }
 
   @Override public void onActivityStarted(Activity activity) {
