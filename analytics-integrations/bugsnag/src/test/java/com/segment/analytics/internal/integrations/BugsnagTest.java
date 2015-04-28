@@ -47,13 +47,15 @@ public class BugsnagTest {
 
   @Before public void setUp() {
     initMocks(this);
-    when(analytics.getApplication()).thenReturn(context);
     PowerMockito.mockStatic(Bugsnag.class);
     integration = new BugsnagIntegration();
   }
 
   @Test public void initialize() throws IllegalStateException {
+    when(analytics.getApplication()).thenReturn(context);
+
     integration.initialize(analytics, new ValueMap().putValue("apiKey", "foo"));
+
     verifyStatic();
     Bugsnag.init(context, "foo");
   }
