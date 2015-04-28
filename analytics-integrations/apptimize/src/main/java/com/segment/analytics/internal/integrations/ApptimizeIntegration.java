@@ -1,15 +1,13 @@
 package com.segment.analytics.internal.integrations;
 
-import android.content.Context;
 import com.apptimize.Apptimize;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.util.Map.Entry;
-
-import static com.segment.analytics.Analytics.LogLevel;
 
 /**
  * Apptimize allows you to instantly update your native app without waiting for
@@ -22,9 +20,9 @@ import static com.segment.analytics.Analytics.LogLevel;
 public class ApptimizeIntegration extends AbstractIntegration<Void> {
   static final String APPTIMIZE_KEY = "Apptimize";
 
-  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
+  @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
-    Apptimize.setup(context, settings.getString("appkey"));
+    Apptimize.setup(analytics.getApplication(), settings.getString("appkey"));
   }
 
   @Override public String key() {

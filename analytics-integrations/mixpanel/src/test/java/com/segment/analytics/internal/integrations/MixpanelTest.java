@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Randoms;
@@ -56,6 +57,7 @@ public class MixpanelTest {
   @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock MixpanelAPI mixpanelAPI;
   @Mock Application context;
+  @Mock Analytics analytics;
   @Mock MixpanelAPI.People people;
   MixpanelIntegration integration;
 
@@ -63,8 +65,9 @@ public class MixpanelTest {
     initMocks(this);
     mockStatic(MixpanelAPI.class);
     PowerMockito.when(MixpanelAPI.getInstance(context, "foo")).thenReturn(mixpanelAPI);
-    integration = new MixpanelIntegration();
     when(mixpanelAPI.getPeople()).thenReturn(people);
+
+    integration = new MixpanelIntegration();
     integration.mixpanelAPI = mixpanelAPI;
     integration.people = people;
     integration.isPeopleEnabled = false;
@@ -72,11 +75,14 @@ public class MixpanelTest {
   }
 
   @Test public void initialize() throws IllegalStateException {
+    when(analytics.getApplication()).thenReturn(context);
     MixpanelIntegration integration = new MixpanelIntegration();
-    integration.initialize(context, new ValueMap().putValue("token", "foo")
+
+    integration.initialize(analytics, new ValueMap().putValue("token", "foo")
         .putValue("trackAllPages", true)
         .putValue("trackCategorizedPages", false)
-        .putValue("trackNamedPages", true), NONE);
+        .putValue("trackNamedPages", true));
+
     verifyStatic();
     MixpanelAPI.getInstance(context, "foo");
     verify(mixpanelAPI, never()).getPeople();
@@ -88,13 +94,16 @@ public class MixpanelTest {
   }
 
   @Test public void initializeWithIncrementsAndPeople() throws IllegalStateException {
+    when(analytics.getApplication()).thenReturn(context);
     MixpanelIntegration integration = new MixpanelIntegration();
-    integration.initialize(context, new ValueMap().putValue("token", "foo")
+
+    integration.initialize(analytics, new ValueMap().putValue("token", "foo")
         .putValue("people", true)
         .putValue("trackAllPages", true)
         .putValue("trackCategorizedPages", false)
         .putValue("trackNamedPages", true)
-        .putValue("increments", Arrays.asList("baz", "qaz", "qux")), NONE);
+        .putValue("increments", Arrays.asList("baz", "qaz", "qux")));
+
     verifyStatic();
     MixpanelAPI.getInstance(context, "foo");
     verify(mixpanelAPI).getPeople();

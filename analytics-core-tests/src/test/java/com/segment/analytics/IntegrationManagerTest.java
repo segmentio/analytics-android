@@ -70,6 +70,7 @@ public class IntegrationManagerTest {
   ExecutorService networkExecutor;
   @Mock ProjectSettings projectSettings;
   @Mock AbstractIntegration mockIntegration;
+  @Mock Analytics analytics;
   Application application;
   IntegrationManager integrationManager;
 
@@ -90,9 +91,12 @@ public class IntegrationManagerTest {
 
     networkExecutor = spy(new SynchronousExecutor());
 
+    when(analytics.getApplication()).thenReturn(application);
+    when(analytics.getLogLevel()).thenReturn(NONE);
+
     integrationManager =
-        new IntegrationManager(application, client, networkExecutor, Cartographer.INSTANCE, stats,
-            projectSettingsCache, NONE, "foo", 30, 20);
+        new IntegrationManager(analytics, client, networkExecutor, Cartographer.INSTANCE, stats,
+            projectSettingsCache, "foo", 30, 20);
 
     integrationManager.bundledIntegrations.clear();
     integrationManager.integrations.clear();
@@ -144,7 +148,7 @@ public class IntegrationManagerTest {
         + "}");
     AbstractIntegration<Void> badIntegration = new AbstractIntegration<Void>() {
       @Override
-      public void initialize(Context context, ValueMap settings, Analytics.LogLevel logLevel)
+      public void initialize(Analytics analytics, ValueMap settings)
           throws IllegalStateException {
         throw new NullPointerException("mock");
       }
@@ -177,8 +181,7 @@ public class IntegrationManagerTest {
 
     integrationManager.performInitializeIntegrations(projectSettings);
 
-    verify(badIntegration, times(0)).initialize(any(Context.class), any(ProjectSettings.class),
-        any(Analytics.LogLevel.class));
+    verify(badIntegration, times(0)).initialize(any(Analytics.class), any(ValueMap.class));
 
     assertThat(integrationManager.bundledIntegrations).isEmpty();
     assertThat(integrationManager.integrations).isEmpty();
@@ -195,8 +198,7 @@ public class IntegrationManagerTest {
 
     integrationManager.performInitializeIntegrations(projectSettings);
 
-    verify(badIntegration, times(0)).initialize(any(Context.class), any(ProjectSettings.class),
-        any(Analytics.LogLevel.class));
+    verify(badIntegration, times(0)).initialize(any(Analytics.class), any(ValueMap.class));
 
     assertThat(integrationManager.bundledIntegrations).isEmpty();
     assertThat(integrationManager.integrations).isEmpty();

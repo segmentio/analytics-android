@@ -43,7 +43,7 @@ public class PhoneAnalyticsListenerService extends WearableListenerService {
       try {
         wearPayload = new WearPayload(cartographer.fromJson(new String(messageEvent.getData())));
       } catch (IOException e) {
-        if (getAnalytics().logLevel.log()) {
+        if (getAnalytics().getLogLevel().log()) {
           error(e, "Could not deserialize event %s", new String(messageEvent.getData()));
         }
         return;

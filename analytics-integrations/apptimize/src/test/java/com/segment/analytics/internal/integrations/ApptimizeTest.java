@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 import com.apptimize.Apptimize;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
@@ -26,10 +27,10 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.TestUtils.createTraits;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
@@ -42,16 +43,20 @@ public class ApptimizeTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Application context;
+  @Mock Analytics analytics;
   ApptimizeIntegration integration;
 
   @Before public void setUp() {
     initMocks(this);
     PowerMockito.mockStatic(Apptimize.class);
-    integration = new com.segment.analytics.internal.integrations.ApptimizeIntegration();
+    integration = new ApptimizeIntegration();
   }
 
   @Test public void initialize() {
-    integration.initialize(context, new ValueMap().putValue("appkey", "foo"), NONE);
+    when(analytics.getApplication()).thenReturn(context);
+
+    integration.initialize(analytics, new ValueMap().putValue("appkey", "foo"));
+
     verifyStatic();
     Apptimize.setup(context, "foo");
   }

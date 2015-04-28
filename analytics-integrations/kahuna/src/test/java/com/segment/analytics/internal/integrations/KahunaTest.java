@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 import com.kahuna.sdk.KahunaAnalytics;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
@@ -34,6 +35,7 @@ import static com.kahuna.sdk.KahunaUserCredentialKeys.USERNAME_KEY;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.TestUtils.createTraits;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
@@ -47,6 +49,7 @@ public class KahunaTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Application context;
+  @Mock Analytics analytics;
   KahunaIntegration integration;
 
   @Before public void setUp() {
@@ -56,8 +59,10 @@ public class KahunaTest {
   }
 
   @Test public void initialize() throws IllegalStateException {
-    integration.initialize(context,
-        new ValueMap().putValue("apiKey", "foo").putValue("pushSenderId", "bar"), NONE);
+    when(analytics.getApplication()).thenReturn(context);
+
+    integration.initialize(analytics, new ValueMap() //
+        .putValue("apiKey", "foo").putValue("pushSenderId", "bar"));
 
     verifyStatic();
     KahunaAnalytics.onAppCreate(context, "foo", "bar");
@@ -119,6 +124,7 @@ public class KahunaTest {
     integration.track(new TrackPayloadBuilder().event("bar")
         .properties(new Properties().putValue("quantity", 3).putRevenue(10))
         .build());
+
     verifyStatic();
     KahunaAnalytics.trackEvent("bar", 3, 1000);
   }
@@ -145,6 +151,7 @@ public class KahunaTest {
 
   @Test public void identify() {
     integration.identify(new IdentifyPayloadBuilder().traits(createTraits("foo")).build());
+
     verifyStatic();
     KahunaAnalytics.setUsernameAndEmail("foo", null);
     KahunaAnalytics.setUserCredential(USERNAME_KEY, null);
@@ -160,7 +167,9 @@ public class KahunaTest {
         .putValue("facebook", "baz")
         .putValue("twitter", "qux")
         .putValue("linkedin", "quux");
+
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
+
     verifyStatic();
     KahunaAnalytics.setUsernameAndEmail("foo", "bar");
     verifyStatic();

@@ -7,13 +7,13 @@ import android.os.Bundle;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.LeanplumPushService;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
-import static com.segment.analytics.Analytics.LogLevel;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
@@ -29,8 +29,9 @@ public class LeanplumIntegration extends AbstractIntegration<Void> {
   static final String LEANPLUM_KEY = "Leanplum";
   LeanplumActivityHelper helper;
 
-  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
+  @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
+    Context context = analytics.getApplication();
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new IllegalStateException("Leanplum requires ACCESS_NETWORK_STATE permission");
     }

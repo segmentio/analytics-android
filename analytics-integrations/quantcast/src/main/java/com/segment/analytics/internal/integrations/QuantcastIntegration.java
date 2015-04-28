@@ -2,8 +2,8 @@ package com.segment.analytics.internal.integrations;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import com.quantcast.measurement.service.QuantcastClient;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
@@ -29,12 +29,13 @@ public class QuantcastIntegration extends AbstractIntegration<Void> {
   static final String QUANTCAST_KEY = "Quantcast";
   String apiKey;
 
-  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
+  @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
-    if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
+    if (!hasPermission(analytics.getApplication(), Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new IllegalStateException("ACCESS_NETWORK_STATE is required");
     }
     apiKey = settings.getString("apiKey");
+    LogLevel logLevel = analytics.getLogLevel();
     QuantcastClient.enableLogging(logLevel == INFO || logLevel == VERBOSE);
   }
 

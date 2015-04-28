@@ -133,7 +133,7 @@ class SegmentDispatcher extends AbstractIntegration {
     }
   }
 
-  @Override public void initialize(Context context, ValueMap settings, Analytics.LogLevel logLevel)
+  @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
     // no-op
   }

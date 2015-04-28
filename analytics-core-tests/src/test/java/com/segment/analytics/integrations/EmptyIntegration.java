@@ -8,7 +8,7 @@ import com.segment.analytics.internal.AbstractIntegration;
 @SuppressWarnings("unused")
 public class EmptyIntegration extends AbstractIntegration<Void> {
 
-  @Override public void initialize(Context context, ValueMap settings, Analytics.LogLevel logLevel)
+  @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
 
   }

@@ -1,8 +1,7 @@
 package com.segment.analytics.internal.integrations;
 
-import android.app.Application;
-import android.content.Context;
 import android.util.Log;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.Properties;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
@@ -39,12 +38,13 @@ public class TapstreamIntegration extends AbstractIntegration<Tapstream> {
   Tapstream tapstream;
   Config config;
 
-  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
+  @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
     trackAllPages = settings.getBoolean("trackAllPages", true);
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", true);
     trackNamedPages = settings.getBoolean("trackNamedPages", true);
 
+    LogLevel logLevel = analytics.getLogLevel();
     if (logLevel == INFO || logLevel == VERBOSE) {
       Logging.setLogger(new Logger() {
         @Override public void log(int i, String s) {
@@ -53,9 +53,10 @@ public class TapstreamIntegration extends AbstractIntegration<Tapstream> {
       });
     }
 
+    String accountName = settings.getString("accountName");
+    String sdkSecret = settings.getString("sdkSecret");
     config = new Config();
-    Tapstream.create((Application) context.getApplicationContext(),
-        settings.getString("accountName"), settings.getString("sdkSecret"), config);
+    Tapstream.create(analytics.getApplication(), accountName, sdkSecret, config);
     tapstream = Tapstream.getInstance();
   }
 

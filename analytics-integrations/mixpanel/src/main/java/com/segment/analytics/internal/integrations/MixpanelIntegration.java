@@ -1,9 +1,9 @@
 package com.segment.analytics.internal.integrations;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
@@ -79,9 +79,9 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     }
   }
 
-  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
+  @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
-    this.logLevel = logLevel;
+    this.logLevel = analytics.getLogLevel();
 
     trackAllPages = settings.getBoolean("trackAllPages", false);
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", true);
@@ -90,7 +90,7 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     token = settings.getString("token");
     increments = getStringSet(settings, "increments");
 
-    mixpanelAPI = MixpanelAPI.getInstance(context, token);
+    mixpanelAPI = MixpanelAPI.getInstance(analytics.getApplication(), token);
     if (isPeopleEnabled) {
       people = mixpanelAPI.getPeople();
     }

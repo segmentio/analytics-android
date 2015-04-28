@@ -44,8 +44,9 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   GoogleAnalytics googleAnalyticsInstance;
   boolean sendUserId;
 
-  @Override public void initialize(Context context, ValueMap settings, Analytics.LogLevel logLevel)
+  @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
+    Context context = analytics.getApplication();
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new IllegalStateException("Google Analytics requires the access state permission.");
     }
@@ -57,6 +58,7 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     googleAnalyticsInstance = GoogleAnalytics.getInstance(context);
     tracker = googleAnalyticsInstance.newTracker(mobileTrackingId);
 
+    Analytics.LogLevel logLevel = analytics.getLogLevel();
     if (logLevel == Analytics.LogLevel.INFO) {
       googleAnalyticsInstance.getLogger().setLogLevel(Logger.LogLevel.INFO);
     } else if (logLevel == Analytics.LogLevel.VERBOSE) {

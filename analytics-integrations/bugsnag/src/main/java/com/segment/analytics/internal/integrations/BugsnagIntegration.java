@@ -1,10 +1,10 @@
 package com.segment.analytics.internal.integrations;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
 import com.bugsnag.android.Bugsnag;
 import com.bugsnag.android.Client;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
@@ -12,8 +12,6 @@ import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.util.Map;
-
-import static com.segment.analytics.Analytics.LogLevel;
 
 /**
  * Bugsnag is an error tracking service for websites and mobile apps. It automatically captures any
@@ -27,9 +25,9 @@ public class BugsnagIntegration extends AbstractIntegration<Client> {
 
   static final String BUGSNAG_KEY = "Bugsnag";
 
-  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
+  @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
-    Bugsnag.init(context, settings.getString("apiKey"));
+    Bugsnag.init(analytics.getApplication(), settings.getString("apiKey"));
   }
 
   @Override public Client getUnderlyingInstance() {

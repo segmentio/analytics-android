@@ -60,8 +60,13 @@ public class AnalyticsTest {
     traits = Traits.create();
     when(traitsCache.get()).thenReturn(traits);
     analyticsContext = createContext(traits);
-    analytics = new Analytics(application, networkExecutor, integrationManager, stats, traitsCache,
-        analyticsContext, defaultOptions, NONE);
+    IntegrationManager.Factory integrationManagerFactory = new IntegrationManager.Factory() {
+      @Override public IntegrationManager create(Analytics analytics) {
+        return integrationManager;
+      }
+    };
+    analytics = new Analytics(application, networkExecutor, integrationManagerFactory, stats,
+      traitsCache, analyticsContext, defaultOptions, NONE);
 
     // Used by singleton tests
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);

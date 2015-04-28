@@ -1,8 +1,8 @@
 package com.segment.analytics.internal.integrations;
 
 import android.app.Activity;
-import android.content.Context;
 import com.amplitude.api.AmplitudeClient;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
@@ -11,7 +11,6 @@ import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
-import static com.segment.analytics.Analytics.LogLevel;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
@@ -30,13 +29,13 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
   boolean trackNamedPages;
   AmplitudeClient amplitude;
 
-  @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
+  @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
     trackAllPages = settings.getBoolean("trackAllPages", false);
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", false);
     trackNamedPages = settings.getBoolean("trackNamedPages", false);
     amplitude = AmplitudeClient.getInstance();
-    amplitude.initialize(context, settings.getString("apiKey"));
+    amplitude.initialize(analytics.getApplication(), settings.getString("apiKey"));
   }
 
   @Override public Void getUnderlyingInstance() {

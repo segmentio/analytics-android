@@ -1,16 +1,14 @@
 package com.segment.analytics.internal;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
 import com.segment.analytics.ValueMap;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.GroupPayload;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
-
-import static com.segment.analytics.Analytics.LogLevel;
 
 /**
  * A base class for all bundled integrations.
@@ -28,7 +26,7 @@ public abstract class AbstractIntegration<T> {
    * and permission in {@link IllegalStateException}. If this method call completes without an
    * error, the integration is assumed to be initialized and ready to except events.
    */
-  public abstract void initialize(Context context, ValueMap settings, LogLevel logLevel)
+  public abstract void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException;
 
   /**

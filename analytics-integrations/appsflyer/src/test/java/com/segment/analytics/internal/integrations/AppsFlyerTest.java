@@ -3,6 +3,7 @@ package com.segment.analytics.internal.integrations;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
@@ -28,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricGradleTestRunner.class)
@@ -37,6 +39,7 @@ public class AppsFlyerTest {
   @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Application context;
   @Mock AppsFlyer appsFlyer;
+  @Mock Analytics analytics;
   AppsFlyerIntegration integration;
 
   @Before public void setUp() {
@@ -46,9 +49,12 @@ public class AppsFlyerTest {
   }
 
   @Test public void initialize() throws IllegalStateException {
+    when(analytics.getApplication()).thenReturn(context);
     AppsFlyerIntegration integration = new AppsFlyerIntegration(appsFlyer);
-    integration.initialize(context,
-        new ValueMap().putValue("appsFlyerDevKey", "foo").putValue("httpFallback", true), BASIC);
+
+    integration.initialize(analytics, new ValueMap() //
+        .putValue("appsFlyerDevKey", "foo").putValue("httpFallback", true));
+
     verify(appsFlyer).setAppsFlyerKey("foo");
     verify(appsFlyer).setUseHTTPFallback(true);
     assertThat(integration.context).isEqualTo(context);
