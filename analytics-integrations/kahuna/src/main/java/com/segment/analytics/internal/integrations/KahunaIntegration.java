@@ -10,7 +10,6 @@ import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.Utils;
-import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
@@ -146,10 +145,6 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
     super.reset();
 
     KahunaAnalytics.logout();
-  }
-
-  @Override public void alias(AliasPayload alias) {
-    KahunaAnalytics.setUserCredential(USER_ID_KEY, alias.userId());
   }
 
   private boolean isNullOrEmpty(Properties properties) {
