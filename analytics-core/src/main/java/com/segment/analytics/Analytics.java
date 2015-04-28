@@ -70,8 +70,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * @see <a href="https://Segment/">Segment</a>
  */
 public class Analytics {
-
-  public static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
+  static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
     @Override public void handleMessage(Message msg) {
       switch (msg.what) {
         default:
@@ -83,13 +82,14 @@ public class Analytics {
   private static final Properties EMPTY_PROPERTIES = new Properties();
   volatile static Analytics singleton = null;
 
-  final LogLevel logLevel;
+  private final Application application;
   private final ExecutorService networkExecutor;
   private final IntegrationManager integrationManager;
   private final Stats stats;
   private final Options defaultOptions;
   private final Traits.Cache traitsCache;
   private final AnalyticsContext analyticsContext;
+  private final LogLevel logLevel;
   boolean shutdown;
 
   /**
@@ -149,6 +149,7 @@ public class Analytics {
   Analytics(Application application, ExecutorService networkExecutor,
       IntegrationManager integrationManager, Stats stats, Traits.Cache traitsCache,
       AnalyticsContext analyticsContext, Options defaultOptions, LogLevel logLevel) {
+    this.application = application;
     this.networkExecutor = networkExecutor;
     this.integrationManager = integrationManager;
     this.stats = stats;
@@ -413,6 +414,16 @@ public class Analytics {
   /** Creates a {@link StatsSnapshot} of the current stats for this instance. */
   public StatsSnapshot getSnapshot() {
     return stats.createSnapshot();
+  }
+
+  /** Return the {@link Application} used to create this instance. */
+  public Application getApplication() {
+    return application;
+  }
+
+  /** Return the {@link LogLevel} for this instance. */
+  public LogLevel getLogLevel() {
+    return logLevel;
   }
 
   /**
