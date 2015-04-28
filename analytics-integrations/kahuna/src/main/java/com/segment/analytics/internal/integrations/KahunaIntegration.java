@@ -5,24 +5,22 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import com.kahuna.sdk.KahunaAnalytics;
+import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
+import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 
 import static com.kahuna.sdk.KahunaUserCredentialKeys.EMAIL_KEY;
 import static com.kahuna.sdk.KahunaUserCredentialKeys.FACEBOOK_KEY;
@@ -98,7 +96,7 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
         // and make sure to format any Date objects appropriately.
         Object value = identityTraits.get(key);
         if (value instanceof Date) {
-          userAttributes.put(key, getISO8601StringForDate((Date) value));
+          userAttributes.put(key, Utils.toISO8601Date((Date) value));
         } else {
           userAttributes.put(key, String.valueOf(value));
         }
@@ -107,28 +105,30 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
     KahunaAnalytics.setUserAttributes(userAttributes);
   }
 
+  /*
+   * Kahuna accepts revenue in unit of cents.  For example Segment revenue "1.23" will map to
+   * Kahuna value of "123"
+   */
   @Override public void track(TrackPayload track) {
     super.track(track);
 
+    // track and track.event should not be null.  This is for Defensive check.
     if (track == null || TextUtils.isEmpty(track.event()))
       return;
 
-    String kahunaEventName = track.event();
-
     kahunaEcommerceHelper.process(track);
 
-    if (track.properties() == null) {
-      KahunaAnalytics.trackEvent(kahunaEventName);
+    if (isNullOrEmpty(track.properties())) {
+      KahunaAnalytics.trackEvent(track.event());
     } else {
       Object revenueObject = track.properties().get(SEGMENT_REVENUE_KEY);
       Object quantityObject = track.properties().get(SEGMENT_QUANTITY_KEY);
       if (revenueObject == null && quantityObject == null) {
-        KahunaAnalytics.trackEvent(kahunaEventName);
+        KahunaAnalytics.trackEvent(track.event());
       } else {
-        int kahunaValue = (revenueObject == null) ? 0 : (int) (track.properties().revenue() * 100);
-        int kahunaCount = (quantityObject == null) ? 0
-                : track.properties().getInt(SEGMENT_QUANTITY_KEY, 0);
-        KahunaAnalytics.trackEvent(kahunaEventName, kahunaCount, kahunaValue);
+        KahunaAnalytics.trackEvent(track.event(),
+                track.properties().getInt("quantity", 0),
+                (int) (track.properties().revenue() * 100));
       }
     }
   }
@@ -152,9 +152,7 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
     KahunaAnalytics.setUserCredential(USER_ID_KEY, alias.userId());
   }
 
-  private static String getISO8601StringForDate(Date date) {
-    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    return dateFormat.format(date);
+  private boolean isNullOrEmpty(Properties properties) {
+    return (properties == null || properties.size() == 0);
   }
 }

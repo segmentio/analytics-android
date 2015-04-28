@@ -11,13 +11,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Kahuna helps mobile marketers send push notifications and in-app messages.
- *
- * @see <a href="https://www.kahuna.com/">Kahuna</a>
- * @see <a href="https://segment.com/docs/integrations/kahuna/">Kahuna Integration</a>
- * @see <a href="http://app.usekahuna.com/tap/getstarted/android/">Kahuna Android SDK</a>
- */
 class KahunaEcommerceHelper {
 
   // Segment constants
