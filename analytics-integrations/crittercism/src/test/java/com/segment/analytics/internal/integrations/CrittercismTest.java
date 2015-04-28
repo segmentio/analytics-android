@@ -5,6 +5,7 @@ import android.app.Application;
 import android.os.Bundle;
 import com.crittercism.app.Crittercism;
 import com.crittercism.app.CrittercismConfig;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
@@ -28,13 +29,13 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.TestUtils.createTraits;
 import static com.segment.analytics.TestUtils.jsonEq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
@@ -48,6 +49,7 @@ public class CrittercismTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Application context;
+  @Mock Analytics analytics;
   CrittercismIntegration integration;
 
   @Before public void setUp() {
@@ -57,7 +59,9 @@ public class CrittercismTest {
   }
 
   @Test public void initialize() throws IllegalStateException {
-    integration.initialize(context, new ValueMap().putValue("appId", "foo"), NONE);
+    when(analytics.getApplication()).thenReturn(context);
+
+    integration.initialize(analytics, new ValueMap().putValue("appId", "foo"));
 
     CrittercismConfig expectedConfig = new CrittercismConfig();
     verifyStatic();
@@ -65,17 +69,20 @@ public class CrittercismTest {
   }
 
   @Test public void initializeWithArgs() throws IllegalStateException {
-    integration.initialize(context, new ValueMap().putValue("appId", "bar")
+    when(analytics.getApplication()).thenReturn(context);
+
+    integration.initialize(analytics, new ValueMap().putValue("appId", "bar")
         .putValue("shouldCollectLogcat", true)
         .putValue("includeVersionCode", true)
         .putValue("customVersionName", "qaz")
-        .putValue("enableServiceMonitoring", false), NONE);
+        .putValue("enableServiceMonitoring", false));
 
     CrittercismConfig expectedConfig = new CrittercismConfig();
     expectedConfig.setLogcatReportingEnabled(true);
     expectedConfig.setVersionCodeToBeIncludedInVersionString(true);
     expectedConfig.setCustomVersionName("qaz");
     expectedConfig.setServiceMonitoringEnabled(false);
+
     verifyStatic();
     Crittercism.initialize(eq(context), eq("bar"), configEq(expectedConfig));
   }
