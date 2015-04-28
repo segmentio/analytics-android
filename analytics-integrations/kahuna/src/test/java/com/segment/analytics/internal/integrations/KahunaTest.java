@@ -204,8 +204,10 @@ public class KahunaTest {
 
   @Test public void testProcess_CompletedOrder_noProperties() {
     integration.track(new TrackPayloadBuilder().event(SEG_COMPLETED_ORDER).build());
-    verifyStatic(never());
-    KahunaAnalytics.setUserAttributes(anyMap());
+    verifyStatic();
+    KahunaAnalytics.setUserAttributes(
+            argThat(new KahunaUserAttributesMatcher(
+                    LAST_PURCHASE_DISCOUNT, "0")));
   }
 
   @Test public void testProcess_CompletedOrder_HasDiscount() {

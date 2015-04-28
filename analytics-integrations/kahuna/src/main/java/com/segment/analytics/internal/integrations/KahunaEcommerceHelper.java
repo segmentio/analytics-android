@@ -54,6 +54,10 @@ class KahunaEcommerceHelper {
       Map<String, String> userAttributes = KahunaAnalytics.getUserAttributes();
       userAttributes.put(LAST_PURCHASE_DISCOUNT, discountString);
       KahunaAnalytics.setUserAttributes(userAttributes);
+    } else {
+      Map<String, String> userAttributes = KahunaAnalytics.getUserAttributes();
+      userAttributes.put(LAST_PURCHASE_DISCOUNT, "0");
+      KahunaAnalytics.setUserAttributes(userAttributes);
     }
   }
 
