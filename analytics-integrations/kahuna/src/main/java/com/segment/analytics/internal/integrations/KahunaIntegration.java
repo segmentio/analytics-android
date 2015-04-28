@@ -56,14 +56,14 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
           EMAIL_KEY, FACEBOOK_KEY, TWITTER_KEY, LINKEDIN_KEY, INSTALL_TOKEN_KEY, GOOGLE_PLUS_ID));
 
   @Override public void initialize(Context context, ValueMap settings, LogLevel logLevel)
-      throws IllegalStateException {
+          throws IllegalStateException {
     if (!isOnClassPath("android.support.v4.app.Fragment")) {
       throw new IllegalStateException("Kahuna requires the support library to be bundled.");
     }
     trackAllPages = settings.getBoolean("trackAllPages", false);
 
     KahunaAnalytics.onAppCreate(context, settings.getString("apiKey"),
-             settings.getString("pushSenderId"));
+            settings.getString("pushSenderId"));
     KahunaAnalytics.setDebugMode(logLevel == INFO || logLevel == VERBOSE);
   }
 
@@ -135,8 +135,6 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
 
   @Override public void screen(ScreenPayload screen) {
     super.screen(screen);
-
-    // TODO: Segment is working on the trackAllPages setting, currently it is defaulted to false.
     if (trackAllPages) {
       if (screen != null && screen.name() != null) {
         KahunaAnalytics.trackEvent("Viewed " + screen.name() + " Screen");
