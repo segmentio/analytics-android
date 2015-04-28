@@ -259,7 +259,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
           debug("Initializing integration %s with settings %s.", key, settings);
         }
         try {
-          integration.initialize(application, settings, logLevel);
+          integration.initialize(analytics, settings);
           initializedIntegration = true;
         } catch (Exception e) {
           if (logLevel.log()) {

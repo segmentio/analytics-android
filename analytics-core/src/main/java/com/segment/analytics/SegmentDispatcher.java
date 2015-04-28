@@ -6,6 +6,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.JsonWriter;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.BasePayload;
@@ -133,7 +134,7 @@ class SegmentDispatcher extends AbstractIntegration {
     }
   }
 
-  @Override public void initialize(Context context, ValueMap settings, Analytics.LogLevel logLevel)
+  @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
     // no-op
   }

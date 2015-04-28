@@ -148,7 +148,7 @@ public class IntegrationManagerTest {
         + "}");
     AbstractIntegration<Void> badIntegration = new AbstractIntegration<Void>() {
       @Override
-      public void initialize(Context context, ValueMap settings, Analytics.LogLevel logLevel)
+      public void initialize(Analytics analytics, ValueMap settings)
           throws IllegalStateException {
         throw new NullPointerException("mock");
       }
@@ -181,8 +181,7 @@ public class IntegrationManagerTest {
 
     integrationManager.performInitializeIntegrations(projectSettings);
 
-    verify(badIntegration, times(0)).initialize(any(Context.class), any(ProjectSettings.class),
-        any(Analytics.LogLevel.class));
+    verify(badIntegration, times(0)).initialize(any(Analytics.class), any(ValueMap.class));
 
     assertThat(integrationManager.bundledIntegrations).isEmpty();
     assertThat(integrationManager.integrations).isEmpty();
@@ -199,8 +198,7 @@ public class IntegrationManagerTest {
 
     integrationManager.performInitializeIntegrations(projectSettings);
 
-    verify(badIntegration, times(0)).initialize(any(Context.class), any(ProjectSettings.class),
-        any(Analytics.LogLevel.class));
+    verify(badIntegration, times(0)).initialize(any(Analytics.class), any(ValueMap.class));
 
     assertThat(integrationManager.bundledIntegrations).isEmpty();
     assertThat(integrationManager.integrations).isEmpty();
