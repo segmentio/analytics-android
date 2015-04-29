@@ -27,10 +27,12 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static com.segment.analytics.TestUtils.createTraits;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
@@ -57,8 +59,24 @@ public class ApptimizeTest {
 
     integration.initialize(analytics, new ValueMap().putValue("appkey", "foo"));
 
+    assertThat(integration.analytics).isNotNull().isEqualTo(analytics);
     verifyStatic();
     Apptimize.setup(context, "foo");
+    verifyNoMoreInteractions(Apptimize.class);
+  }
+
+  @Test public void initializeWithRoots() {
+    when(analytics.getApplication()).thenReturn(context);
+
+    integration.initialize(analytics, new ValueMap() //
+        .putValue("appkey", "foo") //
+        .putValue("listen", true));
+
+    assertThat(integration.analytics).isNotNull().isEqualTo(analytics);
+    verifyStatic();
+    Apptimize.setup(context, "foo");
+    verifyStatic();
+    Apptimize.setOnExperimentRunListener(integration);
   }
 
   @Test public void activityCreate() {
@@ -170,5 +188,15 @@ public class ApptimizeTest {
   @Test public void reset() {
     integration.reset();
     verifyNoMoreInteractions(Apptimize.class);
+  }
+
+  @Test public void roots() {
+    integration.analytics = analytics;
+
+    integration.onExperimentRun("foo", "bar", false);
+
+    verify(analytics).track("Experiment Viewed", new Properties()
+        .putValue("experimentName", "foo")
+        .putValue("variationName", "bar"));
   }
 }
