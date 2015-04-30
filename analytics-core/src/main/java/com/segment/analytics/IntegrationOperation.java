@@ -14,7 +14,6 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /** Abstraction for a task that a {@link AbstractIntegration} can execute. */
 abstract class IntegrationOperation {
-
   static boolean isIntegrationEnabled(ValueMap integrations, AbstractIntegration integration) {
     if (isNullOrEmpty(integrations)) {
       return true;
@@ -225,6 +224,9 @@ abstract class IntegrationOperation {
         return "Reset";
       }
     };
+  }
+
+  private IntegrationOperation() {
   }
 
   /** Run this operation on the given integration. */
