@@ -43,8 +43,11 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -66,6 +69,13 @@ public final class Utils {
   final static String TAG = "Segment";
   @SuppressLint("SimpleDateFormat") private static final DateFormat ISO_8601_DATE_FORMAT =
       new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+
+  /** Creates a mutable HashSet instance containing the given elements in unspecified order */
+  public static <T> Set<T> newSet(T... values) {
+    Set<T> set = new HashSet<T>(values.length);
+    Collections.addAll(set, values);
+    return set;
+  }
 
   /** Returns the date as a string formatted with {@link #ISO_8601_DATE_FORMAT}. */
   public static String toISO8601Date(Date date) {

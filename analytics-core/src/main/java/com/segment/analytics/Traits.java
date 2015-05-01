@@ -54,7 +54,7 @@ public class Traits extends ValueMap {
   private static final String EMAIL_KEY = "email";
   private static final String FAX_KEY = "fax";
   private static final String ANONYMOUS_ID_KEY = "anonymousId";
-  private static final String ID_KEY = "userId";
+  private static final String USER_ID_KEY = "userId";
   private static final String NAME_KEY = "name";
   private static final String PHONE_KEY = "phone";
   private static final String WEBSITE_KEY = "website";
@@ -101,11 +101,11 @@ public class Traits extends ValueMap {
    * instead. Note that this is unable to enforce it, users can easily do traits.put(id, ..);
    */
   Traits putUserId(String id) {
-    return putValue(ID_KEY, id);
+    return putValue(USER_ID_KEY, id);
   }
 
   public String userId() {
-    return getString(ID_KEY);
+    return getString(USER_ID_KEY);
   }
 
   Traits putAnonymousId(String id) {
