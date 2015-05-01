@@ -108,7 +108,7 @@ public final class Utils {
     return map == null || map.size() == 0;
   }
 
-  /** Creates a unique device id to anonymously identify a user. */
+  /** Creates a unique device id. */
   public static String getDeviceId(Context context) {
     String androidId = getString(context.getContentResolver(), ANDROID_ID);
     if (!isNullOrEmpty(androidId) && !"9774d56d682e549c".equals(androidId) && !"unknown".equals(
