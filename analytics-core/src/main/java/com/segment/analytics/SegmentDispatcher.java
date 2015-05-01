@@ -261,6 +261,13 @@ class SegmentDispatcher extends AbstractIntegration {
         IOException ioException = new IOException("Unable to remove " //
             + payloadsUploaded + " payload(s) from queueFile: " + queueFile, e);
         throw new IOError(ioException);
+      } catch (ArrayIndexOutOfBoundsException e) {
+        // Log more information for https://github.com/segmentio/analytics-android/issues/263
+        if (logLevel.log()) {
+          error(e, "Unable to remove %s payload(s) from queueFile: %s", payloadsUploaded,
+              queueFile);
+        }
+        throw e;
       }
 
       if (queueFile.size() > 0) {
