@@ -301,6 +301,10 @@ public class Properties extends ValueMap {
     return putValue(DISCOUNT_KEY, discount);
   }
 
+  public double discount() {
+    return getDouble(DISCOUNT_KEY, 0);
+  }
+
   /**
    * Set a coupon name for an order associated with an event.
    *

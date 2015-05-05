@@ -2,5 +2,5 @@ apply from: rootProject.file('gradle/integration.gradle')
 
 dependencies {
   compile rootProject.ext.supportLib
-  compile files('libs/Kahuna-550.jar')
+  compile files('libs/Kahuna-556.jar')
 }
