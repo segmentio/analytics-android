@@ -251,7 +251,12 @@ class SegmentDispatcher extends AbstractIntegration {
     try {
       int payloadsUploaded = networkExecutor.submit(new Callable<Integer>() {
         @Override public Integer call() throws Exception {
-          return upload();
+            try {
+                return upload();
+            } catch(IOException ioe) {
+                error(ioe, "Upload failed: " + ioe.getMessage());
+                return -1;
+            }
         }
       }).get();
 
