@@ -3,6 +3,7 @@ package com.segment.analytics.internal.integrations;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
+import android.text.TextUtils;
 import com.kahuna.sdk.KahunaAnalytics;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
@@ -16,7 +17,9 @@ import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.ScreenPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
@@ -244,29 +247,26 @@ public class KahunaTest {
   }
 
   @Test public void trackViewedProductCategoryWithPreviouslyViewedCategoryMax() {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 50; i > 0; i--) {
-      sb.append(i);
-      if (i != 1) {
-        sb.append(",");
-      }
+    List<Integer> list = new ArrayList<>();
+    for (int i = 1; i <= 50; i++) {
+      list.add(i);
     }
 
     Map<String, String> map = new LinkedHashMap<>();
-    map.put(CATEGORIES_VIEWED, sb.toString());
+    map.put(CATEGORIES_VIEWED, TextUtils.join(",", list));
     PowerMockito.when(KahunaAnalytics.getUserAttributes()).thenReturn(map);
 
     integration.trackViewedProductCategory(new TrackPayloadBuilder() //
         .event(VIEWED_PRODUCT_CATEGORY) //
-        .properties(new Properties().putCategory("foo")) //
+        .properties(new Properties().putCategory("51")) //
         .build());
 
     Map<String, String> expectedAttributes = new LinkedHashMap<>();
-    // the '50' is removed
-    expectedAttributes.put(CATEGORIES_VIEWED, "49,48,47,46,45,44,43,42,41,40,39,38,37,36,35,34,33,"
-        + "32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,"
-        + "16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,foo");
-    expectedAttributes.put(LAST_VIEWED_CATEGORY, "foo");
+    // the '1' is removed
+    expectedAttributes.put(CATEGORIES_VIEWED,
+        "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34"
+            + ",35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51");
+    expectedAttributes.put(LAST_VIEWED_CATEGORY, "51");
 
     verifyStatic();
     KahunaAnalytics.getUserAttributes();
