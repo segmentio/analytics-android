@@ -72,7 +72,7 @@ public final class Utils {
 
   /** Creates a mutable HashSet instance containing the given elements in unspecified order */
   public static <T> Set<T> newSet(T... values) {
-    Set<T> set = new HashSet<T>(values.length);
+    Set<T> set = new HashSet<>(values.length);
     Collections.addAll(set, values);
     return set;
   }
@@ -203,6 +203,20 @@ public final class Utils {
   /** Buffers the given {@code InputStream}. */
   public static BufferedReader buffer(InputStream is) {
     return new BufferedReader(new InputStreamReader(is));
+  }
+
+  /** Reads the give {@code InputStream} into a String. */
+  public static String readFully(InputStream is) throws IOException {
+    return readFully(buffer(is));
+  }
+
+  /** Reads the give {@code BufferedReader} into a String. */
+  public static String readFully(BufferedReader reader) throws IOException {
+    StringBuilder sb = new StringBuilder();
+    for (String line; (line = reader.readLine()) != null; ) {
+      sb.append(line);
+    }
+    return sb.toString();
   }
 
   public static <T> Map<String, T> createMap() {

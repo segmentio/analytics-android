@@ -99,9 +99,11 @@ public class ClientTest {
 
   @Test public void uploadFailureClosesStreamsAndThrowsException() throws Exception {
     OutputStream os = mock(OutputStream.class);
+    InputStream is = mock(InputStream.class);
     when(mockConnection.getOutputStream()).thenReturn(os);
     when(mockConnection.getResponseCode()).thenReturn(300);
     when(mockConnection.getResponseMessage()).thenReturn("bar");
+    when(mockConnection.getInputStream()).thenReturn(is);
 
     Client.Connection connection = mockClient.upload();
     verify(mockConnection).setDoOutput(true);
@@ -111,7 +113,9 @@ public class ClientTest {
       connection.close();
       fail(">= 300 return code should throw an exception");
     } catch (Client.UploadException e) {
-      assertThat(e).hasMessage("HTTP " + 300 + ": bar");
+      assertThat(e).hasMessage("HTTP 300: bar. "
+          + "Response: Could not read response body for rejected message: "
+          + "java.io.IOException: Underlying input stream returned zero bytes");
     }
     verify(mockConnection).disconnect();
     verify(os).close();
