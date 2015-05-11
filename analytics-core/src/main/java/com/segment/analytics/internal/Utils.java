@@ -30,6 +30,7 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
+import android.os.Process;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -50,6 +51,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.Manifest.permission.READ_PHONE_STATE;
@@ -58,14 +64,15 @@ import static android.content.Context.MODE_PRIVATE;
 import static android.content.Context.TELEPHONY_SERVICE;
 import static android.content.pm.PackageManager.FEATURE_TELEPHONY;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static android.provider.Settings.Secure.ANDROID_ID;
 import static android.provider.Settings.Secure.getString;
 
 public final class Utils {
 
   public static final String THREAD_PREFIX = "SegmentAnalytics-";
-  public static final int DEFAULT_FLUSH_INTERVAL = 20 * 1000; // 20s
-  public static final int DEFAULT_FLUSH_QUEUE_SIZE = 30;
+  public static final int DEFAULT_FLUSH_INTERVAL = 30 * 1000; // 20s
+  public static final int DEFAULT_FLUSH_QUEUE_SIZE = 20;
   final static String TAG = "Segment";
   @SuppressLint("SimpleDateFormat") private static final DateFormat ISO_8601_DATE_FORMAT =
       new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
@@ -240,6 +247,42 @@ public final class Utils {
 
   private Utils() {
     throw new AssertionError("No instances");
+  }
+
+  /**
+   * A {@link ThreadPoolExecutor} implementation by {@link com.segment.analytics.Analytics}
+   * instances. Exists as a custom type so that we can differentiate the use of defaults versus a
+   * user-supplied instance.
+   */
+  public static class AnalyticsExecutorService extends ThreadPoolExecutor {
+    private static final int DEFAULT_THREAD_COUNT = 5;
+    // At most we perform two network requests concurrently
+    private static final int MAX_THREAD_COUNT = 20;
+
+    public AnalyticsExecutorService() {
+      //noinspection Convert2Diamond
+      super(DEFAULT_THREAD_COUNT, MAX_THREAD_COUNT, 0, TimeUnit.MILLISECONDS,
+          new LinkedBlockingQueue<Runnable>(), new AnalyticsThreadFactory());
+    }
+  }
+
+  public static class AnalyticsThreadFactory implements ThreadFactory {
+    @SuppressWarnings("NullableProblems") public Thread newThread(Runnable r) {
+      return new AnalyticsThread(r);
+    }
+  }
+
+  private static class AnalyticsThread extends Thread {
+    private static final AtomicInteger SEQUENCE_GENERATOR = new AtomicInteger(1);
+
+    public AnalyticsThread(Runnable r) {
+      super(r, THREAD_PREFIX + SEQUENCE_GENERATOR.getAndIncrement());
+    }
+
+    @Override public void run() {
+      Process.setThreadPriority(THREAD_PRIORITY_BACKGROUND);
+      super.run();
+    }
   }
 
   /** A {@link ConcurrentHashMap} that rejects null keys and values instead of failing. */

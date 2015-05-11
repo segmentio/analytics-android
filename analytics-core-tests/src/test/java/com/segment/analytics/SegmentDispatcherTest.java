@@ -14,7 +14,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import org.junit.After;
 import org.junit.Rule;
@@ -30,7 +29,6 @@ import static android.content.Context.CONNECTIVITY_SERVICE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.SegmentDispatcher.MAX_QUEUE_SIZE;
-import static com.segment.analytics.SegmentDispatcher.SegmentDispatcherHandler.REQUEST_FLUSH;
 import static com.segment.analytics.TestUtils.SynchronousExecutor;
 import static com.segment.analytics.TestUtils.TRACK_PAYLOAD;
 import static com.segment.analytics.TestUtils.TRACK_PAYLOAD_JSON;
@@ -83,7 +81,7 @@ public class SegmentDispatcherTest {
   @Test public void enqueueLimitsQueueSize() throws IOException {
     QueueFile queueFile = mock(QueueFile.class);
     // we want to trigger a remove, but not a flush
-    when(queueFile.size()).thenReturn(0, MAX_QUEUE_SIZE, 0);
+    when(queueFile.size()).thenReturn(0, MAX_QUEUE_SIZE, MAX_QUEUE_SIZE, 0);
     SegmentDispatcher segmentDispatcher = new SegmentBuilder().queueFile(queueFile).build();
 
     segmentDispatcher.performEnqueue(TRACK_PAYLOAD);
@@ -137,7 +135,7 @@ public class SegmentDispatcherTest {
       queueFile.add(bytes);
     }
 
-    segmentDispatcher.performFlush();
+    segmentDispatcher.submitFlush();
 
     assertThat(queueFile.size()).isEqualTo(0);
   }
@@ -149,9 +147,9 @@ public class SegmentDispatcherTest {
     SegmentDispatcher dispatcher =
         new SegmentBuilder().queueFile(queueFile).networkExecutor(executor).build();
 
-    dispatcher.performFlush();
+    dispatcher.submitFlush();
 
-    verify(executor).submit(any(Callable.class));
+    verify(executor).submit(any(Runnable.class));
   }
 
   @Test public void flushWhenDisconnectedSkipsUpload() throws IOException {
@@ -165,10 +163,9 @@ public class SegmentDispatcherTest {
     SegmentDispatcher segmentDispatcher =
         new SegmentBuilder().context(context).client(client).build();
 
-    segmentDispatcher.performFlush();
+    segmentDispatcher.submitFlush();
 
     verify(client, never()).upload();
-    assertThat(segmentDispatcher.handler.hasMessages(REQUEST_FLUSH)).isTrue();
   }
 
   @Test public void flushWhenQueueSizeIsLessThanOneSkipsUpload() throws IOException {
@@ -179,11 +176,10 @@ public class SegmentDispatcherTest {
     SegmentDispatcher segmentDispatcher =
         new SegmentBuilder().queueFile(queueFile).context(context).client(client).build();
 
-    segmentDispatcher.performFlush();
+    segmentDispatcher.submitFlush();
 
     verifyZeroInteractions(context);
     verify(client, never()).upload();
-    assertThat(segmentDispatcher.handler.hasMessages(REQUEST_FLUSH)).isTrue();
   }
 
   @Test public void flushDisconnectsConnection() throws IOException {
@@ -196,7 +192,7 @@ public class SegmentDispatcherTest {
     SegmentDispatcher segmentDispatcher =
         new SegmentBuilder().client(client).queueFile(queueFile).build();
 
-    segmentDispatcher.performFlush();
+    segmentDispatcher.submitFlush();
 
     verify(urlConnection, times(2)).disconnect();
   }
