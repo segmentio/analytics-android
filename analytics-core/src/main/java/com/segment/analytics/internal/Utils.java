@@ -255,9 +255,9 @@ public final class Utils {
    * user-supplied instance.
    */
   public static class AnalyticsExecutorService extends ThreadPoolExecutor {
-    private static final int DEFAULT_THREAD_COUNT = 5;
+    private static final int DEFAULT_THREAD_COUNT = 1;
     // At most we perform two network requests concurrently
-    private static final int MAX_THREAD_COUNT = 20;
+    private static final int MAX_THREAD_COUNT = 2;
 
     public AnalyticsExecutorService() {
       //noinspection Convert2Diamond
