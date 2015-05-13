@@ -167,11 +167,11 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   @Override public void track(TrackPayload track) {
     String event = track.event();
 
+    event(event, track.properties());
+
     if (increments.contains(event) && isPeopleEnabled) {
       people.increment(event, 1);
       people.set("Last " + event, new Date());
-    } else {
-      event(track.event(), track.properties());
     }
   }
 

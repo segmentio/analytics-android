@@ -32,7 +32,6 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.TestUtils.createTraits;
 import static com.segment.analytics.TestUtils.jsonEq;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -219,6 +218,7 @@ public class MixpanelTest {
 
     integration.track(new TrackPayloadBuilder().event("baz").build());
 
+    verify(mixpanelAPI).track(eq("baz"), jsonEq(new JSONObject()));
     verify(people).increment("baz", 1);
     verify(people).set(eq("Last baz"), any());
     verifyNoMoreMixpanelInteractions();
