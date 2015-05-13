@@ -71,7 +71,7 @@ import static android.provider.Settings.Secure.getString;
 public final class Utils {
 
   public static final String THREAD_PREFIX = "SegmentAnalytics-";
-  public static final int DEFAULT_FLUSH_INTERVAL = 30 * 1000; // 20s
+  public static final int DEFAULT_FLUSH_INTERVAL = 30 * 1000; // 30s
   public static final int DEFAULT_FLUSH_QUEUE_SIZE = 20;
   final static String TAG = "Segment";
   @SuppressLint("SimpleDateFormat") private static final DateFormat ISO_8601_DATE_FORMAT =
