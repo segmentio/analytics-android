@@ -22,7 +22,7 @@ import java.util.Map;
  * @see <a href="https://segment.com/docs/integrations/taplytics">Taplytics Integration</a>
  * @see <a href="https://github.com/taplytics/Taplytics-Android-SDK">Taplytics Android SDK</a>
  */
-class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
+public class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
     static final String TAPLYTICS_KEY = "Taplytics";
 
     @Override
@@ -42,7 +42,8 @@ class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
         JSONObject customData = new JSONObject();
         for (Map.Entry<String, Object> entry : identify.traits().entrySet()) {
             try {
-                if ((entry.getKey().equals("name") || entry.getKey().equals("email")) && Utils.isNullOrEmpty(entry.getValue().toString())) {
+                if ((entry.getKey().equals("name") || entry.getKey().equals("email"))
+                        && Utils.isNullOrEmpty(entry.getValue().toString())) {
                     userAttributes.put(entry.getKey(), entry.getValue());
                 } else {
                     customData.put(entry.getKey(), entry.getValue());
