@@ -14,6 +14,14 @@ import org.json.JSONObject;
 
 import java.util.Map;
 
+/**
+ * Mixpanel is a native mobile A/B testing platform that allows you to create new tests and push
+ * them live without changing any code. Analytics, push notifications, and more.
+ *
+ * @see <a href="https://taplytics.com">Taplytics</a>
+ * @see <a href="https://segment.com/docs/integrations/taplytics">Taplytics Integration</a>
+ * @see <a href="https://github.com/taplytics/Taplytics-Android-SDK">Taplytics Android SDK</a>
+ */
 class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
     static final String TAPLYTICS_KEY = "Taplytics";
 
@@ -71,14 +79,8 @@ class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
         super.group(group);
 
         JSONObject userAttributes = new JSONObject();
-        JSONObject customData = new JSONObject();
-        for (Map.Entry<String, Object> entry : group.traits().entrySet()) {
-            try {
-                customData.put(entry.getKey(), entry.getValue());
-            } catch (JSONException e) {
-                //Ignore this value if it is problematic.
-            }
-        }
+        JSONObject customData = group.traits().toJsonObject();
+
         try {
             userAttributes.put("customData", customData);
         } catch (JSONException e) {

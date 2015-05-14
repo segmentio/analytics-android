@@ -23,6 +23,6 @@
   ~ SOFTWARE.
   -->
 
-<manifest package="com.segment.analytics.internal.integrations.mixpanel">
+<manifest package="com.segment.analytics.internal.integrations.taplytics">
   <application/>
 </manifest>

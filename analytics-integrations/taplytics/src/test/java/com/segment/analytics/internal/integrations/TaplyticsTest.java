@@ -1,24 +1,49 @@
+package com.segment.analytics.internal.integrations;
+
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 
+import com.segment.analytics.Analytics;
+import com.segment.analytics.IntegrationTestRule;
+import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
+import com.segment.analytics.ValueMap;
+import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
+import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
+import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
+import com.segment.analytics.internal.model.payloads.util.ScreenPayloadBuilder;
+import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
 import com.taplytics.sdk.Taplytics;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.TestUtils.createTraits;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 
 @RunWith(RobolectricTestRunner.class)
 @Config(emulateSdk = 18, manifest = Config.NONE)
-public class TaplyticsTest extends AbstractIntegrationTest {
+@PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*"})
+@PrepareForTest(Taplytics.class)
+public class TaplyticsTest {
     TaplyticsIntegration integration;
     @Rule
     public PowerMockRule rule = new PowerMockRule();
@@ -99,7 +124,7 @@ public class TaplyticsTest extends AbstractIntegrationTest {
     public void track() {
         integration.track(new TrackPayloadBuilder().event("someEvent").build());
         verifyStatic();
-        Taplytics.track(eq("someEvent"));
+        Taplytics.logEvent(eq("someEvent"));
     }
 
     @Test
@@ -108,7 +133,7 @@ public class TaplyticsTest extends AbstractIntegrationTest {
                 .properties(new Properties().putValue("number", 416))
                 .build());
         verifyStatic();
-        Taplytics.track(eq("pressPlay"), eq(416));
+        Taplytics.logEvent(eq("pressPlay"), eq(416));
     }
 
     @Test
@@ -117,7 +142,7 @@ public class TaplyticsTest extends AbstractIntegrationTest {
                 .properties(new Properties().putValue("value", 6))
                 .build());
         verifyStatic();
-        Taplytics.track(eq("pressPlay"), eq(6.0));
+        Taplytics.logEvent(eq("pressPlay"), eq(6.0));
     }
 
     @Test
@@ -132,7 +157,7 @@ public class TaplyticsTest extends AbstractIntegrationTest {
         verifyStatic();
         JSONObject attributes = new JSONObject();
         attributes.put("name", "vicVu");
-        attributes.put("user_id", "magicnumber")
+        attributes.put("user_id", "magicnumber");
         Taplytics.setUserAttributes(attributes);
         verifyNoMoreInteractions(Taplytics.class);
     }
@@ -143,7 +168,7 @@ public class TaplyticsTest extends AbstractIntegrationTest {
         integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
         verifyStatic();
         JSONObject attributes = new JSONObject();
-        attributes.put("user_id", "magicnumber")
+        attributes.put("user_id", "magicnumber");
         Taplytics.setUserAttributes(attributes);
         verifyStatic();
         attributes.put("age", 22);
