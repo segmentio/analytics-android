@@ -12,6 +12,8 @@ import com.taplytics.sdk.Taplytics;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -25,9 +27,29 @@ import java.util.Map;
 public class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
     static final String TAPLYTICS_KEY = "Taplytics";
 
+    ArrayList<String> knownTraitNames = new ArrayList<String>() {{
+        add("name");
+        add("email");
+        add("gender");
+        add("firstName");
+        add("lastName");
+        add("age");
+    }};
+
     @Override
     public void initialize(Analytics analytics, ValueMap settings) throws IllegalStateException {
-        Taplytics.startTaplytics(analytics.getApplication(), settings.getString("apiKey"));
+        String apiKey = settings.getString("appkey");
+        settings.remove("appkey");
+        HashMap options = new HashMap();
+
+        for (Map.Entry<String, String> entry : settings.toStringMap().entrySet()) {
+            if (entry.getValue().toLowerCase().equals("true") || entry.getValue().toLowerCase().equals("false")) {
+                options.put(entry.getKey(), Boolean.valueOf(entry.getValue()));
+            } else {
+                options.put(entry.getKey(), entry.getValue());
+            }
+        }
+        Taplytics.startTaplytics(analytics.getApplication(), apiKey, options);
     }
 
     @Override
@@ -38,13 +60,14 @@ public class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
     @Override
     public void identify(IdentifyPayload identify) {
         super.identify(identify);
-        JSONObject userAttributes = new JSONObject();
+        TaplyticsJSONObject userAttributes = new TaplyticsJSONObject();
         JSONObject customData = new JSONObject();
         for (Map.Entry<String, Object> entry : identify.traits().entrySet()) {
             try {
-                if ((entry.getKey().equals("name") || entry.getKey().equals("email"))
-                        && Utils.isNullOrEmpty(entry.getValue().toString())) {
+                if (knownTraitNames.contains(entry.getKey()) && !Utils.isNullOrEmpty(entry.getValue().toString())) {
                     userAttributes.put(entry.getKey(), entry.getValue());
+                } else if (entry.getKey().equals("userId") && !Utils.isNullOrEmpty(entry.getValue().toString())) {
+                    userAttributes.put("user_id", entry.getValue());
                 } else {
                     customData.put(entry.getKey(), entry.getValue());
                 }
@@ -53,10 +76,15 @@ public class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
             }
         }
         try {
-            userAttributes.put("customData", customData);
-        } catch (JSONException e) {
+            if (customData.length() > 0) {
+                userAttributes.put("customData", customData);
+            }
+        } catch (JSONException e)
+
+        {
             //We will just leave out the custom data if its problematic.
         }
+
         Taplytics.setUserAttributes(userAttributes);
     }
 
@@ -72,6 +100,7 @@ public class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
             }
         }
         Taplytics.logEvent(track.event(), null, metaData);
+
     }
 
 
@@ -95,4 +124,5 @@ public class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
         super.reset();
         Taplytics.resetAppUser(null);
     }
+
 }

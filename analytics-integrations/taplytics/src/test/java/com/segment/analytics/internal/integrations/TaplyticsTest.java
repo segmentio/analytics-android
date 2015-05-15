@@ -9,6 +9,7 @@ import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
+import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
@@ -27,8 +28,10 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.rule.PowerMockRule;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
+
+import java.util.HashMap;
 
 import static com.segment.analytics.TestUtils.createTraits;
 import static org.mockito.Matchers.eq;
@@ -39,9 +42,9 @@ import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 
-@RunWith(RobolectricTestRunner.class)
-@Config(emulateSdk = 18, manifest = Config.NONE)
-@PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*"})
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
+@PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*", "org.json.*"})
 @PrepareForTest(Taplytics.class)
 public class TaplyticsTest {
     TaplyticsIntegration integration;
@@ -66,7 +69,96 @@ public class TaplyticsTest {
         when(analytics.getApplication()).thenReturn(context);
         integration.initialize(analytics, new ValueMap().putValue("appkey", "foo"));
         verifyStatic();
-        Taplytics.startTaplytics(context, "foo");
+        HashMap options = new HashMap();
+        Taplytics.startTaplytics(eq(context), eq("foo"), eq(options));
+    }
+
+    @Test
+    public void initializeWithOptions() {
+        when(analytics.getApplication()).thenReturn(context);
+        integration.initialize(analytics, new ValueMap().putValue("appkey", "foo").putValue("debugLogging", true));
+        verifyStatic();
+        HashMap options = new HashMap();
+        options.put("debugLogging", true);
+        Taplytics.startTaplytics(context, "foo", options);
+    }
+
+    @Test
+    public void track() {
+        integration.track(new TrackPayloadBuilder().event("someEvent").build());
+        verifyStatic();
+        Taplytics.logEvent(eq("someEvent"), eq((Number) null), eq(new TaplyticsJSONObject()));
+    }
+
+    @Test
+    public void trackNumeric() throws JSONException {
+        integration.track(new TrackPayloadBuilder().event("someEvent")
+                .properties(new Properties().putValue("value", 416))
+                .build());
+        verifyStatic();
+        TaplyticsJSONObject metadata = new TaplyticsJSONObject();
+        metadata.put("value", 416);
+        Taplytics.logEvent(eq("someEvent"), eq((Number) null), eq(metadata));
+    }
+
+    @Test
+    public void trackNumericInteger() throws JSONException {
+        integration.track(new TrackPayloadBuilder().event("someEvent")
+                .properties(new Properties().putValue("value", 6.0))
+                .build());
+        verifyStatic();
+        TaplyticsJSONObject metadata = new TaplyticsJSONObject();
+        metadata.put("value", 6.0);
+        Taplytics.logEvent(eq("someEvent"), eq((Number) null), eq(metadata));
+    }
+
+    @Test
+    public void identify() throws JSONException {
+        integration.identify(new IdentifyPayloadBuilder().traits(createTraits("magicnumber").putName("vicVu")).build());
+        verifyStatic();
+        TaplyticsJSONObject attributes = new TaplyticsJSONObject();
+        attributes.put("name", "vicVu");
+        attributes.put("user_id", "magicnumber");
+        Taplytics.setUserAttributes(eq(attributes));
+        verifyNoMoreInteractions(Taplytics.class);
+    }
+
+    @Test
+    public void identifyWithExtraTraits() throws JSONException {
+        Traits traits = createTraits("magicnumber").putPhone("555 553 5541").putAge(22).putGender("male").putEmployees(30);
+        integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
+        verifyStatic();
+        TaplyticsJSONObject attributes = new TaplyticsJSONObject();
+        attributes.put("user_id", "magicnumber");
+        attributes.put("age", 22);
+        attributes.put("gender", "male");
+        TaplyticsJSONObject customData = new TaplyticsJSONObject();
+        customData.put("phone", "555 553 5541");
+        customData.put("employees", 30L);
+        attributes.put("customData", customData);
+        Taplytics.setUserAttributes(eq(attributes));
+        verifyStatic();
+        verifyNoMoreInteractions(Taplytics.class);
+    }
+
+    @Test
+    public void group() throws JSONException {
+        Traits traits = createTraits("group").putName("somegroup");
+        integration.group(new GroupPayloadBuilder().groupTraits(traits).build());
+        JSONObject attributes = new JSONObject();
+        JSONObject metaData = new JSONObject();
+        metaData.put("user_id", "group");
+        metaData.put("name", "someGroup");
+        attributes.put("metaData", "someGroup");
+        Taplytics.setUserAttributes(eq(attributes));
+        verifyStatic();
+    }
+
+    @Test
+    public void reset() {
+        integration.reset();
+        Taplytics.resetAppUser(null);
+        verifyStatic();
     }
 
     @Test
@@ -120,70 +212,6 @@ public class TaplyticsTest {
         verifyNoMoreInteractions(Taplytics.class);
     }
 
-    @Test
-    public void track() {
-        integration.track(new TrackPayloadBuilder().event("someEvent").build());
-        verifyStatic();
-        Taplytics.logEvent(eq("someEvent"));
-    }
-
-    @Test
-    public void trackNumeric() {
-        integration.track(new TrackPayloadBuilder().event("someEvent")
-                .properties(new Properties().putValue("number", 416))
-                .build());
-        verifyStatic();
-        Taplytics.logEvent(eq("pressPlay"), eq(416));
-    }
-
-    @Test
-    public void trackNumericInteger() {
-        integration.track(new TrackPayloadBuilder().event("someEvent")
-                .properties(new Properties().putValue("value", 6))
-                .build());
-        verifyStatic();
-        Taplytics.logEvent(eq("pressPlay"), eq(6.0));
-    }
-
-    @Test
-    public void alias() {
-        integration.alias(new AliasPayloadBuilder().build());
-        verifyNoMoreInteractions(Taplytics.class);
-    }
-
-    @Test
-    public void identify() throws JSONException {
-        integration.identify(new IdentifyPayloadBuilder().traits(createTraits("vicVu")).build());
-        verifyStatic();
-        JSONObject attributes = new JSONObject();
-        attributes.put("name", "vicVu");
-        attributes.put("user_id", "magicnumber");
-        Taplytics.setUserAttributes(attributes);
-        verifyNoMoreInteractions(Taplytics.class);
-    }
-
-    @Test
-    public void identifyTraits() throws JSONException {
-        Traits traits = createTraits("magicnumber").putPhone("555 553 5541").putAge(22).putGender("male");
-        integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
-        verifyStatic();
-        JSONObject attributes = new JSONObject();
-        attributes.put("user_id", "magicnumber");
-        Taplytics.setUserAttributes(attributes);
-        verifyStatic();
-        attributes.put("age", 22);
-        Taplytics.setUserAttributes(attributes);
-        verifyStatic();
-        attributes.put("gender", "male");
-        Taplytics.setUserAttributes(attributes);
-        verifyNoMoreInteractions(Taplytics.class);
-    }
-
-    @Test
-    public void group() {
-        integration.group(new GroupPayloadBuilder().build());
-        verifyNoMoreInteractions(Taplytics.class);
-    }
 
     @Test
     public void screen() {
@@ -198,9 +226,9 @@ public class TaplyticsTest {
     }
 
     @Test
-    public void reset() {
-        integration.reset();
-        Taplytics.resetAppUser(null);
+    public void alias() {
+        integration.alias(new AliasPayloadBuilder().build());
         verifyNoMoreInteractions(Taplytics.class);
     }
+
 }
