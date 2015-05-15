@@ -12,9 +12,10 @@ import com.taplytics.sdk.Taplytics;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Taplytics is a native mobile A/B testing platform that allows you to create new tests and push
@@ -27,7 +28,7 @@ import java.util.Map;
 public class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
     static final String TAPLYTICS_KEY = "Taplytics";
 
-    ArrayList<String> knownTraitNames = new ArrayList<String>() {{
+    static final Set<String> knownTraitNames = new HashSet<String>() {{
         add("name");
         add("email");
         add("gender");
@@ -91,16 +92,8 @@ public class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
     @Override
     public void track(TrackPayload track) {
         super.track(track);
-        JSONObject metaData = new JSONObject();
-        for (Map.Entry<String, Object> entry : track.properties().entrySet()) {
-            try {
-                metaData.put(entry.getKey(), entry.getValue());
-            } catch (JSONException e) {
-                //Ignore this value if it is problematic.
-            }
-        }
+        JSONObject metaData = track.properties().toJsonObject();
         Taplytics.logEvent(track.event(), null, metaData);
-
     }
 
 
