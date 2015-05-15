@@ -14,6 +14,7 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -63,19 +64,24 @@ public class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
         super.identify(identify);
         JSONObject userAttributes = new JSONObject();
         JSONObject customData = new JSONObject();
-        for (Map.Entry<String, Object> entry : identify.traits().entrySet()) {
+        JSONObject traits = identify.traits().toJsonObject();
+        for (Iterator<String> jsonIterator = traits.keys(); jsonIterator.hasNext(); ) {
+            String key = jsonIterator.next();
             try {
-                if (knownTraitNames.contains(entry.getKey()) && !Utils.isNullOrEmpty(entry.getValue().toString())) {
-                    userAttributes.put(entry.getKey(), entry.getValue());
-                } else if (entry.getKey().equals("userId") && !Utils.isNullOrEmpty(entry.getValue().toString())) {
-                    userAttributes.put("user_id", entry.getValue());
+                Object value = traits.get(key);
+
+                if (knownTraitNames.contains(key) && !Utils.isNullOrEmpty(value.toString())) {
+                    userAttributes.put(key, value);
+                } else if (key.equals("userId") && !Utils.isNullOrEmpty(value.toString())) {
+                    userAttributes.put("user_id", value);
                 } else {
-                    customData.put(entry.getKey(), entry.getValue());
+                    customData.put(key, value);
                 }
             } catch (JSONException e) {
                 //Ignore this value if it is problematic.
             }
         }
+
         try {
             if (customData.length() > 0) {
                 userAttributes.put("customData", customData);
