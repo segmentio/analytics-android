@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Mixpanel is a native mobile A/B testing platform that allows you to create new tests and push
+ * Taplytics is a native mobile A/B testing platform that allows you to create new tests and push
  * them live without changing any code. Analytics, push notifications, and more.
  *
  * @see <a href="https://taplytics.com">Taplytics</a>
