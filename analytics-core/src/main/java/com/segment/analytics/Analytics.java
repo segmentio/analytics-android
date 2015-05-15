@@ -32,6 +32,7 @@ import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
@@ -40,6 +41,7 @@ import com.segment.analytics.internal.model.payloads.GroupPayload;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
+
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -515,6 +517,7 @@ public class Analytics {
     LOCALYTICS("Leanplum"),
     MIXPANEL("Mixpanel"),
     QUANTCAST("Quantcast"),
+    TAPLYTICS("Taplytics"),
     TAPSTREAM("Tapstream");
 
     /** The key that identifies this integration in our API. */
