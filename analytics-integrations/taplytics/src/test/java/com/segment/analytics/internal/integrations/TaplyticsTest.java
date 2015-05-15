@@ -7,6 +7,7 @@ import android.os.Bundle;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
+import com.segment.analytics.TestUtils;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
@@ -87,7 +88,7 @@ public class TaplyticsTest {
     public void track() {
         integration.track(new TrackPayloadBuilder().event("someEvent").build());
         verifyStatic();
-        Taplytics.logEvent(eq("someEvent"), eq((Number) null), eq(new TaplyticsJSONObject()));
+        Taplytics.logEvent(eq("someEvent"), eq((Number) null), TestUtils.jsonEq(new JSONObject()));
     }
 
     @Test
@@ -96,9 +97,9 @@ public class TaplyticsTest {
                 .properties(new Properties().putValue("value", 416))
                 .build());
         verifyStatic();
-        TaplyticsJSONObject metadata = new TaplyticsJSONObject();
+        JSONObject metadata = new JSONObject();
         metadata.put("value", 416);
-        Taplytics.logEvent(eq("someEvent"), eq((Number) null), eq(metadata));
+        Taplytics.logEvent(eq("someEvent"), eq((Number) null), TestUtils.jsonEq(metadata));
     }
 
     @Test
@@ -107,19 +108,19 @@ public class TaplyticsTest {
                 .properties(new Properties().putValue("value", 6.0))
                 .build());
         verifyStatic();
-        TaplyticsJSONObject metadata = new TaplyticsJSONObject();
+        JSONObject metadata = new JSONObject();
         metadata.put("value", 6.0);
-        Taplytics.logEvent(eq("someEvent"), eq((Number) null), eq(metadata));
+        Taplytics.logEvent(eq("someEvent"), eq((Number) null), TestUtils.jsonEq(metadata));
     }
 
     @Test
     public void identify() throws JSONException {
         integration.identify(new IdentifyPayloadBuilder().traits(createTraits("magicnumber").putName("vicVu")).build());
         verifyStatic();
-        TaplyticsJSONObject attributes = new TaplyticsJSONObject();
+        JSONObject attributes = new JSONObject();
         attributes.put("name", "vicVu");
         attributes.put("user_id", "magicnumber");
-        Taplytics.setUserAttributes(eq(attributes));
+        Taplytics.setUserAttributes(TestUtils.jsonEq(attributes));
         verifyNoMoreInteractions(Taplytics.class);
     }
 
@@ -128,15 +129,15 @@ public class TaplyticsTest {
         Traits traits = createTraits("magicnumber").putPhone("555 553 5541").putAge(22).putGender("male").putEmployees(30);
         integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
         verifyStatic();
-        TaplyticsJSONObject attributes = new TaplyticsJSONObject();
+        JSONObject attributes = new JSONObject();
         attributes.put("user_id", "magicnumber");
         attributes.put("age", 22);
         attributes.put("gender", "male");
-        TaplyticsJSONObject customData = new TaplyticsJSONObject();
+        JSONObject customData = new JSONObject();
         customData.put("phone", "555 553 5541");
         customData.put("employees", 30L);
         attributes.put("customData", customData);
-        Taplytics.setUserAttributes(eq(attributes));
+        Taplytics.setUserAttributes(TestUtils.jsonEq(attributes));
         verifyStatic();
         verifyNoMoreInteractions(Taplytics.class);
     }
@@ -150,7 +151,7 @@ public class TaplyticsTest {
         metaData.put("user_id", "group");
         metaData.put("name", "someGroup");
         attributes.put("metaData", "someGroup");
-        Taplytics.setUserAttributes(eq(attributes));
+        Taplytics.setUserAttributes(TestUtils.jsonEq(attributes));
         verifyStatic();
     }
 

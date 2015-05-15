@@ -60,7 +60,7 @@ public class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
     @Override
     public void identify(IdentifyPayload identify) {
         super.identify(identify);
-        TaplyticsJSONObject userAttributes = new TaplyticsJSONObject();
+        JSONObject userAttributes = new JSONObject();
         JSONObject customData = new JSONObject();
         for (Map.Entry<String, Object> entry : identify.traits().entrySet()) {
             try {
