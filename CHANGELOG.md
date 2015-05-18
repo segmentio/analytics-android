@@ -1,4 +1,4 @@
-Version 3.1.1 (May 11th, 2015)
+Version 3.1.2 (May 13th, 2015)
 ==============================
 * Fix: Track increment events for Mixpanel
 * Enhancement: Improved flushing behaviour. If you were manually setting a `    flushQueueSize`, make sure it is under 250.
