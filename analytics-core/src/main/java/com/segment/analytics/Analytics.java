@@ -516,7 +516,8 @@ public class Analytics {
     MIXPANEL("Mixpanel"),
     QUANTCAST("Quantcast"),
     TAPLYTICS("Taplytics"),
-    TAPSTREAM("Tapstream");
+    TAPSTREAM("Tapstream"),
+    UXCAM("UXCam");
 
     /** The key that identifies this integration in our API. */
     final String key;
