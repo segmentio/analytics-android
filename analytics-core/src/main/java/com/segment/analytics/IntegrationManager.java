@@ -8,6 +8,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Pair;
+
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.BasePayload;
@@ -15,6 +16,7 @@ import com.segment.analytics.internal.model.payloads.GroupPayload;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
+
 import java.lang.reflect.Constructor;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -134,6 +136,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     loadIntegration("com.segment.analytics.internal.integrations.MixpanelIntegration");
     loadIntegration("com.segment.analytics.internal.integrations.QuantcastIntegration");
     loadIntegration("com.segment.analytics.internal.integrations.TapstreamIntegration");
+    loadIntegration("com.segment.analytics.internal.integrations.MoEngageIntegration");
   }
 
   /**
