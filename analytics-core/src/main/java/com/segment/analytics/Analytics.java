@@ -517,7 +517,8 @@ public class Analytics {
     LOCALYTICS("Leanplum"),
     MIXPANEL("Mixpanel"),
     QUANTCAST("Quantcast"),
-    TAPSTREAM("Tapstream");
+    TAPSTREAM("Tapstream"),
+    UXCAM("UXCam");
 
     /** The key that identifies this integration in our API. */
     final String key;
