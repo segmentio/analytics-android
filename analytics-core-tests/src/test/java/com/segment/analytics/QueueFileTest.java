@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -188,6 +189,37 @@ public class QueueFileTest {
 
     queue = new QueueFile(file);
     assertThat(queue.peek()).isEqualTo(secondStuff);
+  }
+
+  @Test public void removeNonPositiveNumberOfElementsComplains() throws IOException {
+    QueueFile queue = new QueueFile(file);
+    queue.add(values[127]);
+
+    try {
+      queue.remove(-1);
+      fail("Should have complained about removing negative number of elements.");
+    } catch (IllegalArgumentException ex) {
+      assertThat(ex) //
+          .hasMessage("Cannot remove a non-positive (-1) number of elements.");
+    }
+
+    try {
+      queue.remove(0);
+      fail("Should have complained about removing 0 number of elements.");
+    } catch (IllegalArgumentException ex) {
+      assertThat(ex) //
+          .hasMessage("Cannot remove a non-positive (0) number of elements.");
+    }
+  }
+
+  @Test public void removeFromEmptyFileComplains() throws IOException {
+    QueueFile queue = new QueueFile(file);
+
+    try {
+      queue.remove();
+      fail("Should have complained about removing from empty file.");
+    } catch (NoSuchElementException ignored) {
+    }
   }
 
   @Test public void removingBigDamnBlocksErasesEffectively() throws IOException {
