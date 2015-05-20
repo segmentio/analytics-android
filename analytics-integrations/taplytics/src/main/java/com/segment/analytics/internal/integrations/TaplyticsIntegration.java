@@ -12,10 +12,7 @@ import com.taplytics.sdk.Taplytics;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Set;
-
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
-import static com.segment.analytics.internal.Utils.newSet;
 
 /**
  * Taplytics is a native mobile A/B testing platform that allows you to create new tests and push
@@ -27,9 +24,6 @@ import static com.segment.analytics.internal.Utils.newSet;
  */
 public class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
     static final String TAPLYTICS_KEY = "Taplytics";
-
-    private static final Set<String> KNOWN_TRAITS =
-            newSet("name", "email", "gender", "firstName", "lastName", "age");
 
     @Override
     public void initialize(Analytics analytics, ValueMap settings)
@@ -74,7 +68,9 @@ public class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
     @Override
     public void group(GroupPayload group) {
         super.group(group);
-        Taplytics.setUserAttributes(group.traits().toJsonObject());
+        JSONObject groupObject = new JSONObject();
+        insert(groupObject, "group", group.traits().toJsonObject());
+        Taplytics.setUserAttributes(groupObject);
     }
 
     @Override

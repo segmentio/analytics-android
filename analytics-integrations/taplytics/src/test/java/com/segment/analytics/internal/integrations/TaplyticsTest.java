@@ -137,8 +137,10 @@ public class TaplyticsTest {
         Traits traits = new Traits().putName("foo");
         integration.group(new GroupPayloadBuilder().groupTraits(traits).build());
 
+        JSONObject groupAttributes = new JSONObject();
         JSONObject userAttributes = new JSONObject();
-        userAttributes.put("name", "foo");
+        groupAttributes.put("name", "foo");
+        userAttributes.put("group", groupAttributes);
 
         verifyStatic();
         Taplytics.setUserAttributes(jsonEq(userAttributes));
