@@ -8,11 +8,14 @@ import com.segment.analytics.internal.model.payloads.GroupPayload;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import com.taplytics.sdk.Taplytics;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import static com.segment.analytics.Analytics.LogLevel.INFO;
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.newSet;
 
@@ -33,7 +36,10 @@ public class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
     String apiKey = settings.getString("apiKey");
-    Taplytics.startTaplytics(analytics.getApplication(), apiKey);
+    Map<String, Object> options = new LinkedHashMap<>();
+    options.put("debugLogging",
+        analytics.getLogLevel() == VERBOSE || analytics.getLogLevel() == INFO);
+    Taplytics.startTaplytics(analytics.getApplication(), apiKey, options);
   }
 
   @Override public String key() {

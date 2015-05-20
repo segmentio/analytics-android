@@ -15,6 +15,8 @@ import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder
 import com.segment.analytics.internal.model.payloads.util.ScreenPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
 import com.taplytics.sdk.Taplytics;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -58,8 +60,11 @@ public class TaplyticsTest {
   @Test public void initialize() {
     when(analytics.getApplication()).thenReturn(context);
     integration.initialize(analytics, new ValueMap().putValue("apiKey", "foo"));
+
+    Map<String, Object> settings = new LinkedHashMap<>();
+    settings.put("debugLogging", false);
     verifyStatic();
-    Taplytics.startTaplytics(eq(context), eq("foo"));
+    Taplytics.startTaplytics(context, "foo", settings);
     verifyNoMoreInteractions(Taplytics.class);
   }
 
