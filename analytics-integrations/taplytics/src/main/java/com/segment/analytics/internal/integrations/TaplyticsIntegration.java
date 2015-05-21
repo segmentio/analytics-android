@@ -68,9 +68,10 @@ public class TaplyticsIntegration extends AbstractIntegration<Taplytics> {
     @Override
     public void group(GroupPayload group) {
         super.group(group);
-        JSONObject groupObject = new JSONObject();
-        insert(groupObject, "group", group.traits().toJsonObject());
-        Taplytics.setUserAttributes(groupObject);
+        JSONObject userAttributes = new JSONObject();
+        insert(userAttributes, "groupId", group.groupId());
+        insert(userAttributes, "groupTraits", group.traits().toJsonObject());
+        Taplytics.setUserAttributes(userAttributes);
     }
 
     @Override

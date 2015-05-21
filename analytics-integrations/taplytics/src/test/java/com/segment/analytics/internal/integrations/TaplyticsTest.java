@@ -10,6 +10,7 @@ import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.internal.model.payloads.GroupPayload;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
@@ -135,13 +136,11 @@ public class TaplyticsTest {
     @Test
     public void group() throws JSONException {
         Traits traits = new Traits().putName("foo");
-        integration.group(new GroupPayloadBuilder().groupTraits(traits).build());
-
-        JSONObject groupAttributes = new JSONObject();
+        GroupPayload group = new GroupPayloadBuilder().groupTraits(traits).build();
+        integration.group(group);
         JSONObject userAttributes = new JSONObject();
-        groupAttributes.put("name", "foo");
-        userAttributes.put("group", groupAttributes);
-
+        userAttributes.put("groupId", group.groupId());
+        userAttributes.put("groupTraits", group.traits().toJsonObject());
         verifyStatic();
         Taplytics.setUserAttributes(jsonEq(userAttributes));
         verifyNoMoreInteractions(Taplytics.class);
