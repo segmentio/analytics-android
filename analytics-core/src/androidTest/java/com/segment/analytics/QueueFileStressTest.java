@@ -43,7 +43,7 @@ public class QueueFileStressTest extends AndroidTestCase {
         Analytics.Builder builder = new Analytics.Builder(context, writeKey);
         analyticsInstance = builder.logLevel(Analytics.LogLevel.VERBOSE).
                 flushInterval(300, TimeUnit.SECONDS).
-                flushQueueSize(SegmentDispatcher.MAX_QUEUE_SIZE*2).
+                flushQueueSize(250).
                 build();
 
 
