@@ -109,7 +109,7 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
     if (!isNullOrEmpty(name)) {
       Localytics.setIdentifier("customer_name", name);
     }
-    setCustomDimensions(customDimensions, traits);
+    setCustomDimensions(traits);
 
     for (Map.Entry<String, Object> entry : traits.entrySet()) {
       Localytics.setProfileAttribute(entry.getKey(), String.valueOf(entry.getValue()),
@@ -129,7 +129,7 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
     Properties props = track.properties();
     setContext(track.context());
     Localytics.tagEvent(track.event(), props.toStringMap());
-    setCustomDimensions(customDimensions, props);
+    setCustomDimensions(props);
   }
 
   private void setContext(AnalyticsContext context) {
@@ -147,11 +147,11 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
     }
   }
 
-  private void setCustomDimensions(ValueMap customDimensions, ValueMap valueMap) {
-    for (Map.Entry<String, Object> entry : valueMap.entrySet()) {
-      String propKey = entry.getKey();
-      if (customDimensions.containsKey(propKey)) {
-        Localytics.setCustomDimension(customDimensions.getInt(propKey, 0),
+  private void setCustomDimensions(ValueMap dimensions) {
+    for (Map.Entry<String, Object> entry : dimensions.entrySet()) {
+      String dimension = entry.getKey();
+      if (customDimensions.containsKey(dimension)) {
+        Localytics.setCustomDimension(customDimensions.getInt(dimension, 0),
             String.valueOf(entry.getValue()));
       }
     }
