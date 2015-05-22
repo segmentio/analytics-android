@@ -7,12 +7,18 @@ import android.os.Bundle;
 import com.moe.pushlibrary.MoEHelper;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
+import com.segment.analytics.TestUtils;
+import com.segment.analytics.Traits;
 import com.segment.analytics.core.tests.BuildConfig;
+
+import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
+import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.json.JSONObject;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -25,9 +31,6 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
-/**
- * <a href="http://d.android.com/tools/testing/testing_android.html">Testing Fundamentals</a>
- */
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
@@ -54,35 +57,31 @@ public class MoEngageTest {
         Activity activity = mock(Activity.class);
         Bundle bundle = mock(Bundle.class);
         integration.onActivityCreated(activity, bundle);
-        verifyNoMoreInteractions(MoEHelper.class);
+        verifyNoMoreMoEngageInteractions();
     }
 
     @Test public void activityStart() {
         Activity activity = mock(Activity.class);
         integration.onActivityStarted(activity);
-        verifyStatic();
-        helper.onStart(activity);
-        verifyNoMoreInteractions(MoEHelper.class);
+        verifyNoMoreMoEngageInteractions();
     }
 
     @Test public void activityResume() {
         Activity activity = mock(Activity.class);
         integration.onActivityResumed(activity);
-        verifyNoMoreInteractions(MoEHelper.class);
+        verifyNoMoreMoEngageInteractions();
     }
 
     @Test public void activityPause() {
         Activity activity = mock(Activity.class);
         integration.onActivityPaused(activity);
-        verifyNoMoreInteractions(MoEHelper.class);
+        verifyNoMoreMoEngageInteractions();
     }
 
     @Test public void activityStop() {
         Activity activity = mock(Activity.class);
         integration.onActivityStopped(activity);
-        verifyStatic();
-        helper.onStop(activity);
-        verifyNoMoreInteractions(MoEHelper.class);
+        verifyNoMoreMoEngageInteractions();
     }
 
     @Test
@@ -90,13 +89,23 @@ public class MoEngageTest {
         Activity activity = mock(Activity.class);
         Bundle bundle = mock(Bundle.class);
         integration.onActivitySaveInstanceState(activity, bundle);
-        verifyNoMoreInteractions(MoEHelper.class);
+        verifyNoMoreMoEngageInteractions();
     }
 
     @Test public void track() {
+        Activity activity = mock(Activity.class);
         integration.track(new TrackPayloadBuilder().event("foo").build());
-        verifyStatic();
-        MoEHelper.getInstance(context).trackEvent("foo");
+        verifyNoMoreMoEngageInteractions();
+    }
+
+    @Test public void identify() {
+        Traits traits = TestUtils.createTraits("foo").putAge(20);
+        integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
+        verifyNoMoreMoEngageInteractions();
+    }
+
+    private void verifyNoMoreMoEngageInteractions() {
         verifyNoMoreInteractions(MoEHelper.class);
+        verifyNoMoreInteractions(helper);
     }
 }
