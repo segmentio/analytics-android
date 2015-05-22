@@ -6,6 +6,7 @@ import android.location.Location;
 import com.localytics.android.Localytics;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.AnalyticsContext;
+import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
@@ -32,9 +33,11 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
 
   static final String LOCALYTICS_KEY = "Localytics";
   boolean hasSupportLibOnClassPath;
+  ValueMap customDimensions;
 
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
+      customDimensions = settings.getValueMap("dimensions");
     Localytics.integrate(analytics.getApplication(), settings.getString("appKey"));
     LogLevel logLevel = analytics.getLogLevel();
     Localytics.setLoggingEnabled(logLevel == INFO || logLevel == VERBOSE);
@@ -102,9 +105,11 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
     if (!isNullOrEmpty(name)) {
       Localytics.setIdentifier("customer_name", name);
     }
+    setCustomDimensions(customDimensions, traits);
 
     for (Map.Entry<String, Object> entry : traits.entrySet()) {
-      Localytics.setIdentifier(entry.getKey(), String.valueOf(entry.getValue()));
+      Localytics.setProfileAttribute(entry.getKey(), String.valueOf(entry.getValue()),
+              Localytics.ProfileScope.APPLICATION);
     }
   }
 
@@ -117,9 +122,10 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
 
   @Override public void track(TrackPayload track) {
     super.track(track);
-
+    Properties props = track.properties();
     setContext(track.context());
-    Localytics.tagEvent(track.event(), track.properties().toStringMap());
+    Localytics.tagEvent(track.event(), props.toStringMap());
+    setCustomDimensions(customDimensions, props);
   }
 
   private void setContext(AnalyticsContext context) {
@@ -134,6 +140,16 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
       androidLocation.setLatitude(location.latitude());
       androidLocation.setSpeed((float) location.speed());
       Localytics.setLocation(androidLocation);
+    }
+  }
+
+  private void setCustomDimensions(ValueMap customDimensions, ValueMap props) {
+    for (Map.Entry<String, Object> entry : props.entrySet()) {
+      String propKey = entry.getKey();
+      if (customDimensions.containsKey(propKey)) {
+        Localytics.setCustomDimension(customDimensions.getInt(propKey, 0),
+                String.valueOf(entry.getValue()));
+      }
     }
   }
 }

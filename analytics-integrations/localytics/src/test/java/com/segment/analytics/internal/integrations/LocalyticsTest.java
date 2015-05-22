@@ -7,8 +7,10 @@ import android.support.v4.app.FragmentActivity;
 import com.localytics.android.Localytics;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
+import com.segment.analytics.Properties;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.Traits;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
@@ -31,11 +33,14 @@ import org.mockito.Mock;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
+import static com.segment.analytics.TestUtils.createTraits;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
+
 
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
@@ -53,6 +58,7 @@ public class LocalyticsTest {
     PowerMockito.mockStatic(Localytics.class);
 
     integration = new LocalyticsIntegration();
+    integration.customDimensions = new ValueMap().putValue("prop1", 0);
     integration.hasSupportLibOnClassPath = true;
   }
 
@@ -61,12 +67,15 @@ public class LocalyticsTest {
     when(analytics.getLogLevel()).thenReturn(NONE);
     LocalyticsIntegration integration = new LocalyticsIntegration();
 
-    integration.initialize(analytics, new ValueMap().putValue("appKey", "foo"));
+    integration.initialize(analytics, new ValueMap()
+            .putValue("appKey", "foo")
+            .putValue("dimensions", new ValueMap().putValue("prop1", 0)));
 
     verifyStatic();
     Localytics.integrate(RuntimeEnvironment.application, "foo");
     verifyStatic();
     Localytics.setLoggingEnabled(false);
+    assertThat(integration.customDimensions).containsEntry("prop1", 0);
   }
 
   @Test public void initializeWithVerbose() throws IllegalStateException {
@@ -185,6 +194,13 @@ public class LocalyticsTest {
     integration.identify(new IdentifyPayloadBuilder().build());
   }
 
+  @Test public void identifyWithCustomDimensions() {
+    Traits traits = createTraits("bar").putValue("prop1", "test1");
+    integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
+    verifyStatic();
+    Localytics.setCustomDimension(0, "test1");
+  }
+
   @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
     verifyNoMoreInteractions(Localytics.class);
@@ -215,6 +231,13 @@ public class LocalyticsTest {
     integration.track(new TrackPayloadBuilder().event("foo").build());
     verifyStatic();
     Localytics.tagEvent("foo", new HashMap<String, String>());
+  }
+
+  @Test public void trackWithCustomDimensions() {
+    Properties props = new Properties().putValue("prop1", "test1");
+    integration.track(new TrackPayloadBuilder().properties(props).build());
+    verifyStatic();
+    Localytics.setCustomDimension(0, "test1");
   }
 
   @Test public void alias() {
