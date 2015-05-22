@@ -3,6 +3,7 @@ package com.segment.analytics;
 import android.Manifest;
 import android.app.Application;
 import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import org.assertj.core.data.MapEntry;
@@ -42,7 +43,7 @@ public class AnalyticsTest {
   @Mock IntegrationManager integrationManager;
   @Mock Stats stats;
   @Mock Traits.Cache traitsCache;
-  @Mock Analytics.AnalyticsExecutorService networkExecutor;
+  @Mock AnalyticsExecutorService networkExecutor;
   @Mock Options defaultOptions;
   Traits traits;
   AnalyticsContext analyticsContext;
@@ -65,8 +66,9 @@ public class AnalyticsTest {
         return integrationManager;
       }
     };
-    analytics = new Analytics(application, networkExecutor, integrationManagerFactory, stats,
-      traitsCache, analyticsContext, defaultOptions, NONE);
+    analytics =
+        new Analytics(application, networkExecutor, integrationManagerFactory, stats, traitsCache,
+            analyticsContext, defaultOptions, NONE);
 
     // Used by singleton tests
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
