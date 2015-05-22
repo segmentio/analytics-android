@@ -147,8 +147,8 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
     }
   }
 
-  private void setCustomDimensions(ValueMap customDimensions, ValueMap props) {
-    for (Map.Entry<String, Object> entry : props.entrySet()) {
+  private void setCustomDimensions(ValueMap customDimensions, ValueMap valueMap) {
+    for (Map.Entry<String, Object> entry : valueMap.entrySet()) {
       String propKey = entry.getKey();
       if (customDimensions.containsKey(propKey)) {
         Localytics.setCustomDimension(customDimensions.getInt(propKey, 0),
