@@ -13,6 +13,7 @@ import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
+import java.util.Collections;
 import java.util.Map;
 
 import static com.segment.analytics.Analytics.LogLevel;
@@ -37,11 +38,14 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
 
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
-      customDimensions = settings.getValueMap("dimensions");
     Localytics.integrate(analytics.getApplication(), settings.getString("appKey"));
     LogLevel logLevel = analytics.getLogLevel();
     Localytics.setLoggingEnabled(logLevel == INFO || logLevel == VERBOSE);
     hasSupportLibOnClassPath = isOnClassPath("android.support.v4.app.FragmentActivity");
+    customDimensions = settings.getValueMap("dimensions");
+    if (customDimensions == null) {
+      customDimensions = new ValueMap(Collections.<String, Object>emptyMap());
+    }
   }
 
   @Override public String key() {
@@ -109,7 +113,7 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
 
     for (Map.Entry<String, Object> entry : traits.entrySet()) {
       Localytics.setProfileAttribute(entry.getKey(), String.valueOf(entry.getValue()),
-              Localytics.ProfileScope.APPLICATION);
+          Localytics.ProfileScope.APPLICATION);
     }
   }
 
@@ -148,7 +152,7 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
       String propKey = entry.getKey();
       if (customDimensions.containsKey(propKey)) {
         Localytics.setCustomDimension(customDimensions.getInt(propKey, 0),
-                String.valueOf(entry.getValue()));
+            String.valueOf(entry.getValue()));
       }
     }
   }
