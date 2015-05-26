@@ -5,5 +5,5 @@ dependencies {
     compile rootProject.ext.supportLib
     compile 'com.google.android.gms:play-services-ads:7.3.0'
     compile 'com.google.android.gms:play-services-gcm:7.3.0'
-    compile files('libs/moengage_sdkv5.0.5.jar')
+    compile files('libs/moengage_sdkv5.0.6.jar')
 }
