@@ -1,20 +1,26 @@
 package com.segment.analytics.internal.integrations;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 
 import com.moe.pushlibrary.MoEHelper;
 import com.moe.pushlibrary.utils.MoEHelperConstants;
 import com.segment.analytics.Analytics;
+import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Set;
+
+import static com.segment.analytics.internal.Utils.hasPermission;
 
 /**
  * MoEngage is an advanced mobile marketing and engagement tool which has a wide range of
@@ -42,12 +48,23 @@ public class MoEngageIntegration extends AbstractIntegration<Void> {
     private static final String LAST_NAME_KEY = "lastName";
     private static final String USER_ATTR_SEGMENT_AID = "USER_ATTRIBUTE_SEGMENT_ID";
 
+    private boolean hasLocationPermissions = false;
+
     @Override
     public void initialize(Analytics analytics, ValueMap settings) throws IllegalStateException {
+        Context context =  analytics.getApplication();
+        if (!hasPermission(context, "com.google.android.c2dm.permission.RECEIVE")) {
+            throw new IllegalStateException(
+                    "MoEngage requires com.google.android.c2dm.permission.RECEIVE permission");
+        }
+        if ( hasPermission(context, "android.permission.ACCESS_FINE_LOCATION")) {
+            hasLocationPermissions = true;
+        }
         Analytics.LogLevel logLevel = analytics.getLogLevel();
         if( logLevel == Analytics.LogLevel.VERBOSE || logLevel == Analytics.LogLevel.INFO ){
             MoEHelper.APP_DEBUG = true;
         }
+        mHelper = MoEHelper.getInstance(context);
     }
 
     @Override
@@ -59,6 +76,9 @@ public class MoEngageIntegration extends AbstractIntegration<Void> {
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
         super.onActivityCreated(activity, savedInstanceState);
         mHelper = new MoEHelper(activity);
+        if( null != savedInstanceState ){
+            mHelper.onRestoreInstanceState(savedInstanceState);
+        }
     }
 
     @Override
@@ -112,19 +132,27 @@ public class MoEngageIntegration extends AbstractIntegration<Void> {
                     processedAttrs.put(MoEHelperConstants.USER_ATTRIBUTE_USER_NAME, tr.get(key));
                 } else if(PHONE_KEY.equals(key)){
                     processedAttrs.put(MoEHelperConstants.USER_ATTRIBUTE_USER_MOBILE, tr.get(key));
-                } else if(BIRTHDAY_KEY.equals(key)){
-                    processedAttrs.put(MoEHelperConstants.USER_ATTRIBUTE_USER_BDAY, tr.get(key));
                 } else if(FIRST_NAME_KEY.equals(key)){
                     processedAttrs.put(MoEHelperConstants.USER_ATTRIBUTE_USER_FIRST_NAME, tr.get(key));
                 } else if(LAST_NAME_KEY.equals(key)){
                     processedAttrs.put(MoEHelperConstants.USER_ATTRIBUTE_USER_LAST_NAME, tr.get(key));
-                } else if(GENDER_KEY.equals(key)){
+                } else if(GENDER_KEY.equals(key)) {
                     processedAttrs.put(MoEHelperConstants.USER_ATTRIBUTE_USER_GENDER, tr.get(key));
+                } else if(BIRTHDAY_KEY.equals(key)) {
+                    DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+                    String birthDate = df.format(tr.birthday());
+                    processedAttrs.put(MoEHelperConstants.USER_ATTRIBUTE_USER_BDAY, birthDate);
                 } else {
                     processedAttrs.put(key, tr.get(key));
                 }
             }else if(MoEHelper.APP_DEBUG){
                 Log.e(MoEHelper.TAG, "TRAIT KEY CANNOT BE NULL");
+            }
+        }
+        if( hasLocationPermissions ){
+            AnalyticsContext.Location location = identify.context().location();
+            if (location != null) {
+                mHelper.setUserLocation( location.latitude(),  location.longitude());
             }
         }
         mHelper.setUserAttribute(processedAttrs);
