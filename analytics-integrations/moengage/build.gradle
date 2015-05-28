@@ -1,0 +1,15 @@
+apply from: rootProject.file('gradle/integration.gradle')
+
+dependencies {
+
+    compile rootProject.ext.supportLib
+    compile 'com.google.android.gms:play-services-ads:7.3.0'
+    compile 'com.google.android.gms:play-services-gcm:7.3.0'
+    compile (name:'moengagesdk_v5.0.6', ext:'aar')
+}
+
+repositories{
+    flatDir {
+        dirs 'libs'
+    }
+}
