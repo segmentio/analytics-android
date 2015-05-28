@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="moe_inbox_name">Notification Center</string>
-    <string name="moe_notification_center_empty">Notification Center Empty</string>
-   
-    <!-- Notification types -->
-    <integer name="notification_type_single">1</integer>
-    <integer name="notification_type_multiple">2</integer>
-</resources>

@@ -3,7 +3,6 @@ package com.segment.analytics.internal.integrations;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
-
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
@@ -17,7 +16,8 @@ import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.ScreenPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
-
+import java.util.Arrays;
+import java.util.Collections;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -31,9 +31,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
-
-import java.util.Arrays;
-import java.util.Collections;
 
 import static com.segment.analytics.TestUtils.createTraits;
 import static com.segment.analytics.TestUtils.jsonEq;
@@ -114,7 +111,7 @@ public class MixpanelTest {
     assertThat(integration.trackCategorizedPages).isFalse();
     assertThat(integration.trackNamedPages).isTrue();
     verify(mixpanelAPI).getPeople();
-    //assertThat(integration.increments).containsExactly("qux", "baz", "qaz");
+    assertThat(integration.increments).containsExactly("qux", "baz", "qaz");
   }
 
   @Test public void activityCreate() {
