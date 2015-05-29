@@ -16,6 +16,7 @@ dependencies {
   compile project(':analytics-integrations:mixpanel')
   compile project(':analytics-integrations:quantcast')
   compile project(':analytics-integrations:tapstream')
+  compile project(':analytics-integrations:uxcam')
 }
 
 apply from: rootProject.file('gradle/android.gradle')
