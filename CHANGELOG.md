@@ -1,3 +1,17 @@
+Version 3.1.2 (May 13th, 2015)
+==============================
+* Fix: Track increment events for Mixpanel
+* Enhancement: Improved flushing behaviour. If you were manually setting a `    flushQueueSize`, make sure it is under 250.
+* Enhancement: Update Leanplum SDK
+
+Version 3.1.1 (May 11th, 2015)
+===============================
+* Feature: Updated Kahuna Integration with E-Commerce Spec
+* Enhancement: Update Apptimize SDK
+* Enhancement: Update Amplitude SDK
+* Enhancement: Print full error messages for 400 Responses
+* Fix: NPE in Google Analytics Integration
+
 Version 3.1.0 (April 21st, 2015)
 ===============================
 * Feature: Add reset method

@@ -488,6 +488,10 @@ class QueueFile implements Closeable {
       throw new IllegalArgumentException(
           "Cannot remove more elements (" + n + ") than present in queue (" + elementCount + ").");
     }
+    if (n < 1) {
+      throw new IllegalArgumentException(
+          "Cannot remove a non-positive (" + n + ") number of elements.");
+    }
     if (n == elementCount) {
       clear();
       return;

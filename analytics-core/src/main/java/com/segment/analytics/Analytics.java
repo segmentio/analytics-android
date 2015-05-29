@@ -33,6 +33,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import com.segment.analytics.internal.Utils;
+import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import com.segment.analytics.internal.model.payloads.GroupPayload;
@@ -41,8 +42,6 @@ import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static com.segment.analytics.internal.Utils.debug;
@@ -147,9 +146,8 @@ public class Analytics {
   }
 
   Analytics(Application application, ExecutorService networkExecutor,
-      IntegrationManager.Factory integrationManagerFactory, Stats stats,
-      Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions,
-      LogLevel logLevel) {
+      IntegrationManager.Factory integrationManagerFactory, Stats stats, Traits.Cache traitsCache,
+      AnalyticsContext analyticsContext, Options defaultOptions, LogLevel logLevel) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -564,18 +562,6 @@ public class Analytics {
     void onReady(Object instance);
   }
 
-  static class AnalyticsExecutorService extends ThreadPoolExecutor {
-
-    private static final int DEFAULT_THREAD_COUNT = 1;
-    // At most we perform two network requests concurrently
-    private static final int MAX_THREAD_COUNT = 2;
-
-    AnalyticsExecutorService() {
-      super(DEFAULT_THREAD_COUNT, MAX_THREAD_COUNT, 0, TimeUnit.MILLISECONDS,
-          new SynchronousQueue<Runnable>());
-    }
-  }
-
   /** Fluent API for creating {@link Analytics} instances. */
   public static class Builder {
 
@@ -610,8 +596,7 @@ public class Analytics {
 
     /**
      * Set the queue size at which the client should flush events. The client will automatically
-     * flush events every {@code flushInterval} duration, or when the queue reaches {@code
-     * flushQueueSize}, whichever occurs first.
+     * flush events to Segment when the queue reaches {@code flushQueueSize}.
      *
      * @throws IllegalArgumentException if the flushQueueSize is less than or equal to zero.
      */
@@ -619,14 +604,19 @@ public class Analytics {
       if (flushQueueSize <= 0) {
         throw new IllegalArgumentException("flushQueueSize must be greater than or equal to zero.");
       }
+      // 250 is a reasonably high number to trigger queue size flushes.
+      // The queue may go over this size (as much as 1000), but you should flush much before then.
+      if (flushQueueSize > 250) {
+        throw new IllegalArgumentException("flushQueueSize must be less than or equal to 250.");
+      }
       this.flushQueueSize = flushQueueSize;
       return this;
     }
 
     /**
      * Set the interval at which the client should flush events. The client will automatically
-     * flush events every {@code flushInterval} duration, or when the queue reaches {@code
-     * flushQueueSize}, whichever occurs first.
+     * flush events to Segment every {@code flushInterval} duration, regardless of {@code
+     * flushQueueSize}.
      *
      * @throws IllegalArgumentException if the flushInterval is less than or equal to zero.
      */
@@ -747,8 +737,8 @@ public class Analytics {
 
       IntegrationManager.Factory integrationManagerFactory = new IntegrationManager.Factory() {
         @Override public IntegrationManager create(Analytics analytics) {
-          return IntegrationManager.create(analytics, cartographer, client, networkExecutor,
-              stats, tag, flushIntervalInMillis, flushQueueSize);
+          return IntegrationManager.create(analytics, cartographer, client, networkExecutor, stats,
+              tag, flushIntervalInMillis, flushQueueSize);
         }
       };
 

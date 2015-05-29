@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 
+import static com.segment.analytics.internal.Utils.readFully;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 /**
@@ -48,7 +49,13 @@ class Client {
         try {
           int responseCode = connection.getResponseCode();
           if (responseCode >= 300) {
-            throw new UploadException(responseCode, connection.getResponseMessage());
+            String responseBody;
+            try {
+              responseBody = readFully(connection.getInputStream());
+            } catch (IOException e) {
+              responseBody = "Could not read response body for rejected message: " + e.toString();
+            }
+            throw new UploadException(responseCode, connection.getResponseMessage(), responseBody);
           }
         } finally {
           super.close();
@@ -90,14 +97,15 @@ class Client {
 
   /** Represents an exception during uploading events that should not be retried. */
   static class UploadException extends IOException {
-
     final int responseCode;
     final String responseMessage;
+    final String responseBody;
 
-    UploadException(int responseCode, String responseMessage) {
-      super("HTTP " + responseCode + ": " + responseMessage);
+    UploadException(int responseCode, String responseMessage, String responseBody) {
+      super("HTTP " + responseCode + ": " + responseMessage + ". Response: " + responseBody);
       this.responseCode = responseCode;
       this.responseMessage = responseMessage;
+      this.responseBody = responseBody;
     }
   }
 
