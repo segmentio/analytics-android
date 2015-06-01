@@ -134,6 +134,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     loadIntegration("com.segment.analytics.internal.integrations.MixpanelIntegration");
     loadIntegration("com.segment.analytics.internal.integrations.QuantcastIntegration");
     loadIntegration("com.segment.analytics.internal.integrations.TapstreamIntegration");
+    loadIntegration("com.segment.analytics.internal.integrations.TaplyticsIntegration");
   }
 
   /**
