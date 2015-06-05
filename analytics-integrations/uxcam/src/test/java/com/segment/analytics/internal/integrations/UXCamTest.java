@@ -112,8 +112,10 @@ public class UXCamTest {
     }
 
     @Test public void screen() {
-        integration.screen(new ScreenPayloadBuilder().name("foo").category("bar").build());
-        verifyNoMoreInteractions(UXCam.class);
+        integration.screen(new ScreenPayloadBuilder().name("foo").build());
+        verifyStatic();
+        UXCam.tagScreenName("foo");
+        verifyStatic();
     }
 
     @Test public void flush() {
@@ -133,6 +135,8 @@ public class UXCamTest {
 
     @Test public void identify() {
         integration.identify(new IdentifyPayloadBuilder().traits(createTraits("foo")).build());
+        verifyStatic();
+        UXCam.tagUsersName("foo");
         verifyNoMoreInteractions(UXCam.class);
     }
 

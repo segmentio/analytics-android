@@ -1,7 +1,5 @@
 apply from: rootProject.file('gradle/integration.gradle')
 
 dependencies {
-    testCompile 'com.google.android.gms:play-services:7.0.0'
-    testCompile 'com.mixpanel.android:mixpanel-android:4.4.1@aar'
     compile files('libs/UXCam-2.0.3.jar')
 }

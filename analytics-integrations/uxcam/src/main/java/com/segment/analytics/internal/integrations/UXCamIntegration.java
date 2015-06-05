@@ -4,9 +4,15 @@ import android.app.Activity;
 import android.os.Bundle;
 
 import com.segment.analytics.Analytics;
+import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
+import com.segment.analytics.internal.model.payloads.IdentifyPayload;
+import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.uxcam.UXCam;
+
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+
 /**
  * UXCam allows you to eliminate customer struggle and improve user experience by capturing
  * and visualizing screen video and user interaction data.
@@ -36,4 +42,18 @@ public class UXCamIntegration extends AbstractIntegration<UXCam> {
     UXCam.startWithKeyForSegment(activity, accountKey);
   }
 
+  @Override public void screen(ScreenPayload screen) {
+    super.screen(screen);
+    UXCam.tagScreenName(screen.event());
+  }
+
+  @Override public void identify(IdentifyPayload identify) {
+    super.identify(identify);
+    Traits traits = identify.traits();
+
+    String userId = traits.userId();
+    if (!isNullOrEmpty(userId)) {
+      UXCam.tagUsersName(identify.userId());
+    }
+  }
 }
