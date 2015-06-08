@@ -1,5 +1,5 @@
 apply from: rootProject.file('gradle/integration.gradle')
 
 dependencies {
-  compile files('libs/AppsFlyer-2.3.1.12.jar')
+  compile files('libs/AppsFlyer-2.3.1.17.jar')
 }
