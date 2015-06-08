@@ -1,0 +1,30 @@
+language: android
+
+jdk:
+ - oraclejdk7
+ - oraclejdk8
+
+after_success:
+  - .buildscript/deploy_snapshot.sh
+
+env:
+  global:
+    - secure: "RHOkK7fompKWTb1DOhNa7DxEdmfO0XZCnV4lTCzqMm1suKzWLmA1HRhCavBGmUCTrPGQ4aYY9lw/4hYW27e9fOYx7UfDvphAJ2pOhZyUANFSYASi3u1WK1Tio+qfBmrsuEoY4mNokW7GGhsqP6FG3ydoP5SbEL9gJ/7cMzwOe0I="
+    - secure: "G8KxDIvygnp6+/35sPwScuF2UAUD4YKupn2eRqI6mwKy2gsZJf5vTXiFNu6y08l9raAn5H7n7QYsTakv0A925Ngy9DT/q6mINvRk20A1R44Y5P2/aQrNZVc+/xNSxIyDnrk77s+fSh2jsZMbcay0jYbjRa9USvbnWzZV+sekz3k="
+
+android:
+  components:
+    - platform-tools
+    - tools
+
+    - build-tools-22.0.1
+    - android-22
+
+    - extra-android-m2repository
+    - extra-google-google_play_services
+    - extra-google-m2repository
+
+notifications:
+  email: false
+
+sudo: false
