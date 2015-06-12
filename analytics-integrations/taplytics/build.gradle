@@ -1,5 +1,5 @@
 apply from: rootProject.file('gradle/integration.gradle')
 
 dependencies {
-  compile files('libs/Taplytics-1.4.3.jar')
+  compile files('libs/Taplytics-1.4.10.jar')
 }
