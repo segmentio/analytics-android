@@ -1,3 +1,7 @@
+Version 3.1.3 (May 27th, 2015)
+==============================
+* Enhancement: Update Localytics SDK and integration with support for custom dimensions.
+
 Version 3.1.2 (May 13th, 2015)
 ==============================
 * Fix: Track increment events for Mixpanel
