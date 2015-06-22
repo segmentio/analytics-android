@@ -1,5 +1,5 @@
 apply from: rootProject.file('gradle/integration.gradle')
 
 dependencies {
-  compile 'com.bugsnag:bugsnag-android:3.1.1'
+  compile 'com.bugsnag:bugsnag-android:3.2.5'
 }
