@@ -1,3 +1,15 @@
+Version 3.1.4 (June 22, 2015)
+=============================
+* Enhancement: Update Amplitude SDK
+* Enhancement: Update Apptimize SDK
+* Enhancement: Update Bugsnag SDK
+* Enhancement: Update Crittercism SDK
+* Enhancement: Update Flurry SDK
+* Enhancement: Update Google Analytics SDK
+* Enhancement: Update Leanplum SDK
+* Enhancement: Update Quantcast SDK
+* Enhancement: Update Tapstream SDK
+
 Version 3.1.3 (May 27th, 2015)
 ==============================
 * Enhancement: Update Localytics SDK and integration with support for custom dimensions.
