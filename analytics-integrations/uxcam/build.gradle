@@ -1,0 +1,5 @@
+apply from: rootProject.file('gradle/integration.gradle')
+
+dependencies {
+    compile files('libs/UXCam-2.0.3.jar')
+}
