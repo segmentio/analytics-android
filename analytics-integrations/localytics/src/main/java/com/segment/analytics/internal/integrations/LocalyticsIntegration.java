@@ -128,7 +128,14 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
     super.track(track);
     Properties props = track.properties();
     setContext(track.context());
-    Localytics.tagEvent(track.event(), props.toStringMap());
+
+    final long revenue = (long) (props.revenue() * 100);
+    if (revenue != 0) {
+      Localytics.tagEvent(track.event(), props.toStringMap(), revenue);
+    } else {
+      Localytics.tagEvent(track.event(), props.toStringMap());
+    }
+
     setCustomDimensions(props);
   }
 
