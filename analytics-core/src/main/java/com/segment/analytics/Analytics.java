@@ -512,7 +512,7 @@ public class Analytics {
     GOOGLE_ANALYTICS("Google Analytics"),
     KAHUNA("Kahuna"),
     LEANPLUM("Leanplum"),
-    LOCALYTICS("Leanplum"),
+    LOCALYTICS("Localytics"),
     MIXPANEL("Mixpanel"),
     QUANTCAST("Quantcast"),
     TAPLYTICS("Taplytics"),
