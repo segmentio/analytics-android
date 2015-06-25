@@ -6,7 +6,7 @@ clean:
 	@./gradlew clean
 
 test:
-	@./gradlew test
+	@./gradlew check test
 
 build:
 	@./gradlew build

@@ -2,6 +2,7 @@ general:
   artifacts:
     - analytics-core/build/test-report
     - analytics-integrations/*/build/test-report
+    - build/reports/profile
 
 machine:
   environment:
@@ -11,16 +12,13 @@ machine:
 
 dependencies:
   cache_directories:
-#    - ~/.android
-#    - ~/android
     - ~/.gradle
   override:
-    - echo y | android update sdk -u -a -t build-tools-21.1.1
-    - TERM=dumb ./gradlew dependencies
+    - TERM=dumb ./gradlew dependencies --profile
 
 test:
   override:
-    - TERM=dumb ./gradlew build
+    - TERM=dumb ./gradlew assembleRelease checkRelease testRelease --profile
 
 deployment:
   snapshots:
