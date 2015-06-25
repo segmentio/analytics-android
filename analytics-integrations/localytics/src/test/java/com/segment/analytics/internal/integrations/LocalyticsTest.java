@@ -259,6 +259,13 @@ public class LocalyticsTest {
     Localytics.tagEvent("foo", new HashMap<String, String>());
   }
 
+  @Test public void trackWithRevenue() {
+    Properties props = new Properties().putRevenue(20);
+    integration.track(new TrackPayloadBuilder().event("bar").properties(props).build());
+    verifyStatic();
+    Localytics.tagEvent("bar", props.toStringMap(), 2000);
+  }
+
   @Test public void trackWithCustomDimensions() {
     integration.customDimensions = new ValueMap().putValue("foo", 9);
 
