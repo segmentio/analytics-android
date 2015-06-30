@@ -44,7 +44,7 @@ public class GroupPayload extends BasePayload {
 
   public GroupPayload(AnalyticsContext context, Options options, String groupId,
       Traits groupTraits) {
-    super(Type.group, context, options);
+    super(TYPE_GROUP, context, options);
     put(GROUP_ID_KEY, groupId);
     put(TRAITS_KEY, groupTraits.unmodifiableCopy());
   }

@@ -70,7 +70,7 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
     KahunaAnalytics.onAppCreate(analytics.getApplication(), settings.getString("apiKey"),
         settings.getString("pushSenderId"));
 
-    LogLevel logLevel = analytics.getLogLevel();
+    @LogLevel.Severity int logLevel = analytics.getLogLevel();
     KahunaAnalytics.setDebugMode(logLevel == INFO || logLevel == VERBOSE);
   }
 

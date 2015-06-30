@@ -32,6 +32,9 @@ import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.support.annotation.IntDef;
+import android.support.annotation.StringDef;
+
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
@@ -40,6 +43,9 @@ import com.segment.analytics.internal.model.payloads.GroupPayload;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -88,7 +94,8 @@ public class Analytics {
   private final Options defaultOptions;
   private final Traits.Cache traitsCache;
   private final AnalyticsContext analyticsContext;
-  private final LogLevel logLevel;
+  @LogLevel.Severity
+  private final int logLevel;
   boolean shutdown;
 
   /**
@@ -147,7 +154,7 @@ public class Analytics {
 
   Analytics(Application application, ExecutorService networkExecutor,
       IntegrationManager.Factory integrationManagerFactory, Stats stats, Traits.Cache traitsCache,
-      AnalyticsContext analyticsContext, Options defaultOptions, LogLevel logLevel) {
+      AnalyticsContext analyticsContext, Options defaultOptions, @LogLevel.Severity int logLevel) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -392,7 +399,7 @@ public class Analytics {
   }
 
   void submit(BasePayload payload) {
-    if (logLevel.log()) {
+    if (LogLevel.log(logLevel)) {
       debug("Created payload %s.", payload);
     }
     integrationManager.dispatchEnqueue(payload);
@@ -422,7 +429,8 @@ public class Analytics {
   }
 
   /** Return the {@link LogLevel} for this instance. */
-  public LogLevel getLogLevel() {
+  @LogLevel.Severity
+  public int getLogLevel() {
     return logLevel;
   }
 
@@ -490,7 +498,7 @@ public class Analytics {
    *   })*
    * </code> </pre>
    */
-  public void onIntegrationReady(BundledIntegration bundledIntegration, Callback callback) {
+  public void onIntegrationReady(@BundledIntegration String bundledIntegration, Callback callback) {
     if (bundledIntegration == null) {
       throw new IllegalArgumentException("bundledIntegration cannot be null.");
     }
@@ -498,53 +506,68 @@ public class Analytics {
       throw new IllegalStateException("Enable bundled integrations to register for this callback.");
     }
 
-    integrationManager.dispatchRegisterCallback(bundledIntegration.key, callback);
+    integrationManager.dispatchRegisterCallback(bundledIntegration, callback);
   }
 
-  public enum BundledIntegration {
-    AMPLITUDE("Amplitude"),
-    APPS_FLYER("AppsFlyer"),
-    APPTIMIZE("Apptimize"),
-    BUGSNAG("Bugsnag"),
-    COUNTLY("Countly"),
-    CRITTERCISM("Crittercism"),
-    FLURRY("Flurry"),
-    GOOGLE_ANALYTICS("Google Analytics"),
-    KAHUNA("Kahuna"),
-    LEANPLUM("Leanplum"),
-    LOCALYTICS("Localytics"),
-    MIXPANEL("Mixpanel"),
-    QUANTCAST("Quantcast"),
-    TAPLYTICS("Taplytics"),
-    TAPSTREAM("Tapstream"),
-    UXCAM("UXCam");
-
-    /** The key that identifies this integration in our API. */
-    final String key;
-
-    BundledIntegration(String key) {
-      this.key = key;
-    }
-  }
+  @StringDef({
+          AMPLITUDE,
+          APPS_FLYER,
+          APPTIMIZE,
+          BUGSNAG,
+          COUNTLY,
+          CRITTERCISM,
+          FLURRY,
+          GOOGLE_ANALYTICS,
+          KAHUNA,
+          LEANPLUM,
+          LOCALYTICS,
+          MIXPANEL,
+          QUANTCAST,
+          TAPLYTICS,
+          TAPSTREAM,
+          UXCAM
+  })
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface BundledIntegration {}
+  public static final String AMPLITUDE = "Amplitude";
+  public static final String APPS_FLYER = "AppsFlyer";
+  public static final String APPTIMIZE = "Apptimize";
+  public static final String BUGSNAG = "Bugsnag";
+  public static final String COUNTLY = "Countly";
+  public static final String CRITTERCISM = "Crittercism";
+  public static final String FLURRY = "Flurry";
+  public static final String GOOGLE_ANALYTICS = "Google Analytics";
+  public static final String KAHUNA = "Kahuna";
+  public static final String LEANPLUM = "Leanplum";
+  public static final String LOCALYTICS = "Localytics";
+  public static final String MIXPANEL = "Mixpanel";
+  public static final String QUANTCAST = "Quantcast";
+  public static final String TAPLYTICS = "Taplytics";
+  public static final String TAPSTREAM = "Tapstream";
+  public static final String UXCAM = "UXCam";
 
   /** Controls the level of logging. */
-  public enum LogLevel {
+  public static class LogLevel {
+    @IntDef({NONE, BASIC, INFO, VERBOSE})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface Severity {}
+
     /** No logging. */
-    NONE,
+    public static final int NONE = 0b000;
     /** Log exceptions and events through the Segment SDK only. */
-    BASIC,
+    public static final int BASIC = 0b001;
     /**
      * Log exceptions, events through the Segment SDK, and enable logging for bundled integrations.
      */
-    INFO,
+    public static final int INFO = 0b011;
     /**
      * Log exceptions, events through the SDK, and enable verbose logging for bundled integrations
      * that support it.
      */
-    VERBOSE;
+    public static final int VERBOSE = 0b111;
 
-    public boolean log() {
-      return this != NONE;
+    public static boolean log(@Severity int logLevel) {
+      return logLevel != NONE;
     }
   }
 
@@ -572,7 +595,8 @@ public class Analytics {
     private long flushIntervalInMillis = Utils.DEFAULT_FLUSH_INTERVAL;
     private Options defaultOptions;
     private String tag;
-    private LogLevel logLevel;
+    @LogLevel.Severity
+    private int logLevel;
     private ExecutorService networkExecutor;
     private ConnectionFactory connectionFactory;
 
@@ -672,10 +696,7 @@ public class Analytics {
     }
 
     /** Set a {@link LogLevel} for this instance. */
-    public Builder logLevel(LogLevel logLevel) {
-      if (logLevel == null) {
-        throw new IllegalArgumentException("LogLevel must not be null.");
-      }
+    public Builder logLevel(@LogLevel.Severity int logLevel) {
       this.logLevel = logLevel;
       return this;
     }
@@ -718,9 +739,6 @@ public class Analytics {
     public Analytics build() {
       if (defaultOptions == null) {
         defaultOptions = new Options();
-      }
-      if (logLevel == null) {
-        logLevel = LogLevel.NONE;
       }
       if (isNullOrEmpty(tag)) {
         tag = writeKey;

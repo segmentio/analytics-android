@@ -39,7 +39,7 @@ public class IdentifyPayload extends BasePayload {
   private static final String TRAITS_KEY = "traits";
 
   public IdentifyPayload(AnalyticsContext context, Options options, Traits traits) {
-    super(Type.identify, context, options);
+    super(TYPE_IDENTIFY, context, options);
     put(TRAITS_KEY, traits);
   }
 

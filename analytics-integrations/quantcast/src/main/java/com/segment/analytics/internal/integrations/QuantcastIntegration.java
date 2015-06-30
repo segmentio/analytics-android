@@ -35,7 +35,7 @@ public class QuantcastIntegration extends AbstractIntegration<Void> {
       throw new IllegalStateException("ACCESS_NETWORK_STATE is required");
     }
     apiKey = settings.getString("apiKey");
-    LogLevel logLevel = analytics.getLogLevel();
+    @LogLevel.Severity int logLevel = analytics.getLogLevel();
     QuantcastClient.enableLogging(logLevel == INFO || logLevel == VERBOSE);
   }
 

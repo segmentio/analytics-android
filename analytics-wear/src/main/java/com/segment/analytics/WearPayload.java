@@ -16,13 +16,17 @@ class WearPayload extends ValueMap {
     super(delegate);
   }
 
-  WearPayload(BasePayload.Type type, ValueMap payload) {
+  WearPayload(@BasePayload.Type int type, ValueMap payload) {
+    if (!BasePayload.verifyType(type)) {
+      throw new IllegalArgumentException(type + " is not a valid type value see BasePayload.Type");
+    }
     put(TYPE_KEY, type);
     put(PAYLOAD_KEY, payload);
   }
 
-  BasePayload.Type type() {
-    return getEnum(BasePayload.Type.class, TYPE_KEY);
+  @SuppressWarnings("ResourceType")
+  @BasePayload.Type int type() {
+    return getInt(TYPE_KEY, BasePayload.TYPE_TRACK);
   }
 
   <T extends ValueMap> T payload(Class<T> clazz) {

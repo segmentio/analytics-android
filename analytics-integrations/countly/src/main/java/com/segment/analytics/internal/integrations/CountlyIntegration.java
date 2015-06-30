@@ -29,7 +29,7 @@ public class CountlyIntegration extends AbstractIntegration<Countly> {
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
     countly = Countly.sharedInstance();
-    LogLevel logLevel = analytics.getLogLevel();
+    @LogLevel.Severity int logLevel = analytics.getLogLevel();
     countly.setLoggingEnabled(logLevel == INFO || logLevel == VERBOSE);
     String serverUrl = settings.getString("serverUrl");
     String appKey = settings.getString("appKey");

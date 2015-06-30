@@ -8,6 +8,8 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Pair;
+
+import com.segment.analytics.Analytics.LogLevel;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.BasePayload;
@@ -62,7 +64,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
   final Cartographer cartographer;
   final Stats stats;
   final ProjectSettings.Cache projectSettingsCache;
-  final Analytics.LogLevel logLevel;
+  @LogLevel.Severity final int logLevel;
   final HandlerThread integrationManagerThread;
   final Handler integrationManagerHandler;
   final ExecutorService networkExecutor;
@@ -147,7 +149,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
       Class clazz = Class.forName(className);
       loadIntegration(clazz);
     } catch (ClassNotFoundException e) {
-      if (logLevel.log()) {
+      if (LogLevel.log(logLevel)) {
         debug("Integration for class %s not bundled.", className);
       }
     }
@@ -205,11 +207,11 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
       projectSettingsCache.set(projectSettings);
       dispatchInitializeIntegrations(projectSettings);
     } catch (InterruptedException e) {
-      if (logLevel.log()) {
+      if (LogLevel.log(logLevel)) {
         error(e, "Thread interrupted while fetching settings.");
       }
     } catch (ExecutionException e) {
-      if (logLevel.log()) {
+      if (LogLevel.log(logLevel)) {
         error(e, "Unable to fetch settings. Retrying in %s ms.", SETTINGS_RETRY_INTERVAL);
       }
       dispatchRetryFetchSettings();
@@ -226,14 +228,14 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
 
     ValueMap integrationSettings = projectSettings.integrations();
     if (isNullOrEmpty(integrationSettings)) {
-      if (logLevel.log()) {
+      if (LogLevel.log(logLevel)) {
         error(null, "No integrations enabled in %s. Make sure you have the correct writeKey.",
             projectSettings);
       }
       bundledIntegrations.clear();
       integrations.clear();
     } else {
-      if (logLevel.log()) {
+      if (LogLevel.log(logLevel)) {
         debug("Initializing integrations with %s.", integrationSettings);
       }
       initializeIntegrations(integrationSettings);
@@ -257,14 +259,14 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
       ValueMap settings = integrationSettings.getValueMap(key);
       boolean initializedIntegration = false;
       if (!isNullOrEmpty(settings)) {
-        if (logLevel.log()) {
+        if (LogLevel.log(logLevel)) {
           debug("Initializing integration %s with settings %s.", key, settings);
         }
         try {
           integration.initialize(analytics, settings);
           initializedIntegration = true;
         } catch (Exception e) {
-          if (logLevel.log()) {
+          if (LogLevel.log(logLevel)) {
             error(e, "Could not initialize integration %s.", key);
           }
         }
@@ -345,19 +347,19 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
   void performEnqueue(BasePayload payload) {
     IntegrationOperation operation;
     switch (payload.type()) {
-      case identify:
+      case BasePayload.TYPE_IDENTIFY:
         operation = IntegrationOperation.identify((IdentifyPayload) payload);
         break;
-      case alias:
+      case BasePayload.TYPE_ALIAS:
         operation = IntegrationOperation.alias((AliasPayload) payload);
         break;
-      case group:
+      case BasePayload.TYPE_GROUP:
         operation = IntegrationOperation.group((GroupPayload) payload);
         break;
-      case track:
+      case BasePayload.TYPE_TRACK:
         operation = IntegrationOperation.track((TrackPayload) payload);
         break;
-      case screen:
+      case BasePayload.TYPE_SCREEN:
         operation = IntegrationOperation.screen((ScreenPayload) payload);
         break;
       default:
@@ -370,7 +372,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     if (initialized) {
       run(operation);
     } else {
-      if (logLevel.log()) {
+      if (LogLevel.log(logLevel)) {
         debug("Enqueuing action %s.", operation);
       }
       if (operationQueue == null) {
@@ -382,7 +384,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
 
   /** Runs the given operation on all bundled integrations. */
   void run(IntegrationOperation operation) {
-    if (logLevel.log()) {
+    if (LogLevel.log(logLevel)) {
       debug("Running %s on %s integrations.", operation, integrations.size());
     }
     for (int i = 0; i < integrations.size(); i++) {
@@ -391,7 +393,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
       operation.run(integration, projectSettingsCache.get());
       long endTime = System.nanoTime();
       long duration = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-      if (logLevel.log()) {
+      if (LogLevel.log(logLevel)) {
         debug("Took %s ms to run action %s on %s.", duration, operation, integration.key());
       }
       stats.dispatchIntegrationOperation(integration.key(), duration);

@@ -45,7 +45,7 @@ public class TrackPayload extends BasePayload {
 
   public TrackPayload(AnalyticsContext context, Options options, String event,
       Properties properties) {
-    super(Type.track, context, options);
+    super(TYPE_TRACK, context, options);
     put(EVENT_KEY, event);
     put(PROPERTIES_KEY, properties);
   }

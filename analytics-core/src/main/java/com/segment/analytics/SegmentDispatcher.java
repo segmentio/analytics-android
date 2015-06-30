@@ -6,6 +6,8 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.JsonWriter;
+
+import com.segment.analytics.Analytics.LogLevel;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.Utils.AnalyticsThreadFactory;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
@@ -68,7 +70,7 @@ class SegmentDispatcher extends AbstractIntegration {
   private final Stats stats;
   private final Handler handler;
   private final HandlerThread segmentThread;
-  private final Analytics.LogLevel logLevel;
+  @LogLevel.Severity private final int logLevel;
   private final Map<String, Boolean> bundledIntegrations;
   private final Cartographer cartographer;
   private final ExecutorService networkExecutor;
@@ -123,7 +125,7 @@ class SegmentDispatcher extends AbstractIntegration {
   static synchronized SegmentDispatcher create(Context context, Client client,
       Cartographer cartographer, ExecutorService networkExecutor, Stats stats,
       Map<String, Boolean> bundledIntegrations, String tag, long flushIntervalInMillis,
-      int flushQueueSize, Analytics.LogLevel logLevel) {
+      int flushQueueSize, @LogLevel.Severity int logLevel) {
     QueueFile queueFile;
     try {
       File folder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
@@ -138,7 +140,7 @@ class SegmentDispatcher extends AbstractIntegration {
   SegmentDispatcher(Context context, Client client, Cartographer cartographer,
       ExecutorService networkExecutor, QueueFile queueFile, Stats stats,
       Map<String, Boolean> bundledIntegrations, long flushIntervalInMillis, int flushQueueSize,
-      Analytics.LogLevel logLevel) {
+      @LogLevel.Severity int logLevel) {
     this.context = context;
     this.client = client;
     this.networkExecutor = networkExecutor;
@@ -201,7 +203,7 @@ class SegmentDispatcher extends AbstractIntegration {
         // Double checked locking, the network executor could have removed payload from the queue
         // to bring it below our capacity while we were waiting.
         if (queueFile.size() >= MAX_QUEUE_SIZE) {
-          if (logLevel.log()) {
+          if (LogLevel.log(logLevel)) {
             debug("Queue is at max capacity (%s), removing oldest payload.", queueFile.size());
           }
           try {
@@ -220,12 +222,12 @@ class SegmentDispatcher extends AbstractIntegration {
       }
       queueFile.add(payloadJson.getBytes(UTF_8));
     } catch (IOException e) {
-      if (logLevel.log()) {
+      if (LogLevel.log(logLevel)) {
         error(e, "Could not add payload %s to queue: %s.", payload, queueFile);
       }
     }
 
-    if (logLevel.log()) {
+    if (LogLevel.log(logLevel)) {
       debug("Enqueued %s payload. Queue size is now : %s.", payload, queueFile.size());
     }
 
@@ -265,7 +267,7 @@ class SegmentDispatcher extends AbstractIntegration {
       return;
     }
 
-    if (logLevel.log()) {
+    if (LogLevel.log(logLevel)) {
       debug("Uploading payloads in queue to Segment.");
     }
     int payloadsUploaded;
@@ -290,7 +292,7 @@ class SegmentDispatcher extends AbstractIntegration {
           connection.close();
         } catch (Client.UploadException e) {
           // Simply log and proceed to remove the rejected payloads from the queue
-          if (logLevel.log()) {
+          if (LogLevel.log(logLevel)) {
             error(e, "Payloads were rejected by server. Marked for removal.");
           }
         }
@@ -298,7 +300,7 @@ class SegmentDispatcher extends AbstractIntegration {
         closeQuietly(connection);
       }
     } catch (IOException e) {
-      if (logLevel.log()) {
+      if (LogLevel.log(logLevel)) {
         error(e, "Error while uploading payloads");
       }
       return;
@@ -317,7 +319,7 @@ class SegmentDispatcher extends AbstractIntegration {
       throw e;
     }
 
-    if (logLevel.log()) {
+    if (LogLevel.log(logLevel)) {
       debug("Uploaded %s payloads. Queue size is now %s.", payloadsUploaded, queueFile.size());
     }
     stats.dispatchFlush(payloadsUploaded);

@@ -24,9 +24,14 @@
 
 package com.segment.analytics.internal.model.payloads;
 
+import android.support.annotation.IntDef;
+
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.ValueMap;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.Date;
 import java.util.UUID;
 
@@ -54,7 +59,7 @@ public abstract class BasePayload extends ValueMap {
    * The channel where the request originated from: server, browser or mobile. In the future we may
    * add additional channels as we add libraries, for example console.
    * <p/>
-   * This is always {@link Channel#mobile} for us.
+   * This is always {@link #CHANNEL_MOBILE} for us.
    */
   private static final String CHANNEL_KEY = "channel";
   /** A randomly generated unique id for this message. */
@@ -79,11 +84,14 @@ public abstract class BasePayload extends ValueMap {
    */
   protected static final String USER_ID_KEY = "userId";
 
-  public BasePayload(Type type, AnalyticsContext context, Options options) {
+  public BasePayload(@Type int type, AnalyticsContext context, Options options) {
+    if (!verifyType(type)) {
+      throw new IllegalArgumentException(type + " is not a valid type value see BasePayload.Type");
+    }
     AnalyticsContext contextCopy = context.unmodifiableCopy();
     put(MESSAGE_ID, UUID.randomUUID().toString());
     put(TYPE_KEY, type);
-    put(CHANNEL_KEY, Channel.mobile);
+    put(CHANNEL_KEY, CHANNEL_MOBILE);
     put(CONTEXT_KEY, contextCopy);
     put(ANONYMOUS_ID_KEY, contextCopy.traits().anonymousId());
     String userId = contextCopy.traits().userId();
@@ -94,8 +102,9 @@ public abstract class BasePayload extends ValueMap {
     put(INTEGRATIONS_KEY, options.integrations()); // uses a copy
   }
 
-  public Type type() {
-    return getEnum(Type.class, TYPE_KEY);
+  @SuppressWarnings("ResourceType")
+  @Type public int type() {
+    return getInt(TYPE_KEY, TYPE_TRACK);
   }
 
   public String userId() {
@@ -124,12 +133,32 @@ public abstract class BasePayload extends ValueMap {
   }
 
   /** @see #TYPE_KEY */
-  public enum Type {
-    alias, group, identify, screen, track
-  }
+  @IntDef({TYPE_ALIAS, TYPE_GROUP, TYPE_IDENTIFY, TYPE_SCREEN, TYPE_TRACK})
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface Type {}
+
+  public static final int TYPE_ALIAS = 1;
+  public static final int TYPE_GROUP = 2;
+  public static final int TYPE_IDENTIFY = 3;
+  public static final int TYPE_SCREEN = 4;
+  public static final int TYPE_TRACK = 5;
 
   /** @see #CHANNEL_KEY */
-  public enum Channel {
-    browser, mobile, server
+  @IntDef({CHANNEL_BROWSER, CHANNEL_MOBILE, CHANNEL_SERVER})
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface Channel {}
+
+  public static final int CHANNEL_BROWSER = 1;
+  public static final int CHANNEL_MOBILE = 2;
+  public static final int CHANNEL_SERVER = 3;
+
+  /**
+   * Verifies the given type value is a valid
+   * {@link com.segment.analytics.internal.model.payloads.BasePayload.Type}
+   * @param type The proposed type value
+   * @return {@code true} indicates the input is a value type
+   */
+  public static boolean verifyType(int type) {
+    return type > 0 && type <= TYPE_TRACK;
   }
 }
