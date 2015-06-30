@@ -51,6 +51,10 @@ public class ValueMap implements Map<String, Object> {
     delegate = new LinkedHashMap<>();
   }
 
+  public ValueMap(int initialCapacity) {
+    delegate = new LinkedHashMap<>(initialCapacity);
+  }
+
   public ValueMap(Map<String, Object> map) {
     if (map == null) {
       throw new IllegalArgumentException("Map must not be null.");
