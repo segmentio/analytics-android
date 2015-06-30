@@ -18,6 +18,7 @@ allprojects {
 
   repositories {
     mavenCentral()
+    maven { url 'http://maven.apptimize.com/artifactory/repo' }
   }
 
   group = GROUP
