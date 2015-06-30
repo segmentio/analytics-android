@@ -46,7 +46,7 @@ public class ScreenPayload extends BasePayload {
 
   public ScreenPayload(AnalyticsContext context, Options options, String category, String name,
       Properties properties) {
-    super(Type.screen, context, options);
+    super(TYPE_SCREEN, context, options);
     put(CATEGORY_KEY, category);
     put(NAME_KEY, name);
     put(PROPERTIES_KEY, properties);

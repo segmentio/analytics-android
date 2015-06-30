@@ -44,7 +44,7 @@ public class TapstreamIntegration extends AbstractIntegration<Tapstream> {
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", true);
     trackNamedPages = settings.getBoolean("trackNamedPages", true);
 
-    LogLevel logLevel = analytics.getLogLevel();
+    @LogLevel.Severity int logLevel = analytics.getLogLevel();
     if (logLevel == INFO || logLevel == VERBOSE) {
       Logging.setLogger(new Logger() {
         @Override public void log(int i, String s) {

@@ -6,3 +6,7 @@ apply from: rootProject.file('gradle/checkstyle-library.gradle')
 apply from: rootProject.file('gradle/attach-jar.gradle')
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
 
+dependencies {
+    provided "com.android.support:support-annotations:22.2.0"
+}
+

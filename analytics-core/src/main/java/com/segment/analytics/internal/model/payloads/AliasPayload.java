@@ -36,7 +36,7 @@ public class AliasPayload extends BasePayload {
   private static final String PREVIOUS_ID_KEY = "previousId";
 
   public AliasPayload(AnalyticsContext context, Options options, String newId) {
-    super(Type.alias, context, options);
+    super(TYPE_ALIAS, context, options);
     put(USER_ID_KEY, newId);
     put(PREVIOUS_ID_KEY, context().traits().currentId());
   }

@@ -35,7 +35,7 @@ public class FlurryIntegration extends AbstractIntegration<Void> {
     int sessionContinueSeconds = settings.getInt("sessionContinueSeconds", 10) * 1000;
     boolean captureUncaughtExceptions = settings.getBoolean("captureUncaughtExceptions", false);
     boolean reportLocation = settings.getBoolean("reportLocation", true);
-    LogLevel logLevel = analytics.getLogLevel();
+    @LogLevel.Severity int logLevel = analytics.getLogLevel();
 
     FlurryAgent.setContinueSessionMillis(sessionContinueSeconds);
     FlurryAgent.setCaptureUncaughtExceptions(captureUncaughtExceptions);

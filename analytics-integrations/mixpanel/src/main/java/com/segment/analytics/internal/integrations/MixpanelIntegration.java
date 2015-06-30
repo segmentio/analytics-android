@@ -42,7 +42,7 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   boolean trackCategorizedPages;
   boolean trackNamedPages;
   String token;
-  LogLevel logLevel;
+  @LogLevel.Severity int logLevel;
   Set<String> increments;
 
   private static void registerSuperProperties(JSONObject jsonObject, Traits traits)
@@ -121,7 +121,7 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     try {
       registerSuperProperties(traits, identify.traits());
     } catch (JSONException e) {
-      if (logLevel.log()) {
+      if (LogLevel.log(logLevel)) {
         debug("Could not add super properties to JSONObject for Mixpanel Integration");
       }
     }

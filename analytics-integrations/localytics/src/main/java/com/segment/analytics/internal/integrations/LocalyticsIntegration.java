@@ -39,7 +39,7 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
     Localytics.integrate(analytics.getApplication(), settings.getString("appKey"));
-    LogLevel logLevel = analytics.getLogLevel();
+    @LogLevel.Severity int logLevel = analytics.getLogLevel();
     Localytics.setLoggingEnabled(logLevel == INFO || logLevel == VERBOSE);
     hasSupportLibOnClassPath = isOnClassPath("android.support.v4.app.FragmentActivity");
     customDimensions = settings.getValueMap("dimensions");

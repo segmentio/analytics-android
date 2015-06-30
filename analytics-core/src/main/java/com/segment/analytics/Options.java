@@ -68,25 +68,11 @@ public class Options {
    * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
    * @return This options object for chaining
    */
-  public Options setIntegration(String integrationKey, boolean enabled) {
+  public Options setIntegration(@Analytics.BundledIntegration String integrationKey, boolean enabled) {
     if (SegmentDispatcher.SEGMENT_KEY.equals(integrationKey)) {
       throw new IllegalArgumentException("Segment integration cannot be enabled or disabled.");
     }
     integrations.put(integrationKey, enabled);
-    return this;
-  }
-
-  /**
-   * Sets whether an action will be sent to the target integration. Same as {@link
-   * #setIntegration(String, boolean)} but type safe for bundled integrations.
-   *
-   * @param bundledIntegration The target integration
-   * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
-   * @return This options object for chaining
-   * @see {@link Options#setIntegration(String, boolean)}
-   */
-  public Options setIntegration(Analytics.BundledIntegration bundledIntegration, boolean enabled) {
-    setIntegration(bundledIntegration.key, enabled);
     return this;
   }
 
@@ -97,22 +83,8 @@ public class Options {
    * @param options A map of data that will be used by the integration
    * @return This options object for chaining
    */
-  public Options setIntegrationOptions(String integrationKey, Map<String, Object> options) {
+  public Options setIntegrationOptions(@Analytics.BundledIntegration String integrationKey, Map<String, Object> options) {
     integrations.put(integrationKey, options);
-    return this;
-  }
-
-  /**
-   * Attach some integration specific options for this call. Same as
-   * {@link #setIntegrationOptions(String, Map)} but type safe for bundled integrations.
-   *
-   * @param bundledIntegration The target integration
-   * @param options A map of data that will be used by the integration
-   * @return This options object for chaining
-   */
-  public Options setIntegrationOptions(Analytics.BundledIntegration bundledIntegration,
-      Map<String, Object> options) {
-    integrations.put(bundledIntegration.key, options);
     return this;
   }
 

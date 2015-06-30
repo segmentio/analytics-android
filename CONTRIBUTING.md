@@ -38,7 +38,7 @@ First, you need to write your integration. You can copy the template in the `con
 
 Then you'll need to update our SDKs to know about the new integration.
 
-1. Update `Analytics.BundledIntegration` in [`analytics-core/src/main/java/com/segment/analytics/Analytics.java`](https://github.com/segmentio/analytics-android/blob/master/analytics-core/src/main/java/com/segment/analytics/Analytics.java) and add `MYTOOL("MyTool")` as an enum.
+1. Update `Analytics.BundledIntegration` in [`analytics-core/src/main/java/com/segment/analytics/Analytics.java`](https://github.com/segmentio/analytics-android/blob/master/analytics-core/src/main/java/com/segment/analytics/Analytics.java) and add `MYTOOL("MyTool")` as an BundledIntegration constant.
 2. Update [`IntegrationManager`](https://github.com/segmentio/analytics-android/blob/master/analytics-core/src/main/java/com/segment/analytics/IntegrationManager.java) and add `loadIntegration("com.segment.analytics.internal.integrations.MyToolIntegration");` to the `loadIntegrations()` method.
 3. Update [`settings.gradle`](https://github.com/segmentio/analytics-android/blob/master/settings.gradle) to pick up your integration.
 4. Update [our master project](https://github.com/segmentio/analytics-android/blob/master/analytics/build.gradle) and add your integration as a dependency.
