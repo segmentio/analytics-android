@@ -111,7 +111,8 @@ public class MixpanelTest {
     assertThat(integration.trackCategorizedPages).isFalse();
     assertThat(integration.trackNamedPages).isTrue();
     verify(mixpanelAPI).getPeople();
-    assertThat(integration.increments).containsExactly("qux", "baz", "qaz");
+    // Don't use containsExactly since the ordering differs between JDK versions.
+    assertThat(integration.increments).hasSize(3).contains("qux", "baz", "qaz");
   }
 
   @Test public void activityCreate() {
