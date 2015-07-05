@@ -91,6 +91,10 @@ public class Traits extends ValueMap {
   public Traits() {
   }
 
+  public Traits(int initialCapacity) {
+    super(initialCapacity);
+  }
+
   public Traits unmodifiableCopy() {
     LinkedHashMap<String, Object> map = new LinkedHashMap<>(this);
     return new Traits(unmodifiableMap(map));
