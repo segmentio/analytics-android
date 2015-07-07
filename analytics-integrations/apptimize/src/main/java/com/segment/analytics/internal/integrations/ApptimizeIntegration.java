@@ -1,7 +1,9 @@
 package com.segment.analytics.internal.integrations;
 
 import com.apptimize.Apptimize;
+import com.apptimize.Apptimize.OnExperimentRunListener;
 import com.segment.analytics.Analytics;
+import com.segment.analytics.Properties;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
@@ -17,12 +19,18 @@ import java.util.Map.Entry;
  * @see <a href="http://www.apptimize.com/">Apptimize</a>
  * @see <a href="https://segment.com/docs/integrations/apptimize/">Apptimize Integration</a>
  */
-public class ApptimizeIntegration extends AbstractIntegration<Void> {
+public class ApptimizeIntegration extends AbstractIntegration<Void>
+    implements OnExperimentRunListener {
   static final String APPTIMIZE_KEY = "Apptimize";
+  Analytics analytics;
 
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
+    this.analytics = analytics;
     Apptimize.setup(analytics.getApplication(), settings.getString("appkey"));
+    if (settings.getBoolean("listen", false)) {
+      Apptimize.setOnExperimentRunListener(this);
+    }
   }
 
   @Override public String key() {
@@ -53,5 +61,12 @@ public class ApptimizeIntegration extends AbstractIntegration<Void> {
   @Override public void screen(ScreenPayload screen) {
     super.screen(screen);
     Apptimize.track(screen.event());
+  }
+
+  @Override
+  public void onExperimentRun(String experimentName, String variantName, boolean firstRun) {
+    analytics.track("Experiment Viewed", new Properties()
+        .putValue("experimentName", experimentName)
+        .putValue("variationName", variantName));
   }
 }
