@@ -120,6 +120,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
   }
 
   private void loadIntegrations() {
+    loadIntegration("com.segment.analytics.internal.integrations.AdjustIntegration");
     loadIntegration("com.segment.analytics.internal.integrations.AmplitudeIntegration");
     loadIntegration("com.segment.analytics.internal.integrations.AppsFlyerIntegration");
     loadIntegration("com.segment.analytics.internal.integrations.ApptimizeIntegration");

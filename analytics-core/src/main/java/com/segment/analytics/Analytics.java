@@ -502,6 +502,7 @@ public class Analytics {
   }
 
   public enum BundledIntegration {
+    ADJUST("Adjust"),
     AMPLITUDE("Amplitude"),
     APPS_FLYER("AppsFlyer"),
     APPTIMIZE("Apptimize"),
