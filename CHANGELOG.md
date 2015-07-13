@@ -1,3 +1,10 @@
+Version 3.1.5 (July 13th, 2015)
+=============================
+* Feature: Add Apptimize Root integration
+* Enhancement: Track LTV with Localytics
+* Fix: Localytics ready callback
+* Enhancement: Add API to presize Properties and Traits
+
 Version 3.1.4 (June 22, 2015)
 =============================
 * Enhancement: Update Amplitude SDK
