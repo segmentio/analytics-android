@@ -1,0 +1,6 @@
+apply from: rootProject.file('gradle/integration.gradle')
+
+dependencies {
+    compile 'com.moengage:moe-android-sdk:5.1.5'
+}
+
