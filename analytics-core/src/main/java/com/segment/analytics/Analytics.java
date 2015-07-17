@@ -751,6 +751,10 @@ public class Analytics {
       AnalyticsContext analyticsContext = AnalyticsContext.create(application, traitsCache.get());
       analyticsContext.attachAdvertisingId(application);
 
+      if (logLevel.log()) {
+        debug("Creating analytics client for project with writeKey: %s.", writeKey);
+      }
+
       return new Analytics(application, networkExecutor, integrationManagerFactory, stats,
           traitsCache, analyticsContext, defaultOptions, logLevel);
     }
