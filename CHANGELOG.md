@@ -1,5 +1,9 @@
+Version 3.1.6 (July 20th, 2015)
+===============================
+* Feature: Add MoEngage integration
+
 Version 3.1.5 (July 13th, 2015)
-=============================
+===============================
 * Feature: Add Apptimize Root integration
 * Enhancement: Track LTV with Localytics
 * Fix: Localytics ready callback
