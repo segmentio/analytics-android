@@ -2,12 +2,16 @@ package com.segment.analytics.internal.integrations;
 
 import android.app.Activity;
 import android.text.TextUtils;
-import com.kahuna.sdk.KahunaAnalytics;
+
+import com.kahuna.sdk.EmptyCredentialsException;
+import com.kahuna.sdk.IKahunaUserCredentials;
+import com.kahuna.sdk.Kahuna;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.Utils;
+import com.segment.analytics.internal.integrations.kahuna.BuildConfig;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
@@ -19,17 +23,18 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static com.kahuna.sdk.KahunaUserCredentialKeys.EMAIL_KEY;
-import static com.kahuna.sdk.KahunaUserCredentialKeys.FACEBOOK_KEY;
-import static com.kahuna.sdk.KahunaUserCredentialKeys.GOOGLE_PLUS_ID;
-import static com.kahuna.sdk.KahunaUserCredentialKeys.INSTALL_TOKEN_KEY;
-import static com.kahuna.sdk.KahunaUserCredentialKeys.LINKEDIN_KEY;
-import static com.kahuna.sdk.KahunaUserCredentialKeys.TWITTER_KEY;
-import static com.kahuna.sdk.KahunaUserCredentialKeys.USERNAME_KEY;
-import static com.kahuna.sdk.KahunaUserCredentialKeys.USER_ID_KEY;
+import static com.kahuna.sdk.KahunaUserCredentials.EMAIL_KEY;
+import static com.kahuna.sdk.KahunaUserCredentials.FACEBOOK_KEY;
+import static com.kahuna.sdk.KahunaUserCredentials.GOOGLE_PLUS_ID;
+import static com.kahuna.sdk.KahunaUserCredentials.INSTALL_TOKEN_KEY;
+import static com.kahuna.sdk.KahunaUserCredentials.LINKEDIN_KEY;
+import static com.kahuna.sdk.KahunaUserCredentials.TWITTER_KEY;
+import static com.kahuna.sdk.KahunaUserCredentials.USERNAME_KEY;
+import static com.kahuna.sdk.KahunaUserCredentials.USER_ID_KEY;
 import static com.segment.analytics.Analytics.LogLevel;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
+import static com.segment.analytics.internal.Utils.error;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.isOnClassPath;
 
@@ -51,6 +56,7 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
   static final String NONE = "None";
 
   private static final String KAHUNA_KEY = "Kahuna";
+  private static final String SEGMENT_WRAPPER_VERSION = "segment";
 
   private static final Set<String> KAHUNA_CREDENTIALS =
       Utils.newSet(USERNAME_KEY, EMAIL_KEY, FACEBOOK_KEY, TWITTER_KEY, LINKEDIN_KEY,
@@ -67,11 +73,12 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
     }
 
     trackAllPages = settings.getBoolean("trackAllPages", false);
-    KahunaAnalytics.onAppCreate(analytics.getApplication(), settings.getString("apiKey"),
-        settings.getString("pushSenderId"));
+    Kahuna.getInstance().onAppCreate(analytics.getApplication(), settings.getString("apiKey"),
+            settings.getString("pushSenderId"));
+    Kahuna.getInstance().setHybridSDKVersion(SEGMENT_WRAPPER_VERSION, BuildConfig.VERSION_NAME);
 
     LogLevel logLevel = analytics.getLogLevel();
-    KahunaAnalytics.setDebugMode(logLevel == INFO || logLevel == VERBOSE);
+    Kahuna.getInstance().setDebugMode(logLevel == INFO || logLevel == VERBOSE);
   }
 
   @Override public String key() {
@@ -80,25 +87,26 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
 
   @Override public void onActivityStarted(Activity activity) {
     super.onActivityStarted(activity);
-    KahunaAnalytics.start();
+    Kahuna.getInstance().start();
   }
 
   @Override public void onActivityStopped(Activity activity) {
     super.onActivityStopped(activity);
-    KahunaAnalytics.stop();
+    Kahuna.getInstance().stop();
   }
 
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
 
     Traits traits = identify.traits();
-    Map<String, String> userAttributes = KahunaAnalytics.getUserAttributes();
+    IKahunaUserCredentials credentials = Kahuna.getInstance().createUserCredentials();
+    Map<String, String> userAttributes = Kahuna.getInstance().getUserAttributes();
     for (String key : traits.keySet()) {
       if (KAHUNA_CREDENTIALS.contains(key)) {
         // Only set credentials if it is a key recognized by Kahuna
-        KahunaAnalytics.setUserCredential(key, traits.getString(key));
+        credentials.add(key, traits.getString(key));
       } else if (SEGMENT_USER_ID_KEY.equals(key)) {
-        KahunaAnalytics.setUserCredential(USER_ID_KEY, identify.userId());
+        credentials.add(USER_ID_KEY, identify.userId());
       } else {
         // Set it as a user attribute otherwise
         Object value = traits.get(key);
@@ -109,7 +117,12 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
         }
       }
     }
-    KahunaAnalytics.setUserAttributes(userAttributes);
+    try {
+      Kahuna.getInstance().login(credentials);
+    } catch (EmptyCredentialsException e) {
+      error(e, "You should call reset() instead of passed in all empty/null values to identify().");
+    }
+    Kahuna.getInstance().setUserAttributes(userAttributes);
   }
 
   @Override public void track(TrackPayload track) {
@@ -132,9 +145,9 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
     double revenue = track.properties().revenue();
     if (quantity == -1 && revenue == 0) {
       // Kahuna requires revenue in cents
-      KahunaAnalytics.trackEvent(event);
+      Kahuna.getInstance().trackEvent(event);
     } else {
-      KahunaAnalytics.trackEvent(event, quantity, (int) (revenue * 100));
+      Kahuna.getInstance().trackEvent(event, quantity, (int) (revenue * 100));
     }
   }
 
@@ -145,7 +158,7 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
       category = NONE;
     }
 
-    Map<String, String> userAttributes = KahunaAnalytics.getUserAttributes();
+    Map<String, String> userAttributes = Kahuna.getInstance().getUserAttributes();
     Set<String> categoriesViewed;
     if (userAttributes.containsKey(CATEGORIES_VIEWED)) {
       categoriesViewed = Collections.newSetFromMap(new LinkedHashMap<String, Boolean>() {
@@ -163,54 +176,54 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
 
     userAttributes.put(CATEGORIES_VIEWED, TextUtils.join(",", categoriesViewed));
     userAttributes.put(LAST_VIEWED_CATEGORY, category);
-    KahunaAnalytics.setUserAttributes(userAttributes);
+    Kahuna.getInstance().setUserAttributes(userAttributes);
   }
 
   void trackViewedProduct(TrackPayload track) {
     String name = track.properties().name();
     if (!isNullOrEmpty(name)) {
-      Map<String, String> userAttributes = KahunaAnalytics.getUserAttributes();
+      Map<String, String> userAttributes = Kahuna.getInstance().getUserAttributes();
       userAttributes.put(LAST_PRODUCT_VIEWED_NAME, name);
-      KahunaAnalytics.setUserAttributes(userAttributes);
+      Kahuna.getInstance().setUserAttributes(userAttributes);
     }
   }
 
   void trackAddedProduct(TrackPayload track) {
     String name = track.properties().name();
     if (!isNullOrEmpty(name)) {
-      Map<String, String> userAttributes = KahunaAnalytics.getUserAttributes();
+      Map<String, String> userAttributes = Kahuna.getInstance().getUserAttributes();
       userAttributes.put(LAST_PRODUCT_ADDED_TO_CART_NAME, name);
-      KahunaAnalytics.setUserAttributes(userAttributes);
+      Kahuna.getInstance().setUserAttributes(userAttributes);
     }
   }
 
   void trackAddedProductCategory(TrackPayload track) {
     String category = track.properties().category();
     if (!isNullOrEmpty(category)) {
-      Map<String, String> userAttributes = KahunaAnalytics.getUserAttributes();
+      Map<String, String> userAttributes = Kahuna.getInstance().getUserAttributes();
       userAttributes.put(LAST_PRODUCT_ADDED_TO_CART_CATEGORY, category);
-      KahunaAnalytics.setUserAttributes(userAttributes);
+      Kahuna.getInstance().setUserAttributes(userAttributes);
     }
   }
 
   void trackCompletedOrder(TrackPayload track) {
     double discount = track.properties().discount();
-    Map<String, String> userAttributes = KahunaAnalytics.getUserAttributes();
+    Map<String, String> userAttributes = Kahuna.getInstance().getUserAttributes();
     userAttributes.put(LAST_PURCHASE_DISCOUNT, String.valueOf(discount));
-    KahunaAnalytics.setUserAttributes(userAttributes);
+    Kahuna.getInstance().setUserAttributes(userAttributes);
   }
 
   @Override public void screen(ScreenPayload screen) {
     super.screen(screen);
 
     if (trackAllPages) {
-      KahunaAnalytics.trackEvent(String.format(VIEWED_EVENT_FORMAT, screen.event()));
+      Kahuna.getInstance().trackEvent(String.format(VIEWED_EVENT_FORMAT, screen.event()));
     }
   }
 
   @Override public void reset() {
     super.reset();
 
-    KahunaAnalytics.logout();
+    Kahuna.getInstance().logout();
   }
 }
