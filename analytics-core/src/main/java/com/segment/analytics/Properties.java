@@ -73,8 +73,14 @@ public class Properties extends ValueMap {
   }
 
   @Override public Properties putValue(String key, Object value) {
-    super.putValue(key, value);
+    if (value != null) {
+      super.putValue(key, value);
+    }
     return this;
+  }
+  
+  @Override public Object put(String key, Object value) {
+    return value != null ? super.put(key, value) : null;
   }
 
   /**
