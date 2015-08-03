@@ -3,6 +3,7 @@ package com.segment.analytics;
 import android.content.Context;
 import android.content.SharedPreferences;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,6 +12,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import static com.segment.analytics.internal.Utils.getSegmentSharedPreferences;
@@ -131,7 +134,7 @@ public class ValueMap implements Map<String, Object> {
 
   /**
    * Returns the value mapped by {@code key} if it exists and is a integer or can be coerced to a
-   * integer. Returns defaultValue otherwise.
+   * integer. Returns {@code defaultValue} otherwise.
    */
   public int getInt(String key, int defaultValue) {
     Object value = get(key);
@@ -152,7 +155,7 @@ public class ValueMap implements Map<String, Object> {
   /**
    * Returns the value mapped by {@code key} if it exists and is a long or can be coerced to a
    * long.
-   * Returns defaultValue otherwise.
+   * Returns {@code defaultValue} otherwise.
    */
   public long getLong(String key, long defaultValue) {
     Object value = get(key);
@@ -172,7 +175,7 @@ public class ValueMap implements Map<String, Object> {
 
   /**
    * Returns the value mapped by {@code key} if it exists and is a double or can be coerced to a
-   * double. Returns defaultValue otherwise.
+   * double. Returns {@code defaultValue} otherwise.
    */
   public double getDouble(String key, double defaultValue) {
     Object value = get(key);
@@ -193,7 +196,7 @@ public class ValueMap implements Map<String, Object> {
   /**
    * Returns the value mapped by {@code key} if it exists and is a char or can be coerced to a
    * char.
-   * Returns defaultValue otherwise.
+   * Returns {@code defaultValue} otherwise.
    */
   public char getChar(String key, char defaultValue) {
     Object value = get(key);
@@ -227,7 +230,7 @@ public class ValueMap implements Map<String, Object> {
 
   /**
    * Returns the value mapped by {@code key} if it exists and is a boolean or can be coerced to a
-   * boolean. Returns defaultValue otherwise.
+   * boolean. Returns {@code defaultValue} otherwise.
    */
   public boolean getBoolean(String key, boolean defaultValue) {
     Object value = get(key);
@@ -240,9 +243,8 @@ public class ValueMap implements Map<String, Object> {
   }
 
   /**
-   * Returns the value mapped by {@code key} if it exists and is a enum or can be coerced to a
-   * enum.
-   * Returns null otherwise.
+   * Returns the value mapped by {@code key} if it exists and is a enum or can be coerced to an
+   * enum. Returns null otherwise.
    */
   public <T extends Enum<T>> T getEnum(Class<T> enumType, String key) {
     if (enumType == null) {
@@ -324,7 +326,86 @@ public class ValueMap implements Map<String, Object> {
 
   /** Return a copy of the contents of this map as a {@link JSONObject}. */
   public JSONObject toJsonObject() {
-    return new JSONObject(delegate);
+    return toJsonObject(delegate);
+  }
+
+  /**
+   * Return a copy of the contents of the given map as a {@link JSONObject}. Instead of failing on
+   * {@code null} values like the {@link JSONObject} map constructor, it cleans them up and
+   * correctly converts them to {@link JSONObject#NULL}.
+   */
+  private static JSONObject toJsonObject(Map<String, ?> map) {
+    JSONObject jsonObject = new JSONObject();
+    for (Map.Entry<String, ?> entry : map.entrySet()) {
+      Object value = wrap(entry.getValue());
+      try {
+        jsonObject.put(entry.getKey(), value);
+      } catch (JSONException ignored) {
+        // Ignore values that JSONObject doesn't accept.
+      }
+    }
+    return jsonObject;
+  }
+
+  /**
+   * Wraps the given object if necessary. {@link JSONObject#wrap(Object)} is only available on API
+   * 19+, so we've copied the implementation. Deviates from the original implementation in
+   * that it always returns {@link JSONObject#NULL} instead of {@code null} in case of a failure,
+   * and returns the {@link Object#toString} of any object that is of a custom (non-primitive or
+   * non-collection/map) type.
+   *
+   * <p>If the object is null or , returns {@link JSONObject#NULL}.
+   * If the object is a {@link JSONArray} or {@link JSONObject}, no wrapping is necessary.
+   * If the object is {@link JSONObject#NULL}, no wrapping is necessary.
+   * If the object is an array or {@link Collection}, returns an equivalent {@link JSONArray}.
+   * If the object is a {@link Map}, returns an equivalent {@link JSONObject}.
+   * If the object is a primitive wrapper type or {@link String}, returns the object.
+   * Otherwise returns the result of {@link Object#toString}.
+   * If wrapping fails, returns JSONObject.NULL.
+   */
+  private static Object wrap(Object o) {
+    if (o == null) {
+      return JSONObject.NULL;
+    }
+    if (o instanceof JSONArray || o instanceof JSONObject) {
+      return o;
+    }
+    if (o.equals(JSONObject.NULL)) {
+      return o;
+    }
+    try {
+      if (o instanceof Collection) {
+        return new JSONArray((Collection) o);
+      } else if (o.getClass().isArray()) {
+        final int length = Array.getLength(o);
+        JSONArray array = new JSONArray();
+        for (int i = 0; i < length; ++i) {
+          array.put(wrap(Array.get(array, i)));
+        }
+        return array;
+      }
+      if (o instanceof Map) {
+        //noinspection unchecked
+        return toJsonObject((Map) o);
+      }
+      if (o instanceof Boolean
+          || o instanceof Byte
+          || o instanceof Character
+          || o instanceof Double
+          || o instanceof Float
+          || o instanceof Integer
+          || o instanceof Long
+          || o instanceof Short
+          || o instanceof String) {
+        return o;
+      }
+      // Deviate from original implementation and return the String representation of the object
+      // regardless of package.
+      return o.toString();
+    } catch (Exception ignored) {
+    }
+    // Deviate from original and return JSONObject.NULL instead of null.
+    return JSONObject.NULL;
   }
 
   /** Return a copy of the contents of this map as a {@code Map<String, String>}. */

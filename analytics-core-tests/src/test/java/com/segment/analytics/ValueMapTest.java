@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.assertj.core.data.MapEntry;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -177,7 +178,36 @@ public class ValueMapTest {
         .contains(MapEntry.entry("sessionContinueSeconds", 10.0));
   }
 
-  private static enum MyEnum {
+  @Test public void toJsonObject() throws Exception {
+    JSONObject jsonObject =
+        new ValueMap(cartographer.fromJson(PROJECT_SETTINGS_JSON_SAMPLE)).toJsonObject();
+
+    JSONObject amplitude = jsonObject.getJSONObject("Amplitude");
+    assertThat(amplitude).isNotNull();
+    assertThat(amplitude.length()).isEqualTo(4);
+    assertThat(amplitude.getString("apiKey")).isEqualTo("ad3c426eb736d7442a65da8174bc1b1b");
+    assertThat(amplitude.getBoolean("trackNamedPages")).isTrue();
+    assertThat(amplitude.getBoolean("trackCategorizedPages")).isTrue();
+    assertThat(amplitude.getBoolean("trackAllPages")).isFalse();
+
+    JSONObject flurry = jsonObject.getJSONObject("Flurry");
+    assertThat(flurry).isNotNull();
+    assertThat(flurry.length()).isEqualTo(4);
+    assertThat(flurry.getString("apiKey")).isEqualTo("8DY3D6S7CCWH54RBJ9ZM");
+    assertThat(flurry.getBoolean("useHttps")).isTrue();
+    assertThat(flurry.getBoolean("captureUncaughtExceptions")).isFalse();
+    assertThat(flurry.getDouble("sessionContinueSeconds")).isEqualTo(10.0);
+  }
+
+  @Test public void toJsonObjectWithNullValue() throws Exception {
+    ValueMap valueMap = new ValueMap();
+    valueMap.put("foo", null);
+
+    JSONObject jsonObject = valueMap.toJsonObject();
+    assertThat(jsonObject.get("foo")).isEqualTo(JSONObject.NULL);
+  }
+
+  private enum MyEnum {
     VALUE1, VALUE2
   }
 
