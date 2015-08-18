@@ -93,8 +93,6 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     this.projectSettingsCache = projectSettingsCache;
     this.logLevel = analytics.getLogLevel();
 
-    application.registerActivityLifecycleCallbacks(this);
-
     integrationManagerThread =
         new HandlerThread(INTEGRATION_MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
     integrationManagerThread.start();
@@ -117,6 +115,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     } else {
       dispatchFetchSettings();
     }
+    application.registerActivityLifecycleCallbacks(this);
   }
 
   private void loadIntegrations() {
