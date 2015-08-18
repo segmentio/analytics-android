@@ -454,10 +454,10 @@ public class Analytics {
     if (shutdown) {
       return;
     }
+    integrationManager.shutdown();
     if (networkExecutor instanceof AnalyticsExecutorService) {
       networkExecutor.shutdown();
     }
-    integrationManager.shutdown();
     stats.shutdown();
     shutdown = true;
   }
