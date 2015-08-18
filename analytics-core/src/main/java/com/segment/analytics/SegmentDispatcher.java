@@ -260,7 +260,7 @@ class SegmentDispatcher extends AbstractIntegration {
 
   /** Upload payloads to our servers and remove them from the queue file. */
   private void performFlush() {
-    // Conditions could have changed between enqueuing the task and when it is run
+    // Conditions could have changed between enqueuing the task and when it is run.
     if (!shouldFlush()) {
       return;
     }
@@ -312,7 +312,7 @@ class SegmentDispatcher extends AbstractIntegration {
       throw new IOError(ioException);
     } catch (ArrayIndexOutOfBoundsException e) {
       // Log more information for https://github.com/segmentio/analytics-android/issues/263
-      // Don't worry about wrapping in a check
+      // Don't worry about wrapping in a check.
       error(e, "Unable to remove %s payload(s) from queueFile: %s", payloadsUploaded, queueFile);
       throw e;
     }
@@ -327,7 +327,7 @@ class SegmentDispatcher extends AbstractIntegration {
   }
 
   void shutdown() {
-    flushScheduler.shutdown();
+    flushScheduler.shutdownNow();
     segmentThread.quit();
     closeQuietly(queueFile);
   }
@@ -392,7 +392,7 @@ class SegmentDispatcher extends AbstractIntegration {
 
     BatchPayloadWriter emitPayloadObject(String payload) throws IOException {
       // Payloads already serialized into json when storing on disk. No need to waste cycles
-      // deserializing them
+      // deserializing them.
       if (needsComma) {
         bufferedWriter.write(',');
       } else {
