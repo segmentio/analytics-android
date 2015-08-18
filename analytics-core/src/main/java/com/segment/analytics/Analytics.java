@@ -89,7 +89,7 @@ public class Analytics {
   private final Traits.Cache traitsCache;
   private final AnalyticsContext analyticsContext;
   private final LogLevel logLevel;
-  boolean shutdown;
+  volatile boolean shutdown;
 
   /**
    * Return a reference to the global default {@link Analytics} instance.
@@ -392,6 +392,9 @@ public class Analytics {
   }
 
   void submit(BasePayload payload) {
+    if (shutdown) {
+      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
+    }
     if (logLevel.log()) {
       debug("Created payload %s.", payload);
     }
@@ -403,6 +406,9 @@ public class Analytics {
    * to do the same.
    */
   public void flush() {
+    if (shutdown) {
+      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
+    }
     integrationManager.dispatchFlush();
   }
 

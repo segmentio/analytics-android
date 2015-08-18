@@ -224,6 +224,20 @@ public class AnalyticsTest {
     verify(stats).shutdown();
     verify(networkExecutor).shutdown();
     assertThat(analytics.shutdown).isTrue();
+
+    try {
+      analytics.track("foo");
+      fail("Enqueuing a message after shutdown should throw.");
+    } catch (IllegalStateException e) {
+      assertThat(e).hasMessage("Cannot enqueue messages after client is shutdown.");
+    }
+
+    try {
+      analytics.flush();
+      fail("Enqueuing a message after shutdown should throw.");
+    } catch (IllegalStateException e) {
+      assertThat(e).hasMessage("Cannot enqueue messages after client is shutdown.");
+    }
   }
 
   @Test public void shutdownTwice() {
