@@ -2,6 +2,7 @@ package com.segment.analytics;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import com.segment.analytics.internal.Utils;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
@@ -171,6 +172,15 @@ public class ValueMap implements Map<String, Object> {
       }
     }
     return defaultValue;
+  }
+
+  /**
+   * Returns the value mapped by {@code key} if it exists and is a float or can be coerced to a
+   * float. Returns {@code defaultValue} otherwise.
+   */
+  public float getFloat(String key, float defaultValue) {
+    Object value = get(key);
+    return Utils.coerceToFloat(value, defaultValue);
   }
 
   /**
