@@ -3,19 +3,23 @@ package com.segment.analytics.internal.integrations;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
+
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
+import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.ScreenPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
+
 import java.util.regex.Pattern;
+
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -57,6 +61,8 @@ public class GoogleAnalyticsTest {
     integration = new GoogleAnalyticsIntegration();
     integration.googleAnalyticsInstance = googleAnalytics;
     integration.tracker = tracker;
+    integration.customDimensions = new ValueMap();
+    integration.customMetrics = new ValueMap();
   }
 
   @Test public void initialize() throws IllegalStateException {
@@ -130,6 +136,22 @@ public class GoogleAnalyticsTest {
     verifyNoMoreGoogleInteractions();
   }
 
+  @Test public void identifyWithCustomDimensionsAndMetrics() {
+    Traits traits = createTraits("foo").putAge(20).putName("Chris").putValue("level", 13);
+    integration.customDimensions = new ValueMap().putValue("name", "dimension10");
+    integration.customMetrics = new ValueMap().putValue("level", "metric12");
+    integration.sendUserId = true;
+    integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
+    verify(tracker).set("&uid", "foo");
+    verify(tracker).set("age", "20");
+    verify(tracker).set("name", "Chris");
+    verify(tracker).set("level", "13");
+    verify(tracker).set("&cd10", "Chris");
+    verify(tracker).set("&cm12", "13");
+    verify(tracker).set("userId", "foo");
+    verifyNoMoreGoogleInteractions();
+  }
+
   @Test public void group() {
     integration.group(new GroupPayloadBuilder().build());
     verifyNoMoreGoogleInteractions();
@@ -155,6 +177,34 @@ public class GoogleAnalyticsTest {
     verifyNoMoreGoogleInteractions();
   }
 
+  @Test public void trackWithCustomDimensions() {
+    integration.customDimensions = new ValueMap().putValue("custom", "dimension3");
+    integration.track(new TrackPayloadBuilder().event("foo")
+        .properties(new Properties().putValue("custom", "test"))
+        .build());
+    verify(tracker).send(new HitBuilders.EventBuilder().setCategory("All")
+        .setAction("foo")
+        .setLabel(null)
+        .setValue(0)
+        .setCustomDimension(3, "test")
+        .build());
+    verifyNoMoreGoogleInteractions();
+  }
+
+  @Test public void trackWithCustomMetrics() {
+    integration.customMetrics = new ValueMap().putValue("score", "metric5");
+    integration.track(new TrackPayloadBuilder().event("foo")
+        .properties(new Properties().putValue("score", 50))
+        .build());
+    verify(tracker).send(new HitBuilders.EventBuilder().setCategory("All")
+        .setAction("foo")
+        .setLabel(null)
+        .setValue(0)
+        .setCustomMetric(5, 50)
+        .build());
+    verifyNoMoreGoogleInteractions();
+  }
+
   @Test public void alias() {
     integration.alias(new AliasPayloadBuilder().build());
     verifyNoMoreGoogleInteractions();
@@ -165,6 +215,31 @@ public class GoogleAnalyticsTest {
     InOrder inOrder = inOrder(tracker);
     inOrder.verify(tracker).setScreenName("foo");
     inOrder.verify(tracker).send(anyMapOf(String.class, String.class));
+    inOrder.verify(tracker).setScreenName(null);
+    verifyNoMoreGoogleInteractions();
+  }
+
+  @Test public void screenWithCustomDimensions() {
+    integration.customDimensions = new ValueMap().putValue("custom", "dimension10");
+    integration.screen(new ScreenPayloadBuilder().name("foo")
+        .properties(new Properties().putValue("custom", "value"))
+        .build());
+    InOrder inOrder = inOrder(tracker);
+    inOrder.verify(tracker).setScreenName("foo");
+    inOrder.verify(tracker)
+        .send(new HitBuilders.AppViewBuilder().setCustomDimension(10, "value").build());
+    inOrder.verify(tracker).setScreenName(null);
+    verifyNoMoreGoogleInteractions();
+  }
+
+  @Test public void screenWithCustomMetrics() {
+    integration.customMetrics = new ValueMap().putValue("count", "metric14");
+    integration.screen(new ScreenPayloadBuilder().name("foo")
+        .properties(new Properties().putValue("count", 100))
+        .build());
+    InOrder inOrder = inOrder(tracker);
+    inOrder.verify(tracker).setScreenName("foo");
+    inOrder.verify(tracker).send(new HitBuilders.AppViewBuilder().setCustomMetric(14, 100).build());
     inOrder.verify(tracker).setScreenName(null);
     verifyNoMoreGoogleInteractions();
   }
