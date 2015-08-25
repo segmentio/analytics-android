@@ -113,7 +113,7 @@ public class AmplitudeTest {
 
     integration.onActivityResumed(activity);
 
-    verify(amplitude).startSession();
+    verifyNoMoreInteractions(amplitude);
   }
 
   @Test public void activityPause() {
@@ -121,7 +121,7 @@ public class AmplitudeTest {
 
     integration.onActivityPaused(activity);
 
-    verify(amplitude).endSession();
+    verifyNoMoreInteractions(amplitude);
   }
 
   @Test public void activityStop() {
