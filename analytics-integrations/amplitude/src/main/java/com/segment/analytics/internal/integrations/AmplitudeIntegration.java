@@ -1,6 +1,5 @@
 package com.segment.analytics.internal.integrations;
 
-import android.app.Activity;
 import com.amplitude.api.AmplitudeClient;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.Properties;
@@ -34,8 +33,13 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
     trackAllPages = settings.getBoolean("trackAllPages", false);
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", false);
     trackNamedPages = settings.getBoolean("trackNamedPages", false);
+    boolean trackSessionEvents = settings.getBoolean("trackSessionEvents", false);
     amplitude = AmplitudeClient.getInstance();
     amplitude.initialize(analytics.getApplication(), settings.getString("apiKey"));
+    amplitude.enableForegroundTracking(analytics.getApplication());
+    if (trackSessionEvents) {
+      amplitude.trackSessionEvents(true);
+    }
   }
 
   @Override public Void getUnderlyingInstance() {
@@ -44,16 +48,6 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
 
   @Override public String key() {
     return AMPLITUDE_KEY;
-  }
-
-  @Override public void onActivityResumed(Activity activity) {
-    super.onActivityResumed(activity);
-    amplitude.startSession();
-  }
-
-  @Override public void onActivityPaused(Activity activity) {
-    super.onActivityPaused(activity);
-    amplitude.endSession();
   }
 
   @Override public void identify(IdentifyPayload identify) {
