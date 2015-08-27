@@ -5,7 +5,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.internal.Utils;
-import com.segment.analytics.internal.model.payloads.BasePayload;
+import com.segment.analytics.internal.model.payloads.TrackPayload;
+import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
 import java.io.File;
 import java.io.IOError;
 import java.io.IOException;
@@ -13,6 +14,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import org.junit.After;
@@ -76,6 +79,38 @@ public class SegmentDispatcherTest {
     segmentDispatcher.performEnqueue(TRACK_PAYLOAD);
 
     verify(queueFile).add(TRACK_PAYLOAD_JSON.getBytes());
+  }
+
+  @Test public void enqueueWritesIntegrations() throws IOException {
+    final HashMap<String, Boolean> integrations = new LinkedHashMap<>();
+    integrations.put("All", false); // should overwrite existing values in the map.
+    integrations.put("foo", true); // should add new values.
+    QueueFile queueFile = mock(QueueFile.class);
+    SegmentDispatcher segmentDispatcher =
+        new SegmentBuilder().queueFile(queueFile).integrations(integrations).build();
+
+    AnalyticsContext analyticsContext = TestUtils.createContext(new Traits());
+    TrackPayload trackPayload =
+        new TrackPayload(analyticsContext, new Options(), "foo", new Properties());
+    // put some predictable values for data that is automatically generated
+    trackPayload.put("messageId", "a161304c-498c-4830-9291-fcfb8498877b");
+    trackPayload.put("timestamp", "2014-12-15T13:32:44-0700");
+
+    segmentDispatcher.performEnqueue(trackPayload);
+
+    String expected = "{\""
+        + "messageId\":\"a161304c-498c-4830-9291-fcfb8498877b\","
+        + "\"type\":\"track\","
+        + "\"channel\":\"mobile\","
+        + "\"context\":{\"traits\":{}},"
+        + "\"anonymousId\":null,"
+        + "\"timestamp\":\"2014-12-15T13:32:44-0700\","
+        + "\"integrations\":"
+        + "{\"All\":false,\"foo\":true},"
+        + "\"event\":\"foo\","
+        + "\"properties\":{}"
+        + "}";
+    verify(queueFile).add(expected.getBytes());
   }
 
   @Test public void enqueueLimitsQueueSize() throws IOException {
@@ -200,7 +235,7 @@ public class SegmentDispatcherTest {
   @Test public void serializationErrorSkipsAddingPayload() throws IOException {
     QueueFile queueFile = mock(QueueFile.class);
     Cartographer cartographer = mock(Cartographer.class);
-    BasePayload payload = mock(BasePayload.class);
+    TrackPayload payload = new TrackPayloadBuilder().build();
     SegmentDispatcher segmentDispatcher =
         new SegmentBuilder().cartographer(cartographer).queueFile(queueFile).build();
 

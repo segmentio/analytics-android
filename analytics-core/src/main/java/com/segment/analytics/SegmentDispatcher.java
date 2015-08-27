@@ -196,6 +196,11 @@ class SegmentDispatcher extends AbstractIntegration {
   }
 
   void performEnqueue(BasePayload payload) {
+    // Override any user provided values with anything that was bundled.
+    // e.g. If user did Mixpanel: true and it was bundled, this would correctly override it with
+    // false so that the server doesn't send that event as well.
+    payload.integrations().putAll(bundledIntegrations);
+
     if (queueFile.size() >= MAX_QUEUE_SIZE) {
       synchronized (flushLock) {
         // Double checked locking, the network executor could have removed payload from the queue
@@ -282,9 +287,8 @@ class SegmentDispatcher extends AbstractIntegration {
         connection = client.upload();
 
         // Write the payloads into the OutputStream.
-        BatchPayloadWriter writer = new BatchPayloadWriter(connection.os).beginObject()
-            .integrations(bundledIntegrations)
-            .beginBatchArray();
+        BatchPayloadWriter writer =
+            new BatchPayloadWriter(connection.os).beginObject().beginBatchArray();
         PayloadWriter payloadWriter = new PayloadWriter(writer);
         queueFile.forEach(payloadWriter);
         writer.endBatchArray().endObject().close();
@@ -377,17 +381,6 @@ class SegmentDispatcher extends AbstractIntegration {
 
     BatchPayloadWriter beginObject() throws IOException {
       jsonWriter.beginObject();
-      return this;
-    }
-
-    BatchPayloadWriter integrations(Map<String, Boolean> integrations) throws IOException {
-      if (!isNullOrEmpty(integrations)) {
-        jsonWriter.name("integrations").beginObject();
-        for (Map.Entry<String, Boolean> entry : integrations.entrySet()) {
-          jsonWriter.name(entry.getKey()).value(entry.getValue());
-        }
-        jsonWriter.endObject();
-      }
       return this;
     }
 
