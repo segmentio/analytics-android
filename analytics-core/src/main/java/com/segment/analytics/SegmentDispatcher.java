@@ -208,6 +208,12 @@ class SegmentDispatcher extends AbstractIntegration {
             queueFile.remove();
           } catch (IOException e) {
             throw new IOError(e);
+          } catch (ArrayIndexOutOfBoundsException e) {
+            // Log more information for https://github.com/segmentio/analytics-android/issues/321
+            throw new IOError(new IOException(
+                "An error occurred while making room in the disk queue to accommodate a new event."
+                    + " Dumping QueueFile:"
+                    + queueFile.toString(), e));
           }
         }
       }
@@ -312,9 +318,10 @@ class SegmentDispatcher extends AbstractIntegration {
       throw new IOError(ioException);
     } catch (ArrayIndexOutOfBoundsException e) {
       // Log more information for https://github.com/segmentio/analytics-android/issues/263
-      // Don't worry about wrapping in a check.
-      error(e, "Unable to remove %s payload(s) from queueFile: %s", payloadsUploaded, queueFile);
-      throw e;
+      throw new IOError(new IOException("Unable to remove "
+          + payloadsUploaded
+          + " from queue. Dumping QueueFile:"
+          + queueFile.toString(), e));
     }
 
     if (logLevel.log()) {
