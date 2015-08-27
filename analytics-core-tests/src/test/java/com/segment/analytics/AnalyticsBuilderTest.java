@@ -51,12 +51,12 @@ import static org.mockito.MockitoAnnotations.initMocks;
 @Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
 public class AnalyticsBuilderTest {
 
-  final String stubbedKey = "stub";
   Application context;
 
   @Before public void setUp() {
     initMocks(this);
     context = mockApplication();
+    Analytics.INSTANCES.clear();
     when(context.getApplicationContext()).thenReturn(context);
   }
 
@@ -70,7 +70,7 @@ public class AnalyticsBuilderTest {
 
     when(context.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_DENIED);
     try {
-      new Builder(context, stubbedKey);
+      new Builder(context, "foo");
       fail("Missing internet permission should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("INTERNET permission is required.");
@@ -79,7 +79,7 @@ public class AnalyticsBuilderTest {
 
   @Test public void invalidExecutorThrowsException() throws Exception {
     try {
-      new Builder(context, stubbedKey).networkExecutor(null);
+      new Builder(context, "foo").networkExecutor(null);
       fail("Null executor should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("Executor service must not be null.");
@@ -138,21 +138,21 @@ public class AnalyticsBuilderTest {
 
   @Test public void invalidQueueSizeThrowsException() throws Exception {
     try {
-      new Builder(context, stubbedKey).flushQueueSize(-1);
+      new Builder(context, "foo").flushQueueSize(-1);
       fail("flushQueueSize < 0 should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("flushQueueSize must be greater than or equal to zero.");
     }
 
     try {
-      new Builder(context, stubbedKey).flushQueueSize(0);
+      new Builder(context, "foo").flushQueueSize(0);
       fail("flushQueueSize = 0 should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("flushQueueSize must be greater than or equal to zero.");
     }
 
     try {
-      new Builder(context, stubbedKey).flushQueueSize(251);
+      new Builder(context, "foo").flushQueueSize(251);
       fail("flushQueueSize = 251 should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("flushQueueSize must be less than or equal to 250.");
@@ -161,14 +161,14 @@ public class AnalyticsBuilderTest {
 
   @Test public void invalidFlushIntervalThrowsException() throws Exception {
     try {
-      new Builder(context, stubbedKey).flushInterval(-1, TimeUnit.DAYS);
+      new Builder(context, "foo").flushInterval(-1, TimeUnit.DAYS);
       fail("flushInterval < 0 should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("flushInterval must be greater than zero.");
     }
 
     try {
-      new Builder(context, stubbedKey).flushInterval(1, null);
+      new Builder(context, "foo").flushInterval(1, null);
       fail("null unit should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("timeUnit must not be null.");
@@ -177,7 +177,7 @@ public class AnalyticsBuilderTest {
 
   @Test public void invalidOptionsThrowsException() throws Exception {
     try {
-      new Builder(context, stubbedKey).defaultOptions(null);
+      new Builder(context, "foo").defaultOptions(null);
       fail("null options should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("defaultOptions must not be null.");
@@ -186,21 +186,21 @@ public class AnalyticsBuilderTest {
 
   @Test public void invalidTagThrowsException() throws Exception {
     try {
-      new Builder(context, stubbedKey).tag(null);
+      new Builder(context, "foo").tag(null);
       fail("Null tag should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("tag must not be null or empty.");
     }
 
     try {
-      new Builder(context, stubbedKey).tag("");
+      new Builder(context, "foo").tag("");
       fail("Empty tag should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("tag must not be null or empty.");
     }
 
     try {
-      new Builder(context, stubbedKey).tag("    ");
+      new Builder(context, "foo").tag("    ");
       fail("Blank tag should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("tag must not be null or empty.");
@@ -209,7 +209,7 @@ public class AnalyticsBuilderTest {
 
   @Test public void invalidLogLevelThrowsException() throws Exception {
     try {
-      new Builder(context, stubbedKey).logLevel(null);
+      new Builder(context, "foo").logLevel(null);
       fail("Setting null LogLevel should throw exception.");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("LogLevel must not be null.");

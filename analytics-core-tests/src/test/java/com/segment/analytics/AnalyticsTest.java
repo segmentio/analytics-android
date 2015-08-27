@@ -56,6 +56,8 @@ public class AnalyticsTest {
   }
 
   @Before public void setUp() {
+    Analytics.INSTANCES.clear();
+
     initMocks(this);
     application = mockApplication();
     traits = Traits.create();
@@ -68,7 +70,7 @@ public class AnalyticsTest {
     };
     analytics =
         new Analytics(application, networkExecutor, integrationManagerFactory, stats, traitsCache,
-            analyticsContext, defaultOptions, NONE);
+            analyticsContext, defaultOptions, NONE, "qaz");
 
     // Used by singleton tests
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
@@ -280,7 +282,7 @@ public class AnalyticsTest {
     Analytics.setSingletonInstance(new Analytics.Builder(RuntimeEnvironment.application, "foo") //
         .build());
 
-    Analytics analytics = new Analytics.Builder(RuntimeEnvironment.application, "foo").build();
+    Analytics analytics = new Analytics.Builder(RuntimeEnvironment.application, "bar").build();
     try {
       Analytics.setSingletonInstance(analytics);
       fail("Can't set singleton instance after with().");
@@ -294,6 +296,22 @@ public class AnalyticsTest {
     Analytics analytics = new Analytics.Builder(RuntimeEnvironment.application, "foo").build();
     Analytics.setSingletonInstance(analytics);
     assertThat(Analytics.with(RuntimeEnvironment.application)).isSameAs(analytics);
+  }
+
+  @Test public void multipleInstancesWithSameTagThrows() throws Exception {
+    new Analytics.Builder(RuntimeEnvironment.application, "foo").build();
+    try {
+      new Analytics.Builder(RuntimeEnvironment.application, "bar").tag("foo").build();
+      fail("Creating client with duplicate should throw.");
+    } catch (IllegalStateException expected) {
+      assertThat(expected) //
+          .hasMessageContaining("Duplicate analytics client created with tag: foo.");
+    }
+  }
+
+  @Test public void multipleInstancesWithSameTagIsAllowedAfterShutdown() throws Exception {
+    new Analytics.Builder(RuntimeEnvironment.application, "foo").build().shutdown();
+    new Analytics.Builder(RuntimeEnvironment.application, "bar").tag("foo").build();
   }
 
   @Test public void getSnapshotInvokesStats() throws Exception {
