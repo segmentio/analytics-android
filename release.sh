@@ -19,6 +19,11 @@ if ! which shtool >/dev/null; then
   exit 1
 fi
 
+if ! which git-changelog >/dev/null; then
+  echo "git-changelog is not available. Install it!"
+  exit 1
+fi
+
 # Validate branch
 if [[ $(git name-rev --name-only HEAD) != "master" ]]; then
   echo "Must be on master to make a release."
@@ -40,11 +45,18 @@ set -x
 newReleaseVersion=$(shtool version release.version)
 newReleaseCode=$(echo ${newReleaseVersion} | sed -e 's/\.//g')
 
-# Update the versions, tag and commit
+# Update the versions
 sed -i '' "/VERSION_NAME=/s/=.*/=$newReleaseVersion/" gradle.properties
 sed -i '' "/VERSION_CODE=/s/=.*/=$newReleaseCode/" gradle.properties
+
+# Update the changelog
+git-changelog --tag $newReleaseVersion
+
+# Commit the release
 git commit -a -m "[gradle-release-task] prepare release $newReleaseVersion"
-git tag -a ${newReleaseVersion} -m "[gradle-release-task] prepare release $newReleaseVersion"
+
+# Tag the release
+git tag -am ${newReleaseVersion} "[gradle-release-task] version $newReleaseVersion"
 
 # Build and upload artifacts
 ./gradlew clean build uploadArchives
@@ -61,4 +73,4 @@ git commit -a -m "[gradle-release-task] prepare for next development iteration"
 git push -u origin master
 git push --tags
 
-echo "Done release! You should deploy the javadocs in a couple of hours."
+echo "Done releasing! Promote the artifact on Sonatype Nexus."
