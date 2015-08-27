@@ -40,6 +40,8 @@ import com.segment.analytics.internal.model.payloads.GroupPayload;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -71,15 +73,13 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 public class Analytics {
   static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
     @Override public void handleMessage(Message msg) {
-      switch (msg.what) {
-        default:
-          throw new AssertionError("Unknown handler message received: " + msg.what);
-      }
+      throw new AssertionError("Unknown handler message received: " + msg.what);
     }
   };
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
-  private static final Properties EMPTY_PROPERTIES = new Properties();
+  static final List<String> INSTANCES = new ArrayList<>(1);
   volatile static Analytics singleton = null;
+  private static final Properties EMPTY_PROPERTIES = new Properties();
 
   private final Application application;
   private final ExecutorService networkExecutor;
@@ -89,6 +89,7 @@ public class Analytics {
   private final Traits.Cache traitsCache;
   private final AnalyticsContext analyticsContext;
   private final LogLevel logLevel;
+  private final String tag;
   volatile boolean shutdown;
 
   /**
@@ -147,7 +148,7 @@ public class Analytics {
 
   Analytics(Application application, ExecutorService networkExecutor,
       IntegrationManager.Factory integrationManagerFactory, Stats stats, Traits.Cache traitsCache,
-      AnalyticsContext analyticsContext, Options defaultOptions, LogLevel logLevel) {
+      AnalyticsContext analyticsContext, Options defaultOptions, LogLevel logLevel, String tag) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -155,6 +156,7 @@ public class Analytics {
     this.analyticsContext = analyticsContext;
     this.defaultOptions = defaultOptions;
     this.logLevel = logLevel;
+    this.tag = tag;
     // This needs to be last so that the analytics instance members are assigned first
     this.integrationManager = integrationManagerFactory.create(this);
   }
@@ -466,6 +468,9 @@ public class Analytics {
     }
     stats.shutdown();
     shutdown = true;
+    synchronized (INSTANCES) {
+      INSTANCES.remove(tag);
+    }
   }
 
   /**
@@ -757,12 +762,22 @@ public class Analytics {
       AnalyticsContext analyticsContext = AnalyticsContext.create(application, traitsCache.get());
       analyticsContext.attachAdvertisingId(application);
 
+      synchronized (INSTANCES) {
+        if (INSTANCES.contains(tag)) {
+          throw new IllegalStateException("Duplicate analytics client created with tag: "
+              + tag
+              + ". If you want to use multiple Analytics clients, use a different writeKey "
+              + "or set a tag via the builder during construction.");
+        }
+        INSTANCES.add(tag);
+      }
+
       if (logLevel.log()) {
-        debug("Creating analytics client for project with writeKey: %s.", writeKey);
+        debug("Creating analytics client for project with writeKey:%s and tag:%s.", writeKey, tag);
       }
 
       return new Analytics(application, networkExecutor, integrationManagerFactory, stats,
-          traitsCache, analyticsContext, defaultOptions, logLevel);
+          traitsCache, analyticsContext, defaultOptions, logLevel, tag);
     }
   }
 }
