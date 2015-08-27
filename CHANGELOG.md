@@ -1,3 +1,16 @@
+
+Version 3.1.7 (Aug 27th, 2015)
+===============================
+* Fix: Edge case when using `Options.setIntegration(name, true)` for a bundled integration would cause events to be sent twice, once server side and once client side.
+* Enhancement: Fail early if multiple conflicting Analytics instances are created. Two analytics instances will conflict if they have the same tag (which is automatically generated from the write key if it is not explicilty provided).
+* Enhancement: Update Amplitude SDK to 2.0.2
+* Enhancement: Update Kahuna SDK to 2.0.3
+* Enhancement: Update MoEngage SDK to 5.2.21
+* Enhancement: Fail early if messages are enqueued after shutting down an Analytics instance.
+* Fix: Race where activitiy lifecycle events would be delivered before initialization is complete.
+* Fix: Properly handle `null` in `JSONObject`.
+* Enhancement: Dump more output to address issues #263, #321, #309.
+
 Version 3.1.6 (July 20th, 2015)
 ===============================
 * Feature: Add MoEngage integration
