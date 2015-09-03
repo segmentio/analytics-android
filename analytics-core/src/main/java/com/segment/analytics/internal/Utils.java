@@ -94,6 +94,27 @@ public final class Utils {
     return ISO_8601_DATE_FORMAT.parse(date);
   }
 
+  //TODO: Migrate other coercion methods.
+
+  /**
+   * Returns the float representation at {@code value} if it exists and is a float or can be coerced
+   * to a float. Returns {@code defaultValue} otherwise.
+   */
+  public static float getFloat(Object value, float defaultValue) {
+    if (value instanceof Float) {
+      return (float) value;
+    }
+    if (value instanceof Number) {
+      return ((Number) value).floatValue();
+    } else if (value instanceof String) {
+      try {
+        return Float.valueOf((String) value);
+      } catch (NumberFormatException ignored) {
+      }
+    }
+    return defaultValue;
+  }
+
   /** Returns true if the application has the given permission. */
   public static boolean hasPermission(Context context, String permission) {
     return context.checkCallingOrSelfPermission(permission) == PERMISSION_GRANTED;

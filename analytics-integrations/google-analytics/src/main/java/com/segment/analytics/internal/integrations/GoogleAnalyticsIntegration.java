@@ -12,6 +12,7 @@ import com.segment.analytics.Analytics;
 import com.segment.analytics.Properties;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
+import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
@@ -43,6 +44,8 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   Tracker tracker;
   GoogleAnalytics googleAnalyticsInstance;
   boolean sendUserId;
+  ValueMap customDimensions;
+  ValueMap customMetrics;
 
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
@@ -73,6 +76,8 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     }
     // tracker.setSampleRate(settings.getDouble("siteSpeedSampleRate", 1));
     sendUserId = settings.getBoolean("sendUserId", false);
+    customDimensions = settings.getValueMap("dimensions");
+    customMetrics = settings.getValueMap("metrics");
   }
 
   @Override public void onActivityStarted(Activity activity) {
@@ -87,12 +92,31 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
 
   @Override public void screen(ScreenPayload screen) {
     super.screen(screen);
+    Properties properties = screen.properties();
     String screenName = screen.event();
     if (handleProductEvent(screenName, screen.category(), screen.properties())) {
       return;
     }
+
     tracker.setScreenName(screenName);
-    tracker.send(new HitBuilders.AppViewBuilder().build());
+
+    HitBuilders.AppViewBuilder hit = new HitBuilders.AppViewBuilder();
+
+    // Set Custom Dimensions and Metrics on the screenview hit
+    for (Map.Entry<String, Object> entry : properties.entrySet()) {
+      String property = entry.getKey();
+      if (customDimensions.containsKey(property)) {
+        int dimension =
+            Integer.parseInt(customDimensions.getString(property).replace("dimension", ""));
+        hit.setCustomDimension(dimension, String.valueOf(entry.getValue()));
+      }
+      if (customMetrics.containsKey(property)) {
+        int metric = Integer.parseInt(customMetrics.getString(property).replace("metric", ""));
+        hit.setCustomMetric(metric, Utils.getFloat(entry.getValue(), 0));
+      }
+    }
+
+    tracker.send(hit.build());
     tracker.setScreenName(null);
   }
 
@@ -101,8 +125,21 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     if (sendUserId) {
       tracker.set("&uid", identify.userId());
     }
+
+    // Set Traits, Custom Dimensions, and Custom Metrics on the shared tracker
     for (Map.Entry<String, Object> entry : identify.traits().entrySet()) {
-      tracker.set(entry.getKey(), String.valueOf(entry.getValue()));
+      String trait = entry.getKey();
+      tracker.set(trait, String.valueOf(entry.getValue()));
+
+      if (customDimensions.containsKey(trait)) {
+        int dimension =
+            Integer.parseInt(customDimensions.getString(trait).replace("dimension", ""));
+        tracker.set("&cd" + dimension, String.valueOf(entry.getValue()));
+      }
+      if (customMetrics.containsKey(trait)) {
+        int metric = Integer.parseInt(customMetrics.getString(trait).replace("metric", ""));
+        tracker.set("&cm" + metric, String.valueOf(entry.getValue()));
+      }
     }
   }
 
@@ -136,11 +173,27 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     if (isNullOrEmpty(category)) category = DEFAULT_CATEGORY;
 
     String label = properties.getString("label");
-    tracker.send(new HitBuilders.EventBuilder().setCategory(category)
+
+    HitBuilders.EventBuilder hit = new HitBuilders.EventBuilder().setCategory(category)
         .setAction(event)
         .setLabel(label)
-        .setValue((int) properties.value())
-        .build());
+        .setValue((int) properties.value());
+
+    // Set Custom Dimensions and Metrics on the event hit
+    for (Map.Entry<String, Object> entry : properties.entrySet()) {
+      String property = entry.getKey();
+      if (customDimensions.containsKey(property)) {
+        int dimension =
+            Integer.parseInt(customDimensions.getString(property).replace("dimension", ""));
+        hit.setCustomDimension(dimension, String.valueOf(entry.getValue()));
+      }
+      if (customMetrics.containsKey(property)) {
+        int metric = Integer.parseInt(customMetrics.getString(property).replace("metric", ""));
+        hit.setCustomMetric(metric, Utils.getFloat(entry.getValue(), 0));
+      }
+    }
+
+    tracker.send(hit.build());
   }
 
   @Override public void flush() {
