@@ -59,6 +59,6 @@ public class TrackPayload extends BasePayload {
   }
 
   @Override public String toString() {
-    return "TrackPayload{\"" + event() + '}';
+    return "TrackPayload{event=\"" + event() + "\"}";
   }
 }
