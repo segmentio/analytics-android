@@ -72,6 +72,6 @@ public class ScreenPayload extends BasePayload {
   }
 
   @Override public String toString() {
-    return "ScreenPayload{\"" + event() + '}';
+    return "ScreenPayload{name=\"" + name() + ",category=\"" + category() + "\"}";
   }
 }
