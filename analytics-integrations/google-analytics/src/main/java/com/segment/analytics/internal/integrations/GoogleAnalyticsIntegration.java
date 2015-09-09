@@ -12,6 +12,7 @@ import com.segment.analytics.Analytics;
 import com.segment.analytics.Properties;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
+import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
@@ -40,9 +41,19 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   static final Pattern PRODUCT_EVENT_NAME_PATTERN =
       Pattern.compile("((viewed)|(added)|(removed)) *product *.*", Pattern.CASE_INSENSITIVE);
   static final String GOOGLE_ANALYTICS_KEY = "Google Analytics";
+  private static final String DIMENSION_PREFIX = "dimension";
+  private static final String DIMENSION_PREFIX_KEY = "&cd";
+  private static final String METRIC_PREFIX = "metric";
+  private static final String METRIC_PREFIX_KEY = "&cm";
+  private static final String USER_ID_KEY = "&uid";
+  private static final String QUANTITY_KEY = "quantity";
+  private static final String LABEL_KEY = "label";
+
   Tracker tracker;
   GoogleAnalytics googleAnalyticsInstance;
   boolean sendUserId;
+  ValueMap customDimensions;
+  ValueMap customMetrics;
 
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
@@ -71,8 +82,10 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
           new ExceptionReporter(tracker, Thread.getDefaultUncaughtExceptionHandler(), context);
       Thread.setDefaultUncaughtExceptionHandler(myHandler);
     }
-    // tracker.setSampleRate(settings.getDouble("siteSpeedSampleRate", 1));
+
     sendUserId = settings.getBoolean("sendUserId", false);
+    customDimensions = settings.getValueMap("dimensions");
+    customMetrics = settings.getValueMap("metrics");
   }
 
   @Override public void onActivityStarted(Activity activity) {
@@ -87,83 +100,173 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
 
   @Override public void screen(ScreenPayload screen) {
     super.screen(screen);
+
+    Properties properties = screen.properties();
     String screenName = screen.event();
-    if (handleProductEvent(screenName, screen.category(), screen.properties())) {
-      return;
-    }
+
+    sendProductEvent(screenName, screen.category(), properties);
+
     tracker.setScreenName(screenName);
-    tracker.send(new HitBuilders.AppViewBuilder().build());
-    tracker.setScreenName(null);
+    ScreenViewHitBuilder hitBuilder = new ScreenViewHitBuilder();
+    attachCustomDimensionsAndMetrics(hitBuilder, properties);
+    tracker.send(hitBuilder.build());
   }
 
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
     if (sendUserId) {
-      tracker.set("&uid", identify.userId());
+      tracker.set(USER_ID_KEY, identify.userId());
     }
+
+    // Set traits, custom dimensions, and custom metrics on the shared tracker.
     for (Map.Entry<String, Object> entry : identify.traits().entrySet()) {
-      tracker.set(entry.getKey(), String.valueOf(entry.getValue()));
+      String trait = entry.getKey();
+      if (customDimensions.containsKey(trait)) {
+        String dimension = customDimensions.getString(trait) //
+            .replace(DIMENSION_PREFIX, DIMENSION_PREFIX_KEY);
+        tracker.set(dimension, String.valueOf(entry.getValue()));
+      }
+      if (customMetrics.containsKey(trait)) {
+        String metric = customMetrics.getString(trait) //
+            .replace(METRIC_PREFIX, METRIC_PREFIX_KEY);
+        tracker.set(metric, String.valueOf(entry.getValue()));
+      }
     }
   }
 
   @Override public void track(TrackPayload track) {
     Properties properties = track.properties();
     String event = track.event();
-    if (handleProductEvent(event, properties.category(), properties)) {
-      return;
-    }
+    String category = properties.category();
+
+    sendProductEvent(event, category, properties);
+
     if (COMPLETED_ORDER_PATTERN.matcher(event).matches()) {
       List<Properties.Product> products = properties.products();
       if (!isNullOrEmpty(products)) {
         for (Properties.Product product : products) {
-          tracker.send(new HitBuilders.ItemBuilder() //
-              .setTransactionId(product.id())
+          ItemHitBuilder hitBuilder = new ItemHitBuilder();
+          hitBuilder.setTransactionId(product.id())
               .setName(product.name())
               .setSku(product.sku())
               .setPrice(product.price())
-              .setQuantity(product.getLong("quantity", 0))
-              .build());
+              .setQuantity(product.getLong(QUANTITY_KEY, 0))
+              .build();
+          attachCustomDimensionsAndMetrics(hitBuilder, properties);
+          tracker.send(hitBuilder.build());
         }
       }
-      tracker.send(new HitBuilders.ItemBuilder() //
-          .setTransactionId(properties.orderId())
+      ItemHitBuilder hitBuilder = new ItemHitBuilder();
+      hitBuilder.setTransactionId(properties.orderId())
           .setCurrencyCode(properties.currency())
-          .setPrice(properties.total())
-          .build());
+          .setPrice(properties.total());
+      tracker.send(hitBuilder.build());
     }
 
-    String category = properties.category();
-    if (isNullOrEmpty(category)) category = DEFAULT_CATEGORY;
-
-    String label = properties.getString("label");
-    tracker.send(new HitBuilders.EventBuilder().setCategory(category)
-        .setAction(event)
+    String label = properties.getString(LABEL_KEY);
+    EventHitBuilder hitBuilder = new EventHitBuilder();
+    hitBuilder.setAction(event)
+        .setCategory(isNullOrEmpty(category) ? DEFAULT_CATEGORY : category)
         .setLabel(label)
-        .setValue((int) properties.value())
-        .build());
+        .setValue((int) properties.value());
+    attachCustomDimensionsAndMetrics(hitBuilder, properties);
+    tracker.send(hitBuilder.build());
+  }
+
+  /**
+   * HitBuilder declares setCustomDimension and setCustomMetric, but it is a protected class, so
+   * attachCustomDimensionsAndMetrics can't accept it as a parameter. Write our own wrapper that
+   * exposes the required methods.
+   */
+  interface CustomHitBuilder {
+    CustomHitBuilder setCustomDimension(int index, String dimension);
+
+    CustomHitBuilder setCustomMetric(int index, float metric);
+  }
+
+  static class EventHitBuilder extends HitBuilders.EventBuilder implements CustomHitBuilder {
+    @Override public EventHitBuilder setCustomDimension(int index, String dimension) {
+      super.setCustomDimension(index, dimension);
+      return this;
+    }
+
+    @Override public EventHitBuilder setCustomMetric(int index, float metric) {
+      super.setCustomMetric(index, metric);
+      return this;
+    }
+  }
+
+  static class ScreenViewHitBuilder extends HitBuilders.ScreenViewBuilder
+      implements CustomHitBuilder {
+    @Override public ScreenViewHitBuilder setCustomDimension(int index, String dimension) {
+      super.setCustomDimension(index, dimension);
+      return this;
+    }
+
+    @Override public ScreenViewHitBuilder setCustomMetric(int index, float metric) {
+      super.setCustomMetric(index, metric);
+      return this;
+    }
+  }
+
+  static class ItemHitBuilder extends HitBuilders.ItemBuilder implements CustomHitBuilder {
+    @Override public ItemHitBuilder setCustomDimension(int index, String dimension) {
+      super.setCustomDimension(index, dimension);
+      return this;
+    }
+
+    @Override public ItemHitBuilder setCustomMetric(int index, float metric) {
+      super.setCustomMetric(index, metric);
+      return this;
+    }
+  }
+
+  /** Set custom dimensions and metrics on the hit. */
+  void attachCustomDimensionsAndMetrics(CustomHitBuilder hitBuilder, Properties properties) {
+    for (Map.Entry<String, Object> entry : properties.entrySet()) {
+      String property = entry.getKey();
+      if (customDimensions.containsKey(property)) {
+        int dimension =
+            extractNumber(customDimensions.getString(property), DIMENSION_PREFIX.length());
+        hitBuilder.setCustomDimension(dimension, String.valueOf(entry.getValue()));
+      }
+      if (customMetrics.containsKey(property)) {
+        int metric = extractNumber(customMetrics.getString(property), METRIC_PREFIX.length());
+        hitBuilder.setCustomMetric(metric, Utils.coerceToFloat(entry.getValue(), 0));
+      }
+    }
+  }
+
+  // e.g. extractNumber("dimension3", 8) returns 3
+  // e.g. extractNumber("dimension9", 8) returns 9
+  private static int extractNumber(String text, int start) {
+    if (isNullOrEmpty(text)) {
+      return 0;
+    }
+    return Integer.parseInt(text.substring(start, text.length()));
   }
 
   @Override public void flush() {
     googleAnalyticsInstance.dispatchLocalHits();
   }
 
-  /** Check if event is an ecommerce event. If it is, do it and return true, else return false. */
-  boolean handleProductEvent(String event, String category, Properties properties) {
-    if (isNullOrEmpty(category)) category = DEFAULT_CATEGORY;
-
-    if (PRODUCT_EVENT_NAME_PATTERN.matcher(event).matches()) {
-      tracker.send(new HitBuilders.ItemBuilder() //
-          .setTransactionId(properties.productId())
-          .setCurrencyCode(properties.currency())
-          .setName(properties.name())
-          .setSku(properties.sku())
-          .setCategory(category)
-          .setPrice(properties.price())
-          .setQuantity(properties.getLong("quantity", 0))
-          .build());
-      return true;
+  /** Send a product event. */
+  void sendProductEvent(String event, String category, Properties properties) {
+    if (!PRODUCT_EVENT_NAME_PATTERN.matcher(event).matches()) {
+      return;
     }
-    return false;
+
+    ItemHitBuilder hitBuilder = new ItemHitBuilder();
+    hitBuilder.setTransactionId(properties.productId())
+        .setCurrencyCode(properties.currency())
+        .setName(properties.name())
+        .setSku(properties.sku())
+        .setCategory(isNullOrEmpty(category) ? DEFAULT_CATEGORY : category)
+        .setPrice(properties.price())
+        .setQuantity(properties.getLong(QUANTITY_KEY, 0))
+        .build();
+    attachCustomDimensionsAndMetrics(hitBuilder, properties);
+    tracker.send(hitBuilder.build());
   }
 
   @Override public Tracker getUnderlyingInstance() {

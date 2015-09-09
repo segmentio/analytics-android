@@ -9,7 +9,9 @@ import com.google.android.gms.analytics.Tracker;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
+import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
@@ -57,6 +59,9 @@ public class GoogleAnalyticsTest {
     integration = new GoogleAnalyticsIntegration();
     integration.googleAnalyticsInstance = googleAnalytics;
     integration.tracker = tracker;
+    integration.customDimensions = new ValueMap();
+    integration.customMetrics = new ValueMap();
+    integration.sendUserId = false;
   }
 
   @Test public void initialize() throws IllegalStateException {
@@ -110,23 +115,43 @@ public class GoogleAnalyticsTest {
   }
 
   @Test public void identify() {
-    integration.sendUserId = false;
     Traits traits = createTraits("foo").putAge(20);
+    IdentifyPayload payload = new IdentifyPayloadBuilder().traits(traits).build();
+    integration.identify(payload);
 
-    integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
-    verify(tracker).set("age", "20");
-    verify(tracker).set("userId", "foo");
+    // If there are no custom dimensions/metrics and `sendUserId` is false,
+    // nothing should happen.
     verifyNoMoreGoogleInteractions();
   }
 
-  @Test public void identifyWithUserId() {
-    Traits traits = createTraits("foo").putAge(20);
-
+  @Test public void identifyWithUserIdAndWithoutCustomDimensionsAndMetrics() {
     integration.sendUserId = true;
+
+    Traits traits = createTraits("foo").putAge(20);
     integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
+
+    // If there are no custom dimensions/metrics and `sendUserId` is true,
+    // only the userId should be set.
     verify(tracker).set("&uid", "foo");
-    verify(tracker).set("age", "20");
-    verify(tracker).set("userId", "foo");
+    verifyNoMoreGoogleInteractions();
+  }
+
+  @Test public void identifyWithUserIdAndCustomDimensionsAndMetrics() {
+    integration.sendUserId = true;
+    integration.customDimensions = new ValueMap().putValue("name", "dimension10");
+    integration.customMetrics = new ValueMap().putValue("level", "metric12");
+
+    Traits traits = createTraits("foo").putAge(20).putName("Chris").putValue("level", 13);
+    integration.identify(new IdentifyPayloadBuilder().traits(traits).build());
+
+    // Verify user id is set.
+    verify(tracker).set("&uid", "foo");
+
+    // Verify dimensions and metrics are set.
+    verify(tracker).set("&cd10", "Chris");
+    verify(tracker).set("&cm12", "13");
+
+    // Verify other traits are ignored.
     verifyNoMoreGoogleInteractions();
   }
 
@@ -143,14 +168,50 @@ public class GoogleAnalyticsTest {
         .setValue(0)
         .build());
     verifyNoMoreGoogleInteractions();
+  }
 
-    Properties properties =
-        new Properties().putValue(51).putValue("label", "bar").putCategory("baz");
+  @Test public void trackWithProperties() {
+    Properties properties = new Properties() //
+        .putValue(51).putValue("label", "bar").putCategory("baz");
+
     integration.track(new TrackPayloadBuilder().properties(properties).event("foo").build());
+
     verify(tracker).send(new HitBuilders.EventBuilder().setCategory("baz")
         .setAction("foo")
         .setLabel("bar")
         .setValue(51)
+        .build());
+    verifyNoMoreGoogleInteractions();
+  }
+
+  @Test public void trackWithCustomDimensions() {
+    integration.customDimensions = new ValueMap().putValue("custom", "dimension3");
+
+    integration.track(new TrackPayloadBuilder().event("foo")
+        .properties(new Properties().putValue("custom", "test"))
+        .build());
+
+    verify(tracker).send(new HitBuilders.EventBuilder().setCategory("All")
+        .setAction("foo")
+        .setLabel(null)
+        .setValue(0)
+        .setCustomDimension(3, "test")
+        .build());
+    verifyNoMoreGoogleInteractions();
+  }
+
+  @Test public void trackWithCustomMetrics() {
+    integration.customMetrics = new ValueMap().putValue("score", "metric5");
+
+    integration.track(new TrackPayloadBuilder().event("foo")
+        .properties(new Properties().putValue("score", 50))
+        .build());
+
+    verify(tracker).send(new HitBuilders.EventBuilder().setCategory("All")
+        .setAction("foo")
+        .setLabel(null)
+        .setValue(0)
+        .setCustomMetric(5, 50)
         .build());
     verifyNoMoreGoogleInteractions();
   }
@@ -162,21 +223,103 @@ public class GoogleAnalyticsTest {
 
   @Test public void screen() {
     integration.screen(new ScreenPayloadBuilder().name("foo").build());
+
     InOrder inOrder = inOrder(tracker);
     inOrder.verify(tracker).setScreenName("foo");
     inOrder.verify(tracker).send(anyMapOf(String.class, String.class));
-    inOrder.verify(tracker).setScreenName(null);
+    verifyNoMoreGoogleInteractions();
+  }
+
+  @Test public void screenWithCustomDimensions() {
+    integration.customDimensions = new ValueMap().putValue("custom", "dimension10");
+
+    integration.screen(new ScreenPayloadBuilder().name("foo")
+        .properties(new Properties().putValue("custom", "value"))
+        .build());
+
+    InOrder inOrder = inOrder(tracker);
+    inOrder.verify(tracker).setScreenName("foo");
+    inOrder.verify(tracker).send(new HitBuilders.AppViewBuilder() //
+        .setCustomDimension(10, "value").build());
+    verifyNoMoreGoogleInteractions();
+  }
+
+  @Test public void screenWithCustomMetrics() {
+    integration.customMetrics = new ValueMap().putValue("count", "metric14");
+
+    integration.screen(new ScreenPayloadBuilder().name("foo")
+        .properties(new Properties().putValue("count", 100))
+        .build());
+
+    InOrder inOrder = inOrder(tracker);
+    inOrder.verify(tracker).setScreenName("foo");
+    inOrder.verify(tracker).send(new HitBuilders.AppViewBuilder().setCustomMetric(14, 100).build());
     verifyNoMoreGoogleInteractions();
   }
 
   @Test public void flush() {
     integration.flush();
+
     verify(googleAnalytics).dispatchLocalHits();
     verifyNoMoreGoogleInteractions();
   }
 
   @Test public void reset() {
     integration.reset();
+    verifyNoMoreGoogleInteractions();
+  }
+
+  @Test public void sendProductEvent() {
+    Properties properties = new Properties().putProductId("foo")
+        .putCurrency("bar")
+        .putName("baz")
+        .putSku("qaz")
+        .putPrice(20)
+        .putValue("quantity", 10);
+
+    integration.sendProductEvent("Viewed Product", "sports", properties);
+
+    verify(tracker).send(new HitBuilders.ItemBuilder() //
+        .setTransactionId("foo")
+        .setCurrencyCode("bar")
+        .setName("baz")
+        .setSku("qaz")
+        .setCategory("sports")
+        .setPrice(20)
+        .setQuantity(10)
+        .build());
+  }
+
+  @Test public void sendProductEventWithCustomDimensionsAndMetrics() {
+    integration.customDimensions = new ValueMap().putValue("customDimension", "dimension2");
+    integration.customMetrics = new ValueMap().putValue("customMetric", "metric3");
+
+    Properties properties = new Properties().putProductId("foo")
+        .putCurrency("bar")
+        .putName("baz")
+        .putSku("qaz")
+        .putPrice(20)
+        .putValue("quantity", 10)
+        .putValue("customMetric", "32.22")
+        .putValue("customDimension", "barbaz");
+    integration.sendProductEvent("Removed Product", "sports", properties);
+
+    verify(tracker).send(new HitBuilders.ItemBuilder() //
+        .setTransactionId("foo")
+        .setCurrencyCode("bar")
+        .setName("baz")
+        .setSku("qaz")
+        .setCategory("sports")
+        .setPrice(20)
+        .setQuantity(10)
+        .setCustomDimension(2, "barbaz")
+        .setCustomMetric(3, 32.22f)
+        .build());
+  }
+
+  @Test public void sendProductEventNoMatch() {
+    integration.sendProductEvent("Viewed", null, null);
+
     verifyNoMoreGoogleInteractions();
   }
 
