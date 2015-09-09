@@ -54,8 +54,9 @@ public class AppsFlyerIntegration extends AbstractIntegration<Void> {
     if (!isNullOrEmpty(currency)) {
       appsFlyer.setCurrencyCode(track.properties().currency());
     }
-    appsFlyer.sendTrackingWithEvent(context, track.event(),
-        String.valueOf(track.properties().value()));
+    double revenue = track.properties().revenue();
+    revenue = revenue == 0 ? track.properties().value() : revenue;
+    appsFlyer.sendTrackingWithEvent(context, track.event(), String.valueOf(revenue));
   }
 
   @Override public void identify(IdentifyPayload identify) {
