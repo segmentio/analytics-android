@@ -22,7 +22,6 @@ import org.mockito.Mock;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.Analytics.LogLevel.BASIC;
 import static com.segment.analytics.TestUtils.createTraits;
 import static com.segment.analytics.internal.integrations.AppsFlyerIntegration.AppsFlyer;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -121,6 +120,14 @@ public class AppsFlyerTest {
     integration.track(new TrackPayloadBuilder().properties(properties).event("baz").build());
     verify(appsFlyer).setCurrencyCode("foo");
     verify(appsFlyer).sendTrackingWithEvent(context, "baz", "20.0");
+    verifyNoMoreInteractions(appsFlyer);
+  }
+
+  @Test public void trackWithRevenue() {
+    Properties properties = new Properties().putCurrency("foo").putRevenue(3).putValue(20);
+    integration.track(new TrackPayloadBuilder().properties(properties).event("baz").build());
+    verify(appsFlyer).setCurrencyCode("foo");
+    verify(appsFlyer).sendTrackingWithEvent(context, "baz", "3.0");
     verifyNoMoreInteractions(appsFlyer);
   }
 
