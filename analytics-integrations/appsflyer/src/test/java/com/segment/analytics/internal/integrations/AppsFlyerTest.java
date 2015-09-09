@@ -116,10 +116,10 @@ public class AppsFlyerTest {
   }
 
   @Test public void track() {
-    Properties properties = new Properties().putCurrency("foo").putValue(20);
+    Properties properties = new Properties().putCurrency("foo").putRevenue(3);
     integration.track(new TrackPayloadBuilder().properties(properties).event("baz").build());
     verify(appsFlyer).setCurrencyCode("foo");
-    verify(appsFlyer).sendTrackingWithEvent(context, "baz", "20.0");
+    verify(appsFlyer).sendTrackingWithEvent(context, "baz", "3.0");
     verifyNoMoreInteractions(appsFlyer);
   }
 
@@ -127,7 +127,7 @@ public class AppsFlyerTest {
     Properties properties = new Properties().putCurrency("foo").putRevenue(3).putValue(20);
     integration.track(new TrackPayloadBuilder().properties(properties).event("baz").build());
     verify(appsFlyer).setCurrencyCode("foo");
-    verify(appsFlyer).sendTrackingWithEvent(context, "baz", "3.0");
+    verify(appsFlyer).sendTrackingWithEvent(context, "baz", "20.0");
     verifyNoMoreInteractions(appsFlyer);
   }
 

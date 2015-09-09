@@ -99,7 +99,11 @@ public class Properties extends ValueMap {
   }
 
   public double value() {
-    return getDouble(VALUE_KEY, 0);
+    double value = getDouble(VALUE_KEY, 0);
+    if (value != 0) {
+      return value;
+    }
+    return revenue();
   }
 
   /** The currency for the value set in {@link #putRevenue(double)}. */
@@ -253,7 +257,15 @@ public class Properties extends ValueMap {
   }
 
   public double total() {
-    return getDouble(TOTAL_KEY, 0);
+    double total = getDouble(TOTAL_KEY, 0);
+    if (total != 0) {
+      return total;
+    }
+    double revenue = revenue();
+    if (revenue != 0) {
+      return revenue;
+    }
+    return value();
   }
 
   /**
