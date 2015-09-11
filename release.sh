@@ -56,7 +56,7 @@ git-changelog --tag $newReleaseVersion
 git commit -a -m "[gradle-release-task] prepare release $newReleaseVersion"
 
 # Tag the release
-git tag -am ${newReleaseVersion} "[gradle-release-task] version $newReleaseVersion"
+git tag -a ${newReleaseVersion} -m "[gradle-release-task] version $newReleaseVersion"
 
 # Build and upload artifacts
 ./gradlew clean build uploadArchives
