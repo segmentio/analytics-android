@@ -1,3 +1,10 @@
+Version 3.1.8 (Sep 11th, 2015)
+==============================
+
+  * Add aliases for revenue keys
+  * Send revenue to AppsFlyer if one is set
+  * Improve GA integration, most notably - add support for custom dimensions and metrics
+  * Fix toString implementation
 
 Version 3.1.7 (Aug 27th, 2015)
 ===============================
