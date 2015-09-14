@@ -46,7 +46,6 @@ import static android.content.Context.TELEPHONY_SERVICE;
 import static android.net.ConnectivityManager.TYPE_BLUETOOTH;
 import static android.net.ConnectivityManager.TYPE_MOBILE;
 import static android.net.ConnectivityManager.TYPE_WIFI;
-import static com.segment.analytics.internal.Utils.DEFAULT_COLLECT_DEVICE_ID;
 import static com.segment.analytics.internal.Utils.NullableConcurrentHashMap;
 import static com.segment.analytics.internal.Utils.createMap;
 import static com.segment.analytics.internal.Utils.getDeviceId;
