@@ -579,6 +579,7 @@ public class Analytics {
 
     private final Application application;
     private String writeKey;
+    private boolean collectDeviceID = Utils.DEFAULT_COLLECT_DEVICE_ID;
     private int flushQueueSize = Utils.DEFAULT_FLUSH_QUEUE_SIZE;
     private long flushIntervalInMillis = Utils.DEFAULT_FLUSH_INTERVAL;
     private Options defaultOptions;
@@ -640,6 +641,18 @@ public class Analytics {
         throw new IllegalArgumentException("flushInterval must be greater than zero.");
       }
       this.flushIntervalInMillis = timeUnit.toMillis(flushInterval);
+      return this;
+    }
+
+    /**
+     * Enable or disable collection of {@link android.provider.Settings.Secure#ANDROID_ID},
+     * {@link android.os.Build#SERIAL} or the Telephony Identifier retreived via
+     * {@link TelephonyManager#getDeviceId()} as available.
+     *
+     * Collection of the device identifier is enabled by default.
+     */
+    public Builder collectDeviceId(boolean collect) {
+      this.collectDeviceID = collect;
       return this;
     }
 
@@ -759,7 +772,8 @@ public class Analytics {
         Traits traits = Traits.create();
         traitsCache.set(traits);
       }
-      AnalyticsContext analyticsContext = AnalyticsContext.create(application, traitsCache.get());
+      AnalyticsContext analyticsContext = AnalyticsContext.create(application, traitsCache.get(),
+              this.collectDeviceID);
       analyticsContext.attachAdvertisingId(application);
 
       synchronized (INSTANCES) {
