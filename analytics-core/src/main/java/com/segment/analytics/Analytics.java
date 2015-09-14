@@ -773,7 +773,7 @@ public class Analytics {
         traitsCache.set(traits);
       }
       AnalyticsContext analyticsContext = AnalyticsContext.create(application, traitsCache.get(),
-              this.collectDeviceID);
+              collectDeviceID);
       analyticsContext.attachAdvertisingId(application);
 
       synchronized (INSTANCES) {

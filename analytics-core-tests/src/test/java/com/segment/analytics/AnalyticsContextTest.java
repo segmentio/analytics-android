@@ -27,7 +27,7 @@ public class AnalyticsContextTest {
   }
 
   @Test public void create() {
-    analyticsContext = AnalyticsContext.create(RuntimeEnvironment.application, traits);
+    analyticsContext = AnalyticsContext.create(RuntimeEnvironment.application, traits, true);
     assertThat(analyticsContext) //
         .containsKey("app") //
         .containsKey("device") //

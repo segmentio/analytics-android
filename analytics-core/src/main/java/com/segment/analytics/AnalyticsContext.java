@@ -134,16 +134,6 @@ public class AnalyticsContext extends ValueMap {
     return analyticsContext;
   }
 
-  /**
-   * Create a new {@link AnalyticsContext} instance filled in with information from the given
-   * {@link Context}. The {@link Analytics} client can be called from anywhere, so the returned
-   * instances is thread safe. This is a convenience wrapper for the method
-   * {@link #create(Context, Traits, boolean)}
-   */
-  static synchronized AnalyticsContext create(Context context, Traits traits) {
-    return create(context, traits, DEFAULT_COLLECT_DEVICE_ID);
-  }
-
   static void putUndefinedIfNull(Map<String, Object> target, String key, CharSequence value) {
     if (isNullOrEmpty(value)) {
       target.put(key, "undefined");
