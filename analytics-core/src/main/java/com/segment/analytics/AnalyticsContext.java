@@ -124,7 +124,7 @@ public class AnalyticsContext extends ValueMap {
     analyticsContext.putDevice(context, collectDeviceId);
     analyticsContext.putLibrary();
     analyticsContext.put(LOCALE_KEY,
-            Locale.getDefault().getLanguage() + "-" + Locale.getDefault().getCountry());
+        Locale.getDefault().getLanguage() + "-" + Locale.getDefault().getCountry());
     analyticsContext.putNetwork(context);
     analyticsContext.putOs();
     analyticsContext.putScreen(context);
