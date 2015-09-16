@@ -115,11 +115,13 @@ public class AnalyticsContext extends ValueMap {
    * {@link Context}. The {@link Analytics} client can be called from anywhere, so the returned
    * instances is thread safe.
    */
-  static synchronized AnalyticsContext create(Context context, Traits traits) {
+  static synchronized AnalyticsContext create(Context context, Traits traits,
+                                              boolean collectDeviceId) {
     AnalyticsContext analyticsContext =
         new AnalyticsContext(new NullableConcurrentHashMap<String, Object>());
     analyticsContext.putApp(context);
-    analyticsContext.putDevice(context);
+    analyticsContext.setTraits(traits);
+    analyticsContext.putDevice(context, collectDeviceId);
     analyticsContext.putLibrary();
     analyticsContext.put(LOCALE_KEY,
         Locale.getDefault().getLanguage() + "-" + Locale.getDefault().getCountry());
@@ -128,7 +130,6 @@ public class AnalyticsContext extends ValueMap {
     analyticsContext.putScreen(context);
     putUndefinedIfNull(analyticsContext, USER_AGENT_KEY, System.getProperty("http.agent"));
     putUndefinedIfNull(analyticsContext, TIMEZONE_KEY, TimeZone.getDefault().getID());
-    analyticsContext.setTraits(traits);
     return analyticsContext;
   }
 
@@ -214,9 +215,10 @@ public class AnalyticsContext extends ValueMap {
   }
 
   /** Fill this instance with device info from the provided {@link Context}. */
-  void putDevice(Context context) {
+  void putDevice(Context context, boolean collectDeviceID) {
     Device device = new Device();
-    device.put(Device.DEVICE_ID_KEY, getDeviceId(context));
+    String identifier = collectDeviceID ? getDeviceId(context) : traits().anonymousId();
+    device.put(Device.DEVICE_ID_KEY, identifier);
     device.put(Device.DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);
     device.put(Device.DEVICE_MODEL_KEY, Build.MODEL);
     device.put(Device.DEVICE_NAME_KEY, Build.DEVICE);

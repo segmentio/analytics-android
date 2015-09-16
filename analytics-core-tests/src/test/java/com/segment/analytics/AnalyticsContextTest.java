@@ -27,7 +27,7 @@ public class AnalyticsContextTest {
   }
 
   @Test public void create() {
-    analyticsContext = AnalyticsContext.create(RuntimeEnvironment.application, traits);
+    analyticsContext = AnalyticsContext.create(RuntimeEnvironment.application, traits, true);
     assertThat(analyticsContext) //
         .containsKey("app") //
         .containsKey("device") //
@@ -66,6 +66,15 @@ public class AnalyticsContextTest {
         .containsEntry("density", 1.5f) //
         .containsEntry("width", 480) //
         .containsEntry("height", 800);
+
+    // disable device id collection
+    analyticsContext = AnalyticsContext.create(RuntimeEnvironment.application, traits, false);
+
+    assertThat(analyticsContext.getValueMap("device")) //
+        .containsEntry("id", traits.anonymousId())
+        .containsEntry("manufacturer", "unknown")
+        .containsEntry("model", "unknown")
+        .containsEntry("name", "unknown");
   }
 
   @Test public void copyReturnsSameMappings() {
