@@ -53,13 +53,15 @@ public class UtilsTest {
     initMocks(this);
   }
 
-  @Test public void emptiness() throws Exception {
+  @Test public void emptyString() throws Exception {
     assertThat(isNullOrEmpty((String) null)).isTrue();
     assertThat(isNullOrEmpty("")).isTrue();
     assertThat(isNullOrEmpty("    ")).isTrue();
     assertThat(isNullOrEmpty("  a  ")).isFalse();
     assertThat(isNullOrEmpty("a")).isFalse();
+  }
 
+  @Test public void emptyMap() throws Exception {
     assertThat(isNullOrEmpty((Map) null)).isTrue();
     Map<String, Object> map = new LinkedHashMap<>(20);
     assertThat(isNullOrEmpty(map)).isTrue();
@@ -67,7 +69,9 @@ public class UtilsTest {
     assertThat(isNullOrEmpty(map)).isFalse();
     map.clear();
     assertThat(isNullOrEmpty(map)).isTrue();
+  }
 
+  @Test public void emptyCollections() throws Exception {
     assertThat(isNullOrEmpty((Collection) null)).isTrue();
     Collection<String> collection = new ArrayList<>();
     assertThat(isNullOrEmpty(collection)).isTrue();
