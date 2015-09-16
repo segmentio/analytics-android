@@ -1,6 +1,6 @@
 apply from: rootProject.file('gradle/integration.gradle')
 
 dependencies {
-  compile files('libs/apptimize-android-2.8.0.jar')
+  compile 'com.apptimize:apptimize-android:2.8.0'
 }
 
