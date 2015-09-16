@@ -77,7 +77,7 @@ public final class Utils {
   public static final boolean DEFAULT_COLLECT_DEVICE_ID = true;
   final static String TAG = "Segment";
   @SuppressLint("SimpleDateFormat") private static final DateFormat ISO_8601_DATE_FORMAT =
-      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US);
+      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZZ", Locale.US);
 
   /** Creates a mutable HashSet instance containing the given elements in unspecified order */
   public static <T> Set<T> newSet(T... values) {
