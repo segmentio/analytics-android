@@ -9,6 +9,8 @@ import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
+import java.util.List;
+
 import static com.segment.analytics.Options.ALL_INTEGRATIONS_KEY;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
@@ -154,6 +156,13 @@ abstract class IntegrationOperation {
   static IntegrationOperation track(final TrackPayload trackPayload) {
     return new IntegrationOperation() {
       @Override public void run(AbstractIntegration integration, ProjectSettings projectSettings) {
+        if (isEnabled(integration, projectSettings)) {
+          integration.track(trackPayload);
+        }
+      }
+
+      @Override
+      protected boolean isEnabled(AbstractIntegration integration, ProjectSettings projectSettings) {
         ValueMap trackingPlan = projectSettings.trackingPlan();
         boolean trackEnabled = true;
 
@@ -167,9 +176,7 @@ abstract class IntegrationOperation {
           }
         }
 
-        if (trackEnabled) {
-          integration.track(trackPayload);
-        }
+        return trackEnabled;
       }
 
       @Override public String toString() {
@@ -231,4 +238,8 @@ abstract class IntegrationOperation {
 
   /** Run this operation on the given integration. */
   abstract void run(AbstractIntegration integration, ProjectSettings projectSettings);
+
+  protected boolean isEnabled(AbstractIntegration integration, ProjectSettings projectSettings) {
+    return true;
+  }
 }

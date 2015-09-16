@@ -383,7 +383,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
   /** Runs the given operation on all bundled integrations. */
   void run(IntegrationOperation operation) {
     if (logLevel.log()) {
-      debug("Running %s on %s integrations.", operation, integrations.size());
+      debug("Running %s.", operation);
     }
     for (int i = 0; i < integrations.size(); i++) {
       AbstractIntegration integration = integrations.get(i);
@@ -391,7 +391,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
       operation.run(integration, projectSettingsCache.get());
       long endTime = System.nanoTime();
       long duration = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-      if (logLevel.log()) {
+      if (logLevel.log() && operation.isEnabled(integration, projectSettingsCache.get())) {
         debug("Took %s ms to run action %s on %s.", duration, operation, integration.key());
       }
       stats.dispatchIntegrationOperation(integration.key(), duration);
