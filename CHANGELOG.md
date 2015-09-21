@@ -1,3 +1,11 @@
+Version 3.2.0 (Sep 21st, 2015)
+==============================
+
+  * Use US ISO 8601 timestamps
+  * Add 'collectDeviceId' Builder option.
+    AnonymousId is used in place of device identifiers if enabled.
+  * UXCam lib updated to v2.0.6
+
 Version 3.1.8 (Sep 11th, 2015)
 ==============================
 
