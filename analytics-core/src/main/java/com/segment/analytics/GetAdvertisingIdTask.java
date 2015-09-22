@@ -36,7 +36,10 @@ class GetAdvertisingIdTask extends AsyncTask<Context, Void, Pair<String, Boolean
   @Override protected void onPostExecute(Pair<String, Boolean> info) {
     super.onPostExecute(info);
     if (info != null) {
-      analyticsContext.device().putAdvertisingInfo(info.first, info.second);
+      AnalyticsContext.Device device = analyticsContext.device();
+      if (device != null) {
+        device.putAdvertisingInfo(info.first, info.second);
+      }
     }
   }
 }
