@@ -59,7 +59,7 @@ git commit -a -m "[gradle-release-task] prepare release $newReleaseVersion"
 git tag -a ${newReleaseVersion} -m "[gradle-release-task] version $newReleaseVersion"
 
 # Build and upload artifacts
-./gradlew clean build uploadArchives
+./gradlew build uploadArchives
 
 # Prepare for the next version
 shtool version --increase "$1" release.version
