@@ -1,3 +1,12 @@
+
+Version 3.2.1 (Sep 23rd, 2015)
+==================
+
+  * updating Amplitude SDK to v2.0.4
+  * update localytics version to 3.4.2
+  * Updating MoEngage SDK version
+  * Handle case when context.device is null
+
 Version 3.2.0 (Sep 21st, 2015)
 ==============================
 
