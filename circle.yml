@@ -22,7 +22,7 @@ dependencies:
 
 test:
   override:
-    - TERM=dumb ./gradlew checkRelease testRelease
+    - TERM=dumb ./gradlew checkRelease testRelease --profile
 
 deployment:
   snapshots:
