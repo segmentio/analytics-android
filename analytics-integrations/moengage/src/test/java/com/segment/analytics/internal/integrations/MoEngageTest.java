@@ -19,7 +19,9 @@ import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.ScreenPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
+import java.text.ParseException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
@@ -33,7 +35,10 @@ import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.TestUtils.createContext;
+import static com.segment.analytics.TestUtils.mapEq;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -44,7 +49,8 @@ import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*", "org.json.*" })
-@PrepareForTest(MoEngageIntegration.class) public class MoEngageTest {
+@PrepareForTest(MoEngageIntegration.class)
+public class MoEngageTest {
 
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
@@ -60,19 +66,14 @@ import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
     mockStatic(MoEHelper.class);
     integration = new MoEngageIntegration();
     integration.helper = moeHelper;
-
   }
 
   @Test public void initialize() {
     when(analytics.getApplication()).thenReturn(application);
+    when(analytics.getLogLevel()).thenReturn(Analytics.LogLevel.INFO);
 
     integration.initialize(analytics, new ValueMap());
-    Analytics.LogLevel logLevel = analytics.getLogLevel();
-    if (logLevel == Analytics.LogLevel.VERBOSE || logLevel == Analytics.LogLevel.INFO) {
-      assertThat(MoEHelper.APP_DEBUG).isTrue();
-    }else{
-      assertThat(MoEHelper.APP_DEBUG).isFalse();
-    }
+    assertThat(MoEHelper.APP_DEBUG).isTrue();
     verifyNoMoreInteractions(MoEHelper.class);
     verifyNoMoreInteractions(moeHelper);
   }
@@ -146,7 +147,6 @@ import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
   }
 
   @Test public void track() {
-
     TrackPayloadBuilder builder = new TrackPayloadBuilder();
     builder.event("foo").properties(new Properties().putCurrency("INR").putPrice(2000));
     integration.track(builder.build());
@@ -165,24 +165,33 @@ import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
     verifyNoMoreInteractions(moeHelper);
   }
 
-  @Test public void identify() {
-    Traits traits = TestUtils.createTraits();
-    traits.putEmail("foo@bar.com");
-    HashMap<String, Object> traitMap = new HashMap<>();
-    traitMap.put(MoEHelperConstants.USER_ATTRIBUTE_USER_EMAIL, traits.email());
-    traitMap.put("USER_ATTRIBUTE_SEGMENT_ID", traits.anonymousId());
-    AnalyticsContext analyticsContext = createContext(traits).putLocation(
-        new AnalyticsContext.Location().putLatitude(20).putLongitude(20));
+  @Test public void identify() throws ParseException {
+    Traits traits = TestUtils.createTraits("foo")
+        .putEmail("foo@bar.com")
+        .putPhone("123-542-7189")
+        .putName("Mr. Prateek")
+        .putFirstName("Prateek")
+        .putLastName("Srivastava")
+        .putGender("male");
+    AnalyticsContext analyticsContext = createContext(traits) //
+        .putLocation(new AnalyticsContext.Location().putLatitude(10).putLongitude(20));
 
-    integration.identify(
-        new IdentifyPayloadBuilder().traits(traits).context(analyticsContext).build());
+    integration.identify(new IdentifyPayloadBuilder() //
+        .traits(traits).context(analyticsContext).build());
 
-    verify(moeHelper).setUserAttribute(traitMap);
-    verify(moeHelper).setUserLocation(20, 20);
+    HashMap<String, Object> userAttributes = new LinkedHashMap<>();
+    userAttributes.put(MoEHelperConstants.USER_ATTRIBUTE_UNIQUE_ID, "foo");
+    userAttributes.put(MoEHelperConstants.USER_ATTRIBUTE_USER_EMAIL, "foo@bar.com");
+    userAttributes.put(MoEHelperConstants.USER_ATTRIBUTE_USER_MOBILE, "123-542-7189");
+    userAttributes.put(MoEHelperConstants.USER_ATTRIBUTE_USER_NAME, "Mr. Prateek");
+    userAttributes.put(MoEHelperConstants.USER_ATTRIBUTE_USER_FIRST_NAME, "Prateek");
+    userAttributes.put(MoEHelperConstants.USER_ATTRIBUTE_USER_LAST_NAME, "Srivastava");
+    userAttributes.put(MoEHelperConstants.USER_ATTRIBUTE_USER_GENDER, "male");
+    verify(moeHelper).setUserAttribute(mapEq(userAttributes));
+    verify(moeHelper).setUserLocation(10, 20);
 
     verifyNoMoreInteractions(moeHelper);
     verifyNoMoreInteractions(MoEHelper.class);
-
   }
 
   @Test public void flush() {
