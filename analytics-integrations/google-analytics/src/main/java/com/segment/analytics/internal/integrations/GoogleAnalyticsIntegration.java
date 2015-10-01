@@ -6,10 +6,12 @@ import android.content.Context;
 import com.google.android.gms.analytics.ExceptionReporter;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.HitBuilders.TransactionBuilder;
 import com.google.android.gms.analytics.Logger;
 import com.google.android.gms.analytics.Tracker;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.Properties;
+import com.segment.analytics.Properties.Product;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.Utils;
@@ -142,9 +144,10 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     sendProductEvent(event, category, properties);
 
     if (COMPLETED_ORDER_PATTERN.matcher(event).matches()) {
-      List<Properties.Product> products = properties.products();
+      List<Product> products = properties.products();
       if (!isNullOrEmpty(products)) {
-        for (Properties.Product product : products) {
+        for (int i = 0; i < products.size(); i++) {
+          Product product = products.get(i);
           ItemHitBuilder hitBuilder = new ItemHitBuilder();
           hitBuilder.setTransactionId(product.id())
               .setName(product.name())
@@ -156,11 +159,13 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
           tracker.send(hitBuilder.build());
         }
       }
-      ItemHitBuilder hitBuilder = new ItemHitBuilder();
-      hitBuilder.setTransactionId(properties.orderId())
+      TransactionBuilder builder = new TransactionBuilder();
+      builder.setTransactionId(properties.orderId())
           .setCurrencyCode(properties.currency())
-          .setPrice(properties.total());
-      tracker.send(hitBuilder.build());
+          .setRevenue(properties.total())
+          .setTax(properties.tax())
+          .setShipping(properties.shipping());
+      tracker.send(builder.build());
     }
 
     String label = properties.getString(LABEL_KEY);
