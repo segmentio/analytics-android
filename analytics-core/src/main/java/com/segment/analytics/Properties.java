@@ -291,7 +291,7 @@ public class Properties extends ValueMap {
     return putValue(SHIPPING_KEY, shipping);
   }
 
-  double shipping() {
+  public double shipping() {
     return getDouble(SHIPPING_KEY, 0);
   }
 
