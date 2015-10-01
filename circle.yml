@@ -13,11 +13,11 @@ machine:
 
 dependencies:
   cache_directories:
-    - ~/.android
-    - ~/android
-    - ~/.gradle
+    - /home/ubuntu/.android
+    - /home/ubuntu/android
+    - /home/ubuntu/.gradle
   override:
-    - ./scripts/setup.sh
+    - .buildscript/setup.sh
     - TERM=dumb ./gradlew dependencies
 
 test:
