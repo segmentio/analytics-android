@@ -2,8 +2,8 @@ package com.segment.analytics.internal.integrations;
 
 import android.app.Activity;
 import android.text.TextUtils;
-
 import com.kahuna.sdk.EmptyCredentialsException;
+import com.kahuna.sdk.IKahuna;
 import com.kahuna.sdk.IKahunaUserCredentials;
 import com.kahuna.sdk.Kahuna;
 import com.segment.analytics.Analytics;
@@ -11,7 +11,6 @@ import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.Utils;
-import com.segment.analytics.internal.integrations.kahuna.BuildConfig;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
@@ -52,19 +51,16 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
   static final String LAST_PRODUCT_ADDED_TO_CART_NAME = "Last Product Added To Cart Name";
   static final String LAST_PRODUCT_ADDED_TO_CART_CATEGORY = "Last Product Added To Cart Category";
   static final String LAST_PURCHASE_DISCOUNT = "Last Purchase Discount";
-  private static final int MAX_CATEGORIES_VIEWED_ENTRIES = 50;
+  static final int MAX_CATEGORIES_VIEWED_ENTRIES = 50;
   static final String NONE = "None";
-
-  private static final String KAHUNA_KEY = "Kahuna";
-  private static final String SEGMENT_WRAPPER_VERSION = "segment";
-
-  private static final Set<String> KAHUNA_CREDENTIALS =
+  static final String KAHUNA_KEY = "Kahuna";
+  static final Set<String> KAHUNA_CREDENTIALS =
       Utils.newSet(USERNAME_KEY, EMAIL_KEY, FACEBOOK_KEY, TWITTER_KEY, LINKEDIN_KEY,
           INSTALL_TOKEN_KEY, GOOGLE_PLUS_ID);
-  // todo: reuse this from Traits
   private static final String SEGMENT_USER_ID_KEY = "userId";
 
   boolean trackAllPages;
+  IKahuna kahuna;
 
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
@@ -73,12 +69,13 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
     }
 
     trackAllPages = settings.getBoolean("trackAllPages", false);
-    Kahuna.getInstance().onAppCreate(analytics.getApplication(), settings.getString("apiKey"),
-            settings.getString("pushSenderId"));
-    Kahuna.getInstance().setHybridSDKVersion(SEGMENT_WRAPPER_VERSION, BuildConfig.VERSION_NAME);
+    String apiKey = settings.getString("apiKey");
+    String pushSenderId = settings.getString("pushSenderId");
+    kahuna = Kahuna.getInstance();
+    kahuna.onAppCreate(analytics.getApplication(), apiKey, pushSenderId);
 
     LogLevel logLevel = analytics.getLogLevel();
-    Kahuna.getInstance().setDebugMode(logLevel == INFO || logLevel == VERBOSE);
+    kahuna.setDebugMode(logLevel == INFO || logLevel == VERBOSE);
   }
 
   @Override public String key() {
@@ -87,20 +84,20 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
 
   @Override public void onActivityStarted(Activity activity) {
     super.onActivityStarted(activity);
-    Kahuna.getInstance().start();
+    kahuna.start();
   }
 
   @Override public void onActivityStopped(Activity activity) {
     super.onActivityStopped(activity);
-    Kahuna.getInstance().stop();
+    kahuna.stop();
   }
 
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
 
     Traits traits = identify.traits();
-    IKahunaUserCredentials credentials = Kahuna.getInstance().createUserCredentials();
-    Map<String, String> userAttributes = Kahuna.getInstance().getUserAttributes();
+    IKahunaUserCredentials credentials = kahuna.createUserCredentials();
+    Map<String, String> userAttributes = kahuna.getUserAttributes();
     for (String key : traits.keySet()) {
       if (KAHUNA_CREDENTIALS.contains(key)) {
         // Only set credentials if it is a key recognized by Kahuna
@@ -118,11 +115,11 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
       }
     }
     try {
-      Kahuna.getInstance().login(credentials);
+      kahuna.login(credentials);
     } catch (EmptyCredentialsException e) {
       error(e, "You should call reset() instead of passed in all empty/null values to identify().");
     }
-    Kahuna.getInstance().setUserAttributes(userAttributes);
+    kahuna.setUserAttributes(userAttributes);
   }
 
   @Override public void track(TrackPayload track) {
@@ -145,9 +142,9 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
     double revenue = track.properties().revenue();
     if (quantity == -1 && revenue == 0) {
       // Kahuna requires revenue in cents
-      Kahuna.getInstance().trackEvent(event);
+      kahuna.trackEvent(event);
     } else {
-      Kahuna.getInstance().trackEvent(event, quantity, (int) (revenue * 100));
+      kahuna.trackEvent(event, quantity, (int) (revenue * 100));
     }
   }
 
@@ -158,7 +155,7 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
       category = NONE;
     }
 
-    Map<String, String> userAttributes = Kahuna.getInstance().getUserAttributes();
+    Map<String, String> userAttributes = kahuna.getUserAttributes();
     Set<String> categoriesViewed;
     if (userAttributes.containsKey(CATEGORIES_VIEWED)) {
       categoriesViewed = Collections.newSetFromMap(new LinkedHashMap<String, Boolean>() {
@@ -176,54 +173,54 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
 
     userAttributes.put(CATEGORIES_VIEWED, TextUtils.join(",", categoriesViewed));
     userAttributes.put(LAST_VIEWED_CATEGORY, category);
-    Kahuna.getInstance().setUserAttributes(userAttributes);
+    kahuna.setUserAttributes(userAttributes);
   }
 
   void trackViewedProduct(TrackPayload track) {
     String name = track.properties().name();
     if (!isNullOrEmpty(name)) {
-      Map<String, String> userAttributes = Kahuna.getInstance().getUserAttributes();
+      Map<String, String> userAttributes = kahuna.getUserAttributes();
       userAttributes.put(LAST_PRODUCT_VIEWED_NAME, name);
-      Kahuna.getInstance().setUserAttributes(userAttributes);
+      kahuna.setUserAttributes(userAttributes);
     }
   }
 
   void trackAddedProduct(TrackPayload track) {
     String name = track.properties().name();
     if (!isNullOrEmpty(name)) {
-      Map<String, String> userAttributes = Kahuna.getInstance().getUserAttributes();
+      Map<String, String> userAttributes = kahuna.getUserAttributes();
       userAttributes.put(LAST_PRODUCT_ADDED_TO_CART_NAME, name);
-      Kahuna.getInstance().setUserAttributes(userAttributes);
+      kahuna.setUserAttributes(userAttributes);
     }
   }
 
   void trackAddedProductCategory(TrackPayload track) {
     String category = track.properties().category();
     if (!isNullOrEmpty(category)) {
-      Map<String, String> userAttributes = Kahuna.getInstance().getUserAttributes();
+      Map<String, String> userAttributes = kahuna.getUserAttributes();
       userAttributes.put(LAST_PRODUCT_ADDED_TO_CART_CATEGORY, category);
-      Kahuna.getInstance().setUserAttributes(userAttributes);
+      kahuna.setUserAttributes(userAttributes);
     }
   }
 
   void trackCompletedOrder(TrackPayload track) {
     double discount = track.properties().discount();
-    Map<String, String> userAttributes = Kahuna.getInstance().getUserAttributes();
+    Map<String, String> userAttributes = kahuna.getUserAttributes();
     userAttributes.put(LAST_PURCHASE_DISCOUNT, String.valueOf(discount));
-    Kahuna.getInstance().setUserAttributes(userAttributes);
+    kahuna.setUserAttributes(userAttributes);
   }
 
   @Override public void screen(ScreenPayload screen) {
     super.screen(screen);
 
     if (trackAllPages) {
-      Kahuna.getInstance().trackEvent(String.format(VIEWED_EVENT_FORMAT, screen.event()));
+      kahuna.trackEvent(String.format(VIEWED_EVENT_FORMAT, screen.event()));
     }
   }
 
   @Override public void reset() {
     super.reset();
 
-    Kahuna.getInstance().logout();
+    kahuna.logout();
   }
 }
