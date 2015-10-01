@@ -6,19 +6,23 @@ general:
 
 machine:
   environment:
+    ANDROID_HOME: /home/ubuntu/android
     CIRCLE_JDK_VERSION: oraclejdk8
   java:
     version: oraclejdk8
 
 dependencies:
   cache_directories:
+    - ~/.android
+    - ~/android
     - ~/.gradle
   override:
-    - TERM=dumb ./gradlew dependencies --profile
+    - ./scripts/setup.sh
+    - TERM=dumb ./gradlew dependencies
 
 test:
   override:
-    - TERM=dumb ./gradlew assembleRelease checkRelease testRelease --profile
+    - TERM=dumb ./gradlew assembleRelease checkRelease testRelease
 
 deployment:
   snapshots:

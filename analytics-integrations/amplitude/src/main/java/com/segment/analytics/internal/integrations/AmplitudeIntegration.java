@@ -26,7 +26,29 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
   boolean trackAllPages;
   boolean trackCategorizedPages;
   boolean trackNamedPages;
+  final Provider provider;
   AmplitudeClient amplitude;
+
+  // Using PowerMockito fails with https://cloudup.com/c5JPuvmTCaH. So we introduce a provider
+  // abstraction to mock what AmplitudeClient.getInstance() returns.
+  interface Provider {
+    AmplitudeClient get();
+
+    Provider REAL = new Provider() {
+      @Override public AmplitudeClient get() {
+        return AmplitudeClient.getInstance();
+      }
+    };
+  }
+
+  // Used by reflection.
+  @SuppressWarnings("unused") AmplitudeIntegration() {
+    this(Provider.REAL);
+  }
+
+  AmplitudeIntegration(Provider provider) {
+    this.provider = provider;
+  }
 
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
@@ -34,7 +56,8 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", false);
     trackNamedPages = settings.getBoolean("trackNamedPages", false);
     boolean trackSessionEvents = settings.getBoolean("trackSessionEvents", false);
-    amplitude = AmplitudeClient.getInstance();
+
+    amplitude = provider.get();
     amplitude.initialize(analytics.getApplication(), settings.getString("apiKey"));
     amplitude.enableForegroundTracking(analytics.getApplication());
     if (trackSessionEvents) {

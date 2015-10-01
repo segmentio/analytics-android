@@ -24,10 +24,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -43,27 +39,27 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
-@PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*", "org.json.*" })
-@PrepareForTest(AmplitudeClient.class)
 public class AmplitudeTest {
 
-  @Rule public PowerMockRule powerMockRule = new PowerMockRule();
   @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
   @Mock Application context;
   @Mock AmplitudeClient amplitude;
   @Mock Analytics analytics;
   AmplitudeIntegration integration;
 
+  AmplitudeIntegration.Provider mockProvider = new AmplitudeIntegration.Provider() {
+    @Override public AmplitudeClient get() {
+      return amplitude;
+    }
+  };
+
   @Before public void setUp() {
     initMocks(this);
-    integration = new AmplitudeIntegration();
+    integration = new AmplitudeIntegration(mockProvider);
     integration.amplitude = amplitude;
   }
 
   @Test public void initialize() {
-    integration = new AmplitudeIntegration();
-    PowerMockito.mockStatic(AmplitudeClient.class);
-    PowerMockito.when(AmplitudeClient.getInstance()).thenReturn(amplitude);
     when(analytics.getApplication()).thenReturn(context);
 
     integration.initialize(analytics, //
@@ -79,9 +75,6 @@ public class AmplitudeTest {
   }
 
   @Test public void initializeWithDefaultArguments() {
-    integration = new AmplitudeIntegration();
-    PowerMockito.mockStatic(AmplitudeClient.class);
-    PowerMockito.when(AmplitudeClient.getInstance()).thenReturn(amplitude);
     when(analytics.getApplication()).thenReturn(context);
 
     // Verify default args
