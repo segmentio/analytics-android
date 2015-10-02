@@ -127,12 +127,31 @@ public final class TestUtils {
     throw new AssertionError("no instances");
   }
 
+  public static <K, V> Map<K, V> mapEq(Map<K, V> expected) {
+    return argThat(new MapMatcher<>(expected));
+  }
+
+  private static class MapMatcher<K, V> extends TypeSafeMatcher<Map<K, V>> {
+    private final Map<K, V> expected;
+
+    private MapMatcher(Map<K, V> expected) {
+      this.expected = expected;
+    }
+
+    @Override public boolean matchesSafely(Map<K, V> map) {
+      return expected.equals(map);
+    }
+
+    @Override public void describeTo(Description description) {
+      description.appendText(expected.toString());
+    }
+  }
+
   public static JSONObject jsonEq(JSONObject expected) {
     return argThat(new JSONObjectMatcher(expected));
   }
 
-  public static class JSONObjectMatcher extends TypeSafeMatcher<JSONObject> {
-
+  private static class JSONObjectMatcher extends TypeSafeMatcher<JSONObject> {
     private final JSONObject expected;
 
     private JSONObjectMatcher(JSONObject expected) {
