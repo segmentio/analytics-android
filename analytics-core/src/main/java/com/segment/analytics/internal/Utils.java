@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -47,6 +48,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -57,6 +59,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.Manifest.permission.READ_PHONE_STATE;
@@ -99,7 +104,8 @@ public final class Utils {
   //TODO: Migrate other coercion methods.
 
   /**
-   * Returns the float representation at {@code value} if it exists and is a float or can be coerced
+   * Returns the float representation at {@code value} if it exists and is a float or can be
+   * coerced
    * to a float. Returns {@code defaultValue} otherwise.
    */
   public static float coerceToFloat(Object value, float defaultValue) {
@@ -247,6 +253,111 @@ public final class Utils {
       sb.append(line);
     }
     return sb.toString();
+  }
+
+  /**
+   * Transforms the given map by replacing the keys mapped by {@code mapper}. Any keys not in the
+   * mapper preserve their original keys. If a key in the mapper maps to null or a blank string,
+   * that value is dropped.
+   *
+   * e.g. transform({a: 1, b: 2, c: 3}, {a: a, c: ""}) -> {$a: 1, b: 2}
+   * - transforms a to $a
+   * - keeps b
+   * - removes c
+   */
+  public static <T> Map<String, T> transform(Map<String, T> in, Map<String, String> mapper) {
+    Map<String, T> out = new LinkedHashMap<>(in.size());
+    for (Map.Entry<String, T> entry : in.entrySet()) {
+      String key = entry.getKey();
+      if (!mapper.containsKey(key)) {
+        out.put(key, entry.getValue()); // keep the original key.
+        continue;
+      }
+      String mappedKey = mapper.get(key);
+      if (!isNullOrEmpty(mappedKey)) {
+        out.put(mappedKey, entry.getValue());
+      }
+    }
+    return out;
+  }
+
+  /**
+   * Return a copy of the contents of the given map as a {@link JSONObject}. Instead of failing on
+   * {@code null} values like the {@link JSONObject} map constructor, it cleans them up and
+   * correctly converts them to {@link JSONObject#NULL}.
+   */
+  public static JSONObject toJsonObject(Map<String, ?> map) {
+    JSONObject jsonObject = new JSONObject();
+    for (Map.Entry<String, ?> entry : map.entrySet()) {
+      Object value = wrap(entry.getValue());
+      try {
+        jsonObject.put(entry.getKey(), value);
+      } catch (JSONException ignored) {
+        // Ignore values that JSONObject doesn't accept.
+      }
+    }
+    return jsonObject;
+  }
+
+  /**
+   * Wraps the given object if necessary. {@link JSONObject#wrap(Object)} is only available on API
+   * 19+, so we've copied the implementation. Deviates from the original implementation in
+   * that it always returns {@link JSONObject#NULL} instead of {@code null} in case of a failure,
+   * and returns the {@link Object#toString} of any object that is of a custom (non-primitive or
+   * non-collection/map) type.
+   *
+   * <p>If the object is null or , returns {@link JSONObject#NULL}.
+   * If the object is a {@link JSONArray} or {@link JSONObject}, no wrapping is necessary.
+   * If the object is {@link JSONObject#NULL}, no wrapping is necessary.
+   * If the object is an array or {@link Collection}, returns an equivalent {@link JSONArray}.
+   * If the object is a {@link Map}, returns an equivalent {@link JSONObject}.
+   * If the object is a primitive wrapper type or {@link String}, returns the object.
+   * Otherwise returns the result of {@link Object#toString}.
+   * If wrapping fails, returns JSONObject.NULL.
+   */
+  private static Object wrap(Object o) {
+    if (o == null) {
+      return JSONObject.NULL;
+    }
+    if (o instanceof JSONArray || o instanceof JSONObject) {
+      return o;
+    }
+    if (o.equals(JSONObject.NULL)) {
+      return o;
+    }
+    try {
+      if (o instanceof Collection) {
+        return new JSONArray((Collection) o);
+      } else if (o.getClass().isArray()) {
+        final int length = Array.getLength(o);
+        JSONArray array = new JSONArray();
+        for (int i = 0; i < length; ++i) {
+          array.put(wrap(Array.get(array, i)));
+        }
+        return array;
+      }
+      if (o instanceof Map) {
+        //noinspection unchecked
+        return toJsonObject((Map) o);
+      }
+      if (o instanceof Boolean
+          || o instanceof Byte
+          || o instanceof Character
+          || o instanceof Double
+          || o instanceof Float
+          || o instanceof Integer
+          || o instanceof Long
+          || o instanceof Short
+          || o instanceof String) {
+        return o;
+      }
+      // Deviate from original implementation and return the String representation of the object
+      // regardless of package.
+      return o.toString();
+    } catch (Exception ignored) {
+    }
+    // Deviate from original and return JSONObject.NULL instead of null.
+    return JSONObject.NULL;
   }
 
   public static <T> Map<String, T> createMap() {

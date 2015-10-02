@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.assertj.core.data.MapEntry;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +40,7 @@ import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.error;
 import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import static com.segment.analytics.internal.Utils.transform;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -53,7 +55,7 @@ public class UtilsTest {
     initMocks(this);
   }
 
-  @Test public void emptyString() throws Exception {
+  @Test public void emptyString() {
     assertThat(isNullOrEmpty((String) null)).isTrue();
     assertThat(isNullOrEmpty("")).isTrue();
     assertThat(isNullOrEmpty("    ")).isTrue();
@@ -61,7 +63,7 @@ public class UtilsTest {
     assertThat(isNullOrEmpty("a")).isFalse();
   }
 
-  @Test public void emptyMap() throws Exception {
+  @Test public void emptyMap() {
     assertThat(isNullOrEmpty((Map) null)).isTrue();
     Map<String, Object> map = new LinkedHashMap<>(20);
     assertThat(isNullOrEmpty(map)).isTrue();
@@ -71,7 +73,7 @@ public class UtilsTest {
     assertThat(isNullOrEmpty(map)).isTrue();
   }
 
-  @Test public void emptyCollections() throws Exception {
+  @Test public void emptyCollections() {
     assertThat(isNullOrEmpty((Collection) null)).isTrue();
     Collection<String> collection = new ArrayList<>();
     assertThat(isNullOrEmpty(collection)).isTrue();
@@ -81,7 +83,23 @@ public class UtilsTest {
     assertThat(isNullOrEmpty(collection)).isTrue();
   }
 
-  @Test public void debugMessagesShowInLog() throws Exception {
+  @Test public void testTransform() {
+    Map<String, Integer> in = new LinkedHashMap<>();
+    in.put("a", 1);
+    in.put("b", 2);
+    in.put("c", 3);
+    in.put("d", 4);
+
+    Map<String, String> mapper = new LinkedHashMap<>();
+    mapper.put("a", "$a");
+    mapper.put("c", "");
+    mapper.put("d", null);
+
+    assertThat(transform(in, mapper)).containsExactly(MapEntry.entry("$a", 1),
+        MapEntry.entry("b", 2));
+  }
+
+  @Test public void debugMessagesShowInLog() {
     debug("some message with an %s", "argument");
     List<ShadowLog.LogItem> logs = ShadowLog.getLogs();
     assertThat(logs).containsExactly(new LogItemBuilder() //
