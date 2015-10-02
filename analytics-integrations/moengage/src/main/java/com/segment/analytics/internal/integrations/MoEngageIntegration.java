@@ -3,7 +3,6 @@ package com.segment.analytics.internal.integrations;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import com.moe.pushlibrary.MoEHelper;
 import com.moe.pushlibrary.utils.MoEHelperConstants;
 import com.segment.analytics.Analytics;
@@ -13,12 +12,12 @@ import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static com.segment.analytics.internal.Utils.hasPermission;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
  * MoEngage is an advanced mobile marketing and engagement tool which has a wide range of
@@ -29,21 +28,24 @@ import static com.segment.analytics.internal.Utils.hasPermission;
  * @see <a href="http://docs.moengage.com/en/latest/android.html">MoEngage Android SDK</a>
  */
 public class MoEngageIntegration extends AbstractIntegration<MoEHelper> {
-
   private static final String KEY_MOENGAGE = "MoEngage";
+  private static final Map<String, String> MAPPER;
+
+  static {
+    Map<String, String> mapper = new LinkedHashMap<>();
+    mapper.put("anonymousId", "USER_ATTRIBUTE_SEGMENT_ID");
+    mapper.put("email", MoEHelperConstants.USER_ATTRIBUTE_USER_EMAIL);
+    mapper.put("userId", MoEHelperConstants.USER_ATTRIBUTE_UNIQUE_ID);
+    mapper.put("name", MoEHelperConstants.USER_ATTRIBUTE_USER_NAME);
+    mapper.put("phone", MoEHelperConstants.USER_ATTRIBUTE_USER_MOBILE);
+    mapper.put("firstName", MoEHelperConstants.USER_ATTRIBUTE_USER_FIRST_NAME);
+    mapper.put("lastName", MoEHelperConstants.USER_ATTRIBUTE_USER_LAST_NAME);
+    mapper.put("gender", MoEHelperConstants.USER_ATTRIBUTE_USER_GENDER);
+    mapper.put("birthday", MoEHelperConstants.USER_ATTRIBUTE_USER_BDAY);
+    MAPPER = Collections.unmodifiableMap(mapper);
+  }
 
   MoEHelper helper;
-
-  private static final String ANONYMOUS_ID_KEY = "anonymousId";
-  private static final String EMAIL_KEY = "email";
-  private static final String USER_ID_KEY = "userId";
-  private static final String NAME_KEY = "name";
-  private static final String PHONE_KEY = "phone";
-  private static final String BIRTHDAY_KEY = "birthday";
-  private static final String FIRST_NAME_KEY = "firstName";
-  private static final String GENDER_KEY = "gender";
-  private static final String LAST_NAME_KEY = "lastName";
-  private static final String USER_ATTR_SEGMENT_AID = "USER_ATTRIBUTE_SEGMENT_ID";
 
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
@@ -65,7 +67,7 @@ public class MoEngageIntegration extends AbstractIntegration<MoEHelper> {
   @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
     super.onActivityCreated(activity, savedInstanceState);
     helper = new MoEHelper(activity);
-    if (null != savedInstanceState) {
+    if (savedInstanceState != null) {
       helper.onRestoreInstanceState(savedInstanceState);
     }
   }
@@ -97,41 +99,12 @@ public class MoEngageIntegration extends AbstractIntegration<MoEHelper> {
 
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
-    Traits tr = identify.traits();
-    if (null != tr && !tr.isEmpty()) {
-      HashMap<String, Object> processedAttrs = new HashMap<String, Object>();
-      Set<String> keys = tr.keySet();
-      for (String key : keys) {
-        if (null != key) {
-          if (ANONYMOUS_ID_KEY.equals(key)) {
-            processedAttrs.put(USER_ATTR_SEGMENT_AID, tr.get(key));
-          } else if (EMAIL_KEY.equals(key)) {
-            processedAttrs.put(MoEHelperConstants.USER_ATTRIBUTE_USER_EMAIL, tr.get(key));
-          } else if (USER_ID_KEY.equals(key)) {
-            processedAttrs.put(MoEHelperConstants.USER_ATTRIBUTE_UNIQUE_ID, tr.get(key));
-          } else if (NAME_KEY.equals(key)) {
-            processedAttrs.put(MoEHelperConstants.USER_ATTRIBUTE_USER_NAME, tr.get(key));
-          } else if (PHONE_KEY.equals(key)) {
-            processedAttrs.put(MoEHelperConstants.USER_ATTRIBUTE_USER_MOBILE, tr.get(key));
-          } else if (FIRST_NAME_KEY.equals(key)) {
-            processedAttrs.put(MoEHelperConstants.USER_ATTRIBUTE_USER_FIRST_NAME, tr.get(key));
-          } else if (LAST_NAME_KEY.equals(key)) {
-            processedAttrs.put(MoEHelperConstants.USER_ATTRIBUTE_USER_LAST_NAME, tr.get(key));
-          } else if (GENDER_KEY.equals(key)) {
-            processedAttrs.put(MoEHelperConstants.USER_ATTRIBUTE_USER_GENDER, tr.get(key));
-          } else if (BIRTHDAY_KEY.equals(key)) {
-            DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
-            String birthDate = df.format(tr.birthday());
-            processedAttrs.put(MoEHelperConstants.USER_ATTRIBUTE_USER_BDAY, birthDate);
-          } else {
-            processedAttrs.put(key, tr.get(key));
-          }
-        } else if (MoEHelper.APP_DEBUG) {
-          Log.e(MoEHelper.TAG, "TRAIT KEY CANNOT BE NULL");
-        }
-      }
-      helper.setUserAttribute(processedAttrs);
+    Traits traits = identify.traits();
+
+    if (!isNullOrEmpty(traits)) {
+      helper.setUserAttribute(map(traits, MAPPER));
     }
+
     AnalyticsContext.Location location = identify.context().location();
     if (location != null) {
       helper.setUserLocation(location.latitude(), location.longitude());
@@ -146,6 +119,20 @@ public class MoEngageIntegration extends AbstractIntegration<MoEHelper> {
   @Override public void reset() {
     super.reset();
     helper.logoutUser();
+  }
+
+  static <T> Map<String, T> map(Map<String, T> in, Map<String, String> mapper) {
+    Map<String, T> out = new LinkedHashMap<>(in.size());
+    for (Map.Entry<String, T> entry : in.entrySet()) {
+      String key = entry.getKey();
+      String mappedKey = mapper.get(key);
+      if (isNullOrEmpty(mappedKey)) {
+        out.put(key, entry.getValue()); // keep the original key.
+      } else {
+        out.put(mappedKey, entry.getValue());
+      }
+    }
+    return out;
   }
 
   @Override public MoEHelper getUnderlyingInstance() {
