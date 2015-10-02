@@ -5,7 +5,6 @@ import android.os.Bundle;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.Properties;
-import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
@@ -15,14 +14,16 @@ import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import static com.segment.analytics.Analytics.LogLevel;
-import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import static com.segment.analytics.internal.Utils.toJsonObject;
+import static com.segment.analytics.internal.Utils.transform;
 
 /**
  * Mixpanel is an event tracking tool targeted at web apps with lots of features: funnel, retention
@@ -44,23 +45,18 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   String token;
   LogLevel logLevel;
   Set<String> increments;
+  private static final Map<String, String> MAPPER;
 
-  private static void registerSuperProperties(JSONObject jsonObject, Traits traits)
-      throws JSONException {
-    jsonObject.put("$email", traits.email());
-    jsonObject.remove("email");
-    jsonObject.put("$phone", traits.phone());
-    jsonObject.remove("phone");
-    jsonObject.put("$first_name", traits.firstName());
-    jsonObject.remove("firstName");
-    jsonObject.put("$last_name", traits.lastName());
-    jsonObject.remove("lastName");
-    jsonObject.put("$name", traits.name());
-    jsonObject.remove("name");
-    jsonObject.put("$username", traits.username());
-    jsonObject.remove("username");
-    jsonObject.put("$created", traits.createdAt());
-    jsonObject.remove("createdAt");
+  static {
+    Map<String, String> mapper = new LinkedHashMap<>();
+    mapper.put("email", "$email");
+    mapper.put("phone", "$phone");
+    mapper.put("first_name", "$first_name");
+    mapper.put("lastName", "$last_name");
+    mapper.put("$name", "$name");
+    mapper.put("username", "$username");
+    mapper.put("createdAt", "$created");
+    MAPPER = Collections.unmodifiableMap(mapper);
   }
 
   static Set<String> getStringSet(ValueMap valueMap, Object key) {
@@ -117,15 +113,7 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     super.identify(identify);
     String userId = identify.userId();
     mixpanelAPI.identify(userId);
-    JSONObject traits = identify.traits().toJsonObject();
-    try {
-      registerSuperProperties(traits, identify.traits());
-    } catch (JSONException e) {
-      if (logLevel.log()) {
-        debug("Could not add super properties to JSONObject for Mixpanel Integration");
-      }
-    }
-
+    JSONObject traits = toJsonObject(transform(identify.traits(), MAPPER));
     mixpanelAPI.registerSuperProperties(traits);
     if (isPeopleEnabled) {
       people.identify(userId);

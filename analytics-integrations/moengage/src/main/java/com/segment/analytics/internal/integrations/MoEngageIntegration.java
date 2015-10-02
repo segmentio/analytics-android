@@ -18,6 +18,7 @@ import java.util.Map;
 
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import static com.segment.analytics.internal.Utils.transform;
 
 /**
  * MoEngage is an advanced mobile marketing and engagement tool which has a wide range of
@@ -102,7 +103,7 @@ public class MoEngageIntegration extends AbstractIntegration<MoEHelper> {
     Traits traits = identify.traits();
 
     if (!isNullOrEmpty(traits)) {
-      helper.setUserAttribute(map(traits, MAPPER));
+      helper.setUserAttribute(transform(traits, MAPPER));
     }
 
     AnalyticsContext.Location location = identify.context().location();
@@ -119,20 +120,6 @@ public class MoEngageIntegration extends AbstractIntegration<MoEHelper> {
   @Override public void reset() {
     super.reset();
     helper.logoutUser();
-  }
-
-  static <T> Map<String, T> map(Map<String, T> in, Map<String, String> mapper) {
-    Map<String, T> out = new LinkedHashMap<>(in.size());
-    for (Map.Entry<String, T> entry : in.entrySet()) {
-      String key = entry.getKey();
-      String mappedKey = mapper.get(key);
-      if (isNullOrEmpty(mappedKey)) {
-        out.put(key, entry.getValue()); // keep the original key.
-      } else {
-        out.put(mappedKey, entry.getValue());
-      }
-    }
-    return out;
   }
 
   @Override public MoEHelper getUnderlyingInstance() {
