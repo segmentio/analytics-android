@@ -1,6 +1,13 @@
 
+Version 3.3.0 (Oct 4th, 2015)
+=============================
+
+  * Send transaction data correctly to Google Analytics
+  * Update Play Services dependencies to 8.1.0
+  * Update Support Library dependency to 23.0.1
+
 Version 3.2.1 (Sep 23rd, 2015)
-==================
+=============================
 
   * updating Amplitude SDK to v2.0.4
   * update localytics version to 3.4.2
