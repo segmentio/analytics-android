@@ -1,5 +1,5 @@
 apply from: rootProject.file('gradle/integration.gradle')
 
 dependencies {
-  compile 'com.amplitude:android-sdk:2.0.4'
+  compile 'com.amplitude:android-sdk:2.1.0'
 }
