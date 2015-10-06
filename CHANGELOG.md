@@ -1,4 +1,10 @@
 
+Version 3.3.1 (Oct 6th, 2015)
+============================
+
+  * Update Mixpanel SDK to 4.6.4
+  * Update Amplitude SDK to 2.1.0
+
 Version 3.3.0 (Oct 4th, 2015)
 =============================
 
