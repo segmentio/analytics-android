@@ -1,4 +1,9 @@
 
+Version 3.3.2 (Oct 7th, 2015)
+============================
+  
+  * Attribute that events are made from the Segment SDK to Kahuna.
+
 Version 3.3.1 (Oct 6th, 2015)
 ============================
 
