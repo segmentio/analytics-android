@@ -56,6 +56,7 @@ import static com.segment.analytics.internal.integrations.KahunaIntegration.LAST
 import static com.segment.analytics.internal.integrations.KahunaIntegration.LAST_PRODUCT_VIEWED_NAME;
 import static com.segment.analytics.internal.integrations.KahunaIntegration.LAST_PURCHASE_DISCOUNT;
 import static com.segment.analytics.internal.integrations.KahunaIntegration.LAST_VIEWED_CATEGORY;
+import static com.segment.analytics.internal.integrations.kahuna.BuildConfig.VERSION_NAME;
 import static com.segment.analytics.internal.integrations.KahunaIntegration.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
@@ -95,10 +96,11 @@ public class KahunaTest {
     when(analytics.getApplication()).thenReturn(context);
 
     integration.initialize(analytics, new ValueMap() //
-        .putValue("apiKey", "foo") //
-        .putValue("pushSenderId", "bar"));
+            .putValue("apiKey", "foo") //
+            .putValue("pushSenderId", "bar"));
 
     verify(kahuna).onAppCreate(context, "foo", "bar");
+    verify(kahuna).setHybridSDKVersion("segment", VERSION_NAME);
     verify(kahuna).setDebugMode(false);
     assertThat(integration.trackAllPages).isFalse();
     verifyNoMoreInteractions(kahuna);
@@ -114,6 +116,7 @@ public class KahunaTest {
         .putValue("pushSenderId", "bar"));
 
     verify(kahuna).onAppCreate(context, "foo", "bar");
+    verify(kahuna).setHybridSDKVersion("segment", VERSION_NAME);
     verify(kahuna).setDebugMode(false);
     assertThat(integration.trackAllPages).isTrue();
     verifyNoMoreInteractions(kahuna);
