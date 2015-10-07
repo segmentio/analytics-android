@@ -9,6 +9,7 @@ import com.kahuna.sdk.Kahuna;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
+import com.segment.analytics.internal.integrations.kahuna.BuildConfig;
 import com.segment.analytics.internal.AbstractIntegration;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
@@ -54,6 +55,7 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
   static final int MAX_CATEGORIES_VIEWED_ENTRIES = 50;
   static final String NONE = "None";
   static final String KAHUNA_KEY = "Kahuna";
+  static final String SEGMENT_WRAPPER_VERSION = "segment";
   static final Set<String> KAHUNA_CREDENTIALS =
       Utils.newSet(USERNAME_KEY, EMAIL_KEY, FACEBOOK_KEY, TWITTER_KEY, LINKEDIN_KEY,
           INSTALL_TOKEN_KEY, GOOGLE_PLUS_ID);
@@ -73,6 +75,7 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
     String pushSenderId = settings.getString("pushSenderId");
     kahuna = Kahuna.getInstance();
     kahuna.onAppCreate(analytics.getApplication(), apiKey, pushSenderId);
+    kahuna.setHybridSDKVersion(SEGMENT_WRAPPER_VERSION, BuildConfig.VERSION_NAME);
 
     LogLevel logLevel = analytics.getLogLevel();
     kahuna.setDebugMode(logLevel == INFO || logLevel == VERBOSE);
