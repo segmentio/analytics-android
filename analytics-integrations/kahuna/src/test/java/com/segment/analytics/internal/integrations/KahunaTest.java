@@ -96,8 +96,8 @@ public class KahunaTest {
     when(analytics.getApplication()).thenReturn(context);
 
     integration.initialize(analytics, new ValueMap() //
-            .putValue("apiKey", "foo") //
-            .putValue("pushSenderId", "bar"));
+        .putValue("apiKey", "foo") //
+        .putValue("pushSenderId", "bar"));
 
     verify(kahuna).onAppCreate(context, "foo", "bar");
     verify(kahuna).setHybridSDKVersion("segment", VERSION_NAME);
