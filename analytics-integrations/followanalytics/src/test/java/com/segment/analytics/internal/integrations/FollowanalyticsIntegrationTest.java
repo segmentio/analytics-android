@@ -23,6 +23,7 @@ import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
@@ -53,10 +54,10 @@ public class FollowAnalyticsIntegrationTest {
     public void initializeShouldThrowIllegalArgumentExceptionForEmptyOrNullFaid() {
         ValueMap valueMap = Mockito.mock(ValueMap.class);
         Mockito.when(valueMap.getString(FollowAnalyticsIntegration.FAID)).thenReturn(null);
+
         integration.initialize(analytics, valueMap);
 
         Assert.assertTrue("Should never be here", false);
-
     }
 
 
@@ -145,23 +146,21 @@ public class FollowAnalyticsIntegrationTest {
 
 
     @Test
-    public void identifyWitValidUserIdAndPropertyShouldSetAttributes() {
+    public void identifyWithValidUserIdAndPropertyShouldSetAttributes() {
         IdentifyPayload payload = Mockito.mock(IdentifyPayload.class);
         Mockito.when(payload.userId()).thenReturn("valid_username");
-        HashMap<String, String> maps = new HashMap<>();
+        Map<String, String> maps = new HashMap<>();
         maps.put("age", "12");
         maps.put("email", "foo@bar.com");
         Mockito.when(payload.toStringMap()).thenReturn(maps);
 
         integration.identify(payload);
 
-        final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        FollowApps.setCurrentIdentifier(captor.capture());
 
-        PowerMockito.verifyStatic(Mockito.times(1));
+        PowerMockito.verifyStatic();
         FollowApps.setUserAttribute("age", "12");
 
-        PowerMockito.verifyStatic(Mockito.times(1));
+        PowerMockito.verifyStatic();
         FollowApps.setUserAttribute("email", "foo@bar.com");
     }
 
