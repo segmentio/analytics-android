@@ -18,6 +18,9 @@ allprojects {
 
   repositories {
     mavenCentral()
+    maven {
+      url 'http://nexus.follow-apps.com/nexus/content/repositories/releases/'
+    }
   }
 
   group = GROUP

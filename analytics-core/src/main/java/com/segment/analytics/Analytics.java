@@ -520,6 +520,7 @@ public class Analytics {
     COUNTLY("Countly"),
     CRITTERCISM("Crittercism"),
     FLURRY("Flurry"),
+    FOLLOW_ANALYTICS("Followanalytics"),
     GOOGLE_ANALYTICS("Google Analytics"),
     KAHUNA("Kahuna"),
     LEANPLUM("Leanplum"),
