@@ -13,6 +13,14 @@ import java.util.Map;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 
+/**
+ * FollowAnalytics provides Mobile Marketing Automation and Analytics
+ * to global industry leaders looking to grow their businesses with rich,
+ * personalized and relevant mobile customer experiences.
+ *
+ * @see <a href="http://followanalytics.com/">Followanalytics</a>
+ */
+
 public class FollowAnalyticsIntegration extends AbstractIntegration<Void> {
 
     static final String FAID = "faid";
