@@ -1,6 +1,6 @@
 apply from: rootProject.file('gradle/integration.gradle')
 
 dependencies {
-  compile 'com.google.android.gms:play-services-ads:7.0.0'
-  compile files('libs/Tapstream-2.9.0.jar')
+  compile 'com.google.android.gms:play-services-ads:8.1.0'
+  compile 'com.tapstream.sdk:tapstream-android:2.9.3'
 }
