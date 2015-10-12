@@ -9,6 +9,7 @@ dependencies {
   compile project(':analytics-integrations:countly')
   compile project(':analytics-integrations:crittercism')
   compile project(':analytics-integrations:flurry')
+  compile project(':analytics-integrations:followanalytics')
   compile project(':analytics-integrations:google-analytics')
   compile project(':analytics-integrations:kahuna')
   compile project(':analytics-integrations:localytics')
