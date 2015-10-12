@@ -5,6 +5,7 @@ import android.app.Application;
 import android.content.Context;
 import android.os.Bundle;
 import com.moe.pushlibrary.MoEHelper;
+import com.moe.pushlibrary.models.GeoLocation;
 import com.moe.pushlibrary.utils.MoEHelperConstants;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.AnalyticsContext;
@@ -22,7 +23,8 @@ import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Map;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,10 +37,10 @@ import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.TestUtils.createContext;
+import static com.segment.analytics.TestUtils.jsonEq;
 import static com.segment.analytics.TestUtils.mapEq;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -148,15 +150,19 @@ public class MoEngageTest {
 
   @Test public void track() {
     TrackPayloadBuilder builder = new TrackPayloadBuilder();
-    builder.event("foo").properties(new Properties().putCurrency("INR").putPrice(2000));
+    builder.event("foo").properties(new Properties().putCurrency("INR").putPrice(2000.0));
     integration.track(builder.build());
 
-    Map<String, String> eventProperties = new HashMap<>();
-    eventProperties.put("currency", "INR");
-    eventProperties.put("price", "2000.0");
-    verify(moeHelper).trackEvent("foo", eventProperties);
-    verifyNoMoreInteractions(MoEHelper.class);
-    verifyNoMoreInteractions(moeHelper);
+    try{
+      JSONObject eventProperties = new JSONObject();
+      eventProperties.put("currency", "INR");
+      eventProperties.put("price", 2000.0);
+      verify(moeHelper).trackEvent(eq("foo"), jsonEq(eventProperties));
+      verifyNoMoreInteractions(MoEHelper.class);
+      verifyNoMoreInteractions(moeHelper);
+    }catch(JSONException ignored){
+
+    }
   }
 
   @Test public void screen() {
@@ -188,7 +194,7 @@ public class MoEngageTest {
     userAttributes.put(MoEHelperConstants.USER_ATTRIBUTE_USER_LAST_NAME, "Srivastava");
     userAttributes.put(MoEHelperConstants.USER_ATTRIBUTE_USER_GENDER, "male");
     verify(moeHelper).setUserAttribute(mapEq(userAttributes));
-    verify(moeHelper).setUserLocation(10, 20);
+    verify(moeHelper).setUserAttribute(MoEHelperConstants.USER_ATTRIBUTE_USER_LOCATION, new GeoLocation(10, 20));
 
     verifyNoMoreInteractions(moeHelper);
     verifyNoMoreInteractions(MoEHelper.class);
