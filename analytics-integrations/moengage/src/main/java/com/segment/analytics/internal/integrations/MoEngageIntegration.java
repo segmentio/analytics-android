@@ -3,13 +3,10 @@ package com.segment.analytics.internal.integrations;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import android.text.TextUtils;
 import com.moe.pushlibrary.MoEHelper;
-import com.moe.pushlibrary.models.GeoLocation;
 import com.moe.pushlibrary.utils.MoEHelperConstants;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.AnalyticsContext;
-import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
@@ -19,6 +16,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.transform;
 
@@ -53,11 +51,14 @@ public class MoEngageIntegration extends AbstractIntegration<MoEHelper> {
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
     Context context = analytics.getApplication();
+    if (!hasPermission(context, "com.google.android.c2dm.permission.RECEIVE")) {
+      throw new IllegalStateException(
+          "MoEngage requires com.google.android.c2dm.permission.RECEIVE permission");
+    }
     Analytics.LogLevel logLevel = analytics.getLogLevel();
     if (logLevel == Analytics.LogLevel.VERBOSE || logLevel == Analytics.LogLevel.INFO) {
       MoEHelper.APP_DEBUG = true;
     }
-    helper = new MoEHelper(context);
   }
 
   @Override public String key() {
@@ -103,37 +104,17 @@ public class MoEngageIntegration extends AbstractIntegration<MoEHelper> {
 
     if (!isNullOrEmpty(traits)) {
       helper.setUserAttribute(transform(traits, MAPPER));
-      Traits.Address address = traits.address();
-      if( null != address ){
-        String city = address.city();
-        if(!TextUtils.isEmpty(city)){
-          helper.setUserAttribute("city", city);
-        }
-        String country = address.country();
-        if(!TextUtils.isEmpty(country)){
-          helper.setUserAttribute("country", country);
-        }
-        String state = address.state();
-        if(!TextUtils.isEmpty(state)){
-          helper.setUserAttribute("state", state);
-        }
-      }
     }
 
     AnalyticsContext.Location location = identify.context().location();
-
     if (location != null) {
-      helper.setUserAttribute(MoEHelperConstants.USER_ATTRIBUTE_USER_LOCATION,
-          new GeoLocation(location.latitude(), location.longitude()));
+      helper.setUserLocation(location.latitude(), location.longitude());
     }
   }
 
   @Override public void track(TrackPayload track) {
     super.track(track);
-    Properties eventProperties = track.properties();
-    if( null != eventProperties ){
-      helper.trackEvent(track.event(), eventProperties.toJsonObject());
-    }
+    helper.trackEvent(track.event(), track.properties().toStringMap());
   }
 
   @Override public void reset() {
