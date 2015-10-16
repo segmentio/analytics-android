@@ -33,7 +33,6 @@ import android.os.Build;
 import android.os.Process;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import android.util.Log;
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
@@ -80,7 +79,6 @@ public final class Utils {
   public static final int DEFAULT_FLUSH_INTERVAL = 30 * 1000; // 30s
   public static final int DEFAULT_FLUSH_QUEUE_SIZE = 20;
   public static final boolean DEFAULT_COLLECT_DEVICE_ID = true;
-  final static String TAG = "Segment";
   @SuppressLint("SimpleDateFormat") private static final DateFormat ISO_8601_DATE_FORMAT =
       new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US);
 
@@ -369,14 +367,6 @@ public final class Utils {
     if (!(location.exists() || location.mkdirs() || location.isDirectory())) {
       throw new IOException("Could not create directory at " + location);
     }
-  }
-
-  public static void debug(String format, Object... extra) {
-    Log.d(TAG, String.format(format, extra));
-  }
-
-  public static void error(Throwable error, String format, Object... extra) {
-    Log.e(TAG, String.format(format, extra), error);
   }
 
   private Utils() {

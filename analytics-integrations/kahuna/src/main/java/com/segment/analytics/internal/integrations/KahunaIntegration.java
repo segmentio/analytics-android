@@ -9,9 +9,10 @@ import com.kahuna.sdk.Kahuna;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
-import com.segment.analytics.internal.integrations.kahuna.BuildConfig;
 import com.segment.analytics.internal.AbstractIntegration;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.Utils;
+import com.segment.analytics.internal.integrations.kahuna.BuildConfig;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
@@ -31,12 +32,10 @@ import static com.kahuna.sdk.KahunaUserCredentials.LINKEDIN_KEY;
 import static com.kahuna.sdk.KahunaUserCredentials.TWITTER_KEY;
 import static com.kahuna.sdk.KahunaUserCredentials.USERNAME_KEY;
 import static com.kahuna.sdk.KahunaUserCredentials.USER_ID_KEY;
-import static com.segment.analytics.Analytics.LogLevel;
-import static com.segment.analytics.Analytics.LogLevel.INFO;
-import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
-import static com.segment.analytics.internal.Utils.error;
+import static com.segment.analytics.Analytics.LogLevel.DEBUG;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.isOnClassPath;
+import static com.segment.analytics.internal.Utils.toISO8601Date;
 
 /**
  * Kahuna helps mobile marketers send push notifications and in-app messages.
@@ -63,6 +62,7 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
 
   boolean trackAllPages;
   IKahuna kahuna;
+  Log log;
 
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
@@ -70,15 +70,14 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
       throw new IllegalStateException("Kahuna requires the support library to be bundled.");
     }
 
+    log = analytics.getLogger().newLogger(KAHUNA_KEY);
     trackAllPages = settings.getBoolean("trackAllPages", false);
     String apiKey = settings.getString("apiKey");
     String pushSenderId = settings.getString("pushSenderId");
     kahuna = Kahuna.getInstance();
     kahuna.onAppCreate(analytics.getApplication(), apiKey, pushSenderId);
     kahuna.setHybridSDKVersion(SEGMENT_WRAPPER_VERSION, BuildConfig.VERSION_NAME);
-
-    LogLevel logLevel = analytics.getLogLevel();
-    kahuna.setDebugMode(logLevel == INFO || logLevel == VERBOSE);
+    kahuna.setDebugMode(log.logLevel.ordinal() >= DEBUG.ordinal());
   }
 
   @Override public String key() {
@@ -111,7 +110,7 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
         // Set it as a user attribute otherwise
         Object value = traits.get(key);
         if (value instanceof Date) {
-          userAttributes.put(key, Utils.toISO8601Date((Date) value));
+          userAttributes.put(key, toISO8601Date((Date) value));
         } else {
           userAttributes.put(key, String.valueOf(value));
         }
@@ -120,7 +119,7 @@ public class KahunaIntegration extends AbstractIntegration<Void> {
     try {
       kahuna.login(credentials);
     } catch (EmptyCredentialsException e) {
-      error(e, "You should call reset() instead of passed in all empty/null values to identify().");
+      log.error(e, "Use reset() instead of passing empty/null values to identify().");
     }
     kahuna.setUserAttributes(userAttributes);
   }

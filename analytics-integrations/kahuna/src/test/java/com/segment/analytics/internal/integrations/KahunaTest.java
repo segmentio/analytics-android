@@ -9,11 +9,13 @@ import com.kahuna.sdk.Kahuna;
 import com.kahuna.sdk.KahunaCommon;
 import com.kahuna.sdk.KahunaUserCredentials;
 import com.segment.analytics.Analytics;
+import com.segment.analytics.Analytics.LogLevel;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
@@ -45,6 +47,7 @@ import static com.kahuna.sdk.KahunaUserCredentials.LINKEDIN_KEY;
 import static com.kahuna.sdk.KahunaUserCredentials.TWITTER_KEY;
 import static com.kahuna.sdk.KahunaUserCredentials.USERNAME_KEY;
 import static com.kahuna.sdk.KahunaUserCredentials.USER_ID_KEY;
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.TestUtils.createTraits;
 import static com.segment.analytics.internal.AbstractIntegration.ADDED_PRODUCT;
 import static com.segment.analytics.internal.AbstractIntegration.COMPLETED_ORDER;
@@ -56,8 +59,8 @@ import static com.segment.analytics.internal.integrations.KahunaIntegration.LAST
 import static com.segment.analytics.internal.integrations.KahunaIntegration.LAST_PRODUCT_VIEWED_NAME;
 import static com.segment.analytics.internal.integrations.KahunaIntegration.LAST_PURCHASE_DISCOUNT;
 import static com.segment.analytics.internal.integrations.KahunaIntegration.LAST_VIEWED_CATEGORY;
-import static com.segment.analytics.internal.integrations.kahuna.BuildConfig.VERSION_NAME;
 import static com.segment.analytics.internal.integrations.KahunaIntegration.NONE;
+import static com.segment.analytics.internal.integrations.kahuna.BuildConfig.VERSION_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -94,6 +97,7 @@ public class KahunaTest {
     PowerMockito.mockStatic(Kahuna.class);
     PowerMockito.when(Kahuna.getInstance()).thenReturn(kahuna);
     when(analytics.getApplication()).thenReturn(context);
+    when(analytics.getLogger()).thenReturn(Log.with(VERBOSE));
 
     integration.initialize(analytics, new ValueMap() //
         .putValue("apiKey", "foo") //
@@ -101,7 +105,7 @@ public class KahunaTest {
 
     verify(kahuna).onAppCreate(context, "foo", "bar");
     verify(kahuna).setHybridSDKVersion("segment", VERSION_NAME);
-    verify(kahuna).setDebugMode(false);
+    verify(kahuna).setDebugMode(true);
     assertThat(integration.trackAllPages).isFalse();
     verifyNoMoreInteractions(kahuna);
   }
@@ -110,9 +114,11 @@ public class KahunaTest {
     PowerMockito.mockStatic(Kahuna.class);
     PowerMockito.when(Kahuna.getInstance()).thenReturn(kahuna);
     when(analytics.getApplication()).thenReturn(context);
+    when(analytics.getLogger()).thenReturn(Log.with(LogLevel.NONE));
 
     integration.initialize(analytics, new ValueMap() //
-        .putValue("trackAllPages", true).putValue("apiKey", "foo") //
+        .putValue("trackAllPages", true) //
+        .putValue("apiKey", "foo") //
         .putValue("pushSenderId", "bar"));
 
     verify(kahuna).onAppCreate(context, "foo", "bar");
@@ -185,8 +191,10 @@ public class KahunaTest {
   }
 
   @Test public void trackWithNoQuantityAndOnlyRevenue() {
-    integration.track(
-        new TrackPayloadBuilder().event("bar").properties(new Properties().putRevenue(10)).build());
+    integration.track(new TrackPayloadBuilder() //
+        .event("bar") //
+        .properties(new Properties().putRevenue(10)) //
+        .build());
 
     verify(kahuna).trackEvent("bar", -1, 1000);
     verifyNoMoreInteractions(kahuna);

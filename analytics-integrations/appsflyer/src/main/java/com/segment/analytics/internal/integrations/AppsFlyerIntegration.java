@@ -6,6 +6,7 @@ import com.appsflyer.AppsFlyerLib;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 
@@ -23,9 +24,12 @@ public class AppsFlyerIntegration extends AbstractIntegration<Void> {
 
   static final String APPS_FLYER_KEY = "AppsFlyer";
   final AppsFlyer appsFlyer;
-  Context context;
 
-  AppsFlyerIntegration() {
+  Context context;
+  Log log;
+
+  // Used by reflection.
+  @SuppressWarnings("unused") AppsFlyerIntegration() {
     this(AppsFlyer.DEFAULT);
   }
 
@@ -39,9 +43,16 @@ public class AppsFlyerIntegration extends AbstractIntegration<Void> {
     if (!hasPermission(context, Manifest.permission.ACCESS_NETWORK_STATE)) {
       throw new IllegalStateException("AppsFlyer requires the ACCESS_NETWORK_STATE permission");
     }
-    appsFlyer.setAppsFlyerKey(settings.getString("appsFlyerDevKey"));
-    appsFlyer.setUseHTTPFallback(settings.getBoolean("httpFallback", false));
     this.context = context;
+    log = analytics.getLogger().newLogger(APPS_FLYER_KEY);
+
+    String appsFlyerDevKey = settings.getString("appsFlyerDevKey");
+    appsFlyer.setAppsFlyerKey(appsFlyerDevKey);
+    log.verbose("AppsFlyerLib.setAppsFlyerKey(%s);", appsFlyerDevKey);
+
+    boolean httpFallback = settings.getBoolean("httpFallback", false);
+    appsFlyer.setUseHTTPFallback(httpFallback);
+    log.verbose("AppsFlyerLib.setUseHTTPFallback(%s);", httpFallback);
   }
 
   @Override public String key() {
@@ -52,16 +63,24 @@ public class AppsFlyerIntegration extends AbstractIntegration<Void> {
     super.track(track);
     String currency = track.properties().currency();
     if (!isNullOrEmpty(currency)) {
-      appsFlyer.setCurrencyCode(track.properties().currency());
+      appsFlyer.setCurrencyCode(currency);
+      log.verbose("AppsFlyerLib.setCurrencyCode(%s);", currency);
     }
-    appsFlyer.sendTrackingWithEvent(context, track.event(),
-        String.valueOf(track.properties().value()));
+    String event = track.event();
+    String value = String.valueOf(track.properties().value());
+    appsFlyer.sendTrackingWithEvent(context, event, value);
+    log.verbose("AppsFlyerLib.sendTrackingWithEvent(context, %s, %s);", event, value);
   }
 
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
-    appsFlyer.setAppUserId(identify.userId());
-    appsFlyer.setUserEmail(identify.traits().email());
+    String userId = identify.userId();
+    appsFlyer.setAppUserId(userId);
+    log.verbose("AppsFlyerLib.setAppUserId(%s);", userId);
+
+    String email = identify.traits().email();
+    appsFlyer.setUserEmail(email);
+    log.verbose("AppsFlyerLib.setUserEmail(%s);", email);
   }
 
   /**
@@ -76,8 +95,8 @@ public class AppsFlyerIntegration extends AbstractIntegration<Void> {
         AppsFlyerLib.setAppsFlyerKey(key);
       }
 
-      @Override public void setUseHTTPFallback(boolean isUseHttp) {
-        AppsFlyerLib.setUseHTTPFalback(isUseHttp);
+      @Override public void setUseHTTPFallback(boolean useHttp) {
+        AppsFlyerLib.setUseHTTPFalback(useHttp);
       }
 
       @Override public void setCurrencyCode(String currencyCode) {
@@ -100,7 +119,7 @@ public class AppsFlyerIntegration extends AbstractIntegration<Void> {
 
     void setAppsFlyerKey(String key);
 
-    void setUseHTTPFallback(boolean isUseHttp);
+    void setUseHTTPFallback(boolean useHttp);
 
     void setCurrencyCode(String currencyCode);
 

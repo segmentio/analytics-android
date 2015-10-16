@@ -3,6 +3,7 @@ package com.segment.analytics;
 import android.Manifest;
 import android.app.Application;
 import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.BasePayload;
@@ -70,7 +71,7 @@ public class AnalyticsTest {
     };
     analytics =
         new Analytics(application, networkExecutor, integrationManagerFactory, stats, traitsCache,
-            analyticsContext, defaultOptions, NONE, "qaz");
+            analyticsContext, defaultOptions, Log.with(NONE), "qaz");
 
     // Used by singleton tests
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);

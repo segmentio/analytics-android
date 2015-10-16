@@ -7,6 +7,7 @@ import com.segment.analytics.Analytics;
 import com.segment.analytics.Properties;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
@@ -20,7 +21,6 @@ import java.util.Map;
 import java.util.Set;
 import org.json.JSONObject;
 
-import static com.segment.analytics.Analytics.LogLevel;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.toJsonObject;
 import static com.segment.analytics.internal.Utils.transform;
@@ -36,14 +36,14 @@ import static com.segment.analytics.internal.Utils.transform;
 public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
 
   static final String MIXPANEL_KEY = "Mixpanel";
-  MixpanelAPI mixpanelAPI;
-  MixpanelAPI.People people;
+  MixpanelAPI mixpanel;
+  MixpanelAPI.People mixpanelPeople;
   boolean isPeopleEnabled;
   boolean trackAllPages;
   boolean trackCategorizedPages;
   boolean trackNamedPages;
   String token;
-  LogLevel logLevel;
+  Log log;
   Set<String> increments;
   private static final Map<String, String> MAPPER;
 
@@ -77,7 +77,7 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
 
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
-    this.logLevel = analytics.getLogLevel();
+    log = analytics.getLogger().newLogger(MIXPANEL_KEY);
 
     trackAllPages = settings.getBoolean("trackAllPages", false);
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", true);
@@ -86,9 +86,10 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     token = settings.getString("token");
     increments = getStringSet(settings, "increments");
 
-    mixpanelAPI = MixpanelAPI.getInstance(analytics.getApplication(), token);
+    mixpanel = MixpanelAPI.getInstance(analytics.getApplication(), token);
+    log.verbose("MixpanelAPI.getInstance(context, %s);", token);
     if (isPeopleEnabled) {
-      people = mixpanelAPI.getPeople();
+      mixpanelPeople = mixpanel.getPeople();
     }
   }
 
@@ -102,7 +103,7 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   }
 
   @Override public MixpanelAPI getUnderlyingInstance() {
-    return mixpanelAPI;
+    return mixpanel;
   }
 
   @Override public String key() {
@@ -112,23 +113,31 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
     String userId = identify.userId();
-    mixpanelAPI.identify(userId);
+    mixpanel.identify(userId);
+    log.verbose("mixpanel.identify(%s)", userId);
     JSONObject traits = toJsonObject(transform(identify.traits(), MAPPER));
-    mixpanelAPI.registerSuperProperties(traits);
-    if (isPeopleEnabled) {
-      people.identify(userId);
-      people.set(traits);
+    mixpanel.registerSuperProperties(traits);
+    log.verbose("mixpanel.registerSuperProperties(%s)", traits);
+
+    if (!isPeopleEnabled) {
+      return;
     }
+    mixpanelPeople.identify(userId);
+    log.verbose("mixpanelPeople.identify(%s)", userId);
+    mixpanelPeople.set(traits);
+    log.verbose("mixpanelPeople.set(%s)", traits);
   }
 
   @Override public void flush() {
     super.flush();
-    mixpanelAPI.flush();
+    mixpanel.flush();
+    log.verbose("mixpanel.flush()");
   }
 
   @Override public void reset() {
     super.reset();
-    mixpanelAPI.reset();
+    mixpanel.reset();
+    log.verbose("mixpanel.reset()");
   }
 
   @Override public void alias(AliasPayload alias) {
@@ -139,7 +148,8 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
       // anonymous ID
       previousId = null;
     }
-    mixpanelAPI.alias(alias.userId(), previousId);
+    mixpanel.alias(alias.userId(), previousId);
+    log.verbose("mixpanel.alias(%s, %s)", alias.userId(), previousId);
   }
 
   @Override public void screen(ScreenPayload screen) {
@@ -158,19 +168,23 @@ public class MixpanelIntegration extends AbstractIntegration<MixpanelAPI> {
     event(event, track.properties());
 
     if (increments.contains(event) && isPeopleEnabled) {
-      people.increment(event, 1);
-      people.set("Last " + event, new Date());
+      mixpanelPeople.increment(event, 1);
+      mixpanelPeople.set("Last " + event, new Date());
     }
   }
 
   void event(String name, Properties properties) {
     JSONObject props = properties.toJsonObject();
-    mixpanelAPI.track(name, props);
-    if (isPeopleEnabled) {
-      double revenue = properties.revenue();
-      if (revenue != 0) {
-        people.trackCharge(revenue, props);
-      }
+    mixpanel.track(name, props);
+    log.verbose("mixpanel.track(%s, %s)", name, props);
+    if (!isPeopleEnabled) {
+      return;
     }
+    double revenue = properties.revenue();
+    if (revenue == 0) {
+      return;
+    }
+    mixpanelPeople.trackCharge(revenue, props);
+    log.verbose("mixpanelPeople.trackCharge(%s, %s)", revenue, props);
   }
 }
