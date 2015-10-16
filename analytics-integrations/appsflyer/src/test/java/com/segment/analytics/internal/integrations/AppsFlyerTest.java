@@ -9,6 +9,7 @@ import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
@@ -22,6 +23,7 @@ import org.mockito.Mock;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.TestUtils.createTraits;
 import static com.segment.analytics.internal.integrations.AppsFlyerIntegration.AppsFlyer;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,10 +47,13 @@ public class AppsFlyerTest {
     initMocks(this);
     integration = new AppsFlyerIntegration(appsFlyer);
     integration.context = context;
+    integration.log = Log.with(VERBOSE);
   }
 
   @Test public void initialize() throws IllegalStateException {
     when(analytics.getApplication()).thenReturn(context);
+    when(analytics.getLogger()).thenReturn(Log.with(VERBOSE));
+
     AppsFlyerIntegration integration = new AppsFlyerIntegration(appsFlyer);
 
     integration.initialize(analytics, new ValueMap() //

@@ -13,7 +13,7 @@ public class SampleApp extends Application {
     // Initialize a new instance of the Analytics client.
     Analytics.Builder builder = new Analytics.Builder(this, ANALYTICS_WRITE_KEY);
     if (BuildConfig.DEBUG) {
-      builder.logLevel(Analytics.LogLevel.BASIC);
+      builder.logLevel(Analytics.LogLevel.VERBOSE);
     }
 
     // Set the initialized instance as a globally accessible instance.

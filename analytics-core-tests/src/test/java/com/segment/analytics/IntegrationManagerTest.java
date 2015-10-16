@@ -2,13 +2,13 @@ package com.segment.analytics;
 
 import android.app.Activity;
 import android.app.Application;
-import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Pair;
 import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.internal.AbstractIntegration;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import com.segment.analytics.internal.model.payloads.GroupPayload;
@@ -92,7 +92,7 @@ public class IntegrationManagerTest {
     networkExecutor = spy(new SynchronousExecutor());
 
     when(analytics.getApplication()).thenReturn(application);
-    when(analytics.getLogLevel()).thenReturn(NONE);
+    when(analytics.getLogger()).thenReturn(Log.with(NONE));
 
     integrationManager =
         new IntegrationManager(analytics, client, networkExecutor, Cartographer.INSTANCE, stats,

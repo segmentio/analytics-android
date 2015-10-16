@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.JsonWriter;
 import com.segment.analytics.internal.AbstractIntegration;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.Utils.AnalyticsThreadFactory;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.BasePayload;
@@ -34,8 +35,6 @@ import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
 import static com.segment.analytics.internal.Utils.closeQuietly;
 import static com.segment.analytics.internal.Utils.createDirectory;
-import static com.segment.analytics.internal.Utils.debug;
-import static com.segment.analytics.internal.Utils.error;
 import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.toISO8601Date;
@@ -68,7 +67,7 @@ class SegmentDispatcher extends AbstractIntegration {
   private final Stats stats;
   private final Handler handler;
   private final HandlerThread segmentThread;
-  private final Analytics.LogLevel logLevel;
+  private final Log log;
   private final Map<String, Boolean> bundledIntegrations;
   private final Cartographer cartographer;
   private final ExecutorService networkExecutor;
@@ -123,7 +122,7 @@ class SegmentDispatcher extends AbstractIntegration {
   static synchronized SegmentDispatcher create(Context context, Client client,
       Cartographer cartographer, ExecutorService networkExecutor, Stats stats,
       Map<String, Boolean> bundledIntegrations, String tag, long flushIntervalInMillis,
-      int flushQueueSize, Analytics.LogLevel logLevel) {
+      int flushQueueSize, Log log) {
     QueueFile queueFile;
     try {
       File folder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
@@ -132,19 +131,20 @@ class SegmentDispatcher extends AbstractIntegration {
       throw new IOError(e);
     }
     return new SegmentDispatcher(context, client, cartographer, networkExecutor, queueFile, stats,
-        bundledIntegrations, flushIntervalInMillis, flushQueueSize, logLevel);
+        bundledIntegrations, flushIntervalInMillis, flushQueueSize,
+        log.newLogger("SegmentDispatcher"));
   }
 
   SegmentDispatcher(Context context, Client client, Cartographer cartographer,
       ExecutorService networkExecutor, QueueFile queueFile, Stats stats,
       Map<String, Boolean> bundledIntegrations, long flushIntervalInMillis, int flushQueueSize,
-      Analytics.LogLevel logLevel) {
+      Log log) {
     this.context = context;
     this.client = client;
     this.networkExecutor = networkExecutor;
     this.queueFile = queueFile;
     this.stats = stats;
-    this.logLevel = logLevel;
+    this.log = log;
     this.bundledIntegrations = bundledIntegrations;
     this.cartographer = cartographer;
     this.flushQueueSize = flushQueueSize;
@@ -206,9 +206,7 @@ class SegmentDispatcher extends AbstractIntegration {
         // Double checked locking, the network executor could have removed payload from the queue
         // to bring it below our capacity while we were waiting.
         if (queueFile.size() >= MAX_QUEUE_SIZE) {
-          if (logLevel.log()) {
-            debug("Queue is at max capacity (%s), removing oldest payload.", queueFile.size());
-          }
+          log.info("Queue is at max capacity (%s), removing oldest payload.", queueFile.size());
           try {
             queueFile.remove();
           } catch (IOException e) {
@@ -231,15 +229,10 @@ class SegmentDispatcher extends AbstractIntegration {
       }
       queueFile.add(payloadJson.getBytes(UTF_8));
     } catch (IOException e) {
-      if (logLevel.log()) {
-        error(e, "Could not add payload %s to queue: %s.", payload, queueFile);
-      }
+      log.error(e, "Could not add payload %s to queue: %s.", payload, queueFile);
     }
 
-    if (logLevel.log()) {
-      debug("Enqueued %s payload. Queue size is now : %s.", payload, queueFile.size());
-    }
-
+    log.verbose("Enqueued %s payload. %s elements in the queue.", payload, queueFile.size());
     if (queueFile.size() >= flushQueueSize) {
       submitFlush();
     }
@@ -276,9 +269,7 @@ class SegmentDispatcher extends AbstractIntegration {
       return;
     }
 
-    if (logLevel.log()) {
-      debug("Uploading payloads in queue to Segment.");
-    }
+    log.verbose("Uploading payloads in queue to Segment.");
     int payloadsUploaded;
     try {
       Client.Connection connection = null;
@@ -300,17 +291,13 @@ class SegmentDispatcher extends AbstractIntegration {
           connection.close();
         } catch (Client.UploadException e) {
           // Simply log and proceed to remove the rejected payloads from the queue
-          if (logLevel.log()) {
-            error(e, "Payloads were rejected by server. Marked for removal.");
-          }
+          log.error(e, "Payloads were rejected by server. Marked for removal.");
         }
       } finally {
         closeQuietly(connection);
       }
     } catch (IOException e) {
-      if (logLevel.log()) {
-        error(e, "Error while uploading payloads");
-      }
+      log.error(e, "Error while uploading payloads");
       return;
     }
 
@@ -328,9 +315,8 @@ class SegmentDispatcher extends AbstractIntegration {
           + queueFile.toString(), e));
     }
 
-    if (logLevel.log()) {
-      debug("Uploaded %s payloads. Queue size is now %s.", payloadsUploaded, queueFile.size());
-    }
+    log.verbose("Uploaded %s payloads. %s remain in the queue.", payloadsUploaded,
+        queueFile.size());
     stats.dispatchFlush(payloadsUploaded);
     if (queueFile.size() > 0) {
       performFlush(); // Flush any remaining items.

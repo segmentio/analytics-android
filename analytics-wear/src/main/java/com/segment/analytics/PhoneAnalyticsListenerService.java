@@ -21,8 +21,6 @@ import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.WearableListenerService;
 import java.io.IOException;
 
-import static com.segment.analytics.internal.Utils.error;
-
 /**
  * A {@link WearableListenerService} that listens for analytics events from a wear device.
  * <p/>
@@ -43,9 +41,8 @@ public class PhoneAnalyticsListenerService extends WearableListenerService {
       try {
         wearPayload = new WearPayload(cartographer.fromJson(new String(messageEvent.getData())));
       } catch (IOException e) {
-        if (getAnalytics().getLogLevel().log()) {
-          error(e, "Could not deserialize event %s", new String(messageEvent.getData()));
-        }
+        getAnalytics().getLogger()
+            .error(e, "Could not deserialize event %s", new String(messageEvent.getData()));
         return;
       }
       switch (wearPayload.type()) {

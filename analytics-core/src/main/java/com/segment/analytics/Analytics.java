@@ -32,6 +32,7 @@ import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
@@ -46,7 +47,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static com.segment.analytics.internal.Utils.debug;
 import static com.segment.analytics.internal.Utils.getResourceString;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
@@ -88,7 +88,7 @@ public class Analytics {
   private final Options defaultOptions;
   private final Traits.Cache traitsCache;
   private final AnalyticsContext analyticsContext;
-  private final LogLevel logLevel;
+  private final Log log;
   private final String tag;
   volatile boolean shutdown;
 
@@ -148,17 +148,19 @@ public class Analytics {
 
   Analytics(Application application, ExecutorService networkExecutor,
       IntegrationManager.Factory integrationManagerFactory, Stats stats, Traits.Cache traitsCache,
-      AnalyticsContext analyticsContext, Options defaultOptions, LogLevel logLevel, String tag) {
+      AnalyticsContext analyticsContext, Options defaultOptions, Log log, String tag) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
     this.traitsCache = traitsCache;
     this.analyticsContext = analyticsContext;
     this.defaultOptions = defaultOptions;
-    this.logLevel = logLevel;
+    this.log = log;
     this.tag = tag;
     // This needs to be last so that the analytics instance members are assigned first
     this.integrationManager = integrationManagerFactory.create(this);
+
+    log.debug("Created analytics client for project with tag:%s.", tag);
   }
 
   // Analytics API
@@ -397,9 +399,7 @@ public class Analytics {
     if (shutdown) {
       throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
     }
-    if (logLevel.log()) {
-      debug("Created payload %s.", payload);
-    }
+    log.verbose("Created payload %s.", payload);
     integrationManager.dispatchEnqueue(payload);
   }
 
@@ -429,9 +429,18 @@ public class Analytics {
     return application;
   }
 
-  /** Return the {@link LogLevel} for this instance. */
-  public LogLevel getLogLevel() {
-    return logLevel;
+  /**
+   * Return the {@link LogLevel} for this instance.
+   *
+   * @deprecated This will be removed in a future release.
+   */
+  @Deprecated public LogLevel getLogLevel() {
+    return log.logLevel;
+  }
+
+  /** Return the {@link Log} instance used by this client. */
+  public Log getLogger() {
+    return log;
   }
 
   /**
@@ -542,16 +551,17 @@ public class Analytics {
   public enum LogLevel {
     /** No logging. */
     NONE,
-    /** Log exceptions and events through the Segment SDK only. */
-    BASIC,
-    /**
-     * Log exceptions, events through the Segment SDK, and enable logging for bundled integrations.
-     */
+    /** Log exceptions only. */
     INFO,
+    /** Log exceptions, and enable debug mode in integrations. */
+    DEBUG,
     /**
-     * Log exceptions, events through the SDK, and enable verbose logging for bundled integrations
-     * that support it.
+     * Log exceptions, and enable debug mode in integrations.
+     *
+     * @deprecated Use {@link LogLevel#DEBUG} instead.
      */
+    @Deprecated BASIC,
+    /** Same as {@link LogLevel#DEBUG}, and log transformations in bundled integrations. */
     VERBOSE;
 
     public boolean log() {
@@ -647,9 +657,7 @@ public class Analytics {
     /**
      * Enable or disable collection of {@link android.provider.Settings.Secure#ANDROID_ID},
      * {@link android.os.Build#SERIAL} or the Telephony Identifier retreived via
-     * {@link TelephonyManager#getDeviceId()} as available.
-     *
-     * Collection of the device identifier is enabled by default.
+     * TelephonyManager as available. Collection of the device identifier is enabled by default.
      */
     public Builder collectDeviceId(boolean collect) {
       this.collectDeviceID = collect;
@@ -772,8 +780,8 @@ public class Analytics {
         Traits traits = Traits.create();
         traitsCache.set(traits);
       }
-      AnalyticsContext analyticsContext = AnalyticsContext.create(application, traitsCache.get(),
-              collectDeviceID);
+      AnalyticsContext analyticsContext =
+          AnalyticsContext.create(application, traitsCache.get(), collectDeviceID);
       analyticsContext.attachAdvertisingId(application);
 
       synchronized (INSTANCES) {
@@ -786,12 +794,8 @@ public class Analytics {
         INSTANCES.add(tag);
       }
 
-      if (logLevel.log()) {
-        debug("Creating analytics client for project with writeKey:%s and tag:%s.", writeKey, tag);
-      }
-
       return new Analytics(application, networkExecutor, integrationManagerFactory, stats,
-          traitsCache, analyticsContext, defaultOptions, logLevel, tag);
+          traitsCache, analyticsContext, defaultOptions, Log.with(logLevel), tag);
     }
   }
 }

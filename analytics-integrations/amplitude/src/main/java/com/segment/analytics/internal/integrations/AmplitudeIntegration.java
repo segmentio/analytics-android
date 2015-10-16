@@ -3,12 +3,13 @@ package com.segment.analytics.internal.integrations;
 import com.amplitude.api.AmplitudeClient;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.Properties;
-import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
+import org.json.JSONObject;
 
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
@@ -28,6 +29,7 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
   boolean trackNamedPages;
   final Provider provider;
   AmplitudeClient amplitude;
+  Log log;
 
   // Using PowerMockito fails with https://cloudup.com/c5JPuvmTCaH. So we introduce a provider
   // abstraction to mock what AmplitudeClient.getInstance() returns.
@@ -52,17 +54,21 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
 
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
+    log = analytics.getLogger().newLogger(AMPLITUDE_KEY);
+
     trackAllPages = settings.getBoolean("trackAllPages", false);
     trackCategorizedPages = settings.getBoolean("trackCategorizedPages", false);
     trackNamedPages = settings.getBoolean("trackNamedPages", false);
     boolean trackSessionEvents = settings.getBoolean("trackSessionEvents", false);
+    String apiKey = settings.getString("apiKey");
 
     amplitude = provider.get();
-    amplitude.initialize(analytics.getApplication(), settings.getString("apiKey"));
+    amplitude.initialize(analytics.getApplication(), apiKey);
+    log.verbose("AmplitudeClient.getInstance().initialize(context, %s);", apiKey);
     amplitude.enableForegroundTracking(analytics.getApplication());
-    if (trackSessionEvents) {
-      amplitude.trackSessionEvents(true);
-    }
+    log.verbose("AmplitudeClient.getInstance().enableForegroundTracking(context);");
+    amplitude.trackSessionEvents(trackSessionEvents);
+    log.verbose("AmplitudeClient.getInstance().trackSessionEvents(%s);", trackSessionEvents);
   }
 
   @Override public Void getUnderlyingInstance() {
@@ -75,10 +81,14 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
 
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
+
     String userId = identify.userId();
-    Traits traits = identify.traits();
     amplitude.setUserId(userId);
-    amplitude.setUserProperties(traits.toJsonObject());
+    log.verbose("AmplitudeClient.getInstance().setUserId(%s);", userId);
+
+    JSONObject traits = identify.traits().toJsonObject();
+    amplitude.setUserProperties(traits);
+    log.verbose("AmplitudeClient.getInstance().setUserProperties(%s);", traits);
   }
 
   @Override public void screen(ScreenPayload screen) {
@@ -98,19 +108,27 @@ public class AmplitudeIntegration extends AbstractIntegration<Void> {
   }
 
   private void event(String name, Properties properties) {
-    amplitude.logEvent(name, properties.toJsonObject());
+    JSONObject propertiesJSON = properties.toJsonObject();
+    amplitude.logEvent(name, propertiesJSON);
+    log.verbose("AmplitudeClient.getInstance().logEvent(%s, %s);", name, propertiesJSON);
+
     double revenue = properties.getDouble("revenue", -1);
-    if (revenue != -1) {
-      String productId = properties.getString("productId");
-      int quantity = properties.getInt("quantity", 0);
-      String receipt = properties.getString("receipt");
-      String receiptSignature = properties.getString("receiptSignature");
-      amplitude.logRevenue(productId, quantity, revenue, receipt, receiptSignature);
+    if (revenue == -1) {
+      return;
     }
+    String productId = properties.getString("productId");
+    int quantity = properties.getInt("quantity", 0);
+    String receipt = properties.getString("receipt");
+    String receiptSignature = properties.getString("receiptSignature");
+    amplitude.logRevenue(productId, quantity, revenue, receipt, receiptSignature);
+    log.verbose("AmplitudeClient.getInstance().logRevenue(%s, %s, %s, %s, %s);", productId,
+        quantity, revenue, receipt, receiptSignature);
   }
 
   @Override public void flush() {
     super.flush();
+
     amplitude.uploadEvents();
+    log.verbose("AmplitudeClient.getInstance().uploadEvents();");
   }
 }

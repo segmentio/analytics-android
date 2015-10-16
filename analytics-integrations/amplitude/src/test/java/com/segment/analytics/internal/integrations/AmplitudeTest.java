@@ -11,6 +11,7 @@ import com.segment.analytics.Randoms;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
@@ -27,6 +28,7 @@ import org.mockito.Mock;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.TestUtils.createTraits;
 import static com.segment.analytics.TestUtils.jsonEq;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,10 +59,12 @@ public class AmplitudeTest {
     initMocks(this);
     integration = new AmplitudeIntegration(mockProvider);
     integration.amplitude = amplitude;
+    integration.log = Log.with(VERBOSE);
   }
 
   @Test public void initialize() {
     when(analytics.getApplication()).thenReturn(context);
+    when(analytics.getLogger()).thenReturn(Log.with(VERBOSE));
 
     integration.initialize(analytics, //
         new ValueMap().putValue("apiKey", "foo")
@@ -76,6 +80,7 @@ public class AmplitudeTest {
 
   @Test public void initializeWithDefaultArguments() {
     when(analytics.getApplication()).thenReturn(context);
+    when(analytics.getLogger()).thenReturn(Log.with(VERBOSE));
 
     // Verify default args
     integration.initialize(analytics, new ValueMap().putValue("apiKey", "foo"));

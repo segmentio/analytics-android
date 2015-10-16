@@ -17,12 +17,10 @@
 package com.segment.analytics.internal;
 
 import android.content.Context;
-import android.util.Log;
 import com.segment.analytics.core.tests.BuildConfig;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;
@@ -31,13 +29,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowLog;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
-import static com.segment.analytics.internal.Utils.TAG;
-import static com.segment.analytics.internal.Utils.debug;
-import static com.segment.analytics.internal.Utils.error;
 import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.transform;
@@ -99,56 +93,8 @@ public class UtilsTest {
         MapEntry.entry("b", 2));
   }
 
-  @Test public void debugMessagesShowInLog() {
-    debug("some message with an %s", "argument");
-    List<ShadowLog.LogItem> logs = ShadowLog.getLogs();
-    assertThat(logs).containsExactly(new LogItemBuilder() //
-        .type(Log.DEBUG).msg("some message with an argument").build());
-  }
-
-  @Test public void errorMessagesShowInLog() throws Exception {
-    Throwable throwable = new AssertionError("testing");
-    error(throwable, "some error occurred for %s", "foo");
-
-    List<ShadowLog.LogItem> logs = ShadowLog.getLogs();
-    assertThat(logs).containsExactly(new LogItemBuilder() //
-        .type(Log.ERROR).throwable(throwable).msg("some error occurred for foo").build());
-  }
-
   @Test public void returnsConnectedIfMissingPermission() throws Exception {
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
     assertThat(isConnected(context)).isTrue();
-  }
-
-  static class LogItemBuilder {
-
-    private int type;
-    private String tag = TAG; // will be the default tag unless explicitly overridden
-    private String msg;
-    private Throwable throwable;
-
-    public LogItemBuilder type(int type) {
-      this.type = type;
-      return this;
-    }
-
-    public LogItemBuilder tag(String tag) {
-      this.tag = tag;
-      return this;
-    }
-
-    public LogItemBuilder msg(String msg) {
-      this.msg = msg;
-      return this;
-    }
-
-    public LogItemBuilder throwable(Throwable throwable) {
-      this.throwable = throwable;
-      return this;
-    }
-
-    public ShadowLog.LogItem build() {
-      return new ShadowLog.LogItem(type, tag, msg, throwable);
-    }
   }
 }

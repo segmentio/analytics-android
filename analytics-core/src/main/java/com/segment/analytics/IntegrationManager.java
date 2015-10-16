@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Pair;
 import com.segment.analytics.internal.AbstractIntegration;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.model.payloads.AliasPayload;
 import com.segment.analytics.internal.model.payloads.BasePayload;
 import com.segment.analytics.internal.model.payloads.GroupPayload;
@@ -35,8 +36,6 @@ import static com.segment.analytics.Analytics.Callback;
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
 import static com.segment.analytics.internal.Utils.buffer;
 import static com.segment.analytics.internal.Utils.closeQuietly;
-import static com.segment.analytics.internal.Utils.debug;
-import static com.segment.analytics.internal.Utils.error;
 import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
@@ -62,7 +61,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
   final Cartographer cartographer;
   final Stats stats;
   final ProjectSettings.Cache projectSettingsCache;
-  final Analytics.LogLevel logLevel;
+  final Log log;
   final HandlerThread integrationManagerThread;
   final Handler integrationManagerHandler;
   final ExecutorService networkExecutor;
@@ -91,7 +90,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     this.cartographer = cartographer;
     this.stats = stats;
     this.projectSettingsCache = projectSettingsCache;
-    this.logLevel = analytics.getLogLevel();
+    this.log = analytics.getLogger();
 
     integrationManagerThread =
         new HandlerThread(INTEGRATION_MANAGER_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
@@ -103,7 +102,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     segmentDispatcher =
         SegmentDispatcher.create(application, client, cartographer, networkExecutor, stats,
             Collections.unmodifiableMap(bundledIntegrations), tag, flushIntervalInMillis,
-            flushQueueSize, logLevel);
+            flushQueueSize, log);
     integrations.add(segmentDispatcher);
 
     if (projectSettingsCache.isSet() && projectSettingsCache.get() != null) {
@@ -147,9 +146,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
       Class clazz = Class.forName(className);
       loadIntegration(clazz);
     } catch (ClassNotFoundException e) {
-      if (logLevel.log()) {
-        debug("Integration for class %s not bundled.", className);
-      }
+      log.info("Integration for class %s not bundled.", className);
     }
   }
 
@@ -205,13 +202,9 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
       projectSettingsCache.set(projectSettings);
       dispatchInitializeIntegrations(projectSettings);
     } catch (InterruptedException e) {
-      if (logLevel.log()) {
-        error(e, "Thread interrupted while fetching settings.");
-      }
+      log.error(e, "Thread interrupted while fetching settings.");
     } catch (ExecutionException e) {
-      if (logLevel.log()) {
-        error(e, "Unable to fetch settings. Retrying in %s ms.", SETTINGS_RETRY_INTERVAL);
-      }
+      log.error(e, "Unable to fetch settings. Retrying in %s ms.", SETTINGS_RETRY_INTERVAL);
       dispatchRetryFetchSettings();
     }
   }
@@ -226,16 +219,12 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
 
     ValueMap integrationSettings = projectSettings.integrations();
     if (isNullOrEmpty(integrationSettings)) {
-      if (logLevel.log()) {
-        error(null, "No integrations enabled in %s. Make sure you have the correct writeKey.",
-            projectSettings);
-      }
+      log.error(null, "No integrations enabled in %s. Make sure you have the correct writeKey.",
+          projectSettings);
       bundledIntegrations.clear();
       integrations.clear();
     } else {
-      if (logLevel.log()) {
-        debug("Initializing integrations with %s.", integrationSettings);
-      }
+      log.debug("Initializing integrations with %s.", integrationSettings);
       initializeIntegrations(integrationSettings);
     }
 
@@ -257,16 +246,12 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
       ValueMap settings = integrationSettings.getValueMap(key);
       boolean initializedIntegration = false;
       if (!isNullOrEmpty(settings)) {
-        if (logLevel.log()) {
-          debug("Initializing integration %s with settings %s.", key, settings);
-        }
+        log.verbose("Initializing integration %s with %s.", key, settings);
         try {
           integration.initialize(analytics, settings);
           initializedIntegration = true;
         } catch (Exception e) {
-          if (logLevel.log()) {
-            error(e, "Could not initialize integration %s.", key);
-          }
+          log.error(e, "Could not initialize integration %s.", key);
         }
       }
       if (initializedIntegration) {
@@ -370,9 +355,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     if (initialized) {
       run(operation);
     } else {
-      if (logLevel.log()) {
-        debug("Enqueuing action %s.", operation);
-      }
+      log.verbose("Enqueuing %s.", operation);
       if (operationQueue == null) {
         operationQueue = new ArrayDeque<>();
       }
@@ -382,18 +365,13 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
 
   /** Runs the given operation on all bundled integrations. */
   void run(IntegrationOperation operation) {
-    if (logLevel.log()) {
-      debug("Running %s on %s integrations.", operation, integrations.size());
-    }
+    log.verbose("Sending %s to %s integrations.", operation, integrations.size());
     for (int i = 0; i < integrations.size(); i++) {
       AbstractIntegration integration = integrations.get(i);
       long startTime = System.nanoTime();
       operation.run(integration, projectSettingsCache.get());
       long endTime = System.nanoTime();
       long duration = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-      if (logLevel.log()) {
-        debug("Took %s ms to run action %s on %s.", duration, operation, integration.key());
-      }
       stats.dispatchIntegrationOperation(integration.key(), duration);
     }
   }
