@@ -74,6 +74,7 @@ public class MoEngageTest {
 
     integration.initialize(analytics, new ValueMap());
     assertThat(MoEHelper.APP_DEBUG).isTrue();
+    assertThat(integration.helper).isNotNull();
     verifyNoMoreInteractions(MoEHelper.class);
     verifyNoMoreInteractions(moeHelper);
   }

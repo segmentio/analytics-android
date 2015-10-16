@@ -59,6 +59,7 @@ public class MoEngageIntegration extends AbstractIntegration<MoEHelper> {
     if (logLevel == Analytics.LogLevel.VERBOSE || logLevel == Analytics.LogLevel.INFO) {
       MoEHelper.APP_DEBUG = true;
     }
+    helper = MoEHelper.getInstance(context);
   }
 
   @Override public String key() {
