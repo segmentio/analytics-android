@@ -2,9 +2,11 @@ package com.segment.analytics.internal.integrations;
 
 import android.app.Activity;
 import android.app.Application;
-import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import com.moe.pushlibrary.MoEHelper;
+import com.moe.pushlibrary.models.GeoLocation;
 import com.moe.pushlibrary.utils.MoEHelperConstants;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.AnalyticsContext;
@@ -22,7 +24,8 @@ import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Map;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,10 +38,10 @@ import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.TestUtils.createContext;
+import static com.segment.analytics.TestUtils.jsonEq;
 import static com.segment.analytics.TestUtils.mapEq;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -47,7 +50,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyNoMoreInteractions;
 
 @RunWith(RobolectricGradleTestRunner.class)
-@Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
+@Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE, application = Application.class)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*", "org.json.*" })
 @PrepareForTest(MoEngageIntegration.class)
 public class MoEngageTest {
@@ -55,32 +58,35 @@ public class MoEngageTest {
   @Rule public PowerMockRule rule = new PowerMockRule();
   @Rule public IntegrationTestRule integrationTestRule = new IntegrationTestRule();
 
-  @Mock Application application;
-  @Mock Context context;
+  @Mock Application context;
   @Mock Analytics analytics;
   @Mock MoEHelper moeHelper;
+  @Mock ApplicationInfo applicationInfo;
+  @Mock PackageManager manager;
+  @Mock Activity activity;
   MoEngageIntegration integration;
 
-  @Before public void setUp() {
+  @Before public void setUp() throws PackageManager.NameNotFoundException{
     initMocks(this);
     mockStatic(MoEHelper.class);
+    when(analytics.getApplication()).thenReturn(context);
+
+    when(context.getPackageManager()).thenReturn(manager);
+    when(activity.getPackageManager()).thenReturn(manager);
+    when(manager.getApplicationInfo(context.getPackageName(), 0)).thenReturn(applicationInfo);
+
     integration = new MoEngageIntegration();
     integration.helper = moeHelper;
   }
 
-  @Test public void initialize() {
-    when(analytics.getApplication()).thenReturn(application);
-    when(analytics.getLogLevel()).thenReturn(Analytics.LogLevel.INFO);
-
+  @Test public void initialize(){
     integration.initialize(analytics, new ValueMap());
-    assertThat(MoEHelper.APP_DEBUG).isTrue();
     assertThat(integration.helper).isNotNull();
     verifyNoMoreInteractions(MoEHelper.class);
     verifyNoMoreInteractions(moeHelper);
   }
 
   @Test public void activityCreate() {
-    Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivityCreated(activity, bundle);
     verifyNoMoreInteractions(MoEHelper.class);
@@ -88,7 +94,6 @@ public class MoEngageTest {
   }
 
   @Test public void activityStart() {
-    Activity activity = mock(Activity.class);
     integration.onActivityStarted(activity);
     verify(moeHelper).onStart(activity);
     verifyNoMoreInteractions(MoEHelper.class);
@@ -96,7 +101,6 @@ public class MoEngageTest {
   }
 
   @Test public void activityResume() {
-    Activity activity = mock(Activity.class);
     integration.onActivityResumed(activity);
     verify(moeHelper).onResume(activity);
     verifyNoMoreInteractions(MoEHelper.class);
@@ -104,7 +108,6 @@ public class MoEngageTest {
   }
 
   @Test public void activityPause() {
-    Activity activity = mock(Activity.class);
     integration.onActivityPaused(activity);
     verify(moeHelper).onPause(activity);
     verifyNoMoreInteractions(MoEHelper.class);
@@ -112,7 +115,6 @@ public class MoEngageTest {
   }
 
   @Test public void activityStop() {
-    Activity activity = mock(Activity.class);
     integration.onActivityStopped(activity);
     verify(moeHelper).onStop(activity);
     verifyNoMoreInteractions(MoEHelper.class);
@@ -120,7 +122,6 @@ public class MoEngageTest {
   }
 
   @Test public void activityDestroy() {
-    Activity activity = mock(Activity.class);
     integration.onActivityDestroyed(activity);
     verifyNoMoreInteractions(MoEHelper.class);
     verifyNoMoreInteractions(moeHelper);
@@ -139,7 +140,6 @@ public class MoEngageTest {
   }
 
   @Test public void activitySaveInstance() {
-    Activity activity = mock(Activity.class);
     Bundle bundle = mock(Bundle.class);
     integration.onActivitySaveInstanceState(activity, bundle);
     verify(moeHelper).onSaveInstanceState(bundle);
@@ -147,15 +147,15 @@ public class MoEngageTest {
     verifyNoMoreInteractions(moeHelper);
   }
 
-  @Test public void track() {
+  @Test public void track() throws JSONException{
     TrackPayloadBuilder builder = new TrackPayloadBuilder();
-    builder.event("foo").properties(new Properties().putCurrency("INR").putPrice(2000));
+    builder.event("foo").properties(new Properties().putCurrency("INR").putPrice(2000.0));
     integration.track(builder.build());
 
-    Map<String, String> eventProperties = new HashMap<>();
+    JSONObject eventProperties = new JSONObject();
     eventProperties.put("currency", "INR");
-    eventProperties.put("price", "2000.0");
-    verify(moeHelper).trackEvent("foo", eventProperties);
+    eventProperties.put("price", 2000.0);
+    verify(moeHelper).trackEvent(eq("foo"), jsonEq(eventProperties));
     verifyNoMoreInteractions(MoEHelper.class);
     verifyNoMoreInteractions(moeHelper);
   }
@@ -189,7 +189,8 @@ public class MoEngageTest {
     userAttributes.put(MoEHelperConstants.USER_ATTRIBUTE_USER_LAST_NAME, "Srivastava");
     userAttributes.put(MoEHelperConstants.USER_ATTRIBUTE_USER_GENDER, "male");
     verify(moeHelper).setUserAttribute(mapEq(userAttributes));
-    verify(moeHelper).setUserLocation(10, 20);
+    verify(moeHelper).setUserAttribute(MoEHelperConstants.USER_ATTRIBUTE_USER_LOCATION,
+        new GeoLocation(10, 20));
 
     verifyNoMoreInteractions(moeHelper);
     verifyNoMoreInteractions(MoEHelper.class);

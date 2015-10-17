@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import com.moe.pushlibrary.MoEHelper;
+import com.moe.pushlibrary.models.GeoLocation;
 import com.moe.pushlibrary.utils.MoEHelperConstants;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.AnalyticsContext;
@@ -16,7 +17,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.transform;
 
@@ -51,14 +51,6 @@ public class MoEngageIntegration extends AbstractIntegration<MoEHelper> {
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
     Context context = analytics.getApplication();
-    if (!hasPermission(context, "com.google.android.c2dm.permission.RECEIVE")) {
-      throw new IllegalStateException(
-          "MoEngage requires com.google.android.c2dm.permission.RECEIVE permission");
-    }
-    Analytics.LogLevel logLevel = analytics.getLogLevel();
-    if (logLevel == Analytics.LogLevel.VERBOSE || logLevel == Analytics.LogLevel.INFO) {
-      MoEHelper.APP_DEBUG = true;
-    }
     helper = MoEHelper.getInstance(context);
   }
 
@@ -105,17 +97,35 @@ public class MoEngageIntegration extends AbstractIntegration<MoEHelper> {
 
     if (!isNullOrEmpty(traits)) {
       helper.setUserAttribute(transform(traits, MAPPER));
+      Traits.Address address = traits.address();
+      if( !isNullOrEmpty(address) ){
+        String city = address.city();
+        if(!isNullOrEmpty(city)){
+          helper.setUserAttribute("city", city);
+        }
+        String country = address.country();
+        if (!isNullOrEmpty(country)) {
+          helper.setUserAttribute("country", country);
+        }
+        String state = address.state();
+        if(!isNullOrEmpty(state)){
+          helper.setUserAttribute("state", state);
+        }
+      }
     }
 
     AnalyticsContext.Location location = identify.context().location();
-    if (location != null) {
-      helper.setUserLocation(location.latitude(), location.longitude());
+    if (!isNullOrEmpty(location)) {
+      helper.setUserAttribute( MoEHelperConstants.USER_ATTRIBUTE_USER_LOCATION,
+          new GeoLocation(location.latitude(), location.longitude()));
     }
   }
 
   @Override public void track(TrackPayload track) {
     super.track(track);
-    helper.trackEvent(track.event(), track.properties().toStringMap());
+    if( !isNullOrEmpty(track) && !isNullOrEmpty(track.properties())){
+      helper.trackEvent(track.event(), track.properties().toJsonObject());
+    }
   }
 
   @Override public void reset() {
