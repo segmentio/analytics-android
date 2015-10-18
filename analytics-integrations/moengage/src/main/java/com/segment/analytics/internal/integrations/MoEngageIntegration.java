@@ -98,9 +98,9 @@ public class MoEngageIntegration extends AbstractIntegration<MoEHelper> {
     if (!isNullOrEmpty(traits)) {
       helper.setUserAttribute(transform(traits, MAPPER));
       Traits.Address address = traits.address();
-      if( !isNullOrEmpty(address) ){
+      if (!isNullOrEmpty(address)) {
         String city = address.city();
-        if(!isNullOrEmpty(city)){
+        if (!isNullOrEmpty(city)) {
           helper.setUserAttribute("city", city);
         }
         String country = address.country();
@@ -108,7 +108,7 @@ public class MoEngageIntegration extends AbstractIntegration<MoEHelper> {
           helper.setUserAttribute("country", country);
         }
         String state = address.state();
-        if(!isNullOrEmpty(state)){
+        if (!isNullOrEmpty(state)) {
           helper.setUserAttribute("state", state);
         }
       }
@@ -116,14 +116,14 @@ public class MoEngageIntegration extends AbstractIntegration<MoEHelper> {
 
     AnalyticsContext.Location location = identify.context().location();
     if (!isNullOrEmpty(location)) {
-      helper.setUserAttribute( MoEHelperConstants.USER_ATTRIBUTE_USER_LOCATION,
+      helper.setUserAttribute(MoEHelperConstants.USER_ATTRIBUTE_USER_LOCATION,
           new GeoLocation(location.latitude(), location.longitude()));
     }
   }
 
   @Override public void track(TrackPayload track) {
     super.track(track);
-    if( !isNullOrEmpty(track) && !isNullOrEmpty(track.properties())){
+    if (!isNullOrEmpty(track) && !isNullOrEmpty(track.properties())) {
       helper.trackEvent(track.event(), track.properties().toJsonObject());
     }
   }
