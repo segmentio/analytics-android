@@ -8,13 +8,13 @@ import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
+import java.util.Map;
 
 import static com.segment.analytics.Analytics.LogLevel;
-import static com.segment.analytics.Analytics.LogLevel.INFO;
-import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
@@ -30,64 +30,106 @@ public class FlurryIntegration extends AbstractIntegration<Void> {
 
   static final String FLURRY_KEY = "Flurry";
 
+  Log log;
+
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
-    int sessionContinueSeconds = settings.getInt("sessionContinueSeconds", 10) * 1000;
-    boolean captureUncaughtExceptions = settings.getBoolean("captureUncaughtExceptions", false);
-    boolean reportLocation = settings.getBoolean("reportLocation", true);
-    LogLevel logLevel = analytics.getLogLevel();
+    log = analytics.getLogger().newLogger(FLURRY_KEY);
 
+    int sessionContinueSeconds = settings.getInt("sessionContinueSeconds", 10) * 1000;
     FlurryAgent.setContinueSessionMillis(sessionContinueSeconds);
+    log.verbose("FlurryAgent.setContinueSessionMillis(%s);", sessionContinueSeconds);
+
+    boolean captureUncaughtExceptions = settings.getBoolean("captureUncaughtExceptions", false);
     FlurryAgent.setCaptureUncaughtExceptions(captureUncaughtExceptions);
+    log.verbose("FlurryAgent.setCaptureUncaughtExceptions(%s);", captureUncaughtExceptions);
+
+    boolean reportLocation = settings.getBoolean("reportLocation", true);
     FlurryAgent.setReportLocation(reportLocation);
-    FlurryAgent.setLogEnabled(logLevel == INFO || logLevel == VERBOSE);
-    FlurryAgent.setLogEvents(logLevel == VERBOSE);
-    FlurryAgent.init(analytics.getApplication(), settings.getString("apiKey"));
+    log.verbose("FlurryAgent.setReportLocation(%s);", reportLocation);
+
+    boolean logEnabled = log.logLevel.ordinal() >= LogLevel.DEBUG.ordinal();
+    FlurryAgent.setLogEnabled(logEnabled);
+    log.verbose("FlurryAgent.setLogEnabled(%s);", logEnabled);
+
+    boolean logEvents = log.logLevel.ordinal() >= LogLevel.VERBOSE.ordinal();
+    FlurryAgent.setLogEvents(logEvents);
+    log.verbose("FlurryAgent.setLogEvents(%s);", logEvents);
+
+    String apiKey = settings.getString("apiKey");
+    FlurryAgent.init(analytics.getApplication(), apiKey);
+    log.verbose("FlurryAgent.init(context, %s);", apiKey);
   }
 
   @Override public void onActivityStarted(Activity activity) {
     super.onActivityStarted(activity);
+
     FlurryAgent.onStartSession(activity);
+    log.verbose("FlurryAgent.onStartSession(activity);");
   }
 
   @Override public void onActivityStopped(Activity activity) {
     super.onActivityStopped(activity);
+
     FlurryAgent.onEndSession(activity);
+    log.verbose("FlurryAgent.onEndSession(activity);");
   }
 
   @Override public void screen(ScreenPayload screen) {
     super.screen(screen);
     // todo: verify behaviour here, iOS SDK only does pageView, not event
     FlurryAgent.onPageView();
-    FlurryAgent.logEvent(screen.event(), screen.properties().toStringMap());
+    log.verbose("FlurryAgent.onPageView();");
+
+    String event = screen.event();
+    Map<String, String> properties = screen.properties().toStringMap();
+    FlurryAgent.logEvent(event, properties);
+    log.verbose("FlurryAgent.logEvent(%s, %s);", event, properties);
   }
 
   @Override public void track(TrackPayload track) {
     super.track(track);
-    FlurryAgent.logEvent(track.event(), track.properties().toStringMap());
+
+    String event = track.event();
+    Map<String, String> properties = track.properties().toStringMap();
+    FlurryAgent.logEvent(event, properties);
+    log.verbose("FlurryAgent.logEvent(%s, %s);", event, properties);
   }
 
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
+
+    String userId = identify.userId();
+    FlurryAgent.setUserId(userId);
+    log.verbose("FlurryAgent.setUserId(%s);", userId);
+
     Traits traits = identify.traits();
-    FlurryAgent.setUserId(identify.userId());
     int age = traits.age();
     if (age > 0) {
       FlurryAgent.setAge(age);
+      log.verbose("FlurryAgent.setAge(%s);", age);
     }
+
     String gender = traits.gender();
     if (!isNullOrEmpty(gender)) {
+      byte genderConstant;
       if (gender.equalsIgnoreCase("male") || gender.equalsIgnoreCase("m")) {
-        FlurryAgent.setGender(Constants.MALE);
+        genderConstant = Constants.MALE;
       } else if (gender.equalsIgnoreCase("female") || gender.equalsIgnoreCase("f")) {
-        FlurryAgent.setGender(Constants.FEMALE);
+        genderConstant = Constants.FEMALE;
       } else {
-        FlurryAgent.setGender(Constants.UNKNOWN);
+        genderConstant = Constants.UNKNOWN;
       }
+      FlurryAgent.setGender(genderConstant);
+      log.verbose("FlurryAgent.setGender(%s);", genderConstant);
     }
+
     AnalyticsContext.Location location = identify.context().location();
     if (location != null) {
-      FlurryAgent.setLocation((float) location.latitude(), (float) location.longitude());
+      float latitude = (float) location.latitude();
+      float longitude = (float) location.longitude();
+      FlurryAgent.setLocation(latitude, longitude);
+      log.verbose("FlurryAgent.setLocation(%s, %s);", latitude, longitude);
     }
   }
 
