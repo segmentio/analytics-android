@@ -6,11 +6,13 @@ import android.os.Bundle;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
+import com.segment.analytics.Analytics;
 import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
@@ -62,6 +64,7 @@ public class GoogleAnalyticsTest {
     integration.customDimensions = new ValueMap();
     integration.customMetrics = new ValueMap();
     integration.sendUserId = false;
+    integration.log = Log.with(Analytics.LogLevel.DEBUG);
   }
 
   @Test public void initialize() throws IllegalStateException {

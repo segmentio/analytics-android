@@ -553,10 +553,10 @@ public class Analytics {
     NONE,
     /** Log exceptions only. */
     INFO,
-    /** Log exceptions, and enable debug mode in integrations. */
+    /** Log exceptions and print debug output. */
     DEBUG,
     /**
-     * Log exceptions, and enable debug mode in integrations.
+     * Log exceptions and print debug output.
      *
      * @deprecated Use {@link LogLevel#DEBUG} instead.
      */
