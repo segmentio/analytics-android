@@ -125,6 +125,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
     loadIntegration("com.segment.analytics.internal.integrations.CountlyIntegration");
     loadIntegration("com.segment.analytics.internal.integrations.CrittercismIntegration");
     loadIntegration("com.segment.analytics.internal.integrations.FlurryIntegration");
+    loadIntegration("com.segment.analytics.internal.integrations.FollowAnalyticsIntegration");
     loadIntegration("com.segment.analytics.internal.integrations.GoogleAnalyticsIntegration");
     loadIntegration("com.segment.analytics.internal.integrations.KahunaIntegration");
     loadIntegration("com.segment.analytics.internal.integrations.LeanplumIntegration");
