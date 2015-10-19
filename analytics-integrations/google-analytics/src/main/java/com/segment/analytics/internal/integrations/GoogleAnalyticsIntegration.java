@@ -14,6 +14,7 @@ import com.segment.analytics.Properties;
 import com.segment.analytics.Properties.Product;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
@@ -22,6 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import static com.segment.analytics.Analytics.LogLevel.DEBUG;
+import static com.segment.analytics.Analytics.LogLevel.INFO;
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
@@ -56,6 +60,7 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   boolean sendUserId;
   ValueMap customDimensions;
   ValueMap customMetrics;
+  Log log;
 
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
@@ -70,19 +75,29 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
 
     googleAnalyticsInstance = GoogleAnalytics.getInstance(context);
     tracker = googleAnalyticsInstance.newTracker(mobileTrackingId);
+    log = analytics.getLogger().newLogger(GOOGLE_ANALYTICS_KEY);
 
-    Analytics.LogLevel logLevel = analytics.getLogLevel();
-    if (logLevel == Analytics.LogLevel.INFO) {
-      googleAnalyticsInstance.getLogger().setLogLevel(Logger.LogLevel.INFO);
-    } else if (logLevel == Analytics.LogLevel.VERBOSE) {
+    if (log.logLevel == VERBOSE) {
       googleAnalyticsInstance.getLogger().setLogLevel(Logger.LogLevel.VERBOSE);
+      log.verbose("GoogleAnalytics.getInstance(context).getLogger().setLogLevel(VERBOSE);");
+    } else if (log.logLevel == DEBUG) {
+      googleAnalyticsInstance.getLogger().setLogLevel(Logger.LogLevel.INFO);
+      log.verbose("GoogleAnalytics.getInstance(context).getLogger().setLogLevel(INFO);");
+    } else if (log.logLevel == INFO) {
+      googleAnalyticsInstance.getLogger().setLogLevel(Logger.LogLevel.WARNING);
+      log.verbose("GoogleAnalytics.getInstance(context).getLogger().setLogLevel(WARNING);");
     }
 
-    tracker.setAnonymizeIp(settings.getBoolean("anonymizeIp", false));
-    if (settings.getBoolean("reportUncaughtExceptions", false)) {
+    boolean anonymizeIp = settings.getBoolean("anonymizeIp", false);
+    tracker.setAnonymizeIp(anonymizeIp);
+    log.verbose("tracker.setAnonymizeIp(%s);", anonymizeIp);
+
+    boolean reportUncaughtExceptions = settings.getBoolean("reportUncaughtExceptions", false);
+    if (reportUncaughtExceptions) {
       Thread.UncaughtExceptionHandler myHandler =
           new ExceptionReporter(tracker, Thread.getDefaultUncaughtExceptionHandler(), context);
       Thread.setDefaultUncaughtExceptionHandler(myHandler);
+      log.verbose("Thread.setDefaultUncaughtExceptionHandler(new ExceptionReporter(...));");
     }
 
     sendUserId = settings.getBoolean("sendUserId", false);
@@ -93,10 +108,12 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
   @Override public void onActivityStarted(Activity activity) {
     super.onActivityStarted(activity);
     googleAnalyticsInstance.reportActivityStart(activity);
+    log.verbose("GoogleAnalytics.getInstance(context).reportActivityStart(activity);");
   }
 
   @Override public void onActivityStopped(Activity activity) {
     super.onActivityStopped(activity);
+    log.verbose("GoogleAnalytics.getInstance(context).reportActivityStop(activity);");
     googleAnalyticsInstance.reportActivityStop(activity);
   }
 
@@ -109,15 +126,21 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
     sendProductEvent(screenName, screen.category(), properties);
 
     tracker.setScreenName(screenName);
+    log.verbose("tracker.setScreenName(%s);", screenName);
+
     ScreenViewHitBuilder hitBuilder = new ScreenViewHitBuilder();
     attachCustomDimensionsAndMetrics(hitBuilder, properties);
-    tracker.send(hitBuilder.build());
+    Map<String, String> hit = hitBuilder.build();
+    tracker.send(hit);
+    log.verbose("tracker.send(%s);", hit);
   }
 
   @Override public void identify(IdentifyPayload identify) {
     super.identify(identify);
     if (sendUserId) {
-      tracker.set(USER_ID_KEY, identify.userId());
+      String userId = identify.userId();
+      tracker.set(USER_ID_KEY, userId);
+      log.verbose("tracker.set(%s, %s);", USER_ID_KEY, userId);
     }
 
     // Set traits, custom dimensions, and custom metrics on the shared tracker.
@@ -126,12 +149,16 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
       if (customDimensions.containsKey(trait)) {
         String dimension = customDimensions.getString(trait) //
             .replace(DIMENSION_PREFIX, DIMENSION_PREFIX_KEY);
-        tracker.set(dimension, String.valueOf(entry.getValue()));
+        String value = String.valueOf(entry.getValue());
+        tracker.set(dimension, value);
+        log.verbose("tracker.set(%s, %s);", dimension, value);
       }
       if (customMetrics.containsKey(trait)) {
         String metric = customMetrics.getString(trait) //
             .replace(METRIC_PREFIX, METRIC_PREFIX_KEY);
-        tracker.set(metric, String.valueOf(entry.getValue()));
+        String value = String.valueOf(entry.getValue());
+        tracker.set(metric, value);
+        log.verbose("tracker.set(%s, %s);", metric, value);
       }
     }
   }
@@ -156,26 +183,32 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
               .setQuantity(product.getLong(QUANTITY_KEY, 0))
               .build();
           attachCustomDimensionsAndMetrics(hitBuilder, properties);
-          tracker.send(hitBuilder.build());
+          Map<String, String> hit = hitBuilder.build();
+          tracker.send(hit);
+          log.verbose("tracker.send(%s);", hit);
         }
       }
-      TransactionBuilder builder = new TransactionBuilder();
-      builder.setTransactionId(properties.orderId())
+      TransactionBuilder transactionBuilder = new TransactionBuilder();
+      transactionBuilder.setTransactionId(properties.orderId())
           .setCurrencyCode(properties.currency())
           .setRevenue(properties.total())
           .setTax(properties.tax())
           .setShipping(properties.shipping());
-      tracker.send(builder.build());
+      Map<String, String> transaction = transactionBuilder.build();
+      tracker.send(transaction);
+      log.verbose("tracker.send(%s);", transaction);
     }
 
     String label = properties.getString(LABEL_KEY);
-    EventHitBuilder hitBuilder = new EventHitBuilder();
-    hitBuilder.setAction(event)
+    EventHitBuilder eventHitBuilder = new EventHitBuilder();
+    eventHitBuilder.setAction(event)
         .setCategory(isNullOrEmpty(category) ? DEFAULT_CATEGORY : category)
         .setLabel(label)
         .setValue((int) properties.value());
-    attachCustomDimensionsAndMetrics(hitBuilder, properties);
-    tracker.send(hitBuilder.build());
+    attachCustomDimensionsAndMetrics(eventHitBuilder, properties);
+    Map<String, String> eventHit = eventHitBuilder.build();
+    tracker.send(eventHit);
+    log.verbose("tracker.send(%s);", eventHit);
   }
 
   /**
@@ -253,6 +286,7 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
 
   @Override public void flush() {
     googleAnalyticsInstance.dispatchLocalHits();
+    log.verbose("GoogleAnalytics.getInstance(context).dispatchLocalHits();");
   }
 
   /** Send a product event. */
@@ -261,8 +295,8 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
       return;
     }
 
-    ItemHitBuilder hitBuilder = new ItemHitBuilder();
-    hitBuilder.setTransactionId(properties.productId())
+    ItemHitBuilder itemHitBuilder = new ItemHitBuilder();
+    itemHitBuilder.setTransactionId(properties.productId())
         .setCurrencyCode(properties.currency())
         .setName(properties.name())
         .setSku(properties.sku())
@@ -270,8 +304,10 @@ public class GoogleAnalyticsIntegration extends AbstractIntegration<Tracker> {
         .setPrice(properties.price())
         .setQuantity(properties.getLong(QUANTITY_KEY, 0))
         .build();
-    attachCustomDimensionsAndMetrics(hitBuilder, properties);
-    tracker.send(hitBuilder.build());
+    attachCustomDimensionsAndMetrics(itemHitBuilder, properties);
+    Map<String, String> itemHit = itemHitBuilder.build();
+    tracker.send(itemHit);
+    log.verbose("tracker.send(%s);", itemHit);
   }
 
   @Override public Tracker getUnderlyingInstance() {
