@@ -10,6 +10,7 @@ import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Properties;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
@@ -59,6 +60,7 @@ public class LocalyticsTest {
     integration = new LocalyticsIntegration();
     integration.customDimensions = new ValueMap();
     integration.hasSupportLibOnClassPath = true;
+    integration.log = Log.with(VERBOSE);
   }
 
   @After public void tearDown() {
@@ -67,7 +69,7 @@ public class LocalyticsTest {
 
   @Test public void initialize() throws IllegalStateException {
     when(analytics.getApplication()).thenReturn(RuntimeEnvironment.application);
-    when(analytics.getLogLevel()).thenReturn(NONE);
+    when(analytics.getLogger()).thenReturn(Log.with(NONE));
     LocalyticsIntegration integration = new LocalyticsIntegration();
 
     ValueMap customDimensions = new ValueMap().putValue("bar", "baz").putValue("qaz", 0);
@@ -83,7 +85,7 @@ public class LocalyticsTest {
 
   @Test public void initializeWithVerbose() throws IllegalStateException {
     when(analytics.getApplication()).thenReturn(RuntimeEnvironment.application);
-    when(analytics.getLogLevel()).thenReturn(VERBOSE);
+    when(analytics.getLogger()).thenReturn(Log.with(VERBOSE));
     LocalyticsIntegration integration = new LocalyticsIntegration();
     PowerMockito.mockStatic(Localytics.class);
 
@@ -97,7 +99,7 @@ public class LocalyticsTest {
 
   @Test public void initializeWithInfo() throws IllegalStateException {
     when(analytics.getApplication()).thenReturn(RuntimeEnvironment.application);
-    when(analytics.getLogLevel()).thenReturn(INFO);
+    when(analytics.getLogger()).thenReturn(Log.with(INFO));
     LocalyticsIntegration integration = new LocalyticsIntegration();
     PowerMockito.mockStatic(Localytics.class);
 
@@ -106,7 +108,7 @@ public class LocalyticsTest {
     verifyStatic();
     Localytics.integrate(RuntimeEnvironment.application, "foo");
     verifyStatic();
-    Localytics.setLoggingEnabled(true);
+    Localytics.setLoggingEnabled(false);
   }
 
   @Test public void activityCreate() {

@@ -10,15 +10,15 @@ import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.internal.AbstractIntegration;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.model.payloads.IdentifyPayload;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.util.Collections;
 import java.util.Map;
 
+import static com.localytics.android.Localytics.ProfileScope.APPLICATION;
 import static com.segment.analytics.Analytics.LogLevel;
-import static com.segment.analytics.Analytics.LogLevel.INFO;
-import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.isOnClassPath;
 
@@ -33,14 +33,23 @@ import static com.segment.analytics.internal.Utils.isOnClassPath;
 public class LocalyticsIntegration extends AbstractIntegration<Void> {
 
   static final String LOCALYTICS_KEY = "Localytics";
+
   boolean hasSupportLibOnClassPath;
   ValueMap customDimensions;
+  Log log;
 
   @Override public void initialize(Analytics analytics, ValueMap settings)
       throws IllegalStateException {
-    Localytics.integrate(analytics.getApplication(), settings.getString("appKey"));
-    LogLevel logLevel = analytics.getLogLevel();
-    Localytics.setLoggingEnabled(logLevel == INFO || logLevel == VERBOSE);
+    log = analytics.getLogger().newLogger(LOCALYTICS_KEY);
+
+    boolean loggingEnabled = log.logLevel.ordinal() >= LogLevel.DEBUG.ordinal();
+    Localytics.setLoggingEnabled(loggingEnabled);
+    log.verbose("Localytics.setLoggingEnabled(%s);", loggingEnabled);
+
+    String appKey = settings.getString("appKey");
+    Localytics.integrate(analytics.getApplication(), appKey);
+    log.verbose("Localytics.integrate(context, %s);", appKey);
+
     hasSupportLibOnClassPath = isOnClassPath("android.support.v4.app.FragmentActivity");
     customDimensions = settings.getValueMap("dimensions");
     if (customDimensions == null) {
@@ -56,18 +65,23 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
     super.onActivityResumed(activity);
 
     Localytics.openSession();
+    log.verbose("Localytics.openSession();");
+
     Localytics.upload();
+    log.verbose("Localytics.upload();");
 
     if (hasSupportLibOnClassPath) {
       if (activity instanceof android.support.v4.app.FragmentActivity) {
         Localytics.setInAppMessageDisplayActivity(
             (android.support.v4.app.FragmentActivity) activity);
+        log.verbose("Localytics.setInAppMessageDisplayActivity(activity);");
       }
     }
 
     Intent intent = activity.getIntent();
     if (intent != null) {
       Localytics.handleTestMode(intent);
+      log.verbose("Localytics.handleTestMode(%s);", intent);
     }
   }
 
@@ -77,18 +91,23 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
     if (hasSupportLibOnClassPath) {
       if (activity instanceof android.support.v4.app.FragmentActivity) {
         Localytics.dismissCurrentInAppMessage();
+        log.verbose("Localytics.dismissCurrentInAppMessage();");
         Localytics.clearInAppMessageDisplayActivity();
+        log.verbose("Localytics.clearInAppMessageDisplayActivity();");
       }
     }
 
     Localytics.closeSession();
+    log.verbose("Localytics.closeSession();");
     Localytics.upload();
+    log.verbose("Localytics.upload();");
   }
 
   @Override public void flush() {
     super.flush();
 
     Localytics.upload();
+    log.verbose("Localytics.upload();");
   }
 
   @Override public void identify(IdentifyPayload identify) {
@@ -97,23 +116,28 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
     setContext(identify.context());
     Traits traits = identify.traits();
 
-    String userId = traits.userId();
+    String userId = identify.userId();
     if (!isNullOrEmpty(userId)) {
-      Localytics.setCustomerId(identify.userId());
+      Localytics.setCustomerId(userId);
+      log.verbose("Localytics.setCustomerId(%s);", userId);
     }
     String email = traits.email();
     if (!isNullOrEmpty(email)) {
       Localytics.setIdentifier("email", email);
+      log.verbose("Localytics.setIdentifier(\"email\", %s);", email);
     }
     String name = traits.name();
     if (!isNullOrEmpty(name)) {
       Localytics.setIdentifier("customer_name", name);
+      log.verbose("Localytics.setIdentifier(\"customer_name\", %s);", name);
     }
     setCustomDimensions(traits);
 
     for (Map.Entry<String, Object> entry : traits.entrySet()) {
-      Localytics.setProfileAttribute(entry.getKey(), String.valueOf(entry.getValue()),
-          Localytics.ProfileScope.APPLICATION);
+      String key = entry.getKey();
+      String value = String.valueOf(entry.getValue());
+      Localytics.setProfileAttribute(key, value, APPLICATION);
+      log.verbose("Localytics.setProfileAttribute(%s, %s, %s);", key, value, APPLICATION);
     }
   }
 
@@ -121,22 +145,32 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
     super.screen(screen);
 
     setContext(screen.context());
-    Localytics.tagScreen(screen.event());
+
+    String event = screen.event();
+    Localytics.tagScreen(event);
+    log.verbose("Localytics.tagScreen(%s);", event);
   }
 
   @Override public void track(TrackPayload track) {
     super.track(track);
-    Properties props = track.properties();
     setContext(track.context());
+
+    String event = track.event();
+    Properties properties = track.properties();
+    Map<String, String> stringProps = properties.toStringMap();
     // Convert revenue to cents.
     // http://docs.localytics.com/index.html#Dev/Instrument/customer-ltv.html
-    final long revenue = (long) (props.revenue() * 100);
+    final long revenue = (long) (properties.revenue() * 100);
+
     if (revenue != 0) {
-      Localytics.tagEvent(track.event(), props.toStringMap(), revenue);
+      Localytics.tagEvent(event, stringProps, revenue);
+      log.verbose("Localytics.tagEvent(%s, %s, %s);", event, stringProps, revenue);
     } else {
-      Localytics.tagEvent(track.event(), props.toStringMap());
+      Localytics.tagEvent(event, stringProps);
+      log.verbose("Localytics.tagEvent(%s, %s);", event, stringProps);
     }
-    setCustomDimensions(props);
+
+    setCustomDimensions(properties);
   }
 
   private void setContext(AnalyticsContext context) {
@@ -151,15 +185,18 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
       androidLocation.setLatitude(location.latitude());
       androidLocation.setSpeed((float) location.speed());
       Localytics.setLocation(androidLocation);
+      log.verbose("Localytics.setLocation(%s);", androidLocation);
     }
   }
 
   private void setCustomDimensions(ValueMap dimensions) {
     for (Map.Entry<String, Object> entry : dimensions.entrySet()) {
-      String dimension = entry.getKey();
-      if (customDimensions.containsKey(dimension)) {
-        Localytics.setCustomDimension(customDimensions.getInt(dimension, 0),
-            String.valueOf(entry.getValue()));
+      String dimensionKey = entry.getKey();
+      if (customDimensions.containsKey(dimensionKey)) {
+        int dimension = customDimensions.getInt(dimensionKey, 0);
+        String value = String.valueOf(entry.getValue());
+        Localytics.setCustomDimension(dimension, value);
+        log.verbose("Localytics.setCustomDimension(%s, %s);", dimension, value);
       }
     }
   }
