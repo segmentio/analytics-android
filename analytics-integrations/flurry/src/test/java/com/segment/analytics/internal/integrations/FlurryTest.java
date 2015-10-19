@@ -11,6 +11,7 @@ import com.segment.analytics.IntegrationTestRule;
 import com.segment.analytics.Traits;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.model.payloads.util.AliasPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.GroupPayloadBuilder;
 import com.segment.analytics.internal.model.payloads.util.IdentifyPayloadBuilder;
@@ -30,7 +31,9 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.TestUtils.createContext;
 import static com.segment.analytics.TestUtils.createTraits;
 import static org.mockito.Matchers.eq;
@@ -56,10 +59,12 @@ public class FlurryTest {
     initMocks(this);
     PowerMockito.mockStatic(FlurryAgent.class);
     integration = new FlurryIntegration();
+    integration.log = Log.with(INFO);
   }
 
   @Test public void initialize() throws IllegalStateException {
     when(analytics.getApplication()).thenReturn(context);
+    when(analytics.getLogger()).thenReturn(Log.with(NONE));
 
     integration.initialize(analytics, new ValueMap() //
         .putValue("apiKey", "foo")
