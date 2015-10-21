@@ -1,4 +1,20 @@
 
+Version 3.4.0 (Oct 20th, 2015)
+==============================
+
+  * Updating Amplitude SDK to 2.2.0
+  * New Logging API for integrations
+     * Integrations will log the exact method call made by them, which makes it easier to see
+       exactly how a Segment call is translated for the end tool.
+       Currently only done for a few tools (Mixpanel, Google Analytics, Flurry, Localytics),
+       but will be added for more tools.
+     * LogLevel.BASIC is now deprecated. Use LogLevel.DEBUG instead.
+     * Logging behaviour with regards to bundled integrations has changed. See the JavaDocs 
+       for more details.
+
+  * Update MoEngage SDK to 5.3.10
+  * Fix bug with MoEngage integration when trying to track events outside of an activity.
+
 Version 3.3.3 (Oct 10th, 2015)
 =============================
 
