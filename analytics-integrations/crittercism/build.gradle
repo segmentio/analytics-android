@@ -1,5 +1,0 @@
-apply from: rootProject.file('gradle/integration.gradle')
-
-dependencies {
-  compile 'com.crittercism:crittercism-android-agent:5.2.0'
-}

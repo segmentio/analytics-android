@@ -1,5 +1,0 @@
-apply from: rootProject.file('gradle/integration.gradle')
-
-dependencies {
-  compile files('libs/Leanplum-1.2.14.jar')
-}

@@ -1,6 +1,0 @@
-apply from: rootProject.file('gradle/integration.gradle')
-
-dependencies {
-  compile 'com.google.android.gms:play-services-ads:8.1.0'
-  compile 'com.tapstream.sdk:tapstream-android:2.9.3'
-}

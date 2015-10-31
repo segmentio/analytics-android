@@ -1,5 +1,0 @@
-apply from: rootProject.file('gradle/integration.gradle')
-
-dependencies {
-  compile files('libs/FlurryAnalytics-5.5.0.jar')
-}

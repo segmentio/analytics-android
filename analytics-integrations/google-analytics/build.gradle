@@ -1,5 +1,0 @@
-apply from: rootProject.file('gradle/integration.gradle')
-
-dependencies {
-  compile 'com.google.android.gms:play-services-analytics:8.1.0'
-}

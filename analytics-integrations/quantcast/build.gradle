@@ -1,6 +1,0 @@
-apply from: rootProject.file('gradle/integration.gradle')
-
-dependencies {
-  compile rootProject.ext.supportLib
-  compile 'com.quantcast.android.measurement:QuantcastAndroidSdk-split:1.2.7'
-}

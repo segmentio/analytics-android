@@ -8,7 +8,7 @@ android {
 }
 
 dependencies {
-  compile project(':analytics-core')
+  compile project(':analytics')
   compile project(':analytics-wear')
   compile 'com.google.android.support:wearable:1.1.0'
 }

@@ -1,5 +1,0 @@
-apply from: rootProject.file('gradle/integration.gradle')
-
-dependencies {
-    compile files('libs/uxcam-2.0.6.jar')
-}

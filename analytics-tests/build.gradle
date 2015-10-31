@@ -3,7 +3,7 @@ apply plugin: 'com.android.library'
 apply from: rootProject.file('gradle/android.gradle')
 
 dependencies {
-  compile project(':analytics-core')
+  compile project(':analytics')
 
   compile 'junit:junit:4.12'
   compile('org.robolectric:robolectric:3.0-rc2') {

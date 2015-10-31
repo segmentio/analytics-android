@@ -1,6 +1,0 @@
-apply from: rootProject.file('gradle/integration.gradle')
-
-dependencies {
-  compile rootProject.ext.supportLib
-  compile files('libs/Localytics-3.4.2.jar')
-}
