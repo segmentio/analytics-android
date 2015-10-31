@@ -28,11 +28,6 @@ import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 
 public class AliasPayload extends BasePayload {
-
-  /**
-   * The previous ID for the user that you want to alias from, that you previously called identify
-   * with as their user ID, or the anonymous ID if you haven't identified the user yet.
-   */
   private static final String PREVIOUS_ID_KEY = "previousId";
 
   public AliasPayload(AnalyticsContext context, Options options, String newId) {
@@ -41,6 +36,10 @@ public class AliasPayload extends BasePayload {
     put(PREVIOUS_ID_KEY, context().traits().currentId());
   }
 
+  /**
+   * The previous ID for the user that you want to alias from, that you previously called identify
+   * with as their user ID, or the anonymous ID if you haven't identified the user yet.
+   */
   public String previousId() {
     return getString(PREVIOUS_ID_KEY);
   }

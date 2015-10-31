@@ -29,13 +29,6 @@ import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
 
 public class IdentifyPayload extends BasePayload {
-
-  /**
-   * A dictionary of traits you know about a user, for example email or name. We have a collection
-   * of special traits that we recognize with semantic meaning, which you should always use when
-   * recording that information. You can also add any custom traits that are specific to your
-   * project to the dictionary, like friendCount or subscriptionType.
-   */
   private static final String TRAITS_KEY = "traits";
 
   public IdentifyPayload(AnalyticsContext context, Options options, Traits traits) {
@@ -43,6 +36,12 @@ public class IdentifyPayload extends BasePayload {
     put(TRAITS_KEY, traits);
   }
 
+  /**
+   * A dictionary of traits you know about a user, for example email or name. We have a collection
+   * of special traits that we recognize with semantic meaning, which you should always use when
+   * recording that information. You can also add any custom traits that are specific to your
+   * project to the dictionary, like friendCount or subscriptionType.
+   */
   public Traits traits() {
     return getValueMap(TRAITS_KEY, Traits.class);
   }

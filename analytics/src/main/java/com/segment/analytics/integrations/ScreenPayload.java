@@ -31,14 +31,8 @@ import com.segment.analytics.Properties;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 public class ScreenPayload extends BasePayload {
-
-  /** The category of the page or screen. We recommend using title case, like "Docs". */
   private static final String CATEGORY_KEY = "category";
-
-  /** The name of the page or screen. We recommend using title case, like "About". */
   private static final String NAME_KEY = "name";
-
-  /** The page and screen methods also take a properties dictionary, just like track. */
   private static final String PROPERTIES_KEY = "properties";
 
   /** Either the name or category of the event. */
@@ -52,14 +46,17 @@ public class ScreenPayload extends BasePayload {
     put(PROPERTIES_KEY, properties);
   }
 
+  /** The category of the page or screen. We recommend using title case, like "Docs". */
   public String category() {
     return getString(CATEGORY_KEY);
   }
 
+  /** The name of the page or screen. We recommend using title case, like "About". */
   public String name() {
     return getString(NAME_KEY);
   }
 
+  /** Either the name or category of the event. */
   public String event() {
     if (isNullOrEmpty(event)) {
       event = isNullOrEmpty(name()) ? category() : name();
@@ -67,6 +64,7 @@ public class ScreenPayload extends BasePayload {
     return event;
   }
 
+  /** The page and screen methods also take a properties dictionary, just like track. */
   public Properties properties() {
     return (Properties) get(PROPERTIES_KEY);
   }

@@ -29,18 +29,7 @@ import com.segment.analytics.Options;
 import com.segment.analytics.Properties;
 
 public class TrackPayload extends BasePayload {
-
-  /**
-   * The name of the event. We recommend using title case and past tense for event names, like
-   * "Signed Up".
-   */
   private static final String EVENT_KEY = "event";
-
-  /**
-   * A dictionary of properties that give more information about the event. We have a collection of
-   * special properties that we recognize with semantic meaning. You can also add your own custom
-   * properties.
-   */
   private static final String PROPERTIES_KEY = "properties";
 
   public TrackPayload(AnalyticsContext context, Options options, String event,
@@ -50,10 +39,19 @@ public class TrackPayload extends BasePayload {
     put(PROPERTIES_KEY, properties);
   }
 
+  /**
+   * The name of the event. We recommend using title case and past tense for event names, like
+   * "Signed Up".
+   */
   public String event() {
     return getString(EVENT_KEY);
   }
 
+  /**
+   * A dictionary of properties that give more information about the event. We have a collection of
+   * special properties that we recognize with semantic meaning. You can also add your own custom
+   * properties.
+   */
   public Properties properties() {
     return getValueMap(PROPERTIES_KEY, Properties.class);
   }

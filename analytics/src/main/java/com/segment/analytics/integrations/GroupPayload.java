@@ -29,17 +29,7 @@ import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
 
 public class GroupPayload extends BasePayload {
-
-  /**
-   * A unique identifier that refers to the group in your database. For example, if your product
-   * groups people by "organization" you would use the organization's ID in your database as the
-   * group ID.
-   */
   private static final String GROUP_ID_KEY = "groupId";
-
-  /**
-   * The group method also takes a traits dictionary, just like identify.
-   */
   private static final String TRAITS_KEY = "traits";
 
   public GroupPayload(AnalyticsContext context, Options options, String groupId,
@@ -49,10 +39,18 @@ public class GroupPayload extends BasePayload {
     put(TRAITS_KEY, groupTraits.unmodifiableCopy());
   }
 
+  /**
+   * A unique identifier that refers to the group in your database. For example, if your product
+   * groups people by "organization" you would use the organization's ID in your database as the
+   * group ID.
+   */
   public String groupId() {
     return getString(GROUP_ID_KEY);
   }
 
+  /**
+   * The group method also takes a traits dictionary, just like identify.
+   */
   public Traits traits() {
     return getValueMap(TRAITS_KEY, Traits.class);
   }
