@@ -17,6 +17,12 @@ android {
     exclude 'LICENSE.txt'
   }
 
+  buildTypes {
+    release {
+      minifyEnabled false
+    }
+  }
+
   compileOptions {
     sourceCompatibility rootProject.ext.sourceCompatibilityVersion
     targetCompatibility rootProject.ext.targetCompatibilityVersion
