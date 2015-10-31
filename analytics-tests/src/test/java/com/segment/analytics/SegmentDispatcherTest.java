@@ -7,7 +7,7 @@ import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.model.payloads.TrackPayload;
-import com.segment.analytics.internal.model.payloads.util.TrackPayloadBuilder;
+import com.segment.analytics.test.TrackPayloadBuilder;
 import java.io.File;
 import java.io.IOError;
 import java.io.IOException;
@@ -37,6 +37,7 @@ import static com.segment.analytics.TestUtils.SynchronousExecutor;
 import static com.segment.analytics.TestUtils.TRACK_PAYLOAD;
 import static com.segment.analytics.TestUtils.TRACK_PAYLOAD_JSON;
 import static com.segment.analytics.TestUtils.mockApplication;
+import static com.segment.analytics.Utils.createContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
@@ -90,7 +91,7 @@ public class SegmentDispatcherTest {
     SegmentDispatcher segmentDispatcher =
         new SegmentBuilder().queueFile(queueFile).integrations(integrations).build();
 
-    AnalyticsContext analyticsContext = TestUtils.createContext(new Traits());
+    AnalyticsContext analyticsContext = createContext(new Traits());
     TrackPayload trackPayload =
         new TrackPayload(analyticsContext, new Options(), "foo", new Properties());
     // put some predictable values for data that is automatically generated

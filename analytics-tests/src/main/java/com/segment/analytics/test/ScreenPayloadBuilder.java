@@ -1,4 +1,4 @@
-package com.segment.analytics.internal.model.payloads.util;
+package com.segment.analytics.test;
 
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
@@ -6,8 +6,8 @@ import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.internal.model.payloads.ScreenPayload;
 
-import static com.segment.analytics.TestUtils.createContext;
-import static com.segment.analytics.TestUtils.createTraits;
+import static com.segment.analytics.Utils.createContext;
+import static com.segment.analytics.Utils.createTraits;
 
 public class ScreenPayloadBuilder {
 

@@ -5,7 +5,6 @@ import com.segment.analytics.internal.model.payloads.TrackPayload;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.AbstractExecutorService;
@@ -20,6 +19,7 @@ import org.robolectric.RuntimeEnvironment;
 
 import static android.Manifest.permission.INTERNET;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static com.segment.analytics.Utils.createContext;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
@@ -96,16 +96,6 @@ public final class TestUtils {
     return application;
   }
 
-  public static Traits createTraits() {
-    // Proxy to expose factory method for testing
-    return Traits.create();
-  }
-
-  public static Traits createTraits(String userId) {
-    // Proxy to expose putUserID method for testing
-    return new Traits().putUserId(userId);
-  }
-
   public static <T extends ValueMap> T createValueMap(Map map, Class<T> clazz) {
     try {
       Constructor<T> constructor = clazz.getDeclaredConstructor(Map.class);
@@ -115,12 +105,6 @@ public final class TestUtils {
       throw new AssertionError(
           "Could not create instance of " + clazz.getCanonicalName() + ".\n" + e);
     }
-  }
-
-  public static AnalyticsContext createContext(Traits traits) {
-    AnalyticsContext context = new AnalyticsContext(new LinkedHashMap<String, Object>());
-    context.setTraits(traits);
-    return context;
   }
 
   private TestUtils() {
@@ -169,7 +153,6 @@ public final class TestUtils {
   }
 
   public static class SynchronousExecutor extends AbstractExecutorService {
-
     private final AtomicBoolean terminated = new AtomicBoolean(false);
 
     @Override public void shutdown() {

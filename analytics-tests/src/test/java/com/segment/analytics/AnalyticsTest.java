@@ -25,8 +25,8 @@ import org.robolectric.shadows.ShadowLog;
 
 import static com.segment.analytics.Analytics.BundledIntegration.MIXPANEL;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
-import static com.segment.analytics.TestUtils.createContext;
 import static com.segment.analytics.TestUtils.mockApplication;
+import static com.segment.analytics.Utils.createContext;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
