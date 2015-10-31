@@ -18,7 +18,7 @@ abstract class IntegrationOperation {
     if (isNullOrEmpty(integrations)) {
       return true;
     }
-    if (SegmentDispatcher.SEGMENT_KEY.equals(integration.key())) {
+    if (SegmentIntegration.SEGMENT_KEY.equals(integration.key())) {
       // Always send to Segment
       return true;
     }

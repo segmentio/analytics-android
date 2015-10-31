@@ -65,7 +65,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
   final HandlerThread integrationManagerThread;
   final Handler integrationManagerHandler;
   final ExecutorService networkExecutor;
-  final SegmentDispatcher segmentDispatcher; // Keep around for shutdown
+  final SegmentIntegration segmentIntegration; // Keep around for shutdown
 
   Queue<IntegrationOperation> operationQueue;
   Map<String, Callback> callbacks;
@@ -99,11 +99,11 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
         new IntegrationManagerHandler(integrationManagerThread.getLooper(), this);
 
     loadIntegrations();
-    segmentDispatcher =
-        SegmentDispatcher.create(application, client, cartographer, networkExecutor, stats,
+    segmentIntegration =
+        SegmentIntegration.create(application, client, cartographer, networkExecutor, stats,
             Collections.unmodifiableMap(bundledIntegrations), tag, flushIntervalInMillis,
             flushQueueSize, log);
-    integrations.add(segmentDispatcher);
+    integrations.add(segmentIntegration);
 
     if (projectSettingsCache.isSet() && projectSettingsCache.get() != null) {
       dispatchInitializeIntegrations(projectSettingsCache.get());
@@ -407,7 +407,7 @@ class IntegrationManager implements Application.ActivityLifecycleCallbacks {
   void shutdown() {
     application.unregisterActivityLifecycleCallbacks(this);
     integrationManagerThread.quit();
-    segmentDispatcher.shutdown();
+    segmentIntegration.shutdown();
     if (operationQueue != null) {
       operationQueue.clear();
       operationQueue = null;

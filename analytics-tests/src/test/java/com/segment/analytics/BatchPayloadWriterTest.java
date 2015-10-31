@@ -18,8 +18,8 @@ public class BatchPayloadWriterTest {
 
   @Test public void batchPayloadWriter() throws IOException {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    SegmentDispatcher.BatchPayloadWriter batchPayloadWriter =
-        new SegmentDispatcher.BatchPayloadWriter(byteArrayOutputStream);
+    SegmentIntegration.BatchPayloadWriter batchPayloadWriter =
+        new SegmentIntegration.BatchPayloadWriter(byteArrayOutputStream);
 
     batchPayloadWriter.beginObject()
         .beginBatchArray()
@@ -40,8 +40,8 @@ public class BatchPayloadWriterTest {
 
   @Test public void batchPayloadWriterSingleItem() throws IOException {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    SegmentDispatcher.BatchPayloadWriter batchPayloadWriter =
-        new SegmentDispatcher.BatchPayloadWriter(byteArrayOutputStream);
+    SegmentIntegration.BatchPayloadWriter batchPayloadWriter =
+        new SegmentIntegration.BatchPayloadWriter(byteArrayOutputStream);
 
     batchPayloadWriter.beginObject()
         .beginBatchArray()
@@ -57,8 +57,8 @@ public class BatchPayloadWriterTest {
 
   @Test public void batchPayloadWriterFailsForNoItem() throws IOException {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    SegmentDispatcher.BatchPayloadWriter batchPayloadWriter =
-        new SegmentDispatcher.BatchPayloadWriter(byteArrayOutputStream);
+    SegmentIntegration.BatchPayloadWriter batchPayloadWriter =
+        new SegmentIntegration.BatchPayloadWriter(byteArrayOutputStream);
 
     try {
       batchPayloadWriter.beginObject().beginBatchArray().endBatchArray().endObject().close();

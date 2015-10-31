@@ -32,7 +32,7 @@ import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.Context.CONNECTIVITY_SERVICE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
-import static com.segment.analytics.SegmentDispatcher.MAX_QUEUE_SIZE;
+import static com.segment.analytics.SegmentIntegration.MAX_QUEUE_SIZE;
 import static com.segment.analytics.TestUtils.SynchronousExecutor;
 import static com.segment.analytics.TestUtils.TRACK_PAYLOAD;
 import static com.segment.analytics.TestUtils.TRACK_PAYLOAD_JSON;
@@ -54,7 +54,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
-public class SegmentDispatcherTest {
+public class SegmentIntegrationTest {
 
   @Rule public TemporaryFolder folder = new TemporaryFolder();
 
@@ -76,9 +76,9 @@ public class SegmentDispatcherTest {
 
   @Test public void enqueueAddsToQueueFile() throws IOException {
     QueueFile queueFile = mock(QueueFile.class);
-    SegmentDispatcher segmentDispatcher = new SegmentBuilder().queueFile(queueFile).build();
+    SegmentIntegration segmentIntegration = new SegmentBuilder().queueFile(queueFile).build();
 
-    segmentDispatcher.performEnqueue(TRACK_PAYLOAD);
+    segmentIntegration.performEnqueue(TRACK_PAYLOAD);
 
     verify(queueFile).add(TRACK_PAYLOAD_JSON.getBytes());
   }
@@ -88,7 +88,7 @@ public class SegmentDispatcherTest {
     integrations.put("All", false); // should overwrite existing values in the map.
     integrations.put("foo", true); // should add new values.
     QueueFile queueFile = mock(QueueFile.class);
-    SegmentDispatcher segmentDispatcher =
+    SegmentIntegration segmentIntegration =
         new SegmentBuilder().queueFile(queueFile).integrations(integrations).build();
 
     AnalyticsContext analyticsContext = createContext(new Traits());
@@ -98,7 +98,7 @@ public class SegmentDispatcherTest {
     trackPayload.put("messageId", "a161304c-498c-4830-9291-fcfb8498877b");
     trackPayload.put("timestamp", "2014-12-15T13:32:44-0700");
 
-    segmentDispatcher.performEnqueue(trackPayload);
+    segmentIntegration.performEnqueue(trackPayload);
 
     String expected = "{\""
         + "messageId\":\"a161304c-498c-4830-9291-fcfb8498877b\","
@@ -119,9 +119,9 @@ public class SegmentDispatcherTest {
     QueueFile queueFile = mock(QueueFile.class);
     // we want to trigger a remove, but not a flush
     when(queueFile.size()).thenReturn(0, MAX_QUEUE_SIZE, MAX_QUEUE_SIZE, 0);
-    SegmentDispatcher segmentDispatcher = new SegmentBuilder().queueFile(queueFile).build();
+    SegmentIntegration segmentIntegration = new SegmentBuilder().queueFile(queueFile).build();
 
-    segmentDispatcher.performEnqueue(TRACK_PAYLOAD);
+    segmentIntegration.performEnqueue(TRACK_PAYLOAD);
 
     verify(queueFile).remove(); // oldest entry is removed
     verify(queueFile).add(TRACK_PAYLOAD_JSON.getBytes()); // newest entry is added
@@ -131,10 +131,10 @@ public class SegmentDispatcherTest {
     QueueFile queueFile = mock(QueueFile.class);
     doThrow(new IOException("no remove for you.")).when(queueFile).remove();
     when(queueFile.size()).thenReturn(MAX_QUEUE_SIZE); // trigger a remove
-    SegmentDispatcher segmentDispatcher = new SegmentBuilder().queueFile(queueFile).build();
+    SegmentIntegration segmentIntegration = new SegmentBuilder().queueFile(queueFile).build();
 
     try {
-      segmentDispatcher.performEnqueue(TRACK_PAYLOAD);
+      segmentIntegration.performEnqueue(TRACK_PAYLOAD);
       fail("expected QueueFile to throw an error.");
     } catch (IOError expected) {
       assertThat(expected).hasMessage("java.io.IOException: no remove for you.");
@@ -148,15 +148,15 @@ public class SegmentDispatcherTest {
     Client client = mock(Client.class);
     Client.Connection connection = mockConnection();
     when(client.upload()).thenReturn(connection);
-    SegmentDispatcher segmentDispatcher =
+    SegmentIntegration segmentIntegration =
         new SegmentBuilder().client(client).flushSize(5).queueFile(queueFile).build();
 
     for (int i = 0; i < 4; i++) {
-      segmentDispatcher.performEnqueue(TRACK_PAYLOAD);
+      segmentIntegration.performEnqueue(TRACK_PAYLOAD);
     }
     verifyZeroInteractions(client);
     // Only the last enqueue should trigger an upload.
-    segmentDispatcher.performEnqueue(TRACK_PAYLOAD);
+    segmentIntegration.performEnqueue(TRACK_PAYLOAD);
 
     verify(client).upload();
   }
@@ -165,14 +165,14 @@ public class SegmentDispatcherTest {
     QueueFile queueFile = new QueueFile(new File(folder.getRoot(), "queue-file"));
     Client client = mock(Client.class);
     when(client.upload()).thenReturn(mockConnection());
-    SegmentDispatcher segmentDispatcher =
+    SegmentIntegration segmentIntegration =
         new SegmentBuilder().client(client).queueFile(queueFile).build();
     byte[] bytes = TRACK_PAYLOAD_JSON.getBytes();
     for (int i = 0; i < 4; i++) {
       queueFile.add(bytes);
     }
 
-    segmentDispatcher.submitFlush();
+    segmentIntegration.submitFlush();
 
     assertThat(queueFile.size()).isEqualTo(0);
   }
@@ -181,7 +181,7 @@ public class SegmentDispatcherTest {
     ExecutorService executor = spy(new SynchronousExecutor());
     QueueFile queueFile = mock(QueueFile.class);
     when(queueFile.size()).thenReturn(1);
-    SegmentDispatcher dispatcher =
+    SegmentIntegration dispatcher =
         new SegmentBuilder().queueFile(queueFile).networkExecutor(executor).build();
 
     dispatcher.submitFlush();
@@ -197,10 +197,10 @@ public class SegmentDispatcherTest {
     Context context = mockApplication();
     when(context.getSystemService(CONNECTIVITY_SERVICE)).thenReturn(connectivityManager);
     Client client = mock(Client.class);
-    SegmentDispatcher segmentDispatcher =
+    SegmentIntegration segmentIntegration =
         new SegmentBuilder().context(context).client(client).build();
 
-    segmentDispatcher.submitFlush();
+    segmentIntegration.submitFlush();
 
     verify(client, never()).upload();
   }
@@ -210,10 +210,10 @@ public class SegmentDispatcherTest {
     when(queueFile.size()).thenReturn(0);
     Context context = mockApplication();
     Client client = mock(Client.class);
-    SegmentDispatcher segmentDispatcher =
+    SegmentIntegration segmentIntegration =
         new SegmentBuilder().queueFile(queueFile).context(context).client(client).build();
 
-    segmentDispatcher.submitFlush();
+    segmentIntegration.submitFlush();
 
     verifyZeroInteractions(context);
     verify(client, never()).upload();
@@ -226,10 +226,10 @@ public class SegmentDispatcherTest {
     HttpURLConnection urlConnection = mock(HttpURLConnection.class);
     Client.Connection connection = mockConnection(urlConnection);
     when(client.upload()).thenReturn(connection);
-    SegmentDispatcher segmentDispatcher =
+    SegmentIntegration segmentIntegration =
         new SegmentBuilder().client(client).queueFile(queueFile).build();
 
-    segmentDispatcher.submitFlush();
+    segmentIntegration.submitFlush();
 
     verify(urlConnection, times(2)).disconnect();
   }
@@ -238,46 +238,46 @@ public class SegmentDispatcherTest {
     QueueFile queueFile = mock(QueueFile.class);
     Cartographer cartographer = mock(Cartographer.class);
     TrackPayload payload = new TrackPayloadBuilder().build();
-    SegmentDispatcher segmentDispatcher =
+    SegmentIntegration segmentIntegration =
         new SegmentBuilder().cartographer(cartographer).queueFile(queueFile).build();
 
     // Serialized json is null.
     when(cartographer.toJson(anyMap())).thenReturn(null);
-    segmentDispatcher.performEnqueue(payload);
+    segmentIntegration.performEnqueue(payload);
     verify(queueFile, never()).add((byte[]) any());
 
     // Serialized json is empty.
     when(cartographer.toJson(anyMap())).thenReturn("");
-    segmentDispatcher.performEnqueue(payload);
+    segmentIntegration.performEnqueue(payload);
     verify(queueFile, never()).add((byte[]) any());
 
     // Serialized json is too large (> 15kb).
     StringBuilder stringBuilder = new StringBuilder();
-    for (int i = 0; i < SegmentDispatcher.MAX_PAYLOAD_SIZE + 1; i++) {
+    for (int i = 0; i < SegmentIntegration.MAX_PAYLOAD_SIZE + 1; i++) {
       stringBuilder.append('a');
     }
     when(cartographer.toJson(anyMap())).thenReturn(stringBuilder.toString());
-    segmentDispatcher.performEnqueue(payload);
+    segmentIntegration.performEnqueue(payload);
     verify(queueFile, never()).add((byte[]) any());
 
     // Serializing json throws exception.
     doThrow(new IOException("mock")).when(cartographer).toJson(anyMap());
-    segmentDispatcher.performEnqueue(payload);
+    segmentIntegration.performEnqueue(payload);
     verify(queueFile, never()).add((byte[]) any());
   }
 
   @Test public void shutdown() throws IOException {
     QueueFile queueFile = mock(QueueFile.class);
-    SegmentDispatcher segmentDispatcher = new SegmentBuilder().queueFile(queueFile).build();
+    SegmentIntegration segmentIntegration = new SegmentBuilder().queueFile(queueFile).build();
 
-    segmentDispatcher.shutdown();
+    segmentIntegration.shutdown();
 
     verify(queueFile).close();
   }
 
   @Test public void payloadVisitorReadsOnly475KB() throws IOException {
-    SegmentDispatcher.PayloadWriter payloadWriter =
-        new SegmentDispatcher.PayloadWriter(mock(SegmentDispatcher.BatchPayloadWriter.class));
+    SegmentIntegration.PayloadWriter payloadWriter =
+        new SegmentIntegration.PayloadWriter(mock(SegmentIntegration.BatchPayloadWriter.class));
     byte[] bytes = ("{\n"
         + "        'context': {\n"
         + "          'library': 'analytics-android',\n"
@@ -416,7 +416,7 @@ public class SegmentDispatcherTest {
       return this;
     }
 
-    SegmentDispatcher build() {
+    SegmentIntegration build() {
       if (context == null) {
         context = mockApplication();
         when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)) //
@@ -428,7 +428,7 @@ public class SegmentDispatcherTest {
       if (stats == null) stats = mock(Stats.class);
       if (integrations == null) integrations = Collections.emptyMap();
       if (networkExecutor == null) networkExecutor = new SynchronousExecutor();
-      return new SegmentDispatcher(context, client, cartographer, networkExecutor, queueFile, stats,
+      return new SegmentIntegration(context, client, cartographer, networkExecutor, queueFile, stats,
           integrations, flushInterval, flushSize, log);
     }
   }

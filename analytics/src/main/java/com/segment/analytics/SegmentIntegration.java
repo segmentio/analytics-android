@@ -40,7 +40,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.toISO8601Date;
 
 /** Entity that queues payloads on disks and uploads them periodically. */
-class SegmentDispatcher extends AbstractIntegration {
+class SegmentIntegration extends AbstractIntegration {
 
   static final String SEGMENT_KEY = "Segment.io";
 
@@ -119,7 +119,7 @@ class SegmentDispatcher extends AbstractIntegration {
     }
   }
 
-  static synchronized SegmentDispatcher create(Context context, Client client,
+  static synchronized SegmentIntegration create(Context context, Client client,
       Cartographer cartographer, ExecutorService networkExecutor, Stats stats,
       Map<String, Boolean> bundledIntegrations, String tag, long flushIntervalInMillis,
       int flushQueueSize, Log log) {
@@ -130,11 +130,11 @@ class SegmentDispatcher extends AbstractIntegration {
     } catch (IOException e) {
       throw new IOError(e);
     }
-    return new SegmentDispatcher(context, client, cartographer, networkExecutor, queueFile, stats,
+    return new SegmentIntegration(context, client, cartographer, networkExecutor, queueFile, stats,
         bundledIntegrations, flushIntervalInMillis, flushQueueSize, log);
   }
 
-  SegmentDispatcher(Context context, Client client, Cartographer cartographer,
+  SegmentIntegration(Context context, Client client, Cartographer cartographer,
       ExecutorService networkExecutor, QueueFile queueFile, Stats stats,
       Map<String, Boolean> bundledIntegrations, long flushIntervalInMillis, int flushQueueSize,
       Log log) {
@@ -416,21 +416,21 @@ class SegmentDispatcher extends AbstractIntegration {
 
     static final int REQUEST_FLUSH = 1;
     private static final int REQUEST_ENQUEUE = 0;
-    private final SegmentDispatcher segmentDispatcher;
+    private final SegmentIntegration segmentIntegration;
 
-    SegmentDispatcherHandler(Looper looper, SegmentDispatcher segmentDispatcher) {
+    SegmentDispatcherHandler(Looper looper, SegmentIntegration segmentIntegration) {
       super(looper);
-      this.segmentDispatcher = segmentDispatcher;
+      this.segmentIntegration = segmentIntegration;
     }
 
     @Override public void handleMessage(final Message msg) {
       switch (msg.what) {
         case REQUEST_ENQUEUE:
           BasePayload payload = (BasePayload) msg.obj;
-          segmentDispatcher.performEnqueue(payload);
+          segmentIntegration.performEnqueue(payload);
           break;
         case REQUEST_FLUSH:
-          segmentDispatcher.submitFlush();
+          segmentIntegration.submitFlush();
           break;
         default:
           throw new AssertionError("Unknown dispatcher message: " + msg.what);
