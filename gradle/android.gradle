@@ -18,8 +18,8 @@ android {
   }
 
   compileOptions {
-    sourceCompatibility rootProject.ext.compileJavaVersion
-    targetCompatibility rootProject.ext.compileJavaVersion
+    sourceCompatibility rootProject.ext.sourceCompatibilityVersion
+    targetCompatibility rootProject.ext.targetCompatibilityVersion
   }
 
   lintOptions {

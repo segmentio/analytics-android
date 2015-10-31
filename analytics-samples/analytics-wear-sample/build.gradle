@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: 'checkstyle'
+apply plugin: 'com.f2prateek.checkstyle'
 
 apply from: rootProject.file('gradle/android.gradle')
 android {
@@ -13,4 +15,7 @@ dependencies {
   compile 'com.google.android.support:wearable:1.1.0'
 }
 
-apply from: rootProject.file('gradle/checkstyle-app.gradle')
+checkstyle {
+  configFile rootProject.file('gradle/checkstyle.xml')
+  showViolations true
+}

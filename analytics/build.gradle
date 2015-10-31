@@ -1,7 +1,13 @@
 apply plugin: 'com.android.library'
+apply plugin: 'checkstyle'
+apply plugin: 'com.f2prateek.checkstyle'
 
 apply from: rootProject.file('gradle/android.gradle')
 
-apply from: rootProject.file('gradle/checkstyle-library.gradle')
+checkstyle {
+  configFile rootProject.file('gradle/checkstyle.xml')
+  showViolations true
+}
+
 apply from: rootProject.file('gradle/attach-jar.gradle')
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
