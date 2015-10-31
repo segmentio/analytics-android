@@ -2,7 +2,7 @@ package com.segment.analytics.internal;
 
 import com.segment.analytics.Analytics;
 import com.segment.analytics.core.tests.BuildConfig;
-import java.util.List;
+import com.segment.analytics.integrations.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricGradleTestRunner;
@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LogTest {
 
   @Test public void verboseLevelLogsEverything() {
-    Log log = Log.with(Analytics.LogLevel.VERBOSE);
+    Log log = new Log(Analytics.LogLevel.VERBOSE);
 
     log.debug("foo");
     log.info("bar");
@@ -27,7 +27,7 @@ public class LogTest {
   }
 
   @Test public void verboseMessagesShowInLog() {
-    Log log = Log.with(Analytics.LogLevel.VERBOSE);
+    Log log = new Log(Analytics.LogLevel.VERBOSE);
 
     log.verbose("some message with an %s", "argument");
 
@@ -39,7 +39,7 @@ public class LogTest {
   }
 
   @Test public void debugMessagesShowInLog() {
-    Log log = Log.with(Analytics.LogLevel.DEBUG);
+    Log log = new Log(Analytics.LogLevel.DEBUG);
 
     log.debug("some message with an %s", "argument");
 
@@ -51,7 +51,7 @@ public class LogTest {
   }
 
   @Test public void infoMessagesShowInLog() {
-    Log log = Log.with(Analytics.LogLevel.INFO);
+    Log log = new Log(Analytics.LogLevel.INFO);
 
     log.info("some message with an %s", "argument");
 
@@ -63,7 +63,7 @@ public class LogTest {
   }
 
   @Test public void errorMessagesShowInLog() throws Exception {
-    Log log = Log.with(Analytics.LogLevel.DEBUG);
+    Log log = new Log(Analytics.LogLevel.DEBUG);
     Throwable throwable = new AssertionError("testing");
     log.error(throwable, "some message with an %s", "argument");
 
@@ -76,7 +76,6 @@ public class LogTest {
   }
 
   static class LogItemBuilder {
-
     private int type;
     private String tag = "Analytics"; // will be the default tag unless explicitly overridden
     private String msg;

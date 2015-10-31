@@ -32,15 +32,15 @@ import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import com.segment.analytics.internal.Log;
-import com.segment.analytics.internal.Utils;
-import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
 import com.segment.analytics.integrations.IdentifyPayload;
+import com.segment.analytics.integrations.Log;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
+import com.segment.analytics.internal.Utils;
+import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -795,7 +795,7 @@ public class Analytics {
       }
 
       return new Analytics(application, networkExecutor, integrationManagerFactory, stats,
-          traitsCache, analyticsContext, defaultOptions, Log.with(logLevel), tag);
+          traitsCache, analyticsContext, defaultOptions, new Log(logLevel), tag);
     }
   }
 }

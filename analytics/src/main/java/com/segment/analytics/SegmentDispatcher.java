@@ -7,14 +7,14 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.JsonWriter;
 import com.segment.analytics.integrations.AbstractIntegration;
-import com.segment.analytics.internal.Log;
-import com.segment.analytics.internal.Utils.AnalyticsThreadFactory;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
 import com.segment.analytics.integrations.IdentifyPayload;
+import com.segment.analytics.integrations.Log;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
+import com.segment.analytics.internal.Utils.AnalyticsThreadFactory;
 import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
@@ -131,8 +131,7 @@ class SegmentDispatcher extends AbstractIntegration {
       throw new IOError(e);
     }
     return new SegmentDispatcher(context, client, cartographer, networkExecutor, queueFile, stats,
-        bundledIntegrations, flushIntervalInMillis, flushQueueSize,
-        log.newLogger("SegmentDispatcher"));
+        bundledIntegrations, flushIntervalInMillis, flushQueueSize, log);
   }
 
   SegmentDispatcher(Context context, Client client, Cartographer cartographer,

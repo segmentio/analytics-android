@@ -9,7 +9,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Pair;
 import com.segment.analytics.integrations.AbstractIntegration;
-import com.segment.analytics.internal.Log;
+import com.segment.analytics.integrations.Log;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;

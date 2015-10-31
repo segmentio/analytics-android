@@ -8,7 +8,7 @@ import android.os.Bundle;
 import android.util.Pair;
 import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.integrations.AbstractIntegration;
-import com.segment.analytics.internal.Log;
+import com.segment.analytics.integrations.Log;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
@@ -92,7 +92,7 @@ public class IntegrationManagerTest {
     networkExecutor = spy(new SynchronousExecutor());
 
     when(analytics.getApplication()).thenReturn(application);
-    when(analytics.getLogger()).thenReturn(Log.with(NONE));
+    when(analytics.getLogger()).thenReturn(new Log(NONE));
 
     integrationManager =
         new IntegrationManager(analytics, client, networkExecutor, Cartographer.INSTANCE, stats,

@@ -4,7 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import com.segment.analytics.core.tests.BuildConfig;
-import com.segment.analytics.internal.Log;
+import com.segment.analytics.integrations.Log;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.test.TrackPayloadBuilder;
@@ -355,7 +355,7 @@ public class SegmentDispatcherTest {
     Map<String, Boolean> integrations;
     int flushInterval = Utils.DEFAULT_FLUSH_INTERVAL;
     int flushSize = Utils.DEFAULT_FLUSH_QUEUE_SIZE;
-    Log log = Log.with(NONE);
+    Log log = new Log(NONE);
     ExecutorService networkExecutor;
 
     SegmentBuilder() {
