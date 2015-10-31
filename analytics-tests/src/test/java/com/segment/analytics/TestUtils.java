@@ -1,7 +1,7 @@
 package com.segment.analytics;
 
 import android.app.Application;
-import com.segment.analytics.internal.model.payloads.TrackPayload;
+import com.segment.analytics.integrations.TrackPayload;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.Collections;

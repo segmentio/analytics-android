@@ -17,7 +17,7 @@
 package com.segment.analytics;
 
 import android.content.Context;
-import com.segment.analytics.internal.model.payloads.BasePayload;
+import com.segment.analytics.integrations.BasePayload;
 
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 

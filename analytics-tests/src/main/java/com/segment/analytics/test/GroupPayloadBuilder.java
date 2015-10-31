@@ -3,7 +3,7 @@ package com.segment.analytics.test;
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
-import com.segment.analytics.internal.model.payloads.GroupPayload;
+import com.segment.analytics.integrations.GroupPayload;
 
 import static com.segment.analytics.Utils.createContext;
 import static com.segment.analytics.Utils.createTraits;

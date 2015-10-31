@@ -2,12 +2,12 @@ package com.segment.analytics;
 
 import android.app.Activity;
 import android.os.Bundle;
-import com.segment.analytics.internal.AbstractIntegration;
-import com.segment.analytics.internal.model.payloads.AliasPayload;
-import com.segment.analytics.internal.model.payloads.GroupPayload;
-import com.segment.analytics.internal.model.payloads.IdentifyPayload;
-import com.segment.analytics.internal.model.payloads.ScreenPayload;
-import com.segment.analytics.internal.model.payloads.TrackPayload;
+import com.segment.analytics.integrations.AbstractIntegration;
+import com.segment.analytics.integrations.AliasPayload;
+import com.segment.analytics.integrations.GroupPayload;
+import com.segment.analytics.integrations.IdentifyPayload;
+import com.segment.analytics.integrations.ScreenPayload;
+import com.segment.analytics.integrations.TrackPayload;
 
 import static com.segment.analytics.Options.ALL_INTEGRATIONS_KEY;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;

@@ -22,35 +22,25 @@
  * SOFTWARE.
  */
 
-package com.segment.analytics.internal.model.payloads;
+package com.segment.analytics.integrations;
 
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
 
-public class GroupPayload extends BasePayload {
+public class IdentifyPayload extends BasePayload {
 
   /**
-   * A unique identifier that refers to the group in your database. For example, if your product
-   * groups people by "organization" you would use the organization's ID in your database as the
-   * group ID.
-   */
-  private static final String GROUP_ID_KEY = "groupId";
-
-  /**
-   * The group method also takes a traits dictionary, just like identify.
+   * A dictionary of traits you know about a user, for example email or name. We have a collection
+   * of special traits that we recognize with semantic meaning, which you should always use when
+   * recording that information. You can also add any custom traits that are specific to your
+   * project to the dictionary, like friendCount or subscriptionType.
    */
   private static final String TRAITS_KEY = "traits";
 
-  public GroupPayload(AnalyticsContext context, Options options, String groupId,
-      Traits groupTraits) {
-    super(Type.group, context, options);
-    put(GROUP_ID_KEY, groupId);
-    put(TRAITS_KEY, groupTraits.unmodifiableCopy());
-  }
-
-  public String groupId() {
-    return getString(GROUP_ID_KEY);
+  public IdentifyPayload(AnalyticsContext context, Options options, Traits traits) {
+    super(Type.identify, context, options);
+    put(TRAITS_KEY, traits);
   }
 
   public Traits traits() {
@@ -58,6 +48,6 @@ public class GroupPayload extends BasePayload {
   }
 
   @Override public String toString() {
-    return "GroupPayload{groupId=\"" + groupId() + "\"}";
+    return "IdentifyPayload{\"userId=\"" + userId() + "\"}";
   }
 }

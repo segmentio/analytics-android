@@ -22,43 +22,42 @@
  * SOFTWARE.
  */
 
-package com.segment.analytics.internal.model.payloads;
+package com.segment.analytics.integrations;
 
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
-import com.segment.analytics.Properties;
+import com.segment.analytics.Traits;
 
-public class TrackPayload extends BasePayload {
-
-  /**
-   * The name of the event. We recommend using title case and past tense for event names, like
-   * "Signed Up".
-   */
-  private static final String EVENT_KEY = "event";
+public class GroupPayload extends BasePayload {
 
   /**
-   * A dictionary of properties that give more information about the event. We have a collection of
-   * special properties that we recognize with semantic meaning. You can also add your own custom
-   * properties.
+   * A unique identifier that refers to the group in your database. For example, if your product
+   * groups people by "organization" you would use the organization's ID in your database as the
+   * group ID.
    */
-  private static final String PROPERTIES_KEY = "properties";
+  private static final String GROUP_ID_KEY = "groupId";
 
-  public TrackPayload(AnalyticsContext context, Options options, String event,
-      Properties properties) {
-    super(Type.track, context, options);
-    put(EVENT_KEY, event);
-    put(PROPERTIES_KEY, properties);
+  /**
+   * The group method also takes a traits dictionary, just like identify.
+   */
+  private static final String TRAITS_KEY = "traits";
+
+  public GroupPayload(AnalyticsContext context, Options options, String groupId,
+      Traits groupTraits) {
+    super(Type.group, context, options);
+    put(GROUP_ID_KEY, groupId);
+    put(TRAITS_KEY, groupTraits.unmodifiableCopy());
   }
 
-  public String event() {
-    return getString(EVENT_KEY);
+  public String groupId() {
+    return getString(GROUP_ID_KEY);
   }
 
-  public Properties properties() {
-    return getValueMap(PROPERTIES_KEY, Properties.class);
+  public Traits traits() {
+    return getValueMap(TRAITS_KEY, Traits.class);
   }
 
   @Override public String toString() {
-    return "TrackPayload{event=\"" + event() + "\"}";
+    return "GroupPayload{groupId=\"" + groupId() + "\"}";
   }
 }

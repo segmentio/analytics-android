@@ -6,7 +6,7 @@ import android.net.NetworkInfo;
 import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.internal.Log;
 import com.segment.analytics.internal.Utils;
-import com.segment.analytics.internal.model.payloads.TrackPayload;
+import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.test.TrackPayloadBuilder;
 import java.io.File;
 import java.io.IOError;

@@ -1,14 +1,9 @@
-package com.segment.analytics.internal;
+package com.segment.analytics.integrations;
 
 import android.app.Activity;
 import android.os.Bundle;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.ValueMap;
-import com.segment.analytics.internal.model.payloads.AliasPayload;
-import com.segment.analytics.internal.model.payloads.GroupPayload;
-import com.segment.analytics.internal.model.payloads.IdentifyPayload;
-import com.segment.analytics.internal.model.payloads.ScreenPayload;
-import com.segment.analytics.internal.model.payloads.TrackPayload;
 
 /**
  * A base class for all bundled integrations.
@@ -18,12 +13,6 @@ import com.segment.analytics.internal.model.payloads.TrackPayload;
  * {@link #getUnderlyingInstance()}.
  */
 public abstract class AbstractIntegration<T> {
-  public static final String VIEWED_EVENT_FORMAT = "Viewed %s Screen";
-  public static final String VIEWED_PRODUCT_CATEGORY = "Viewed Product Category";
-  public static final String VIEWED_PRODUCT = "Viewed Product";
-  public static final String ADDED_PRODUCT = "Added Product";
-  public static final String COMPLETED_ORDER = "Completed Order";
-
   /**
    * Initialize the integration. Implementations should wrap any errors, including missing settings
    * and permission in {@link IllegalStateException}. If this method call completes without an

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.segment.analytics.internal.model.payloads;
+package com.segment.analytics.integrations;
 
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;

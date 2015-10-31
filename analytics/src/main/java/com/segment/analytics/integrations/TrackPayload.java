@@ -22,32 +22,43 @@
  * SOFTWARE.
  */
 
-package com.segment.analytics.internal.model.payloads;
+package com.segment.analytics.integrations;
 
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
-import com.segment.analytics.Traits;
+import com.segment.analytics.Properties;
 
-public class IdentifyPayload extends BasePayload {
+public class TrackPayload extends BasePayload {
 
   /**
-   * A dictionary of traits you know about a user, for example email or name. We have a collection
-   * of special traits that we recognize with semantic meaning, which you should always use when
-   * recording that information. You can also add any custom traits that are specific to your
-   * project to the dictionary, like friendCount or subscriptionType.
+   * The name of the event. We recommend using title case and past tense for event names, like
+   * "Signed Up".
    */
-  private static final String TRAITS_KEY = "traits";
+  private static final String EVENT_KEY = "event";
 
-  public IdentifyPayload(AnalyticsContext context, Options options, Traits traits) {
-    super(Type.identify, context, options);
-    put(TRAITS_KEY, traits);
+  /**
+   * A dictionary of properties that give more information about the event. We have a collection of
+   * special properties that we recognize with semantic meaning. You can also add your own custom
+   * properties.
+   */
+  private static final String PROPERTIES_KEY = "properties";
+
+  public TrackPayload(AnalyticsContext context, Options options, String event,
+      Properties properties) {
+    super(Type.track, context, options);
+    put(EVENT_KEY, event);
+    put(PROPERTIES_KEY, properties);
   }
 
-  public Traits traits() {
-    return getValueMap(TRAITS_KEY, Traits.class);
+  public String event() {
+    return getString(EVENT_KEY);
+  }
+
+  public Properties properties() {
+    return getValueMap(PROPERTIES_KEY, Properties.class);
   }
 
   @Override public String toString() {
-    return "IdentifyPayload{\"userId=\"" + userId() + "\"}";
+    return "TrackPayload{event=\"" + event() + "\"}";
   }
 }
