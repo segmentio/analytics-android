@@ -4,12 +4,12 @@ import android.Manifest;
 import android.app.Application;
 import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.integrations.AliasPayload;
-import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.IdentifyPayload;
 import com.segment.analytics.integrations.Integration;
 import com.segment.analytics.integrations.Log;
 import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
 import java.util.Collections;
+import java.util.concurrent.ExecutorService;
 import org.assertj.core.data.MapEntry;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -28,6 +28,7 @@ import org.robolectric.shadows.ShadowApplication;
 import org.robolectric.shadows.ShadowLog;
 
 import static com.segment.analytics.Analytics.LogLevel.NONE;
+import static com.segment.analytics.TestUtils.SynchronousExecutor;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static com.segment.analytics.Utils.createContext;
 import static com.segment.analytics.internal.Utils.DEFAULT_FLUSH_INTERVAL;
@@ -50,6 +51,7 @@ public class AnalyticsTest {
   @Mock Traits.Cache traitsCache;
   @Mock Options defaultOptions;
   @Spy AnalyticsExecutorService networkExecutor;
+  @Spy ExecutorService analyticsExecutor = new SynchronousExecutor();
   @Mock Client client;
   @Mock Stats stats;
   @Mock ProjectSettings.Cache projectSettingsCache;
@@ -79,7 +81,7 @@ public class AnalyticsTest {
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, new Log(NONE), "qaz", Collections.singletonMap("test", factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
-        DEFAULT_FLUSH_INTERVAL);
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor);
 
     // Used by singleton tests
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
@@ -162,14 +164,16 @@ public class AnalyticsTest {
     }
   }
 
-  @Test public void alias() throws Exception {
+  @Test public void invalidAliasThrowsError() {
     try {
       analytics.alias(null);
       fail("null new id should throw error");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("newId must not be null or empty.");
     }
+  }
 
+  @Test public void alias() {
     String anonymousId = traits.anonymousId();
     analytics.alias("foo");
     ArgumentCaptor<AliasPayload> payloadArgumentCaptor =
@@ -179,15 +183,7 @@ public class AnalyticsTest {
         .containsEntry("userId", "foo");
   }
 
-  @Test public void submitInvokesDispatch() {
-    BasePayload payload = mock(BasePayload.class);
-
-    analytics.submit(payload);
-
-    // verify(integrationManager).dispatchEnqueue(payload);
-  }
-
-  @Test public void flushInvokesDispatch() throws Exception {
+  @Test public void flush() throws Exception {
     analytics.flush();
 
     verify(integration).flush();

@@ -30,10 +30,8 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Pair;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
@@ -53,9 +51,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
 import static com.segment.analytics.internal.Utils.buffer;
 import static com.segment.analytics.internal.Utils.closeQuietly;
@@ -109,8 +107,7 @@ public class Analytics {
   private final String writeKey;
   final int flushQueueSize;
   final long flushIntervalInMillis;
-  private final HandlerThread analyticsThread;
-  private final AnalyticsHandler analyticsHandler;
+  final ExecutorService analyticsExecutor;
 
   final Map<String, Boolean> bundledIntegrations = new ConcurrentHashMap<>();
   // todo: use lightweight map implementations.
@@ -176,7 +173,7 @@ public class Analytics {
       Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions, Log log,
       String tag, Map<String, Integration.Factory> factories, Client client,
       Cartographer cartographer, ProjectSettings.Cache projectSettingsCache, String writeKey,
-      int flushQueueSize, long flushIntervalInMillis) {
+      int flushQueueSize, long flushIntervalInMillis, ExecutorService analyticsExecutor) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -192,12 +189,13 @@ public class Analytics {
     this.flushQueueSize = flushQueueSize;
     this.flushIntervalInMillis = flushIntervalInMillis;
     this.factories = Collections.unmodifiableMap(factories);
+    this.analyticsExecutor = analyticsExecutor;
 
-    analyticsThread = new HandlerThread(ANALYTICS_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
-    analyticsThread.start();
-    analyticsHandler = new AnalyticsHandler(analyticsThread.getLooper(), this);
-
-    analyticsHandler.sendEmptyMessage(AnalyticsHandler.INITIALIZE);
+    analyticsExecutor.submit(new Runnable() {
+      @Override public void run() {
+        performInitializeIntegrations();
+      }
+    });
 
     log.debug("Created analytics client for project with tag:%s.", tag);
   }
@@ -439,7 +437,7 @@ public class Analytics {
       throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
     }
     log.verbose("Created payload %s.", payload);
-    IntegrationOperation operation;
+    final IntegrationOperation operation;
     switch (payload.type()) {
       case identify:
         operation = IntegrationOperation.identify((IdentifyPayload) payload);
@@ -459,8 +457,11 @@ public class Analytics {
       default:
         throw new AssertionError("unknown type " + payload.type());
     }
-    Message message = analyticsHandler.obtainMessage(AnalyticsHandler.ENQUEUE, operation);
-    analyticsHandler.sendMessage(message);
+    analyticsExecutor.submit(new Runnable() {
+      @Override public void run() {
+        performRun(operation);
+      }
+    });
   }
 
   /**
@@ -471,9 +472,11 @@ public class Analytics {
     if (shutdown) {
       throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
     }
-    IntegrationOperation operation = IntegrationOperation.FLUSH;
-    Message message = analyticsHandler.obtainMessage(AnalyticsHandler.ENQUEUE, operation);
-    analyticsHandler.sendMessage(message);
+    analyticsExecutor.submit(new Runnable() {
+      @Override public void run() {
+        performRun(IntegrationOperation.FLUSH);
+      }
+    });
   }
 
   /** Get the {@link AnalyticsContext} used by this instance. */
@@ -522,9 +525,11 @@ public class Analytics {
     traitsCache.delete();
     traitsCache.set(Traits.create());
     analyticsContext.setTraits(traitsCache.get());
-    IntegrationOperation operation = IntegrationOperation.RESET;
-    Message message = analyticsHandler.obtainMessage(AnalyticsHandler.ENQUEUE, operation);
-    analyticsHandler.sendMessage(message);
+    analyticsExecutor.submit(new Runnable() {
+      @Override public void run() {
+        performRun(IntegrationOperation.RESET);
+      }
+    });
   }
 
   /**
@@ -556,23 +561,24 @@ public class Analytics {
    *   })*
    * </code> </pre>
    */
-  public <T> void onIntegrationReady(String key, Callback<T> callback) {
+  public <T> void onIntegrationReady(final String key, final Callback<T> callback) {
     if (isNullOrEmpty(key)) {
       throw new IllegalArgumentException("key cannot be null or empty.");
     }
 
-    Pair<String, Callback<T>> pair = new Pair<>(key, callback);
-    analyticsHandler.sendMessage(analyticsHandler.obtainMessage(AnalyticsHandler.CALLBACK, pair));
+    analyticsExecutor.submit(new Runnable() {
+      @Override public void run() {
+        performCallback(key, callback);
+      }
+    });
   }
 
   /** @deprecated Use {@link #onIntegrationReady(String, Callback)} instead. */
   public void onIntegrationReady(BundledIntegration integration, Callback callback) {
     if (integration == null) {
-      throw new IllegalArgumentException("integration cannot be null or empty.");
+      throw new IllegalArgumentException("integration cannot be null");
     }
-
-    Pair<String, Callback> pair = new Pair<>(integration.key, callback);
-    analyticsHandler.sendMessage(analyticsHandler.obtainMessage(AnalyticsHandler.CALLBACK, pair));
+    onIntegrationReady(integration.key, callback);
   }
 
   /** @deprecated  */
@@ -610,7 +616,7 @@ public class Analytics {
     if (shutdown) {
       return;
     }
-    analyticsThread.quit();
+    analyticsExecutor.shutdown();
     if (networkExecutor instanceof AnalyticsExecutorService) {
       networkExecutor.shutdown();
     }
@@ -880,42 +886,12 @@ public class Analytics {
 
       return new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
           defaultOptions, new Log(logLevel), tag, factories, client, cartographer,
-          projectSettingsCache, writeKey, flushQueueSize, flushIntervalInMillis);
+          projectSettingsCache, writeKey, flushQueueSize, flushIntervalInMillis,
+          Executors.newSingleThreadExecutor());
     }
   }
 
   // Handler Logic.
-
-  static class AnalyticsHandler extends Handler {
-    static final int INITIALIZE = 1;
-    static final int ENQUEUE = 2;
-    static final int CALLBACK = 3;
-
-    private final Analytics analytics;
-
-    AnalyticsHandler(Looper looper, Analytics analytics) {
-      super(looper);
-      this.analytics = analytics;
-    }
-
-    @Override public void handleMessage(final Message msg) {
-      switch (msg.what) {
-        case INITIALIZE:
-          analytics.performInitializeIntegrations();
-          break;
-        case ENQUEUE:
-          analytics.performIntegrationOperation((IntegrationOperation) msg.obj);
-          break;
-        case CALLBACK:
-          Pair<String, Analytics.Callback<?>> pair = (Pair<String, Analytics.Callback<?>>) msg.obj;
-          analytics.performCallback(pair.first, pair.second);
-          break;
-        default:
-          throw new AssertionError("Unknown Integration Manager handler message: " + msg);
-      }
-    }
-  }
-
   private static final long SETTINGS_REFRESH_INTERVAL = 1000 * 60 * 60 * 24; // 24 hours
   private static final long SETTINGS_RETRY_INTERVAL = 1000 * 60; // 1 minute
 
@@ -995,7 +971,7 @@ public class Analytics {
   }
 
   /** Runs the given operation on all integrations. */
-  void performIntegrationOperation(IntegrationOperation operation) {
+  void performRun(IntegrationOperation operation) {
     for (Map.Entry<String, Integration<?>> entry : integrations.entrySet()) {
       String key = entry.getKey();
       long startTime = System.nanoTime();
