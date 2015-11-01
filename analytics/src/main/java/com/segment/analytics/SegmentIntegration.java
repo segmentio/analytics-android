@@ -147,7 +147,6 @@ class SegmentIntegration extends Integration<Void> {
       ExecutorService networkExecutor, QueueFile queueFile, Stats stats,
       Map<String, Boolean> bundledIntegrations, long flushIntervalInMillis, int flushQueueSize,
       Log log) {
-    super(SEGMENT_KEY);
     this.context = context;
     this.client = client;
     this.networkExecutor = networkExecutor;

@@ -24,12 +24,6 @@ public abstract class Integration<T> {
     Integration<?> create(ValueMap settings, Analytics analytics);
   }
 
-  public final String key;
-
-  protected Integration(String key) {
-    this.key = key;
-  }
-
   /** @see {@link android.app.Application.ActivityLifecycleCallbacks} */
   public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
   }

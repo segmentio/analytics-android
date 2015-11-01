@@ -112,9 +112,10 @@ public class Analytics {
   private final HandlerThread analyticsThread;
   private final AnalyticsHandler analyticsHandler;
 
-  private Map<String, Integration.Factory> factories;
-  private List<Integration<?>> integrations;
   final Map<String, Boolean> bundledIntegrations = new ConcurrentHashMap<>();
+  // todo: use lightweight map implementations.
+  private Map<String, Integration.Factory> factories;
+  private Map<String, Integration<?>> integrations;
   volatile boolean shutdown;
 
   /**
@@ -560,12 +561,12 @@ public class Analytics {
    *   })*
    * </code> </pre>
    */
-  public void onIntegrationReady(String key, Callback callback) {
+  public <T> void onIntegrationReady(String key, Callback<T> callback) {
     if (isNullOrEmpty(key)) {
       throw new IllegalArgumentException("key cannot be null or empty.");
     }
 
-    Pair<String, Callback> pair = new Pair<>(key, callback);
+    Pair<String, Callback<T>> pair = new Pair<>(key, callback);
     analyticsHandler.sendMessage(analyticsHandler.obtainMessage(AnalyticsHandler.CALLBACK, pair));
   }
 
@@ -651,14 +652,14 @@ public class Analytics {
    * A callback interface that is invoked when the Analytics client initializes bundled
    * integrations.
    */
-  public interface Callback {
+  public interface Callback<T> {
     /**
      * This method will be invoked once for each callback.
      *
      * @param instance The underlying instance that has been initialized with the settings from
      * Segment.
      */
-    void onReady(Object instance);
+    void onReady(T instance);
   }
 
   /** Fluent API for creating {@link Analytics} instances. */
@@ -906,7 +907,7 @@ public class Analytics {
           analytics.performIntegrationOperation((IntegrationOperation) msg.obj);
           break;
         case CALLBACK:
-          Pair<String, Analytics.Callback> pair = (Pair<String, Analytics.Callback>) msg.obj;
+          Pair<String, Analytics.Callback<?>> pair = (Pair<String, Analytics.Callback<?>>) msg.obj;
           analytics.performCallback(pair.first, pair.second);
           break;
         default:
@@ -973,7 +974,7 @@ public class Analytics {
     }
 
     ValueMap integrationSettings = projectSettings.integrations();
-    integrations = new ArrayList<>(factories.size());
+    integrations = new LinkedHashMap<>(factories.size());
     for (Map.Entry<String, Integration.Factory> entry : factories.entrySet()) {
       String key = entry.getKey();
       ValueMap settings = integrationSettings.getValueMap(key);
@@ -986,7 +987,7 @@ public class Analytics {
       if (integration == null) {
         log.info("Factory %s couldn't create integration.", factory);
       } else {
-        integrations.add(integration);
+        integrations.put(key, integration);
         bundledIntegrations.put(key, true);
       }
     }
@@ -995,21 +996,20 @@ public class Analytics {
 
   /** Runs the given operation on all integrations. */
   void performIntegrationOperation(IntegrationOperation operation) {
-    for (int i = 0; i < integrations.size(); i++) {
-      Integration<?> integration = integrations.get(i);
+    for (Map.Entry<String, Integration<?>> entry : integrations.entrySet()) {
+      String key = entry.getKey();
       long startTime = System.nanoTime();
-      operation.run(integration, projectSettingsCache.get());
+      operation.run(key, entry.getValue(), projectSettingsCache.get());
       long endTime = System.nanoTime();
       long duration = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-      stats.dispatchIntegrationOperation(integration.key, duration);
+      stats.dispatchIntegrationOperation(key, duration);
     }
   }
 
-  private void performCallback(String key, Callback callback) {
-    for (int i = 0; i < integrations.size(); i++) {
-      Integration<?> integration = integrations.get(i);
-      if (key.equals(integration.key)) {
-        callback.onReady(integration.getUnderlyingInstance());
+  private <T> void performCallback(String key, Callback<T> callback) {
+    for (Map.Entry<String, Integration<?>> entry : integrations.entrySet()) {
+      if (key.equals(entry.getKey())) {
+        callback.onReady((T) entry.getValue().getUnderlyingInstance());
         return;
       }
     }

@@ -39,7 +39,8 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation onActivityCreated(final Activity activity, final Bundle bundle) {
     return new IntegrationOperation() {
-      @Override public void run(Integration<?> integration, ProjectSettings projectSettings) {
+      @Override
+      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
         integration.onActivityCreated(activity, bundle);
       }
 
@@ -51,7 +52,8 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation onActivityStarted(final Activity activity) {
     return new IntegrationOperation() {
-      @Override public void run(Integration<?> integration, ProjectSettings projectSettings) {
+      @Override
+      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
         integration.onActivityStarted(activity);
       }
 
@@ -63,7 +65,8 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation onActivityResumed(final Activity activity) {
     return new IntegrationOperation() {
-      @Override public void run(Integration<?> integration, ProjectSettings projectSettings) {
+      @Override
+      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
         integration.onActivityResumed(activity);
       }
 
@@ -75,7 +78,8 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation onActivityPaused(final Activity activity) {
     return new IntegrationOperation() {
-      @Override public void run(Integration<?> integration, ProjectSettings projectSettings) {
+      @Override
+      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
         integration.onActivityPaused(activity);
       }
 
@@ -87,7 +91,8 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation onActivityStopped(final Activity activity) {
     return new IntegrationOperation() {
-      @Override public void run(Integration<?> integration, ProjectSettings projectSettings) {
+      @Override
+      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
         integration.onActivityStopped(activity);
       }
 
@@ -100,7 +105,8 @@ abstract class IntegrationOperation {
   static IntegrationOperation onActivitySaveInstanceState(final Activity activity,
       final Bundle bundle) {
     return new IntegrationOperation() {
-      @Override public void run(Integration<?> integration, ProjectSettings projectSettings) {
+      @Override
+      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
         integration.onActivitySaveInstanceState(activity, bundle);
       }
 
@@ -112,7 +118,8 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation onActivityDestroyed(final Activity activity) {
     return new IntegrationOperation() {
-      @Override public void run(Integration<?> integration, ProjectSettings projectSettings) {
+      @Override
+      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
         integration.onActivityDestroyed(activity);
       }
 
@@ -124,7 +131,8 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation identify(final IdentifyPayload identifyPayload) {
     return new IntegrationOperation() {
-      @Override public void run(Integration<?> integration, ProjectSettings projectSettings) {
+      @Override
+      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
         integration.identify(identifyPayload);
       }
 
@@ -136,7 +144,8 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation group(final GroupPayload groupPayload) {
     return new IntegrationOperation() {
-      @Override public void run(Integration<?> integration, ProjectSettings projectSettings) {
+      @Override
+      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
         integration.group(groupPayload);
       }
 
@@ -148,7 +157,8 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation track(final TrackPayload trackPayload) {
     return new IntegrationOperation() {
-      @Override public void run(Integration<?> integration, ProjectSettings projectSettings) {
+      @Override
+      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
         ValueMap trackingPlan = projectSettings.trackingPlan();
 
         boolean trackEnabled = true;
@@ -158,7 +168,7 @@ abstract class IntegrationOperation {
           // If tracking plan has no settings for the event, leave the event enabled.
           if (trackingPlan.containsKey(event)) {
             ValueMap eventPlan = trackingPlan.getValueMap(event);
-            trackEnabled = isIntegrationEnabledInPlan(eventPlan, integration.key);
+            trackEnabled = isIntegrationEnabledInPlan(eventPlan, key);
           }
         }
 
@@ -175,7 +185,8 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation screen(final ScreenPayload screenPayload) {
     return new IntegrationOperation() {
-      @Override public void run(Integration<?> integration, ProjectSettings projectSettings) {
+      @Override
+      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
         integration.screen(screenPayload);
       }
 
@@ -187,7 +198,8 @@ abstract class IntegrationOperation {
 
   static IntegrationOperation alias(final AliasPayload aliasPayload) {
     return new IntegrationOperation() {
-      @Override public void run(Integration<?> integration, ProjectSettings projectSettings) {
+      @Override
+      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
         integration.alias(aliasPayload);
       }
 
@@ -198,7 +210,7 @@ abstract class IntegrationOperation {
   }
 
   static final IntegrationOperation FLUSH = new IntegrationOperation() {
-    @Override void run(Integration<?> integration, ProjectSettings projectSettings) {
+    @Override void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
       integration.flush();
     }
 
@@ -208,7 +220,7 @@ abstract class IntegrationOperation {
   };
 
   static final IntegrationOperation RESET = new IntegrationOperation() {
-    @Override void run(Integration<?> integration, ProjectSettings projectSettings) {
+    @Override void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
       integration.reset();
     }
 
@@ -221,5 +233,5 @@ abstract class IntegrationOperation {
   }
 
   /** Run this operation on the given integration. */
-  abstract void run(Integration<?> integration, ProjectSettings projectSettings);
+  abstract void run(String key, Integration<?> integration, ProjectSettings projectSettings);
 }
