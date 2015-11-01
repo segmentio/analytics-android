@@ -75,7 +75,7 @@ import static android.provider.Settings.Secure.getString;
 
 public final class Utils {
 
-  public static final String THREAD_PREFIX = "SegmentAnalytics-";
+  public static final String THREAD_PREFIX = "Segment-";
   public static final int DEFAULT_FLUSH_INTERVAL = 30 * 1000; // 30s
   public static final int DEFAULT_FLUSH_QUEUE_SIZE = 20;
   public static final boolean DEFAULT_COLLECT_DEVICE_ID = true;

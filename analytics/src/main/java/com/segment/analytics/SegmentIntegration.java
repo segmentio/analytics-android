@@ -6,11 +6,11 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.JsonWriter;
-import com.segment.analytics.integrations.AbstractIntegration;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
 import com.segment.analytics.integrations.IdentifyPayload;
+import com.segment.analytics.integrations.Integration;
 import com.segment.analytics.integrations.Log;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -40,7 +41,15 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.toISO8601Date;
 
 /** Entity that queues payloads on disks and uploads them periodically. */
-class SegmentIntegration extends AbstractIntegration {
+class SegmentIntegration extends Integration<Void> {
+  static final Integration.Factory FACTORY = new Integration.Factory() {
+    @Override public Integration<?> create(ValueMap settings, Analytics analytics) {
+      return SegmentIntegration.create(analytics.getApplication(), analytics.client,
+          analytics.cartographer, analytics.networkExecutor, analytics.stats,
+          Collections.unmodifiableMap(analytics.bundledIntegrations), analytics.tag,
+          analytics.flushIntervalInMillis, analytics.flushQueueSize, analytics.getLogger());
+    }
+  };
 
   static final String SEGMENT_KEY = "Segment.io";
 
@@ -138,6 +147,7 @@ class SegmentIntegration extends AbstractIntegration {
       ExecutorService networkExecutor, QueueFile queueFile, Stats stats,
       Map<String, Boolean> bundledIntegrations, long flushIntervalInMillis, int flushQueueSize,
       Log log) {
+    super(SEGMENT_KEY);
     this.context = context;
     this.client = client;
     this.networkExecutor = networkExecutor;
@@ -159,15 +169,6 @@ class SegmentIntegration extends AbstractIntegration {
         flush();
       }
     }, initialDelay, flushIntervalInMillis, TimeUnit.MILLISECONDS);
-  }
-
-  @Override public void initialize(Analytics analytics, ValueMap settings)
-      throws IllegalStateException {
-    // no-op
-  }
-
-  @Override public String key() {
-    return SEGMENT_KEY;
   }
 
   @Override public void identify(IdentifyPayload identify) {

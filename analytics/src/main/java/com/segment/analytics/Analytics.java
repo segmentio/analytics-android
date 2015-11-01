@@ -30,25 +30,38 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Pair;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
 import com.segment.analytics.integrations.IdentifyPayload;
+import com.segment.analytics.integrations.Integration;
 import com.segment.analytics.integrations.Log;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
+import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
+import static com.segment.analytics.internal.Utils.buffer;
+import static com.segment.analytics.internal.Utils.closeQuietly;
 import static com.segment.analytics.internal.Utils.getResourceString;
 import static com.segment.analytics.internal.Utils.hasPermission;
+import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
@@ -71,6 +84,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * @see <a href="https://Segment/">Segment</a>
  */
 public class Analytics {
+  private static final String ANALYTICS_THREAD_NAME = THREAD_PREFIX + "Analytics";
   static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
     @Override public void handleMessage(Message msg) {
       throw new AssertionError("Unknown handler message received: " + msg.what);
@@ -82,14 +96,25 @@ public class Analytics {
   private static final Properties EMPTY_PROPERTIES = new Properties();
 
   private final Application application;
-  private final ExecutorService networkExecutor;
-  private final IntegrationManager integrationManager;
-  private final Stats stats;
+  final ExecutorService networkExecutor;
+  final Stats stats;
   private final Options defaultOptions;
   private final Traits.Cache traitsCache;
   private final AnalyticsContext analyticsContext;
   private final Log log;
-  private final String tag;
+  final String tag;
+  final Client client;
+  final Cartographer cartographer;
+  private final ProjectSettings.Cache projectSettingsCache;
+  private final String writeKey;
+  final int flushQueueSize;
+  final long flushIntervalInMillis;
+  private final HandlerThread analyticsThread;
+  private final AnalyticsHandler analyticsHandler;
+
+  private Map<String, Integration.Factory> factories;
+  private List<Integration<?>> integrations;
+  final Map<String, Boolean> bundledIntegrations = new ConcurrentHashMap<>();
   volatile boolean shutdown;
 
   /**
@@ -146,9 +171,11 @@ public class Analytics {
     }
   }
 
-  Analytics(Application application, ExecutorService networkExecutor,
-      IntegrationManager.Factory integrationManagerFactory, Stats stats, Traits.Cache traitsCache,
-      AnalyticsContext analyticsContext, Options defaultOptions, Log log, String tag) {
+  Analytics(Application application, ExecutorService networkExecutor, Stats stats,
+      Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions, Log log,
+      String tag, Map<String, Integration.Factory> integrationFactories, Client client,
+      Cartographer cartographer, ProjectSettings.Cache projectSettingsCache, String writeKey,
+      int flushQueueSize, long flushIntervalInMillis) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -157,8 +184,24 @@ public class Analytics {
     this.defaultOptions = defaultOptions;
     this.log = log;
     this.tag = tag;
-    // This needs to be last so that the analytics instance members are assigned first
-    this.integrationManager = integrationManagerFactory.create(this);
+    this.client = client;
+    this.cartographer = cartographer;
+    this.projectSettingsCache = projectSettingsCache;
+    this.writeKey = writeKey;
+    this.flushQueueSize = flushQueueSize;
+    this.flushIntervalInMillis = flushIntervalInMillis;
+
+    int mapSize = 1 + integrationFactories.size();
+    Map<String, Integration.Factory> factories = new LinkedHashMap<>(mapSize);
+    factories.put(SegmentIntegration.SEGMENT_KEY, SegmentIntegration.FACTORY);
+    factories.putAll(integrationFactories);
+    this.factories = Collections.unmodifiableMap(factories);
+
+    analyticsThread = new HandlerThread(ANALYTICS_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
+    analyticsThread.start();
+    analyticsHandler = new AnalyticsHandler(analyticsThread.getLooper(), this);
+
+    analyticsHandler.sendEmptyMessage(AnalyticsHandler.INITIALIZE);
 
     log.debug("Created analytics client for project with tag:%s.", tag);
   }
@@ -400,7 +443,28 @@ public class Analytics {
       throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
     }
     log.verbose("Created payload %s.", payload);
-    integrationManager.dispatchEnqueue(payload);
+    IntegrationOperation operation;
+    switch (payload.type()) {
+      case identify:
+        operation = IntegrationOperation.identify((IdentifyPayload) payload);
+        break;
+      case alias:
+        operation = IntegrationOperation.alias((AliasPayload) payload);
+        break;
+      case group:
+        operation = IntegrationOperation.group((GroupPayload) payload);
+        break;
+      case track:
+        operation = IntegrationOperation.track((TrackPayload) payload);
+        break;
+      case screen:
+        operation = IntegrationOperation.screen((ScreenPayload) payload);
+        break;
+      default:
+        throw new AssertionError("unknown type " + payload.type());
+    }
+    Message message = analyticsHandler.obtainMessage(AnalyticsHandler.ENQUEUE, operation);
+    analyticsHandler.sendMessage(message);
   }
 
   /**
@@ -411,7 +475,9 @@ public class Analytics {
     if (shutdown) {
       throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
     }
-    integrationManager.dispatchFlush();
+    IntegrationOperation operation = IntegrationOperation.FLUSH;
+    Message message = analyticsHandler.obtainMessage(AnalyticsHandler.ENQUEUE, operation);
+    analyticsHandler.sendMessage(message);
   }
 
   /** Get the {@link AnalyticsContext} used by this instance. */
@@ -460,26 +526,9 @@ public class Analytics {
     traitsCache.delete();
     traitsCache.set(Traits.create());
     analyticsContext.setTraits(traitsCache.get());
-    integrationManager.dispatchReset();
-  }
-
-  /** Stops this instance from accepting further requests. */
-  public void shutdown() {
-    if (this == singleton) {
-      throw new UnsupportedOperationException("Default singleton instance cannot be shutdown.");
-    }
-    if (shutdown) {
-      return;
-    }
-    integrationManager.shutdown();
-    if (networkExecutor instanceof AnalyticsExecutorService) {
-      networkExecutor.shutdown();
-    }
-    stats.shutdown();
-    shutdown = true;
-    synchronized (INSTANCES) {
-      INSTANCES.remove(tag);
-    }
+    IntegrationOperation operation = IntegrationOperation.RESET;
+    Message message = analyticsHandler.obtainMessage(AnalyticsHandler.ENQUEUE, operation);
+    analyticsHandler.sendMessage(message);
   }
 
   /**
@@ -493,34 +542,44 @@ public class Analytics {
    * You can only register for one callback per integration at a time, and passing in a {@code
    * callback} will remove the previous callback for that integration.
    * </p>
-   * The callback is invoked on the same thread we call integrations on, so if you want to update
+   * The callback is invoked on the same thread we interact with integrations. Ff you want to
+   * update
    * the UI, make sure you move off to the main thread.
    * <p/>
    * Usage:
    * <pre> <code>
-   *   analytics.onIntegrationReady(BundledIntegration.AMPLITUDE, new Callback() {
+   *   analytics.onIntegrationReady("Amplitude", new Callback() {
    *     {@literal @}Override public void onIntegrationReady(Object instance) {
    *       Amplitude.enableLocationListening();
    *     }
    *   });
-   *   analytics.onIntegrationReady(BundledIntegration.MIXPANEL, new Callback() {
+   *   analytics.onIntegrationReady("Mixpanel", new Callback() {
    *     {@literal @}Override public void onIntegrationReady(Object instance) {
    *       ((MixpanelAPI) instance).clearSuperProperties();
    *     }
    *   })*
    * </code> </pre>
    */
-  public void onIntegrationReady(BundledIntegration bundledIntegration, Callback callback) {
-    if (bundledIntegration == null) {
-      throw new IllegalArgumentException("bundledIntegration cannot be null.");
-    }
-    if (integrationManager == null) {
-      throw new IllegalStateException("Enable bundled integrations to register for this callback.");
+  public void onIntegrationReady(String key, Callback callback) {
+    if (isNullOrEmpty(key)) {
+      throw new IllegalArgumentException("key cannot be null or empty.");
     }
 
-    integrationManager.dispatchRegisterCallback(bundledIntegration.key, callback);
+    Pair<String, Callback> pair = new Pair<>(key, callback);
+    analyticsHandler.sendMessage(analyticsHandler.obtainMessage(AnalyticsHandler.CALLBACK, pair));
   }
 
+  /** @deprecated Use {@link #onIntegrationReady(String, Callback)} instead. */
+  public void onIntegrationReady(BundledIntegration integration, Callback callback) {
+    if (integration == null) {
+      throw new IllegalArgumentException("integration cannot be null or empty.");
+    }
+
+    Pair<String, Callback> pair = new Pair<>(integration.key, callback);
+    analyticsHandler.sendMessage(analyticsHandler.obtainMessage(AnalyticsHandler.CALLBACK, pair));
+  }
+
+  /** @deprecated  */
   public enum BundledIntegration {
     AMPLITUDE("Amplitude"),
     APPS_FLYER("AppsFlyer"),
@@ -544,6 +603,25 @@ public class Analytics {
 
     BundledIntegration(String key) {
       this.key = key;
+    }
+  }
+
+  /** Stops this instance from accepting further requests. */
+  public void shutdown() {
+    if (this == singleton) {
+      throw new UnsupportedOperationException("Default singleton instance cannot be shutdown.");
+    }
+    if (shutdown) {
+      return;
+    }
+    analyticsThread.quit();
+    if (networkExecutor instanceof AnalyticsExecutorService) {
+      networkExecutor.shutdown();
+    }
+    stats.shutdown();
+    shutdown = true;
+    synchronized (INSTANCES) {
+      INSTANCES.remove(tag);
     }
   }
 
@@ -574,7 +652,6 @@ public class Analytics {
    * integrations.
    */
   public interface Callback {
-
     /**
      * This method will be invoked once for each callback.
      *
@@ -586,7 +663,6 @@ public class Analytics {
 
   /** Fluent API for creating {@link Analytics} instances. */
   public static class Builder {
-
     private final Application application;
     private String writeKey;
     private boolean collectDeviceID = Utils.DEFAULT_COLLECT_DEVICE_ID;
@@ -597,6 +673,7 @@ public class Analytics {
     private LogLevel logLevel;
     private ExecutorService networkExecutor;
     private ConnectionFactory connectionFactory;
+    private Map<String, Integration.Factory> factories;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -615,6 +692,8 @@ public class Analytics {
         throw new IllegalArgumentException("writeKey must not be null or empty.");
       }
       this.writeKey = writeKey;
+
+      factories = new LinkedHashMap<>();
     }
 
     /**
@@ -746,6 +825,14 @@ public class Analytics {
       return this;
     }
 
+    public Builder use(String key, Integration.Factory factory) {
+      if (factory == null) {
+        throw new IllegalArgumentException("Factory must not be null.");
+      }
+      factories.put(key, factory);
+      return this;
+    }
+
     /** Create a {@link Analytics} client. */
     public Analytics build() {
       if (defaultOptions == null) {
@@ -768,12 +855,8 @@ public class Analytics {
       final Cartographer cartographer = Cartographer.INSTANCE;
       final Client client = new Client(application, writeKey, connectionFactory);
 
-      IntegrationManager.Factory integrationManagerFactory = new IntegrationManager.Factory() {
-        @Override public IntegrationManager create(Analytics analytics) {
-          return IntegrationManager.create(analytics, cartographer, client, networkExecutor, stats,
-              tag, flushIntervalInMillis, flushQueueSize);
-        }
-      };
+      ProjectSettings.Cache projectSettingsCache =
+          new ProjectSettings.Cache(application, cartographer, tag);
 
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
@@ -794,8 +877,141 @@ public class Analytics {
         INSTANCES.add(tag);
       }
 
-      return new Analytics(application, networkExecutor, integrationManagerFactory, stats,
-          traitsCache, analyticsContext, defaultOptions, new Log(logLevel), tag);
+      return new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
+          defaultOptions, new Log(logLevel), tag, factories, client, cartographer,
+          projectSettingsCache, writeKey, flushQueueSize, flushIntervalInMillis);
+    }
+  }
+
+  // Handler Logic.
+
+  static class AnalyticsHandler extends Handler {
+    static final int INITIALIZE = 1;
+    static final int ENQUEUE = 2;
+    static final int CALLBACK = 3;
+
+    private final Analytics analytics;
+
+    AnalyticsHandler(Looper looper, Analytics analytics) {
+      super(looper);
+      this.analytics = analytics;
+    }
+
+    @Override public void handleMessage(final Message msg) {
+      switch (msg.what) {
+        case INITIALIZE:
+          analytics.performInitializeIntegrations();
+          break;
+        case ENQUEUE:
+          analytics.performIntegrationOperation((IntegrationOperation) msg.obj);
+          break;
+        case CALLBACK:
+          Pair<String, Analytics.Callback> pair = (Pair<String, Analytics.Callback>) msg.obj;
+          analytics.performCallback(pair.first, pair.second);
+          break;
+        default:
+          throw new AssertionError("Unknown Integration Manager handler message: " + msg);
+      }
+    }
+  }
+
+  private static final long SETTINGS_REFRESH_INTERVAL = 1000 * 60 * 60 * 24; // 24 hours
+  private static final long SETTINGS_RETRY_INTERVAL = 1000 * 60; // 1 minute
+
+  private ProjectSettings fetch() {
+    try {
+      ProjectSettings projectSettings = networkExecutor.submit(new Callable<ProjectSettings>() {
+        @Override public ProjectSettings call() throws Exception {
+          Client.Connection connection = null;
+          try {
+            connection = client.fetchSettings();
+            Map<String, Object> map = cartographer.fromJson(buffer(connection.is));
+            return ProjectSettings.create(map);
+          } finally {
+            closeQuietly(connection);
+          }
+        }
+      }).get();
+      projectSettingsCache.set(projectSettings);
+      return projectSettings;
+    } catch (InterruptedException e) {
+      log.error(e, "Thread interrupted while fetching settings.");
+    } catch (ExecutionException e) {
+      log.error(e, "Unable to fetch settings. Retrying in %s ms.", SETTINGS_RETRY_INTERVAL);
+    }
+    return null;
+  }
+
+  private void performInitializeIntegrations() {
+    ProjectSettings projectSettings = projectSettingsCache.get();
+
+    if (isNullOrEmpty(projectSettings)) {
+      if (isConnected(application)) {
+        projectSettings = fetch();
+      }
+
+      if (isNullOrEmpty(projectSettings)) {
+        // We don't have any cached settings, and we can't connect to the internet. Enable just the
+        // Segment integration:
+        // {
+        //   integrations: {
+        //     Segment.io: {
+        //       apiKey: "{writeKey}"
+        //     }
+        //   }
+        // }
+        ValueMap settings = new ValueMap().putValue("integrations",
+            new ValueMap().putValue("Segment.io", new ValueMap().putValue("apiKey", writeKey)));
+        projectSettings = ProjectSettings.create(settings);
+      }
+    } else {
+      if (projectSettings.timestamp() + SETTINGS_REFRESH_INTERVAL < System.currentTimeMillis()) {
+        if (isConnected(application)) {
+          projectSettings = fetch();
+        }
+      }
+    }
+
+    ValueMap integrationSettings = projectSettings.integrations();
+    integrations = new ArrayList<>(factories.size());
+    for (Map.Entry<String, Integration.Factory> entry : factories.entrySet()) {
+      String key = entry.getKey();
+      ValueMap settings = integrationSettings.getValueMap(key);
+      if (isNullOrEmpty(settings)) {
+        log.debug("Integration %s is not enabled.", key);
+        continue;
+      }
+      Integration.Factory factory = entry.getValue();
+      Integration integration = factory.create(settings, this);
+      if (integration == null) {
+        log.info("Factory %s couldn't create integration.", factory);
+      } else {
+        integrations.add(integration);
+        bundledIntegrations.put(key, true);
+      }
+    }
+    factories = null;
+  }
+
+  /** Runs the given operation on all integrations. */
+  void performIntegrationOperation(IntegrationOperation operation) {
+    for (int i = 0; i < integrations.size(); i++) {
+      Integration<?> integration = integrations.get(i);
+      long startTime = System.nanoTime();
+      operation.run(integration, projectSettingsCache.get());
+      long endTime = System.nanoTime();
+      long duration = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+      stats.dispatchIntegrationOperation(integration.key, duration);
+    }
+  }
+
+  private void performCallback(String key, Callback callback) {
+    for (int i = 0; i < integrations.size(); i++) {
+      Integration<?> integration = integrations.get(i);
+      if (key.equals(integration.key)) {
+        callback.onReady(integration.getUnderlyingInstance());
+        return;
+      }
     }
   }
 }

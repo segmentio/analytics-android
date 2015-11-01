@@ -71,7 +71,8 @@ public class AnalyticsTest {
     };
     analytics =
         new Analytics(application, networkExecutor, integrationManagerFactory, stats, traitsCache,
-            analyticsContext, defaultOptions, new Log(NONE), "qaz");
+            analyticsContext, defaultOptions, new Log(NONE), "qaz", client, cartographer,
+            projectSettingsCache, writeKey, flushQueueSize, flushIntervalInMillis);
 
     // Used by singleton tests
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
