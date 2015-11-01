@@ -1,4 +1,4 @@
-package com.segment.analytics.internal;
+package com.segment.analytics.integrations;
 
 import com.segment.analytics.Analytics;
 import com.segment.analytics.core.tests.BuildConfig;

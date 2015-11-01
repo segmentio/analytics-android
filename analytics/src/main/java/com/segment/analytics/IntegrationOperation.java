@@ -18,6 +18,9 @@ abstract class IntegrationOperation {
     if (isNullOrEmpty(integrations)) {
       return true;
     }
+    if (SegmentIntegration.SEGMENT_KEY.equals(key)) {
+      return true; // leave Segment integration enabled.
+    }
     boolean enabled = true;
     if (integrations.containsKey(key)) {
       enabled = integrations.getBoolean(key, true);

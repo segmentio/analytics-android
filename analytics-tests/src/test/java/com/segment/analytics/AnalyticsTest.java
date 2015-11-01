@@ -3,10 +3,13 @@ package com.segment.analytics;
 import android.Manifest;
 import android.app.Application;
 import com.segment.analytics.core.tests.BuildConfig;
-import com.segment.analytics.integrations.Log;
-import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
+import com.segment.analytics.integrations.IdentifyPayload;
+import com.segment.analytics.integrations.Integration;
+import com.segment.analytics.integrations.Log;
+import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
+import java.util.Collections;
 import org.assertj.core.data.MapEntry;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -16,6 +19,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
@@ -23,14 +27,17 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
 import org.robolectric.shadows.ShadowLog;
 
-import static com.segment.analytics.Analytics.BundledIntegration.MIXPANEL;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static com.segment.analytics.Utils.createContext;
+import static com.segment.analytics.internal.Utils.DEFAULT_FLUSH_INTERVAL;
+import static com.segment.analytics.internal.Utils.DEFAULT_FLUSH_QUEUE_SIZE;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,12 +47,15 @@ import static org.mockito.MockitoAnnotations.initMocks;
 @Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
 public class AnalyticsTest {
 
-  Application application;
-  @Mock IntegrationManager integrationManager;
-  @Mock Stats stats;
   @Mock Traits.Cache traitsCache;
-  @Mock AnalyticsExecutorService networkExecutor;
   @Mock Options defaultOptions;
+  @Spy AnalyticsExecutorService networkExecutor;
+  @Mock Client client;
+  @Mock Stats stats;
+  @Mock ProjectSettings.Cache projectSettingsCache;
+  @Mock Integration integration;
+  @Mock Integration.Factory factory;
+  Application application;
   Traits traits;
   AnalyticsContext analyticsContext;
 
@@ -64,15 +74,12 @@ public class AnalyticsTest {
     traits = Traits.create();
     when(traitsCache.get()).thenReturn(traits);
     analyticsContext = createContext(traits);
-    IntegrationManager.Factory integrationManagerFactory = new IntegrationManager.Factory() {
-      @Override public IntegrationManager create(Analytics analytics) {
-        return integrationManager;
-      }
-    };
-    analytics =
-        new Analytics(application, networkExecutor, integrationManagerFactory, stats, traitsCache,
-            analyticsContext, defaultOptions, new Log(NONE), "qaz", client, cartographer,
-            projectSettingsCache, writeKey, flushQueueSize, flushIntervalInMillis);
+    when(factory.create(any(ValueMap.class), eq(analytics))).thenReturn(integration);
+
+    analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
+        defaultOptions, new Log(NONE), "qaz", Collections.singletonMap("test", factory), client,
+        Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
+        DEFAULT_FLUSH_INTERVAL);
 
     // Used by singleton tests
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
@@ -98,8 +105,8 @@ public class AnalyticsTest {
     assertThat(analyticsContext.traits()).contains(MapEntry.entry("userId", "foo"))
         .contains(MapEntry.entry("bar", "qaz"));
     verify(traitsCache).set(traits);
-    verify(integrationManager).dispatchEnqueue(argThat(new TypeSafeMatcher<BasePayload>() {
-      @Override protected boolean matchesSafely(BasePayload item) {
+    verify(integration).identify(argThat(new TypeSafeMatcher<IdentifyPayload>() {
+      @Override protected boolean matchesSafely(IdentifyPayload item) {
         // Exercises a bug where payloads didn't pick up userId in identify correctly.
         // https://github.com/segmentio/analytics-android/issues/169
         return item.userId().equals("foo");
@@ -167,7 +174,7 @@ public class AnalyticsTest {
     analytics.alias("foo");
     ArgumentCaptor<AliasPayload> payloadArgumentCaptor =
         ArgumentCaptor.forClass(AliasPayload.class);
-    verify(integrationManager).dispatchEnqueue(payloadArgumentCaptor.capture());
+    verify(integration).alias(payloadArgumentCaptor.capture());
     assertThat(payloadArgumentCaptor.getValue()).containsEntry("previousId", anonymousId)
         .containsEntry("userId", "foo");
   }
@@ -177,13 +184,13 @@ public class AnalyticsTest {
 
     analytics.submit(payload);
 
-    verify(integrationManager).dispatchEnqueue(payload);
+    // verify(integrationManager).dispatchEnqueue(payload);
   }
 
   @Test public void flushInvokesDispatch() throws Exception {
     analytics.flush();
 
-    verify(integrationManager).dispatchFlush();
+    verify(integration).flush();
   }
 
   @Test public void getSnapshot() throws Exception {
@@ -209,22 +216,24 @@ public class AnalyticsTest {
     assertThat(analyticsContext.traits()).hasSize(1).containsKey("anonymousId");
   }
 
-  @Test public void onIntegrationReady() {
+  @Test public void onIntegrationReadyShouldFailForNullKey() {
     try {
-      analytics.onIntegrationReady(null, mock(Analytics.Callback.class));
+      analytics.onIntegrationReady((String) null, mock(Analytics.Callback.class));
       fail("registering for null integration should fail");
     } catch (IllegalArgumentException e) {
-      assertThat(e).hasMessage("bundledIntegration cannot be null.");
+      assertThat(e).hasMessage("key cannot be null or empty.");
     }
+  }
 
-    analytics.onIntegrationReady(MIXPANEL, null);
-    verify(integrationManager).dispatchRegisterCallback(MIXPANEL.key, null);
+  @Test public void onIntegrationReady() {
+    Analytics.Callback<Void> callback = mock(Analytics.Callback.class);
+    analytics.onIntegrationReady((String) null, mock(Analytics.Callback.class));
+    verify(callback).onReady(null);
   }
 
   @Test public void shutdown() {
     assertThat(analytics.shutdown).isFalse();
     analytics.shutdown();
-    verify(integrationManager).shutdown();
     verify(stats).shutdown();
     verify(networkExecutor).shutdown();
     assertThat(analytics.shutdown).isTrue();
@@ -248,7 +257,6 @@ public class AnalyticsTest {
     assertThat(analytics.shutdown).isFalse();
     analytics.shutdown();
     analytics.shutdown();
-    verify(integrationManager).shutdown();
     verify(stats).shutdown();
     assertThat(analytics.shutdown).isTrue();
   }

@@ -60,7 +60,10 @@ public abstract class Integration<T> {
   public void identify(IdentifyPayload identify) {
   }
 
-  /** @see {@link Analytics#group(String, com.segment.analytics.Traits, com.segment.analytics.Options)} */
+  /**
+   * @see {@link Analytics#group(String, com.segment.analytics.Traits,
+   * com.segment.analytics.Options)}
+   */
   public void group(GroupPayload group) {
   }
 

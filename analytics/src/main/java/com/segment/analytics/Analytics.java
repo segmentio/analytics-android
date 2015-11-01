@@ -174,7 +174,7 @@ public class Analytics {
 
   Analytics(Application application, ExecutorService networkExecutor, Stats stats,
       Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions, Log log,
-      String tag, Map<String, Integration.Factory> integrationFactories, Client client,
+      String tag, Map<String, Integration.Factory> factories, Client client,
       Cartographer cartographer, ProjectSettings.Cache projectSettingsCache, String writeKey,
       int flushQueueSize, long flushIntervalInMillis) {
     this.application = application;
@@ -191,11 +191,6 @@ public class Analytics {
     this.writeKey = writeKey;
     this.flushQueueSize = flushQueueSize;
     this.flushIntervalInMillis = flushIntervalInMillis;
-
-    int mapSize = 1 + integrationFactories.size();
-    Map<String, Integration.Factory> factories = new LinkedHashMap<>(mapSize);
-    factories.put(SegmentIntegration.SEGMENT_KEY, SegmentIntegration.FACTORY);
-    factories.putAll(integrationFactories);
     this.factories = Collections.unmodifiableMap(factories);
 
     analyticsThread = new HandlerThread(ANALYTICS_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
@@ -826,6 +821,7 @@ public class Analytics {
       return this;
     }
 
+    /** TODO: docs */
     public Builder use(String key, Integration.Factory factory) {
       if (factory == null) {
         throw new IllegalArgumentException("Factory must not be null.");
@@ -836,14 +832,24 @@ public class Analytics {
 
     /** Create a {@link Analytics} client. */
     public Analytics build() {
+      if (isNullOrEmpty(tag)) {
+        tag = writeKey;
+      }
+      synchronized (INSTANCES) {
+        if (INSTANCES.contains(tag)) {
+          throw new IllegalStateException("Duplicate analytics client created with tag: "
+              + tag
+              + ". If you want to use multiple Analytics clients, use a different writeKey "
+              + "or set a tag via the builder during construction.");
+        }
+        INSTANCES.add(tag);
+      }
+
       if (defaultOptions == null) {
         defaultOptions = new Options();
       }
       if (logLevel == null) {
         logLevel = LogLevel.NONE;
-      }
-      if (isNullOrEmpty(tag)) {
-        tag = writeKey;
       }
       if (networkExecutor == null) {
         networkExecutor = new AnalyticsExecutorService();
@@ -868,15 +874,9 @@ public class Analytics {
           AnalyticsContext.create(application, traitsCache.get(), collectDeviceID);
       analyticsContext.attachAdvertisingId(application);
 
-      synchronized (INSTANCES) {
-        if (INSTANCES.contains(tag)) {
-          throw new IllegalStateException("Duplicate analytics client created with tag: "
-              + tag
-              + ". If you want to use multiple Analytics clients, use a different writeKey "
-              + "or set a tag via the builder during construction.");
-        }
-        INSTANCES.add(tag);
-      }
+      Map<String, Integration.Factory> factories = new LinkedHashMap<>(1 + this.factories.size());
+      factories.put(SegmentIntegration.SEGMENT_KEY, SegmentIntegration.FACTORY);
+      factories.putAll(this.factories);
 
       return new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
           defaultOptions, new Log(logLevel), tag, factories, client, cartographer,
