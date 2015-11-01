@@ -8,6 +8,7 @@ import com.segment.analytics.integrations.IdentifyPayload;
 import com.segment.analytics.integrations.Integration;
 import com.segment.analytics.integrations.Log;
 import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import org.assertj.core.data.MapEntry;
@@ -47,6 +48,16 @@ import static org.mockito.MockitoAnnotations.initMocks;
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
 public class AnalyticsTest {
+  private static final String SETTINGS = "{\n"
+      + "  \"integrations\": {\n"
+      + "    \"test\": {\n"
+      + "      \"foo\": \"bar\"\n"
+      + "    }\n"
+      + "  },\n"
+      + "  \"plan\": {\n"
+      + "    \n"
+      + "  }\n"
+      + "}";
 
   @Mock Traits.Cache traitsCache;
   @Mock Options defaultOptions;
@@ -56,7 +67,7 @@ public class AnalyticsTest {
   @Mock Stats stats;
   @Mock ProjectSettings.Cache projectSettingsCache;
   @Mock Integration integration;
-  @Mock Integration.Factory factory;
+  Integration.Factory factory;
   Application application;
   Traits traits;
   AnalyticsContext analyticsContext;
@@ -68,7 +79,7 @@ public class AnalyticsTest {
     shadowApp.grantPermissions(permission);
   }
 
-  @Before public void setUp() {
+  @Before public void setUp() throws IOException {
     Analytics.INSTANCES.clear();
 
     initMocks(this);
@@ -76,7 +87,13 @@ public class AnalyticsTest {
     traits = Traits.create();
     when(traitsCache.get()).thenReturn(traits);
     analyticsContext = createContext(traits);
-    when(factory.create(any(ValueMap.class), eq(analytics))).thenReturn(integration);
+    factory = new Integration.Factory() {
+      @Override public Integration<?> create(ValueMap settings, Analytics analytics) {
+        return integration;
+      }
+    };
+    when(projectSettingsCache.get()).thenReturn(
+        ProjectSettings.create(Cartographer.INSTANCE.fromJson(SETTINGS)));
 
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, new Log(NONE), "qaz", Collections.singletonMap("test", factory), client,
@@ -223,7 +240,7 @@ public class AnalyticsTest {
 
   @Test public void onIntegrationReady() {
     Analytics.Callback<Void> callback = mock(Analytics.Callback.class);
-    analytics.onIntegrationReady((String) null, mock(Analytics.Callback.class));
+    analytics.onIntegrationReady("test", callback);
     verify(callback).onReady(null);
   }
 
