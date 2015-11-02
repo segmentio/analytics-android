@@ -11,7 +11,7 @@ import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
 import com.segment.analytics.integrations.IdentifyPayload;
 import com.segment.analytics.integrations.Integration;
-import com.segment.analytics.integrations.Log;
+import com.segment.analytics.integrations.Logger;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Utils.AnalyticsThreadFactory;
@@ -76,7 +76,7 @@ class SegmentIntegration extends Integration<Void> {
   private final Stats stats;
   private final Handler handler;
   private final HandlerThread segmentThread;
-  private final Log log;
+  private final Logger logger;
   private final Map<String, Boolean> bundledIntegrations;
   private final Cartographer cartographer;
   private final ExecutorService networkExecutor;
@@ -131,7 +131,7 @@ class SegmentIntegration extends Integration<Void> {
   static synchronized SegmentIntegration create(Context context, Client client,
       Cartographer cartographer, ExecutorService networkExecutor, Stats stats,
       Map<String, Boolean> bundledIntegrations, String tag, long flushIntervalInMillis,
-      int flushQueueSize, Log log) {
+      int flushQueueSize, Logger logger) {
     QueueFile queueFile;
     try {
       File folder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
@@ -140,19 +140,19 @@ class SegmentIntegration extends Integration<Void> {
       throw new IOError(e);
     }
     return new SegmentIntegration(context, client, cartographer, networkExecutor, queueFile, stats,
-        bundledIntegrations, flushIntervalInMillis, flushQueueSize, log);
+        bundledIntegrations, flushIntervalInMillis, flushQueueSize, logger);
   }
 
   SegmentIntegration(Context context, Client client, Cartographer cartographer,
       ExecutorService networkExecutor, QueueFile queueFile, Stats stats,
       Map<String, Boolean> bundledIntegrations, long flushIntervalInMillis, int flushQueueSize,
-      Log log) {
+      Logger logger) {
     this.context = context;
     this.client = client;
     this.networkExecutor = networkExecutor;
     this.queueFile = queueFile;
     this.stats = stats;
-    this.log = log;
+    this.logger = logger;
     this.bundledIntegrations = bundledIntegrations;
     this.cartographer = cartographer;
     this.flushQueueSize = flushQueueSize;
@@ -205,7 +205,7 @@ class SegmentIntegration extends Integration<Void> {
         // Double checked locking, the network executor could have removed payload from the queue
         // to bring it below our capacity while we were waiting.
         if (queueFile.size() >= MAX_QUEUE_SIZE) {
-          log.info("Queue is at max capacity (%s), removing oldest payload.", queueFile.size());
+          logger.info("Queue is at max capacity (%s), removing oldest payload.", queueFile.size());
           try {
             queueFile.remove();
           } catch (IOException e) {
@@ -228,10 +228,10 @@ class SegmentIntegration extends Integration<Void> {
       }
       queueFile.add(payloadJson.getBytes(UTF_8));
     } catch (IOException e) {
-      log.error(e, "Could not add payload %s to queue: %s.", payload, queueFile);
+      logger.error(e, "Could not add payload %s to queue: %s.", payload, queueFile);
     }
 
-    log.verbose("Enqueued %s payload. %s elements in the queue.", payload, queueFile.size());
+    logger.verbose("Enqueued %s payload. %s elements in the queue.", payload, queueFile.size());
     if (queueFile.size() >= flushQueueSize) {
       submitFlush();
     }
@@ -268,7 +268,7 @@ class SegmentIntegration extends Integration<Void> {
       return;
     }
 
-    log.verbose("Uploading payloads in queue to Segment.");
+    logger.verbose("Uploading payloads in queue to Segment.");
     int payloadsUploaded;
     try {
       Client.Connection connection = null;
@@ -290,13 +290,13 @@ class SegmentIntegration extends Integration<Void> {
           connection.close();
         } catch (Client.UploadException e) {
           // Simply log and proceed to remove the rejected payloads from the queue
-          log.error(e, "Payloads were rejected by server. Marked for removal.");
+          logger.error(e, "Payloads were rejected by server. Marked for removal.");
         }
       } finally {
         closeQuietly(connection);
       }
     } catch (IOException e) {
-      log.error(e, "Error while uploading payloads");
+      logger.error(e, "Error while uploading payloads");
       return;
     }
 
@@ -314,7 +314,7 @@ class SegmentIntegration extends Integration<Void> {
           + queueFile.toString(), e));
     }
 
-    log.verbose("Uploaded %s payloads. %s remain in the queue.", payloadsUploaded,
+    logger.verbose("Uploaded %s payloads. %s remain in the queue.", payloadsUploaded,
         queueFile.size());
     stats.dispatchFlush(payloadsUploaded);
     if (queueFile.size() > 0) {

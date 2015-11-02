@@ -37,7 +37,7 @@ import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
 import com.segment.analytics.integrations.IdentifyPayload;
 import com.segment.analytics.integrations.Integration;
-import com.segment.analytics.integrations.Log;
+import com.segment.analytics.integrations.Logger;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Utils;
@@ -99,7 +99,7 @@ public class Analytics {
   private final Options defaultOptions;
   private final Traits.Cache traitsCache;
   private final AnalyticsContext analyticsContext;
-  private final Log log;
+  private final Logger logger;
   final String tag;
   final Client client;
   final Cartographer cartographer;
@@ -170,8 +170,8 @@ public class Analytics {
   }
 
   Analytics(Application application, ExecutorService networkExecutor, Stats stats,
-      Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions, Log log,
-      String tag, Map<String, Integration.Factory> factories, Client client,
+      Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions,
+      Logger logger, String tag, Map<String, Integration.Factory> factories, Client client,
       Cartographer cartographer, ProjectSettings.Cache projectSettingsCache, String writeKey,
       int flushQueueSize, long flushIntervalInMillis, ExecutorService analyticsExecutor) {
     this.application = application;
@@ -180,7 +180,7 @@ public class Analytics {
     this.traitsCache = traitsCache;
     this.analyticsContext = analyticsContext;
     this.defaultOptions = defaultOptions;
-    this.log = log;
+    this.logger = logger;
     this.tag = tag;
     this.client = client;
     this.cartographer = cartographer;
@@ -197,7 +197,7 @@ public class Analytics {
       }
     });
 
-    log.debug("Created analytics client for project with tag:%s.", tag);
+    logger.debug("Created analytics client for project with tag:%s.", tag);
   }
 
   // Analytics API
@@ -436,7 +436,7 @@ public class Analytics {
     if (shutdown) {
       throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
     }
-    log.verbose("Created payload %s.", payload);
+    logger.verbose("Created payload %s.", payload);
     final IntegrationOperation operation;
     switch (payload.type()) {
       case identify:
@@ -500,12 +500,21 @@ public class Analytics {
    * @deprecated This will be removed in a future release.
    */
   @Deprecated public LogLevel getLogLevel() {
-    return log.logLevel;
+    return logger.logLevel;
   }
 
-  /** Return the {@link Log} instance used by this client. */
-  public Log getLogger() {
-    return log;
+  /**
+   * Return the {@link Logger} instance used by this client.
+   *
+   * @deprecated This will be removed in a future release.
+   */
+  public Logger getLogger() {
+    return logger;
+  }
+
+  /** Return a new {@link Logger} with the given sub-tag. */
+  public Logger logger(String tag) {
+    return logger.subLog(tag);
   }
 
   /**
@@ -885,7 +894,7 @@ public class Analytics {
       factories.putAll(this.factories);
 
       return new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
-          defaultOptions, new Log(logLevel), tag, factories, client, cartographer,
+          defaultOptions, Logger.with(logLevel), tag, factories, client, cartographer,
           projectSettingsCache, writeKey, flushQueueSize, flushIntervalInMillis,
           Executors.newSingleThreadExecutor());
     }
@@ -912,9 +921,9 @@ public class Analytics {
       projectSettingsCache.set(projectSettings);
       return projectSettings;
     } catch (InterruptedException e) {
-      log.error(e, "Thread interrupted while fetching settings.");
+      logger.error(e, "Thread interrupted while fetching settings.");
     } catch (ExecutionException e) {
-      log.error(e, "Unable to fetch settings. Retrying in %s ms.", SETTINGS_RETRY_INTERVAL);
+      logger.error(e, "Unable to fetch settings. Retrying in %s ms.", SETTINGS_RETRY_INTERVAL);
     }
     return null;
   }
@@ -955,13 +964,13 @@ public class Analytics {
       String key = entry.getKey();
       ValueMap settings = integrationSettings.getValueMap(key);
       if (isNullOrEmpty(settings)) {
-        log.debug("Integration %s is not enabled.", key);
+        logger.debug("Integration %s is not enabled.", key);
         continue;
       }
       Integration.Factory factory = entry.getValue();
       Integration integration = factory.create(settings, this);
       if (integration == null) {
-        log.info("Factory %s couldn't create integration.", factory);
+        logger.info("Factory %s couldn't create integration.", factory);
       } else {
         integrations.put(key, integration);
         bundledIntegrations.put(key, true);

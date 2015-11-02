@@ -1,8 +1,8 @@
-package com.segment.analytics.integrations;
+package com.segment.analytics;
 
-import com.segment.analytics.Analytics;
+import android.util.Log;
 import com.segment.analytics.core.tests.BuildConfig;
-import com.segment.analytics.integrations.Log;
+import com.segment.analytics.integrations.Logger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricGradleTestRunner;
@@ -13,23 +13,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
-public class LogTest {
+public class LoggerTest {
 
   @Test public void verboseLevelLogsEverything() {
-    Log log = new Log(Analytics.LogLevel.VERBOSE);
+    Logger logger = Logger.with(Analytics.LogLevel.VERBOSE);
 
-    log.debug("foo");
-    log.info("bar");
-    log.verbose("qaz");
-    log.error(null, "qux");
+    logger.debug("foo");
+    logger.info("bar");
+    logger.verbose("qaz");
+    logger.error(null, "qux");
 
     assertThat(ShadowLog.getLogs()).hasSize(4);
   }
 
   @Test public void verboseMessagesShowInLog() {
-    Log log = new Log(Analytics.LogLevel.VERBOSE);
+    Logger logger = Logger.with(Analytics.LogLevel.VERBOSE);
 
-    log.verbose("some message with an %s", "argument");
+    logger.verbose("some message with an %s", "argument");
 
     assertThat(ShadowLog.getLogs()) //
         .containsExactly(new LogItemBuilder() //
@@ -39,9 +39,9 @@ public class LogTest {
   }
 
   @Test public void debugMessagesShowInLog() {
-    Log log = new Log(Analytics.LogLevel.DEBUG);
+    Logger logger = Logger.with(Analytics.LogLevel.DEBUG);
 
-    log.debug("some message with an %s", "argument");
+    logger.debug("some message with an %s", "argument");
 
     assertThat(ShadowLog.getLogs()) //
         .containsExactly(new LogItemBuilder() //
@@ -51,9 +51,9 @@ public class LogTest {
   }
 
   @Test public void infoMessagesShowInLog() {
-    Log log = new Log(Analytics.LogLevel.INFO);
+    Logger logger = Logger.with(Analytics.LogLevel.INFO);
 
-    log.info("some message with an %s", "argument");
+    logger.info("some message with an %s", "argument");
 
     assertThat(ShadowLog.getLogs()) //
         .containsExactly(new LogItemBuilder() //
@@ -63,14 +63,27 @@ public class LogTest {
   }
 
   @Test public void errorMessagesShowInLog() throws Exception {
-    Log log = new Log(Analytics.LogLevel.DEBUG);
+    Logger logger = Logger.with(Analytics.LogLevel.DEBUG);
     Throwable throwable = new AssertionError("testing");
-    log.error(throwable, "some message with an %s", "argument");
+    logger.error(throwable, "some message with an %s", "argument");
 
     assertThat(ShadowLog.getLogs()) //
         .containsExactly(new LogItemBuilder() //
             .type(android.util.Log.ERROR) //
             .throwable(throwable) //
+            .msg("some message with an argument") //
+            .build());
+  }
+
+  @Test public void subLog() throws Exception {
+    Logger logger = Logger.with(Analytics.LogLevel.DEBUG).subLog("foo");
+
+    logger.debug("some message with an %s", "argument");
+
+    assertThat(ShadowLog.getLogs()) //
+        .containsExactly(new LogItemBuilder() //
+            .tag("Analytics-foo") //
+            .type(Log.DEBUG) //
             .msg("some message with an argument") //
             .build());
   }

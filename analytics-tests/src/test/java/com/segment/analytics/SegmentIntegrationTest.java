@@ -4,7 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import com.segment.analytics.core.tests.BuildConfig;
-import com.segment.analytics.integrations.Log;
+import com.segment.analytics.integrations.Logger;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.test.TrackPayloadBuilder;
@@ -346,7 +346,6 @@ public class SegmentIntegrationTest {
   }
 
   private static class SegmentBuilder {
-
     Client client;
     Stats stats;
     QueueFile queueFile;
@@ -355,7 +354,7 @@ public class SegmentIntegrationTest {
     Map<String, Boolean> integrations;
     int flushInterval = Utils.DEFAULT_FLUSH_INTERVAL;
     int flushSize = Utils.DEFAULT_FLUSH_QUEUE_SIZE;
-    Log log = new Log(NONE);
+    Logger logger = Logger.with(NONE);
     ExecutorService networkExecutor;
 
     SegmentBuilder() {
@@ -406,8 +405,8 @@ public class SegmentIntegrationTest {
       return this;
     }
 
-    public SegmentBuilder log(Log log) {
-      this.log = log;
+    public SegmentBuilder log(Logger logger) {
+      this.logger = logger;
       return this;
     }
 
@@ -429,7 +428,7 @@ public class SegmentIntegrationTest {
       if (integrations == null) integrations = Collections.emptyMap();
       if (networkExecutor == null) networkExecutor = new SynchronousExecutor();
       return new SegmentIntegration(context, client, cartographer, networkExecutor, queueFile, stats,
-          integrations, flushInterval, flushSize, log);
+          integrations, flushInterval, flushSize, logger);
     }
   }
 }

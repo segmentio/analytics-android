@@ -8,7 +8,7 @@ import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.GroupPayload;
 import com.segment.analytics.integrations.IdentifyPayload;
 import com.segment.analytics.integrations.Integration;
-import com.segment.analytics.integrations.Log;
+import com.segment.analytics.integrations.Logger;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
@@ -99,7 +99,7 @@ public class AnalyticsTest {
         ProjectSettings.create(Cartographer.INSTANCE.fromJson(SETTINGS)));
 
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
-        defaultOptions, new Log(NONE), "qaz", Collections.singletonMap("test", factory), client,
+        defaultOptions, Logger.with(NONE), "qaz", Collections.singletonMap("test", factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
         DEFAULT_FLUSH_INTERVAL, analyticsExecutor);
 
