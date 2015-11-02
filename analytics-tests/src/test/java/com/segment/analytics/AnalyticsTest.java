@@ -94,12 +94,16 @@ public class AnalyticsTest {
       @Override public Integration<?> create(ValueMap settings, Analytics analytics) {
         return integration;
       }
+
+      @Override public String key() {
+        return "test";
+      }
     };
     when(projectSettingsCache.get()).thenReturn(
         ProjectSettings.create(Cartographer.INSTANCE.fromJson(SETTINGS)));
 
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
-        defaultOptions, Logger.with(NONE), "qaz", Collections.singletonMap("test", factory), client,
+        defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
         DEFAULT_FLUSH_INTERVAL, analyticsExecutor);
 

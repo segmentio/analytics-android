@@ -22,6 +22,9 @@ public abstract class Integration<T> {
      * such an adapter.
      */
     Integration<?> create(ValueMap settings, Analytics analytics);
+
+    /** The key for which this factory can create an {@link Integration}. */
+    String key();
   }
 
   /** @see {@link android.app.Application.ActivityLifecycleCallbacks} */

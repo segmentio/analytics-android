@@ -49,6 +49,10 @@ class SegmentIntegration extends Integration<Void> {
           Collections.unmodifiableMap(analytics.bundledIntegrations), analytics.tag,
           analytics.flushIntervalInMillis, analytics.flushQueueSize, analytics.getLogger());
     }
+
+    @Override public String key() {
+      return SEGMENT_KEY;
+    }
   };
 
   static final String SEGMENT_KEY = "Segment.io";

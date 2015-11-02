@@ -110,8 +110,8 @@ public class Analytics {
   final ExecutorService analyticsExecutor;
 
   final Map<String, Boolean> bundledIntegrations = new ConcurrentHashMap<>();
-  // todo: use lightweight map implementations.
-  private Map<String, Integration.Factory> factories;
+  private List<Integration.Factory> factories;
+  // todo: use lightweight map implementation.
   private Map<String, Integration<?>> integrations;
   volatile boolean shutdown;
 
@@ -171,7 +171,7 @@ public class Analytics {
 
   Analytics(Application application, ExecutorService networkExecutor, Stats stats,
       Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions,
-      Logger logger, String tag, Map<String, Integration.Factory> factories, Client client,
+      Logger logger, String tag, List<Integration.Factory> factories, Client client,
       Cartographer cartographer, ProjectSettings.Cache projectSettingsCache, String writeKey,
       int flushQueueSize, long flushIntervalInMillis, ExecutorService analyticsExecutor) {
     this.application = application;
@@ -188,7 +188,7 @@ public class Analytics {
     this.writeKey = writeKey;
     this.flushQueueSize = flushQueueSize;
     this.flushIntervalInMillis = flushIntervalInMillis;
-    this.factories = Collections.unmodifiableMap(factories);
+    this.factories = Collections.unmodifiableList(factories);
     this.analyticsExecutor = analyticsExecutor;
 
     analyticsExecutor.submit(new Runnable() {
@@ -684,7 +684,7 @@ public class Analytics {
     private LogLevel logLevel;
     private ExecutorService networkExecutor;
     private ConnectionFactory connectionFactory;
-    private Map<String, Integration.Factory> factories;
+    private List<Integration.Factory> factories;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -704,7 +704,7 @@ public class Analytics {
       }
       this.writeKey = writeKey;
 
-      factories = new LinkedHashMap<>();
+      factories = new ArrayList<>();
     }
 
     /**
@@ -837,11 +837,11 @@ public class Analytics {
     }
 
     /** TODO: docs */
-    public Builder use(String key, Integration.Factory factory) {
+    public Builder use(Integration.Factory factory) {
       if (factory == null) {
         throw new IllegalArgumentException("Factory must not be null.");
       }
-      factories.put(key, factory);
+      factories.add(factory);
       return this;
     }
 
@@ -889,9 +889,9 @@ public class Analytics {
           AnalyticsContext.create(application, traitsCache.get(), collectDeviceID);
       analyticsContext.attachAdvertisingId(application);
 
-      Map<String, Integration.Factory> factories = new LinkedHashMap<>(1 + this.factories.size());
-      factories.put(SegmentIntegration.SEGMENT_KEY, SegmentIntegration.FACTORY);
-      factories.putAll(this.factories);
+      List<Integration.Factory> factories = new ArrayList<>(1 + this.factories.size());
+      factories.add(SegmentIntegration.FACTORY);
+      factories.addAll(this.factories);
 
       return new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
           defaultOptions, Logger.with(logLevel), tag, factories, client, cartographer,
@@ -960,14 +960,14 @@ public class Analytics {
 
     ValueMap integrationSettings = projectSettings.integrations();
     integrations = new LinkedHashMap<>(factories.size());
-    for (Map.Entry<String, Integration.Factory> entry : factories.entrySet()) {
-      String key = entry.getKey();
+    for (int i = 0; i < factories.size(); i++) {
+      Integration.Factory factory = factories.get(i);
+      String key = factory.key();
       ValueMap settings = integrationSettings.getValueMap(key);
       if (isNullOrEmpty(settings)) {
         logger.debug("Integration %s is not enabled.", key);
         continue;
       }
-      Integration.Factory factory = entry.getValue();
       Integration integration = factory.create(settings, this);
       if (integration == null) {
         logger.info("Factory %s couldn't create integration.", factory);
