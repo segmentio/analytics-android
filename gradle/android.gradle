@@ -21,7 +21,11 @@ android {
     release {
       minifyEnabled false
     }
+    debug {
+      testCoverageEnabled true
+    }
   }
+
 
   compileOptions {
     sourceCompatibility rootProject.ext.sourceCompatibilityVersion
