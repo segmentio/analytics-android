@@ -180,4 +180,9 @@ public final class TestUtils {
       command.run();
     }
   }
+
+  public static abstract class NoDescriptionMatcher<T> extends TypeSafeMatcher<T> {
+    @Override public void describeTo(Description description) {
+    }
+  }
 }

@@ -2,11 +2,15 @@ package com.segment.analytics;
 
 import android.Manifest;
 import android.app.Application;
+import com.segment.analytics.TestUtils.NoDescriptionMatcher;
 import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.integrations.AliasPayload;
+import com.segment.analytics.integrations.GroupPayload;
 import com.segment.analytics.integrations.IdentifyPayload;
 import com.segment.analytics.integrations.Integration;
 import com.segment.analytics.integrations.Log;
+import com.segment.analytics.integrations.ScreenPayload;
+import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
 import java.io.IOException;
 import java.util.Collections;
@@ -37,11 +41,10 @@ import static com.segment.analytics.internal.Utils.DEFAULT_FLUSH_QUEUE_SIZE;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -108,12 +111,22 @@ public class AnalyticsTest {
     assertThat(ShadowLog.getLogs()).isEmpty();
   }
 
-  @Test public void identify() {
+  @Test public void invalidIdentify() {
     try {
       analytics.identify(null, null, null);
     } catch (IllegalArgumentException e) {
       assertThat(e).hasMessage("Either userId or some traits must be provided.");
     }
+  }
+
+  @Test public void identify() {
+    analytics.identify("prateek", new Traits().putUsername("f2prateek"), null);
+
+    verify(integration).identify(argThat(new NoDescriptionMatcher<IdentifyPayload>() {
+      @Override protected boolean matchesSafely(IdentifyPayload item) {
+        return item.userId().equals("prateek") && item.traits().username().equals("f2prateek");
+      }
+    }));
   }
 
   @Test public void identifyUpdatesCache() {
@@ -124,19 +137,16 @@ public class AnalyticsTest {
     assertThat(analyticsContext.traits()).contains(MapEntry.entry("userId", "foo"))
         .contains(MapEntry.entry("bar", "qaz"));
     verify(traitsCache).set(traits);
-    verify(integration).identify(argThat(new TypeSafeMatcher<IdentifyPayload>() {
+    verify(integration).identify(argThat(new NoDescriptionMatcher<IdentifyPayload>() {
       @Override protected boolean matchesSafely(IdentifyPayload item) {
         // Exercises a bug where payloads didn't pick up userId in identify correctly.
         // https://github.com/segmentio/analytics-android/issues/169
         return item.userId().equals("foo");
       }
-
-      @Override public void describeTo(Description description) {
-      }
     }));
   }
 
-  @Test public void group() throws Exception {
+  @Test public void invalidGroup() {
     try {
       analytics.group(null);
       fail("null groupId should throw exception");
@@ -152,7 +162,17 @@ public class AnalyticsTest {
     }
   }
 
-  @Test public void track() {
+  @Test public void group() {
+    analytics.group("segment", new Traits().putEmployees(42), null);
+
+    verify(integration).group(argThat(new NoDescriptionMatcher<GroupPayload>() {
+      @Override protected boolean matchesSafely(GroupPayload item) {
+        return item.groupId().equals("segment") && item.traits().employees() == 42;
+      }
+    }));
+  }
+
+  @Test public void invalidTrack() {
     try {
       analytics.track(null);
     } catch (IllegalArgumentException e) {
@@ -165,7 +185,17 @@ public class AnalyticsTest {
     }
   }
 
-  @Test public void screen() throws Exception {
+  @Test public void track() {
+    analytics.track("wrote tests", new Properties().putUrl("github.com"));
+    verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
+      @Override protected boolean matchesSafely(TrackPayload payload) {
+        return payload.event().equals("wrote tests") && //
+            payload.properties().url().equals("github.com");
+      }
+    }));
+  }
+
+  @Test public void invalidScreen() throws Exception {
     try {
       analytics.screen(null, null);
       fail("null category and name should throw exception");
@@ -181,7 +211,28 @@ public class AnalyticsTest {
     }
   }
 
-  @Test public void invalidAliasThrowsError() {
+  @Test public void screen() {
+    analytics.screen("android", "saw tests", new Properties().putUrl("github.com"));
+    verify(integration).screen(argThat(new NoDescriptionMatcher<ScreenPayload>() {
+      @Override protected boolean matchesSafely(ScreenPayload payload) {
+        return payload.name().equals("saw tests") && //
+            payload.category().equals("android") && //
+            payload.properties().url().equals("github.com");
+      }
+    }));
+  }
+
+  @Test public void optionsDisableIntegrations() {
+    analytics.screen("foo", "bar", null, new Options().setIntegration("test", false));
+    analytics.track("foo", null, new Options().setIntegration("test", false));
+    analytics.group("foo", null, new Options().setIntegration("test", false));
+    analytics.identify("foo", null, new Options().setIntegration("test", false));
+    analytics.alias("foo", new Options().setIntegration("test", false));
+
+    verifyNoMoreInteractions(integration);
+  }
+
+  @Test public void invalidAlias() {
     try {
       analytics.alias(null);
       fail("null new id should throw error");

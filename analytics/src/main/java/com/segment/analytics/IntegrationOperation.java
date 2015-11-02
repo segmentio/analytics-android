@@ -136,7 +136,9 @@ abstract class IntegrationOperation {
     return new IntegrationOperation() {
       @Override
       public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
-        integration.identify(identifyPayload);
+        if (isIntegrationEnabled(identifyPayload.integrations(), key)) {
+          integration.identify(identifyPayload);
+        }
       }
 
       @Override public String toString() {
@@ -149,7 +151,9 @@ abstract class IntegrationOperation {
     return new IntegrationOperation() {
       @Override
       public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
-        integration.group(groupPayload);
+        if (isIntegrationEnabled(groupPayload.integrations(), key)) {
+          integration.group(groupPayload);
+        }
       }
 
       @Override public String toString() {
@@ -165,13 +169,20 @@ abstract class IntegrationOperation {
         ValueMap trackingPlan = projectSettings.trackingPlan();
 
         boolean trackEnabled = true;
-        // If tracking plan is empty, leave the event enabled.
-        if (!isNullOrEmpty(trackingPlan)) {
-          String event = trackPayload.event();
-          // If tracking plan has no settings for the event, leave the event enabled.
-          if (trackingPlan.containsKey(event)) {
-            ValueMap eventPlan = trackingPlan.getValueMap(event);
-            trackEnabled = isIntegrationEnabledInPlan(eventPlan, key);
+
+        ValueMap integrationOptions = trackPayload.integrations();
+        if (!isNullOrEmpty(integrationOptions) && integrationOptions.containsKey(key)) {
+          // There is a setting provided via options. Use it.
+          trackEnabled = integrationOptions.getBoolean(key, true);
+        } else {
+          // If tracking plan is empty, leave the event enabled.
+          if (!isNullOrEmpty(trackingPlan)) {
+            String event = trackPayload.event();
+            // If tracking plan has no settings for the event, leave the event enabled.
+            if (trackingPlan.containsKey(event)) {
+              ValueMap eventPlan = trackingPlan.getValueMap(event);
+              trackEnabled = isIntegrationEnabledInPlan(eventPlan, key);
+            }
           }
         }
 
@@ -190,7 +201,9 @@ abstract class IntegrationOperation {
     return new IntegrationOperation() {
       @Override
       public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
-        integration.screen(screenPayload);
+        if (isIntegrationEnabled(screenPayload.integrations(), key)) {
+          integration.screen(screenPayload);
+        }
       }
 
       @Override public String toString() {
@@ -203,7 +216,9 @@ abstract class IntegrationOperation {
     return new IntegrationOperation() {
       @Override
       public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
-        integration.alias(aliasPayload);
+        if (isIntegrationEnabled(aliasPayload.integrations(), key)) {
+          integration.alias(aliasPayload);
+        }
       }
 
       @Override public String toString() {
