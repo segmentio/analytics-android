@@ -193,7 +193,12 @@ public class Analytics {
 
     analyticsExecutor.submit(new Runnable() {
       @Override public void run() {
-        performInitializeIntegrations();
+        final ProjectSettings settings = getSettings();
+        HANDLER.post(new Runnable() {
+          @Override public void run() {
+            performInitializeIntegrations(settings);
+          }
+        });
       }
     });
 
@@ -459,7 +464,11 @@ public class Analytics {
     }
     analyticsExecutor.submit(new Runnable() {
       @Override public void run() {
-        performRun(operation);
+        HANDLER.post(new Runnable() {
+          @Override public void run() {
+            performRun(operation);
+          }
+        });
       }
     });
   }
@@ -474,7 +483,11 @@ public class Analytics {
     }
     analyticsExecutor.submit(new Runnable() {
       @Override public void run() {
-        performRun(IntegrationOperation.FLUSH);
+        HANDLER.post(new Runnable() {
+          @Override public void run() {
+            performRun(IntegrationOperation.FLUSH);
+          }
+        });
       }
     });
   }
@@ -536,7 +549,11 @@ public class Analytics {
     analyticsContext.setTraits(traitsCache.get());
     analyticsExecutor.submit(new Runnable() {
       @Override public void run() {
-        performRun(IntegrationOperation.RESET);
+        HANDLER.post(new Runnable() {
+          @Override public void run() {
+            performRun(IntegrationOperation.RESET);
+          }
+        });
       }
     });
   }
@@ -551,10 +568,6 @@ public class Analytics {
    * <p/>
    * You can only register for one callback per integration at a time, and passing in a {@code
    * callback} will remove the previous callback for that integration.
-   * </p>
-   * The callback is invoked on the same thread we interact with integrations. Ff you want to
-   * update
-   * the UI, make sure you move off to the main thread.
    * <p/>
    * Usage:
    * <pre> <code>
@@ -577,7 +590,11 @@ public class Analytics {
 
     analyticsExecutor.submit(new Runnable() {
       @Override public void run() {
-        performCallback(key, callback);
+        HANDLER.post(new Runnable() {
+          @Override public void run() {
+            performCallback(key, callback);
+          }
+        });
       }
     });
   }
@@ -904,7 +921,7 @@ public class Analytics {
   private static final long SETTINGS_REFRESH_INTERVAL = 1000 * 60 * 60 * 24; // 24 hours
   private static final long SETTINGS_RETRY_INTERVAL = 1000 * 60; // 1 minute
 
-  private ProjectSettings fetch() {
+  private ProjectSettings downloadSettings() {
     try {
       ProjectSettings projectSettings = networkExecutor.submit(new Callable<ProjectSettings>() {
         @Override public ProjectSettings call() throws Exception {
@@ -928,12 +945,12 @@ public class Analytics {
     return null;
   }
 
-  private void performInitializeIntegrations() {
+  private ProjectSettings getSettings() {
     ProjectSettings projectSettings = projectSettingsCache.get();
 
     if (isNullOrEmpty(projectSettings)) {
       if (isConnected(application)) {
-        projectSettings = fetch();
+        projectSettings = downloadSettings();
       }
 
       if (isNullOrEmpty(projectSettings)) {
@@ -953,11 +970,14 @@ public class Analytics {
     } else {
       if (projectSettings.timestamp() + SETTINGS_REFRESH_INTERVAL < System.currentTimeMillis()) {
         if (isConnected(application)) {
-          projectSettings = fetch();
+          projectSettings = downloadSettings();
         }
       }
     }
+    return projectSettings;
+  }
 
+  void performInitializeIntegrations(ProjectSettings projectSettings) {
     ValueMap integrationSettings = projectSettings.integrations();
     integrations = new LinkedHashMap<>(factories.size());
     for (int i = 0; i < factories.size(); i++) {
