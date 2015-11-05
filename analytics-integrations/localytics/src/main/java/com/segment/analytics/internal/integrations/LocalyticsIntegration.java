@@ -42,7 +42,7 @@ public class LocalyticsIntegration extends AbstractIntegration<Void> {
       throws IllegalStateException {
     log = analytics.getLogger().newLogger(LOCALYTICS_KEY);
 
-    boolean loggingEnabled = log.logLevel.ordinal() >= LogLevel.DEBUG.ordinal();
+    boolean loggingEnabled = log.logLevel.ordinal() >= LogLevel.VERBOSE.ordinal();
     Localytics.setLoggingEnabled(loggingEnabled);
     log.verbose("Localytics.setLoggingEnabled(%s);", loggingEnabled);
 
