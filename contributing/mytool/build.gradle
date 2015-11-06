@@ -1,7 +1,0 @@
-apply from: rootProject.file('gradle/integration.gradle')
-
-dependencies {
-  // Add your library dependency. This ca be a Maven dependency.
-  // If you have a JAR, be sure to add it to the libs folder.
-  compile ''
-}
