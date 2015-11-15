@@ -6,20 +6,13 @@ analytics-android
 
 analytics-android is an Android client for [Segment](https://segment.com)
 
-## Integrating with Segment
-
-Interested in integrating your service with us? Check out our [Partners page](https://segment.com/partners/) for more details.
-
 ## Documentation
 
 You can find usage documentation at [https://segment.com/libraries/android](https://segment.com/libraries/android).
 
-#### Building with Gradle
+## Integrating with Segment
 
-To build the project with [Gradle](http://tools.android.com/tech-docs/new-build-system/user-guide), you will need to have Java 8 (this is only for testing the SDK, you can also use Java 7 to assemble the SDK) installed, and export a variable `$JAVA_HOME` that points to the installation directory.
-If you have an existing Android SDK installed, make sure to export a variable `$ANDROID_HOME` that points to it. Once you've cloned the repo, simply run `./gradlew clean build`, which will automatically download all dependencies, build the project, and run all tests. Run `./gradlew tasks --all` to see all available tasks.
-
-Check out how to contribute to the library, or add providers here: [https://segment.com/libraries/android#contributing](https://segment.com/libraries/android#contributing).
+Interested in integrating your service with us? Check out our [Partners page](https://segment.com/partners/) for more details.
 
 ## License
 
