@@ -25,10 +25,12 @@
 package com.segment.analytics;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -173,7 +175,7 @@ public class Analytics {
       Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions,
       Logger logger, String tag, List<Integration.Factory> factories, Client client,
       Cartographer cartographer, ProjectSettings.Cache projectSettingsCache, String writeKey,
-      int flushQueueSize, long flushIntervalInMillis, ExecutorService analyticsExecutor) {
+      int flushQueueSize, long flushIntervalInMillis, final ExecutorService analyticsExecutor) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -201,8 +203,49 @@ public class Analytics {
         });
       }
     });
+    application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+      @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+        runOnMainThread(IntegrationOperation.onActivityCreated(activity, savedInstanceState));
+      }
+
+      @Override public void onActivityStarted(Activity activity) {
+        runOnMainThread(IntegrationOperation.onActivityStarted(activity));
+      }
+
+      @Override public void onActivityResumed(Activity activity) {
+        runOnMainThread(IntegrationOperation.onActivityResumed(activity));
+      }
+
+      @Override public void onActivityPaused(Activity activity) {
+        runOnMainThread(IntegrationOperation.onActivityPaused(activity));
+      }
+
+      @Override public void onActivityStopped(Activity activity) {
+        runOnMainThread(IntegrationOperation.onActivityStopped(activity));
+      }
+
+      @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+        runOnMainThread(IntegrationOperation.onActivitySaveInstanceState(activity, outState));
+      }
+
+      @Override public void onActivityDestroyed(Activity activity) {
+        runOnMainThread(IntegrationOperation.onActivityDestroyed(activity));
+      }
+    });
 
     logger.debug("Created analytics client for project with tag:%s.", tag);
+  }
+
+  private void runOnMainThread(final IntegrationOperation operation) {
+    analyticsExecutor.submit(new Runnable() {
+      @Override public void run() {
+        HANDLER.post(new Runnable() {
+          @Override public void run() {
+            performRun(operation);
+          }
+        });
+      }
+    });
   }
 
   // Analytics API
@@ -462,15 +505,7 @@ public class Analytics {
       default:
         throw new AssertionError("unknown type " + payload.type());
     }
-    analyticsExecutor.submit(new Runnable() {
-      @Override public void run() {
-        HANDLER.post(new Runnable() {
-          @Override public void run() {
-            performRun(operation);
-          }
-        });
-      }
-    });
+    runOnMainThread(operation);
   }
 
   /**
@@ -481,15 +516,7 @@ public class Analytics {
     if (shutdown) {
       throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
     }
-    analyticsExecutor.submit(new Runnable() {
-      @Override public void run() {
-        HANDLER.post(new Runnable() {
-          @Override public void run() {
-            performRun(IntegrationOperation.FLUSH);
-          }
-        });
-      }
-    });
+    runOnMainThread(IntegrationOperation.FLUSH);
   }
 
   /** Get the {@link AnalyticsContext} used by this instance. */
@@ -547,15 +574,7 @@ public class Analytics {
     traitsCache.delete();
     traitsCache.set(Traits.create());
     analyticsContext.setTraits(traitsCache.get());
-    analyticsExecutor.submit(new Runnable() {
-      @Override public void run() {
-        HANDLER.post(new Runnable() {
-          @Override public void run() {
-            performRun(IntegrationOperation.RESET);
-          }
-        });
-      }
-    });
+    runOnMainThread(IntegrationOperation.RESET);
   }
 
   /**
