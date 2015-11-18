@@ -378,12 +378,12 @@ public final class Utils {
    * instances. Exists as a custom type so that we can differentiate the use of defaults versus a
    * user-supplied instance.
    */
-  public static class AnalyticsExecutorService extends ThreadPoolExecutor {
+  public static class AnalyticsNetworkExecutorService extends ThreadPoolExecutor {
     private static final int DEFAULT_THREAD_COUNT = 1;
     // At most we perform two network requests concurrently
     private static final int MAX_THREAD_COUNT = 2;
 
-    public AnalyticsExecutorService() {
+    public AnalyticsNetworkExecutorService() {
       //noinspection Convert2Diamond
       super(DEFAULT_THREAD_COUNT, MAX_THREAD_COUNT, 0, TimeUnit.MILLISECONDS,
           new LinkedBlockingQueue<Runnable>(), new AnalyticsThreadFactory());

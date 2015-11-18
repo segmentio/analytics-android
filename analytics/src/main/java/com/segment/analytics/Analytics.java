@@ -41,7 +41,7 @@ import com.segment.analytics.integrations.Logger;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Utils;
-import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
+import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -643,7 +643,7 @@ public class Analytics {
       return;
     }
     analyticsExecutor.shutdown();
-    if (networkExecutor instanceof AnalyticsExecutorService) {
+    if (networkExecutor instanceof AnalyticsNetworkExecutorService) {
       networkExecutor.shutdown();
     }
     stats.shutdown();
@@ -884,7 +884,7 @@ public class Analytics {
         logLevel = LogLevel.NONE;
       }
       if (networkExecutor == null) {
-        networkExecutor = new AnalyticsExecutorService();
+        networkExecutor = new AnalyticsNetworkExecutorService();
       }
       if (connectionFactory == null) {
         connectionFactory = new ConnectionFactory();

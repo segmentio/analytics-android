@@ -11,7 +11,7 @@ import com.segment.analytics.integrations.Integration;
 import com.segment.analytics.integrations.Logger;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
-import com.segment.analytics.internal.Utils.AnalyticsExecutorService;
+import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
@@ -64,7 +64,7 @@ public class AnalyticsTest {
 
   @Mock Traits.Cache traitsCache;
   @Mock Options defaultOptions;
-  @Spy AnalyticsExecutorService networkExecutor;
+  @Spy AnalyticsNetworkExecutorService networkExecutor;
   @Spy ExecutorService analyticsExecutor = new SynchronousExecutor();
   @Mock Client client;
   @Mock Stats stats;
