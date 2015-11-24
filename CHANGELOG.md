@@ -1,4 +1,30 @@
 
+Version 4.0.0 (Nov 24th, 2015)
+==============================
+
+  * Deprecates `analytics-core` artifact. This is now renamed into the `analytics` artifact.
+  * Bundling integrations is now more explicit. It takes 2 steps:
+
+Add the integration dependencies.
+```
+  compile('com.segment.analytics.android.integrations:google-analytics:1.0.0') {
+    transitive = true
+  }
+  compile('io.branch.segment.analytics.android.integrations:library:1.0.0-RELEASE') {
+    transitive = true
+  }
+  ...
+```
+
+Register them in your builder when you initialize the SDK.
+```
+Analytics analytics = new Analytics.Builder(context, writeKey)
+  .use(GoogleAnalyticsIntegration.FACTORY)
+  .use(BranchIntegration.FACTORY)
+  ...
+  .build();
+```
+
 Version 3.4.0 (Oct 20th, 2015)
 ==============================
 
@@ -9,7 +35,7 @@ Version 3.4.0 (Oct 20th, 2015)
        Currently only done for a few tools (Mixpanel, Google Analytics, Flurry, Localytics),
        but will be added for more tools.
      * LogLevel.BASIC is now deprecated. Use LogLevel.DEBUG instead.
-     * Logging behaviour with regards to bundled integrations has changed. See the JavaDocs 
+     * Logging behaviour with regards to bundled integrations has changed. See the JavaDocs
        for more details.
 
   * Update MoEngage SDK to 5.3.10
@@ -22,7 +48,7 @@ Version 3.3.3 (Oct 10th, 2015)
 
 Version 3.3.2 (Oct 7th, 2015)
 ============================
-  
+
   * Attribute that events are made from the Segment SDK to Kahuna.
 
 Version 3.3.1 (Oct 6th, 2015)
@@ -155,5 +181,5 @@ Version 3.0.0 (Feb 24th, 2015)
 * Enhancement: Remove integration adapters from `analytics-core` module
 * Enhancement: Update Leanplum dependency
 * Enhancement: Update Mixpanel dependency
-* Fix: Correctly convert special traits for Mixpanel 
+* Fix: Correctly convert special traits for Mixpanel
 * Fix: Alias method implementation and docs
