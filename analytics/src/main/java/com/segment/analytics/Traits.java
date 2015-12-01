@@ -163,7 +163,9 @@ public class Traits extends ValueMap {
 
   public Date birthday() {
     try {
-      return toISO8601Date(getString(BIRTHDAY_KEY));
+      String birthday = getString(BIRTHDAY_KEY);
+      if (isNullOrEmpty(birthday)) return null;
+      return toISO8601Date(birthday);
     } catch (ParseException e) {
       return null;
     }
