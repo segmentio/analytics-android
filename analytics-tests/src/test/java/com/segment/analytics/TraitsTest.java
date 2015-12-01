@@ -101,4 +101,9 @@ public class TraitsTest {
     traits.putLastName("srivastava");
     assertThat(traits.name()).isEqualTo("srivastava");
   }
+
+  @Test public void emptyBirthdayDoesNotCrash() {
+    // Exercise a bug where trying to fetch the birthday when one didn't exist would crash.
+    assertThat(traits.birthday()).isNull();
+  }
 }
