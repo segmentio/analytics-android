@@ -195,10 +195,24 @@ public class Analytics {
 
     analyticsExecutor.submit(new Runnable() {
       @Override public void run() {
-        final ProjectSettings settings = getSettings();
+        ProjectSettings settings = getSettings();
+        if (isNullOrEmpty(settings)) {
+          // Backup mode: Enable just the Segment integration:
+          // {
+          //   integrations: {
+          //     Segment.io: {
+          //       apiKey: "{writeKey}"
+          //     }
+          //   }
+          // }
+          settings = ProjectSettings.create(new ValueMap() //
+              .putValue("integrations", new ValueMap().putValue("Segment.io",
+                  new ValueMap().putValue("apiKey", Analytics.this.writeKey))));
+        }
+        final ProjectSettings projectSettings = settings;
         HANDLER.post(new Runnable() {
           @Override public void run() {
-            performInitializeIntegrations(settings);
+            performInitializeIntegrations(projectSettings);
           }
         });
       }
@@ -965,35 +979,20 @@ public class Analytics {
   }
 
   private ProjectSettings getSettings() {
-    ProjectSettings projectSettings = projectSettingsCache.get();
+    ProjectSettings settings = projectSettingsCache.get();
 
-    if (isNullOrEmpty(projectSettings)) {
-      if (isConnected(application)) {
-        projectSettings = downloadSettings();
-      }
-
-      if (isNullOrEmpty(projectSettings)) {
-        // We don't have any cached settings, and we can't connect to the internet. Enable just the
-        // Segment integration:
-        // {
-        //   integrations: {
-        //     Segment.io: {
-        //       apiKey: "{writeKey}"
-        //     }
-        //   }
-        // }
-        ValueMap settings = new ValueMap().putValue("integrations",
-            new ValueMap().putValue("Segment.io", new ValueMap().putValue("apiKey", writeKey)));
-        projectSettings = ProjectSettings.create(settings);
-      }
-    } else {
-      if (projectSettings.timestamp() + SETTINGS_REFRESH_INTERVAL < System.currentTimeMillis()) {
-        if (isConnected(application)) {
-          projectSettings = downloadSettings();
-        }
-      }
+    boolean update = false;
+    if (isNullOrEmpty(settings)) {
+      update = true;
+    } else if (settings.timestamp() + SETTINGS_REFRESH_INTERVAL < System.currentTimeMillis()) {
+      update = true;
     }
-    return projectSettings;
+
+    if (update && isConnected(application)) {
+      settings = downloadSettings();
+    }
+
+    return settings;
   }
 
   void performInitializeIntegrations(ProjectSettings projectSettings) {
