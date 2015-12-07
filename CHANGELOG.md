@@ -1,4 +1,9 @@
 
+Version 4.0.1 (Dec 7th, 2015)
+==============================
+
+  * Fix: NPE when device is offline during initialization.
+
 Version 4.0.0 (Nov 24th, 2015)
 ==============================
 
