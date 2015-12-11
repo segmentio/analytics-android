@@ -106,6 +106,7 @@ public class Analytics {
   final Client client;
   final Cartographer cartographer;
   private final ProjectSettings.Cache projectSettingsCache;
+  private ProjectSettings projectSettings;
   private final String writeKey;
   final int flushQueueSize;
   final long flushIntervalInMillis;
@@ -195,9 +196,9 @@ public class Analytics {
 
     analyticsExecutor.submit(new Runnable() {
       @Override public void run() {
-        ProjectSettings settings = getSettings();
-        if (isNullOrEmpty(settings)) {
-          // Backup mode: Enable just the Segment integration:
+        projectSettings = getSettings();
+        if (isNullOrEmpty(projectSettings)) {
+          // Backup mode — Enable just the Segment integration.
           // {
           //   integrations: {
           //     Segment.io: {
@@ -205,11 +206,10 @@ public class Analytics {
           //     }
           //   }
           // }
-          settings = ProjectSettings.create(new ValueMap() //
+          projectSettings = ProjectSettings.create(new ValueMap() //
               .putValue("integrations", new ValueMap().putValue("Segment.io",
                   new ValueMap().putValue("apiKey", Analytics.this.writeKey))));
         }
-        final ProjectSettings projectSettings = settings;
         HANDLER.post(new Runnable() {
           @Override public void run() {
             performInitializeIntegrations(projectSettings);
@@ -1022,7 +1022,7 @@ public class Analytics {
     for (Map.Entry<String, Integration<?>> entry : integrations.entrySet()) {
       String key = entry.getKey();
       long startTime = System.nanoTime();
-      operation.run(key, entry.getValue(), projectSettingsCache.get());
+      operation.run(key, entry.getValue(), projectSettings);
       long endTime = System.nanoTime();
       long duration = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
       stats.dispatchIntegrationOperation(key, duration);
