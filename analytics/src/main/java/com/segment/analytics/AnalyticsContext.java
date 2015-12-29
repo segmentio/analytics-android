@@ -149,7 +149,7 @@ public class AnalyticsContext extends ValueMap {
   void attachAdvertisingId(Context context) {
     // This is done as an extra step so we don't run into errors like this for testing
     // http://pastebin.com/gyWJKWiu
-    if (isOnClassPath("com.google.android.gms.analytics.GoogleAnalytics")) {
+    if (isOnClassPath("com.google.android.gms.ads.identifier.AdvertisingIdClient")) {
       // this needs to be done each time since the settings may have been updated
       new GetAdvertisingIdTask(this).execute(context);
     }
