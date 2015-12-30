@@ -1,4 +1,9 @@
 
+Version 4.0.3 (Dec 29th, 2015)
+==============================
+
+  * Fix: Collect advertising ID based on whether the `AdvertisingIdClient` is available rather than `GoogleAnalytics`.
+
 Version 4.0.2 (Dec 11th, 2015)
 ==============================
 
