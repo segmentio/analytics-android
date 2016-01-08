@@ -6,6 +6,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.JsonWriter;
+import android.util.Printer;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
@@ -215,11 +216,7 @@ class SegmentIntegration extends Integration<Void> {
           } catch (IOException e) {
             throw new IOError(e);
           } catch (ArrayIndexOutOfBoundsException e) {
-            // Log more information for https://github.com/segmentio/analytics-android/issues/321
-            throw new IOError(new IOException(
-                "An error occurred while making room in the disk queue to accommodate a new event."
-                    + " Dumping QueueFile:"
-                    + queueFile.toString(), e));
+            dump(e, 1);
           }
         }
       }
@@ -311,11 +308,7 @@ class SegmentIntegration extends Integration<Void> {
           + payloadsUploaded + " payload(s) from queueFile: " + queueFile, e);
       throw new IOError(ioException);
     } catch (ArrayIndexOutOfBoundsException e) {
-      // Log more information for https://github.com/segmentio/analytics-android/issues/263
-      throw new IOError(new IOException("Unable to remove "
-          + payloadsUploaded
-          + " from queue. Dumping QueueFile:"
-          + queueFile.toString(), e));
+      dump(e, payloadsUploaded);
     }
 
     logger.verbose("Uploaded %s payloads. %s remain in the queue.", payloadsUploaded,
@@ -324,6 +317,25 @@ class SegmentIntegration extends Integration<Void> {
     if (queueFile.size() > 0) {
       performFlush(); // Flush any remaining items.
     }
+  }
+
+  /**
+   * Log additional info for:
+   * 1. https://github.com/segmentio/analytics-android/issues/263
+   * 2. https://github.com/segmentio/analytics-android/issues/321
+   */
+  void dump(ArrayIndexOutOfBoundsException e, int count) {
+    logger.error(e, "Error while removing %s payload(s) from queue.", count);
+    try {
+      queueFile.dump(new Printer() {
+        @Override public void println(String x) {
+          logger.error(null, x);
+        }
+      });
+    } catch (ArrayIndexOutOfBoundsException expected) {
+      logger.error(expected, "Error while dumping contents of queue.");
+    }
+    throw new IOError(new IOException("Unable to remove " + count + " payload(s) from queue.", e));
   }
 
   void shutdown() {
