@@ -15,9 +15,11 @@
  */
 package com.segment.analytics;
 
+import android.util.Printer;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -427,6 +429,34 @@ class QueueFile implements Closeable {
       position = wrapPosition(current.position + Element.HEADER_LENGTH + current.length);
     }
     return elementCount;
+  }
+
+  void dump(final Printer printer) {
+    printer.println("QueueFile file length: " + fileLength);
+    printer.println("QueueFile element count: " + elementCount);
+    printer.println("QueueFile first element: " + first);
+    printer.println("QueueFile last element: " + last);
+    try {
+      forEach(new ElementVisitor() {
+        int i = 1;
+        int position = first.position;
+
+        @Override public boolean read(InputStream in, int length) throws IOException {
+          printer.println("QueueFile element " + i + " length: " + length);
+          byte[] data = new byte[length];
+
+          ringRead(position + Element.HEADER_LENGTH, data, 0, length);
+          printer.println("QueueFile element " + i + " data: " + new String(data));
+
+          position = position + length;
+          i++;
+
+          return true;
+        }
+      });
+    } catch (IOException e) {
+      throw new IOError(e);
+    }
   }
 
   private final class ElementInputStream extends InputStream {

@@ -1,6 +1,7 @@
 // Copyright 2010 Square, Inc.
 package com.segment.analytics;
 
+import android.util.Printer;
 import com.segment.analytics.QueueFile.Element;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -8,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Queue;
@@ -32,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class QueueFileTest {
 
   private static final Logger logger = Logger.getLogger(QueueFileTest.class.getName());
+  private static final Charset UTF_8 = Charset.forName("UTF-8");
 
   /**
    * Takes up 33401 bytes in the queue (N*(N+1)/2+4*N). Picked 254 instead of 255 so that the
@@ -776,6 +779,27 @@ public class QueueFileTest {
     assertThat(baos.toByteArray()).isEqualTo(new byte[] {
         1, 2, 3, 4, 5
     });
+  }
+
+  @Test public void testDump() throws IOException {
+    QueueFile queue = new QueueFile(file);
+
+    String data = "foo";
+    queue.add(data.getBytes(UTF_8));
+    assertThat(queue.size()).isEqualTo(1);
+
+    final StringBuilder sb = new StringBuilder();
+    queue.dump(new Printer() {
+      @Override public void println(String x) {
+        sb.append(x + "\n");
+      }
+    });
+    assertThat(sb.toString().split("\n")).contains("QueueFile file length: 4096")
+        .contains("QueueFile element count: 1")
+        .contains("QueueFile first element: Element[position = 16, length = 3]")
+        .contains("QueueFile last element: Element[position = 16, length = 3]")
+        .contains("QueueFile element 1 length: 3")
+        .contains("QueueFile element 1 data: foo");
   }
 
   @Test public void testForEachCanAbortEarly() throws IOException {
