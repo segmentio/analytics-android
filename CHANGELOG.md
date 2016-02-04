@@ -1,4 +1,10 @@
 
+Version 4.0.4 (Feb 4th, 2016)
+==============================
+
+  * New: Improve logging information for QueueFile.
+
+
 Version 4.0.3 (Dec 29th, 2015)
 ==============================
 
