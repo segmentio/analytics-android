@@ -206,9 +206,23 @@ public final class Utils {
     if (!hasPermission(context, ACCESS_NETWORK_STATE)) {
       return true; // assume we have the connection and try to upload
     }
-    ConnectivityManager cm = getSystemService(context, CONNECTIVITY_SERVICE);
-    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+    NetworkInfo activeNetwork = getActiveNetworkInfo(context);
     return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+  }
+
+  /**
+   * Returns {@code true} if the phone is connected to wifi. Returns {@code false} otherwise.
+   */
+  public static boolean isConnectedToWifi(Context context) {
+    NetworkInfo activeNetwork = getActiveNetworkInfo(context);
+    return activeNetwork != null && activeNetwork.isConnected() &&
+            activeNetwork.getType() == ConnectivityManager.TYPE_WIFI;
+  }
+
+  /** Get active network info */
+  private static NetworkInfo getActiveNetworkInfo(Context context) {
+    ConnectivityManager cm = getSystemService(context, CONNECTIVITY_SERVICE);
+    return cm.getActiveNetworkInfo();
   }
 
   /** Return {@code true} if a class with the given name is found. */
