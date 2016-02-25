@@ -38,6 +38,7 @@ import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
 import static com.segment.analytics.internal.Utils.closeQuietly;
 import static com.segment.analytics.internal.Utils.createDirectory;
 import static com.segment.analytics.internal.Utils.isConnected;
+import static com.segment.analytics.internal.Utils.isConnectedToWifi;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.toISO8601Date;
 
@@ -258,8 +259,10 @@ class SegmentIntegration extends Integration<Void> {
     });
   }
 
+  /** Flush events immediately if connected to wifi or when queue size met */
   private boolean shouldFlush() {
-    return queueFile.size() > 0 && isConnected(context);
+    return (queueFile.size() > 0 && isConnectedToWifi(context)) ||
+            (queueFile.size() >= flushQueueSize && isConnected(context));
   }
 
   /** Upload payloads to our servers and remove them from the queue file. */
