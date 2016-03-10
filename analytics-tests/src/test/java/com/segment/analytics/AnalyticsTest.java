@@ -215,6 +215,10 @@ public class AnalyticsTest {
     }
   }
 
+  @Test public void bundle() {
+    assertThat(analytics.bundledIntegrations).contains(MapEntry.entry("test", false));
+  }
+
   @Test public void screen() {
     analytics.screen("android", "saw tests", new Properties().putUrl("github.com"));
     verify(integration).screen(argThat(new NoDescriptionMatcher<ScreenPayload>() {
