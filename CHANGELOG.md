@@ -1,4 +1,9 @@
 
+Version 4.0.5 (Mar 10th, 2016)
+==============================
+
+  * Fix: Correctly disable events from being sent server side for bundled integrations.
+
 Version 4.0.4 (Feb 4th, 2016)
 ==============================
 
