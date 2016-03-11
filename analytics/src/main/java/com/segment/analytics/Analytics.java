@@ -1011,7 +1011,7 @@ public class Analytics {
         logger.info("Factory %s couldn't create integration.", factory);
       } else {
         integrations.put(key, integration);
-        bundledIntegrations.put(key, true);
+        bundledIntegrations.put(key, false);
       }
     }
     factories = null;
