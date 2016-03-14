@@ -70,7 +70,7 @@ public final class TestUtils {
         + "\"anonymousId\":null,"
         + "\"timestamp\":\"2014-12-15T13:32:44-0700\","
         + "\"integrations\":"
-        + "{\"All\":true},"
+        + "{},"
         + "\"event\":\"foo\","
         + "\"properties\":{}"
         + "}";

@@ -106,7 +106,7 @@ public class Analytics {
   final Client client;
   final Cartographer cartographer;
   private final ProjectSettings.Cache projectSettingsCache;
-  private ProjectSettings projectSettings;
+  ProjectSettings projectSettings; // todo: make final (non-final for testing).
   private final String writeKey;
   final int flushQueueSize;
   final long flushIntervalInMillis;
