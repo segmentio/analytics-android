@@ -19,7 +19,7 @@ abstract class IntegrationOperation {
       return true;
     }
     if (SegmentIntegration.SEGMENT_KEY.equals(key)) {
-      return true; // leave Segment integration enabled.
+      return true; // Leave Segment integration enabled.
     }
     boolean enabled = true;
     if (integrations.containsKey(key)) {
@@ -166,27 +166,42 @@ abstract class IntegrationOperation {
     return new IntegrationOperation() {
       @Override
       public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
-        ValueMap trackingPlan = projectSettings.trackingPlan();
-
-        boolean trackEnabled = true;
-
         ValueMap integrationOptions = trackPayload.integrations();
-        if (!isNullOrEmpty(integrationOptions) && integrationOptions.containsKey(key)) {
-          // There is a setting provided via options. Use it.
-          trackEnabled = integrationOptions.getBoolean(key, true);
-        } else {
-          // If tracking plan is empty, leave the event enabled.
-          if (!isNullOrEmpty(trackingPlan)) {
-            String event = trackPayload.event();
-            // If tracking plan has no settings for the event, leave the event enabled.
-            if (trackingPlan.containsKey(event)) {
-              ValueMap eventPlan = trackingPlan.getValueMap(event);
-              trackEnabled = isIntegrationEnabledInPlan(eventPlan, key);
-            }
+
+        ValueMap trackingPlan = projectSettings.trackingPlan();
+        if (isNullOrEmpty(trackingPlan)) {
+          // No tracking plan, use options provided.
+          if (isIntegrationEnabled(integrationOptions, key)) {
+            integration.track(trackPayload);
           }
         }
 
-        if (trackEnabled) {
+        String event = trackPayload.event();
+        ValueMap eventPlan = trackingPlan.getValueMap(event);
+        if (isNullOrEmpty(eventPlan)) {
+          // No event plan, use options provided.
+          if (isIntegrationEnabled(integrationOptions, key)) {
+            integration.track(trackPayload);
+          }
+        }
+
+        // We have a tracking plan for the event.
+        boolean isEnabled = eventPlan.getBoolean("enabled", true);
+        ValueMap eventIntegrations;
+        if (!isEnabled) {
+          // Disable the integration so we can merge it with options.
+          eventIntegrations = new ValueMap();
+          eventIntegrations.put(key, false);
+        } else {
+          eventIntegrations = eventPlan.getValueMap("integrations");
+        }
+
+        ValueMap integrations = new ValueMap();
+        if (!isNullOrEmpty(eventIntegrations)) {
+          integrations.putAll(eventIntegrations);
+        }
+        integrations.putAll(integrationOptions);
+        if (isIntegrationEnabled(integrations, key)) {
           integration.track(trackPayload);
         }
       }

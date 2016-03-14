@@ -45,7 +45,6 @@ public class Options {
 
   public Options() {
     integrations = new ConcurrentHashMap<>();
-    integrations.put(ALL_INTEGRATIONS_KEY, true);
   }
 
   /**

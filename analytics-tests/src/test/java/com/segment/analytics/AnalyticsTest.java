@@ -43,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -215,10 +216,6 @@ public class AnalyticsTest {
     }
   }
 
-  @Test public void bundle() {
-    assertThat(analytics.bundledIntegrations).contains(MapEntry.entry("test", false));
-  }
-
   @Test public void screen() {
     analytics.screen("android", "saw tests", new Properties().putUrl("github.com"));
     verify(integration).screen(argThat(new NoDescriptionMatcher<ScreenPayload>() {
@@ -237,7 +234,107 @@ public class AnalyticsTest {
     analytics.identify("foo", null, new Options().setIntegration("test", false));
     analytics.alias("foo", new Options().setIntegration("test", false));
 
+    analytics.screen("foo", "bar", null, new Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false));
+    analytics.track("foo", null, new Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false));
+    analytics.group("foo", null, new Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false));
+    analytics.identify("foo", null, new Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false));
+    analytics.alias("foo", new Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false));
+
     verifyNoMoreInteractions(integration);
+  }
+
+  @Test public void trackingPlanDisablesEventForAllIntegrations() throws IOException {
+    analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
+        + "  \"integrations\": {\n"
+        + "    \"test\": {\n"
+        + "      \"foo\": \"bar\"\n"
+        + "    }\n"
+        + "  },\n"
+        + "  \"plan\": {\n"
+        + "    \"track\": {\n"
+        + "      \"foo\": {\n"
+        + "        \"enabled\": false\n"
+        + "      }\n"
+        + "    }\n"
+        + "  }\n"
+        + "}"));
+
+    analytics.track("foo");
+    verifyNoMoreInteractions(integration);
+  }
+
+  @Test public void trackingPlanDisablesEventForSingleIntegration() throws IOException {
+    analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
+        + "  \"integrations\": {\n"
+        + "    \"test\": {\n"
+        + "      \"foo\": \"bar\"\n"
+        + "    }\n"
+        + "  },\n"
+        + "  \"plan\": {\n"
+        + "    \"track\": {\n"
+        + "      \"foo\": {\n"
+        + "        \"enabled\": true,\n"
+        + "        \"integrations\": {\n"
+        + "          \"test\": false\n"
+        + "        }\n"
+        + "      }\n"
+        + "    }\n"
+        + "  }\n"
+        + "}"));
+
+    analytics.track("foo");
+    verifyNoMoreInteractions(integration);
+  }
+
+  @Test public void trackingPlanDisabledEventForAllIntegrationsOverriddenByCode() throws IOException {
+    analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
+            + "  \"integrations\": {\n"
+            + "    \"test\": {\n"
+            + "      \"foo\": \"bar\"\n"
+            + "    }\n"
+            + "  },\n"
+            + "  \"plan\": {\n"
+            + "    \"track\": {\n"
+            + "      \"foo\": {\n"
+            + "        \"enabled\": false\n"
+            + "      }\n"
+            + "    }\n"
+            + "  }\n"
+            + "}"));
+
+    analytics.track("foo", null, new Options().setIntegration("test", true));
+    verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
+      @Override protected boolean matchesSafely(TrackPayload payload) {
+        return payload.event().equals("foo");
+      }
+    }));
+  }
+
+  @Test public void trackingPlanDisablesEventForIntegrationOverriddenByCode() throws IOException {
+    analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
+        + "  \"integrations\": {\n"
+        + "    \"test\": {\n"
+        + "      \"foo\": \"bar\"\n"
+        + "    }\n"
+        + "  },\n"
+        + "  \"plan\": {\n"
+        + "    \"track\": {\n"
+        + "      \"foo\": {\n"
+        + "        \"enabled\": true,\n"
+        + "        \"integrations\": {\n"
+        + "          \"test\": false\n"
+        + "        }\n"
+        + "      }\n"
+        + "    }\n"
+        + "  }\n"
+        + "}"));
+
+    analytics.track("foo", null, new Options().setIntegration("test", true));
+    verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
+      @Override protected boolean matchesSafely(TrackPayload payload) {
+        return payload.event().equals("foo");
+      }
+    }));
   }
 
   @Test public void invalidAlias() {
