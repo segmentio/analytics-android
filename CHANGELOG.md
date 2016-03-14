@@ -1,4 +1,9 @@
 
+Version 4.0.6 (Mar 14th, 2016)
+==============================
+
+  * Fix: Update `Options` handling so that it overrides the tracking plan.
+
 Version 4.0.5 (Mar 10th, 2016)
 ==============================
 
