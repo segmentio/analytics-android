@@ -174,6 +174,7 @@ abstract class IntegrationOperation {
           if (isIntegrationEnabled(integrationOptions, key)) {
             integration.track(trackPayload);
           }
+          return;
         }
 
         String event = trackPayload.event();
@@ -183,6 +184,7 @@ abstract class IntegrationOperation {
           if (isIntegrationEnabled(integrationOptions, key)) {
             integration.track(trackPayload);
           }
+          return;
         }
 
         // We have a tracking plan for the event.
