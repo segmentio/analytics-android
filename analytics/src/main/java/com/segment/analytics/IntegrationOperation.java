@@ -189,16 +189,14 @@ abstract class IntegrationOperation {
 
         // We have a tracking plan for the event.
         boolean isEnabled = eventPlan.getBoolean("enabled", true);
-        ValueMap eventIntegrations;
         if (!isEnabled) {
-          // Disable the integration so we can merge it with options.
-          eventIntegrations = new ValueMap();
-          eventIntegrations.put(key, false);
-        } else {
-          eventIntegrations = eventPlan.getValueMap("integrations");
+          // If event is disabled in the tracking plan, don't send it to any
+          // integrations (Segment included), regardless of options in code.
+          return;
         }
 
         ValueMap integrations = new ValueMap();
+        ValueMap eventIntegrations = eventPlan.getValueMap("integrations");
         if (!isNullOrEmpty(eventIntegrations)) {
           integrations.putAll(eventIntegrations);
         }

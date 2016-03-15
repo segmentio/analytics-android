@@ -243,7 +243,49 @@ public class AnalyticsTest {
     verifyNoMoreInteractions(integration);
   }
 
-  @Test public void trackingPlanDisablesEventForAllIntegrations() throws IOException {
+  @Test public void emptyTrackingPlan() throws IOException {
+    analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
+        + "  \"integrations\": {\n"
+        + "    \"test\": {\n"
+        + "      \"foo\": \"bar\"\n"
+        + "    }\n"
+        + "  },\n"
+        + "  \"plan\": {\n"
+        + "  }\n"
+        + "}"));
+
+    analytics.track("foo");
+    verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
+      @Override protected boolean matchesSafely(TrackPayload payload) {
+        return payload.event().equals("foo");
+      }
+    }));
+    verifyNoMoreInteractions(integration);
+  }
+
+  @Test public void emptyEventPlan() throws IOException {
+    analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
+        + "  \"integrations\": {\n"
+        + "    \"test\": {\n"
+        + "      \"foo\": \"bar\"\n"
+        + "    }\n"
+        + "  },\n"
+        + "  \"plan\": {\n"
+        + "    \"track\": {\n"
+        + "    }\n"
+        + "  }\n"
+        + "}"));
+
+    analytics.track("foo");
+    verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
+      @Override protected boolean matchesSafely(TrackPayload payload) {
+        return payload.event().equals("foo");
+      }
+    }));
+    verifyNoMoreInteractions(integration);
+  }
+
+  @Test public void trackingPlanDisablesEvent() throws IOException {
     analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
         + "  \"integrations\": {\n"
         + "    \"test\": {\n"
@@ -286,7 +328,7 @@ public class AnalyticsTest {
     verifyNoMoreInteractions(integration);
   }
 
-  @Test public void trackingPlanDisabledEventForAllIntegrationsOverriddenByCode() throws IOException {
+  @Test public void trackingPlanDisabledEventCannotBeOverriddenByOptions() throws IOException {
     analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
             + "  \"integrations\": {\n"
             + "    \"test\": {\n"
@@ -303,14 +345,10 @@ public class AnalyticsTest {
             + "}"));
 
     analytics.track("foo", null, new Options().setIntegration("test", true));
-    verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
-      @Override protected boolean matchesSafely(TrackPayload payload) {
-        return payload.event().equals("foo");
-      }
-    }));
+    verifyNoMoreInteractions(integration);
   }
 
-  @Test public void trackingPlanDisablesEventForIntegrationOverriddenByCode() throws IOException {
+  @Test public void trackingPlanDisabledEventForIntegrationOverriddenByOptions() throws IOException {
     analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
         + "  \"integrations\": {\n"
         + "    \"test\": {\n"
@@ -335,6 +373,7 @@ public class AnalyticsTest {
         return payload.event().equals("foo");
       }
     }));
+    verifyNoMoreInteractions(integration);
   }
 
   @Test public void invalidAlias() {
