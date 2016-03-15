@@ -1,4 +1,9 @@
 
+Version 4.0.8 (Mar 15th, 2016)
+==============================
+
+  * Fix: Another update to `Options` handling, so that it can *not* override the tracking plan if an event is disabled.
+
 Version 4.0.7 (Mar 14th, 2016)
 ==============================
 
