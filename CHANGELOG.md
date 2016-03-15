@@ -1,4 +1,9 @@
 
+Version 4.0.7 (Mar 14th, 2016)
+==============================
+
+  * Fix: Handle possible NPE introduced in 4.0.6.
+
 Version 4.0.6 (Mar 14th, 2016)
 ==============================
 
