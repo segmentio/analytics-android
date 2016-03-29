@@ -27,6 +27,7 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -199,11 +200,19 @@ class SegmentIntegration extends Integration<Void> {
     handler.sendMessage(handler.obtainMessage(SegmentDispatcherHandler.REQUEST_ENQUEUE, payload));
   }
 
-  void performEnqueue(BasePayload payload) {
+  void performEnqueue(BasePayload original) {
     // Override any user provided values with anything that was bundled.
     // e.g. If user did Mixpanel: true and it was bundled, this would correctly override it with
     // false so that the server doesn't send that event as well.
-    payload.integrations().putAll(bundledIntegrations);
+    ValueMap providedIntegrations = original.integrations();
+    LinkedHashMap<String, Object> combinedIntegrations =
+        new LinkedHashMap<>(providedIntegrations.size() + bundledIntegrations.size());
+    combinedIntegrations.putAll(providedIntegrations);
+    combinedIntegrations.putAll(bundledIntegrations);
+    // Make a copy of the payload so we don't mutate the original.
+    ValueMap payload = new ValueMap();
+    payload.putAll(original);
+    payload.put("integrations", combinedIntegrations);
 
     if (queueFile.size() >= MAX_QUEUE_SIZE) {
       synchronized (flushLock) {

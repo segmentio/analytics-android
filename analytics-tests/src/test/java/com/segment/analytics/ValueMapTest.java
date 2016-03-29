@@ -212,7 +212,6 @@ public class ValueMapTest {
   }
 
   static class Settings extends ValueMap {
-
     Settings(Map<String, Object> map) throws IOException {
       super(map);
     }
@@ -227,14 +226,12 @@ public class ValueMapTest {
   }
 
   static class MixpanelSettings extends ValueMap {
-
     MixpanelSettings(Map<String, Object> delegate) {
       super(delegate);
     }
   }
 
   static class AmplitudeSettings extends ValueMap {
-
     AmplitudeSettings(String json) throws IOException {
       throw new AssertionError("string constuctors must not be called when deserializing");
     }
