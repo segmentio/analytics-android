@@ -1,4 +1,9 @@
 
+Version 4.0.9 (Mar 29th, 2016)
+==============================
+
+  * Fix: Fix for possible race condition when mutating integration options on multiple threads.
+
 Version 4.0.8 (Mar 15th, 2016)
 ==============================
 
