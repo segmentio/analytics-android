@@ -25,7 +25,7 @@ allprojects {
   version = VERSION_NAME
 }
 
-def isCI = "true".equals(System.getenv("CIRCLECI"))
+def isCI = "true".equals(System.getenv("CI"))
 def preDexEnabled = "true".equals(System.getProperty("preDex", "true"))
 
 ext {

@@ -1,0 +1,35 @@
+language: android
+
+android:
+  components:
+    - build-tools-23.0.1
+    - android-23
+    - extra-android-m2repository
+    - extra-google-m2repository
+  licenses:
+    - android-sdk-license-5be876d5
+
+jdk:
+  - oraclejdk7
+  - oraclejdk8
+
+after_success:
+  - .buildscript/deploy_snapshot.sh
+
+env:
+  global:
+    - secure: "PShZ2/TGfzx6g12AGPbIShDKLTfRjifU+bZBy9i8NIWGw6E6j8im1uvOdXujYCDVgpdlJVGhIJan++xRwPf+7MrKL5Dv+V9/8VyzS3fIsoIVNi1UfRi0h0Q4ypP80TSzRYImZ/yilxyPVn4ducDopL5KUlNJMVqQyZeKYtZMtwk="
+    - secure: "B9hS01zGWRLzRznkfRLsFyEwYy2+KdOQPmmvKa/QokW5OgpZSiVUhmMYkIdQTiYRDUIiypXO2oxjfLPrH+19fcqaFCqxcjMrPscb5Lq/wTD+8f4w6yQXGAkColB/v4H1rvMktoWeUsLx1YqgYEepfaCUsTfo5D2pnHY2NjXuT1c="
+
+branches:
+  except:
+    - gh-pages
+
+notifications:
+  email: false
+
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.m2
