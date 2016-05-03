@@ -2,6 +2,10 @@ package com.segment.analytics;
 
 import android.Manifest;
 import android.app.Application;
+import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import com.segment.analytics.TestUtils.NoDescriptionMatcher;
 import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.integrations.AliasPayload;
@@ -32,6 +36,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
 import org.robolectric.shadows.ShadowLog;
 
+import static android.content.Context.MODE_PRIVATE;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.TestUtils.SynchronousExecutor;
 import static com.segment.analytics.TestUtils.mockApplication;
@@ -43,7 +48,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -100,19 +104,23 @@ public class AnalyticsTest {
         return "test";
       }
     };
-    when(projectSettingsCache.get()).thenReturn(
-        ProjectSettings.create(Cartographer.INSTANCE.fromJson(SETTINGS)));
+    when(projectSettingsCache.get()) //
+        .thenReturn(ProjectSettings.create(Cartographer.INSTANCE.fromJson(SETTINGS)));
 
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
-        DEFAULT_FLUSH_INTERVAL, analyticsExecutor);
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false);
 
-    // Used by singleton tests
+    // Used by singleton tests.
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
   }
 
   @After public void tearDown() {
+    RuntimeEnvironment.application.getSharedPreferences("analytics-android", MODE_PRIVATE)
+        .edit()
+        .clear()
+        .commit();
     assertThat(ShadowLog.getLogs()).isEmpty();
   }
 
@@ -234,10 +242,12 @@ public class AnalyticsTest {
     analytics.identify("foo", null, new Options().setIntegration("test", false));
     analytics.alias("foo", new Options().setIntegration("test", false));
 
-    analytics.screen("foo", "bar", null, new Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false));
+    analytics.screen("foo", "bar", null,
+        new Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false));
     analytics.track("foo", null, new Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false));
     analytics.group("foo", null, new Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false));
-    analytics.identify("foo", null, new Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false));
+    analytics.identify("foo", null,
+        new Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false));
     analytics.alias("foo", new Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false));
 
     verifyNoMoreInteractions(integration);
@@ -330,25 +340,26 @@ public class AnalyticsTest {
 
   @Test public void trackingPlanDisabledEventCannotBeOverriddenByOptions() throws IOException {
     analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
-            + "  \"integrations\": {\n"
-            + "    \"test\": {\n"
-            + "      \"foo\": \"bar\"\n"
-            + "    }\n"
-            + "  },\n"
-            + "  \"plan\": {\n"
-            + "    \"track\": {\n"
-            + "      \"foo\": {\n"
-            + "        \"enabled\": false\n"
-            + "      }\n"
-            + "    }\n"
-            + "  }\n"
-            + "}"));
+        + "  \"integrations\": {\n"
+        + "    \"test\": {\n"
+        + "      \"foo\": \"bar\"\n"
+        + "    }\n"
+        + "  },\n"
+        + "  \"plan\": {\n"
+        + "    \"track\": {\n"
+        + "      \"foo\": {\n"
+        + "        \"enabled\": false\n"
+        + "      }\n"
+        + "    }\n"
+        + "  }\n"
+        + "}"));
 
     analytics.track("foo", null, new Options().setIntegration("test", true));
     verifyNoMoreInteractions(integration);
   }
 
-  @Test public void trackingPlanDisabledEventForIntegrationOverriddenByOptions() throws IOException {
+  @Test public void trackingPlanDisabledEventForIntegrationOverriddenByOptions()
+      throws IOException {
     analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
         + "  \"integrations\": {\n"
         + "    \"test\": {\n"
@@ -535,5 +546,80 @@ public class AnalyticsTest {
   @Test public void getSnapshotInvokesStats() throws Exception {
     analytics.getSnapshot();
     verify(stats).createSnapshot();
+  }
+
+  @Test public void trackApplicationLifecycleEventsInstalled() throws NameNotFoundException {
+    Analytics.INSTANCES.clear();
+
+    PackageInfo packageInfo = new PackageInfo();
+    packageInfo.versionCode = 100;
+    packageInfo.versionName = "1.0.0";
+
+    PackageManager packageManager = mock(PackageManager.class);
+    when(packageManager.getPackageInfo("com.foo", 0)).thenReturn(packageInfo);
+    when(application.getPackageName()).thenReturn("com.foo");
+    when(application.getPackageManager()).thenReturn(packageManager);
+
+    analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
+        defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
+        Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true);
+
+    verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
+      @Override protected boolean matchesSafely(TrackPayload payload) {
+        return payload.event().equals("Application Installed") && //
+            payload.properties().getString("version").equals("1.0.0") && //
+            payload.properties().getInt("build", -1) == 100;
+      }
+    }));
+    verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
+      @Override protected boolean matchesSafely(TrackPayload payload) {
+        return payload.event().equals("Application Started") && //
+            payload.properties().getString("version").equals("1.0.0") && //
+            payload.properties().getInt("build", -1) == 100;
+      }
+    }));
+  }
+
+  @Test public void trackApplicationLifecycleEventsUpdated() throws NameNotFoundException {
+    Analytics.INSTANCES.clear();
+
+    PackageInfo packageInfo = new PackageInfo();
+    packageInfo.versionCode = 101;
+    packageInfo.versionName = "1.0.1";
+
+    SharedPreferences sharedPreferences =
+        RuntimeEnvironment.application.getSharedPreferences("analytics-android", MODE_PRIVATE);
+    SharedPreferences.Editor editor = sharedPreferences.edit();
+    editor.putInt("build", 100);
+    editor.putString("version", "1.0.0");
+    editor.apply();
+
+    PackageManager packageManager = mock(PackageManager.class);
+    when(packageManager.getPackageInfo("com.foo", 0)).thenReturn(packageInfo);
+    when(application.getPackageName()).thenReturn("com.foo");
+    when(application.getPackageManager()).thenReturn(packageManager);
+
+    analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
+        defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
+        Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true);
+
+    verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
+      @Override protected boolean matchesSafely(TrackPayload payload) {
+        return payload.event().equals("Application Updated") && //
+            payload.properties().getString("previous_version").equals("1.0.0") && //
+            payload.properties().getInt("previous_build", -1) == 100 && //
+            payload.properties().getString("version").equals("1.0.1") && //
+            payload.properties().getInt("build", -1) == 101;
+      }
+    }));
+    verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
+      @Override protected boolean matchesSafely(TrackPayload payload) {
+        return payload.event().equals("Application Started") && //
+            payload.properties().getString("version").equals("1.0.1") && //
+            payload.properties().getInt("build", -1) == 101;
+      }
+    }));
   }
 }

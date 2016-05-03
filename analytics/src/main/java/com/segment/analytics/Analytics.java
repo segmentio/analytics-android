@@ -28,7 +28,9 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -60,6 +62,7 @@ import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
 import static com.segment.analytics.internal.Utils.buffer;
 import static com.segment.analytics.internal.Utils.closeQuietly;
 import static com.segment.analytics.internal.Utils.getResourceString;
+import static com.segment.analytics.internal.Utils.getSegmentSharedPreferences;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
@@ -94,6 +97,8 @@ public class Analytics {
   static final List<String> INSTANCES = new ArrayList<>(1);
   volatile static Analytics singleton = null;
   private static final Properties EMPTY_PROPERTIES = new Properties();
+  private static final String VERSION_KEY = "version";
+  private static final String BUILD_KEY = "build";
 
   private final Application application;
   final ExecutorService networkExecutor;
@@ -176,7 +181,8 @@ public class Analytics {
       Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions,
       Logger logger, String tag, List<Integration.Factory> factories, Client client,
       Cartographer cartographer, ProjectSettings.Cache projectSettingsCache, String writeKey,
-      int flushQueueSize, long flushIntervalInMillis, final ExecutorService analyticsExecutor) {
+      int flushQueueSize, long flushIntervalInMillis, final ExecutorService analyticsExecutor,
+      boolean trackApplicationLifecycleEvents) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -217,6 +223,9 @@ public class Analytics {
         });
       }
     });
+
+    logger.debug("Created analytics client for project with tag:%s.", tag);
+
     application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
       @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
         runOnMainThread(IntegrationOperation.onActivityCreated(activity, savedInstanceState));
@@ -246,8 +255,55 @@ public class Analytics {
         runOnMainThread(IntegrationOperation.onActivityDestroyed(activity));
       }
     });
+    trackApplicationLifecycleEvents(trackApplicationLifecycleEvents);
+  }
 
-    logger.debug("Created analytics client for project with tag:%s.", tag);
+  private void trackApplicationLifecycleEvents(boolean trackApplicationLifecycleEvents) {
+    if (!trackApplicationLifecycleEvents) {
+      return;
+    }
+
+    // Get the current version.
+    PackageInfo packageInfo = getPackageInfo(application);
+    String currentVersion = packageInfo.versionName;
+    int currentBuild = packageInfo.versionCode;
+
+    // Get the previous recorded version.
+    SharedPreferences sharedPreferences = getSegmentSharedPreferences(application);
+    String previousVersion = sharedPreferences.getString(VERSION_KEY, null);
+    int previousBuild = sharedPreferences.getInt(BUILD_KEY, -1);
+
+    // Check and track Application Installed or Application Updated.
+    if (previousBuild == -1) {
+      track("Application Installed", new Properties() //
+          .putValue(VERSION_KEY, currentVersion).putValue(BUILD_KEY, currentBuild));
+    } else if (currentBuild != previousBuild) {
+      track("Application Updated", new Properties() //
+          .putValue(VERSION_KEY, currentVersion)
+          .putValue(BUILD_KEY, currentBuild)
+          .putValue("previous_" + VERSION_KEY, previousVersion)
+          .putValue("previous_" + BUILD_KEY, previousBuild));
+    }
+
+    // Track Application Started.
+    track("Application Started", new Properties() //
+        .putValue("version", currentVersion) //
+        .putValue("build", currentBuild));
+
+    // Update the recorded version.
+    SharedPreferences.Editor editor = sharedPreferences.edit();
+    editor.putString(VERSION_KEY, currentVersion);
+    editor.putInt(BUILD_KEY, currentBuild);
+    editor.apply();
+  }
+
+  static PackageInfo getPackageInfo(Context context) {
+    PackageManager packageManager = context.getPackageManager();
+    try {
+      return packageManager.getPackageInfo(context.getPackageName(), 0);
+    } catch (PackageManager.NameNotFoundException e) {
+      throw new AssertionError("package not found: " + context.getPackageName());
+    }
   }
 
   private void runOnMainThread(final IntegrationOperation operation) {
@@ -735,6 +791,7 @@ public class Analytics {
     private ExecutorService networkExecutor;
     private ConnectionFactory connectionFactory;
     private List<Integration.Factory> factories;
+    private boolean trackApplicationLifecycleEvents = false;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -796,7 +853,7 @@ public class Analytics {
 
     /**
      * Enable or disable collection of {@link android.provider.Settings.Secure#ANDROID_ID},
-     * {@link android.os.Build#SERIAL} or the Telephony Identifier retreived via
+     * {@link android.os.Build#SERIAL} or the Telephony Identifier retrieved via
      * TelephonyManager as available. Collection of the device identifier is enabled by default.
      */
     public Builder collectDeviceId(boolean collect) {
@@ -895,6 +952,15 @@ public class Analytics {
       return this;
     }
 
+    /**
+     * Automatically track application lifecycle events, including "Application Installed",
+     * "Application Updated" and "Application Opened".
+     */
+    public Builder trackApplicationLifecycleEvents() {
+      this.trackApplicationLifecycleEvents = true;
+      return this;
+    }
+
     /** Create a {@link Analytics} client. */
     public Analytics build() {
       if (isNullOrEmpty(tag)) {
@@ -946,7 +1012,7 @@ public class Analytics {
       return new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
           defaultOptions, Logger.with(logLevel), tag, factories, client, cartographer,
           projectSettingsCache, writeKey, flushQueueSize, flushIntervalInMillis,
-          Executors.newSingleThreadExecutor());
+          Executors.newSingleThreadExecutor(), trackApplicationLifecycleEvents);
     }
   }
 

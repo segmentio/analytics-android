@@ -93,6 +93,14 @@ public final class TestUtils {
         return new File(parent, fileName);
       }
     }).when(application).getDir(anyString(), anyInt());
+    doAnswer(new Answer() {
+      @Override public Object answer(InvocationOnMock invocation) throws Throwable {
+        Object[] args = invocation.getArguments();
+        String name = (String) args[0];
+        int mode = (int) args[1];
+        return RuntimeEnvironment.application.getSharedPreferences(name, mode);
+      }
+    }).when(application).getSharedPreferences(anyString(), anyInt());
     return application;
   }
 
