@@ -794,12 +794,11 @@ public class QueueFileTest {
         sb.append(x + "\n");
       }
     });
-    assertThat(sb.toString().split("\n")).contains("QueueFile file length: 4096")
+    assertThat(sb.toString().split("\n"))
+        .contains("QueueFile file length: 4096")
         .contains("QueueFile element count: 1")
         .contains("QueueFile first element: Element[position = 16, length = 3]")
-        .contains("QueueFile last element: Element[position = 16, length = 3]")
-        .contains("QueueFile element 1 length: 3")
-        .contains("QueueFile element 1 data: foo");
+        .contains("QueueFile last element: Element[position = 16, length = 3]");
   }
 
   @Test public void testForEachCanAbortEarly() throws IOException {
