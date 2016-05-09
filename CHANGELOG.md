@@ -1,4 +1,10 @@
 
+Version 4.1.0 (May 9th, 2016)
+==============================
+
+  * New: Instrument automatic application lifecycle event tracking.
+  * Fix: Dump raw QueueFile data to track #321.
+
 Version 4.0.9 (Mar 29th, 2016)
 ==============================
 
@@ -37,7 +43,7 @@ Version 4.0.3 (Dec 29th, 2015)
 Version 4.0.2 (Dec 11th, 2015)
 ==============================
 
-  * Fix: Actually fix NPE when device is offline during initialization.
+  * Fix: Actually fix NPE when device is offline duNring initialization.
 
 Version 4.0.1 (Dec 7th, 2015)
 ==============================
