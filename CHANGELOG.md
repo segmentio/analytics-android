@@ -2,7 +2,14 @@
 Version 4.1.0 (May 9th, 2016)
 ==============================
 
-  * New: Instrument automatic application lifecycle event tracking.
+  * New: Instrument automatic application lifecycle event tracking. Enable this during initialization.
+
+```java
+Analytics analytics = new Analytics.Builder(context, writeKey)
+    .trackApplicationLifecycleEvents()
+    .build();
+```
+
   * Fix: Dump raw QueueFile data to track #321.
 
 Version 4.0.9 (Mar 29th, 2016)
