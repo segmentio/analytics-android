@@ -1,4 +1,9 @@
 
+Version 4.1.1 (May 10th, 2016)
+==============================
+
+  * Fix: Handling how advertising information is collected. Previously, if `isLimitAdTracking` was true, the library would incorrectly record it as `adTrackingEnabled: true`, when it should have been `adTrackingEnabled: false`. A server side fix has been deployed to automatically correct this. However, we still recommend customers update to the latest version.
+
 Version 4.1.0 (May 9th, 2016)
 ==============================
 
