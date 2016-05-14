@@ -116,7 +116,7 @@ public class AnalyticsContext extends ValueMap {
    * instances is thread safe.
    */
   static synchronized AnalyticsContext create(Context context, Traits traits,
-                                              boolean collectDeviceId) {
+      boolean collectDeviceId) {
     AnalyticsContext analyticsContext =
         new AnalyticsContext(new NullableConcurrentHashMap<String, Object>());
     analyticsContext.putApp(context);
@@ -410,7 +410,9 @@ public class AnalyticsContext extends ValueMap {
 
     /** Set the advertising information for this device. */
     void putAdvertisingInfo(String advertisingId, boolean adTrackingEnabled) {
-      put(DEVICE_ADVERTISING_ID_KEY, advertisingId);
+      if (adTrackingEnabled && !isNullOrEmpty(advertisingId)) {
+        put(DEVICE_ADVERTISING_ID_KEY, advertisingId);
+      }
       put(DEVICE_AD_TRACKING_ENABLED_KEY, adTrackingEnabled);
     }
 
