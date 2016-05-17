@@ -18,6 +18,7 @@ import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import org.assertj.core.data.MapEntry;
 import org.hamcrest.Description;
@@ -110,7 +111,7 @@ public class AnalyticsTest {
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
-        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false);
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0));
 
     // Used by singleton tests.
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
@@ -563,7 +564,7 @@ public class AnalyticsTest {
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
-        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true);
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0));
 
     verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
       @Override protected boolean matchesSafely(TrackPayload payload) {
@@ -603,7 +604,7 @@ public class AnalyticsTest {
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
-        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true);
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0));
 
     verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
       @Override protected boolean matchesSafely(TrackPayload payload) {

@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -115,6 +116,9 @@ public class Analytics {
   private final String writeKey;
   final int flushQueueSize;
   final long flushIntervalInMillis;
+  // Retrieving the advertising ID is asynchronous. This latch helps us wait to ensure the
+  // advertising ID is ready.
+  final CountDownLatch advertisingIdLatch;
   final ExecutorService analyticsExecutor;
 
   final Map<String, Boolean> bundledIntegrations = new ConcurrentHashMap<>();
@@ -182,7 +186,7 @@ public class Analytics {
       Logger logger, String tag, List<Integration.Factory> factories, Client client,
       Cartographer cartographer, ProjectSettings.Cache projectSettingsCache, String writeKey,
       int flushQueueSize, long flushIntervalInMillis, final ExecutorService analyticsExecutor,
-      boolean trackApplicationLifecycleEvents) {
+      final boolean trackApplicationLifecycleEvents, CountDownLatch advertisingIdLatch) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -197,6 +201,7 @@ public class Analytics {
     this.writeKey = writeKey;
     this.flushQueueSize = flushQueueSize;
     this.flushIntervalInMillis = flushIntervalInMillis;
+    this.advertisingIdLatch = advertisingIdLatch;
     this.factories = Collections.unmodifiableList(factories);
     this.analyticsExecutor = analyticsExecutor;
 
@@ -255,7 +260,11 @@ public class Analytics {
         runOnMainThread(IntegrationOperation.onActivityDestroyed(activity));
       }
     });
-    trackApplicationLifecycleEvents(trackApplicationLifecycleEvents);
+    analyticsExecutor.submit(new Runnable() {
+      @Override public void run() {
+        trackApplicationLifecycleEvents(trackApplicationLifecycleEvents);
+      }
+    });
   }
 
   private void trackApplicationLifecycleEvents(boolean trackApplicationLifecycleEvents) {
@@ -378,8 +387,16 @@ public class Analytics {
       options = defaultOptions;
     }
 
+    waitForAdvertisingId();
     IdentifyPayload payload = new IdentifyPayload(analyticsContext, options, traitsCache.get());
     submit(payload);
+  }
+
+  void waitForAdvertisingId() {
+    try {
+      advertisingIdLatch.await(5, TimeUnit.SECONDS);
+    } catch (InterruptedException ignored) {
+    }
   }
 
   /**
@@ -416,6 +433,7 @@ public class Analytics {
       options = defaultOptions;
     }
 
+    waitForAdvertisingId();
     GroupPayload payload = new GroupPayload(analyticsContext, options, groupId, groupTraits);
     submit(payload);
   }
@@ -464,6 +482,7 @@ public class Analytics {
       options = defaultOptions;
     }
 
+    waitForAdvertisingId();
     TrackPayload payload = new TrackPayload(analyticsContext, options, event, properties);
     submit(payload);
   }
@@ -503,6 +522,7 @@ public class Analytics {
       options = defaultOptions;
     }
 
+    waitForAdvertisingId();
     ScreenPayload payload =
         new ScreenPayload(analyticsContext, options, category, name, properties);
     submit(payload);
@@ -546,6 +566,7 @@ public class Analytics {
       options = defaultOptions;
     }
 
+    waitForAdvertisingId();
     AliasPayload payload = new AliasPayload(analyticsContext, options, newId);
     submit(payload);
   }
@@ -1003,7 +1024,8 @@ public class Analytics {
       }
       AnalyticsContext analyticsContext =
           AnalyticsContext.create(application, traitsCache.get(), collectDeviceID);
-      analyticsContext.attachAdvertisingId(application);
+      CountDownLatch advertisingIdLatch = new CountDownLatch(1);
+      analyticsContext.attachAdvertisingId(application, advertisingIdLatch);
 
       List<Integration.Factory> factories = new ArrayList<>(1 + this.factories.size());
       factories.add(SegmentIntegration.FACTORY);
@@ -1012,7 +1034,7 @@ public class Analytics {
       return new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
           defaultOptions, Logger.with(logLevel), tag, factories, client, cartographer,
           projectSettingsCache, writeKey, flushQueueSize, flushIntervalInMillis,
-          Executors.newSingleThreadExecutor(), trackApplicationLifecycleEvents);
+          Executors.newSingleThreadExecutor(), trackApplicationLifecycleEvents, advertisingIdLatch);
     }
   }
 
