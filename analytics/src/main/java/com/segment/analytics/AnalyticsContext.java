@@ -39,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.CountDownLatch;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
 import static android.content.Context.CONNECTIVITY_SERVICE;
@@ -146,12 +147,14 @@ public class AnalyticsContext extends ValueMap {
     super(delegate);
   }
 
-  void attachAdvertisingId(Context context) {
+  void attachAdvertisingId(Context context, CountDownLatch latch) {
     // This is done as an extra step so we don't run into errors like this for testing
     // http://pastebin.com/gyWJKWiu
     if (isOnClassPath("com.google.android.gms.ads.identifier.AdvertisingIdClient")) {
       // this needs to be done each time since the settings may have been updated
-      new GetAdvertisingIdTask(this).execute(context);
+      new GetAdvertisingIdTask(this, latch).execute(context);
+    } else {
+      latch.countDown();
     }
   }
 

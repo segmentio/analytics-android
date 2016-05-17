@@ -3,6 +3,7 @@ package com.segment.analytics;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Pair;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * An {@link AsyncTask} that fetches the advertising info and attaches it to the given {@link
@@ -11,9 +12,11 @@ import android.util.Pair;
 class GetAdvertisingIdTask extends AsyncTask<Context, Void, Pair<String, Boolean>> {
 
   final AnalyticsContext analyticsContext;
+  final CountDownLatch latch;
 
-  GetAdvertisingIdTask(AnalyticsContext analyticsContext) {
+  GetAdvertisingIdTask(AnalyticsContext analyticsContext, CountDownLatch latch) {
     this.analyticsContext = analyticsContext;
+    this.latch = latch;
   }
 
   @Override protected Pair<String, Boolean> doInBackground(Context... contexts) {
@@ -41,13 +44,18 @@ class GetAdvertisingIdTask extends AsyncTask<Context, Void, Pair<String, Boolean
 
   @Override protected void onPostExecute(Pair<String, Boolean> info) {
     super.onPostExecute(info);
-    if (info == null) {
-      return;
-    }
 
-    AnalyticsContext.Device device = analyticsContext.device();
-    if (device != null) {
+    try {
+      if (info == null) {
+        return;
+      }
+      AnalyticsContext.Device device = analyticsContext.device();
+      if (device == null) {
+        return;
+      }
       device.putAdvertisingInfo(info.first, info.second);
+    } finally {
+      latch.countDown();
     }
   }
 }
