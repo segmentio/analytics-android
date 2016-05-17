@@ -6,7 +6,7 @@ import com.segment.analytics.Analytics;
 
 public class SampleApp extends Application {
 
-  private static final String ANALYTICS_WRITE_KEY = "l8v1ga655b";
+  private static final String ANALYTICS_WRITE_KEY = "5m6gbdgho6";
 
   @Override public void onCreate() {
     super.onCreate();
