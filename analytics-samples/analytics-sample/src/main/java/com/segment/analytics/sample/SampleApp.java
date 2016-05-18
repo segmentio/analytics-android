@@ -12,7 +12,9 @@ public class SampleApp extends Application {
     super.onCreate();
 
     // Initialize a new instance of the Analytics client.
-    Analytics.Builder builder = new Analytics.Builder(this, ANALYTICS_WRITE_KEY);
+    Analytics.Builder builder = new Analytics.Builder(this, ANALYTICS_WRITE_KEY) //
+        .trackApplicationLifecycleEvents() //
+        .recordScreenViews();
     if (BuildConfig.DEBUG) {
       builder.logLevel(Analytics.LogLevel.VERBOSE);
     }
@@ -21,10 +23,11 @@ public class SampleApp extends Application {
     Analytics.setSingletonInstance(builder.build());
 
     // Now anytime you call Analytics.with, the custom instance will be returned.
-    Analytics.with(this).track("App Launched");
+    Analytics analytics = Analytics.with(this);
 
-    // If you need to listen for
-    Analytics.with(this).onIntegrationReady("Segment.io", new Analytics.Callback() {
+    // If you need to know when integrations have been initialized, use the onIntegrationReady
+    // listener.
+    analytics.onIntegrationReady("Segment.io", new Analytics.Callback() {
       @Override public void onReady(Object instance) {
         Toast.makeText(SampleApp.this, "Segment integration!", Toast.LENGTH_LONG).show();
       }
