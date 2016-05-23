@@ -1,8 +1,11 @@
 package com.segment.analytics;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Application;
+import android.content.ComponentName;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -20,6 +23,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.data.MapEntry;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -47,7 +51,10 @@ import static com.segment.analytics.internal.Utils.DEFAULT_FLUSH_QUEUE_SIZE;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -111,7 +118,7 @@ public class AnalyticsTest {
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
-        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0));
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), false);
 
     // Used by singleton tests.
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
@@ -564,7 +571,7 @@ public class AnalyticsTest {
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
-        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0));
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0), false);
 
     verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
       @Override protected boolean matchesSafely(TrackPayload payload) {
@@ -604,7 +611,7 @@ public class AnalyticsTest {
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
-        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0));
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0), false);
 
     verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
       @Override protected boolean matchesSafely(TrackPayload payload) {
@@ -620,6 +627,45 @@ public class AnalyticsTest {
         return payload.event().equals("Application Started") && //
             payload.properties().getString("version").equals("1.0.1") && //
             payload.properties().getInt("build", -1) == 101;
+      }
+    }));
+  }
+
+  @Test public void recordScreenViews() throws NameNotFoundException {
+    Analytics.INSTANCES.clear();
+
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+        new AtomicReference<>();
+    doNothing().when(application)
+        .registerActivityLifecycleCallbacks(
+            argThat(new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+              @Override
+              protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                callback.set(item);
+                return true;
+              }
+            }));
+
+    analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
+        defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
+        Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0), true);
+
+    Activity activity = mock(Activity.class);
+    PackageManager packageManager = mock(PackageManager.class);
+    ActivityInfo info = mock(ActivityInfo.class);
+
+    when(activity.getPackageManager()).thenReturn(packageManager);
+    //noinspection WrongConstant
+    when(packageManager.getActivityInfo(any(ComponentName.class), eq(PackageManager.GET_META_DATA)))
+        .thenReturn(info);
+    when(info.loadLabel(packageManager)).thenReturn("Foo");
+
+    callback.get().onActivityStarted(activity);
+
+    verify(integration).screen(argThat(new NoDescriptionMatcher<ScreenPayload>() {
+      @Override protected boolean matchesSafely(ScreenPayload payload) {
+        return payload.name().equals("Foo");
       }
     }));
   }

@@ -29,6 +29,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -186,7 +187,8 @@ public class Analytics {
       Logger logger, String tag, List<Integration.Factory> factories, Client client,
       Cartographer cartographer, ProjectSettings.Cache projectSettingsCache, String writeKey,
       int flushQueueSize, long flushIntervalInMillis, final ExecutorService analyticsExecutor,
-      final boolean trackApplicationLifecycleEvents, CountDownLatch advertisingIdLatch) {
+      final boolean trackApplicationLifecycleEvents, CountDownLatch advertisingIdLatch,
+      final boolean recordScreenViews) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -237,6 +239,9 @@ public class Analytics {
       }
 
       @Override public void onActivityStarted(Activity activity) {
+        if (recordScreenViews) {
+          recordScreenViews(activity);
+        }
         runOnMainThread(IntegrationOperation.onActivityStarted(activity));
       }
 
@@ -262,16 +267,14 @@ public class Analytics {
     });
     analyticsExecutor.submit(new Runnable() {
       @Override public void run() {
-        trackApplicationLifecycleEvents(trackApplicationLifecycleEvents);
+        if (trackApplicationLifecycleEvents) {
+          trackApplicationLifecycleEvents();
+        }
       }
     });
   }
 
-  private void trackApplicationLifecycleEvents(boolean trackApplicationLifecycleEvents) {
-    if (!trackApplicationLifecycleEvents) {
-      return;
-    }
-
+  private void trackApplicationLifecycleEvents() {
     // Get the current version.
     PackageInfo packageInfo = getPackageInfo(application);
     String currentVersion = packageInfo.versionName;
@@ -311,7 +314,19 @@ public class Analytics {
     try {
       return packageManager.getPackageInfo(context.getPackageName(), 0);
     } catch (PackageManager.NameNotFoundException e) {
-      throw new AssertionError("package not found: " + context.getPackageName());
+      throw new AssertionError("Package not found: " + context.getPackageName());
+    }
+  }
+
+  private void recordScreenViews(Activity activity) {
+    PackageManager packageManager = activity.getPackageManager();
+    try {
+      ActivityInfo info =
+          packageManager.getActivityInfo(activity.getComponentName(), PackageManager.GET_META_DATA);
+      CharSequence activityLabel = info.loadLabel(packageManager);
+      screen(null, activityLabel.toString());
+    } catch (PackageManager.NameNotFoundException e) {
+      throw new AssertionError("Activity Not Found: " + e.toString());
     }
   }
 
@@ -813,6 +828,7 @@ public class Analytics {
     private ConnectionFactory connectionFactory;
     private List<Integration.Factory> factories;
     private boolean trackApplicationLifecycleEvents = false;
+    private boolean recordScreenViews = false;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -982,6 +998,12 @@ public class Analytics {
       return this;
     }
 
+    /** Automatically record screen calls when activities are created. */
+    public Builder recordScreenViews() {
+      this.recordScreenViews = true;
+      return this;
+    }
+
     /** Create a {@link Analytics} client. */
     public Analytics build() {
       if (isNullOrEmpty(tag)) {
@@ -1034,7 +1056,8 @@ public class Analytics {
       return new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
           defaultOptions, Logger.with(logLevel), tag, factories, client, cartographer,
           projectSettingsCache, writeKey, flushQueueSize, flushIntervalInMillis,
-          Executors.newSingleThreadExecutor(), trackApplicationLifecycleEvents, advertisingIdLatch);
+          Executors.newSingleThreadExecutor(), trackApplicationLifecycleEvents, advertisingIdLatch,
+          recordScreenViews);
     }
   }
 
