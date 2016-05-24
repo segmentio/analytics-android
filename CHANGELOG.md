@@ -1,4 +1,16 @@
 
+Version 4.1.2 (May 24th, 2016)
+==============================
+
+  * Fix: Wait for advertising ID to be ready before enqueuing events.
+  * New: Instrument automatic screen tracking. Enable this during initialization.
+
+```java
+Analytics analytics = new Analytics.Builder(context, writeKey)
+    .recordScreenViews()
+    .build();
+```
+
 Version 4.1.1 (May 10th, 2016)
 ==============================
 
