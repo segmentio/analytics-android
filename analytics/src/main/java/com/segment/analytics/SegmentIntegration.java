@@ -6,7 +6,6 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.JsonWriter;
-import android.util.Printer;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
@@ -19,12 +18,12 @@ import com.segment.analytics.internal.Utils.AnalyticsThreadFactory;
 import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -76,7 +75,7 @@ class SegmentIntegration extends Integration<Void> {
    */
   private static final int MAX_BATCH_SIZE = 475000; // 475kb
   private final Context context;
-  private final QueueFile queueFile;
+  private final PayloadQueue payloadQueue;
   private final Client client;
   private final int flushQueueSize;
   private final Stats stats;
@@ -138,25 +137,27 @@ class SegmentIntegration extends Integration<Void> {
       Cartographer cartographer, ExecutorService networkExecutor, Stats stats,
       Map<String, Boolean> bundledIntegrations, String tag, long flushIntervalInMillis,
       int flushQueueSize, Logger logger) {
-    QueueFile queueFile;
+    PayloadQueue payloadQueue;
     try {
       File folder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
-      queueFile = createQueueFile(folder, tag);
+      QueueFile queueFile = createQueueFile(folder, tag);
+      payloadQueue = new PayloadQueue.PersistentQueue(queueFile);
     } catch (IOException e) {
-      throw new IOError(e);
+      logger.error(e, "Falling back to memory queue.");
+      payloadQueue = new PayloadQueue.MemoryQueue(new ArrayList<byte[]>());
     }
-    return new SegmentIntegration(context, client, cartographer, networkExecutor, queueFile, stats,
-        bundledIntegrations, flushIntervalInMillis, flushQueueSize, logger);
+    return new SegmentIntegration(context, client, cartographer, networkExecutor, payloadQueue,
+        stats, bundledIntegrations, flushIntervalInMillis, flushQueueSize, logger);
   }
 
   SegmentIntegration(Context context, Client client, Cartographer cartographer,
-      ExecutorService networkExecutor, QueueFile queueFile, Stats stats,
+      ExecutorService networkExecutor, PayloadQueue payloadQueue, Stats stats,
       Map<String, Boolean> bundledIntegrations, long flushIntervalInMillis, int flushQueueSize,
       Logger logger) {
     this.context = context;
     this.client = client;
     this.networkExecutor = networkExecutor;
-    this.queueFile = queueFile;
+    this.payloadQueue = payloadQueue;
     this.stats = stats;
     this.logger = logger;
     this.bundledIntegrations = bundledIntegrations;
@@ -168,7 +169,7 @@ class SegmentIntegration extends Integration<Void> {
     segmentThread.start();
     handler = new SegmentDispatcherHandler(segmentThread.getLooper(), this);
 
-    long initialDelay = queueFile.size() >= flushQueueSize ? 0L : flushIntervalInMillis;
+    long initialDelay = payloadQueue.size() >= flushQueueSize ? 0L : flushIntervalInMillis;
     flushScheduler.scheduleAtFixedRate(new Runnable() {
       @Override public void run() {
         flush();
@@ -214,18 +215,18 @@ class SegmentIntegration extends Integration<Void> {
     payload.putAll(original);
     payload.put("integrations", combinedIntegrations);
 
-    if (queueFile.size() >= MAX_QUEUE_SIZE) {
+    if (payloadQueue.size() >= MAX_QUEUE_SIZE) {
       synchronized (flushLock) {
         // Double checked locking, the network executor could have removed payload from the queue
         // to bring it below our capacity while we were waiting.
-        if (queueFile.size() >= MAX_QUEUE_SIZE) {
-          logger.info("Queue is at max capacity (%s), removing oldest payload.", queueFile.size());
+        if (payloadQueue.size() >= MAX_QUEUE_SIZE) {
+          logger.info("Queue is at max capacity (%s), removing oldest payload.",
+              payloadQueue.size());
           try {
-            queueFile.remove();
+            payloadQueue.remove(1);
           } catch (IOException e) {
-            throw new IOError(e);
-          } catch (ArrayIndexOutOfBoundsException e) {
-            dump(e, 1);
+            logger.error(e, "Unable to remove oldest payload from queue.");
+            return;
           }
         }
       }
@@ -236,13 +237,13 @@ class SegmentIntegration extends Integration<Void> {
       if (isNullOrEmpty(payloadJson) || payloadJson.length() > MAX_PAYLOAD_SIZE) {
         throw new IOException("Could not serialize payload " + payload);
       }
-      queueFile.add(payloadJson.getBytes(UTF_8));
+      payloadQueue.add(payloadJson.getBytes(UTF_8));
     } catch (IOException e) {
-      logger.error(e, "Could not add payload %s to queue: %s.", payload, queueFile);
+      logger.error(e, "Could not add payload %s to queue: %s.", payload, payloadQueue);
     }
 
-    logger.verbose("Enqueued %s payload. %s elements in the queue.", payload, queueFile.size());
-    if (queueFile.size() >= flushQueueSize) {
+    logger.verbose("Enqueued %s payload. %s elements in the queue.", payload, payloadQueue.size());
+    if (payloadQueue.size() >= flushQueueSize) {
       submitFlush();
     }
   }
@@ -268,7 +269,7 @@ class SegmentIntegration extends Integration<Void> {
   }
 
   private boolean shouldFlush() {
-    return queueFile.size() > 0 && isConnected(context);
+    return payloadQueue.size() > 0 && isConnected(context);
   }
 
   /** Upload payloads to our servers and remove them from the queue file. */
@@ -290,7 +291,7 @@ class SegmentIntegration extends Integration<Void> {
         BatchPayloadWriter writer =
             new BatchPayloadWriter(connection.os).beginObject().beginBatchArray();
         PayloadWriter payloadWriter = new PayloadWriter(writer);
-        queueFile.forEach(payloadWriter);
+        payloadQueue.forEach(payloadWriter);
         writer.endBatchArray().endObject().close();
         // Don't use the result of QueueFiles#forEach, since we may not read the last element.
         payloadsUploaded = payloadWriter.payloadCount;
@@ -311,49 +312,26 @@ class SegmentIntegration extends Integration<Void> {
     }
 
     try {
-      queueFile.remove(payloadsUploaded);
+      payloadQueue.remove(payloadsUploaded);
     } catch (IOException e) {
-      IOException ioException = new IOException("Unable to remove " //
-          + payloadsUploaded + " payload(s) from queueFile: " + queueFile, e);
-      throw new IOError(ioException);
-    } catch (ArrayIndexOutOfBoundsException e) {
-      dump(e, payloadsUploaded);
+      logger.error(e, "Unable to remove " + payloadsUploaded + " payload(s) from queue.");
     }
 
     logger.verbose("Uploaded %s payloads. %s remain in the queue.", payloadsUploaded,
-        queueFile.size());
+        payloadQueue.size());
     stats.dispatchFlush(payloadsUploaded);
-    if (queueFile.size() > 0) {
+    if (payloadQueue.size() > 0) {
       performFlush(); // Flush any remaining items.
     }
-  }
-
-  /**
-   * Log additional info for:
-   * 1. https://github.com/segmentio/analytics-android/issues/263
-   * 2. https://github.com/segmentio/analytics-android/issues/321
-   */
-  void dump(ArrayIndexOutOfBoundsException e, int count) {
-    logger.error(e, "Error while removing %s payload(s) from queue.", count);
-    try {
-      queueFile.dump(new Printer() {
-        @Override public void println(String x) {
-          logger.error(null, x);
-        }
-      });
-    } catch (ArrayIndexOutOfBoundsException expected) {
-      logger.error(expected, "Error while dumping contents of queue.");
-    }
-    throw new IOError(new IOException("Unable to remove " + count + " payload(s) from queue.", e));
   }
 
   void shutdown() {
     flushScheduler.shutdownNow();
     segmentThread.quit();
-    closeQuietly(queueFile);
+    closeQuietly(payloadQueue);
   }
 
-  static class PayloadWriter implements QueueFile.ElementVisitor {
+  static class PayloadWriter implements PayloadQueue.ElementVisitor {
 
     final BatchPayloadWriter writer;
     int size;
