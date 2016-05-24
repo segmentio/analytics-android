@@ -649,7 +649,7 @@ public class AnalyticsTest {
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
-        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0), true);
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), true);
 
     Activity activity = mock(Activity.class);
     PackageManager packageManager = mock(PackageManager.class);

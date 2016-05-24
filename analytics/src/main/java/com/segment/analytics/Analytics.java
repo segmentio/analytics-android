@@ -265,13 +265,9 @@ public class Analytics {
         runOnMainThread(IntegrationOperation.onActivityDestroyed(activity));
       }
     });
-    analyticsExecutor.submit(new Runnable() {
-      @Override public void run() {
-        if (trackApplicationLifecycleEvents) {
-          trackApplicationLifecycleEvents();
-        }
-      }
-    });
+    if (trackApplicationLifecycleEvents) {
+      trackApplicationLifecycleEvents();
+    }
   }
 
   private void trackApplicationLifecycleEvents() {
@@ -382,7 +378,10 @@ public class Analytics {
    * @throws IllegalArgumentException if both {@code userId} and {@code newTraits} are not provided
    * @see <a href="https://segment.com/docs/tracking-api/identify/">Identify Documentation</a>
    */
-  public void identify(String userId, Traits newTraits, Options options) {
+  public void identify(String userId, Traits newTraits, final Options options) {
+    if (shutdown) {
+      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
+    }
     if (isNullOrEmpty(userId) && isNullOrEmpty(newTraits)) {
       throw new IllegalArgumentException("Either userId or some traits must be provided.");
     }
@@ -398,20 +397,21 @@ public class Analytics {
     traitsCache.set(traits); // Save the new traits
     analyticsContext.setTraits(traits); // Update the references
 
-    if (options == null) {
-      options = defaultOptions;
-    }
+    analyticsExecutor.submit(new Runnable() {
+      @Override public void run() {
+        final Options finalOptions;
+        if (options == null) {
+          finalOptions = defaultOptions;
+        } else {
+          finalOptions = options;
+        }
 
-    waitForAdvertisingId();
-    IdentifyPayload payload = new IdentifyPayload(analyticsContext, options, traitsCache.get());
-    submit(payload);
-  }
-
-  void waitForAdvertisingId() {
-    try {
-      advertisingIdLatch.await(5, TimeUnit.SECONDS);
-    } catch (InterruptedException ignored) {
-    }
+        waitForAdvertisingId();
+        IdentifyPayload payload =
+            new IdentifyPayload(analyticsContext, finalOptions, traitsCache.get());
+        enqueue(payload);
+      }
+    });
   }
 
   /**
@@ -437,20 +437,36 @@ public class Analytics {
    * @throws IllegalArgumentException if groupId is null or an empty string
    * @see <a href="https://segment.com/docs/tracking-api/group/">Group Documentation</a>
    */
-  public void group(String groupId, Traits groupTraits, Options options) {
+  public void group(final String groupId, final Traits groupTraits, final Options options) {
+    if (shutdown) {
+      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
+    }
     if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException("groupId must not be null or empty.");
     }
-    if (groupTraits == null) {
-      groupTraits = new Traits();
-    }
-    if (options == null) {
-      options = defaultOptions;
-    }
 
-    waitForAdvertisingId();
-    GroupPayload payload = new GroupPayload(analyticsContext, options, groupId, groupTraits);
-    submit(payload);
+    analyticsExecutor.submit(new Runnable() {
+      @Override public void run() {
+        final Traits finalGroupTraits;
+        if (groupTraits == null) {
+          finalGroupTraits = new Traits();
+        } else {
+          finalGroupTraits = groupTraits;
+        }
+
+        final Options finalOptions;
+        if (options == null) {
+          finalOptions = defaultOptions;
+        } else {
+          finalOptions = options;
+        }
+
+        waitForAdvertisingId();
+        GroupPayload payload =
+            new GroupPayload(analyticsContext, finalOptions, groupId, finalGroupTraits);
+        enqueue(payload);
+      }
+    });
   }
 
   /**
@@ -486,20 +502,36 @@ public class Analytics {
    * @throws IllegalArgumentException if event name is null or an empty string
    * @see <a href="https://segment.com/docs/tracking-api/track/">Track Documentation</a>
    */
-  public void track(String event, Properties properties, Options options) {
+  public void track(final String event, final Properties properties, final Options options) {
+    if (shutdown) {
+      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
+    }
     if (isNullOrEmpty(event)) {
       throw new IllegalArgumentException("event must not be null or empty.");
     }
-    if (properties == null) {
-      properties = EMPTY_PROPERTIES;
-    }
-    if (options == null) {
-      options = defaultOptions;
-    }
 
-    waitForAdvertisingId();
-    TrackPayload payload = new TrackPayload(analyticsContext, options, event, properties);
-    submit(payload);
+    analyticsExecutor.submit(new Runnable() {
+      @Override public void run() {
+        final Options finalOptions;
+        if (options == null) {
+          finalOptions = defaultOptions;
+        } else {
+          finalOptions = options;
+        }
+
+        final Properties finalProperties;
+        if (properties == null) {
+          finalProperties = EMPTY_PROPERTIES;
+        } else {
+          finalProperties = properties;
+        }
+
+        waitForAdvertisingId();
+        TrackPayload payload =
+            new TrackPayload(analyticsContext, finalOptions, event, finalProperties);
+        enqueue(payload);
+      }
+    });
   }
 
   /** @see #screen(String, String, Properties, Options) */
@@ -525,22 +557,37 @@ public class Analytics {
    * @param options To configure the call
    * @see <a href="http://segment.com/docs/tracking-api/page-and-screen/">Screen Documentation</a>
    */
-  public void screen(String category, String name, Properties properties, Options options) {
+  public void screen(final String category, final String name, final Properties properties,
+      final Options options) {
+    if (shutdown) {
+      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
+    }
     if (isNullOrEmpty(category) && isNullOrEmpty(name)) {
       throw new IllegalArgumentException("either category or name must be provided.");
     }
 
-    if (properties == null) {
-      properties = EMPTY_PROPERTIES;
-    }
-    if (options == null) {
-      options = defaultOptions;
-    }
+    analyticsExecutor.submit(new Runnable() {
+      @Override public void run() {
+        final Options finalOptions;
+        if (options == null) {
+          finalOptions = defaultOptions;
+        } else {
+          finalOptions = options;
+        }
 
-    waitForAdvertisingId();
-    ScreenPayload payload =
-        new ScreenPayload(analyticsContext, options, category, name, properties);
-    submit(payload);
+        final Properties finalProperties;
+        if (properties == null) {
+          finalProperties = EMPTY_PROPERTIES;
+        } else {
+          finalProperties = properties;
+        }
+
+        waitForAdvertisingId();
+        ScreenPayload payload =
+            new ScreenPayload(analyticsContext, finalOptions, category, name, finalProperties);
+        enqueue(payload);
+      }
+    });
   }
 
   /**
@@ -573,23 +620,38 @@ public class Analytics {
    * @throws IllegalArgumentException if newId is null or empty
    * @see <a href="https://segment.com/docs/tracking-api/alias/">Alias Documentation</a>
    */
-  public void alias(String newId, Options options) {
-    if (isNullOrEmpty(newId)) {
-      throw new IllegalArgumentException("newId must not be null or empty.");
-    }
-    if (options == null) {
-      options = defaultOptions;
-    }
-
-    waitForAdvertisingId();
-    AliasPayload payload = new AliasPayload(analyticsContext, options, newId);
-    submit(payload);
-  }
-
-  void submit(BasePayload payload) {
+  public void alias(final String newId, final Options options) {
     if (shutdown) {
       throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
     }
+    if (isNullOrEmpty(newId)) {
+      throw new IllegalArgumentException("newId must not be null or empty.");
+    }
+
+    analyticsExecutor.submit(new Runnable() {
+      @Override public void run() {
+        final Options finalOptions;
+        if (options == null) {
+          finalOptions = defaultOptions;
+        } else {
+          finalOptions = options;
+        }
+
+        waitForAdvertisingId();
+        AliasPayload payload = new AliasPayload(analyticsContext, finalOptions, newId);
+        enqueue(payload);
+      }
+    });
+  }
+
+  void waitForAdvertisingId() {
+    try {
+      advertisingIdLatch.await(15, TimeUnit.SECONDS);
+    } catch (InterruptedException ignored) {
+    }
+  }
+
+  void enqueue(BasePayload payload) {
     logger.verbose("Created payload %s.", payload);
     final IntegrationOperation operation;
     switch (payload.type()) {
@@ -611,7 +673,11 @@ public class Analytics {
       default:
         throw new AssertionError("unknown type " + payload.type());
     }
-    runOnMainThread(operation);
+    HANDLER.post(new Runnable() {
+      @Override public void run() {
+        performRun(operation);
+      }
+    });
   }
 
   /**
