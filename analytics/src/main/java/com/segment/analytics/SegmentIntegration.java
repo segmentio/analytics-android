@@ -240,6 +240,7 @@ class SegmentIntegration extends Integration<Void> {
       payloadQueue.add(payloadJson.getBytes(UTF_8));
     } catch (IOException e) {
       logger.error(e, "Could not add payload %s to queue: %s.", payload, payloadQueue);
+      return;
     }
 
     logger.verbose("Enqueued %s payload. %s elements in the queue.", payload, payloadQueue.size());
@@ -315,6 +316,7 @@ class SegmentIntegration extends Integration<Void> {
       payloadQueue.remove(payloadsUploaded);
     } catch (IOException e) {
       logger.error(e, "Unable to remove " + payloadsUploaded + " payload(s) from queue.");
+      return;
     }
 
     logger.verbose("Uploaded %s payloads. %s remain in the queue.", payloadsUploaded,
