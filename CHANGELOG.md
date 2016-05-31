@@ -1,4 +1,11 @@
 
+Version 4.1.3 (May 31st, 2016)
+==============================
+
+  * Fix: Early Return when queue error occurs
+  * Fix: Don't block user thread while waiting for advertising ID
+  * Fix: Add Memory Fallback and be lenient about Queue Errors.
+
 Version 4.1.2 (May 24th, 2016)
 ==============================
 
