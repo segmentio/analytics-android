@@ -9,6 +9,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Bundle;
 import com.segment.analytics.TestUtils.NoDescriptionMatcher;
 import com.segment.analytics.core.tests.BuildConfig;
 import com.segment.analytics.integrations.AliasPayload;
@@ -668,5 +669,52 @@ public class AnalyticsTest {
         return payload.name().equals("Foo");
       }
     }));
+  }
+
+  @Test public void registerActivityLifecycleCallbacks() throws NameNotFoundException {
+    Analytics.INSTANCES.clear();
+
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+        new AtomicReference<>();
+    doNothing().when(application)
+        .registerActivityLifecycleCallbacks(
+            argThat(new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+              @Override
+              protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                callback.set(item);
+                return true;
+              }
+            }));
+
+    analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
+        defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
+        Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), false);
+
+    Activity activity = mock(Activity.class);
+    Bundle bundle = new Bundle();
+
+    callback.get().onActivityCreated(activity, bundle);
+    verify(integration).onActivityCreated(activity, bundle);
+
+    callback.get().onActivityStarted(activity);
+    verify(integration).onActivityStarted(activity);
+
+    callback.get().onActivityResumed(activity);
+    verify(integration).onActivityResumed(activity);
+
+    callback.get().onActivityPaused(activity);
+    verify(integration).onActivityPaused(activity);
+
+    callback.get().onActivityStopped(activity);
+    verify(integration).onActivityStopped(activity);
+
+    callback.get().onActivitySaveInstanceState(activity, bundle);
+    verify(integration).onActivitySaveInstanceState(activity, bundle);
+
+    callback.get().onActivityDestroyed(activity);
+    verify(integration).onActivityDestroyed(activity);
+
+    verifyNoMoreInteractions(integration);
   }
 }
