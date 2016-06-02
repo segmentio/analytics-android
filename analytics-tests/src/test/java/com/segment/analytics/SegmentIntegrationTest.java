@@ -87,6 +87,7 @@ public class SegmentIntegrationTest {
   @Test public void enqueueWritesIntegrations() throws IOException {
     final HashMap<String, Boolean> integrations = new LinkedHashMap<>();
     integrations.put("All", false); // should overwrite existing values in the map.
+    integrations.put("Segment.io", false); // should ignore Segment setting in payload.
     integrations.put("foo", true); // should add new values.
     PayloadQueue payloadQueue = mock(PayloadQueue.class);
     SegmentIntegration segmentIntegration = new SegmentBuilder() //
