@@ -57,6 +57,7 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -580,10 +581,24 @@ public class AnalyticsTest {
     when(application.getPackageName()).thenReturn("com.foo");
     when(application.getPackageManager()).thenReturn(packageManager);
 
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+        new AtomicReference<>();
+    doNothing().when(application)
+        .registerActivityLifecycleCallbacks(
+            argThat(new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+              @Override
+              protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                callback.set(item);
+                return true;
+              }
+            }));
+
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
         DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0), false, optOut);
+
+    callback.get().onActivityCreated(null, null);
 
     verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
       @Override protected boolean matchesSafely(TrackPayload payload) {
@@ -599,6 +614,10 @@ public class AnalyticsTest {
             payload.properties().getInt("build", -1) == 100;
       }
     }));
+
+    callback.get().onActivityCreated(null, null);
+    verify(integration, times(2)).onActivityCreated(null, null);
+    verifyNoMoreInteractions(integration);
   }
 
   @Test public void trackApplicationLifecycleEventsUpdated() throws NameNotFoundException {
@@ -620,10 +639,24 @@ public class AnalyticsTest {
     when(application.getPackageName()).thenReturn("com.foo");
     when(application.getPackageManager()).thenReturn(packageManager);
 
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+        new AtomicReference<>();
+    doNothing().when(application)
+        .registerActivityLifecycleCallbacks(
+            argThat(new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+              @Override
+              protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                callback.set(item);
+                return true;
+              }
+            }));
+
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
         DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0), false, optOut);
+
+    callback.get().onActivityCreated(null, null);
 
     verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
       @Override protected boolean matchesSafely(TrackPayload payload) {
@@ -700,7 +733,7 @@ public class AnalyticsTest {
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
-        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), false);
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), false, optOut);
 
     Activity activity = mock(Activity.class);
     Bundle bundle = new Bundle();

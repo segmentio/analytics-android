@@ -59,6 +59,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
 import static com.segment.analytics.internal.Utils.buffer;
@@ -186,11 +187,11 @@ public class Analytics {
 
   Analytics(Application application, ExecutorService networkExecutor, Stats stats,
       Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions,
-      Logger logger, String tag, List<Integration.Factory> factories, Client client,
+      Logger logger, String tag, final List<Integration.Factory> factories, Client client,
       Cartographer cartographer, ProjectSettings.Cache projectSettingsCache, String writeKey,
       int flushQueueSize, long flushIntervalInMillis, final ExecutorService analyticsExecutor,
-      final boolean trackApplicationLifecycleEvents, CountDownLatch advertisingIdLatch,
-      final boolean recordScreenViews, BooleanPreference optOut) {
+      final boolean shouldTrackApplicationLifecycleEvents, CountDownLatch advertisingIdLatch,
+      final boolean shouldRecordScreenViews, BooleanPreference optOut) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -237,12 +238,18 @@ public class Analytics {
     logger.debug("Created analytics client for project with tag:%s.", tag);
 
     application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+      final AtomicBoolean trackedApplicationLifecycleEvents = new AtomicBoolean(false);
+
       @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+        if (!trackedApplicationLifecycleEvents.getAndSet(true)
+            && shouldTrackApplicationLifecycleEvents) {
+          trackApplicationLifecycleEvents();
+        }
         runOnMainThread(IntegrationOperation.onActivityCreated(activity, savedInstanceState));
       }
 
       @Override public void onActivityStarted(Activity activity) {
-        if (recordScreenViews) {
+        if (shouldRecordScreenViews) {
           recordScreenViews(activity);
         }
         runOnMainThread(IntegrationOperation.onActivityStarted(activity));
@@ -268,9 +275,6 @@ public class Analytics {
         runOnMainThread(IntegrationOperation.onActivityDestroyed(activity));
       }
     });
-    if (trackApplicationLifecycleEvents) {
-      trackApplicationLifecycleEvents();
-    }
   }
 
   private void trackApplicationLifecycleEvents() {
