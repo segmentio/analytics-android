@@ -210,6 +210,7 @@ class SegmentIntegration extends Integration<Void> {
         new LinkedHashMap<>(providedIntegrations.size() + bundledIntegrations.size());
     combinedIntegrations.putAll(providedIntegrations);
     combinedIntegrations.putAll(bundledIntegrations);
+    combinedIntegrations.remove("Segment.io"); // don't include the Segment integration.
     // Make a copy of the payload so we don't mutate the original.
     ValueMap payload = new ValueMap();
     payload.putAll(original);
