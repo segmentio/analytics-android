@@ -84,6 +84,7 @@ public class AnalyticsTest {
   @Mock ProjectSettings.Cache projectSettingsCache;
   @Mock Integration integration;
   Integration.Factory factory;
+  BooleanPreference optOut;
   Application application;
   Traits traits;
   AnalyticsContext analyticsContext;
@@ -115,10 +116,14 @@ public class AnalyticsTest {
     when(projectSettingsCache.get()) //
         .thenReturn(ProjectSettings.create(Cartographer.INSTANCE.fromJson(SETTINGS)));
 
+    SharedPreferences sharedPreferences =
+        RuntimeEnvironment.application.getSharedPreferences("analytics-test", MODE_PRIVATE);
+    optOut = new BooleanPreference(sharedPreferences, "opt-out-test", false);
+
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
-        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), false);
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), false, optOut);
 
     // Used by singleton tests.
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
@@ -258,6 +263,12 @@ public class AnalyticsTest {
         new Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false));
     analytics.alias("foo", new Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false));
 
+    verifyNoMoreInteractions(integration);
+  }
+
+  @Test public void optOutDisablesEvents() throws IOException {
+    analytics.optOut(true);
+    analytics.track("foo");
     verifyNoMoreInteractions(integration);
   }
 
@@ -571,7 +582,7 @@ public class AnalyticsTest {
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
-        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0), false);
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0), false, optOut);
 
     verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
       @Override protected boolean matchesSafely(TrackPayload payload) {
@@ -611,7 +622,7 @@ public class AnalyticsTest {
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
-        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0), false);
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0), false, optOut);
 
     verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
       @Override protected boolean matchesSafely(TrackPayload payload) {
@@ -649,7 +660,7 @@ public class AnalyticsTest {
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
-        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), true);
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), true, optOut);
 
     Activity activity = mock(Activity.class);
     PackageManager packageManager = mock(PackageManager.class);

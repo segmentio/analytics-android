@@ -95,6 +95,7 @@ public class Analytics {
       throw new AssertionError("Unknown handler message received: " + msg.what);
     }
   };
+  private static final String OPT_OUT_PREFERENCE_KEY = "opt-out";
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
   static final List<String> INSTANCES = new ArrayList<>(1);
   volatile static Analytics singleton = null;
@@ -121,6 +122,7 @@ public class Analytics {
   // advertising ID is ready.
   final CountDownLatch advertisingIdLatch;
   final ExecutorService analyticsExecutor;
+  final BooleanPreference optOut;
 
   final Map<String, Boolean> bundledIntegrations = new ConcurrentHashMap<>();
   private List<Integration.Factory> factories;
@@ -188,7 +190,7 @@ public class Analytics {
       Cartographer cartographer, ProjectSettings.Cache projectSettingsCache, String writeKey,
       int flushQueueSize, long flushIntervalInMillis, final ExecutorService analyticsExecutor,
       final boolean trackApplicationLifecycleEvents, CountDownLatch advertisingIdLatch,
-      final boolean recordScreenViews) {
+      final boolean recordScreenViews, BooleanPreference optOut) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -204,6 +206,7 @@ public class Analytics {
     this.flushQueueSize = flushQueueSize;
     this.flushIntervalInMillis = flushIntervalInMillis;
     this.advertisingIdLatch = advertisingIdLatch;
+    this.optOut = optOut;
     this.factories = Collections.unmodifiableList(factories);
     this.analyticsExecutor = analyticsExecutor;
 
@@ -652,6 +655,10 @@ public class Analytics {
   }
 
   void enqueue(BasePayload payload) {
+    if (optOut.get()) {
+      return;
+    }
+
     logger.verbose("Created payload %s.", payload);
     final IntegrationOperation operation;
     switch (payload.type()) {
@@ -747,6 +754,15 @@ public class Analytics {
     traitsCache.set(Traits.create());
     analyticsContext.setTraits(traitsCache.get());
     runOnMainThread(IntegrationOperation.RESET);
+  }
+
+  /**
+   * Set the opt-out status for the current device and analytics client combination. This flag is
+   * persisted across device reboots, so you can simply call this once during your application
+   * (such as in a screen where a user can opt out of analytics tracking).
+   */
+  public void optOut(boolean optOut) {
+    this.optOut.set(optOut);
   }
 
   /**
@@ -1105,6 +1121,10 @@ public class Analytics {
       ProjectSettings.Cache projectSettingsCache =
           new ProjectSettings.Cache(application, cartographer, tag);
 
+      BooleanPreference optOut =
+          new BooleanPreference(getSegmentSharedPreferences(application), OPT_OUT_PREFERENCE_KEY,
+              false);
+
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
         Traits traits = Traits.create();
@@ -1123,7 +1143,7 @@ public class Analytics {
           defaultOptions, Logger.with(logLevel), tag, factories, client, cartographer,
           projectSettingsCache, writeKey, flushQueueSize, flushIntervalInMillis,
           Executors.newSingleThreadExecutor(), trackApplicationLifecycleEvents, advertisingIdLatch,
-          recordScreenViews);
+          recordScreenViews, optOut);
     }
   }
 
