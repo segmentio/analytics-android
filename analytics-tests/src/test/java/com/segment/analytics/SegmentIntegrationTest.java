@@ -231,7 +231,9 @@ public class SegmentIntegrationTest {
     Client.Connection connection = mockConnection(urlConnection);
     when(client.upload()).thenReturn(connection);
     SegmentIntegration segmentIntegration = new SegmentBuilder() //
-        .client(client).payloadQueue(payloadQueue).build();
+        .client(client) //
+        .payloadQueue(payloadQueue) //
+        .build();
 
     segmentIntegration.submitFlush();
 

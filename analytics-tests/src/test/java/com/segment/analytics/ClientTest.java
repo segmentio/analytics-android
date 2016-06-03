@@ -1,6 +1,5 @@
 package com.segment.analytics;
 
-import android.app.Activity;
 import android.net.Uri;
 import com.segment.analytics.core.tests.BuildConfig;
 import com.squareup.okhttp.mockwebserver.MockResponse;
@@ -10,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.URL;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -17,7 +17,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -39,17 +38,17 @@ public class ClientTest {
   private HttpURLConnection mockConnection;
 
   @Before public void setUp() {
-    Activity activity = Robolectric.buildActivity(Activity.class).get();
     mockConnection = mock(HttpURLConnection.class);
 
-    client = new Client(activity, "foo", new ConnectionFactory() {
+    client = new Client("foo", new ConnectionFactory() {
       @Override protected HttpURLConnection openConnection(String url) throws IOException {
         String path = Uri.parse(url).getPath();
-        return (HttpURLConnection) server.getUrl(path).openConnection();
+        URL mockServerURL = server.getUrl(path);
+        return super.openConnection(mockServerURL.toString());
       }
     });
 
-    mockClient = new Client(activity, "foo", new ConnectionFactory() {
+    mockClient = new Client("foo", new ConnectionFactory() {
       @Override protected HttpURLConnection openConnection(String url) throws IOException {
         return mockConnection;
       }
@@ -66,6 +65,7 @@ public class ClientTest {
     RecordedRequestAssert.assertThat(server.takeRequest())
         .hasRequestLine("POST /v1/import HTTP/1.1")
         .containsHeader("Content-Type", "application/json")
+        .containsHeader("Content-Encoding", "gzip")
         .containsHeader("Authorization", "Basic Zm9vOg==");
   }
 

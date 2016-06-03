@@ -282,34 +282,34 @@ class SegmentIntegration extends Integration<Void> {
 
     logger.verbose("Uploading payloads in queue to Segment.");
     int payloadsUploaded;
+
+    Client.Connection connection = null;
     try {
-      Client.Connection connection = null;
+      // Open a connection.
+      connection = client.upload();
+
+      // Write the payloads into the OutputStream.
+      BatchPayloadWriter writer = new BatchPayloadWriter(connection.os) //
+          .beginObject() //
+          .beginBatchArray();
+      PayloadWriter payloadWriter = new PayloadWriter(writer);
+      payloadQueue.forEach(payloadWriter);
+      writer.endBatchArray().endObject().close();
+      // Don't use the result of QueueFiles#forEach, since we may not read the last element.
+      payloadsUploaded = payloadWriter.payloadCount;
+
       try {
-        // Open a connection.
-        connection = client.upload();
-
-        // Write the payloads into the OutputStream.
-        BatchPayloadWriter writer =
-            new BatchPayloadWriter(connection.os).beginObject().beginBatchArray();
-        PayloadWriter payloadWriter = new PayloadWriter(writer);
-        payloadQueue.forEach(payloadWriter);
-        writer.endBatchArray().endObject().close();
-        // Don't use the result of QueueFiles#forEach, since we may not read the last element.
-        payloadsUploaded = payloadWriter.payloadCount;
-
-        try {
-          // Upload the payloads.
-          connection.close();
-        } catch (Client.UploadException e) {
-          // Simply log and proceed to remove the rejected payloads from the queue
-          logger.error(e, "Payloads were rejected by server. Marked for removal.");
-        }
-      } finally {
-        closeQuietly(connection);
+        // Upload the payloads.
+        connection.close();
+      } catch (Client.UploadException e) {
+        // Simply log and proceed to remove the rejected payloads from the queue.
+        logger.error(e, "Payloads were rejected by server. Marked for removal.");
       }
     } catch (IOException e) {
       logger.error(e, "Error while uploading payloads");
       return;
+    } finally {
+      closeQuietly(connection);
     }
 
     try {
