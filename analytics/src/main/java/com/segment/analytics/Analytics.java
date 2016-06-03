@@ -67,7 +67,6 @@ import static com.segment.analytics.internal.Utils.closeQuietly;
 import static com.segment.analytics.internal.Utils.getResourceString;
 import static com.segment.analytics.internal.Utils.getSegmentSharedPreferences;
 import static com.segment.analytics.internal.Utils.hasPermission;
-import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
@@ -1179,21 +1178,27 @@ public class Analytics {
     return null;
   }
 
+  /**
+   * Retrieve settings from the cache or the network:
+   * 1. If the cache is empty, fetch new settings.
+   * 2. If the cache is not stale, use it.
+   * 2. If the cache is stale, try to get new settings.
+   */
   private ProjectSettings getSettings() {
     ProjectSettings settings = projectSettingsCache.get();
-
-    boolean update = false;
     if (isNullOrEmpty(settings)) {
-      update = true;
-    } else if (settings.timestamp() + SETTINGS_REFRESH_INTERVAL < System.currentTimeMillis()) {
-      update = true;
+      return downloadSettings();
     }
 
-    if (update && isConnected(application)) {
-      settings = downloadSettings();
+    if (settings.timestamp() + SETTINGS_REFRESH_INTERVAL < System.currentTimeMillis()) {
+      return settings;
     }
 
-    return settings;
+    ProjectSettings downloadedSettings = downloadSettings();
+    if (isNullOrEmpty(downloadedSettings)) {
+      return settings;
+    }
+    return downloadedSettings;
   }
 
   void performInitializeIntegrations(ProjectSettings projectSettings) {
