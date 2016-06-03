@@ -56,24 +56,23 @@ class SegmentIntegration extends Integration<Void> {
     }
   };
 
-  static final String SEGMENT_KEY = "Segment.io";
-
   /**
    * Drop old payloads if queue contains more than 1000 items. Since each item can be at most
-   * 450KB, this bounds the queueFile size to ~450MB (ignoring headers), which also leaves room for
+   * 15KB, this bounds the queue size to ~15MB (ignoring headers), which also leaves room for
    * QueueFile's 2GB limit.
    */
   static final int MAX_QUEUE_SIZE = 1000;
-  /** Our servers only accept payloads < 15kb. */
-  static final int MAX_PAYLOAD_SIZE = 15000; // 15kb
+  /** Our servers only accept payloads < 15KB. */
+  static final int MAX_PAYLOAD_SIZE = 15000; // 15KB.
+  /**
+   * Our servers only accept batches < 500KB. This limit is 475KB to account for extra data
+   * that is not present in payloads themselves, but is added later, such as {@code sentAt},
+   * {@code integrations} and other json tokens.
+   */
+  private static final int MAX_BATCH_SIZE = 475000; // 475KB.
   private static final Charset UTF_8 = Charset.forName("UTF-8");
   private static final String SEGMENT_THREAD_NAME = THREAD_PREFIX + "SegmentDispatcher";
-  /**
-   * Our servers only accept batches < 500KB. This limit is 475kb to account for extra data
-   * that is not present in payloads themselves, but is added later, such as {@code sentAt},
-   * {@code integrations} and json tokens.
-   */
-  private static final int MAX_BATCH_SIZE = 475000; // 475kb
+  static final String SEGMENT_KEY = "Segment.io";
   private final Context context;
   private final PayloadQueue payloadQueue;
   private final Client client;
