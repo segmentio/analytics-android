@@ -1119,7 +1119,7 @@ public class Analytics {
 
       final Stats stats = new Stats();
       final Cartographer cartographer = Cartographer.INSTANCE;
-      final Client client = new Client(application, writeKey, connectionFactory);
+      final Client client = new Client(writeKey, connectionFactory);
 
       ProjectSettings.Cache projectSettingsCache =
           new ProjectSettings.Cache(application, cartographer, tag);
