@@ -1,4 +1,17 @@
 
+Version 4.1.4 (Jun 6th, 2016)
+==============================
+
+  * New: Add opt out method in the library. This will stop sending any events to all integrations for the device.
+
+```java
+analytics.optOut(true);
+```
+
+  * Fix: Use Application Opened instead of Application Started.
+  * Improvement: gzip HTTP request body.
+  * Fix: Guard against possible ArrayIndexOutOfBoundsException.
+
 Version 4.1.3 (May 31st, 2016)
 ==============================
 
