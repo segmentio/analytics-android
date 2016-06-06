@@ -65,7 +65,13 @@ abstract class PayloadQueue implements Closeable {
     }
 
     @Override void remove(int n) throws IOException {
-      queueFile.remove(n);
+      try {
+        queueFile.remove(n);
+      } catch (ArrayIndexOutOfBoundsException e) {
+        // Guard against ArrayIndexOutOfBoundsException, unfortunately root cause is unknown.
+        // Ref: https://github.com/segmentio/analytics-android/issues/449.
+        throw new IOException(e);
+      }
     }
 
     @Override void add(byte[] data) throws IOException {
