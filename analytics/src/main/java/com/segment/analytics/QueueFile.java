@@ -16,6 +16,7 @@
 package com.segment.analytics;
 
 import java.io.Closeable;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -354,6 +355,9 @@ public class QueueFile implements Closeable {
     do {
       remainingBytes += previousLength;
       newLength = previousLength << 1;
+      if (newLength < previousLength) {
+        throw new EOFException("Cannot grow file beyond " + previousLength + " bytes");
+      }
       previousLength = newLength;
     } while (remainingBytes < elementLength);
 
