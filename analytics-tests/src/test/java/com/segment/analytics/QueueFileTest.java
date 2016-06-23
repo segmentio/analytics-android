@@ -4,6 +4,7 @@ package com.segment.analytics;
 
 import com.segment.analytics.QueueFile.Element;
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -33,8 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
   /**
    * Takes up 33401 bytes in the queue (N*(N+1)/2+4*N). Picked 254 instead of 255 so that the
-   * number
-   * of bytes isn't a multiple of 4.
+   * number of bytes isn't a multiple of 4.
    */
   private static int N = 254;
   private static byte[][] values = new byte[N][];
@@ -765,6 +765,28 @@ import static org.assertj.core.api.Assertions.assertThat;
     QueueFile queueFile2 = new QueueFile(file);
     assertThat(queueFile2.size()).isEqualTo(queueSize);
   }
+
+  /*
+  @Test public void testOverflow() throws IOException {
+    QueueFile queueFile = new QueueFile(file);
+
+    // Create a 32k block of test data.
+    byte[] value = new byte[32768];
+
+    // Run 32764 iterations = (32768 + 4) * 32764 = 1073741808 bytes.
+    for (int i = 0; i < 32764; i++) {
+      queueFile.add(value);
+    }
+
+    // Grow the file to 1073741808 + (32768 + 4) = 1073774580 bytes.
+    try {
+      queueFile.add(value);
+      fail("QueueFile should throw error if attempted to grow beyond 1073741824 bytes");
+    } catch (EOFException e) {
+      assertThat(e).hasMessage("Cannot grow file beyond 1073741824 bytes");
+    }
+  }
+  */
 
   /**
    * A RandomAccessFile that can break when you go to write the COMMITTED
