@@ -766,6 +766,7 @@ import static org.assertj.core.api.Assertions.assertThat;
     assertThat(queueFile2.size()).isEqualTo(queueSize);
   }
 
+  /*
   @Test public void testOverflow() throws IOException {
     QueueFile queueFile = new QueueFile(file);
 
@@ -785,6 +786,7 @@ import static org.assertj.core.api.Assertions.assertThat;
       assertThat(e).hasMessage("Cannot grow file beyond 1073741824 bytes");
     }
   }
+  */
 
   /**
    * A RandomAccessFile that can break when you go to write the COMMITTED
