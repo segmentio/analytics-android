@@ -35,6 +35,7 @@ import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
 import com.segment.analytics.core.BuildConfig;
+import com.segment.analytics.integrations.Logger;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -147,13 +148,16 @@ public class AnalyticsContext extends ValueMap {
     super(delegate);
   }
 
-  void attachAdvertisingId(Context context, CountDownLatch latch) {
+  void attachAdvertisingId(Context context, CountDownLatch latch, Logger logger) {
     // This is done as an extra step so we don't run into errors like this for testing
-    // http://pastebin.com/gyWJKWiu
+    // http://pastebin.com/gyWJKWiu.
     if (isOnClassPath("com.google.android.gms.ads.identifier.AdvertisingIdClient")) {
-      // this needs to be done each time since the settings may have been updated
-      new GetAdvertisingIdTask(this, latch).execute(context);
+      // This needs to be done each time since the settings may have been updated.
+      new GetAdvertisingIdTask(this, latch, logger).execute(context);
     } else {
+      logger.debug("Not collecting advertising ID because "
+          + "com.google.android.gms.ads.identifier.AdvertisingIdClient "
+          + "was not found on the classpath.");
       latch.countDown();
     }
   }
