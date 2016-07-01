@@ -653,7 +653,12 @@ public class Analytics {
   void waitForAdvertisingId() {
     try {
       advertisingIdLatch.await(15, TimeUnit.SECONDS);
-    } catch (InterruptedException ignored) {
+    } catch (InterruptedException e) {
+      logger.error(e, "Thread interrupted while waiting for advertising ID.");
+    }
+    if (advertisingIdLatch.getCount() == 1) {
+      logger.debug("Advertising ID may not be collected because the Advertising ID API did not "
+          + "respond within 15 seconds.");
     }
   }
 
@@ -1133,20 +1138,21 @@ public class Analytics {
         Traits traits = Traits.create();
         traitsCache.set(traits);
       }
+
+      Logger logger = Logger.with(logLevel);
       AnalyticsContext analyticsContext =
           AnalyticsContext.create(application, traitsCache.get(), collectDeviceID);
       CountDownLatch advertisingIdLatch = new CountDownLatch(1);
-      analyticsContext.attachAdvertisingId(application, advertisingIdLatch);
+      analyticsContext.attachAdvertisingId(application, advertisingIdLatch, logger);
 
       List<Integration.Factory> factories = new ArrayList<>(1 + this.factories.size());
       factories.add(SegmentIntegration.FACTORY);
       factories.addAll(this.factories);
 
       return new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
-          defaultOptions, Logger.with(logLevel), tag, factories, client, cartographer,
-          projectSettingsCache, writeKey, flushQueueSize, flushIntervalInMillis,
-          Executors.newSingleThreadExecutor(), trackApplicationLifecycleEvents, advertisingIdLatch,
-          recordScreenViews, optOut);
+          defaultOptions, logger, tag, factories, client, cartographer, projectSettingsCache,
+          writeKey, flushQueueSize, flushIntervalInMillis, Executors.newSingleThreadExecutor(),
+          trackApplicationLifecycleEvents, advertisingIdLatch, recordScreenViews, optOut);
     }
   }
 
