@@ -1,4 +1,10 @@
 
+Version 4.1.5 (July 10th, 2016)
+==============================
+
+  * Improvement: Add more protection against growing disk queue to over 2GB.
+
+
 Version 4.1.4 (Jun 6th, 2016)
 ==============================
 
