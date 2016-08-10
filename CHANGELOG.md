@@ -1,9 +1,13 @@
 
+Version 4.1.6 (August 9th, 2016)
+==============================
+
+  * Improvement: Add more logging when collecting advertising ID.
+
 Version 4.1.5 (July 10th, 2016)
 ==============================
 
   * Improvement: Add more protection against growing disk queue to over 2GB.
-
 
 Version 4.1.4 (Jun 6th, 2016)
 ==============================
