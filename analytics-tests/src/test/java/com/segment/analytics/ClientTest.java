@@ -35,7 +35,7 @@ public class ClientTest {
 
   private Client client;
   private Client mockClient;
-  private HttpURLConnection mockConnection;
+  HttpURLConnection mockConnection;
 
   @Before public void setUp() {
     mockConnection = mock(HttpURLConnection.class);

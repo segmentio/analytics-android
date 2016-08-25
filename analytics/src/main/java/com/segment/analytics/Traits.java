@@ -25,6 +25,7 @@
 package com.segment.analytics;
 
 import android.content.Context;
+import com.segment.analytics.internal.Private;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -83,7 +84,7 @@ public class Traits extends ValueMap {
   }
 
   /** For deserialization from disk by {@link Traits.Cache}. */
-  private Traits(Map<String, Object> delegate) {
+  @Private Traits(Map<String, Object> delegate) {
     super(delegate);
   }
 
