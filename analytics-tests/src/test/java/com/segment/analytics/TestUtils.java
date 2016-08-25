@@ -126,7 +126,7 @@ public final class TestUtils {
   private static class MapMatcher<K, V> extends TypeSafeMatcher<Map<K, V>> {
     private final Map<K, V> expected;
 
-    private MapMatcher(Map<K, V> expected) {
+    MapMatcher(Map<K, V> expected) {
       this.expected = expected;
     }
 
@@ -146,7 +146,7 @@ public final class TestUtils {
   private static class JSONObjectMatcher extends TypeSafeMatcher<JSONObject> {
     private final JSONObject expected;
 
-    private JSONObjectMatcher(JSONObject expected) {
+    JSONObjectMatcher(JSONObject expected) {
       this.expected = expected;
     }
 

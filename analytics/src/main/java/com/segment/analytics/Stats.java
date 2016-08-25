@@ -5,6 +5,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Pair;
+import com.segment.analytics.internal.Private;
 import com.segment.analytics.internal.Utils;
 import java.util.Collections;
 import java.util.HashMap;
@@ -71,8 +72,8 @@ class Stats {
 
   private static class StatsHandler extends Handler {
 
-    private static final int TRACK_FLUSH = 1;
-    private static final int TRACK_INTEGRATION_OPERATION = 2;
+    @Private static final int TRACK_FLUSH = 1;
+    @Private static final int TRACK_INTEGRATION_OPERATION = 2;
 
     private final Stats stats;
 
