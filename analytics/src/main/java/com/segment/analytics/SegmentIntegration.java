@@ -14,6 +14,7 @@ import com.segment.analytics.integrations.Integration;
 import com.segment.analytics.integrations.Logger;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
+import com.segment.analytics.internal.Private;
 import com.segment.analytics.internal.Utils.AnalyticsThreadFactory;
 import java.io.BufferedWriter;
 import java.io.Closeable;
@@ -69,8 +70,8 @@ class SegmentIntegration extends Integration<Void> {
    * that is not present in payloads themselves, but is added later, such as {@code sentAt},
    * {@code integrations} and other json tokens.
    */
-  private static final int MAX_BATCH_SIZE = 475000; // 475KB.
-  private static final Charset UTF_8 = Charset.forName("UTF-8");
+  @Private static final int MAX_BATCH_SIZE = 475000; // 475KB.
+  @Private static final Charset UTF_8 = Charset.forName("UTF-8");
   private static final String SEGMENT_THREAD_NAME = THREAD_PREFIX + "SegmentDispatcher";
   static final String SEGMENT_KEY = "Segment.io";
   private final Context context;
@@ -110,7 +111,7 @@ class SegmentIntegration extends Integration<Void> {
    * This lock is used ensure that the Dispatcher thread doesn't remove payloads when we're
    * uploading.
    */
-  private final Object flushLock = new Object();
+  @Private final Object flushLock = new Object();
 
   /**
    * Create a {@link QueueFile} in the given folder with the given name. If the underlying file is
@@ -274,15 +275,14 @@ class SegmentIntegration extends Integration<Void> {
   }
 
   /** Upload payloads to our servers and remove them from the queue file. */
-  private void performFlush() {
+  @Private void performFlush() {
     // Conditions could have changed between enqueuing the task and when it is run.
     if (!shouldFlush()) {
       return;
     }
 
     logger.verbose("Uploading payloads in queue to Segment.");
-    int payloadsUploaded;
-
+    int payloadsUploaded = 0;
     Client.Connection connection = null;
     try {
       // Open a connection.
@@ -295,15 +295,18 @@ class SegmentIntegration extends Integration<Void> {
       PayloadWriter payloadWriter = new PayloadWriter(writer);
       payloadQueue.forEach(payloadWriter);
       writer.endBatchArray().endObject().close();
-      // Don't use the result of QueueFiles#forEach, since we may not read the last element.
+      // Don't use the result of QueueFiles#forEach, since we may not upload the last element.
       payloadsUploaded = payloadWriter.payloadCount;
 
-      try {
-        // Upload the payloads.
-        connection.close();
-      } catch (Client.UploadException e) {
+      // Upload the payloads.
+      connection.close();
+    } catch (Client.HTTPException e) {
+      if (e.responseCode >= 400 && e.responseCode < 500) {
         // Simply log and proceed to remove the rejected payloads from the queue.
         logger.error(e, "Payloads were rejected by server. Marked for removal.");
+      } else {
+        logger.error(e, "Error while uploading payloads");
+        return;
       }
     } catch (IOException e) {
       logger.error(e, "Error while uploading payloads");
@@ -420,7 +423,7 @@ class SegmentIntegration extends Integration<Void> {
   static class SegmentDispatcherHandler extends Handler {
 
     static final int REQUEST_FLUSH = 1;
-    private static final int REQUEST_ENQUEUE = 0;
+    @Private static final int REQUEST_ENQUEUE = 0;
     private final SegmentIntegration segmentIntegration;
 
     SegmentDispatcherHandler(Looper looper, SegmentIntegration segmentIntegration) {

@@ -45,8 +45,13 @@ import com.segment.analytics.integrations.Integration;
 import com.segment.analytics.integrations.Logger;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
+import com.segment.analytics.internal.Private;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -95,27 +100,28 @@ public class Analytics {
       throw new AssertionError("Unknown handler message received: " + msg.what);
     }
   };
-  private static final String OPT_OUT_PREFERENCE_KEY = "opt-out";
+  @Private static final String OPT_OUT_PREFERENCE_KEY = "opt-out";
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
   static final List<String> INSTANCES = new ArrayList<>(1);
   volatile static Analytics singleton = null;
-  private static final Properties EMPTY_PROPERTIES = new Properties();
+  @Private static final Properties EMPTY_PROPERTIES = new Properties();
   private static final String VERSION_KEY = "version";
   private static final String BUILD_KEY = "build";
+  private static final String TRACKED_ATTRIBUTION_KEY = "tracked_attribution";
 
   private final Application application;
   final ExecutorService networkExecutor;
   final Stats stats;
-  private final Options defaultOptions;
-  private final Traits.Cache traitsCache;
-  private final AnalyticsContext analyticsContext;
+  @Private final Options defaultOptions;
+  @Private final Traits.Cache traitsCache;
+  @Private final AnalyticsContext analyticsContext;
   private final Logger logger;
   final String tag;
   final Client client;
   final Cartographer cartographer;
   private final ProjectSettings.Cache projectSettingsCache;
   ProjectSettings projectSettings; // todo: make final (non-final for testing).
-  private final String writeKey;
+  @Private final String writeKey;
   final int flushQueueSize;
   final long flushIntervalInMillis;
   // Retrieving the advertising ID is asynchronous. This latch helps us wait to ensure the
@@ -186,11 +192,12 @@ public class Analytics {
 
   Analytics(Application application, ExecutorService networkExecutor, Stats stats,
       Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions,
-      Logger logger, String tag, final List<Integration.Factory> factories, Client client,
+      final Logger logger, String tag, final List<Integration.Factory> factories, Client client,
       Cartographer cartographer, ProjectSettings.Cache projectSettingsCache, String writeKey,
       int flushQueueSize, long flushIntervalInMillis, final ExecutorService analyticsExecutor,
       final boolean shouldTrackApplicationLifecycleEvents, CountDownLatch advertisingIdLatch,
-      final boolean shouldRecordScreenViews, BooleanPreference optOut) {
+      final boolean shouldRecordScreenViews, final boolean trackAttributionInformation,
+      BooleanPreference optOut) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -243,6 +250,14 @@ public class Analytics {
         if (!trackedApplicationLifecycleEvents.getAndSet(true)
             && shouldTrackApplicationLifecycleEvents) {
           trackApplicationLifecycleEvents();
+
+          if (trackAttributionInformation) {
+            analyticsExecutor.submit(new Runnable() {
+              @Override public void run() {
+                trackAttributionInformation();
+              }
+            });
+          }
         }
         runOnMainThread(IntegrationOperation.onActivityCreated(activity, savedInstanceState));
       }
@@ -276,7 +291,38 @@ public class Analytics {
     });
   }
 
-  private void trackApplicationLifecycleEvents() {
+  @Private void trackAttributionInformation() {
+    SharedPreferences sharedPreferences = getSegmentSharedPreferences(application);
+    boolean trackedAttribution = sharedPreferences.getBoolean(TRACKED_ATTRIBUTION_KEY, false);
+    if (trackedAttribution) {
+      return;
+    }
+
+    waitForAdvertisingId();
+
+    Client.Connection connection = null;
+    try {
+      connection = client.attribution();
+
+      // Write the request body.
+      Writer writer = new BufferedWriter(new OutputStreamWriter(connection.os));
+      cartographer.toJson(analyticsContext, writer);
+
+      // Read the response body.
+      Map<String, Object> map =
+          cartographer.fromJson(buffer(connection.connection.getInputStream()));
+      Properties properties = new Properties(map);
+
+      track("Install Attributed", properties);
+      sharedPreferences.edit().putBoolean(TRACKED_ATTRIBUTION_KEY, true).apply();
+    } catch (IOException e) {
+      logger.error(e, "Unable to track attribution information. Retrying on next launch.");
+    } finally {
+      closeQuietly(connection);
+    }
+  }
+
+  @Private void trackApplicationLifecycleEvents() {
     // Get the current version.
     PackageInfo packageInfo = getPackageInfo(application);
     String currentVersion = packageInfo.versionName;
@@ -320,7 +366,7 @@ public class Analytics {
     }
   }
 
-  private void recordScreenViews(Activity activity) {
+  @Private void recordScreenViews(Activity activity) {
     PackageManager packageManager = activity.getPackageManager();
     try {
       ActivityInfo info =
@@ -332,7 +378,7 @@ public class Analytics {
     }
   }
 
-  private void runOnMainThread(final IntegrationOperation operation) {
+  @Private void runOnMainThread(final IntegrationOperation operation) {
     analyticsExecutor.submit(new Runnable() {
       @Override public void run() {
         HANDLER.post(new Runnable() {
@@ -919,6 +965,7 @@ public class Analytics {
     private List<Integration.Factory> factories;
     private boolean trackApplicationLifecycleEvents = false;
     private boolean recordScreenViews = false;
+    private boolean trackAttributionInformation = true;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -1094,6 +1141,12 @@ public class Analytics {
       return this;
     }
 
+    /** Automatically track attribution information from enabled providers. */
+    public Builder trackAttributionInformation() {
+      this.trackAttributionInformation = true;
+      return this;
+    }
+
     /** Create a {@link Analytics} client. */
     public Analytics build() {
       if (isNullOrEmpty(tag)) {
@@ -1152,7 +1205,8 @@ public class Analytics {
       return new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
           defaultOptions, logger, tag, factories, client, cartographer, projectSettingsCache,
           writeKey, flushQueueSize, flushIntervalInMillis, Executors.newSingleThreadExecutor(),
-          trackApplicationLifecycleEvents, advertisingIdLatch, recordScreenViews, optOut);
+          trackApplicationLifecycleEvents, advertisingIdLatch, recordScreenViews,
+          trackAttributionInformation, optOut);
     }
   }
 
@@ -1190,7 +1244,7 @@ public class Analytics {
    * 2. If the cache is not stale, use it.
    * 2. If the cache is stale, try to get new settings.
    */
-  private ProjectSettings getSettings() {
+  @Private ProjectSettings getSettings() {
     ProjectSettings settings = projectSettingsCache.get();
     if (isNullOrEmpty(settings)) {
       return downloadSettings();
@@ -1241,7 +1295,7 @@ public class Analytics {
     }
   }
 
-  private <T> void performCallback(String key, Callback<T> callback) {
+  @Private <T> void performCallback(String key, Callback<T> callback) {
     for (Map.Entry<String, Integration<?>> entry : integrations.entrySet()) {
       if (key.equals(entry.getKey())) {
         callback.onReady((T) entry.getValue().getUnderlyingInstance());

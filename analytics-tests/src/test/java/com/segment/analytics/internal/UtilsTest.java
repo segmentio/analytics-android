@@ -105,4 +105,24 @@ public class UtilsTest {
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
     assertThat(isConnected(context)).isTrue();
   }
+
+  @Test public void nullableConcurrentHashMapPutIgnoresNulls() throws Exception {
+    Map<String, String> map = new Utils.NullableConcurrentHashMap<>();
+    map.put(null, null);
+    map.put("foo", null);
+    map.put(null, "bar");
+
+    assertThat(map).isEmpty();
+  }
+
+  @Test public void nullableConcurrentHashMapPutAllIgnoresNulls() throws Exception {
+    Map<String, String> values = new LinkedHashMap<>();
+    values.put(null, null);
+    values.put("foo", null);
+    values.put(null, "bar");
+
+    Map<String, String> map = new Utils.NullableConcurrentHashMap<>();
+    map.putAll(values);
+    assertThat(map).isEmpty();
+  }
 }
