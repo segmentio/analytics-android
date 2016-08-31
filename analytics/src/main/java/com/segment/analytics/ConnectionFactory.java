@@ -41,7 +41,8 @@ public class ConnectionFactory {
    * https://mobile-service.segment.com/attribution}.
    */
   public HttpURLConnection attribution(String writeKey) throws IOException {
-    HttpURLConnection connection = openConnection("https://mobile-service.segment.com/attribution");
+    HttpURLConnection connection =
+        openConnection("https://mobile-service.segment.com/v1/attribution");
     connection.setRequestProperty("Authorization", authorizationHeader(writeKey));
     connection.setRequestMethod("POST");
     connection.setDoOutput(true);
