@@ -37,8 +37,20 @@ public class ConnectionFactory {
   }
 
   /**
-   * Configures defaults for connections opened with both {@link #upload(String)} and {@link
-   * #projectSettings(String)}.
+   * Return a {@link HttpURLConnection} that writes gets attribution information from {@code
+   * https://mobile-service.segment.com/attribution}.
+   */
+  public HttpURLConnection attribution(String writeKey) throws IOException {
+    HttpURLConnection connection = openConnection("https://mobile-service.segment.com/attribution");
+    connection.setRequestProperty("Authorization", authorizationHeader(writeKey));
+    connection.setRequestMethod("POST");
+    connection.setDoOutput(true);
+    return connection;
+  }
+
+  /**
+   * Configures defaults for connections opened with {@link #upload(String)},  {@link
+   * #attribution(String)} and {@link #projectSettings(String)}.
    */
   protected HttpURLConnection openConnection(String url) throws IOException {
     HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();

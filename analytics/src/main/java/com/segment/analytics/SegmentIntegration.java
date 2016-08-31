@@ -282,8 +282,7 @@ class SegmentIntegration extends Integration<Void> {
     }
 
     logger.verbose("Uploading payloads in queue to Segment.");
-    int payloadsUploaded;
-
+    int payloadsUploaded = 0;
     Client.Connection connection = null;
     try {
       // Open a connection.
@@ -296,15 +295,18 @@ class SegmentIntegration extends Integration<Void> {
       PayloadWriter payloadWriter = new PayloadWriter(writer);
       payloadQueue.forEach(payloadWriter);
       writer.endBatchArray().endObject().close();
-      // Don't use the result of QueueFiles#forEach, since we may not read the last element.
+      // Don't use the result of QueueFiles#forEach, since we may not upload the last element.
       payloadsUploaded = payloadWriter.payloadCount;
 
-      try {
-        // Upload the payloads.
-        connection.close();
-      } catch (Client.UploadException e) {
+      // Upload the payloads.
+      connection.close();
+    } catch (Client.HTTPException e) {
+      if (e.responseCode >= 400 && e.responseCode < 500) {
         // Simply log and proceed to remove the rejected payloads from the queue.
         logger.error(e, "Payloads were rejected by server. Marked for removal.");
+      } else {
+        logger.error(e, "Error while uploading payloads");
+        return;
       }
     } catch (IOException e) {
       logger.error(e, "Error while uploading payloads");

@@ -63,7 +63,7 @@ class Client {
             } catch (IOException e) {
               responseBody = "Could not read response body for rejected message: " + e.toString();
             }
-            throw new UploadException(responseCode, connection.getResponseMessage(), responseBody);
+            throw new HTTPException(responseCode, connection.getResponseMessage(), responseBody);
           }
         } finally {
           super.close();
@@ -92,6 +92,11 @@ class Client {
     return createPostConnection(connection);
   }
 
+  Connection attribution() throws IOException {
+    HttpURLConnection connection = connectionFactory.attribution(writeKey);
+    return createPostConnection(connection);
+  }
+
   Connection fetchSettings() throws IOException {
     HttpURLConnection connection = connectionFactory.projectSettings(writeKey);
     int responseCode = connection.getResponseCode();
@@ -102,13 +107,13 @@ class Client {
     return createGetConnection(connection);
   }
 
-  /** Represents an exception during uploading events that should not be retried. */
-  static class UploadException extends IOException {
+  /** Represents an HTTP exception thrown for unexpected/non 2xx response codes. */
+  static class HTTPException extends IOException {
     final int responseCode;
     final String responseMessage;
     final String responseBody;
 
-    UploadException(int responseCode, String responseMessage, String responseBody) {
+    HTTPException(int responseCode, String responseMessage, String responseBody) {
       super("HTTP " + responseCode + ": " + responseMessage + ". Response: " + responseBody);
       this.responseCode = responseCode;
       this.responseMessage = responseMessage;
@@ -121,8 +126,7 @@ class Client {
    * InputStream} or write to the connection via {@link OutputStream}.
    */
   static abstract class Connection implements Closeable {
-
-    protected final HttpURLConnection connection;
+    final HttpURLConnection connection;
     final InputStream is;
     final OutputStream os;
 
