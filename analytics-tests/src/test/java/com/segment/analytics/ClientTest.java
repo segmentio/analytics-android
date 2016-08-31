@@ -112,7 +112,7 @@ public class ClientTest {
     try {
       connection.close();
       fail(">= 300 return code should throw an exception");
-    } catch (Client.UploadException e) {
+    } catch (Client.HTTPException e) {
       assertThat(e).hasMessage("HTTP 300: bar. "
           + "Response: Could not read response body for rejected message: "
           + "java.io.IOException: Underlying input stream returned zero bytes");

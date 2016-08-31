@@ -48,6 +48,10 @@ import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Private;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -103,6 +107,7 @@ public class Analytics {
   @Private static final Properties EMPTY_PROPERTIES = new Properties();
   private static final String VERSION_KEY = "version";
   private static final String BUILD_KEY = "build";
+  private static final String TRACKED_ATTRIBUTION_KEY = "tracked_attribution";
 
   private final Application application;
   final ExecutorService networkExecutor;
@@ -187,11 +192,12 @@ public class Analytics {
 
   Analytics(Application application, ExecutorService networkExecutor, Stats stats,
       Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions,
-      Logger logger, String tag, final List<Integration.Factory> factories, Client client,
+      final Logger logger, String tag, final List<Integration.Factory> factories, Client client,
       Cartographer cartographer, ProjectSettings.Cache projectSettingsCache, String writeKey,
       int flushQueueSize, long flushIntervalInMillis, final ExecutorService analyticsExecutor,
       final boolean shouldTrackApplicationLifecycleEvents, CountDownLatch advertisingIdLatch,
-      final boolean shouldRecordScreenViews, BooleanPreference optOut) {
+      final boolean shouldRecordScreenViews, final boolean trackAttributionInformation,
+      BooleanPreference optOut) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -244,6 +250,14 @@ public class Analytics {
         if (!trackedApplicationLifecycleEvents.getAndSet(true)
             && shouldTrackApplicationLifecycleEvents) {
           trackApplicationLifecycleEvents();
+
+          if (trackAttributionInformation) {
+            analyticsExecutor.submit(new Runnable() {
+              @Override public void run() {
+                trackAttributionInformation();
+              }
+            });
+          }
         }
         runOnMainThread(IntegrationOperation.onActivityCreated(activity, savedInstanceState));
       }
@@ -275,6 +289,37 @@ public class Analytics {
         runOnMainThread(IntegrationOperation.onActivityDestroyed(activity));
       }
     });
+  }
+
+  @Private void trackAttributionInformation() {
+    SharedPreferences sharedPreferences = getSegmentSharedPreferences(application);
+    boolean trackedAttribution = sharedPreferences.getBoolean(TRACKED_ATTRIBUTION_KEY, false);
+    if (trackedAttribution) {
+      return;
+    }
+
+    waitForAdvertisingId();
+
+    Client.Connection connection = null;
+    try {
+      connection = client.attribution();
+
+      // Write the request body.
+      Writer writer = new BufferedWriter(new OutputStreamWriter(connection.os));
+      cartographer.toJson(analyticsContext, writer);
+
+      // Read the response body.
+      Map<String, Object> map =
+          cartographer.fromJson(buffer(connection.connection.getInputStream()));
+      Properties properties = new Properties(map);
+
+      track("Install Attributed", properties);
+      sharedPreferences.edit().putBoolean(TRACKED_ATTRIBUTION_KEY, true).apply();
+    } catch (IOException e) {
+      logger.error(e, "Unable to track attribution information. Retrying on next launch.");
+    } finally {
+      closeQuietly(connection);
+    }
   }
 
   @Private void trackApplicationLifecycleEvents() {
@@ -920,6 +965,7 @@ public class Analytics {
     private List<Integration.Factory> factories;
     private boolean trackApplicationLifecycleEvents = false;
     private boolean recordScreenViews = false;
+    private boolean trackAttributionInformation = true;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -1095,6 +1141,12 @@ public class Analytics {
       return this;
     }
 
+    /** Automatically track attribution information from enabled providers. */
+    public Builder trackAttributionInformation() {
+      this.trackAttributionInformation = true;
+      return this;
+    }
+
     /** Create a {@link Analytics} client. */
     public Analytics build() {
       if (isNullOrEmpty(tag)) {
@@ -1153,7 +1205,8 @@ public class Analytics {
       return new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
           defaultOptions, logger, tag, factories, client, cartographer, projectSettingsCache,
           writeKey, flushQueueSize, flushIntervalInMillis, Executors.newSingleThreadExecutor(),
-          trackApplicationLifecycleEvents, advertisingIdLatch, recordScreenViews, optOut);
+          trackApplicationLifecycleEvents, advertisingIdLatch, recordScreenViews,
+          trackAttributionInformation, optOut);
     }
   }
 
