@@ -21,7 +21,7 @@ public class ValueMapCacheTest {
     cartographer = Cartographer.INSTANCE;
     traitsCache =
         new ValueMap.Cache<>(RuntimeEnvironment.application, cartographer, "traits-cache-test",
-            Traits.class);
+            "tag", Traits.class);
     traitsCache.delete();
     assertThat(traitsCache.get()).isNullOrEmpty();
   }
@@ -39,7 +39,7 @@ public class ValueMapCacheTest {
 
     ValueMap.Cache<Traits> traitsCacheDuplicate =
         new ValueMap.Cache<>(RuntimeEnvironment.application, cartographer, "traits-cache-test",
-            Traits.class);
+            "tag", Traits.class);
     assertThat(traitsCacheDuplicate.isSet()).isTrue();
   }
 }

@@ -25,9 +25,12 @@
 package com.segment.analytics.internal;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import com.segment.analytics.core.tests.BuildConfig;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.assertj.core.data.MapEntry;
@@ -36,6 +39,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
@@ -43,6 +47,7 @@ import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.transform;
+import static org.assertj.android.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -124,5 +129,31 @@ public class UtilsTest {
     Map<String, String> map = new Utils.NullableConcurrentHashMap<>();
     map.putAll(values);
     assertThat(map).isEmpty();
+  }
+
+  @Test public void copySharedPreferences() {
+    SharedPreferences src =
+        RuntimeEnvironment.application.getSharedPreferences("src", Context.MODE_PRIVATE);
+    src.edit().clear().apply();
+    src.edit()
+        .putBoolean("aBool", true)
+        .putString("aString", "foo")
+        .putInt("anInt", 2)
+        .putFloat("aFloat", 3.14f)
+        .putLong("aLong", 12345678910L)
+        .putStringSet("aStringSet", new HashSet<>(Arrays.asList("foo", "bar")))
+        .apply();
+
+    SharedPreferences target =
+        RuntimeEnvironment.application.getSharedPreferences("target", Context.MODE_PRIVATE);
+    target.edit().clear().apply();
+
+    Utils.copySharedPreferences(src, target);
+    assertThat(target).contains("aBool", true)
+        .contains("aString", "foo")
+        .contains("anInt", 2)
+        .contains("aFloat", 3.14f)
+        .contains("aLong", 12345678910L)
+        .contains("aStringSet", new HashSet<>(Arrays.asList("foo", "bar")));
   }
 }
