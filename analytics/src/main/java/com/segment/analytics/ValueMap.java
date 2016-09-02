@@ -354,9 +354,9 @@ public class ValueMap implements Map<String, Object> {
     private final Class<T> clazz;
     private T value;
 
-    Cache(Context context, Cartographer cartographer, String key, Class<T> clazz) {
+    Cache(Context context, Cartographer cartographer, String key, String tag, Class<T> clazz) {
       this.cartographer = cartographer;
-      this.preferences = getSegmentSharedPreferences(context);
+      this.preferences = getSegmentSharedPreferences(context, tag);
       this.key = key;
       this.clazz = clazz;
     }

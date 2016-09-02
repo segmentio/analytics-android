@@ -217,6 +217,8 @@ public class Analytics {
     this.factories = Collections.unmodifiableList(factories);
     this.analyticsExecutor = analyticsExecutor;
 
+    namespaceSharedPreferences();
+
     analyticsExecutor.submit(new Runnable() {
       @Override public void run() {
         projectSettings = getSettings();
@@ -292,9 +294,10 @@ public class Analytics {
   }
 
   @Private void trackAttributionInformation() {
-    SharedPreferences sharedPreferences = getSegmentSharedPreferences(application);
-    boolean trackedAttribution = sharedPreferences.getBoolean(TRACKED_ATTRIBUTION_KEY, false);
-    if (trackedAttribution) {
+    BooleanPreference trackedAttribution =
+        new BooleanPreference(getSegmentSharedPreferences(application, tag),
+            TRACKED_ATTRIBUTION_KEY, false);
+    if (trackedAttribution.get()) {
       return;
     }
 
@@ -314,7 +317,7 @@ public class Analytics {
       Properties properties = new Properties(map);
 
       track("Install Attributed", properties);
-      sharedPreferences.edit().putBoolean(TRACKED_ATTRIBUTION_KEY, true).apply();
+      trackedAttribution.set(true);
     } catch (IOException e) {
       logger.error(e, "Unable to track attribution information. Retrying on next launch.");
     } finally {
@@ -329,7 +332,7 @@ public class Analytics {
     int currentBuild = packageInfo.versionCode;
 
     // Get the previous recorded version.
-    SharedPreferences sharedPreferences = getSegmentSharedPreferences(application);
+    SharedPreferences sharedPreferences = getSegmentSharedPreferences(application, tag);
     String previousVersion = sharedPreferences.getString(VERSION_KEY, null);
     int previousBuild = sharedPreferences.getInt(BUILD_KEY, -1);
 
@@ -804,6 +807,7 @@ public class Analytics {
    * on disk are not cleared, and will be uploaded at a later time.
    */
   public void reset() {
+    Utils.getSegmentSharedPreferences(application, tag).edit().clear().apply();
     traitsCache.delete();
     traitsCache.set(Traits.create());
     analyticsContext.setTraits(traitsCache.get());
@@ -1183,8 +1187,8 @@ public class Analytics {
           new ProjectSettings.Cache(application, cartographer, tag);
 
       BooleanPreference optOut =
-          new BooleanPreference(getSegmentSharedPreferences(application), OPT_OUT_PREFERENCE_KEY,
-              false);
+          new BooleanPreference(getSegmentSharedPreferences(application, tag),
+              OPT_OUT_PREFERENCE_KEY, false);
 
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
@@ -1301,6 +1305,28 @@ public class Analytics {
         callback.onReady((T) entry.getValue().getUnderlyingInstance());
         return;
       }
+    }
+  }
+
+  /**
+   * Previously (until version 4.1.7) shared preferences were not namespaced by a tag.
+   * This meant that all analytics instances shared the same shared preferences.
+   * This migration checks if the namespaced shared preferences instance contains
+   * {@code namespaceSharedPreferences: true}.
+   * If it does, the migration is already run and does not need to be run again.
+   * If it doesn't, it copies the legacy shared preferences mapping into the namespaced shared
+   * preferences, and sets namespaceSharedPreferences to false.
+   */
+  private void namespaceSharedPreferences() {
+    SharedPreferences newSharedPreferences = Utils.getSegmentSharedPreferences(application, tag);
+    BooleanPreference namespaceSharedPreferences =
+        new BooleanPreference(newSharedPreferences, "namespaceSharedPreferences", true);
+
+    if (namespaceSharedPreferences.get()) {
+      SharedPreferences legacySharedPreferences =
+          application.getSharedPreferences("analytics-android", Context.MODE_PRIVATE);
+      Utils.copySharedPreferences(legacySharedPreferences, newSharedPreferences);
+      namespaceSharedPreferences.set(false);
     }
   }
 }
