@@ -40,19 +40,13 @@
 
     <Button
         android:id="@+id/action_track_a"
-        android:text="@string/track_button_a"
+        android:text="@string/button_a"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
     <Button
         android:id="@+id/action_track_b"
-        android:text="@string/track_button_b"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <Button
-        android:id="@+id/action_track_c"
-        android:text="@string/track_button_c"
+        android:text="@string/button_b"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
@@ -62,24 +56,7 @@
         android:layout_height="1dp"/>
 
     <EditText
-        android:id="@+id/action_custom_event_name"
-        android:hint="@string/custom_event_name_hint"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <Button
-        android:id="@+id/action_track_custom_event"
-        android:text="@string/track_button_custom_event"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <View
-        android:background="@android:color/black"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"/>
-
-    <EditText
-        android:id="@+id/action_identify_id"
+        android:id="@+id/user_id"
         android:hint="@string/identify_user_id"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
@@ -98,28 +75,6 @@
     <Button
         android:id="@+id/action_flush"
         android:text="@string/flush"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <Button
-        android:id="@+id/action_test_sequence"
-        android:text="@string/test_sequence"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <View
-        android:background="@android:color/black"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"/>
-
-    <Button
-        android:id="@+id/action_update_stats"
-        android:text="@string/update_stats"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <TextView
-        android:id="@+id/stats"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 

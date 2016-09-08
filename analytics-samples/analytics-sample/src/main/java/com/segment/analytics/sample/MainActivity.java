@@ -26,21 +26,23 @@ package com.segment.analytics.sample;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import com.segment.analytics.Analytics;
-import com.segment.analytics.StatsSnapshot;
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class MainActivity extends Activity {
+  @BindView(R.id.user_id) EditText userId;
 
   /** Returns true if the string is null, or empty (when trimmed). */
   public static boolean isNullOrEmpty(String text) {
@@ -49,72 +51,30 @@ public class MainActivity extends Activity {
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
     setContentView(R.layout.activity_main);
-    initViews();
+    ButterKnife.bind(this);
   }
 
-  private void initViews() {
-    findViewById(R.id.action_track_a).setOnClickListener(new View.OnClickListener() {
-      @Override public void onClick(View v) {
-        Analytics.with(MainActivity.this).track("Button A Clicked");
-      }
-    });
-    findViewById(R.id.action_track_b).setOnClickListener(new View.OnClickListener() {
-      @Override public void onClick(View v) {
-        Analytics.with(MainActivity.this).track("Button B Clicked");
-      }
-    });
-    findViewById(R.id.action_track_c).setOnClickListener(new View.OnClickListener() {
-      @Override public void onClick(View v) {
-        AsyncTask<Void, Void, Void> asyncTask = new AsyncTask<Void, Void, Void>() {
+  @OnClick(R.id.action_track_a) void onButtonAClicked() {
+    Analytics.with(this).track("Button A Clicked");
+  }
 
-          @Override protected Void doInBackground(Void... params) {
-            // This is a bad use of AsyncTask! But it's just to demonstrate that the Analytics
-            // client can be safely called from multiple threads.
-            Analytics.with(MainActivity.this).track("Button C Clicked");
-            return null;
-          }
-        };
-        asyncTask.execute();
-      }
-    });
-    findViewById(R.id.action_track_custom_event).setOnClickListener(new View.OnClickListener() {
-      @Override public void onClick(View v) {
-        String event =
-            ((EditText) findViewById(R.id.action_custom_event_name)).getText().toString();
-        if (isNullOrEmpty(event)) {
-          Toast.makeText(MainActivity.this, R.string.name_required, Toast.LENGTH_LONG).show();
-        } else {
-          Analytics.with(MainActivity.this).track(event);
-        }
-      }
-    });
-    findViewById(R.id.action_identify).setOnClickListener(new View.OnClickListener() {
-      @Override public void onClick(View v) {
-        String id = ((EditText) findViewById(R.id.action_identify_id)).getText().toString();
-        if (isNullOrEmpty(id)) {
-          Toast.makeText(MainActivity.this, R.string.id_required, Toast.LENGTH_LONG).show();
-        } else {
-          Analytics.with(MainActivity.this).identify(id);
-        }
-      }
-    });
-    findViewById(R.id.action_flush).setOnClickListener(new View.OnClickListener() {
-      @Override public void onClick(View v) {
-        Analytics.with(MainActivity.this).flush();
-      }
-    });
-    findViewById(R.id.action_test_sequence).setOnClickListener(new View.OnClickListener() {
-      @Override public void onClick(View v) {
-        Analytics.with(MainActivity.this).screen("Android", "Main Activity Screen");
-      }
-    });
-    findViewById(R.id.action_update_stats).setOnClickListener(new View.OnClickListener() {
-      @Override public void onClick(View v) {
-        StatsSnapshot snapshot = Analytics.with(MainActivity.this).getSnapshot();
-        ((TextView) findViewById(R.id.stats)).setText(snapshot.toString());
-      }
-    });
+  @OnClick(R.id.action_track_b) void onButtonBClicked() {
+    Analytics.with(this).track("Button B Clicked");
+  }
+
+  @OnClick(R.id.action_identify) void onIdentifyButtonClicked() {
+    String id = userId.getText().toString();
+    if (isNullOrEmpty(id)) {
+      Toast.makeText(this, R.string.id_required, Toast.LENGTH_LONG).show();
+    } else {
+      Analytics.with(this).identify(id);
+    }
+  }
+
+  @OnClick(R.id.action_flush) void onFlushButtonClicked() {
+    Analytics.with(this).flush();
   }
 
   @Override public boolean onCreateOptionsMenu(Menu menu) {
@@ -135,5 +95,9 @@ public class MainActivity extends Activity {
       return true;
     }
     return super.onOptionsItemSelected(item);
+  }
+
+  @Override protected void attachBaseContext(Context newBase) {
+    super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
   }
 }
