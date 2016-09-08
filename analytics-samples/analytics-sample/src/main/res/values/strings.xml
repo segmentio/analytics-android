@@ -36,6 +36,6 @@
 
   <string name="identify_button">Identify User</string>
   <string name="identify_user_id">Type in an ID to identify the user</string>
-  <string name="id_required">Id should not be blank or empty</string>
+  <string name="id_required">User ID should not be blank or empty</string>
 
 </resources>
