@@ -24,6 +24,24 @@
 
 <resources>
 
-  <style name="AppTheme" parent="android:Theme.Light"/>
+  <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
+    <item name="android:textViewStyle">@style/AppTheme.Widget.TextView</item>
+    <item name="android:actionBarStyle">@style/AppTheme.ActionBarStyle</item>
+  </style>
+
+  <style name="AppTheme.ActionBarStyle" parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">
+    <item name="android:titleTextStyle">@style/AppTheme.ActionBar.TitleTextStyle</item>
+    <item name="android:background">#00386c</item>
+  </style>
+
+  <style name="AppTheme.ActionBar.TitleTextStyle" parent="@android:style/TextAppearance.Holo.Widget.ActionBar.Title.Inverse">
+    <item name="fontPath">fonts/Aleo-Regular.otf</item>
+  </style>
+
+  <style name="AppTheme.Widget"/>
+
+  <style name="AppTheme.Widget.TextView" parent="android:Widget.Holo.Light.TextView">
+    <item name="fontPath">fonts/CircularStd-Book.otf</item>
+  </style>
 
 </resources>

@@ -1,8 +1,9 @@
 package com.segment.analytics.sample;
 
 import android.app.Application;
-import android.widget.Toast;
+import android.util.Log;
 import com.segment.analytics.Analytics;
+import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 
 public class SampleApp extends Application {
 
@@ -12,13 +13,16 @@ public class SampleApp extends Application {
   @Override public void onCreate() {
     super.onCreate();
 
+    CalligraphyConfig.initDefault(
+        new CalligraphyConfig.Builder().setDefaultFontPath("fonts/CircularStd-Book.otf")
+            .setFontAttrId(R.attr.fontPath)
+            .build());
+
     // Initialize a new instance of the Analytics client.
     Analytics.Builder builder = new Analytics.Builder(this, ANALYTICS_WRITE_KEY) //
         .trackApplicationLifecycleEvents() //
+        .trackAttributionInformation() //
         .recordScreenViews();
-    if (BuildConfig.DEBUG) {
-      builder.logLevel(Analytics.LogLevel.VERBOSE);
-    }
 
     // Set the initialized instance as a globally accessible instance.
     Analytics.setSingletonInstance(builder.build());
@@ -30,7 +34,7 @@ public class SampleApp extends Application {
     // listener.
     analytics.onIntegrationReady("Segment.io", new Analytics.Callback() {
       @Override public void onReady(Object instance) {
-        Toast.makeText(SampleApp.this, "Segment integration!", Toast.LENGTH_LONG).show();
+        Log.d("Segment Sample", "Segment integration ready.");
       }
     });
   }
