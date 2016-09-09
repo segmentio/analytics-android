@@ -126,7 +126,7 @@ public class AnalyticsTest {
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
         DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), false, false,
-        optOut);
+        optOut, Crypto.none());
 
     // Used by singleton tests.
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
@@ -598,7 +598,7 @@ public class AnalyticsTest {
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
         DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0), false, false,
-        optOut);
+        optOut, Crypto.none());
 
     callback.get().onActivityCreated(null, null);
 
@@ -657,7 +657,7 @@ public class AnalyticsTest {
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
         DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0), false, false,
-        optOut);
+        optOut, Crypto.none());
 
     callback.get().onActivityCreated(null, null);
 
@@ -698,7 +698,7 @@ public class AnalyticsTest {
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
         DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), true, false,
-        optOut);
+        optOut, Crypto.none());
 
     Activity activity = mock(Activity.class);
     PackageManager packageManager = mock(PackageManager.class);
@@ -738,7 +738,7 @@ public class AnalyticsTest {
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
         DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), false, false,
-        optOut);
+        optOut, Crypto.none());
 
     Activity activity = mock(Activity.class);
     Bundle bundle = new Bundle();
