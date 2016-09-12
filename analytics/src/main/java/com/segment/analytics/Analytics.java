@@ -66,7 +66,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
 import static com.segment.analytics.internal.Utils.buffer;
 import static com.segment.analytics.internal.Utils.closeQuietly;
 import static com.segment.analytics.internal.Utils.getResourceString;
@@ -94,7 +93,6 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
  * @see <a href="https://Segment/">Segment</a>
  */
 public class Analytics {
-  private static final String ANALYTICS_THREAD_NAME = THREAD_PREFIX + "Analytics";
   static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
     @Override public void handleMessage(Message msg) {
       throw new AssertionError("Unknown handler message received: " + msg.what);
@@ -120,6 +118,7 @@ public class Analytics {
   final Client client;
   final Cartographer cartographer;
   private final ProjectSettings.Cache projectSettingsCache;
+  final Crypto crypto;
   ProjectSettings projectSettings; // todo: make final (non-final for testing).
   @Private final String writeKey;
   final int flushQueueSize;
@@ -197,7 +196,7 @@ public class Analytics {
       int flushQueueSize, long flushIntervalInMillis, final ExecutorService analyticsExecutor,
       final boolean shouldTrackApplicationLifecycleEvents, CountDownLatch advertisingIdLatch,
       final boolean shouldRecordScreenViews, final boolean trackAttributionInformation,
-      BooleanPreference optOut) {
+      BooleanPreference optOut, Crypto crypto) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -216,6 +215,7 @@ public class Analytics {
     this.optOut = optOut;
     this.factories = Collections.unmodifiableList(factories);
     this.analyticsExecutor = analyticsExecutor;
+    this.crypto = crypto;
 
     namespaceSharedPreferences();
 
@@ -970,6 +970,7 @@ public class Analytics {
     private boolean trackApplicationLifecycleEvents = false;
     private boolean recordScreenViews = false;
     private boolean trackAttributionInformation = true;
+    private Crypto crypto;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -1121,6 +1122,17 @@ public class Analytics {
       return this;
     }
 
+    /**
+     * Specify the crypto interface for customizing how data is stored at rest.
+     */
+    public Builder crypto(Crypto crypto) {
+      if (crypto == null) {
+        throw new IllegalArgumentException("Crypto must not be null.");
+      }
+      this.crypto = crypto;
+      return this;
+    }
+
     /** TODO: docs */
     public Builder use(Integration.Factory factory) {
       if (factory == null) {
@@ -1178,6 +1190,9 @@ public class Analytics {
       if (connectionFactory == null) {
         connectionFactory = new ConnectionFactory();
       }
+      if (crypto == null) {
+        crypto = Crypto.none();
+      }
 
       final Stats stats = new Stats();
       final Cartographer cartographer = Cartographer.INSTANCE;
@@ -1210,7 +1225,7 @@ public class Analytics {
           defaultOptions, logger, tag, factories, client, cartographer, projectSettingsCache,
           writeKey, flushQueueSize, flushIntervalInMillis, Executors.newSingleThreadExecutor(),
           trackApplicationLifecycleEvents, advertisingIdLatch, recordScreenViews,
-          trackAttributionInformation, optOut);
+          trackAttributionInformation, optOut, crypto);
     }
   }
 

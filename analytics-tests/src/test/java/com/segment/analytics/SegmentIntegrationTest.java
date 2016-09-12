@@ -48,7 +48,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -283,7 +282,8 @@ public class SegmentIntegrationTest {
 
   @Test public void payloadVisitorReadsOnly475KB() throws IOException {
     SegmentIntegration.PayloadWriter payloadWriter =
-        new SegmentIntegration.PayloadWriter(mock(SegmentIntegration.BatchPayloadWriter.class));
+        new SegmentIntegration.PayloadWriter(mock(SegmentIntegration.BatchPayloadWriter.class),
+            Crypto.none());
     byte[] bytes = ("{\n"
         + "        'context': {\n"
         + "          'library': 'analytics-android',\n"
@@ -434,7 +434,7 @@ public class SegmentIntegrationTest {
       if (integrations == null) integrations = Collections.emptyMap();
       if (networkExecutor == null) networkExecutor = new SynchronousExecutor();
       return new SegmentIntegration(context, client, cartographer, networkExecutor, payloadQueue,
-          stats, integrations, flushInterval, flushSize, logger);
+          stats, integrations, flushInterval, flushSize, logger, Crypto.none());
     }
   }
 }
