@@ -7,6 +7,10 @@ apply from: rootProject.file('gradle/android.gradle')
 dependencies {
   compile project(':analytics')
   compile project(':analytics-wear')
+
+  compile 'com.jakewharton:butterknife:8.4.0'
+  provided 'com.jakewharton:butterknife-compiler:8.4.0'
+  compile 'uk.co.chrisjenx:calligraphy:2.2.0'
 }
 
 checkstyle {

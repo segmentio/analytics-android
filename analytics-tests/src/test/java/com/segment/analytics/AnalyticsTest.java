@@ -119,21 +119,21 @@ public class AnalyticsTest {
         .thenReturn(ProjectSettings.create(Cartographer.INSTANCE.fromJson(SETTINGS)));
 
     SharedPreferences sharedPreferences =
-        RuntimeEnvironment.application.getSharedPreferences("analytics-test", MODE_PRIVATE);
+        RuntimeEnvironment.application.getSharedPreferences("analytics-test-qaz", MODE_PRIVATE);
     optOut = new BooleanPreference(sharedPreferences, "opt-out-test", false);
 
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
         DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), false, false,
-        optOut);
+        optOut, Crypto.none());
 
     // Used by singleton tests.
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
   }
 
   @After public void tearDown() {
-    RuntimeEnvironment.application.getSharedPreferences("analytics-android", MODE_PRIVATE)
+    RuntimeEnvironment.application.getSharedPreferences("analytics-android-qaz", MODE_PRIVATE)
         .edit()
         .clear()
         .commit();
@@ -598,7 +598,7 @@ public class AnalyticsTest {
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
         DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0), false, false,
-        optOut);
+        optOut, Crypto.none());
 
     callback.get().onActivityCreated(null, null);
 
@@ -630,7 +630,7 @@ public class AnalyticsTest {
     packageInfo.versionName = "1.0.1";
 
     SharedPreferences sharedPreferences =
-        RuntimeEnvironment.application.getSharedPreferences("analytics-android", MODE_PRIVATE);
+        RuntimeEnvironment.application.getSharedPreferences("analytics-android-qaz", MODE_PRIVATE);
     SharedPreferences.Editor editor = sharedPreferences.edit();
     editor.putInt("build", 100);
     editor.putString("version", "1.0.0");
@@ -657,7 +657,7 @@ public class AnalyticsTest {
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
         DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0), false, false,
-        optOut);
+        optOut, Crypto.none());
 
     callback.get().onActivityCreated(null, null);
 
@@ -698,7 +698,7 @@ public class AnalyticsTest {
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
         DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), true, false,
-        optOut);
+        optOut, Crypto.none());
 
     Activity activity = mock(Activity.class);
     PackageManager packageManager = mock(PackageManager.class);
@@ -738,7 +738,7 @@ public class AnalyticsTest {
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
         Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
         DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), false, false,
-        optOut);
+        optOut, Crypto.none());
 
     Activity activity = mock(Activity.class);
     Bundle bundle = new Bundle();

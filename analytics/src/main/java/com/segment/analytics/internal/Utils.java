@@ -179,8 +179,8 @@ public final class Utils {
   }
 
   /** Returns a shared preferences for storing any library preferences. */
-  public static SharedPreferences getSegmentSharedPreferences(Context context) {
-    return context.getSharedPreferences("analytics-android", MODE_PRIVATE);
+  public static SharedPreferences getSegmentSharedPreferences(Context context, String tag) {
+    return context.getSharedPreferences("analytics-android-" + tag, MODE_PRIVATE);
   }
 
   /** Get the string resource for the given key. Returns null if not found. */
@@ -367,6 +367,29 @@ public final class Utils {
     if (!(location.exists() || location.mkdirs() || location.isDirectory())) {
       throw new IOException("Could not create directory at " + location);
     }
+  }
+
+  /** Copies all the values from {@code src} to {@code target}. */
+  public static void copySharedPreferences(SharedPreferences src, SharedPreferences target) {
+    SharedPreferences.Editor editor = target.edit();
+    for (Map.Entry<String, ?> entry : src.getAll().entrySet()) {
+      String key = entry.getKey();
+      Object value = entry.getValue();
+      if (value instanceof String) {
+        editor.putString(key, (String) value);
+      } else if (value instanceof Set) {
+        editor.putStringSet(key, (Set<String>) value);
+      } else if (value instanceof Integer) {
+        editor.putInt(key, (Integer) value);
+      } else if (value instanceof Long) {
+        editor.putLong(key, (Long) value);
+      } else if (value instanceof Float) {
+        editor.putFloat(key, (Float) value);
+      } else if (value instanceof Boolean) {
+        editor.putBoolean(key, (Boolean) value);
+      }
+    }
+    editor.apply();
   }
 
   private Utils() {

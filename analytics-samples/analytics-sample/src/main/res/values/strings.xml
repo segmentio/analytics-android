@@ -25,19 +25,17 @@
 <resources>
 
   <string name="app_name">Segment Sample</string>
+
   <string name="action_view_docs">Docs</string>
   <string name="no_browser_available">No browser to open link</string>
-  <string name="track_button_a">Track Button A</string>
-  <string name="track_button_b">Track Button B</string>
-  <string name="track_button_c">Track Button C</string>
-  <string name="track_button_custom_event">Track Custom Event</string>
-  <string name="custom_event_name_hint">Type in a name for a custom event here</string>
+
+  <string name="button_a">Button A</string>
+  <string name="button_b">Button B</string>
+
   <string name="flush">Flush Events</string>
-  <string name="name_required">Name should not be blank or empty</string>
-  <string name="test_sequence">Test Custom Sequence</string>
+
   <string name="identify_button">Identify User</string>
-  <string name="identify_user_id">Type in an ID to recognize the user</string>
-  <string name="update_stats">Update Stats</string>
-  <string name="id_required">Id should not be blank or empty</string>
+  <string name="identify_user_id">Type in an ID to identify the user</string>
+  <string name="id_required">User ID should not be blank or empty</string>
 
 </resources>
