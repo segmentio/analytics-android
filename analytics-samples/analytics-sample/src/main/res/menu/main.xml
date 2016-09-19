@@ -24,12 +24,13 @@
 
 <menu
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.segment.analytics.sample.MainActivity">
 
   <item android:id="@+id/action_view_docs"
       android:title="@string/action_view_docs"
       android:orderInCategory="100"
-      android:showAsAction="never"/>
+      app:showAsAction="never"/>
 
 </menu>
