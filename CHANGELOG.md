@@ -1,16 +1,29 @@
 
+Version 4.2.0 (September 19th, 2016)
+====================================
+
+  * [Improvement](https://github.com/segmentio/analytics-android/pull/464): Reduce synthetic accessor methods.
+  * [Fix](https://github.com/segmentio/analytics-android/pull/466): Handle `null` values in maps.
+  * [New](https://github.com/segmentio/analytics-android/pull/467): Add the ability for the SDK to natively report attribution information via Segment integrations enabled for your project, without needing to bundle their SDKs. Attribution information is sent as a track call as documented in the [mobile lifecycle spec](https://segment.com/docs/spec/mobile/#install-attributed).
+
+```java
+Analytics analytics = new Analytics.Builder(context, writeKey)
+    .trackAttributionInformation()
+    .build();
+```
+
 Version 4.1.6 (August 9th, 2016)
-==============================
+================================
 
   * Improvement: Add more logging when collecting advertising ID.
 
 Version 4.1.5 (July 10th, 2016)
-==============================
+===============================
 
   * Improvement: Add more protection against growing disk queue to over 2GB.
 
 Version 4.1.4 (Jun 6th, 2016)
-==============================
+=============================
 
   * New: Add opt out method in the library. This will stop sending any events to all integrations for the device.
 
