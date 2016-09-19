@@ -6,7 +6,7 @@ apply from: rootProject.file('gradle/android.gradle')
 
 dependencies {
   compile project(':analytics')
-  compile 'com.google.android.gms:play-services-wearable:8.1.0'
+  compile 'com.google.android.gms:play-services-wearable:9.4.0'
 }
 
 checkstyle {
