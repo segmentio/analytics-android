@@ -611,7 +611,7 @@ public class AnalyticsTest {
     }));
     verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
       @Override protected boolean matchesSafely(TrackPayload payload) {
-        return payload.event().equals("Application Started") && //
+        return payload.event().equals("Application Opened") && //
             payload.properties().getString("version").equals("1.0.0") && //
             payload.properties().getInt("build", -1) == 100;
       }
@@ -672,7 +672,7 @@ public class AnalyticsTest {
     }));
     verify(integration).track(argThat(new NoDescriptionMatcher<TrackPayload>() {
       @Override protected boolean matchesSafely(TrackPayload payload) {
-        return payload.event().equals("Application Started") && //
+        return payload.event().equals("Application Opened") && //
             payload.properties().getString("version").equals("1.0.1") && //
             payload.properties().getInt("build", -1) == 101;
       }

@@ -348,8 +348,8 @@ public class Analytics {
           .putValue("previous_" + BUILD_KEY, previousBuild));
     }
 
-    // Track Application Started.
-    track("Application Started", new Properties() //
+    // Track Application Opened.
+    track("Application Opened", new Properties() //
         .putValue("version", currentVersion) //
         .putValue("build", currentBuild));
 
