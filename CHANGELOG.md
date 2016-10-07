@@ -1,4 +1,10 @@
 
+Version 4.2.1 (October 7th, 2016)
+====================================
+
+  * [Fix](https://github.com/segmentio/analytics-android/pull/476): Use Application Opened instead of Application Started.
+  * [Improvement](https://github.com/segmentio/analytics-android/pull/475): Update Google Play Services for Android wear module.
+
 Version 4.2.0 (September 19th, 2016)
 ====================================
 
