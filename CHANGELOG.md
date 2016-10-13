@@ -1,4 +1,10 @@
 
+Version 4.2.2 (October 13th, 2016)
+====================================
+
+  * [Fix](https://github.com/segmentio/analytics-android/pull/479): Rely on HTTP cache for caching settings responses. This fixes a regression introduced in [version 4.1.4](https://github.com/segmentio/analytics-android/pull/448), where cached settings responses were not being used, and would always be fetched from the network.
+
+
 Version 4.2.1 (October 7th, 2016)
 ====================================
 
