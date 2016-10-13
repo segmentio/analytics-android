@@ -1264,18 +1264,19 @@ public class Analytics {
    * 2. If the cache is stale, try to get new settings.
    */
   @Private ProjectSettings getSettings() {
-    ProjectSettings settings = projectSettingsCache.get();
-    if (isNullOrEmpty(settings)) {
+    ProjectSettings cachedSettings = projectSettingsCache.get();
+    if (isNullOrEmpty(cachedSettings)) {
       return downloadSettings();
     }
 
-    if (settings.timestamp() + SETTINGS_REFRESH_INTERVAL < System.currentTimeMillis()) {
-      return settings;
+    long expirationTime = cachedSettings.timestamp() + SETTINGS_REFRESH_INTERVAL;
+    if (expirationTime > System.currentTimeMillis()) {
+      return cachedSettings;
     }
 
     ProjectSettings downloadedSettings = downloadSettings();
     if (isNullOrEmpty(downloadedSettings)) {
-      return settings;
+      return cachedSettings;
     }
     return downloadedSettings;
   }
