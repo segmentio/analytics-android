@@ -45,9 +45,9 @@ public class ProjectSettingsTest {
         + "  }\n"
         + "}";
     ProjectSettings projectSettings =
-        ProjectSettings.create(cartographer.fromJson(projectSettingsJson));
+        new ProjectSettings(cartographer.fromJson(projectSettingsJson));
 
-    assertThat(projectSettings).hasSize(5).containsKey("timestamp").containsKey("Segment.io");
+    assertThat(projectSettings).hasSize(4).containsKey("Segment.io");
 
     try {
       projectSettings.put("foo", "bar");
