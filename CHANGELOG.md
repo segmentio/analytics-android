@@ -1,3 +1,7 @@
+Version 4.2.3 (November 4th, 2016)
+====================================
+ * Update cdn hostname from `cdn.segment.com` to `cdn-settings.segment.com`.
+
 
 Version 4.2.2 (October 13th, 2016)
 ====================================
