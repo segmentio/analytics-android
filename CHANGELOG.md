@@ -1,4 +1,4 @@
-Version 4.2.3 (November 13th, 2016)
+Version 4.2.4 (November 13th, 2016)
 ====================================
  * [Fix] Revert relying on HTTP Cache for cache settings introduced in 4.2.2 to avoid interfering
  with application level cache behavior.
