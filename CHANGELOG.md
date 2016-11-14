@@ -1,6 +1,14 @@
+Changelog
+=========
+
+Version 4.2.4 (November 14th, 2016)
+==================================
+ * [Fix](https://github.com/segmentio/analytics-android/pull/484): Version 4.2.2 introduced a change where a default application wide cache was being installed for HTTPURLConnection requests. If you were not using an HTTP cache already or relying on this behaviour, this may have resulted in unintended caching behaviour for your application. This fix doesn't force a default HTTP cache anymore, instead the library keeps it's own cache for settings served by CDN. You may continue to choose to install an application level cache for HTTPURLConnection if you wish.
+
+
 Version 4.2.3 (November 4th, 2016)
-====================================
- * Update cdn hostname from `cdn.segment.com` to `cdn-settings.segment.com`.
+==================================
+ * [Improvement]: Update CDN hostname from `cdn.segment.com` to `cdn-settings.segment.com`. This endpoint has been added to improve performance for mobile clients.
 
 
 Version 4.2.2 (October 13th, 2016)
