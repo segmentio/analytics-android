@@ -21,13 +21,10 @@ import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
-import okio.Buffer;
 import org.assertj.core.data.MapEntry;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -38,8 +35,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
@@ -88,6 +83,7 @@ public class AnalyticsTest {
   @Spy ExecutorService analyticsExecutor = new SynchronousExecutor();
   @Mock Client client;
   @Mock Stats stats;
+  @Mock ProjectSettings.Cache projectSettingsCache;
   @Mock Integration integration;
   Integration.Factory factory;
   BooleanPreference optOut;
@@ -119,18 +115,8 @@ public class AnalyticsTest {
         return "test";
       }
     };
-
-    when(client.fetchSettings()).thenAnswer(new Answer<Client.Connection>() {
-      @Override public Client.Connection answer(InvocationOnMock invocation) throws Throwable {
-        Buffer buffer = new Buffer();
-        buffer.writeString(SETTINGS, Charset.forName("UTF-8"));
-        return new Client.Connection(mock(HttpURLConnection.class), buffer.inputStream(), null) {
-          @Override public void close() throws IOException {
-            super.close();
-          }
-        };
-      }
-    });
+    when(projectSettingsCache.get()) //
+        .thenReturn(ProjectSettings.create(Cartographer.INSTANCE.fromJson(SETTINGS)));
 
     SharedPreferences sharedPreferences =
         RuntimeEnvironment.application.getSharedPreferences("analytics-test-qaz", MODE_PRIVATE);
@@ -138,8 +124,9 @@ public class AnalyticsTest {
 
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
-        Cartographer.INSTANCE, "foo", DEFAULT_FLUSH_QUEUE_SIZE, DEFAULT_FLUSH_INTERVAL,
-        analyticsExecutor, false, new CountDownLatch(0), false, false, optOut, Crypto.none());
+        Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), false, false,
+        optOut, Crypto.none());
 
     // Used by singleton tests.
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
@@ -289,7 +276,7 @@ public class AnalyticsTest {
   }
 
   @Test public void emptyTrackingPlan() throws IOException {
-    analytics.projectSettings = new ProjectSettings(Cartographer.INSTANCE.fromJson("{\n"
+    analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
         + "  \"integrations\": {\n"
         + "    \"test\": {\n"
         + "      \"foo\": \"bar\"\n"
@@ -309,7 +296,7 @@ public class AnalyticsTest {
   }
 
   @Test public void emptyEventPlan() throws IOException {
-    analytics.projectSettings = new ProjectSettings(Cartographer.INSTANCE.fromJson("{\n"
+    analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
         + "  \"integrations\": {\n"
         + "    \"test\": {\n"
         + "      \"foo\": \"bar\"\n"
@@ -331,7 +318,7 @@ public class AnalyticsTest {
   }
 
   @Test public void trackingPlanDisablesEvent() throws IOException {
-    analytics.projectSettings = new ProjectSettings(Cartographer.INSTANCE.fromJson("{\n"
+    analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
         + "  \"integrations\": {\n"
         + "    \"test\": {\n"
         + "      \"foo\": \"bar\"\n"
@@ -351,7 +338,7 @@ public class AnalyticsTest {
   }
 
   @Test public void trackingPlanDisablesEventForSingleIntegration() throws IOException {
-    analytics.projectSettings = new ProjectSettings(Cartographer.INSTANCE.fromJson("{\n"
+    analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
         + "  \"integrations\": {\n"
         + "    \"test\": {\n"
         + "      \"foo\": \"bar\"\n"
@@ -374,7 +361,7 @@ public class AnalyticsTest {
   }
 
   @Test public void trackingPlanDisabledEventCannotBeOverriddenByOptions() throws IOException {
-    analytics.projectSettings = new ProjectSettings(Cartographer.INSTANCE.fromJson("{\n"
+    analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
         + "  \"integrations\": {\n"
         + "    \"test\": {\n"
         + "      \"foo\": \"bar\"\n"
@@ -395,7 +382,7 @@ public class AnalyticsTest {
 
   @Test public void trackingPlanDisabledEventForIntegrationOverriddenByOptions()
       throws IOException {
-    analytics.projectSettings = new ProjectSettings(Cartographer.INSTANCE.fromJson("{\n"
+    analytics.projectSettings = ProjectSettings.create(Cartographer.INSTANCE.fromJson("{\n"
         + "  \"integrations\": {\n"
         + "    \"test\": {\n"
         + "      \"foo\": \"bar\"\n"
@@ -609,8 +596,9 @@ public class AnalyticsTest {
 
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
-        Cartographer.INSTANCE, "foo", DEFAULT_FLUSH_QUEUE_SIZE, DEFAULT_FLUSH_INTERVAL,
-        analyticsExecutor, true, new CountDownLatch(0), false, false, optOut, Crypto.none());
+        Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0), false, false,
+        optOut, Crypto.none());
 
     callback.get().onActivityCreated(null, null);
 
@@ -667,8 +655,9 @@ public class AnalyticsTest {
 
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
-        Cartographer.INSTANCE, "foo", DEFAULT_FLUSH_QUEUE_SIZE, DEFAULT_FLUSH_INTERVAL,
-        analyticsExecutor, true, new CountDownLatch(0), false, false, optOut, Crypto.none());
+        Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, true, new CountDownLatch(0), false, false,
+        optOut, Crypto.none());
 
     callback.get().onActivityCreated(null, null);
 
@@ -707,8 +696,9 @@ public class AnalyticsTest {
 
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
-        Cartographer.INSTANCE, "foo", DEFAULT_FLUSH_QUEUE_SIZE, DEFAULT_FLUSH_INTERVAL,
-        analyticsExecutor, false, new CountDownLatch(0), true, false, optOut, Crypto.none());
+        Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), true, false,
+        optOut, Crypto.none());
 
     Activity activity = mock(Activity.class);
     PackageManager packageManager = mock(PackageManager.class);
@@ -746,8 +736,9 @@ public class AnalyticsTest {
 
     analytics = new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
         defaultOptions, Logger.with(NONE), "qaz", Collections.singletonList(factory), client,
-        Cartographer.INSTANCE, "foo", DEFAULT_FLUSH_QUEUE_SIZE, DEFAULT_FLUSH_INTERVAL,
-        analyticsExecutor, false, new CountDownLatch(0), false, false, optOut, Crypto.none());
+        Cartographer.INSTANCE, projectSettingsCache, "foo", DEFAULT_FLUSH_QUEUE_SIZE,
+        DEFAULT_FLUSH_INTERVAL, analyticsExecutor, false, new CountDownLatch(0), false, false,
+        optOut, Crypto.none());
 
     Activity activity = mock(Activity.class);
     Bundle bundle = new Bundle();

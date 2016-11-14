@@ -33,7 +33,6 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.net.http.HttpResponseCache;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -50,7 +49,6 @@ import com.segment.analytics.internal.Private;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -119,6 +117,7 @@ public class Analytics {
   final String tag;
   final Client client;
   final Cartographer cartographer;
+  private final ProjectSettings.Cache projectSettingsCache;
   final Crypto crypto;
   ProjectSettings projectSettings; // todo: make final (non-final for testing).
   @Private final String writeKey;
@@ -193,10 +192,11 @@ public class Analytics {
   Analytics(Application application, ExecutorService networkExecutor, Stats stats,
       Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions,
       final Logger logger, String tag, final List<Integration.Factory> factories, Client client,
-      Cartographer cartographer, String writeKey, int flushQueueSize, long flushIntervalInMillis,
-      final ExecutorService analyticsExecutor, final boolean shouldTrackApplicationLifecycleEvents,
-      CountDownLatch advertisingIdLatch, final boolean shouldRecordScreenViews,
-      final boolean trackAttributionInformation, BooleanPreference optOut, Crypto crypto) {
+      Cartographer cartographer, ProjectSettings.Cache projectSettingsCache, String writeKey,
+      int flushQueueSize, long flushIntervalInMillis, final ExecutorService analyticsExecutor,
+      final boolean shouldTrackApplicationLifecycleEvents, CountDownLatch advertisingIdLatch,
+      final boolean shouldRecordScreenViews, final boolean trackAttributionInformation,
+      BooleanPreference optOut, Crypto crypto) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -207,6 +207,7 @@ public class Analytics {
     this.tag = tag;
     this.client = client;
     this.cartographer = cartographer;
+    this.projectSettingsCache = projectSettingsCache;
     this.writeKey = writeKey;
     this.flushQueueSize = flushQueueSize;
     this.flushIntervalInMillis = flushIntervalInMillis;
@@ -220,7 +221,7 @@ public class Analytics {
 
     analyticsExecutor.submit(new Runnable() {
       @Override public void run() {
-        projectSettings = downloadSettings();
+        projectSettings = getSettings();
         if (isNullOrEmpty(projectSettings)) {
           // Backup mode — Enable just the Segment integration.
           // {
@@ -230,7 +231,7 @@ public class Analytics {
           //     }
           //   }
           // }
-          projectSettings = new ProjectSettings(new ValueMap() //
+          projectSettings = ProjectSettings.create(new ValueMap() //
               .putValue("integrations", new ValueMap().putValue("Segment.io",
                   new ValueMap().putValue("apiKey", Analytics.this.writeKey))));
         }
@@ -1197,6 +1198,9 @@ public class Analytics {
       final Cartographer cartographer = Cartographer.INSTANCE;
       final Client client = new Client(writeKey, connectionFactory);
 
+      ProjectSettings.Cache projectSettingsCache =
+          new ProjectSettings.Cache(application, cartographer, tag);
+
       BooleanPreference optOut =
           new BooleanPreference(getSegmentSharedPreferences(application, tag),
               OPT_OUT_PREFERENCE_KEY, false);
@@ -1218,49 +1222,63 @@ public class Analytics {
       factories.addAll(this.factories);
 
       return new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
-          defaultOptions, logger, tag, factories, client, cartographer, writeKey, flushQueueSize,
-          flushIntervalInMillis, Executors.newSingleThreadExecutor(),
+          defaultOptions, logger, tag, factories, client, cartographer, projectSettingsCache,
+          writeKey, flushQueueSize, flushIntervalInMillis, Executors.newSingleThreadExecutor(),
           trackApplicationLifecycleEvents, advertisingIdLatch, recordScreenViews,
           trackAttributionInformation, optOut, crypto);
     }
   }
 
   // Handler Logic.
+  private static final long SETTINGS_REFRESH_INTERVAL = 1000 * 60 * 60 * 24; // 24 hours
+  private static final long SETTINGS_RETRY_INTERVAL = 1000 * 60; // 1 minute
 
   private ProjectSettings downloadSettings() {
-    HttpResponseCache cache = HttpResponseCache.getInstalled();
-    if (cache == null) {
-      try {
-        File httpCacheDir = new File(application.getCacheDir(), "segment-" + tag);
-        long httpCacheSize = 10 * 1024 * 1024; // 10 MiB
-        cache = HttpResponseCache.install(httpCacheDir, httpCacheSize);
-      } catch (IOException e) {
-        logger.error(e, "HTTP response cache installation failed");
-      }
-    }
     try {
-      return networkExecutor.submit(new Callable<ProjectSettings>() {
+      ProjectSettings projectSettings = networkExecutor.submit(new Callable<ProjectSettings>() {
         @Override public ProjectSettings call() throws Exception {
           Client.Connection connection = null;
           try {
             connection = client.fetchSettings();
             Map<String, Object> map = cartographer.fromJson(buffer(connection.is));
-            return new ProjectSettings(map);
+            return ProjectSettings.create(map);
           } finally {
             closeQuietly(connection);
           }
         }
       }).get();
+      projectSettingsCache.set(projectSettings);
+      return projectSettings;
     } catch (InterruptedException e) {
       logger.error(e, "Thread interrupted while fetching settings.");
     } catch (ExecutionException e) {
-      logger.error(e, "Unable to fetch settings.");
-    } finally {
-      if (cache != null) {
-        cache.flush();
-      }
+      logger.error(e, "Unable to fetch settings. Retrying in %s ms.", SETTINGS_RETRY_INTERVAL);
     }
     return null;
+  }
+
+  /**
+   * Retrieve settings from the cache or the network:
+   * 1. If the cache is empty, fetch new settings.
+   * 2. If the cache is not stale, use it.
+   * 2. If the cache is stale, try to get new settings.
+   */
+  @Private ProjectSettings getSettings() {
+    ProjectSettings cachedSettings = projectSettingsCache.get();
+    if (isNullOrEmpty(cachedSettings)) {
+      return downloadSettings();
+    }
+
+    long expirationTime = cachedSettings.timestamp() + SETTINGS_REFRESH_INTERVAL;
+    if (expirationTime > System.currentTimeMillis()) {
+      return cachedSettings;
+    }
+
+    ProjectSettings downloadedSettings = downloadSettings();
+    if (isNullOrEmpty(downloadedSettings)) {
+      return cachedSettings;
+    }
+    return downloadedSettings;
   }
 
   void performInitializeIntegrations(ProjectSettings projectSettings) {
