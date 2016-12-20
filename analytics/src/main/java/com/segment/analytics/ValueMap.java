@@ -95,7 +95,7 @@ public class ValueMap implements Map<String, Object> {
     return delegate.put(key, value);
   }
 
-  @Override public void putAll(Map<? extends String, ?> map) {
+  @Override public void putAll(Map<String, ?> map) {
     delegate.putAll(map);
   }
 
