@@ -24,6 +24,9 @@
 
 package com.segment.analytics;
 
+import com.segment.analytics.internal.Utils;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -336,10 +339,20 @@ public class Properties extends ValueMap {
    * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
    */
   public Properties putProducts(Product... products) {
-    return putValue(PRODUCTS_KEY, products);
+    if (Utils.isNullOrEmpty(products)) {
+      throw new IllegalArgumentException("products cannot be null or empty.");
+    }
+    List<Product> productList = new ArrayList<>(products.length);
+    Collections.addAll(productList, products);
+    return putValue(PRODUCTS_KEY, Collections.unmodifiableList(productList));
   }
 
+  /** @deprecated Use {@link #products()} instead. */
   public List<Product> products(Product... products) {
+    return products();
+  }
+
+  public List<Product> products() {
     return getList(PRODUCTS_KEY, Product.class);
   }
 

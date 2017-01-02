@@ -142,9 +142,14 @@ public final class Utils {
     return TextUtils.isEmpty(text) || TextUtils.getTrimmedLength(text) == 0;
   }
 
-  /** Returns true if the collection or has a size 0. */
+  /** Returns true if the collection is null or has a size of 0. */
   public static boolean isNullOrEmpty(Collection collection) {
     return collection == null || collection.size() == 0;
+  }
+
+  /** Returns true if the array is null or has a size of 0. */
+  public static <T> boolean isNullOrEmpty(T[] data) {
+    return data == null || data.length == 0;
   }
 
   /** Returns true if the map is null or empty, false otherwise. */
