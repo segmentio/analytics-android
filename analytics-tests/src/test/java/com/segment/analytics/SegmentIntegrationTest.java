@@ -24,7 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
 
@@ -52,8 +52,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-@RunWith(RobolectricGradleTestRunner.class)
-@Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
+@RunWith(RobolectricTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 18, manifest = Config.NONE)
 public class SegmentIntegrationTest {
 
   @Rule public TemporaryFolder folder = new TemporaryFolder();

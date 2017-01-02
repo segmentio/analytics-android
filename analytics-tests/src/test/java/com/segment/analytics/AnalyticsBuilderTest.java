@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static android.Manifest.permission.INTERNET;
@@ -47,8 +47,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-@RunWith(RobolectricGradleTestRunner.class)
-@Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
+@RunWith(RobolectricTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 18, manifest = Config.NONE)
 public class AnalyticsBuilderTest {
 
   Application context;

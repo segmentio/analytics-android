@@ -6,16 +6,17 @@ import org.assertj.core.data.MapEntry;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.Utils.createContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.robolectric.annotation.Config.NONE;
 
-@RunWith(RobolectricGradleTestRunner.class)
-@Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
+@RunWith(RobolectricTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
 public class AnalyticsContextTest {
 
   AnalyticsContext analyticsContext;
@@ -41,9 +42,9 @@ public class AnalyticsContextTest {
 
     assertThat(analyticsContext.getValueMap("app")) //
         .containsEntry("name", "com.segment.analytics.core.tests")
-        .containsEntry("version", BuildConfig.VERSION_NAME)
+        .containsEntry("version", "undefined")
         .containsEntry("namespace", "com.segment.analytics.core.tests")
-        .containsEntry("build", BuildConfig.VERSION_CODE);
+        .containsEntry("build", 0);
 
     assertThat(analyticsContext.getValueMap("device")) //
         .containsEntry("id", "unknown")
@@ -60,7 +61,7 @@ public class AnalyticsContextTest {
 
     assertThat(analyticsContext.getValueMap("os")) //
         .containsEntry("name", "Android") //
-        .containsEntry("version", "unknown");
+        .containsEntry("version", "4.3_r2");
 
     assertThat(analyticsContext.getValueMap("screen")) //
         .containsEntry("density", 1.5f) //
