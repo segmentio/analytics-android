@@ -1,6 +1,21 @@
 Changelog
 =========
 
+
+Version 4.2.5 (January 2nd, 2017)
+==================================
+ * [Fix](https://github.com/segmentio/analytics-android/pull/487/commits/8649050b4b7b74be17fc7b7e4ec0add7362325fd): Using `Properties#putProducts` was stored as an array instead of a list, and not serialized correctly. This caused it to be usable by Segment and server side integrations. If you're stuck on a previous version for some reason, you can manually store it as a list:
+
+ ```java
+ List<Product> products = new ArrayList<>();
+ products.add(new Product("foo", "bar", 10));
+ // add other products to this list.
+
+ Properties properties = new Properties();
+ properties.put("products", products);
+ ```
+
+
 Version 4.2.4 (November 14th, 2016)
 ==================================
  * [Fix](https://github.com/segmentio/analytics-android/pull/484): Version 4.2.2 introduced a change where a default application wide cache was being installed for HTTPURLConnection requests. If you were not using an HTTP cache already or relying on this behaviour, this may have resulted in unintended caching behaviour for your application. This fix returns to the behaviour before 4.2.2, where this library does not install a cache. You may continue to choose to install an application level cache for HTTPURLConnection if you wish.
