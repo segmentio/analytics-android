@@ -24,7 +24,6 @@
 
 package com.segment.analytics.internal;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -79,8 +78,12 @@ public final class Utils {
   public static final int DEFAULT_FLUSH_INTERVAL = 30 * 1000; // 30s
   public static final int DEFAULT_FLUSH_QUEUE_SIZE = 20;
   public static final boolean DEFAULT_COLLECT_DEVICE_ID = true;
-  @SuppressLint("SimpleDateFormat") private static final DateFormat ISO_8601_DATE_FORMAT =
-      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US);
+  private static final ThreadLocal<DateFormat> ISO_8601_DATE_FORMAT =
+      new ThreadLocal<DateFormat>() {
+        @Override protected DateFormat initialValue() {
+          return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US);
+        }
+      };
 
   /** Creates a mutable HashSet instance containing the given elements in unspecified order */
   public static <T> Set<T> newSet(T... values) {
@@ -91,12 +94,12 @@ public final class Utils {
 
   /** Returns the date as a string formatted with {@link #ISO_8601_DATE_FORMAT}. */
   public static String toISO8601Date(Date date) {
-    return ISO_8601_DATE_FORMAT.format(date);
+    return ISO_8601_DATE_FORMAT.get().format(date);
   }
 
   /** Returns the string as a date parsed with {@link #ISO_8601_DATE_FORMAT}. */
   public static Date toISO8601Date(String date) throws ParseException {
-    return ISO_8601_DATE_FORMAT.parse(date);
+    return ISO_8601_DATE_FORMAT.get().parse(date);
   }
 
   //TODO: Migrate other coercion methods.
