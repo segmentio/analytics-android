@@ -7,13 +7,14 @@ import okio.ByteString;
 import okio.Okio;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.robolectric.annotation.Config.NONE;
 
-@RunWith(RobolectricGradleTestRunner.class)
-@Config(constants = BuildConfig.class, emulateSdk = 18, manifest = Config.NONE)
+@RunWith(RobolectricTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
 public class CryptoTest {
   @Test public void noneCryptoWrite() throws IOException {
     Crypto crypto = Crypto.none();
