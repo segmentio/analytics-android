@@ -100,7 +100,7 @@ class Cartographer {
   // Decoding
 
   /** Reads the {@link JsonReader} into a {@link Map}. */
-  private Map<String, Object> readerToMap(JsonReader reader) throws IOException {
+  private static Map<String, Object> readerToMap(JsonReader reader) throws IOException {
     Map<String, Object> map = new LinkedHashMap<>();
     reader.beginObject();
     while (reader.hasNext()) {
@@ -111,7 +111,7 @@ class Cartographer {
   }
 
   /** Reads the {@link JsonReader} into a {@link List}. */
-  private List<Object> readerToList(JsonReader reader) throws IOException {
+  private static List<Object> readerToList(JsonReader reader) throws IOException {
     // todo: try to infer the type of the List?
     List<Object> list = new ArrayList<>();
     reader.beginArray();
@@ -123,7 +123,7 @@ class Cartographer {
   }
 
   /** Reads the next value in the {@link JsonReader}. */
-  private Object readValue(JsonReader reader) throws IOException {
+  private static Object readValue(JsonReader reader) throws IOException {
     JsonToken token = reader.peek();
     switch (token) {
       case BEGIN_OBJECT:
@@ -147,7 +147,7 @@ class Cartographer {
   // Encoding
 
   /** Encode the given {@link Map} into the {@link JsonWriter}. */
-  private void mapToWriter(Map<?, ?> map, JsonWriter writer) throws IOException {
+  private static void mapToWriter(Map<?, ?> map, JsonWriter writer) throws IOException {
     writer.beginObject();
     for (Map.Entry<?, ?> entry : map.entrySet()) {
       writer.name(String.valueOf(entry.getKey()));
@@ -157,9 +157,18 @@ class Cartographer {
   }
 
   /** Print the json representation of a List to the given writer. */
-  private void listToWriter(List<?> list, JsonWriter writer) throws IOException {
+  private static void listToWriter(List<?> list, JsonWriter writer) throws IOException {
     writer.beginArray();
     for (Object value : list) {
+      writeValue(value, writer);
+    }
+    writer.endArray();
+  }
+
+  /** Print the json representation of an array to the given writer. */
+  private static void arrayToWriter(Object[] array, JsonWriter writer) throws IOException {
+    writer.beginArray();
+    for (Object value : array) {
       writeValue(value, writer);
     }
     writer.endArray();
@@ -168,7 +177,7 @@ class Cartographer {
   /**
    * Writes the given {@link Object} to the {@link JsonWriter}.
    */
-  private void writeValue(Object value, JsonWriter writer) throws IOException {
+  private static void writeValue(Object value, JsonWriter writer) throws IOException {
     if (value == null) {
       writer.nullValue();
     } else if (value instanceof Number) {
@@ -177,6 +186,8 @@ class Cartographer {
       writer.value((Boolean) value);
     } else if (value instanceof List) {
       listToWriter((List) value, writer);
+    } else if (value.getClass().isArray()) {
+      arrayToWriter((Object[]) value, writer);
     } else if (value instanceof Map) {
       mapToWriter((Map) value, writer);
     } else {
