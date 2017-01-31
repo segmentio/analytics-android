@@ -1,9 +1,10 @@
 buildscript {
   repositories {
     mavenCentral()
+    jcenter()
   }
   dependencies {
-    classpath 'com.android.tools.build:gradle:2.1.3'
+    classpath 'com.android.tools.build:gradle:2.2.3'
     classpath 'com.f2prateek.checkstyle:checkstyle:1.0.1'
   }
 }
@@ -12,6 +13,7 @@ allprojects {
   buildscript {
     repositories {
       mavenCentral()
+      jcenter()
     }
   }
 
