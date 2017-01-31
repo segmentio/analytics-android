@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 4.2.6 (January 31st, 2017)
+==================================
+ * [Fix](https://github.com/segmentio/analytics-android/pull/495): Update Cartographer. This fixes an issue where sending custom values sent as arrays would not be serialized correctly.
+ * [Fix](https://github.com/segmentio/analytics-android/pull/494): Make DateFormat access thread safe. This fixes an issue where generated timestamps could be sometimes be malformed and not conform to the ISO 8601 standard.
+
 
 Version 4.2.5 (January 2nd, 2017)
 ==================================
