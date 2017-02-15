@@ -81,7 +81,7 @@ public final class Utils {
   private static final ThreadLocal<DateFormat> ISO_8601_DATE_FORMAT =
       new ThreadLocal<DateFormat>() {
         @Override protected DateFormat initialValue() {
-          return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US);
+          return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
         }
       };
 
