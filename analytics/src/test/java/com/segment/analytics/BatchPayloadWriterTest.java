@@ -1,6 +1,6 @@
 package com.segment.analytics;
 
-import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.core.BuildConfig;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;

@@ -1,6 +1,6 @@
 package com.segment.analytics;
 
-import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.core.BuildConfig;
 import java.io.IOException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
