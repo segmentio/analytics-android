@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'checkstyle'
 apply plugin: 'com.f2prateek.checkstyle'
+apply plugin: 'com.vanniktech.android.junit.jacoco'
 
 apply from: rootProject.file('gradle/android.gradle')
 
