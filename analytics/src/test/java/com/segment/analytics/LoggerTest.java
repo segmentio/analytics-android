@@ -1,7 +1,7 @@
 package com.segment.analytics;
 
 import android.util.Log;
-import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.core.BuildConfig;
 import com.segment.analytics.integrations.Logger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,7 +34,7 @@ public class LoggerTest {
 
     assertThat(ShadowLog.getLogs()) //
         .containsExactly(new LogItemBuilder() //
-            .type(android.util.Log.VERBOSE) //
+            .type(Log.VERBOSE) //
             .msg("some message with an argument") //
             .build());
   }
@@ -46,7 +46,7 @@ public class LoggerTest {
 
     assertThat(ShadowLog.getLogs()) //
         .containsExactly(new LogItemBuilder() //
-            .type(android.util.Log.DEBUG) //
+            .type(Log.DEBUG) //
             .msg("some message with an argument") //
             .build());
   }
@@ -58,7 +58,7 @@ public class LoggerTest {
 
     assertThat(ShadowLog.getLogs()) //
         .containsExactly(new LogItemBuilder() //
-            .type(android.util.Log.INFO) //
+            .type(Log.INFO) //
             .msg("some message with an argument") //
             .build());
   }
@@ -70,7 +70,7 @@ public class LoggerTest {
 
     assertThat(ShadowLog.getLogs()) //
         .containsExactly(new LogItemBuilder() //
-            .type(android.util.Log.ERROR) //
+            .type(Log.ERROR) //
             .throwable(throwable) //
             .msg("some message with an argument") //
             .build());

@@ -11,7 +11,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import com.segment.analytics.TestUtils.NoDescriptionMatcher;
-import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.core.BuildConfig;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.GroupPayload;
 import com.segment.analytics.integrations.IdentifyPayload;

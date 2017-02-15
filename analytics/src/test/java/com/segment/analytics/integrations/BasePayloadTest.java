@@ -3,7 +3,7 @@ package com.segment.analytics.integrations;
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
-import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.core.BuildConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;

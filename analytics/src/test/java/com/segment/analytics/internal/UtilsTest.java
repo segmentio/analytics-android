@@ -26,7 +26,7 @@ package com.segment.analytics.internal;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.core.BuildConfig;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -47,8 +47,8 @@ import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.transform;
-import static org.assertj.android.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.android.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.robolectric.annotation.Config.NONE;

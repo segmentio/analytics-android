@@ -1,6 +1,6 @@
 package com.segment.analytics;
 
-import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.core.BuildConfig;
 import java.util.Map;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;

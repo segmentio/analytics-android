@@ -27,7 +27,7 @@ package com.segment.analytics;
 import android.app.Application;
 import android.content.Context;
 import android.content.res.Resources;
-import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.core.BuildConfig;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;

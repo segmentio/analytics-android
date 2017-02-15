@@ -1,6 +1,6 @@
 package com.segment.analytics;
 
-import com.segment.analytics.core.tests.BuildConfig;
+import com.segment.analytics.core.BuildConfig;
 import java.util.Map;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;
@@ -41,9 +41,9 @@ public class AnalyticsContextTest {
         .containsKey("traits");
 
     assertThat(analyticsContext.getValueMap("app")) //
-        .containsEntry("name", "com.segment.analytics.core.tests")
+        .containsEntry("name", "com.segment.analytics.core")
         .containsEntry("version", "undefined")
-        .containsEntry("namespace", "com.segment.analytics.core.tests")
+        .containsEntry("namespace", "com.segment.analytics.core")
         .containsEntry("build", 0);
 
     assertThat(analyticsContext.getValueMap("device")) //
