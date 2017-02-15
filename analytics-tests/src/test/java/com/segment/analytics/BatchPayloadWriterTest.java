@@ -51,9 +51,12 @@ public class BatchPayloadWriterTest {
         .endObject()
         .close();
 
+    // todo: inject a fake clock. for now we'll compare a lower precision.
+    String date = toISO8601Date(new Date());
+    String expectedDate = date.substring(0, date.length() - 8);
+
     assertThat(byteArrayOutputStream.toString()) //
-        .isEqualTo("{\"batch\":[qaz],\"sentAt\":\"" + toISO8601Date(new Date()) + "\"}")
-        .overridingErrorMessage("its ok if this failed close to midnight!");
+        .contains("{\"batch\":[qaz],\"sentAt\":\"" + expectedDate);
   }
 
   @Test public void batchPayloadWriterFailsForNoItem() throws IOException {
