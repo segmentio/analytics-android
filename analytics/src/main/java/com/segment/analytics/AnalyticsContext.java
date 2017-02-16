@@ -378,7 +378,12 @@ public class AnalyticsContext extends ValueMap {
       return putValue(CAMPAIGN_TERM_KEY, term);
     }
 
+    /** @deprecated Use {@link #term()} instead. */
     public String tern() {
+      return term();
+    }
+
+    public String term() {
       return getString(CAMPAIGN_TERM_KEY);
     }
 
