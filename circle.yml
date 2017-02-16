@@ -16,13 +16,17 @@ dependencies:
     - /home/ubuntu/.android
     - /home/ubuntu/android
     - /home/ubuntu/.gradle
+    - /home/ubuntu/.m2
   override:
     - .buildscript/setup.sh
     - TERM=dumb ./gradlew dependencies
 
 test:
   override:
-    - TERM=dumb ./gradlew checkRelease testRelease --profile
+    - TERM=dumb ./gradlew build --profile
+  post:
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+    - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
 
 deployment:
   snapshots:
