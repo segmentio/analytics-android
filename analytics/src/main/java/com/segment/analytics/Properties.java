@@ -24,7 +24,6 @@
 
 package com.segment.analytics;
 
-import com.segment.analytics.internal.Utils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
