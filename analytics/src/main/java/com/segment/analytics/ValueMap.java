@@ -385,11 +385,8 @@ public class ValueMap implements Map<String, Object> {
 
     void set(T value) {
       this.value = value;
-      try {
-        String json = cartographer.toJson(value);
-        preferences.edit().putString(key, json).apply();
-      } catch (IOException ignored) {
-      }
+      String json = cartographer.toJson(value);
+      preferences.edit().putString(key, json).apply();
     }
 
     void delete() {
