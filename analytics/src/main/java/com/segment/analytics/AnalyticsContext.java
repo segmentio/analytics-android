@@ -543,8 +543,13 @@ public class AnalyticsContext extends ValueMap {
       return getString(REFERRER_TYPE_KEY);
     }
 
-    /** Set the referrer url. */
+    /** @deprecated Use {@link #putUrl(String)} */
     public Referrer putTerm(String url) {
+      return putValue(REFERRER_URL_KEY, url);
+    }
+
+    /** @Set the referrer url. */
+    public Referrer putUrl(String url) {
       return putValue(REFERRER_URL_KEY, url);
     }
 
