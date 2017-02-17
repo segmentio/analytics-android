@@ -225,13 +225,13 @@ public class ValueMapTest {
     assertThat(valueMap.getLong("a missing key", 2)).isEqualTo(2);
 
     valueMap.putValue("a number", 3.14);
-    assertThat(valueMap.getInt("a number", 0)).isEqualTo(3);
+    assertThat(valueMap.getLong("a number", 0)).isEqualTo(3);
 
     valueMap.putValue("a string number", "88");
-    assertThat(valueMap.getInt("a string number", 0)).isEqualTo(88);
+    assertThat(valueMap.getLong("a string number", 0)).isEqualTo(88);
 
     valueMap.putValue("a string", "not really a long");
-    assertThat(valueMap.getInt("a string", 0)).isEqualTo(0);
+    assertThat(valueMap.getLong("a string", 0)).isEqualTo(0);
   }
 
   @Test public void getFloat() {
