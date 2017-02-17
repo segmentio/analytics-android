@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -146,7 +145,7 @@ class SegmentIntegration extends Integration<Void> {
       payloadQueue = new PayloadQueue.PersistentQueue(queueFile);
     } catch (IOException e) {
       logger.error(e, "Falling back to memory queue.");
-      payloadQueue = new PayloadQueue.MemoryQueue(new ArrayList<byte[]>());
+      payloadQueue = new PayloadQueue.MemoryQueue();
     }
     return new SegmentIntegration(context, client, cartographer, networkExecutor, payloadQueue,
         stats, bundledIntegrations, flushIntervalInMillis, flushQueueSize, logger, crypto);

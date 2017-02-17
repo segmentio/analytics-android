@@ -264,11 +264,6 @@ public class SegmentIntegrationTest {
     when(cartographer.toJson(anyMap())).thenReturn(stringBuilder.toString());
     segmentIntegration.performEnqueue(payload);
     verify(payloadQueue, never()).add((byte[]) any());
-
-    // Serializing json throws exception.
-    doThrow(new IOException("mock")).when(cartographer).toJson(anyMap());
-    segmentIntegration.performEnqueue(payload);
-    verify(payloadQueue, never()).add((byte[]) any());
   }
 
   @Test public void shutdown() throws IOException {

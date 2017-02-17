@@ -28,8 +28,7 @@ import static org.mockito.Mockito.when;
 import static org.robolectric.annotation.Config.NONE;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
-public class ClientTest {
+@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE) public class ClientTest {
 
   @Rule public MockWebServerRule server = new MockWebServerRule();
   @Rule public TemporaryFolder folder = new TemporaryFolder();
@@ -62,11 +61,24 @@ public class ClientTest {
     Client.Connection connection = client.upload();
     assertThat(connection.os).isNotNull();
     assertThat(connection.is).isNull();
-    assertThat(connection.connection.getResponseCode()).isEqualTo(200); // consume the response
+    assertThat(connection.connection.getResponseCode()).isEqualTo(200); // consume the response.
     RecordedRequestAssert.assertThat(server.takeRequest())
         .hasRequestLine("POST /v1/import HTTP/1.1")
         .containsHeader("Content-Type", "application/json")
         .containsHeader("Content-Encoding", "gzip")
+        .containsHeader("Authorization", "Basic Zm9vOg==");
+  }
+
+  @Test public void attribution() throws Exception {
+    server.enqueue(new MockResponse());
+
+    Client.Connection connection = client.attribution();
+    assertThat(connection.os).isNotNull();
+    assertThat(connection.is).isNull();
+    assertThat(connection.connection.getResponseCode()).isEqualTo(200); // consume the response.
+    RecordedRequestAssert.assertThat(server.takeRequest())
+        .hasRequestLine("POST /v1/attribution HTTP/1.1")
+        .containsHeader("Content-Type", "application/json")
         .containsHeader("Authorization", "Basic Zm9vOg==");
   }
 

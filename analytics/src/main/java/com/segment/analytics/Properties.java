@@ -24,11 +24,12 @@
 
 package com.segment.analytics;
 
-import com.segment.analytics.internal.Utils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 /**
  * Properties are a dictionary of free-form information to attach to specific events.
@@ -333,13 +334,17 @@ public class Properties extends ValueMap {
     return putValue(COUPON_KEY, coupon);
   }
 
+  public String coupon() {
+    return getString(COUPON_KEY);
+  }
+
   /**
    * Set the individual products for an order associated with an event.
    *
    * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
    */
   public Properties putProducts(Product... products) {
-    if (Utils.isNullOrEmpty(products)) {
+    if (isNullOrEmpty(products)) {
       throw new IllegalArgumentException("products cannot be null or empty.");
     }
     List<Product> productList = new ArrayList<>(products.length);
