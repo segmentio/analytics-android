@@ -28,7 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
+import java.util.LinkedList;
 
 abstract class PayloadQueue implements Closeable {
   abstract int size();
@@ -88,10 +88,10 @@ abstract class PayloadQueue implements Closeable {
   }
 
   static class MemoryQueue extends PayloadQueue {
-    final List<byte[]> queue;
+    final LinkedList<byte[]> queue;
 
-    MemoryQueue(List<byte[]> queue) {
-      this.queue = queue;
+    MemoryQueue() {
+      this.queue = new LinkedList<>();
     }
 
     @Override int size() {
@@ -99,7 +99,9 @@ abstract class PayloadQueue implements Closeable {
     }
 
     @Override void remove(int n) throws IOException {
-      queue.remove(n);
+      for (int i = 0; i < n; i++) {
+        queue.remove();
+      }
     }
 
     @Override void add(byte[] data) throws IOException {

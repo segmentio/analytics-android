@@ -1,6 +1,9 @@
 package com.segment.analytics;
 
+import com.segment.analytics.Traits.Address;
 import com.segment.analytics.core.BuildConfig;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Map;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;
@@ -14,7 +17,7 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.robolectric.annotation.Config.NONE;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
+@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE) //
 public class TraitsTest {
 
   Traits traits;
@@ -87,6 +90,84 @@ public class TraitsTest {
     }
   }
 
+  @Test public void address() {
+    Address address = new Address();
+
+    address.putCity("Vancouver");
+    assertThat(address.city()).isEqualTo("Vancouver");
+
+    address.putCountry("Canada");
+    assertThat(address.country()).isEqualTo("Canada");
+
+    address.putPostalCode("V6R 1J3");
+    assertThat(address.postalCode()).isEqualTo("V6R 1J3");
+
+    address.putState("BC");
+    assertThat(address.state()).isEqualTo("BC");
+
+    address.putStreet("128 W Hastings");
+    assertThat(address.street()).isEqualTo("128 W Hastings");
+
+    traits.putAddress(address);
+    assertThat(traits.address()).isEqualTo(address);
+  }
+
+  @Test public void age() {
+    traits.putAge(25);
+    assertThat(traits.age()).isEqualTo(25);
+  }
+
+  @Test public void avatar() {
+    traits.putAvatar("https://github.com/identicons/segmentio.png");
+    assertThat(traits.avatar()).isEqualTo("https://github.com/identicons/segmentio.png");
+  }
+
+  @Test public void emptyBirthdayDoesNotCrash() {
+    // Exercise a bug where trying to fetch the birthday when one didn't exist would crash.
+    assertThat(traits.birthday()).isNull();
+  }
+
+  @Test public void birthday() {
+    Date date = new GregorianCalendar(1992, 2, 10).getTime();
+    traits.putBirthday(date);
+    assertThat(traits.birthday()).isEqualTo(date);
+  }
+
+  @Test public void createdAt() {
+    traits.putCreatedAt("16-02-217");
+    assertThat(traits.createdAt()).isEqualTo("16-02-217");
+  }
+
+  @Test public void description() {
+    traits.putDescription("a really amazing library");
+    assertThat(traits.description()).isEqualTo("a really amazing library");
+  }
+
+  @Test public void email() {
+    traits.putEmail("prateek@segment.com");
+    assertThat(traits.email()).isEqualTo("prateek@segment.com");
+  }
+
+  @Test public void employees() {
+    traits.putEmployees(1000);
+    assertThat(traits.employees()).isEqualTo(1000);
+  }
+
+  @Test public void fax() {
+    traits.putFax("123-456-7890");
+    assertThat(traits.fax()).isEqualTo("123-456-7890");
+  }
+
+  @Test public void gender() {
+    traits.putGender("male");
+    assertThat(traits.gender()).isEqualTo("male");
+  }
+
+  @Test public void industry() {
+    traits.putIndustry("SAAS");
+    assertThat(traits.industry()).isEqualTo("SAAS");
+  }
+
   @Test public void name() {
     assertThat(traits.name()).isNull();
 
@@ -94,17 +175,39 @@ public class TraitsTest {
     traits.putLastName("srivastava");
     assertThat(traits.name()).isEqualTo("prateek srivastava");
 
-    traits.clear();
-    traits.putFirstName("prateek");
-    assertThat(traits.name()).isEqualTo("prateek");
-
-    traits.clear();
-    traits.putLastName("srivastava");
-    assertThat(traits.name()).isEqualTo("srivastava");
+    traits.putName("mr. prateek srivastava");
+    assertThat(traits.name()).isEqualTo("mr. prateek srivastava");
   }
 
-  @Test public void emptyBirthdayDoesNotCrash() {
-    // Exercise a bug where trying to fetch the birthday when one didn't exist would crash.
-    assertThat(traits.birthday()).isNull();
+  @Test public void firstName() {
+    traits.putFirstName("prateek");
+    assertThat(traits.name()).isEqualTo("prateek");
+    assertThat(traits.firstName()).isEqualTo("prateek");
+  }
+
+  @Test public void lastName() {
+    traits.putLastName("srivastava");
+    assertThat(traits.name()).isEqualTo("srivastava");
+    assertThat(traits.lastName()).isEqualTo("srivastava");
+  }
+
+  @Test public void phone() {
+    traits.putPhone("123-456-7890");
+    assertThat(traits.phone()).isEqualTo("123-456-7890");
+  }
+
+  @Test public void title() {
+    traits.putTitle("Software Engineer");
+    assertThat(traits.title()).isEqualTo("Software Engineer");
+  }
+
+  @Test public void username() {
+    traits.putUsername("f2prateek");
+    assertThat(traits.username()).isEqualTo("f2prateek");
+  }
+
+  @Test public void website() {
+    traits.putWebsite("https://segment.com/");
+    assertThat(traits.website()).isEqualTo("https://segment.com/");
   }
 }
