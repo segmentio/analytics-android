@@ -24,14 +24,14 @@
 
 package com.segment.analytics.integrations;
 
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import static com.segment.analytics.internal.Utils.toISO8601Date;
+
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.ValueMap;
 import java.util.Date;
 import java.util.UUID;
-
-import static com.segment.analytics.internal.Utils.isNullOrEmpty;
-import static com.segment.analytics.internal.Utils.toISO8601Date;
 
 /**
  * A payload object that will be sent to the server. Clients will not decode instances of this
@@ -48,6 +48,7 @@ public abstract class BasePayload extends ValueMap {
   private static final String INTEGRATIONS_KEY = "integrations";
   /** The timestamp when the message took place. This should be an ISO-8601-formatted string. */
   private static final String TIMESTAMP_KEY = "timestamp";
+
   protected static final String USER_ID_KEY = "userId";
 
   public BasePayload(Type type, AnalyticsContext context, Options options) {
@@ -80,9 +81,9 @@ public abstract class BasePayload extends ValueMap {
 
   /**
    * The anonymous ID is an identifier that uniquely (or close enough) identifies the user, but
-   * isn't from your database. This is useful in cases where you are able to uniquely identifier
-   * the user between visits before they signup thanks to a cookie, or session ID or device ID. In
-   * our mobile and browser libraries we will automatically handle sending the anonymous ID.
+   * isn't from your database. This is useful in cases where you are able to uniquely identifier the
+   * user between visits before they signup thanks to a cookie, or session ID or device ID. In our
+   * mobile and browser libraries we will automatically handle sending the anonymous ID.
    */
   public String anonymousId() {
     return getString(ANONYMOUS_ID_KEY);
@@ -111,23 +112,30 @@ public abstract class BasePayload extends ValueMap {
     return getValueMap(CONTEXT_KEY, AnalyticsContext.class);
   }
 
-  @Override public BasePayload putValue(String key, Object value) {
+  @Override
+  public BasePayload putValue(String key, Object value) {
     super.putValue(key, value);
     return this;
   }
 
   /** @see #TYPE_KEY */
   public enum Type {
-    alias, group, identify, screen, track
+    alias,
+    group,
+    identify,
+    screen,
+    track
   }
 
   /**
    * The channel where the request originated from: server, browser or mobile. In the future we may
    * add additional channels as we add libraries, for example console.
-   * <p/>
-   * This is always {@link Channel#mobile} for us.
+   *
+   * <p>This is always {@link Channel#mobile} for us.
    */
   public enum Channel {
-    browser, mobile, server
+    browser,
+    mobile,
+    server
   }
 }

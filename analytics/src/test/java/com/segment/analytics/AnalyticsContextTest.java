@@ -1,5 +1,10 @@
 package com.segment.analytics;
 
+import static com.segment.analytics.Utils.createContext;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.robolectric.annotation.Config.NONE;
+
 import com.segment.analytics.core.BuildConfig;
 import java.util.Map;
 import org.assertj.core.data.MapEntry;
@@ -10,23 +15,20 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.Utils.createContext;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.robolectric.annotation.Config.NONE;
-
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
 public class AnalyticsContextTest {
   AnalyticsContext context;
   Traits traits;
 
-  @Before public void setUp() {
+  @Before
+  public void setUp() {
     traits = Traits.create();
     context = createContext(traits);
   }
 
-  @Test public void create() {
+  @Test
+  public void create() {
     context = AnalyticsContext.create(RuntimeEnvironment.application, traits, true);
     assertThat(context) //
         .containsKey("app") //
@@ -35,7 +37,8 @@ public class AnalyticsContextTest {
         .containsEntry("locale", "en-US") //
         .containsKey("network") //
         .containsKey("os") //
-        .containsKey("screen").containsEntry("userAgent", "undefined") //
+        .containsKey("screen")
+        .containsEntry("userAgent", "undefined") //
         .containsKey("timezone") // value depends on where the tests are run
         .containsKey("traits");
 
@@ -77,7 +80,8 @@ public class AnalyticsContextTest {
         .containsEntry("name", "unknown");
   }
 
-  @Test public void copyReturnsSameMappings() {
+  @Test
+  public void copyReturnsSameMappings() {
     AnalyticsContext copy = context.unmodifiableCopy();
 
     assertThat(copy).hasSameSizeAs(context).isNotSameAs(context).isEqualTo(context);
@@ -86,7 +90,8 @@ public class AnalyticsContextTest {
     }
   }
 
-  @Test public void copyIsImmutable() {
+  @Test
+  public void copyIsImmutable() {
     AnalyticsContext copy = context.unmodifiableCopy();
 
     //noinspection EmptyCatchBlock
@@ -98,7 +103,8 @@ public class AnalyticsContextTest {
     }
   }
 
-  @Test public void traitsAreCopied() {
+  @Test
+  public void traitsAreCopied() {
     assertThat(context.traits()).isEqualTo(traits).isNotSameAs(traits);
 
     Traits traits = new Traits().putAnonymousId("foo");
@@ -106,7 +112,8 @@ public class AnalyticsContextTest {
     assertThat(context.traits()).isEqualTo(traits).isNotSameAs(traits);
   }
 
-  @Test public void campaign() {
+  @Test
+  public void campaign() {
     AnalyticsContext.Campaign campaign = new AnalyticsContext.Campaign();
 
     campaign.putName("campaign-name");
@@ -129,7 +136,8 @@ public class AnalyticsContextTest {
     assertThat(context.campaign()).isEqualTo(campaign);
   }
 
-  @Test public void device() {
+  @Test
+  public void device() {
     AnalyticsContext.Device device = new AnalyticsContext.Device();
 
     device.putAdvertisingInfo("adId", true);
@@ -137,7 +145,8 @@ public class AnalyticsContextTest {
     assertThat(device).containsEntry("adTrackingEnabled", true);
   }
 
-  @Test public void location() {
+  @Test
+  public void location() {
     AnalyticsContext.Location location = new AnalyticsContext.Location();
 
     location.putLatitude(37.7672319);
@@ -156,7 +165,8 @@ public class AnalyticsContextTest {
     assertThat(context.location()).isEqualTo(location);
   }
 
-  @Test public void referrer() {
+  @Test
+  public void referrer() {
     AnalyticsContext.Referrer referrer = new AnalyticsContext.Referrer();
 
     referrer.putId("referrer-id");

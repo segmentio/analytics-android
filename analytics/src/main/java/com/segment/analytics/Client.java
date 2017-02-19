@@ -24,6 +24,9 @@
 
 package com.segment.analytics;
 
+import static com.segment.analytics.internal.Utils.readFully;
+import static java.net.HttpURLConnection.HTTP_OK;
+
 import android.text.TextUtils;
 import java.io.Closeable;
 import java.io.IOException;
@@ -32,12 +35,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.util.zip.GZIPOutputStream;
 
-import static com.segment.analytics.internal.Utils.readFully;
-import static java.net.HttpURLConnection.HTTP_OK;
-
-/**
- * HTTP client which can upload payloads and fetch project settings from the Segment public API.
- */
+/** HTTP client which can upload payloads and fetch project settings from the Segment public API. */
 class Client {
 
   final ConnectionFactory connectionFactory;
@@ -53,7 +51,8 @@ class Client {
       outputStream = connection.getOutputStream();
     }
     return new Connection(connection, null, outputStream) {
-      @Override public void close() throws IOException {
+      @Override
+      public void close() throws IOException {
         try {
           int responseCode = connection.getResponseCode();
           if (responseCode >= 300) {
@@ -75,7 +74,8 @@ class Client {
 
   private static Connection createGetConnection(HttpURLConnection connection) throws IOException {
     return new Connection(connection, connection.getInputStream(), null) {
-      @Override public void close() throws IOException {
+      @Override
+      public void close() throws IOException {
         super.close();
         is.close();
       }
@@ -125,7 +125,7 @@ class Client {
    * Wraps an HTTP connection. Callers can either read from the connection via the {@link
    * InputStream} or write to the connection via {@link OutputStream}.
    */
-  static abstract class Connection implements Closeable {
+  abstract static class Connection implements Closeable {
     final HttpURLConnection connection;
     final InputStream is;
     final OutputStream os;
@@ -139,7 +139,8 @@ class Client {
       this.os = os;
     }
 
-    @Override public void close() throws IOException {
+    @Override
+    public void close() throws IOException {
       connection.disconnect();
     }
   }

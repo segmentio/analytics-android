@@ -32,8 +32,8 @@ public class TrackPayload extends BasePayload {
   private static final String EVENT_KEY = "event";
   private static final String PROPERTIES_KEY = "properties";
 
-  public TrackPayload(AnalyticsContext context, Options options, String event,
-      Properties properties) {
+  public TrackPayload(
+      AnalyticsContext context, Options options, String event, Properties properties) {
     super(Type.track, context, options);
     put(EVENT_KEY, event);
     put(PROPERTIES_KEY, properties);
@@ -56,7 +56,8 @@ public class TrackPayload extends BasePayload {
     return getValueMap(PROPERTIES_KEY, Properties.class);
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return "TrackPayload{event=\"" + event() + "\"}";
   }
 }

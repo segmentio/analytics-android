@@ -1,9 +1,9 @@
 package com.segment.analytics;
 
-import com.segment.analytics.integrations.IdentifyPayload;
-
 import static com.segment.analytics.Utils.createContext;
 import static com.segment.analytics.Utils.createTraits;
+
+import com.segment.analytics.integrations.IdentifyPayload;
 
 public class IdentifyPayloadBuilder {
 

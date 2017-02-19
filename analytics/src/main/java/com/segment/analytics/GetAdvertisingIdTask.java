@@ -22,16 +22,20 @@ class GetAdvertisingIdTask extends AsyncTask<Context, Void, Pair<String, Boolean
     this.logger = logger;
   }
 
-  @Override protected Pair<String, Boolean> doInBackground(Context... contexts) {
+  @Override
+  protected Pair<String, Boolean> doInBackground(Context... contexts) {
     final Context context = contexts[0];
     try {
       Object advertisingInfo =
           Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient")
               .getMethod("getAdvertisingIdInfo", Context.class)
               .invoke(null, context);
-      Boolean isLimitAdTrackingEnabled = (Boolean) advertisingInfo.getClass()
-          .getMethod("isLimitAdTrackingEnabled")
-          .invoke(advertisingInfo);
+      Boolean isLimitAdTrackingEnabled =
+          (Boolean)
+              advertisingInfo
+                  .getClass()
+                  .getMethod("isLimitAdTrackingEnabled")
+                  .invoke(advertisingInfo);
 
       if (isLimitAdTrackingEnabled) {
         logger.debug("Not collecting advertising ID because isLimitAdTrackingEnabled is true.");
@@ -47,7 +51,8 @@ class GetAdvertisingIdTask extends AsyncTask<Context, Void, Pair<String, Boolean
     return null;
   }
 
-  @Override protected void onPostExecute(Pair<String, Boolean> info) {
+  @Override
+  protected void onPostExecute(Pair<String, Boolean> info) {
     super.onPostExecute(info);
 
     try {

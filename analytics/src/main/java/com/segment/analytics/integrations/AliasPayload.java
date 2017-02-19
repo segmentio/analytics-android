@@ -44,7 +44,8 @@ public class AliasPayload extends BasePayload {
     return getString(PREVIOUS_ID_KEY);
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return "AliasPayload{userId=\"" + userId() + ",previousId=\"" + previousId() + "\"}";
   }
 }

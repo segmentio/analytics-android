@@ -32,8 +32,8 @@ public class GroupPayload extends BasePayload {
   private static final String GROUP_ID_KEY = "groupId";
   private static final String TRAITS_KEY = "traits";
 
-  public GroupPayload(AnalyticsContext context, Options options, String groupId,
-      Traits groupTraits) {
+  public GroupPayload(
+      AnalyticsContext context, Options options, String groupId, Traits groupTraits) {
     super(Type.group, context, options);
     put(GROUP_ID_KEY, groupId);
     put(TRAITS_KEY, groupTraits.unmodifiableCopy());
@@ -48,14 +48,13 @@ public class GroupPayload extends BasePayload {
     return getString(GROUP_ID_KEY);
   }
 
-  /**
-   * The group method also takes a traits dictionary, just like identify.
-   */
+  /** The group method also takes a traits dictionary, just like identify. */
   public Traits traits() {
     return getValueMap(TRAITS_KEY, Traits.class);
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return "GroupPayload{groupId=\"" + groupId() + "\"}";
   }
 }

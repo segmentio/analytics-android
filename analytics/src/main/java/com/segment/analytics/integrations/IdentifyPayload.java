@@ -46,7 +46,8 @@ public class IdentifyPayload extends BasePayload {
     return getValueMap(TRAITS_KEY, Traits.class);
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return "IdentifyPayload{\"userId=\"" + userId() + "\"}";
   }
 }

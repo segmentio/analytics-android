@@ -24,6 +24,17 @@
 
 package com.segment.analytics.internal;
 
+import static android.Manifest.permission.ACCESS_NETWORK_STATE;
+import static android.Manifest.permission.READ_PHONE_STATE;
+import static android.content.Context.CONNECTIVITY_SERVICE;
+import static android.content.Context.MODE_PRIVATE;
+import static android.content.Context.TELEPHONY_SERVICE;
+import static android.content.pm.PackageManager.FEATURE_TELEPHONY;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
+import static android.provider.Settings.Secure.ANDROID_ID;
+import static android.provider.Settings.Secure.getString;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -61,17 +72,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static android.Manifest.permission.ACCESS_NETWORK_STATE;
-import static android.Manifest.permission.READ_PHONE_STATE;
-import static android.content.Context.CONNECTIVITY_SERVICE;
-import static android.content.Context.MODE_PRIVATE;
-import static android.content.Context.TELEPHONY_SERVICE;
-import static android.content.pm.PackageManager.FEATURE_TELEPHONY;
-import static android.content.pm.PackageManager.PERMISSION_GRANTED;
-import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
-import static android.provider.Settings.Secure.ANDROID_ID;
-import static android.provider.Settings.Secure.getString;
-
 public final class Utils {
 
   public static final String THREAD_PREFIX = "Segment-";
@@ -80,7 +80,8 @@ public final class Utils {
   public static final boolean DEFAULT_COLLECT_DEVICE_ID = true;
   private static final ThreadLocal<DateFormat> ISO_8601_DATE_FORMAT =
       new ThreadLocal<DateFormat>() {
-        @Override protected DateFormat initialValue() {
+        @Override
+        protected DateFormat initialValue() {
           return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
         }
       };
@@ -105,8 +106,7 @@ public final class Utils {
   //TODO: Migrate other coercion methods.
 
   /**
-   * Returns the float representation at {@code value} if it exists and is a float or can be
-   * coerced
+   * Returns the float representation at {@code value} if it exists and is a float or can be coerced
    * to a float. Returns {@code defaultValue} otherwise.
    */
   public static float coerceToFloat(Object value, float defaultValue) {
@@ -135,8 +135,8 @@ public final class Utils {
   }
 
   /** Returns the system service for the given string. */
-  @SuppressWarnings("unchecked") public static <T> T getSystemService(Context context,
-      String serviceConstant) {
+  @SuppressWarnings("unchecked")
+  public static <T> T getSystemService(Context context, String serviceConstant) {
     return (T) context.getSystemService(serviceConstant);
   }
 
@@ -163,8 +163,10 @@ public final class Utils {
   /** Creates a unique device id. */
   public static String getDeviceId(Context context) {
     String androidId = getString(context.getContentResolver(), ANDROID_ID);
-    if (!isNullOrEmpty(androidId) && !"9774d56d682e549c".equals(androidId) && !"unknown".equals(
-        androidId) && !"000000000000000".equals(androidId)) {
+    if (!isNullOrEmpty(androidId)
+        && !"9774d56d682e549c".equals(androidId)
+        && !"unknown".equals(androidId)
+        && !"000000000000000".equals(androidId)) {
       return androidId;
     }
 
@@ -266,10 +268,8 @@ public final class Utils {
    * mapper preserve their original keys. If a key in the mapper maps to null or a blank string,
    * that value is dropped.
    *
-   * e.g. transform({a: 1, b: 2, c: 3}, {a: a, c: ""}) -> {$a: 1, b: 2}
-   * - transforms a to $a
-   * - keeps b
-   * - removes c
+   * <p>e.g. transform({a: 1, b: 2, c: 3}, {a: a, c: ""}) -> {$a: 1, b: 2} - transforms a to $a -
+   * keeps b - removes c
    */
   public static <T> Map<String, T> transform(Map<String, T> in, Map<String, String> mapper) {
     Map<String, T> out = new LinkedHashMap<>(in.size());
@@ -307,19 +307,18 @@ public final class Utils {
 
   /**
    * Wraps the given object if necessary. {@link JSONObject#wrap(Object)} is only available on API
-   * 19+, so we've copied the implementation. Deviates from the original implementation in
-   * that it always returns {@link JSONObject#NULL} instead of {@code null} in case of a failure,
-   * and returns the {@link Object#toString} of any object that is of a custom (non-primitive or
+   * 19+, so we've copied the implementation. Deviates from the original implementation in that it
+   * always returns {@link JSONObject#NULL} instead of {@code null} in case of a failure, and
+   * returns the {@link Object#toString} of any object that is of a custom (non-primitive or
    * non-collection/map) type.
    *
-   * <p>If the object is null or , returns {@link JSONObject#NULL}.
-   * If the object is a {@link JSONArray} or {@link JSONObject}, no wrapping is necessary.
-   * If the object is {@link JSONObject#NULL}, no wrapping is necessary.
-   * If the object is an array or {@link Collection}, returns an equivalent {@link JSONArray}.
-   * If the object is a {@link Map}, returns an equivalent {@link JSONObject}.
-   * If the object is a primitive wrapper type or {@link String}, returns the object.
-   * Otherwise returns the result of {@link Object#toString}.
-   * If wrapping fails, returns JSONObject.NULL.
+   * <p>If the object is null or , returns {@link JSONObject#NULL}. If the object is a {@link
+   * JSONArray} or {@link JSONObject}, no wrapping is necessary. If the object is {@link
+   * JSONObject#NULL}, no wrapping is necessary. If the object is an array or {@link Collection},
+   * returns an equivalent {@link JSONArray}. If the object is a {@link Map}, returns an equivalent
+   * {@link JSONObject}. If the object is a primitive wrapper type or {@link String}, returns the
+   * object. Otherwise returns the result of {@link Object#toString}. If wrapping fails, returns
+   * JSONObject.NULL.
    */
   private static Object wrap(Object o) {
     if (o == null) {
@@ -416,13 +415,19 @@ public final class Utils {
 
     public AnalyticsNetworkExecutorService() {
       //noinspection Convert2Diamond
-      super(DEFAULT_THREAD_COUNT, MAX_THREAD_COUNT, 0, TimeUnit.MILLISECONDS,
-          new LinkedBlockingQueue<Runnable>(), new AnalyticsThreadFactory());
+      super(
+          DEFAULT_THREAD_COUNT,
+          MAX_THREAD_COUNT,
+          0,
+          TimeUnit.MILLISECONDS,
+          new LinkedBlockingQueue<Runnable>(),
+          new AnalyticsThreadFactory());
     }
   }
 
   public static class AnalyticsThreadFactory implements ThreadFactory {
-    @SuppressWarnings("NullableProblems") public Thread newThread(Runnable r) {
+    @SuppressWarnings("NullableProblems")
+    public Thread newThread(Runnable r) {
       return new AnalyticsThread(r);
     }
   }
@@ -434,7 +439,8 @@ public final class Utils {
       super(r, THREAD_PREFIX + SEQUENCE_GENERATOR.getAndIncrement());
     }
 
-    @Override public void run() {
+    @Override
+    public void run() {
       Process.setThreadPriority(THREAD_PRIORITY_BACKGROUND);
       super.run();
     }
@@ -451,14 +457,16 @@ public final class Utils {
       super(m);
     }
 
-    @Override public V put(K key, V value) {
+    @Override
+    public V put(K key, V value) {
       if (key == null || value == null) {
         return null;
       }
       return super.put(key, value);
     }
 
-    @Override public void putAll(Map<? extends K, ? extends V> m) {
+    @Override
+    public void putAll(Map<? extends K, ? extends V> m) {
       for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
         put(e.getKey(), e.getValue());
       }

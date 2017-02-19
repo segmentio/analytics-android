@@ -1,24 +1,27 @@
 package com.segment.analytics;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.segment.analytics.Properties.Product;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 public class PropertiesTest {
   Properties properties;
 
-  @Before public void setUp() {
+  @Before
+  public void setUp() {
     properties = new Properties();
   }
 
-  @Test public void revenue() {
+  @Test
+  public void revenue() {
     properties.putRevenue(3.14);
     assertThat(properties.revenue()).isEqualTo(3.14);
   }
 
-  @Test public void value() {
+  @Test
+  public void value() {
     properties.putRevenue(2.72);
     assertThat(properties.value()).isEqualTo(2.72);
 
@@ -27,64 +30,76 @@ public class PropertiesTest {
     assertThat(properties.value()).isEqualTo(3.14);
   }
 
-  @Test public void currency() {
+  @Test
+  public void currency() {
     properties.putCurrency("INR");
     assertThat(properties.currency()).isEqualTo("INR");
   }
 
-  @Test public void path() {
+  @Test
+  public void path() {
     properties.putPath("/sources");
     assertThat(properties.path()).isEqualTo("/sources");
   }
 
-  @Test public void referrer() {
+  @Test
+  public void referrer() {
     properties.putReferrer("https://www.google.ca/");
     assertThat(properties.referrer()).isEqualTo("https://www.google.ca/");
   }
 
-  @Test public void title() {
+  @Test
+  public void title() {
     properties.putTitle("Sports");
     assertThat(properties.title()).isEqualTo("Sports");
   }
 
-  @Test public void url() {
+  @Test
+  public void url() {
     properties.putUrl("https://segment.com/docs/spec");
     assertThat(properties.url()).isEqualTo("https://segment.com/docs/spec");
   }
 
-  @Test public void name() {
+  @Test
+  public void name() {
     properties.putName("Stripe");
     assertThat(properties.name()).isEqualTo("Stripe");
   }
 
-  @Test public void category() {
+  @Test
+  public void category() {
     properties.putCategory("Sources");
     assertThat(properties.category()).isEqualTo("Sources");
   }
 
-  @Test public void sku() {
+  @Test
+  public void sku() {
     properties.putSku("sku-code");
     assertThat(properties.sku()).isEqualTo("sku-code");
   }
 
-  @Test public void price() {
+  @Test
+  public void price() {
     assertThat(properties.price()).isEqualTo(0);
 
     properties.putPrice(1.01);
     assertThat(properties.price()).isEqualTo(1.01);
   }
 
-  @Test public void productId() {
+  @Test
+  public void productId() {
     properties.putProductId("123e4567-e89b-12d3-a456-426655440000");
     assertThat(properties.productId()).isEqualTo("123e4567-e89b-12d3-a456-426655440000");
   }
 
-  @Test public void orderId() {
+  @Test
+  public void orderId() {
     properties.putOrderId("123e4567-e89b-12d3-a456-426655440000");
     assertThat(properties.orderId()).isEqualTo("123e4567-e89b-12d3-a456-426655440000");
   }
 
-  @Test public void total() {
+  @Test
+  public void total() {
     assertThat(properties.total()).isEqualTo(0);
 
     properties.putValue(3.14);
@@ -97,32 +112,38 @@ public class PropertiesTest {
     assertThat(properties.total()).isEqualTo(1.02);
   }
 
-  @Test public void subtotal() {
+  @Test
+  public void subtotal() {
     properties.putSubtotal(9.99);
     assertThat(properties.putSubtotal()).isEqualTo(9.99);
   }
 
-  @Test public void shipping() {
+  @Test
+  public void shipping() {
     properties.putShipping(2.72);
     assertThat(properties.shipping()).isEqualTo(2.72);
   }
 
-  @Test public void tax() {
+  @Test
+  public void tax() {
     properties.putTax(1.49);
     assertThat(properties.tax()).isEqualTo(1.49);
   }
 
-  @Test public void discount() {
+  @Test
+  public void discount() {
     properties.putDiscount(1.99);
     assertThat(properties.discount()).isEqualTo(1.99);
   }
 
-  @Test public void coupon() {
+  @Test
+  public void coupon() {
     properties.putCoupon("segment");
     assertThat(properties.coupon()).isEqualTo("segment");
   }
 
-  @Test public void products() {
+  @Test
+  public void products() {
     try {
       properties.putProducts();
     } catch (IllegalArgumentException e) {
@@ -138,13 +159,15 @@ public class PropertiesTest {
     assertThat(properties.products()).containsExactly(product1, product2);
   }
 
-  @Test public void repeatCustomer() {
+  @Test
+  public void repeatCustomer() {
     properties.putRepeatCustomer(true);
 
     assertThat(properties.isRepeatCustomer()).isTrue();
   }
 
-  @Test public void product() {
+  @Test
+  public void product() {
     Product product = new Product("id", "sku", 3.14);
     assertThat(product.id()).isEqualTo("id");
     assertThat(product.sku()).isEqualTo("sku");
