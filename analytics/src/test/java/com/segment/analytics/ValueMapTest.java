@@ -1,5 +1,6 @@
 package com.segment.analytics;
 
+import com.google.common.collect.ImmutableMap;
 import com.segment.analytics.core.BuildConfig;
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -9,24 +10,20 @@ import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.segment.analytics.TestUtils.PROJECT_SETTINGS_JSON_SAMPLE;
-import static com.segment.analytics.internal.Utils.NullableConcurrentHashMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.robolectric.annotation.Config.NONE;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
+@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE) //
 public class ValueMapTest {
-
-  @Mock NullableConcurrentHashMap<String, Object> delegate;
-  @Mock Object object;
   ValueMap valueMap;
   Cartographer cartographer;
 
@@ -50,6 +47,10 @@ public class ValueMapTest {
 
   @SuppressWarnings({ "ResultOfMethodCallIgnored", "SuspiciousMethodCalls" }) //
   @Test public void methodsAreForwardedCorrectly() {
+    // todo: don't mock!
+    Map<String, Object> delegate = spy(new LinkedHashMap<String, Object>());
+    Object object = "foo";
+
     valueMap = new ValueMap(delegate);
 
     valueMap.clear();
@@ -201,11 +202,105 @@ public class ValueMapTest {
   }
 
   @Test public void toJsonObjectWithNullValue() throws Exception {
-    ValueMap valueMap = new ValueMap();
     valueMap.put("foo", null);
 
     JSONObject jsonObject = valueMap.toJsonObject();
     assertThat(jsonObject.get("foo")).isEqualTo(JSONObject.NULL);
+  }
+
+  @Test public void getInt() {
+    assertThat(valueMap.getInt("a missing key", 1)).isEqualTo(1);
+
+    valueMap.putValue("a number", 3.14);
+    assertThat(valueMap.getInt("a number", 0)).isEqualTo(3);
+
+    valueMap.putValue("a string number", "892");
+    assertThat(valueMap.getInt("a string number", 0)).isEqualTo(892);
+
+    valueMap.putValue("a string", "not really an int");
+    assertThat(valueMap.getInt("a string", 0)).isEqualTo(0);
+  }
+
+  @Test public void getLong() {
+    assertThat(valueMap.getLong("a missing key", 2)).isEqualTo(2);
+
+    valueMap.putValue("a number", 3.14);
+    assertThat(valueMap.getLong("a number", 0)).isEqualTo(3);
+
+    valueMap.putValue("a string number", "88");
+    assertThat(valueMap.getLong("a string number", 0)).isEqualTo(88);
+
+    valueMap.putValue("a string", "not really a long");
+    assertThat(valueMap.getLong("a string", 0)).isEqualTo(0);
+  }
+
+  @Test public void getFloat() {
+    assertThat(valueMap.getFloat("foo", 0)).isEqualTo(0);
+
+    valueMap.putValue("foo", 3.14);
+    assertThat(valueMap.getFloat("foo", 0)).isEqualTo(3.14f);
+  }
+
+  @Test public void getDouble() {
+    assertThat(valueMap.getDouble("a missing key", 3)).isEqualTo(3);
+
+    valueMap.putValue("a number", Math.PI);
+    assertThat(valueMap.getDouble("a number", Math.PI)).isEqualTo(Math.PI);
+
+    valueMap.putValue("a string number", "3.14");
+    assertThat(valueMap.getDouble("a string number", 0)).isEqualTo(3.14);
+
+    valueMap.putValue("a string", "not really a double");
+    assertThat(valueMap.getDouble("a string", 0)).isEqualTo(0);
+  }
+
+  @Test public void getChar() {
+    assertThat(valueMap.getChar("a missing key", 'a')).isEqualTo('a');
+
+    valueMap.putValue("a string", "f");
+    assertThat(valueMap.getChar("a string", 'a')).isEqualTo('f');
+
+    valueMap.putValue("a char", 'b');
+    assertThat(valueMap.getChar("a char", 'a')).isEqualTo('b');
+  }
+
+  enum Soda {
+    PEPSI, COKE
+  }
+
+  @Test public void getEnum() {
+    try {
+      valueMap.getEnum(null, "foo");
+      fail("should have thrown IllegalArgumentException");
+    } catch (IllegalArgumentException e) {
+      assertThat(e).hasMessage("enumType may not be null");
+    }
+
+    assertThat(valueMap.getEnum(Soda.class, "a missing key")).isNull();
+
+    valueMap.putValue("pepsi", Soda.PEPSI);
+    assertThat(valueMap.getEnum(Soda.class, "pepsi")).isEqualTo(Soda.PEPSI);
+
+    valueMap.putValue("coke", "COKE");
+    assertThat(valueMap.getEnum(Soda.class, "coke")).isEqualTo(Soda.COKE);
+  }
+
+  @Test public void getValueMapWithClass() {
+    valueMap.put("foo", "not a map");
+    assertThat(valueMap.getValueMap("foo", Traits.class)).isNull();
+  }
+
+  @Test public void getList() {
+    valueMap.put("foo", "not a list");
+    assertThat(valueMap.getList("foo", Traits.class)).isNull();
+  }
+
+  @Test public void toStringMap() {
+    assertThat(valueMap.toStringMap()).isEmpty();
+
+    valueMap.put("foo", "bar");
+    assertThat(valueMap.toStringMap()) //
+        .isEqualTo(new ImmutableMap.Builder<String, Object>().put("foo", "bar").build());
   }
 
   private enum MyEnum {
