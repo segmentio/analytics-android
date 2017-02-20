@@ -1,5 +1,12 @@
 package com.segment.analytics;
 
+import static junit.framework.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.robolectric.annotation.Config.NONE;
+
 import android.net.Uri;
 import com.segment.analytics.core.BuildConfig;
 import com.squareup.okhttp.mockwebserver.MockResponse;
@@ -20,15 +27,9 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static junit.framework.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.robolectric.annotation.Config.NONE;
-
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE) public class ClientTest {
+@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
+public class ClientTest {
 
   @Rule public MockWebServerRule server = new MockWebServerRule();
   @Rule public TemporaryFolder folder = new TemporaryFolder();
@@ -37,25 +38,35 @@ import static org.robolectric.annotation.Config.NONE;
   private Client mockClient;
   HttpURLConnection mockConnection;
 
-  @Before public void setUp() {
+  @Before
+  public void setUp() {
     mockConnection = mock(HttpURLConnection.class);
 
-    client = new Client("foo", new ConnectionFactory() {
-      @Override protected HttpURLConnection openConnection(String url) throws IOException {
-        String path = Uri.parse(url).getPath();
-        URL mockServerURL = server.getUrl(path);
-        return super.openConnection(mockServerURL.toString());
-      }
-    });
+    client =
+        new Client(
+            "foo",
+            new ConnectionFactory() {
+              @Override
+              protected HttpURLConnection openConnection(String url) throws IOException {
+                String path = Uri.parse(url).getPath();
+                URL mockServerURL = server.getUrl(path);
+                return super.openConnection(mockServerURL.toString());
+              }
+            });
 
-    mockClient = new Client("foo", new ConnectionFactory() {
-      @Override protected HttpURLConnection openConnection(String url) throws IOException {
-        return mockConnection;
-      }
-    });
+    mockClient =
+        new Client(
+            "foo",
+            new ConnectionFactory() {
+              @Override
+              protected HttpURLConnection openConnection(String url) throws IOException {
+                return mockConnection;
+              }
+            });
   }
 
-  @Test public void upload() throws Exception {
+  @Test
+  public void upload() throws Exception {
     server.enqueue(new MockResponse());
 
     Client.Connection connection = client.upload();
@@ -69,7 +80,8 @@ import static org.robolectric.annotation.Config.NONE;
         .containsHeader("Authorization", "Basic Zm9vOg==");
   }
 
-  @Test public void attribution() throws Exception {
+  @Test
+  public void attribution() throws Exception {
     server.enqueue(new MockResponse());
 
     Client.Connection connection = client.attribution();
@@ -82,7 +94,8 @@ import static org.robolectric.annotation.Config.NONE;
         .containsHeader("Authorization", "Basic Zm9vOg==");
   }
 
-  @Test public void closingUploadConnectionClosesStreams() throws Exception {
+  @Test
+  public void closingUploadConnectionClosesStreams() throws Exception {
     OutputStream os = mock(OutputStream.class);
     when(mockConnection.getOutputStream()).thenReturn(os);
     when(mockConnection.getResponseCode()).thenReturn(200);
@@ -96,7 +109,8 @@ import static org.robolectric.annotation.Config.NONE;
     verify(os).close();
   }
 
-  @Test public void closingUploadConnectionClosesStreamsForNon200Response() throws Exception {
+  @Test
+  public void closingUploadConnectionClosesStreamsForNon200Response() throws Exception {
     OutputStream os = mock(OutputStream.class);
     when(mockConnection.getOutputStream()).thenReturn(os);
     when(mockConnection.getResponseCode()).thenReturn(202);
@@ -110,7 +124,8 @@ import static org.robolectric.annotation.Config.NONE;
     verify(os).close();
   }
 
-  @Test public void uploadFailureClosesStreamsAndThrowsException() throws Exception {
+  @Test
+  public void uploadFailureClosesStreamsAndThrowsException() throws Exception {
     OutputStream os = mock(OutputStream.class);
     InputStream is = mock(InputStream.class);
     when(mockConnection.getOutputStream()).thenReturn(os);
@@ -126,15 +141,18 @@ import static org.robolectric.annotation.Config.NONE;
       connection.close();
       fail(">= 300 return code should throw an exception");
     } catch (Client.HTTPException e) {
-      assertThat(e).hasMessage("HTTP 300: bar. "
-          + "Response: Could not read response body for rejected message: "
-          + "java.io.IOException: Underlying input stream returned zero bytes");
+      assertThat(e)
+          .hasMessage(
+              "HTTP 300: bar. "
+                  + "Response: Could not read response body for rejected message: "
+                  + "java.io.IOException: Underlying input stream returned zero bytes");
     }
     verify(mockConnection).disconnect();
     verify(os).close();
   }
 
-  @Test public void fetchSettings() throws Exception {
+  @Test
+  public void fetchSettings() throws Exception {
     server.enqueue(new MockResponse());
 
     Client.Connection connection = client.fetchSettings();
@@ -146,7 +164,8 @@ import static org.robolectric.annotation.Config.NONE;
         .containsHeader("Content-Type", "application/json");
   }
 
-  @Test public void fetchSettingsFailureClosesStreamsAndThrowsException() throws Exception {
+  @Test
+  public void fetchSettingsFailureClosesStreamsAndThrowsException() throws Exception {
     when(mockConnection.getResponseCode()).thenReturn(204);
     when(mockConnection.getResponseMessage()) //
         .thenReturn("no cookies for you http://bit.ly/1EMHBNb");
@@ -160,7 +179,8 @@ import static org.robolectric.annotation.Config.NONE;
     verify(mockConnection).disconnect();
   }
 
-  @Test public void closingFetchSettingsClosesStreams() throws Exception {
+  @Test
+  public void closingFetchSettingsClosesStreams() throws Exception {
     InputStream is = mock(InputStream.class);
     when(mockConnection.getInputStream()).thenReturn(is);
     when(mockConnection.getResponseCode()).thenReturn(200);
@@ -187,8 +207,8 @@ import static org.robolectric.annotation.Config.NONE;
       isNotNull();
       String actualHeader = actual.getHeader(name);
       Assertions.assertThat(actualHeader)
-          .overridingErrorMessage("Expected header <%s> to be <%s> but was <%s>.", name,
-              expectedHeader, actualHeader)
+          .overridingErrorMessage(
+              "Expected header <%s> to be <%s> but was <%s>.", name, expectedHeader, actualHeader)
           .isEqualTo(expectedHeader);
       return this;
     }
@@ -197,8 +217,8 @@ import static org.robolectric.annotation.Config.NONE;
       isNotNull();
       String actualHeader = actual.getHeader(name);
       Assertions.assertThat(actualHeader)
-          .overridingErrorMessage("Expected header <%s> to not be empty but was.", name,
-              actualHeader)
+          .overridingErrorMessage(
+              "Expected header <%s> to not be empty but was.", name, actualHeader)
           .isNotNull()
           .isNotEmpty();
       return this;
@@ -208,8 +228,8 @@ import static org.robolectric.annotation.Config.NONE;
       isNotNull();
       String actualRequestLine = actual.getRequestLine();
       Assertions.assertThat(actualRequestLine)
-          .overridingErrorMessage("Expected requestLine <%s> to be <%s> but was not.",
-              actualRequestLine, requestLine)
+          .overridingErrorMessage(
+              "Expected requestLine <%s> to be <%s> but was not.", actualRequestLine, requestLine)
           .isEqualTo(requestLine);
       return this;
     }

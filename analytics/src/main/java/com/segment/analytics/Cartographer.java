@@ -67,9 +67,8 @@ public class Cartographer {
   }
 
   /**
-   * Deserializes the json read from the specified {@link Reader} into a {@link Map}.
-   * If you have the Json in a String form instead of a {@link Reader}, use {@link
-   * #fromJson(String)} instead.
+   * Deserializes the json read from the specified {@link Reader} into a {@link Map}. If you have
+   * the Json in a String form instead of a {@link Reader}, use {@link #fromJson(String)} instead.
    */
   public Map<String, Object> fromJson(Reader reader) throws IOException {
     if (reader == null) {
@@ -101,7 +100,7 @@ public class Cartographer {
 
   /**
    * Serializes the map into it's json representation into the provided {@link Writer}. If you want
-   * to retrieve the json as a string,  use {@link #toJson(Map)} instead.
+   * to retrieve the json as a string, use {@link #toJson(Map)} instead.
    */
   public void toJson(Map<?, ?> map, Writer writer) throws IOException {
     if (map == null) {
@@ -229,10 +228,9 @@ public class Cartographer {
     private boolean prettyPrint;
 
     /**
-     * Configure this parser to be  be liberal in what it accepts. By default,
-     * this parser is strict and only accepts JSON as specified by <a
-     * href="http://www.ietf.org/rfc/rfc4627.txt">RFC 4627</a>. See {@link
-     * JsonReader#setLenient(boolean)} for more details.
+     * Configure this parser to be be liberal in what it accepts. By default, this parser is strict
+     * and only accepts JSON as specified by <a href="http://www.ietf.org/rfc/rfc4627.txt">RFC
+     * 4627</a>. See {@link JsonReader#setLenient(boolean)} for more details.
      * </ul>
      */
     public Builder lenient(boolean isLenient) {

@@ -2,6 +2,10 @@
 
 package com.segment.analytics;
 
+import static com.segment.analytics.QueueFile.HEADER_LENGTH;
+import static junit.framework.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.segment.analytics.QueueFile.Element;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -19,31 +23,28 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static com.segment.analytics.QueueFile.HEADER_LENGTH;
-import static junit.framework.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for QueueFile.
  *
  * @author Bob Lee (bob@squareup.com)
  */
-@SuppressWarnings({ "ResultOfMethodCallIgnored" }) public class QueueFileTest {
+@SuppressWarnings({"ResultOfMethodCallIgnored"})
+public class QueueFileTest {
   private static final Logger logger = Logger.getLogger(QueueFileTest.class.getName());
 
   /**
-   * Takes up 33401 bytes in the queue (N*(N+1)/2+4*N). Picked 254 instead of 255 so that the
-   * number of bytes isn't a multiple of 4.
+   * Takes up 33401 bytes in the queue (N*(N+1)/2+4*N). Picked 254 instead of 255 so that the number
+   * of bytes isn't a multiple of 4.
    */
   private static int N = 254;
+
   private static byte[][] values = new byte[N][];
 
   static {
     for (int i = 0; i < N; i++) {
       byte[] value = new byte[i];
       // Example: values[3] = { 3, 2, 1 }
-      for (int ii = 0; ii < i; ii++)
-        value[ii] = (byte) (i - ii);
+      for (int ii = 0; ii < i; ii++) value[ii] = (byte) (i - ii);
       values[i] = value;
     }
   }
@@ -51,12 +52,14 @@ import static org.assertj.core.api.Assertions.assertThat;
   @Rule public TemporaryFolder folder = new TemporaryFolder();
   private File file;
 
-  @Before public void setUp() throws Exception {
+  @Before
+  public void setUp() throws Exception {
     File parent = folder.getRoot();
     file = new File(parent, "queue-file");
   }
 
-  @Test public void testAddOneElement() throws IOException {
+  @Test
+  public void testAddOneElement() throws IOException {
     // This test ensures that we update 'first' correctly.
     QueueFile queue = new QueueFile(file);
     byte[] expected = values[253];
@@ -67,7 +70,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     assertThat(queue.peek()).isEqualTo(expected);
   }
 
-  @Test public void testClearErases() throws IOException {
+  @Test
+  public void testClearErases() throws IOException {
     QueueFile queue = new QueueFile(file);
     byte[] expected = values[253];
     queue.add(expected);
@@ -86,7 +90,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     assertThat(data).isEqualTo(new byte[expected.length]);
   }
 
-  @Test public void testClearDoesNotCorrupt() throws IOException {
+  @Test
+  public void testClearDoesNotCorrupt() throws IOException {
     QueueFile queue = new QueueFile(file);
     byte[] stuff = values[253];
     queue.add(stuff);
@@ -100,7 +105,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     assertThat(queue.peek()).isEqualTo(values[25]);
   }
 
-  @Test public void removeErasesEagerly() throws IOException {
+  @Test
+  public void removeErasesEagerly() throws IOException {
     QueueFile queue = new QueueFile(file);
 
     byte[] firstStuff = values[127];
@@ -126,7 +132,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     assertThat(data).isEqualTo(new byte[firstStuff.length]);
   }
 
-  @Test public void testZeroSizeInHeaderThrows() throws IOException {
+  @Test
+  public void testZeroSizeInHeaderThrows() throws IOException {
     RandomAccessFile emptyFile = new RandomAccessFile(file, "rwd");
     emptyFile.setLength(4096);
     emptyFile.getChannel().force(true);
@@ -140,7 +147,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     }
   }
 
-  @Test public void testNegativeSizeInHeaderThrows() throws IOException {
+  @Test
+  public void testNegativeSizeInHeaderThrows() throws IOException {
     RandomAccessFile emptyFile = new RandomAccessFile(file, "rwd");
     emptyFile.seek(0);
     emptyFile.writeInt(-2147483648);
@@ -157,7 +165,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     }
   }
 
-  @Test public void removeMultipleDoesNotCorrupt() throws IOException {
+  @Test
+  public void removeMultipleDoesNotCorrupt() throws IOException {
     QueueFile queue = new QueueFile(file);
     for (int i = 0; i < 10; i++) {
       queue.add(values[i]);
@@ -177,7 +186,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     assertThat(queue.peek()).isNull();
   }
 
-  @Test public void removeDoesNotCorrupt() throws IOException {
+  @Test
+  public void removeDoesNotCorrupt() throws IOException {
     QueueFile queue = new QueueFile(file);
 
     queue.add(values[127]);
@@ -189,7 +199,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     assertThat(queue.peek()).isEqualTo(secondStuff);
   }
 
-  @Test public void removeFromEmptyFileThrows() throws IOException {
+  @Test
+  public void removeFromEmptyFileThrows() throws IOException {
     QueueFile queue = new QueueFile(file);
 
     try {
@@ -199,7 +210,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     }
   }
 
-  @Test public void removeNegativeNumberOfElementsThrows() throws IOException {
+  @Test
+  public void removeNegativeNumberOfElementsThrows() throws IOException {
     QueueFile queue = new QueueFile(file);
     queue.add(values[127]);
 
@@ -212,7 +224,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     }
   }
 
-  @Test public void removeZeroElementsDoesNothing() throws IOException {
+  @Test
+  public void removeZeroElementsDoesNothing() throws IOException {
     QueueFile queue = new QueueFile(file);
     queue.add(values[127]);
 
@@ -220,7 +233,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     assertThat(queue.size()).isEqualTo(1);
   }
 
-  @Test public void removeBeyondQueueSizeElementsThrows() throws IOException {
+  @Test
+  public void removeBeyondQueueSizeElementsThrows() throws IOException {
     QueueFile queue = new QueueFile(file);
     queue.add(values[127]);
 
@@ -233,7 +247,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     }
   }
 
-  @Test public void removingBigDamnBlocksErasesEffectively() throws IOException {
+  @Test
+  public void removingBigDamnBlocksErasesEffectively() throws IOException {
     byte[] bigBoy = new byte[7000];
     for (int i = 0; i < 7000; i += 100) {
       System.arraycopy(values[100], 0, bigBoy, i, values[100].length);
@@ -262,7 +277,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     assertThat(data).isEqualTo(new byte[bigBoy.length]);
   }
 
-  @Test public void testAddAndRemoveElements() throws IOException {
+  @Test
+  public void testAddAndRemoveElements() throws IOException {
     long start = System.nanoTime();
 
     Queue<byte[]> expected = new LinkedList<byte[]>();
@@ -300,7 +316,8 @@ import static org.assertj.core.api.Assertions.assertThat;
   }
 
   /** Tests queue expansion when the data crosses EOF. */
-  @Test public void testSplitExpansion() throws IOException {
+  @Test
+  public void testSplitExpansion() throws IOException {
     // This should result in 3560 bytes.
     int max = 80;
 
@@ -332,7 +349,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     queue.close();
   }
 
-  @Test public void testFailedAdd() throws IOException {
+  @Test
+  public void testFailedAdd() throws IOException {
     QueueFile queueFile = new QueueFile(file);
     queueFile.add(values[253]);
     queueFile.close();
@@ -343,7 +361,9 @@ import static org.assertj.core.api.Assertions.assertThat;
     try {
       queueFile.add(values[252]);
       fail();
-    } catch (IOException e) { /* expected */ }
+    } catch (IOException e) {
+      /* expected */
+    }
 
     braf.rejectCommit = false;
 
@@ -359,7 +379,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     assertThat(queueFile.peek()).isEqualTo(values[251]);
   }
 
-  @Test public void testFailedRemoval() throws IOException {
+  @Test
+  public void testFailedRemoval() throws IOException {
     QueueFile queueFile = new QueueFile(file);
     queueFile.add(values[253]);
     queueFile.close();
@@ -370,7 +391,9 @@ import static org.assertj.core.api.Assertions.assertThat;
     try {
       queueFile.remove();
       fail();
-    } catch (IOException e) { /* expected */ }
+    } catch (IOException e) {
+      /* expected */
+    }
 
     queueFile.close();
 
@@ -383,7 +406,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     assertThat(queueFile.peek()).isEqualTo(values[99]);
   }
 
-  @Test public void testFailedExpansion() throws IOException {
+  @Test
+  public void testFailedExpansion() throws IOException {
     QueueFile queueFile = new QueueFile(file);
     queueFile.add(values[253]);
     queueFile.close();
@@ -395,7 +419,9 @@ import static org.assertj.core.api.Assertions.assertThat;
       // This should trigger an expansion which should fail.
       queueFile.add(new byte[8000]);
       fail();
-    } catch (IOException e) { /* expected */ }
+    } catch (IOException e) {
+      /* expected */
+    }
 
     queueFile.close();
 
@@ -410,34 +436,37 @@ import static org.assertj.core.api.Assertions.assertThat;
     assertThat(queueFile.peek()).isEqualTo(values[99]);
   }
 
-  @Test public void testForEachVisitor() throws IOException {
+  @Test
+  public void testForEachVisitor() throws IOException {
     QueueFile queueFile = new QueueFile(file);
 
-    final byte[] a = { 1, 2 };
+    final byte[] a = {1, 2};
     queueFile.add(a);
-    final byte[] b = { 3, 4, 5 };
+    final byte[] b = {3, 4, 5};
     queueFile.add(b);
 
-    final int[] iteration = new int[] { 0 };
-    PayloadQueue.ElementVisitor elementVisitor = new PayloadQueue.ElementVisitor() {
-      @Override public boolean read(InputStream in, int length) throws IOException {
-        if (iteration[0] == 0) {
-          assertThat(length).isEqualTo(2);
-          byte[] actual = new byte[length];
-          in.read(actual);
-          assertThat(actual).isEqualTo(a);
-        } else if (iteration[0] == 1) {
-          assertThat(length).isEqualTo(3);
-          byte[] actual = new byte[length];
-          in.read(actual);
-          assertThat(actual).isEqualTo(b);
-        } else {
-          fail();
-        }
-        iteration[0]++;
-        return true;
-      }
-    };
+    final int[] iteration = new int[] {0};
+    PayloadQueue.ElementVisitor elementVisitor =
+        new PayloadQueue.ElementVisitor() {
+          @Override
+          public boolean read(InputStream in, int length) throws IOException {
+            if (iteration[0] == 0) {
+              assertThat(length).isEqualTo(2);
+              byte[] actual = new byte[length];
+              in.read(actual);
+              assertThat(actual).isEqualTo(a);
+            } else if (iteration[0] == 1) {
+              assertThat(length).isEqualTo(3);
+              byte[] actual = new byte[length];
+              in.read(actual);
+              assertThat(actual).isEqualTo(b);
+            } else {
+              fail();
+            }
+            iteration[0]++;
+            return true;
+          }
+        };
 
     int saw = queueFile.forEach(elementVisitor);
     assertThat(saw).isEqualTo(2);
@@ -445,86 +474,95 @@ import static org.assertj.core.api.Assertions.assertThat;
     assertThat(iteration[0]).isEqualTo(2);
   }
 
-  @Test public void testForEachVisitorReadWithOffset() throws IOException {
+  @Test
+  public void testForEachVisitorReadWithOffset() throws IOException {
     QueueFile queueFile = new QueueFile(file);
 
-    queueFile.add(new byte[] { 1, 2 });
-    queueFile.add(new byte[] { 3, 4, 5 });
+    queueFile.add(new byte[] {1, 2});
+    queueFile.add(new byte[] {3, 4, 5});
 
     final byte[] actual = new byte[5];
-    final int[] offset = new int[] { 0 };
+    final int[] offset = new int[] {0};
 
-    PayloadQueue.ElementVisitor elementVisitor = new PayloadQueue.ElementVisitor() {
-      @Override public boolean read(InputStream in, int length) throws IOException {
-        in.read(actual, offset[0], length);
-        offset[0] += length;
-        return true;
-      }
-    };
+    PayloadQueue.ElementVisitor elementVisitor =
+        new PayloadQueue.ElementVisitor() {
+          @Override
+          public boolean read(InputStream in, int length) throws IOException {
+            in.read(actual, offset[0], length);
+            offset[0] += length;
+            return true;
+          }
+        };
 
     int saw = queueFile.forEach(elementVisitor);
     assertThat(saw).isEqualTo(2);
-    assertThat(actual).isEqualTo(new byte[] { 1, 2, 3, 4, 5 });
+    assertThat(actual).isEqualTo(new byte[] {1, 2, 3, 4, 5});
   }
 
-  @Test public void testForEachVisitorStreamCopy() throws IOException {
+  @Test
+  public void testForEachVisitorStreamCopy() throws IOException {
     final QueueFile queueFile = new QueueFile(file);
-    queueFile.add(new byte[] { 1, 2 });
-    queueFile.add(new byte[] { 3, 4, 5 });
+    queueFile.add(new byte[] {1, 2});
+    queueFile.add(new byte[] {3, 4, 5});
 
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     final byte[] buffer = new byte[8];
 
-    final PayloadQueue.ElementVisitor elementVisitor = new PayloadQueue.ElementVisitor() {
-      @Override public boolean read(InputStream in, int length) throws IOException {
-        // A common idiom for copying data between two streams, but it depends on the
-        // InputStream correctly returning -1 when no more data is available
-        int count;
-        while ((count = in.read(buffer)) != -1) {
-          if (count == 0) {
-            // In the past, the ElementInputStream.read(byte[], int, int) method would return 0
-            // when no more bytes were available for reading. This test detects that error.
-            //
-            // Note: 0 is a valid return value for InputStream.read(byte[], int, int), which happens
-            // when the passed length is zero. We could trigger that through InputStream.read(byte[])
-            // by passing a zero-length buffer. However, since we won't do that during this test,
-            // we can safely assume that a return value of 0 indicates the past error in logic.
-            fail("This test should never receive a result of 0 from InputStream.read(byte[])");
+    final PayloadQueue.ElementVisitor elementVisitor =
+        new PayloadQueue.ElementVisitor() {
+          @Override
+          public boolean read(InputStream in, int length) throws IOException {
+            // A common idiom for copying data between two streams, but it depends on the
+            // InputStream correctly returning -1 when no more data is available
+            int count;
+            while ((count = in.read(buffer)) != -1) {
+              if (count == 0) {
+                // In the past, the ElementInputStream.read(byte[], int, int) method would return 0
+                // when no more bytes were available for reading. This test detects that error.
+                //
+                // Note: 0 is a valid return value for InputStream.read(byte[], int, int), which happens
+                // when the passed length is zero. We could trigger that through InputStream.read(byte[])
+                // by passing a zero-length buffer. However, since we won't do that during this test,
+                // we can safely assume that a return value of 0 indicates the past error in logic.
+                fail("This test should never receive a result of 0 from InputStream.read(byte[])");
+              }
+              baos.write(buffer, 0, count);
+            }
+            return true;
           }
-          baos.write(buffer, 0, count);
-        }
-        return true;
-      }
-    };
+        };
 
     int saw = queueFile.forEach(elementVisitor);
     assertThat(saw).isEqualTo(2);
-    assertThat(baos.toByteArray()).isEqualTo(new byte[] { 1, 2, 3, 4, 5 });
+    assertThat(baos.toByteArray()).isEqualTo(new byte[] {1, 2, 3, 4, 5});
   }
 
-  @Test public void testForEachCanAbortEarly() throws IOException {
+  @Test
+  public void testForEachCanAbortEarly() throws IOException {
     QueueFile queueFile = new QueueFile(file);
 
-    final byte[] a = { 1, 2 };
+    final byte[] a = {1, 2};
     queueFile.add(a);
-    final byte[] b = { 3, 4, 5 };
+    final byte[] b = {3, 4, 5};
     queueFile.add(b);
 
     final AtomicInteger iteration = new AtomicInteger();
-    PayloadQueue.ElementVisitor elementVisitor = new PayloadQueue.ElementVisitor() {
-      @Override public boolean read(InputStream in, int length) throws IOException {
-        if (iteration.get() == 0) {
-          assertThat(length).isEqualTo(2);
-          byte[] actual = new byte[length];
-          in.read(actual);
-          assertThat(actual).isEqualTo(a);
-        } else {
-          fail();
-        }
-        iteration.incrementAndGet();
-        return false;
-      }
-    };
+    PayloadQueue.ElementVisitor elementVisitor =
+        new PayloadQueue.ElementVisitor() {
+          @Override
+          public boolean read(InputStream in, int length) throws IOException {
+            if (iteration.get() == 0) {
+              assertThat(length).isEqualTo(2);
+              byte[] actual = new byte[length];
+              in.read(actual);
+              assertThat(actual).isEqualTo(a);
+            } else {
+              fail();
+            }
+            iteration.incrementAndGet();
+            return false;
+          }
+        };
 
     int saw = queueFile.forEach(elementVisitor);
     assertThat(saw).isEqualTo(1);
@@ -533,11 +571,12 @@ import static org.assertj.core.api.Assertions.assertThat;
   }
 
   /**
-   * Exercise a bug where wrapped elements were getting corrupted when the
-   * QueueFile was forced to expand in size and a portion of the final Element
-   * had been wrapped into space at the beginning of the file.
+   * Exercise a bug where wrapped elements were getting corrupted when the QueueFile was forced to
+   * expand in size and a portion of the final Element had been wrapped into space at the beginning
+   * of the file.
    */
-  @Test public void testFileExpansionDoesntCorruptWrappedElements() throws IOException {
+  @Test
+  public void testFileExpansionDoesntCorruptWrappedElements() throws IOException {
     QueueFile queue = new QueueFile(file);
 
     // Create test data - 1k blocks marked consecutively 1, 2, 3, 4 and 5.
@@ -571,7 +610,8 @@ import static org.assertj.core.api.Assertions.assertThat;
       queue.remove();
 
       for (int i = 0; i < value.length; i++) {
-        assertThat(value[i]).isEqualTo((byte) (blockNum + 1))
+        assertThat(value[i])
+            .isEqualTo((byte) (blockNum + 1))
             .as("Block " + (blockNum + 1) + " corrupted at byte index " + i);
       }
     }
@@ -580,13 +620,13 @@ import static org.assertj.core.api.Assertions.assertThat;
   }
 
   /**
-   * Exercise a bug where wrapped elements were getting corrupted when the
-   * QueueFile was forced to expand in size and a portion of the final Element
-   * had been wrapped into space at the beginning of the file - if multiple
-   * Elements have been written to empty buffer space at the start does the
-   * expansion correctly update all their positions?
+   * Exercise a bug where wrapped elements were getting corrupted when the QueueFile was forced to
+   * expand in size and a portion of the final Element had been wrapped into space at the beginning
+   * of the file - if multiple Elements have been written to empty buffer space at the start does
+   * the expansion correctly update all their positions?
    */
-  @Test public void testFileExpansionCorrectlyMovesElements() throws IOException {
+  @Test
+  public void testFileExpansionCorrectlyMovesElements() throws IOException {
     QueueFile queue = new QueueFile(file);
 
     // Create test data - 1k blocks marked consecutively 1, 2, 3, 4 and 5.
@@ -629,7 +669,7 @@ import static org.assertj.core.api.Assertions.assertThat;
     // block "5" to be moved to the end of the file.
     queue.add(values[4]);
 
-    byte[] expectedBlockNumbers = { 2, 3, 4, 6, 7, 8, 5 };
+    byte[] expectedBlockNumbers = {2, 3, 4, 6, 7, 8, 5};
 
     // Make sure values are not corrupted, specifically block "4" that wasn't
     // being made contiguous in the version with the bug.
@@ -638,7 +678,8 @@ import static org.assertj.core.api.Assertions.assertThat;
       queue.remove();
 
       for (int i = 0; i < value.length; i++) {
-        assertThat(value[i]).isEqualTo(expectedBlockNumber)
+        assertThat(value[i])
+            .isEqualTo(expectedBlockNumber)
             .as("Block " + expectedBlockNumber + " corrupted at byte index " + i);
       }
     }
@@ -647,10 +688,11 @@ import static org.assertj.core.api.Assertions.assertThat;
   }
 
   /**
-   * Exercise a bug where file expansion would leave garbage at the start of the header
-   * and after the last element.
+   * Exercise a bug where file expansion would leave garbage at the start of the header and after
+   * the last element.
    */
-  @Test public void testFileExpansionCorrectlyZeroesData() throws IOException {
+  @Test
+  public void testFileExpansionCorrectlyZeroesData() throws IOException {
     QueueFile queue = new QueueFile(file);
 
     // Create test data - 1k blocks marked consecutively 1, 2, 3, 4 and 5.
@@ -696,10 +738,11 @@ import static org.assertj.core.api.Assertions.assertThat;
   }
 
   /**
-   * Exercise a bug where an expanding queue file where the start and end positions
-   * are the same causes corruption.
+   * Exercise a bug where an expanding queue file where the start and end positions are the same
+   * causes corruption.
    */
-  @Test public void testSaturatedFileExpansionMovesElements() throws IOException {
+  @Test
+  public void testSaturatedFileExpansionMovesElements() throws IOException {
     QueueFile queue = new QueueFile(file);
 
     // Create test data - 1016-byte blocks marked consecutively 1, 2, 3, 4, 5 and 6,
@@ -740,10 +783,11 @@ import static org.assertj.core.api.Assertions.assertThat;
   }
 
   /**
-   * Exercise a bug where opening a queue whose first or last element's header
-   * was non contiguous throws an {@link java.io.EOFException}.
+   * Exercise a bug where opening a queue whose first or last element's header was non contiguous
+   * throws an {@link java.io.EOFException}.
    */
-  @Test public void testReadHeadersFromNonContiguousQueueWorks() throws IOException {
+  @Test
+  public void testReadHeadersFromNonContiguousQueueWorks() throws IOException {
     QueueFile queueFile = new QueueFile(file);
 
     // Fill the queue up to `length - 2` (i.e. remainingBytes() == 2).
@@ -787,10 +831,7 @@ import static org.assertj.core.api.Assertions.assertThat;
   }
   */
 
-  /**
-   * A RandomAccessFile that can break when you go to write the COMMITTED
-   * status.
-   */
+  /** A RandomAccessFile that can break when you go to write the COMMITTED status. */
   static class BrokenRandomAccessFile extends RandomAccessFile {
     boolean rejectCommit = true;
 
@@ -798,7 +839,8 @@ import static org.assertj.core.api.Assertions.assertThat;
       super(file, mode);
     }
 
-    @Override public void write(byte[] buffer) throws IOException {
+    @Override
+    public void write(byte[] buffer) throws IOException {
       if (rejectCommit && getFilePointer() == 0) {
         throw new IOException("No commit for you!");
       }

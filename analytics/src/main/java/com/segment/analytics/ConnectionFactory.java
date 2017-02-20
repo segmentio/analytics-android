@@ -50,7 +50,7 @@ public class ConnectionFactory {
   }
 
   /**
-   * Configures defaults for connections opened with {@link #upload(String)},  {@link
+   * Configures defaults for connections opened with {@link #upload(String)}, {@link
    * #attribution(String)} and {@link #projectSettings(String)}.
    */
   protected HttpURLConnection openConnection(String url) throws IOException {

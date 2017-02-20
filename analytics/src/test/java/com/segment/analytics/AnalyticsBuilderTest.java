@@ -24,17 +24,6 @@
 
 package com.segment.analytics;
 
-import android.app.Application;
-import android.content.Context;
-import android.content.res.Resources;
-import com.segment.analytics.core.BuildConfig;
-import java.util.concurrent.TimeUnit;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
-
 import static android.Manifest.permission.INTERNET;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static com.segment.analytics.Analytics.Builder;
@@ -47,20 +36,33 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.app.Application;
+import android.content.Context;
+import android.content.res.Resources;
+import com.segment.analytics.core.BuildConfig;
+import java.util.concurrent.TimeUnit;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
+
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 18, manifest = Config.NONE)
 public class AnalyticsBuilderTest {
 
   Application context;
 
-  @Before public void setUp() {
+  @Before
+  public void setUp() {
     initMocks(this);
     context = mockApplication();
     Analytics.INSTANCES.clear();
     when(context.getApplicationContext()).thenReturn(context);
   }
 
-  @Test public void invalidContextThrowsException() throws Exception {
+  @Test
+  public void invalidContextThrowsException() throws Exception {
     try {
       new Builder(null, null);
       fail("Null context should throw exception.");
@@ -77,7 +79,8 @@ public class AnalyticsBuilderTest {
     }
   }
 
-  @Test public void invalidExecutorThrowsException() throws Exception {
+  @Test
+  public void invalidExecutorThrowsException() throws Exception {
     try {
       new Builder(context, "foo").networkExecutor(null);
       fail("Null executor should throw exception.");
@@ -86,7 +89,8 @@ public class AnalyticsBuilderTest {
     }
   }
 
-  @Test public void invalidWriteKeyThrowsException() throws Exception {
+  @Test
+  public void invalidWriteKeyThrowsException() throws Exception {
     try {
       new Builder(context, null);
       fail("Null writeKey should throw exception.");
@@ -109,7 +113,8 @@ public class AnalyticsBuilderTest {
     }
   }
 
-  @Test public void invalidWriteKeyFromResourcesThrowsException() throws Exception {
+  @Test
+  public void invalidWriteKeyFromResourcesThrowsException() throws Exception {
     mockWriteKeyInResources(context, null);
 
     try {
@@ -136,7 +141,8 @@ public class AnalyticsBuilderTest {
     }
   }
 
-  @Test public void invalidQueueSizeThrowsException() throws Exception {
+  @Test
+  public void invalidQueueSizeThrowsException() throws Exception {
     try {
       new Builder(context, "foo").flushQueueSize(-1);
       fail("flushQueueSize < 0 should throw exception.");
@@ -159,7 +165,8 @@ public class AnalyticsBuilderTest {
     }
   }
 
-  @Test public void invalidFlushIntervalThrowsException() throws Exception {
+  @Test
+  public void invalidFlushIntervalThrowsException() throws Exception {
     try {
       new Builder(context, "foo").flushInterval(-1, TimeUnit.DAYS);
       fail("flushInterval < 0 should throw exception.");
@@ -175,7 +182,8 @@ public class AnalyticsBuilderTest {
     }
   }
 
-  @Test public void invalidOptionsThrowsException() throws Exception {
+  @Test
+  public void invalidOptionsThrowsException() throws Exception {
     try {
       new Builder(context, "foo").defaultOptions(null);
       fail("null options should throw exception.");
@@ -184,7 +192,8 @@ public class AnalyticsBuilderTest {
     }
   }
 
-  @Test public void invalidTagThrowsException() throws Exception {
+  @Test
+  public void invalidTagThrowsException() throws Exception {
     try {
       new Builder(context, "foo").tag(null);
       fail("Null tag should throw exception.");
@@ -207,7 +216,8 @@ public class AnalyticsBuilderTest {
     }
   }
 
-  @Test public void invalidLogLevelThrowsException() throws Exception {
+  @Test
+  public void invalidLogLevelThrowsException() throws Exception {
     try {
       new Builder(context, "foo").logLevel(null);
       fail("Setting null LogLevel should throw exception.");
@@ -220,8 +230,8 @@ public class AnalyticsBuilderTest {
     Resources resources = mock(Resources.class);
     when(context.getResources()).thenReturn(resources);
 
-    when(resources.getIdentifier(eq(WRITE_KEY_RESOURCE_IDENTIFIER), eq("string"),
-        eq("string"))).thenReturn(1);
+    when(resources.getIdentifier(eq(WRITE_KEY_RESOURCE_IDENTIFIER), eq("string"), eq("string")))
+        .thenReturn(1);
     //noinspection ResourceType
     when(resources.getString(1)).thenReturn(writeKey);
   }

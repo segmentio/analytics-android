@@ -1,5 +1,9 @@
 package com.segment.analytics;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.robolectric.annotation.Config.NONE;
+
 import com.segment.analytics.Traits.Address;
 import com.segment.analytics.core.BuildConfig;
 import java.util.Date;
@@ -12,33 +16,34 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.robolectric.annotation.Config.NONE;
-
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 18, manifest = NONE) //
 public class TraitsTest {
 
   Traits traits;
 
-  @Before public void setUp() {
+  @Before
+  public void setUp() {
     traits = Traits.create();
   }
 
-  @Test public void newInvocationHasUniqueId() throws Exception {
+  @Test
+  public void newInvocationHasUniqueId() throws Exception {
     assertThat(traits).isNotSameAs(Traits.create());
   }
 
-  @Test public void newInvocationHasNoUserId() throws Exception {
+  @Test
+  public void newInvocationHasNoUserId() throws Exception {
     assertThat(traits.userId()).isNull();
   }
 
-  @Test public void publicConstructorGivesEmptyTraits() throws Exception {
+  @Test
+  public void publicConstructorGivesEmptyTraits() throws Exception {
     assertThat(new Traits()).hasSize(0);
   }
 
-  @Test public void userIdOrAnonymousId() throws Exception {
+  @Test
+  public void userIdOrAnonymousId() throws Exception {
     assertThat(new Traits().putUserId("foo").putAnonymousId("bar").currentId()) //
         .isEqualTo("foo");
     assertThat(new Traits().putUserId("foo").currentId()).isEqualTo("foo");
@@ -47,30 +52,36 @@ public class TraitsTest {
     assertThat(new Traits().currentId()).isNull();
   }
 
-  @Test public void traitsAreMergedCorrectly() throws Exception {
-    Traits traits1 = new Traits() //
-        .putAge(20)
-        .putAvatar("f2prateek")
-        .putDescription("the first one")
-        .putLastName("Srivastava")
-        .putEmail("f2prateek@gmail.com")
-        .putEmployees(50);
+  @Test
+  public void traitsAreMergedCorrectly() throws Exception {
+    Traits traits1 =
+        new Traits() //
+            .putAge(20)
+            .putAvatar("f2prateek")
+            .putDescription("the first one")
+            .putLastName("Srivastava")
+            .putEmail("f2prateek@gmail.com")
+            .putEmployees(50);
     assertThat(traits1).hasSize(6);
 
-    Traits traits2 = new Traits().putAvatar("f2prateek")
-        .putFirstName("Prateek")
-        .putDescription("the second one");
+    Traits traits2 =
+        new Traits()
+            .putAvatar("f2prateek")
+            .putFirstName("Prateek")
+            .putDescription("the second one");
     assertThat(traits2).hasSize(3);
 
     traits1.putAll(traits2);
-    assertThat(traits1).hasSize(7)
+    assertThat(traits1)
+        .hasSize(7)
         .contains(MapEntry.entry("avatar", "f2prateek"))
         .contains(MapEntry.entry("description", "the second one"))
         .contains(MapEntry.entry("email", "f2prateek@gmail.com"));
     assertThat(traits1.name()).isEqualTo("Prateek Srivastava");
   }
 
-  @Test public void copyReturnsSameMappings() {
+  @Test
+  public void copyReturnsSameMappings() {
     Traits copy = traits.unmodifiableCopy();
 
     assertThat(copy).hasSameSizeAs(traits).isNotSameAs(traits).isEqualTo(traits);
@@ -79,7 +90,8 @@ public class TraitsTest {
     }
   }
 
-  @Test public void copyIsImmutable() {
+  @Test
+  public void copyIsImmutable() {
     Traits copy = traits.unmodifiableCopy();
 
     //noinspection EmptyCatchBlock
@@ -90,7 +102,8 @@ public class TraitsTest {
     }
   }
 
-  @Test public void address() {
+  @Test
+  public void address() {
     Address address = new Address();
 
     address.putCity("Vancouver");
@@ -112,63 +125,75 @@ public class TraitsTest {
     assertThat(traits.address()).isEqualTo(address);
   }
 
-  @Test public void age() {
+  @Test
+  public void age() {
     traits.putAge(25);
     assertThat(traits.age()).isEqualTo(25);
   }
 
-  @Test public void avatar() {
+  @Test
+  public void avatar() {
     traits.putAvatar("https://github.com/identicons/segmentio.png");
     assertThat(traits.avatar()).isEqualTo("https://github.com/identicons/segmentio.png");
   }
 
-  @Test public void emptyBirthdayDoesNotCrash() {
+  @Test
+  public void emptyBirthdayDoesNotCrash() {
     // Exercise a bug where trying to fetch the birthday when one didn't exist would crash.
     assertThat(traits.birthday()).isNull();
   }
 
-  @Test public void birthday() {
+  @Test
+  public void birthday() {
     Date date = new GregorianCalendar(1992, 2, 10).getTime();
     traits.putBirthday(date);
     assertThat(traits.birthday()).isEqualTo(date);
   }
 
-  @Test public void createdAt() {
+  @Test
+  public void createdAt() {
     traits.putCreatedAt("16-02-217");
     assertThat(traits.createdAt()).isEqualTo("16-02-217");
   }
 
-  @Test public void description() {
+  @Test
+  public void description() {
     traits.putDescription("a really amazing library");
     assertThat(traits.description()).isEqualTo("a really amazing library");
   }
 
-  @Test public void email() {
+  @Test
+  public void email() {
     traits.putEmail("prateek@segment.com");
     assertThat(traits.email()).isEqualTo("prateek@segment.com");
   }
 
-  @Test public void employees() {
+  @Test
+  public void employees() {
     traits.putEmployees(1000);
     assertThat(traits.employees()).isEqualTo(1000);
   }
 
-  @Test public void fax() {
+  @Test
+  public void fax() {
     traits.putFax("123-456-7890");
     assertThat(traits.fax()).isEqualTo("123-456-7890");
   }
 
-  @Test public void gender() {
+  @Test
+  public void gender() {
     traits.putGender("male");
     assertThat(traits.gender()).isEqualTo("male");
   }
 
-  @Test public void industry() {
+  @Test
+  public void industry() {
     traits.putIndustry("SAAS");
     assertThat(traits.industry()).isEqualTo("SAAS");
   }
 
-  @Test public void name() {
+  @Test
+  public void name() {
     assertThat(traits.name()).isNull();
 
     traits.putFirstName("prateek");
@@ -179,34 +204,40 @@ public class TraitsTest {
     assertThat(traits.name()).isEqualTo("mr. prateek srivastava");
   }
 
-  @Test public void firstName() {
+  @Test
+  public void firstName() {
     traits.putFirstName("prateek");
     assertThat(traits.name()).isEqualTo("prateek");
     assertThat(traits.firstName()).isEqualTo("prateek");
   }
 
-  @Test public void lastName() {
+  @Test
+  public void lastName() {
     traits.putLastName("srivastava");
     assertThat(traits.name()).isEqualTo("srivastava");
     assertThat(traits.lastName()).isEqualTo("srivastava");
   }
 
-  @Test public void phone() {
+  @Test
+  public void phone() {
     traits.putPhone("123-456-7890");
     assertThat(traits.phone()).isEqualTo("123-456-7890");
   }
 
-  @Test public void title() {
+  @Test
+  public void title() {
     traits.putTitle("Software Engineer");
     assertThat(traits.title()).isEqualTo("Software Engineer");
   }
 
-  @Test public void username() {
+  @Test
+  public void username() {
     traits.putUsername("f2prateek");
     assertThat(traits.username()).isEqualTo("f2prateek");
   }
 
-  @Test public void website() {
+  @Test
+  public void website() {
     traits.putWebsite("https://segment.com/");
     assertThat(traits.website()).isEqualTo("https://segment.com/");
   }

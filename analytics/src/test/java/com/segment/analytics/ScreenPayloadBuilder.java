@@ -1,9 +1,9 @@
 package com.segment.analytics;
 
-import com.segment.analytics.integrations.ScreenPayload;
-
 import static com.segment.analytics.Utils.createContext;
 import static com.segment.analytics.Utils.createTraits;
+
+import com.segment.analytics.integrations.ScreenPayload;
 
 public class ScreenPayloadBuilder {
 
@@ -64,4 +64,3 @@ public class ScreenPayloadBuilder {
     return new ScreenPayload(context, options, category, name, properties);
   }
 }
-

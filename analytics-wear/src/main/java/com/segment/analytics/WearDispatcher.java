@@ -1,5 +1,7 @@
 package com.segment.analytics;
 
+import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
+
 import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -13,8 +15,6 @@ import com.google.android.gms.wearable.Wearable;
 import com.segment.analytics.internal.Utils;
 import java.util.Collection;
 import java.util.HashSet;
-
-import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
 class WearDispatcher {
 
@@ -42,8 +42,12 @@ class WearDispatcher {
 
     for (String node : getNodes(googleApiClient)) {
       MessageApi.SendMessageResult result =
-          Wearable.MessageApi.sendMessage(googleApiClient, node, WearAnalytics.ANALYTICS_PATH,
-              cartographer.toJson(payload).getBytes()).await();
+          Wearable.MessageApi.sendMessage(
+                  googleApiClient,
+                  node,
+                  WearAnalytics.ANALYTICS_PATH,
+                  cartographer.toJson(payload).getBytes())
+              .await();
       if (!result.getStatus().isSuccess()) {
         // todo: log error
       }
@@ -70,18 +74,21 @@ class WearDispatcher {
       this.wearDispatcher = wearDispatcher;
     }
 
-    @Override public void handleMessage(final Message msg) {
+    @Override
+    public void handleMessage(final Message msg) {
       switch (msg.what) {
         case REQUEST_DISPATCH:
           WearPayload payload = (WearPayload) msg.obj;
           wearDispatcher.performDispatch(payload);
           break;
         default:
-          Analytics.HANDLER.post(new Runnable() {
-            @Override public void run() {
-              throw new AssertionError("Unhandled dispatcher message." + msg.what);
-            }
-          });
+          Analytics.HANDLER.post(
+              new Runnable() {
+                @Override
+                public void run() {
+                  throw new AssertionError("Unhandled dispatcher message." + msg.what);
+                }
+              });
       }
     }
   }

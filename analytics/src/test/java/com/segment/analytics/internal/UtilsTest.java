@@ -24,6 +24,17 @@
 
 package com.segment.analytics.internal;
 
+import static android.Manifest.permission.ACCESS_NETWORK_STATE;
+import static android.content.pm.PackageManager.PERMISSION_DENIED;
+import static com.segment.analytics.internal.Utils.isConnected;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import static com.segment.analytics.internal.Utils.transform;
+import static org.assertj.android.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+import static org.robolectric.annotation.Config.NONE;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import com.segment.analytics.core.BuildConfig;
@@ -42,27 +53,19 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
-import static android.Manifest.permission.ACCESS_NETWORK_STATE;
-import static android.content.pm.PackageManager.PERMISSION_DENIED;
-import static com.segment.analytics.internal.Utils.isConnected;
-import static com.segment.analytics.internal.Utils.isNullOrEmpty;
-import static com.segment.analytics.internal.Utils.transform;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.android.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-import static org.robolectric.annotation.Config.NONE;
-
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE) public class UtilsTest {
+@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
+public class UtilsTest {
 
   @Mock Context context;
 
-  @Before public void setUp() {
+  @Before
+  public void setUp() {
     initMocks(this);
   }
 
-  @Test public void emptyString() {
+  @Test
+  public void emptyString() {
     assertThat(isNullOrEmpty((String) null)).isTrue();
     assertThat(isNullOrEmpty("")).isTrue();
     assertThat(isNullOrEmpty("    ")).isTrue();
@@ -70,7 +73,8 @@ import static org.robolectric.annotation.Config.NONE;
     assertThat(isNullOrEmpty("a")).isFalse();
   }
 
-  @Test public void emptyMap() {
+  @Test
+  public void emptyMap() {
     assertThat(isNullOrEmpty((Map) null)).isTrue();
     Map<String, Object> map = new LinkedHashMap<>(20);
     assertThat(isNullOrEmpty(map)).isTrue();
@@ -80,7 +84,8 @@ import static org.robolectric.annotation.Config.NONE;
     assertThat(isNullOrEmpty(map)).isTrue();
   }
 
-  @Test public void emptyCollections() {
+  @Test
+  public void emptyCollections() {
     assertThat(isNullOrEmpty((Collection) null)).isTrue();
     Collection<String> collection = new ArrayList<>();
     assertThat(isNullOrEmpty(collection)).isTrue();
@@ -90,7 +95,8 @@ import static org.robolectric.annotation.Config.NONE;
     assertThat(isNullOrEmpty(collection)).isTrue();
   }
 
-  @Test public void testTransform() {
+  @Test
+  public void testTransform() {
     Map<String, Integer> in = new LinkedHashMap<>();
     in.put("a", 1);
     in.put("b", 2);
@@ -102,16 +108,18 @@ import static org.robolectric.annotation.Config.NONE;
     mapper.put("c", "");
     mapper.put("d", null);
 
-    assertThat(transform(in, mapper)).containsExactly(MapEntry.entry("$a", 1),
-        MapEntry.entry("b", 2));
+    assertThat(transform(in, mapper))
+        .containsExactly(MapEntry.entry("$a", 1), MapEntry.entry("b", 2));
   }
 
-  @Test public void returnsConnectedIfMissingPermission() throws Exception {
+  @Test
+  public void returnsConnectedIfMissingPermission() throws Exception {
     when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
     assertThat(isConnected(context)).isTrue();
   }
 
-  @Test public void nullableConcurrentHashMapPutIgnoresNulls() throws Exception {
+  @Test
+  public void nullableConcurrentHashMapPutIgnoresNulls() throws Exception {
     Map<String, String> map = new Utils.NullableConcurrentHashMap<>();
     map.put(null, null);
     map.put("foo", null);
@@ -120,7 +128,8 @@ import static org.robolectric.annotation.Config.NONE;
     assertThat(map).isEmpty();
   }
 
-  @Test public void nullableConcurrentHashMapPutAllIgnoresNulls() throws Exception {
+  @Test
+  public void nullableConcurrentHashMapPutAllIgnoresNulls() throws Exception {
     Map<String, String> values = new LinkedHashMap<>();
     values.put(null, null);
     values.put("foo", null);
@@ -131,7 +140,8 @@ import static org.robolectric.annotation.Config.NONE;
     assertThat(map).isEmpty();
   }
 
-  @Test public void copySharedPreferences() {
+  @Test
+  public void copySharedPreferences() {
     SharedPreferences src =
         RuntimeEnvironment.application.getSharedPreferences("src", Context.MODE_PRIVATE);
     src.edit().clear().apply();
@@ -149,7 +159,8 @@ import static org.robolectric.annotation.Config.NONE;
     target.edit().clear().apply();
 
     Utils.copySharedPreferences(src, target);
-    assertThat(target).contains("aBool", true)
+    assertThat(target)
+        .contains("aBool", true)
         .contains("aString", "foo")
         .contains("anInt", 2)
         .contains("aFloat", 3.14f)

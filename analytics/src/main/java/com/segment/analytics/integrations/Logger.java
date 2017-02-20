@@ -1,15 +1,15 @@
 package com.segment.analytics.integrations;
 
-import android.util.Log;
-import com.segment.analytics.Analytics.LogLevel;
-
 import static com.segment.analytics.Analytics.LogLevel.DEBUG;
 import static com.segment.analytics.Analytics.LogLevel.INFO;
 import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 
+import android.util.Log;
+import com.segment.analytics.Analytics.LogLevel;
+
 /** An abstraction for logging messages. */
 public final class Logger {
-  private final static String DEFAULT_TAG = "Analytics";
+  private static final String DEFAULT_TAG = "Analytics";
   public final LogLevel logLevel;
   private final String tag;
 
@@ -47,8 +47,7 @@ public final class Logger {
   }
 
   /**
-   * Returns a new {@link Logger} with the same {@code level} as this one and the given {@code
-   * tag}.
+   * Returns a new {@link Logger} with the same {@code level} as this one and the given {@code tag}.
    */
   public Logger subLog(String tag) {
     return new Logger(DEFAULT_TAG + "-" + tag, logLevel);

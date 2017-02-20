@@ -1,5 +1,7 @@
 package com.segment.analytics;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.squareup.burst.BurstJUnit4;
 import com.squareup.burst.annotation.Burst;
 import java.io.File;
@@ -14,17 +16,18 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-@RunWith(BurstJUnit4.class) public class PayloadQueueTest {
+@RunWith(BurstJUnit4.class)
+public class PayloadQueueTest {
   public enum QueueFactory {
     FILE() {
-      @Override public PayloadQueue create(QueueFile queueFile) throws IOException {
+      @Override
+      public PayloadQueue create(QueueFile queueFile) throws IOException {
         return new PayloadQueue.PersistentQueue(queueFile);
       }
     },
     MEMORY() {
-      @Override public PayloadQueue create(QueueFile file) {
+      @Override
+      public PayloadQueue create(QueueFile file) {
         return new PayloadQueue.MemoryQueue();
       }
     };
@@ -36,7 +39,8 @@ import static org.assertj.core.api.Assertions.assertThat;
   @Burst QueueFactory factory;
   PayloadQueue queue;
 
-  @Before public void setUp() throws IOException {
+  @Before
+  public void setUp() throws IOException {
     File parent = folder.getRoot();
     File file = new File(parent, "payload-queue");
     QueueFile queueFile = new QueueFile(file);
@@ -47,21 +51,25 @@ import static org.assertj.core.api.Assertions.assertThat;
     queue.add(bytes("three"));
   }
 
-  @Test public void size() throws IOException {
+  @Test
+  public void size() throws IOException {
     assertThat(queue.size()).isEqualTo(3);
   }
 
-  @Test public void forEach() throws IOException {
+  @Test
+  public void forEach() throws IOException {
     List<byte[]> seen = readQueue(queue.size() + 1);
     assertThat(seen).containsExactly(bytes("one"), bytes("two"), bytes("three"));
   }
 
-  @Test public void forEachEarlyReturn() throws IOException {
+  @Test
+  public void forEachEarlyReturn() throws IOException {
     List<byte[]> seen = readQueue(2);
     assertThat(seen).containsExactly(bytes("one"), bytes("two"));
   }
 
-  @Test public void remove() throws IOException {
+  @Test
+  public void remove() throws IOException {
     queue.remove(2);
 
     assertThat(queue.size()).isEqualTo(1);
@@ -76,16 +84,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
   private List<byte[]> readQueue(final int maxCount) throws IOException {
     final List<byte[]> seen = new ArrayList<>();
-    queue.forEach(new PayloadQueue.ElementVisitor() {
-      int count = 1;
+    queue.forEach(
+        new PayloadQueue.ElementVisitor() {
+          int count = 1;
 
-      @Override public boolean read(InputStream in, int length) throws IOException {
-        byte[] data = new byte[length];
-        assertThat(in.read(data)).isEqualTo(length);
-        seen.add(data);
-        return count++ < maxCount;
-      }
-    });
+          @Override
+          public boolean read(InputStream in, int length) throws IOException {
+            byte[] data = new byte[length];
+            assertThat(in.read(data)).isEqualTo(length);
+            seen.add(data);
+            return count++ < maxCount;
+          }
+        });
     return seen;
   }
 }

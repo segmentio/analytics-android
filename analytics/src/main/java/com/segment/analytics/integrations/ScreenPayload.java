@@ -24,11 +24,11 @@
 
 package com.segment.analytics.integrations;
 
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Properties;
-
-import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 public class ScreenPayload extends BasePayload {
   private static final String CATEGORY_KEY = "category";
@@ -38,7 +38,11 @@ public class ScreenPayload extends BasePayload {
   /** Either the name or category of the event. */
   private String event;
 
-  public ScreenPayload(AnalyticsContext context, Options options, String category, String name,
+  public ScreenPayload(
+      AnalyticsContext context,
+      Options options,
+      String category,
+      String name,
       Properties properties) {
     super(Type.screen, context, options);
     put(CATEGORY_KEY, category);
@@ -69,7 +73,8 @@ public class ScreenPayload extends BasePayload {
     return (Properties) get(PROPERTIES_KEY);
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return "ScreenPayload{name=\"" + name() + ",category=\"" + category() + "\"}";
   }
 }

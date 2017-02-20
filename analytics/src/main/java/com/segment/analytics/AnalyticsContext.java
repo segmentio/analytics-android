@@ -24,6 +24,21 @@
 
 package com.segment.analytics;
 
+import static android.Manifest.permission.ACCESS_NETWORK_STATE;
+import static android.content.Context.CONNECTIVITY_SERVICE;
+import static android.content.Context.TELEPHONY_SERVICE;
+import static android.net.ConnectivityManager.TYPE_BLUETOOTH;
+import static android.net.ConnectivityManager.TYPE_MOBILE;
+import static android.net.ConnectivityManager.TYPE_WIFI;
+import static com.segment.analytics.internal.Utils.NullableConcurrentHashMap;
+import static com.segment.analytics.internal.Utils.createMap;
+import static com.segment.analytics.internal.Utils.getDeviceId;
+import static com.segment.analytics.internal.Utils.getSystemService;
+import static com.segment.analytics.internal.Utils.hasPermission;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import static com.segment.analytics.internal.Utils.isOnClassPath;
+import static java.util.Collections.unmodifiableMap;
+
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -43,35 +58,20 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.CountDownLatch;
 
-import static android.Manifest.permission.ACCESS_NETWORK_STATE;
-import static android.content.Context.CONNECTIVITY_SERVICE;
-import static android.content.Context.TELEPHONY_SERVICE;
-import static android.net.ConnectivityManager.TYPE_BLUETOOTH;
-import static android.net.ConnectivityManager.TYPE_MOBILE;
-import static android.net.ConnectivityManager.TYPE_WIFI;
-import static com.segment.analytics.internal.Utils.NullableConcurrentHashMap;
-import static com.segment.analytics.internal.Utils.createMap;
-import static com.segment.analytics.internal.Utils.getDeviceId;
-import static com.segment.analytics.internal.Utils.getSystemService;
-import static com.segment.analytics.internal.Utils.hasPermission;
-import static com.segment.analytics.internal.Utils.isNullOrEmpty;
-import static com.segment.analytics.internal.Utils.isOnClassPath;
-import static java.util.Collections.unmodifiableMap;
-
 /**
  * Context is a dictionary of free-form information about the state of the device. Context is
- * attached to every outgoing call. You can add any custom data to the context dictionary that
- * you'd like to have access to in the raw logs.
- * <p/>
- * This is renamed to AnalyticsContext on Android to avoid confusion with {@link Context} in the
+ * attached to every outgoing call. You can add any custom data to the context dictionary that you'd
+ * like to have access to in the raw logs.
+ *
+ * <p>This is renamed to AnalyticsContext on Android to avoid confusion with {@link Context} in the
  * Android framework. Any documentation for Context on our website is referring to AnalyticsContext
  * on Android.
- * <p/>
- * Some keys in the context dictionary have semantic meaning and will be collected for you
+ *
+ * <p>Some keys in the context dictionary have semantic meaning and will be collected for you
  * automatically, depending on the library you send data from. Some keys, such as IP address, and
  * speed need to be manually entered, such as IP Address, speed, etc.
- * <p/>
- * AnalyticsContext is not persisted to disk, and is filled each time the app starts.
+ *
+ * <p>AnalyticsContext is not persisted to disk, and is filled each time the app starts.
  */
 public class AnalyticsContext extends ValueMap {
 
@@ -114,20 +114,20 @@ public class AnalyticsContext extends ValueMap {
   private static final String SCREEN_WIDTH_KEY = "width";
 
   /**
-   * Create a new {@link AnalyticsContext} instance filled in with information from the given
-   * {@link Context}. The {@link Analytics} client can be called from anywhere, so the returned
-   * instances is thread safe.
+   * Create a new {@link AnalyticsContext} instance filled in with information from the given {@link
+   * Context}. The {@link Analytics} client can be called from anywhere, so the returned instances
+   * is thread safe.
    */
-  static synchronized AnalyticsContext create(Context context, Traits traits,
-      boolean collectDeviceId) {
+  static synchronized AnalyticsContext create(
+      Context context, Traits traits, boolean collectDeviceId) {
     AnalyticsContext analyticsContext =
         new AnalyticsContext(new NullableConcurrentHashMap<String, Object>());
     analyticsContext.putApp(context);
     analyticsContext.setTraits(traits);
     analyticsContext.putDevice(context, collectDeviceId);
     analyticsContext.putLibrary();
-    analyticsContext.put(LOCALE_KEY,
-        Locale.getDefault().getLanguage() + "-" + Locale.getDefault().getCountry());
+    analyticsContext.put(
+        LOCALE_KEY, Locale.getDefault().getLanguage() + "-" + Locale.getDefault().getCountry());
     analyticsContext.putNetwork(context);
     analyticsContext.putOs();
     analyticsContext.putScreen(context);
@@ -156,14 +156,16 @@ public class AnalyticsContext extends ValueMap {
       // This needs to be done each time since the settings may have been updated.
       new GetAdvertisingIdTask(this, latch, logger).execute(context);
     } else {
-      logger.debug("Not collecting advertising ID because "
-          + "com.google.android.gms.ads.identifier.AdvertisingIdClient "
-          + "was not found on the classpath.");
+      logger.debug(
+          "Not collecting advertising ID because "
+              + "com.google.android.gms.ads.identifier.AdvertisingIdClient "
+              + "was not found on the classpath.");
       latch.countDown();
     }
   }
 
-  @Override public AnalyticsContext putValue(String key, Object value) {
+  @Override
+  public AnalyticsContext putValue(String key, Object value) {
     super.putValue(key, value);
     return this;
   }
@@ -187,15 +189,15 @@ public class AnalyticsContext extends ValueMap {
    * Analytics#identify(String, Traits, Options)}. Modifying this instance will not reflect changes
    * to the user's information that is passed onto bundled integrations.
    *
-   * Return the {@link Traits} attached to this instance.
+   * <p>Return the {@link Traits} attached to this instance.
    */
   public Traits traits() {
     return getValueMap(TRAITS_KEY, Traits.class);
   }
 
   /**
-   * Fill this instance with application info from the provided {@link Context}. No need to expose
-   * a getter for this for bundled integrations (they'll automatically fill what they need
+   * Fill this instance with application info from the provided {@link Context}. No need to expose a
+   * getter for this for bundled integrations (they'll automatically fill what they need
    * themselves).
    */
   void putApp(Context context) {
@@ -261,8 +263,8 @@ public class AnalyticsContext extends ValueMap {
   }
 
   /**
-   * Fill this instance with network information. No need to expose a getter
-   * for this for bundled integrations (they'll automatically fill what they need themselves)
+   * Fill this instance with network information. No need to expose a getter for this for bundled
+   * integrations (they'll automatically fill what they need themselves)
    */
   void putNetwork(Context context) {
     Map<String, Object> network = createMap();
@@ -302,8 +304,8 @@ public class AnalyticsContext extends ValueMap {
   }
 
   /**
-   * Fill this instance with application info from the provided {@link Context}. No need to expose
-   * a getter for this for bundled integrations (they'll automatically fill what they need
+   * Fill this instance with application info from the provided {@link Context}. No need to expose a
+   * getter for this for bundled integrations (they'll automatically fill what they need
    * themselves).
    */
   void putScreen(Context context) {
@@ -319,8 +321,8 @@ public class AnalyticsContext extends ValueMap {
   }
 
   /**
-   * Information about the campaign that resulted in the API call, containing name, source,
-   * medium, term and content. This maps directly to the common UTM campaign parameters.
+   * Information about the campaign that resulted in the API call, containing name, source, medium,
+   * term and content. This maps directly to the common UTM campaign parameters.
    *
    * @see <a href="https://support.google.com/analytics/answer/1033867?hl=en">UTM parameters</a>
    */
@@ -333,15 +335,15 @@ public class AnalyticsContext extends ValueMap {
     private static final String CAMPAIGN_CONTENT_KEY = "content";
 
     // Public Constructor
-    public Campaign() {
-    }
+    public Campaign() {}
 
     // For deserialization
     private Campaign(Map<String, Object> map) {
       super(map);
     }
 
-    @Override public Campaign putValue(String key, Object value) {
+    @Override
+    public Campaign putValue(String key, Object value) {
       super.putValue(key, value);
       return this;
     }
@@ -408,15 +410,16 @@ public class AnalyticsContext extends ValueMap {
     @Private static final String DEVICE_ADVERTISING_ID_KEY = "advertisingId";
     @Private static final String DEVICE_AD_TRACKING_ENABLED_KEY = "adTrackingEnabled";
 
-    @Private Device() {
-    }
+    @Private
+    Device() {}
 
     // For deserialization
     private Device(Map<String, Object> map) {
       super(map);
     }
 
-    @Override public Device putValue(String key, Object value) {
+    @Override
+    public Device putValue(String key, Object value) {
       super.putValue(key, value);
       return this;
     }
@@ -443,15 +446,15 @@ public class AnalyticsContext extends ValueMap {
     private static final String LOCATION_SPEED_KEY = "speed";
 
     // Public constructor
-    public Location() {
-    }
+    public Location() {}
 
     // For deserialization
     private Location(Map<String, Object> map) {
       super(map);
     }
 
-    @Override public Location putValue(String key, Object value) {
+    @Override
+    public Location putValue(String key, Object value) {
       super.putValue(key, value);
       return this;
     }
@@ -494,15 +497,15 @@ public class AnalyticsContext extends ValueMap {
     private static final String REFERRER_URL_KEY = "url";
 
     // Public constructor
-    public Referrer() {
-    }
+    public Referrer() {}
 
     // For deserialization
     public Referrer(Map<String, Object> map) {
       super(map);
     }
 
-    @Override public Referrer putValue(String key, Object value) {
+    @Override
+    public Referrer putValue(String key, Object value) {
       super.putValue(key, value);
       return this;
     }

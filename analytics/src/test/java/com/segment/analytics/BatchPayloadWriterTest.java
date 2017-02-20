@@ -1,5 +1,8 @@
 package com.segment.analytics;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.robolectric.annotation.Config.NONE;
+
 import com.segment.analytics.core.BuildConfig;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -8,19 +11,18 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.robolectric.annotation.Config.NONE;
-
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
 public class BatchPayloadWriterTest {
 
-  @Test public void batchPayloadWriter() throws IOException {
+  @Test
+  public void batchPayloadWriter() throws IOException {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     SegmentIntegration.BatchPayloadWriter batchPayloadWriter =
         new SegmentIntegration.BatchPayloadWriter(byteArrayOutputStream);
 
-    batchPayloadWriter.beginObject()
+    batchPayloadWriter
+        .beginObject()
         .beginBatchArray()
         .emitPayloadObject("foobarbazqux")
         .emitPayloadObject("{}")
@@ -34,12 +36,14 @@ public class BatchPayloadWriterTest {
         .contains("{\"batch\":[foobarbazqux,{},2],\"sentAt\":\"");
   }
 
-  @Test public void batchPayloadWriterSingleItem() throws IOException {
+  @Test
+  public void batchPayloadWriterSingleItem() throws IOException {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     SegmentIntegration.BatchPayloadWriter batchPayloadWriter =
         new SegmentIntegration.BatchPayloadWriter(byteArrayOutputStream);
 
-    batchPayloadWriter.beginObject()
+    batchPayloadWriter
+        .beginObject()
         .beginBatchArray()
         .emitPayloadObject("qaz")
         .endBatchArray()
@@ -51,7 +55,8 @@ public class BatchPayloadWriterTest {
         .contains("{\"batch\":[qaz],\"sentAt\":\"");
   }
 
-  @Test public void batchPayloadWriterFailsForNoItem() throws IOException {
+  @Test
+  public void batchPayloadWriterFailsForNoItem() throws IOException {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     SegmentIntegration.BatchPayloadWriter batchPayloadWriter =
         new SegmentIntegration.BatchPayloadWriter(byteArrayOutputStream);

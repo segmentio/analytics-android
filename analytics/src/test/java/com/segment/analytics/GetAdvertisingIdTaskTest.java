@@ -1,5 +1,8 @@
 package com.segment.analytics;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.robolectric.annotation.Config.NONE;
+
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Pair;
@@ -12,13 +15,11 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.robolectric.annotation.Config.NONE;
-
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
 public class GetAdvertisingIdTaskTest {
-  @Test public void getAdvertisingId() throws Exception {
+  @Test
+  public void getAdvertisingId() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     Traits traits = Traits.create();
     AnalyticsContext context =

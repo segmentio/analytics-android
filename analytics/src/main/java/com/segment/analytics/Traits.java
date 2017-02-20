@@ -24,6 +24,11 @@
 
 package com.segment.analytics;
 
+import static com.segment.analytics.internal.Utils.NullableConcurrentHashMap;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import static com.segment.analytics.internal.Utils.toISO8601Date;
+import static java.util.Collections.unmodifiableMap;
+
 import android.content.Context;
 import com.segment.analytics.internal.Private;
 import java.text.ParseException;
@@ -32,20 +37,15 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.segment.analytics.internal.Utils.NullableConcurrentHashMap;
-import static com.segment.analytics.internal.Utils.isNullOrEmpty;
-import static com.segment.analytics.internal.Utils.toISO8601Date;
-import static java.util.Collections.unmodifiableMap;
-
 /**
  * A class representing information about a user.
- * <p/>
- * Traits can be anything you want, but some of them have semantic meaning and we treat them in
+ *
+ * <p>Traits can be anything you want, but some of them have semantic meaning and we treat them in
  * special ways. For example, whenever we see an email trait, we expect it to be the user's email
  * address. And we'll send this on to integrations that need an email, like Mailchimp. For that
  * reason, you should only use special traits for their intended purpose.
- * <p/>
- * Traits are persisted to disk, and will be remembered between application and system reboots.
+ *
+ * <p>Traits are persisted to disk, and will be remembered between application and system reboots.
  */
 public class Traits extends ValueMap {
 
@@ -84,13 +84,13 @@ public class Traits extends ValueMap {
   }
 
   /** For deserialization from disk by {@link Traits.Cache}. */
-  @Private Traits(Map<String, Object> delegate) {
+  @Private
+  Traits(Map<String, Object> delegate) {
     super(delegate);
   }
 
   // Public Constructor
-  public Traits() {
-  }
+  public Traits() {}
 
   public Traits(int initialCapacity) {
     super(initialCapacity);
@@ -122,8 +122,8 @@ public class Traits extends ValueMap {
   }
 
   /**
-   * Returns the currentId the user is identified with. This could be the user id or the
-   * anonymous ID.
+   * Returns the currentId the user is identified with. This could be the user id or the anonymous
+   * ID.
    */
   public String currentId() {
     String userId = userId();
@@ -173,9 +173,9 @@ public class Traits extends ValueMap {
   }
 
   /**
-   * Set the date the user’s or group’s account was first created. We accept date objects and a
-   * wide range of date formats, including ISO strings and Unix timestamps. Feel free to use
-   * whatever format is easiest for you - although ISO string is recommended for Android.
+   * Set the date the user’s or group’s account was first created. We accept date objects and a wide
+   * range of date formats, including ISO strings and Unix timestamps. Feel free to use whatever
+   * format is easiest for you - although ISO string is recommended for Android.
    */
   public Traits putCreatedAt(String createdAt) {
     return putValue(CREATED_AT_KEY, createdAt);
@@ -239,9 +239,7 @@ public class Traits extends ValueMap {
     return getString(GENDER_KEY);
   }
 
-  /**
-   * Set the industry the user works in, or a group is part of.
-   */
+  /** Set the industry the user works in, or a group is part of. */
   public Traits putIndustry(String industry) {
     return putValue(INDUSTRY_KEY, industry);
   }
@@ -332,7 +330,8 @@ public class Traits extends ValueMap {
     return getString(WEBSITE_KEY);
   }
 
-  @Override public Traits putValue(String key, Object value) {
+  @Override
+  public Traits putValue(String key, Object value) {
     super.putValue(key, value);
     return this;
   }
@@ -347,15 +346,15 @@ public class Traits extends ValueMap {
     private static final String ADDRESS_STREET_KEY = "street";
 
     // Public constructor
-    public Address() {
-    }
+    public Address() {}
 
     // For deserialization
     public Address(Map<String, Object> map) {
       super(map);
     }
 
-    @Override public Address putValue(String key, Object value) {
+    @Override
+    public Address putValue(String key, Object value) {
       super.putValue(key, value);
       return this;
     }
@@ -411,7 +410,8 @@ public class Traits extends ValueMap {
       super(context, cartographer, TRAITS_CACHE_PREFIX + tag, tag, Traits.class);
     }
 
-    @Override public Traits create(Map<String, Object> map) {
+    @Override
+    public Traits create(Map<String, Object> map) {
       // Analytics client can be called on any thread, so this instance should be thread safe.
       return new Traits(new NullableConcurrentHashMap<>(map));
     }

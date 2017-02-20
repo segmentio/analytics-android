@@ -15,6 +15,8 @@
  */
 package com.segment.analytics;
 
+import static java.lang.Math.min;
+
 import com.segment.analytics.internal.Private;
 import java.io.Closeable;
 import java.io.EOFException;
@@ -28,20 +30,18 @@ import java.util.NoSuchElementException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static java.lang.Math.min;
-
 /**
  * A reliable, efficient, file-based, FIFO queue. Additions and removals are O(1). All operations
- * are atomic. Writes are synchronous; data will be written to disk before an operation returns.
- * The underlying file is structured to survive process and even system crashes. If an I/O
- * exception is thrown during a mutating change, the change is aborted. It is safe to continue to
- * use a {@code QueueFile} instance after an exception.
+ * are atomic. Writes are synchronous; data will be written to disk before an operation returns. The
+ * underlying file is structured to survive process and even system crashes. If an I/O exception is
+ * thrown during a mutating change, the change is aborted. It is safe to continue to use a {@code
+ * QueueFile} instance after an exception.
  *
  * <p>All operations are synchronized. In a traditional queue, the remove operation returns an
- * element. In this queue, {@link #peek} and {@link #remove} are used in conjunction. Use
- * {@code peek} to retrieve the first element, and then {@code remove} to remove it after
- * successful processing. If the system crashes after {@code peek} and during processing, the
- * element will remain in the queue, to be processed when the system restarts.
+ * element. In this queue, {@link #peek} and {@link #remove} are used in conjunction. Use {@code
+ * peek} to retrieve the first element, and then {@code remove} to remove it after successful
+ * processing. If the system crashes after {@code peek} and during processing, the element will
+ * remain in the queue, to be processed when the system restarts.
  *
  * <p><strong>NOTE:</strong> The current implementation is built for file systems that support
  * atomic segment writes (like YAFFS). Most conventional file systems don't support this; if the
@@ -63,12 +63,14 @@ public class QueueFile implements Closeable {
   static final int HEADER_LENGTH = 16;
 
   /**
-   * The underlying file. Uses a ring buffer to store entries. Designed so that a modification
-   * isn't committed or visible until we write the header. The header is much smaller than a
-   * segment. So long as the underlying file system supports atomic segment writes, changes to the
-   * queue are atomic. Storing the file length ensures we can recover from a failed expansion
-   * (i.e. if setting the file length succeeds but the process dies before the data can be copied).
-   * <p/>
+   * The underlying file. Uses a ring buffer to store entries. Designed so that a modification isn't
+   * committed or visible until we write the header. The header is much smaller than a segment. So
+   * long as the underlying file system supports atomic segment writes, changes to the queue are
+   * atomic. Storing the file length ensures we can recover from a failed expansion (i.e. if setting
+   * the file length succeeds but the process dies before the data can be copied).
+   *
+   * <p>
+   *
    * <pre>
    *   Format:
    *     Header              (16 bytes)
@@ -122,8 +124,8 @@ public class QueueFile implements Closeable {
   }
 
   /**
-   * Stores an {@code int} in the {@code byte[]}. The behavior is equivalent to calling
-   * {@link RandomAccessFile#writeInt}.
+   * Stores an {@code int} in the {@code byte[]}. The behavior is equivalent to calling {@link
+   * RandomAccessFile#writeInt}.
    */
   private static void writeInt(byte[] buffer, int offset, int value) {
     buffer[offset] = (byte) (value >> 24);
@@ -134,8 +136,10 @@ public class QueueFile implements Closeable {
 
   /** Reads an {@code int} from the {@code byte[]}. */
   private static int readInt(byte[] buffer, int offset) {
-    return ((buffer[offset] & 0xff) << 24) + ((buffer[offset + 1] & 0xff) << 16) + ((buffer[offset
-        + 2] & 0xff) << 8) + (buffer[offset + 3] & 0xff);
+    return ((buffer[offset] & 0xff) << 24)
+        + ((buffer[offset + 1] & 0xff) << 16)
+        + ((buffer[offset + 2] & 0xff) << 8)
+        + (buffer[offset + 3] & 0xff);
   }
 
   private void readHeader() throws IOException {
@@ -159,8 +163,8 @@ public class QueueFile implements Closeable {
   /**
    * Writes header atomically. The arguments contain the updated values. The class member fields
    * should not have changed yet. This only updates the state in the file. It's up to the caller to
-   * update the class member variables *after* this call succeeds. Assumes segment writes are
-   * atomic in the underlying file system.
+   * update the class member variables *after* this call succeeds. Assumes segment writes are atomic
+   * in the underlying file system.
    */
   private void writeHeader(int fileLength, int elementCount, int firstPosition, int lastPosition)
       throws IOException {
@@ -205,7 +209,8 @@ public class QueueFile implements Closeable {
   }
 
   /** Wraps the position if it exceeds the end of the file. */
-  @Private int wrapPosition(int position) {
+  @Private
+  int wrapPosition(int position) {
     return position < fileLength ? position : HEADER_LENGTH + position - fileLength;
   }
 
@@ -249,7 +254,8 @@ public class QueueFile implements Closeable {
    * @param buffer to read into
    * @param count # of bytes to read
    */
-  @Private void ringRead(int position, byte[] buffer, int offset, int count) throws IOException {
+  @Private
+  void ringRead(int position, byte[] buffer, int offset, int count) throws IOException {
     position = wrapPosition(position);
     if (position + count <= fileLength) {
       raf.seek(position);
@@ -281,7 +287,7 @@ public class QueueFile implements Closeable {
    * @param offset to start from in buffer
    * @param count number of bytes to copy
    * @throws IndexOutOfBoundsException if {@code offset < 0} or {@code count < 0}, or if {@code
-   * offset + count} is bigger than the length of {@code buffer}.
+   *     offset + count} is bigger than the length of {@code buffer}.
    */
   public synchronized void add(byte[] data, int offset, int count) throws IOException {
     if (data == null) {
@@ -295,8 +301,10 @@ public class QueueFile implements Closeable {
 
     // Insert a new element after the current last element.
     boolean wasEmpty = isEmpty();
-    int position = wasEmpty ? HEADER_LENGTH
-        : wrapPosition(last.position + Element.HEADER_LENGTH + last.length);
+    int position =
+        wasEmpty
+            ? HEADER_LENGTH
+            : wrapPosition(last.position + Element.HEADER_LENGTH + last.length);
     Element newLast = new Element(position, count);
 
     // Write length.
@@ -319,14 +327,17 @@ public class QueueFile implements Closeable {
 
     if (last.position >= first.position) {
       // Contiguous queue.
-      return (last.position - first.position)   // all but last entry
-          + Element.HEADER_LENGTH + last.length // last entry
+      return (last.position - first.position) // all but last entry
+          + Element.HEADER_LENGTH
+          + last.length // last entry
           + HEADER_LENGTH;
     } else {
       // tail < head. The queue wraps.
-      return last.position                      // buffer front + header
-          + Element.HEADER_LENGTH + last.length // last entry
-          + fileLength - first.position;        // buffer end
+      return last.position // buffer front + header
+          + Element.HEADER_LENGTH
+          + last.length // last entry
+          + fileLength
+          - first.position; // buffer end
     }
   }
 
@@ -409,8 +420,7 @@ public class QueueFile implements Closeable {
   /**
    * Invokes the given reader once for each element in the queue, from eldest to most recently
    * added. Continues until all elements are read or {@link PayloadQueue.ElementVisitor#read
-   * reader.read()}
-   * returns {@code false}.
+   * reader.read()} returns {@code false}.
    *
    * @return number of elements visited
    */
@@ -427,16 +437,19 @@ public class QueueFile implements Closeable {
     return elementCount;
   }
 
-  @Private final class ElementInputStream extends InputStream {
+  @Private
+  final class ElementInputStream extends InputStream {
     private int position;
     private int remaining;
 
-    @Private ElementInputStream(Element element) {
+    @Private
+    ElementInputStream(Element element) {
       position = wrapPosition(element.position + Element.HEADER_LENGTH);
       remaining = element.length;
     }
 
-    @Override public int read(byte[] buffer, int offset, int length) throws IOException {
+    @Override
+    public int read(byte[] buffer, int offset, int length) throws IOException {
       if ((offset | length) < 0 || length > buffer.length - offset) {
         throw new ArrayIndexOutOfBoundsException();
       }
@@ -450,7 +463,8 @@ public class QueueFile implements Closeable {
       return length;
     }
 
-    @Override public int read() throws IOException {
+    @Override
+    public int read() throws IOException {
       if (remaining == 0) return -1;
       raf.seek(position);
       int b = raf.read();
@@ -537,11 +551,13 @@ public class QueueFile implements Closeable {
   }
 
   /** Closes the underlying file. */
-  @Override public synchronized void close() throws IOException {
+  @Override
+  public synchronized void close() throws IOException {
     raf.close();
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     final StringBuilder builder = new StringBuilder();
     builder.append(getClass().getSimpleName()).append('[');
     builder.append("fileLength=").append(fileLength);
@@ -550,19 +566,21 @@ public class QueueFile implements Closeable {
     builder.append(", last=").append(last);
     builder.append(", element lengths=[");
     try {
-      forEach(new PayloadQueue.ElementVisitor() {
-        boolean first = true;
+      forEach(
+          new PayloadQueue.ElementVisitor() {
+            boolean first = true;
 
-        @Override public boolean read(InputStream in, int length) throws IOException {
-          if (first) {
-            first = false;
-          } else {
-            builder.append(", ");
-          }
-          builder.append(length);
-          return true;
-        }
-      });
+            @Override
+            public boolean read(InputStream in, int length) throws IOException {
+              if (first) {
+                first = false;
+              } else {
+                builder.append(", ");
+              }
+              builder.append(length);
+              return true;
+            }
+          });
     } catch (IOException e) {
       LOGGER.log(Level.WARNING, "read error", e);
     }
@@ -594,7 +612,8 @@ public class QueueFile implements Closeable {
       this.length = length;
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
       return getClass().getSimpleName()
           + "["
           + "position = "

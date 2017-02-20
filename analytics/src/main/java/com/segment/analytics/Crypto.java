@@ -10,11 +10,13 @@ public abstract class Crypto {
 
   public static Crypto none() {
     return new Crypto() {
-      @Override InputStream decrypt(InputStream is) {
+      @Override
+      InputStream decrypt(InputStream is) {
         return is;
       }
 
-      @Override OutputStream encrypt(OutputStream os) {
+      @Override
+      OutputStream encrypt(OutputStream os) {
         return os;
       }
     };

@@ -1,5 +1,7 @@
 package com.segment.analytics;
 
+import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
+
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -10,8 +12,6 @@ import com.segment.analytics.internal.Utils;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
 class Stats {
 
@@ -37,8 +37,9 @@ class Stats {
   }
 
   void dispatchFlush(int eventCount) {
-    handler.sendMessage(handler //
-        .obtainMessage(StatsHandler.TRACK_FLUSH, eventCount, 0));
+    handler.sendMessage(
+        handler //
+            .obtainMessage(StatsHandler.TRACK_FLUSH, eventCount, 0));
   }
 
   void performFlush(int eventCount) {
@@ -47,8 +48,9 @@ class Stats {
   }
 
   void dispatchIntegrationOperation(String key, long duration) {
-    handler.sendMessage(handler //
-        .obtainMessage(StatsHandler.TRACK_INTEGRATION_OPERATION, new Pair<>(key, duration)));
+    handler.sendMessage(
+        handler //
+            .obtainMessage(StatsHandler.TRACK_INTEGRATION_OPERATION, new Pair<>(key, duration)));
   }
 
   void performIntegrationOperation(Pair<String, Long> durationForIntegration) {
@@ -56,17 +58,21 @@ class Stats {
     integrationOperationDuration += durationForIntegration.second;
     Long duration = integrationOperationDurationByIntegration.get(durationForIntegration.first);
     if (duration == null) {
-      integrationOperationDurationByIntegration.put(durationForIntegration.first,
-          durationForIntegration.second);
+      integrationOperationDurationByIntegration.put(
+          durationForIntegration.first, durationForIntegration.second);
     } else {
-      integrationOperationDurationByIntegration.put(durationForIntegration.first,
-          duration + durationForIntegration.second);
+      integrationOperationDurationByIntegration.put(
+          durationForIntegration.first, duration + durationForIntegration.second);
     }
   }
 
   StatsSnapshot createSnapshot() {
-    return new StatsSnapshot(System.currentTimeMillis(), flushCount, flushEventCount,
-        integrationOperationCount, integrationOperationDuration,
+    return new StatsSnapshot(
+        System.currentTimeMillis(),
+        flushCount,
+        flushEventCount,
+        integrationOperationCount,
+        integrationOperationDuration,
         Collections.unmodifiableMap(integrationOperationDurationByIntegration));
   }
 
@@ -82,7 +88,8 @@ class Stats {
       this.stats = stats;
     }
 
-    @Override public void handleMessage(final Message msg) {
+    @Override
+    public void handleMessage(final Message msg) {
       switch (msg.what) {
         case TRACK_FLUSH:
           stats.performFlush(msg.arg1);

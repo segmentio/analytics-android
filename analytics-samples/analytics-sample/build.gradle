@@ -14,6 +14,7 @@ dependencies {
 }
 
 checkstyle {
-  configFile rootProject.file('gradle/checkstyle.xml')
+  configFile rootProject.file('codestyle/checkstyle.xml')
+  toolVersion = "7.5.1"
   showViolations true
 }

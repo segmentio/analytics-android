@@ -1,5 +1,13 @@
 package com.segment.analytics;
 
+import static com.segment.analytics.TestUtils.PROJECT_SETTINGS_JSON_SAMPLE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.MockitoAnnotations.initMocks;
+import static org.robolectric.annotation.Config.NONE;
+
 import com.google.common.collect.ImmutableMap;
 import com.segment.analytics.core.BuildConfig;
 import java.io.IOException;
@@ -13,27 +21,21 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.segment.analytics.TestUtils.PROJECT_SETTINGS_JSON_SAMPLE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.MockitoAnnotations.initMocks;
-import static org.robolectric.annotation.Config.NONE;
-
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 18, manifest = NONE) //
 public class ValueMapTest {
   ValueMap valueMap;
   Cartographer cartographer;
 
-  @Before public void setUp() {
+  @Before
+  public void setUp() {
     initMocks(this);
     valueMap = new ValueMap();
     cartographer = Cartographer.INSTANCE;
   }
 
-  @Test public void disallowsNullMap() throws Exception {
+  @Test
+  public void disallowsNullMap() throws Exception {
     try {
       new ValueMap(null);
       fail("Null Map should throw exception.");
@@ -41,12 +43,14 @@ public class ValueMapTest {
     }
   }
 
-  @Test public void emptyMap() throws Exception {
+  @Test
+  public void emptyMap() throws Exception {
     assertThat(valueMap).hasSize(0).isEmpty();
   }
 
-  @SuppressWarnings({ "ResultOfMethodCallIgnored", "SuspiciousMethodCalls" }) //
-  @Test public void methodsAreForwardedCorrectly() {
+  @SuppressWarnings({"ResultOfMethodCallIgnored", "SuspiciousMethodCalls"}) //
+  @Test
+  public void methodsAreForwardedCorrectly() {
     // todo: don't mock!
     Map<String, Object> delegate = spy(new LinkedHashMap<String, Object>());
     Object object = "foo";
@@ -91,7 +95,8 @@ public class ValueMapTest {
     verify(delegate).put("bar", object);
   }
 
-  @Test public void simpleConversions() throws Exception {
+  @Test
+  public void simpleConversions() throws Exception {
     String stringPi = String.valueOf(Math.PI);
 
     valueMap.put("double_pi", Math.PI);
@@ -101,13 +106,16 @@ public class ValueMapTest {
     assertThat(valueMap.getDouble("string_pi", 0)).isEqualTo(Math.PI);
   }
 
-  @Test public void enumDeserialization() throws Exception {
+  @Test
+  public void enumDeserialization() throws Exception {
     valueMap.put("value1", MyEnum.VALUE1);
     valueMap.put("value2", MyEnum.VALUE2);
     String json = cartographer.toJson(valueMap);
     // todo: the ordering may be different on different versions of Java
-    assertThat(json).isIn("{\"value2\":\"VALUE2\",\"value1\":\"VALUE1\"}",
-        "{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}");
+    assertThat(json)
+        .isIn(
+            "{\"value2\":\"VALUE2\",\"value1\":\"VALUE1\"}",
+            "{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}");
 
     valueMap = new ValueMap(cartographer.fromJson("{\"value1\":\"VALUE1\",\"value2\":\"VALUE2\"}"));
     assertThat(valueMap) //
@@ -117,12 +125,14 @@ public class ValueMapTest {
     assertThat(valueMap.getEnum(MyEnum.class, "value2")).isEqualTo(MyEnum.VALUE2);
   }
 
-  @Test public void allowsNullValues() {
+  @Test
+  public void allowsNullValues() {
     valueMap.put(null, "foo");
     valueMap.put("foo", null);
   }
 
-  @Test public void nestedMaps() throws Exception {
+  @Test
+  public void nestedMaps() throws Exception {
     ValueMap nested = new ValueMap();
     nested.put("value", "box");
     valueMap.put("nested", nested);
@@ -134,9 +144,11 @@ public class ValueMapTest {
     assertThat(valueMap).hasSize(1).contains(MapEntry.entry("nested", nested));
   }
 
-  @Test public void customJsonMapDeserialization() throws Exception {
+  @Test
+  public void customJsonMapDeserialization() throws Exception {
     Settings settings = new Settings(cartographer.fromJson(PROJECT_SETTINGS_JSON_SAMPLE));
-    assertThat(settings).hasSize(4)
+    assertThat(settings)
+        .hasSize(4)
         .containsKey("Amplitude")
         .containsKey("Segment")
         .containsKey("Flurry")
@@ -162,17 +174,20 @@ public class ValueMapTest {
     }
   }
 
-  @Test public void projectSettings() throws Exception {
-    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection") ValueMap valueMap =
-        new ValueMap(cartographer.fromJson(PROJECT_SETTINGS_JSON_SAMPLE));
+  @Test
+  public void projectSettings() throws Exception {
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    ValueMap valueMap = new ValueMap(cartographer.fromJson(PROJECT_SETTINGS_JSON_SAMPLE));
 
-    assertThat(valueMap.getValueMap("Amplitude")).isNotNull()
+    assertThat(valueMap.getValueMap("Amplitude"))
+        .isNotNull()
         .hasSize(4)
         .contains(MapEntry.entry("apiKey", "ad3c426eb736d7442a65da8174bc1b1b"))
         .contains(MapEntry.entry("trackNamedPages", true))
         .contains(MapEntry.entry("trackCategorizedPages", true))
         .contains(MapEntry.entry("trackAllPages", false));
-    assertThat(valueMap.getValueMap("Flurry")).isNotNull()
+    assertThat(valueMap.getValueMap("Flurry"))
+        .isNotNull()
         .hasSize(4)
         .contains(MapEntry.entry("apiKey", "8DY3D6S7CCWH54RBJ9ZM"))
         .contains(MapEntry.entry("captureUncaughtExceptions", false))
@@ -180,7 +195,8 @@ public class ValueMapTest {
         .contains(MapEntry.entry("sessionContinueSeconds", 10.0));
   }
 
-  @Test public void toJsonObject() throws Exception {
+  @Test
+  public void toJsonObject() throws Exception {
     JSONObject jsonObject =
         new ValueMap(cartographer.fromJson(PROJECT_SETTINGS_JSON_SAMPLE)).toJsonObject();
 
@@ -201,14 +217,16 @@ public class ValueMapTest {
     assertThat(flurry.getDouble("sessionContinueSeconds")).isEqualTo(10.0);
   }
 
-  @Test public void toJsonObjectWithNullValue() throws Exception {
+  @Test
+  public void toJsonObjectWithNullValue() throws Exception {
     valueMap.put("foo", null);
 
     JSONObject jsonObject = valueMap.toJsonObject();
     assertThat(jsonObject.get("foo")).isEqualTo(JSONObject.NULL);
   }
 
-  @Test public void getInt() {
+  @Test
+  public void getInt() {
     assertThat(valueMap.getInt("a missing key", 1)).isEqualTo(1);
 
     valueMap.putValue("a number", 3.14);
@@ -221,7 +239,8 @@ public class ValueMapTest {
     assertThat(valueMap.getInt("a string", 0)).isEqualTo(0);
   }
 
-  @Test public void getLong() {
+  @Test
+  public void getLong() {
     assertThat(valueMap.getLong("a missing key", 2)).isEqualTo(2);
 
     valueMap.putValue("a number", 3.14);
@@ -234,14 +253,16 @@ public class ValueMapTest {
     assertThat(valueMap.getLong("a string", 0)).isEqualTo(0);
   }
 
-  @Test public void getFloat() {
+  @Test
+  public void getFloat() {
     assertThat(valueMap.getFloat("foo", 0)).isEqualTo(0);
 
     valueMap.putValue("foo", 3.14);
     assertThat(valueMap.getFloat("foo", 0)).isEqualTo(3.14f);
   }
 
-  @Test public void getDouble() {
+  @Test
+  public void getDouble() {
     assertThat(valueMap.getDouble("a missing key", 3)).isEqualTo(3);
 
     valueMap.putValue("a number", Math.PI);
@@ -254,7 +275,8 @@ public class ValueMapTest {
     assertThat(valueMap.getDouble("a string", 0)).isEqualTo(0);
   }
 
-  @Test public void getChar() {
+  @Test
+  public void getChar() {
     assertThat(valueMap.getChar("a missing key", 'a')).isEqualTo('a');
 
     valueMap.putValue("a string", "f");
@@ -265,10 +287,12 @@ public class ValueMapTest {
   }
 
   enum Soda {
-    PEPSI, COKE
+    PEPSI,
+    COKE
   }
 
-  @Test public void getEnum() {
+  @Test
+  public void getEnum() {
     try {
       valueMap.getEnum(null, "foo");
       fail("should have thrown IllegalArgumentException");
@@ -285,17 +309,20 @@ public class ValueMapTest {
     assertThat(valueMap.getEnum(Soda.class, "coke")).isEqualTo(Soda.COKE);
   }
 
-  @Test public void getValueMapWithClass() {
+  @Test
+  public void getValueMapWithClass() {
     valueMap.put("foo", "not a map");
     assertThat(valueMap.getValueMap("foo", Traits.class)).isNull();
   }
 
-  @Test public void getList() {
+  @Test
+  public void getList() {
     valueMap.put("foo", "not a list");
     assertThat(valueMap.getList("foo", Traits.class)).isNull();
   }
 
-  @Test public void toStringMap() {
+  @Test
+  public void toStringMap() {
     assertThat(valueMap.toStringMap()).isEmpty();
 
     valueMap.put("foo", "bar");
@@ -304,7 +331,8 @@ public class ValueMapTest {
   }
 
   private enum MyEnum {
-    VALUE1, VALUE2
+    VALUE1,
+    VALUE2
   }
 
   static class Settings extends ValueMap {
