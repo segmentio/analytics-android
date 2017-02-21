@@ -43,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 
 /** Entity that queues payloads on disks and uploads them periodically. */
 class SegmentIntegration extends Integration<Void> {
+
   static final Integration.Factory FACTORY =
       new Integration.Factory() {
         @Override
@@ -126,7 +127,7 @@ class SegmentIntegration extends Integration<Void> {
    * somehow corrupted, we'll delete it, and try to recreate the file. This method will throw an
    * {@link IOException} if the directory doesn't exist and could not be created.
    */
-  private static QueueFile createQueueFile(File folder, String name) throws IOException {
+  static QueueFile createQueueFile(File folder, String name) throws IOException {
     createDirectory(folder);
     File file = new File(folder, name);
     try {
@@ -159,7 +160,7 @@ class SegmentIntegration extends Integration<Void> {
       QueueFile queueFile = createQueueFile(folder, tag);
       payloadQueue = new PayloadQueue.PersistentQueue(queueFile);
     } catch (IOException e) {
-      logger.error(e, "Falling back to memory queue.");
+      logger.error(e, "Could not create disk queue. Falling back to memory queue.");
       payloadQueue = new PayloadQueue.MemoryQueue();
     }
     return new SegmentIntegration(
@@ -292,7 +293,7 @@ class SegmentIntegration extends Integration<Void> {
       return;
     }
 
-    logger.verbose("Enqueued %s payload. %s elements in the queue.", payload, payloadQueue.size());
+    logger.verbose("Enqueued %s payload. %s elements in the queue.", original, payloadQueue.size());
     if (payloadQueue.size() >= flushQueueSize) {
       submitFlush();
     }
@@ -326,7 +327,6 @@ class SegmentIntegration extends Integration<Void> {
   }
 
   /** Upload payloads to our servers and remove them from the queue file. */
-  @Private
   void performFlush() {
     // Conditions could have changed between enqueuing the task and when it is run.
     if (!shouldFlush()) {
@@ -357,6 +357,12 @@ class SegmentIntegration extends Integration<Void> {
       if (e.responseCode >= 400 && e.responseCode < 500) {
         // Simply log and proceed to remove the rejected payloads from the queue.
         logger.error(e, "Payloads were rejected by server. Marked for removal.");
+        try {
+          payloadQueue.remove(payloadsUploaded);
+        } catch (IOException e1) {
+          logger.error(e, "Unable to remove " + payloadsUploaded + " payload(s) from queue.");
+        }
+        return;
       } else {
         logger.error(e, "Error while uploading payloads");
         return;
@@ -405,7 +411,9 @@ class SegmentIntegration extends Integration<Void> {
     public boolean read(InputStream in, int length) throws IOException {
       InputStream is = crypto.decrypt(in);
       final int newSize = size + length;
-      if (newSize > MAX_BATCH_SIZE) return false;
+      if (newSize > MAX_BATCH_SIZE) {
+        return false;
+      }
       size = newSize;
       byte[] data = new byte[length];
       //noinspection ResultOfMethodCallIgnored

@@ -14,7 +14,7 @@ import com.segment.analytics.integrations.TrackPayload;
 
 /** Abstraction for a task that a {@link Integration <?>} can execute. */
 abstract class IntegrationOperation {
-  static boolean isIntegrationEnabled(ValueMap integrations, String key) {
+  private static boolean isIntegrationEnabled(ValueMap integrations, String key) {
     if (isNullOrEmpty(integrations)) {
       return true;
     }
@@ -28,16 +28,6 @@ abstract class IntegrationOperation {
       enabled = integrations.getBoolean(ALL_INTEGRATIONS_KEY, true);
     }
     return enabled;
-  }
-
-  static boolean isIntegrationEnabledInPlan(ValueMap plan, String key) {
-    boolean eventEnabled = plan.getBoolean("enabled", true);
-    if (eventEnabled) {
-      // Check if there is an integration specific setting.
-      ValueMap integrationPlan = plan.getValueMap("integrations");
-      eventEnabled = isIntegrationEnabled(integrationPlan, key);
-    }
-    return eventEnabled;
   }
 
   static IntegrationOperation onActivityCreated(final Activity activity, final Bundle bundle) {

@@ -1405,8 +1405,9 @@ public class Analytics {
       long startTime = System.nanoTime();
       operation.run(key, entry.getValue(), projectSettings);
       long endTime = System.nanoTime();
-      long duration = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-      stats.dispatchIntegrationOperation(key, duration);
+      long durationInMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+      stats.dispatchIntegrationOperation(key, durationInMillis);
+      logger.debug("Ran %s on integration %s in %d ns.", operation, key, endTime - startTime);
     }
   }
 

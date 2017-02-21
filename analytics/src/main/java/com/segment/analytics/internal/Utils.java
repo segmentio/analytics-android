@@ -312,13 +312,12 @@ public final class Utils {
    * returns the {@link Object#toString} of any object that is of a custom (non-primitive or
    * non-collection/map) type.
    *
-   * <p>If the object is null or , returns {@link JSONObject#NULL}. If the object is a {@link
-   * JSONArray} or {@link JSONObject}, no wrapping is necessary. If the object is {@link
-   * JSONObject#NULL}, no wrapping is necessary. If the object is an array or {@link Collection},
-   * returns an equivalent {@link JSONArray}. If the object is a {@link Map}, returns an equivalent
-   * {@link JSONObject}. If the object is a primitive wrapper type or {@link String}, returns the
-   * object. Otherwise returns the result of {@link Object#toString}. If wrapping fails, returns
-   * JSONObject.NULL.
+   * <p>If the object is null returns {@link JSONObject#NULL}. If the object is a {@link JSONArray}
+   * or {@link JSONObject}, no wrapping is necessary. If the object is {@link JSONObject#NULL}, no
+   * wrapping is necessary. If the object is an array or {@link Collection}, returns an equivalent
+   * {@link JSONArray}. If the object is a {@link Map}, returns an equivalent {@link JSONObject}. If
+   * the object is a primitive wrapper type or {@link String}, returns the object. Otherwise returns
+   * the result of {@link Object#toString}. If wrapping fails, returns JSONObject.NULL.
    */
   private static Object wrap(Object o) {
     if (o == null) {
