@@ -32,6 +32,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -190,11 +191,15 @@ public class Cartographer {
     writer.endArray();
   }
 
-  /** Print the json representation of an array to the given writer. */
-  private static void arrayToWriter(Object[] array, JsonWriter writer) throws IOException {
+  /**
+   * Print the json representation of an array to the given writer. Primitive arrays cannot be cast
+   * to Object[], to this method accepts the raw object and uses {@link Array#getLength(Object)} and
+   * {@link Array#get(Object, int)} to read the array.
+   */
+  private static void arrayToWriter(Object array, JsonWriter writer) throws IOException {
     writer.beginArray();
-    for (Object value : array) {
-      writeValue(value, writer);
+    for (int i = 0, size = Array.getLength(array); i < size; i++) {
+      writeValue(Array.get(array, i), writer);
     }
     writer.endArray();
   }
@@ -216,7 +221,7 @@ public class Cartographer {
     } else if (value instanceof Map) {
       mapToWriter((Map) value, writer);
     } else if (value.getClass().isArray()) {
-      arrayToWriter((Object[]) value, writer);
+      arrayToWriter(value, writer);
     } else {
       writer.value(String.valueOf(value));
     }
