@@ -2,6 +2,7 @@ package com.segment.analytics;
 
 import static android.content.Context.MODE_PRIVATE;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
+import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.TestUtils.SynchronousExecutor;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static com.segment.analytics.Utils.createContext;
@@ -61,7 +62,6 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
-import org.robolectric.shadows.ShadowLog;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 18, manifest = Config.NONE)
@@ -135,7 +135,7 @@ public class AnalyticsTest {
             traitsCache,
             analyticsContext,
             defaultOptions,
-            Logger.with(NONE),
+            Logger.with(VERBOSE),
             "qaz",
             Collections.singletonList(factory),
             client,
@@ -163,7 +163,6 @@ public class AnalyticsTest {
         .edit()
         .clear()
         .commit();
-    assertThat(ShadowLog.getLogs()).isEmpty();
   }
 
   @Test
@@ -530,10 +529,17 @@ public class AnalyticsTest {
   }
 
   @Test
-  public void flush() throws Exception {
+  public void flush() {
     analytics.flush();
 
     verify(integration).flush();
+  }
+
+  @Test
+  public void reset() {
+    analytics.reset();
+
+    verify(integration).reset();
   }
 
   @Test

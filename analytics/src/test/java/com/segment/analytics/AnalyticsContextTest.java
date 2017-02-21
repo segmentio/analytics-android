@@ -1,10 +1,16 @@
 package com.segment.analytics;
 
+import static android.content.Context.CONNECTIVITY_SERVICE;
 import static com.segment.analytics.Utils.createContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.robolectric.annotation.Config.NONE;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import com.google.common.collect.ImmutableMap;
 import com.segment.analytics.core.BuildConfig;
 import java.util.Map;
 import org.assertj.core.data.MapEntry;
@@ -18,6 +24,7 @@ import org.robolectric.annotation.Config;
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
 public class AnalyticsContextTest {
+
   AnalyticsContext context;
   Traits traits;
 
@@ -129,8 +136,8 @@ public class AnalyticsContextTest {
     assertThat(campaign.term()).isEqualTo("campaign-term");
     assertThat(campaign.tern()).isEqualTo("campaign-term");
 
-    campaign.putTerm("campaign-content");
-    assertThat(campaign.term()).isEqualTo("campaign-content");
+    campaign.putContent("campaign-content");
+    assertThat(campaign.content()).isEqualTo("campaign-content");
 
     context.putCampaign(campaign);
     assertThat(context.campaign()).isEqualTo(campaign);
@@ -186,5 +193,23 @@ public class AnalyticsContextTest {
 
     context.putReferrer(referrer);
     assertThat(context).containsEntry("referrer", referrer);
+  }
+
+  @Test
+  public void network() {
+    Context application = mock(Context.class);
+    ConnectivityManager manager = mock(ConnectivityManager.class);
+    when(application.getSystemService(CONNECTIVITY_SERVICE)).thenReturn(manager);
+    context.putNetwork(application);
+
+    assertThat(context)
+        .containsEntry(
+            "network",
+            new ImmutableMap.Builder<>()
+                .put("wifi", false)
+                .put("carrier", "unknown")
+                .put("bluetooth", false)
+                .put("cellular", false)
+                .build());
   }
 }

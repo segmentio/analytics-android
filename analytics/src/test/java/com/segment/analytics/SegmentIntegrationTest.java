@@ -27,6 +27,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import com.segment.analytics.Client.Connection;
 import com.segment.analytics.core.BuildConfig;
 import com.segment.analytics.integrations.Logger;
 import com.segment.analytics.integrations.TrackPayload;
@@ -43,6 +44,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -56,6 +58,7 @@ import org.robolectric.shadows.ShadowLog;
 public class SegmentIntegrationTest {
 
   @Rule public TemporaryFolder folder = new TemporaryFolder();
+  QueueFile queueFile;
 
   private static Client.Connection mockConnection() {
     return mockConnection(mock(HttpURLConnection.class));
@@ -68,6 +71,11 @@ public class SegmentIntegrationTest {
         super.close();
       }
     };
+  }
+
+  @Before
+  public void setUp() throws IOException {
+    queueFile = new QueueFile(new File(folder.getRoot(), "queue-file"));
   }
 
   @After
@@ -154,7 +162,6 @@ public class SegmentIntegrationTest {
 
   @Test
   public void enqueueMaxTriggersFlush() throws IOException {
-    QueueFile queueFile = new QueueFile(new File(folder.getRoot(), "queue-file"));
     PayloadQueue payloadQueue = new PayloadQueue.PersistentQueue(queueFile);
     Client client = mock(Client.class);
     Client.Connection connection = mockConnection();
@@ -178,7 +185,6 @@ public class SegmentIntegrationTest {
 
   @Test
   public void flushRemovesItemsFromQueue() throws IOException {
-    QueueFile queueFile = new QueueFile(new File(folder.getRoot(), "queue-file"));
     PayloadQueue payloadQueue = new PayloadQueue.PersistentQueue(queueFile);
     Client client = mock(Client.class);
     when(client.upload()).thenReturn(mockConnection());
@@ -252,7 +258,6 @@ public class SegmentIntegrationTest {
   @Test
   public void flushDisconnectsConnection() throws IOException {
     Client client = mock(Client.class);
-    QueueFile queueFile = new QueueFile(new File(folder.getRoot(), "queue-file"));
     PayloadQueue payloadQueue = new PayloadQueue.PersistentQueue(queueFile);
     queueFile.add(TRACK_PAYLOAD_JSON.getBytes());
     HttpURLConnection urlConnection = mock(HttpURLConnection.class);
@@ -267,6 +272,63 @@ public class SegmentIntegrationTest {
     segmentIntegration.submitFlush();
 
     verify(urlConnection, times(2)).disconnect();
+  }
+
+  @Test
+  public void removesRejectedPayloads() throws IOException {
+    // todo: rewrite using mockwebserver.
+    PayloadQueue payloadQueue = new PayloadQueue.PersistentQueue(queueFile);
+    Client client = mock(Client.class);
+    when(client.upload())
+        .thenReturn(
+            new Connection(
+                mock(HttpURLConnection.class), mock(InputStream.class), mock(OutputStream.class)) {
+              @Override
+              public void close() throws IOException {
+                throw new Client.HTTPException(400, "Bad Request", "bad request");
+              }
+            });
+    SegmentIntegration segmentIntegration =
+        new SegmentBuilder() //
+            .client(client)
+            .payloadQueue(payloadQueue)
+            .build();
+    for (int i = 0; i < 4; i++) {
+      payloadQueue.add(TRACK_PAYLOAD_JSON.getBytes());
+    }
+
+    segmentIntegration.submitFlush();
+
+    assertThat(queueFile.size()).isEqualTo(0);
+  }
+
+  @Test
+  public void ignoresServerError() throws IOException {
+    // todo: rewrite using mockwebserver.
+    PayloadQueue payloadQueue = new PayloadQueue.PersistentQueue(queueFile);
+    Client client = mock(Client.class);
+    when(client.upload())
+        .thenReturn(
+            new Connection(
+                mock(HttpURLConnection.class), mock(InputStream.class), mock(OutputStream.class)) {
+              @Override
+              public void close() throws IOException {
+                throw new Client.HTTPException(
+                    500, "Internal Server Error", "internal server error");
+              }
+            });
+    SegmentIntegration segmentIntegration =
+        new SegmentBuilder() //
+            .client(client)
+            .payloadQueue(payloadQueue)
+            .build();
+    for (int i = 0; i < 4; i++) {
+      payloadQueue.add(TRACK_PAYLOAD_JSON.getBytes());
+    }
+
+    segmentIntegration.submitFlush();
+
+    assertThat(queueFile.size()).isEqualTo(4);
   }
 
   @Test
@@ -293,7 +355,7 @@ public class SegmentIntegrationTest {
     // Serialized json is too large (> 15kb).
     StringBuilder stringBuilder = new StringBuilder();
     for (int i = 0; i < SegmentIntegration.MAX_PAYLOAD_SIZE + 1; i++) {
-      stringBuilder.append('a');
+      stringBuilder.append("a");
     }
     when(cartographer.toJson(anyMap())).thenReturn(stringBuilder.toString());
     segmentIntegration.performEnqueue(payload);
@@ -317,62 +379,61 @@ public class SegmentIntegrationTest {
             mock(SegmentIntegration.BatchPayloadWriter.class), Crypto.none());
     byte[] bytes =
         ("{\n"
-                + "        'context': {\n"
-                + "          'library': 'analytics-android',\n"
-                + "          'libraryVersion': '0.4.4',\n"
-                + "          'telephony': {\n"
-                + "            'radio': 'gsm',\n"
-                + "            'carrier': 'FI elisa'\n"
+                + "        \"context\": {\n"
+                + "          \"library\": \"analytics-android\",\n"
+                + "          \"libraryVersion\": \"0.4.4\",\n"
+                + "          \"telephony\": {\n"
+                + "            \"radio\": \"gsm\",\n"
+                + "            \"carrier\": \"FI elisa\"\n"
                 + "          },\n"
-                + "          'wifi': {\n"
-                + "            'connected': false,\n"
-                + "            'available': false\n"
+                + "          \"wifi\": {\n"
+                + "            \"connected\": false,\n"
+                + "            \"available\": false\n"
                 + "          },\n"
-                + "          'providers': {\n"
-                + "            'Tapstream': false,\n"
-                + "            'Amplitude': false,\n"
-                + "            'Localytics': false,\n"
-                + "            'Flurry': false,\n"
-                + "            'Countly': false,\n"
-                + "            'Bugsnag': false,\n"
-                + "            'Quantcast': false,\n"
-                + "            'Crittercism': false,\n"
-                + "            'Google Analytics': false,\n"
-                + "            'Omniture': false,\n"
-                + "            'Mixpanel': false\n"
+                + "          \"providers\": {\n"
+                + "            \"Tapstream\": false,\n"
+                + "            \"Amplitude\": false,\n"
+                + "            \"Localytics\": false,\n"
+                + "            \"Flurry\": false,\n"
+                + "            \"Countly\": false,\n"
+                + "            \"Bugsnag\": false,\n"
+                + "            \"Quantcast\": false,\n"
+                + "            \"Crittercism\": false,\n"
+                + "            \"Google Analytics\": false,\n"
+                + "            \"Omniture\": false,\n"
+                + "            \"Mixpanel\": false\n"
                 + "          },\n"
-                + "          'location': {\n"
-                + "            'speed': 0,\n"
-                + "            'longitude': 24.937207,\n"
-                + "            'latitude': 60.2495497\n"
+                + "          \"location\": {\n"
+                + "            \"speed\": 0,\n"
+                + "            \"longitude\": 24.937207,\n"
+                + "            \"latitude\": 60.2495497\n"
                 + "          },\n"
-                + "          'locale': {\n"
-                + "            'carrier': 'FI elisa',\n"
-                + "            'language': 'English',\n"
-                + "            'country': 'United States'\n"
+                + "          \"locale\": {\n"
+                + "            \"carrier\": \"FI elisa\",\n"
+                + "            \"language\": \"English\",\n"
+                + "            \"country\": \"United States\"\n"
                 + "          },\n"
-                + "          'device': {\n"
-                + "            'userId': '123',\n"
-                + "            'brand': 'samsung',\n"
-                + "            'release': '4.2.2',\n"
-                + "            'manufacturer': 'samsung',\n"
-                + "            'sdk': 17\n"
+                + "          \"device\": {\n"
+                + "            \"userId\": \"123\",\n"
+                + "            \"brand\": \"samsung\",\n"
+                + "            \"release\": \"4.2.2\",\n"
+                + "            \"manufacturer\": \"samsung\",\n"
+                + "            \"sdk\": 17\n"
                 + "          },\n"
-                + "          'display': {\n"
-                + "            'density': 1.5,\n"
-                + "            'width': 800,\n"
-                + "            'height': 480\n"
+                + "          \"display\": {\n"
+                + "            \"density\": 1.5,\n"
+                + "            \"width\": 800,\n"
+                + "            \"height\": 480\n"
                 + "          },\n"
-                + "          'build': {\n"
-                + "            'name': '1.0',\n"
-                + "            'code': 1\n"
+                + "          \"build\": {\n"
+                + "            \"name\": \"1.0\",\n"
+                + "            \"code\": 1\n"
                 + "          },\n"
-                + "          'ip': '80.186.195.102',\n"
-                + "          'inferredIp': true\n"
+                + "          \"ip\": \"80.186.195.102\",\n"
+                + "          \"inferredIp\": true\n"
                 + "        }\n"
                 + "      }")
             .getBytes(); // length 1432
-    QueueFile queueFile = new QueueFile(new File(folder.getRoot(), "queue-file"));
     // Fill the payload with (1432 * 500) = ~716kb of data
     for (int i = 0; i < 500; i++) {
       queueFile.add(bytes);
@@ -385,6 +446,7 @@ public class SegmentIntegrationTest {
   }
 
   private static class SegmentBuilder {
+
     Client client;
     Stats stats;
     PayloadQueue payloadQueue;
@@ -460,12 +522,24 @@ public class SegmentIntegrationTest {
         when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)) //
             .thenReturn(PERMISSION_DENIED);
       }
-      if (client == null) client = mock(Client.class);
-      if (cartographer == null) cartographer = Cartographer.INSTANCE;
-      if (payloadQueue == null) payloadQueue = mock(PayloadQueue.class);
-      if (stats == null) stats = mock(Stats.class);
-      if (integrations == null) integrations = Collections.emptyMap();
-      if (networkExecutor == null) networkExecutor = new SynchronousExecutor();
+      if (client == null) {
+        client = mock(Client.class);
+      }
+      if (cartographer == null) {
+        cartographer = Cartographer.INSTANCE;
+      }
+      if (payloadQueue == null) {
+        payloadQueue = mock(PayloadQueue.class);
+      }
+      if (stats == null) {
+        stats = mock(Stats.class);
+      }
+      if (integrations == null) {
+        integrations = Collections.emptyMap();
+      }
+      if (networkExecutor == null) {
+        networkExecutor = new SynchronousExecutor();
+      }
       return new SegmentIntegration(
           context,
           client,
