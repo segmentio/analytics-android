@@ -66,6 +66,7 @@ import org.robolectric.shadows.ShadowApplication;
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 18, manifest = Config.NONE)
 public class AnalyticsTest {
+
   private static final String SETTINGS =
       "{\n"
           + "  \"integrations\": {\n"
@@ -78,14 +79,22 @@ public class AnalyticsTest {
           + "  }\n"
           + "}";
 
-  @Mock Traits.Cache traitsCache;
-  @Mock Options defaultOptions;
-  @Spy AnalyticsNetworkExecutorService networkExecutor;
-  @Spy ExecutorService analyticsExecutor = new SynchronousExecutor();
-  @Mock Client client;
-  @Mock Stats stats;
-  @Mock ProjectSettings.Cache projectSettingsCache;
-  @Mock Integration integration;
+  @Mock
+  Traits.Cache traitsCache;
+  @Mock
+  Options defaultOptions;
+  @Spy
+  AnalyticsNetworkExecutorService networkExecutor;
+  @Spy
+  ExecutorService analyticsExecutor = new SynchronousExecutor();
+  @Mock
+  Client client;
+  @Mock
+  Stats stats;
+  @Mock
+  ProjectSettings.Cache projectSettingsCache;
+  @Mock
+  Integration integration;
   Integration.Factory factory;
   BooleanPreference optOut;
   Application application;
@@ -150,7 +159,8 @@ public class AnalyticsTest {
             false,
             false,
             optOut,
-            Crypto.none());
+            Crypto.none(),
+            Collections.<Interceptor>emptyList());
 
     // Used by singleton tests.
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
@@ -279,7 +289,7 @@ public class AnalyticsTest {
   @Test
   public void invalidScreen() throws Exception {
     try {
-      analytics.screen(null, null);
+      analytics.screen(null, (String) null);
       fail("null category and name should throw exception");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("either category or name must be provided.");
@@ -566,7 +576,8 @@ public class AnalyticsTest {
                   }
 
                   @Override
-                  public void describeTo(Description description) {}
+                  public void describeTo(Description description) {
+                  }
                 }));
     assertThat(analyticsContext.traits()).hasSize(1).containsKey("anonymousId");
   }
@@ -746,7 +757,8 @@ public class AnalyticsTest {
             false,
             false,
             optOut,
-            Crypto.none());
+            Crypto.none(),
+            Collections.<Interceptor>emptyList());
 
     callback.get().onActivityCreated(null, null);
 
@@ -839,7 +851,8 @@ public class AnalyticsTest {
             false,
             false,
             optOut,
-            Crypto.none());
+            Crypto.none(),
+            Collections.<Interceptor>emptyList());
 
     callback.get().onActivityCreated(null, null);
 
@@ -916,7 +929,8 @@ public class AnalyticsTest {
             true,
             false,
             optOut,
-            Crypto.none());
+            Crypto.none(),
+            Collections.<Interceptor>emptyList());
 
     Activity activity = mock(Activity.class);
     PackageManager packageManager = mock(PackageManager.class);
@@ -982,7 +996,8 @@ public class AnalyticsTest {
             false,
             false,
             optOut,
-            Crypto.none());
+            Crypto.none(),
+            Collections.<Interceptor>emptyList());
 
     Activity activity = mock(Activity.class);
     Bundle bundle = new Bundle();

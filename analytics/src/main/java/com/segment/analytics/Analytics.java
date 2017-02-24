@@ -44,6 +44,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
@@ -93,6 +95,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @see <a href="https://Segment/">Segment</a>
  */
 public class Analytics {
+
   static final Handler HANDLER =
       new Handler(Looper.getMainLooper()) {
         @Override
@@ -112,6 +115,7 @@ public class Analytics {
   private final Application application;
   final ExecutorService networkExecutor;
   final Stats stats;
+  private final List<Interceptor> interceptors;
   @Private final Options defaultOptions;
   @Private final Traits.Cache traitsCache;
   @Private final AnalyticsContext analyticsContext;
@@ -213,7 +217,8 @@ public class Analytics {
       final boolean shouldRecordScreenViews,
       final boolean trackAttributionInformation,
       BooleanPreference optOut,
-      Crypto crypto) {
+      Crypto crypto,
+      List<Interceptor> interceptors) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -233,6 +238,7 @@ public class Analytics {
     this.factories = Collections.unmodifiableList(factories);
     this.analyticsExecutor = analyticsExecutor;
     this.crypto = crypto;
+    this.interceptors = interceptors;
 
     namespaceSharedPreferences();
 
@@ -447,25 +453,13 @@ public class Analytics {
 
   // Analytics API
 
-  /**
-   * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
-   * also lets you record {@code traits} about the user, like their email, name, account type, etc.
-   * This method will simply set the userId for the current user.
-   *
-   * @see #identify(String, Traits, Options)
-   */
-  public void identify(String userId) {
+  /** @see #identify(String, Traits, Options) */
+  public void identify(@NonNull String userId) {
     identify(userId, null, null);
   }
 
-  /**
-   * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
-   * also lets you record {@code traits} about the user, like their email, name, account type, etc.
-   * This method will simply add the given traits to the user profile.
-   *
-   * @see #identify(String, Traits, Options)
-   */
-  public void identify(Traits traits) {
+  /** @see #identify(String, Traits, Options) */
+  public void identify(@NonNull Traits traits) {
     identify(null, traits, null);
   }
 
@@ -479,15 +473,14 @@ public class Analytics {
    *
    * @param userId Unique identifier which you recognize a user by in your own database. If this is
    *     null or empty, any previous id we have (could be the anonymous id) will be used.
-   * @param newTraits Traits about the user
-   * @param options To configure the call
+   * @param newTraits Traits about the user.
+   * @param options To configure the call.
    * @throws IllegalArgumentException if both {@code userId} and {@code newTraits} are not provided
-   * @see <a href="https://segment.com/docs/tracking-api/identify/">Identify Documentation</a>
+   * @see <a href="https://segment.com/docs/spec/identify/">Identify Documentation</a>.
    */
-  public void identify(String userId, Traits newTraits, final Options options) {
-    if (shutdown) {
-      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
-    }
+  public void identify(
+      @Nullable String userId, @Nullable Traits newTraits, final @Nullable Options options) {
+    assertNotShutdown();
     if (isNullOrEmpty(userId) && isNullOrEmpty(newTraits)) {
       throw new IllegalArgumentException("Either userId or some traits must be provided.");
     }
@@ -514,22 +507,21 @@ public class Analytics {
               finalOptions = options;
             }
 
-            waitForAdvertisingId();
-            IdentifyPayload payload =
-                new IdentifyPayload(analyticsContext, finalOptions, traitsCache.get());
-            enqueue(payload);
+            IdentifyPayload.Builder builder =
+                new IdentifyPayload.Builder().traits(traitsCache.get());
+            fillAndEnqueue(builder, finalOptions);
           }
         });
   }
 
-  /**
-   * The group method lets you associate a user with a group. It also lets you record custom traits
-   * about the group, like industry or number of employees.
-   *
-   * @see #group(String, Traits, Options)
-   */
-  public void group(String groupId) {
+  /** @see #group(String, Traits, Options) */
+  public void group(@NonNull String groupId) {
     group(groupId, null, null);
+  }
+
+  /** @see #group(String, Traits, Options) */
+  public void group(@NonNull String groupId, @Nullable Traits traits) {
+    group(groupId, traits, null);
   }
 
   /**
@@ -541,14 +533,15 @@ public class Analytics {
    *
    * @param groupId Unique identifier which you recognize a group by in your own database. Must not
    *     be null or empty.
-   * @param options To configure the call
-   * @throws IllegalArgumentException if groupId is null or an empty string
-   * @see <a href="https://segment.com/docs/tracking-api/group/">Group Documentation</a>
+   * @param options To configure the call.
+   * @throws IllegalArgumentException if groupId is null or an empty string.
+   * @see <a href="https://segment.com/docs/spec/group/">Group Documentation</a>
    */
-  public void group(final String groupId, final Traits groupTraits, final Options options) {
-    if (shutdown) {
-      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
-    }
+  public void group(
+      @NonNull final String groupId,
+      @Nullable final Traits groupTraits,
+      @Nullable final Options options) {
+    assertNotShutdown();
     if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException("groupId must not be null or empty.");
     }
@@ -571,33 +564,20 @@ public class Analytics {
               finalOptions = options;
             }
 
-            waitForAdvertisingId();
-            GroupPayload payload =
-                new GroupPayload(analyticsContext, finalOptions, groupId, finalGroupTraits);
-            enqueue(payload);
+            GroupPayload.Builder builder =
+                new GroupPayload.Builder().groupId(groupId).traits(finalGroupTraits);
+            fillAndEnqueue(builder, finalOptions);
           }
         });
   }
 
-  /**
-   * The track method is how you record any actions your users perform. Each action is known by a
-   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions. For
-   * example a 'Purchased a Shirt' event might have properties like revenue or size.
-   *
-   * @see #track(String, Properties, Options)
-   */
-  public void track(String event) {
+  /** @see #track(String, Properties, Options) */
+  public void track(@NonNull String event) {
     track(event, null, null);
   }
 
-  /**
-   * The track method is how you record any actions your users perform. Each action is known by a
-   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions. For
-   * example a 'Purchased a Shirt' event might have properties like revenue or size.
-   *
-   * @see #track(String, Properties, Options)
-   */
-  public void track(String event, Properties properties) {
+  /** @see #track(String, Properties, Options) */
+  public void track(@NonNull String event, @Nullable Properties properties) {
     track(event, properties, null);
   }
 
@@ -607,15 +587,16 @@ public class Analytics {
    * example a 'Purchased a Shirt' event might have properties like revenue or size.
    *
    * @param event Name of the event. Must not be null or empty.
-   * @param properties {@link Properties} to add extra information to this call
-   * @param options To configure the call
-   * @throws IllegalArgumentException if event name is null or an empty string
-   * @see <a href="https://segment.com/docs/tracking-api/track/">Track Documentation</a>
+   * @param properties {@link Properties} to add extra information to this call.
+   * @param options To configure the call.
+   * @throws IllegalArgumentException if event name is null or an empty string.
+   * @see <a href="https://segment.com/docs/spec/track/">Track Documentation</a>
    */
-  public void track(final String event, final Properties properties, final Options options) {
-    if (shutdown) {
-      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
-    }
+  public void track(
+      final @NonNull String event,
+      final @Nullable Properties properties,
+      @Nullable final Options options) {
+    assertNotShutdown();
     if (isNullOrEmpty(event)) {
       throw new IllegalArgumentException("event must not be null or empty.");
     }
@@ -638,44 +619,56 @@ public class Analytics {
               finalProperties = properties;
             }
 
-            waitForAdvertisingId();
-            TrackPayload payload =
-                new TrackPayload(analyticsContext, finalOptions, event, finalProperties);
-            enqueue(payload);
+            TrackPayload.Builder builder =
+                new TrackPayload.Builder().event(event).properties(finalProperties);
+            fillAndEnqueue(builder, finalOptions);
           }
         });
   }
 
-  /** @see #screen(String, String, Properties, Options) */
-  public void screen(String category, String name) {
+  /**
+   * @see #screen(String, String, Properties, Options)
+   * @deprecated Use {@link #screen(String)} instead.
+   */
+  public void screen(@Nullable String category, @Nullable String name) {
     screen(category, name, null, null);
   }
 
-  /** @see #screen(String, String, Properties, Options) */
-  public void screen(String category, String name, Properties properties) {
+  /**
+   * @see #screen(String, String, Properties, Options)
+   * @deprecated Use {@link #screen(String, Properties)} instead.
+   */
+  public void screen(
+      @Nullable String category, @Nullable String name, @Nullable Properties properties) {
     screen(category, name, properties, null);
+  }
+
+  /** @see #screen(String, String, Properties, Options) */
+  public void screen(@Nullable String name) {
+    screen(null, name, null, null);
+  }
+
+  /** @see #screen(String, String, Properties, Options) */
+  public void screen(@Nullable String name, @Nullable Properties properties) {
+    screen(null, name, properties, null);
   }
 
   /**
    * The screen methods let your record whenever a user sees a screen of your mobile app, and attach
-   * a name, category or properties to the screen.
+   * a name, category or properties to the screen. Either category or name must be provided.
    *
-   * <p>Either category or name must be provided.
-   *
-   * @param category A category to describe the screen
-   * @param name A name for the screen
-   * @param properties {@link Properties} to add extra information to this call
-   * @param options To configure the call
-   * @see <a href="http://segment.com/docs/tracking-api/page-and-screen/">Screen Documentation</a>
+   * @param category A category to describe the screen. Deprecated.
+   * @param name A name for the screen.
+   * @param properties {@link Properties} to add extra information to this call.
+   * @param options To configure the call.
+   * @see <a href="https://segment.com/docs/spec/screen/">Screen Documentation</a>
    */
   public void screen(
-      final String category,
-      final String name,
-      final Properties properties,
-      final Options options) {
-    if (shutdown) {
-      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
-    }
+      @Nullable final String category,
+      @Nullable final String name,
+      @Nullable final Properties properties,
+      @Nullable final Options options) {
+    assertNotShutdown();
     if (isNullOrEmpty(category) && isNullOrEmpty(name)) {
       throw new IllegalArgumentException("either category or name must be provided.");
     }
@@ -698,22 +691,18 @@ public class Analytics {
               finalProperties = properties;
             }
 
-            waitForAdvertisingId();
-            ScreenPayload payload =
-                new ScreenPayload(analyticsContext, finalOptions, category, name, finalProperties);
-            enqueue(payload);
+            ScreenPayload.Builder builder =
+                new ScreenPayload.Builder()
+                    .name(name)
+                    .category(category)
+                    .properties(finalProperties);
+            fillAndEnqueue(builder, finalOptions);
           }
         });
   }
 
-  /**
-   * The alias method is used to merge two user identities, effectively connecting two sets of user
-   * data as one. This is an advanced method, but it is required to manage user identities
-   * successfully in some of our integrations.
-   *
-   * @see #alias(String, Options)
-   */
-  public void alias(String newId) {
+  /** @see #alias(String, Options) */
+  public void alias(@NonNull String newId) {
     alias(newId, null);
   }
 
@@ -736,10 +725,8 @@ public class Analytics {
    * @throws IllegalArgumentException if newId is null or empty
    * @see <a href="https://segment.com/docs/tracking-api/alias/">Alias Documentation</a>
    */
-  public void alias(final String newId, final Options options) {
-    if (shutdown) {
-      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
-    }
+  public void alias(final @NonNull String newId, final @Nullable Options options) {
+    assertNotShutdown();
     if (isNullOrEmpty(newId)) {
       throw new IllegalArgumentException("newId must not be null or empty.");
     }
@@ -755,14 +742,16 @@ public class Analytics {
               finalOptions = options;
             }
 
-            waitForAdvertisingId();
-            AliasPayload payload = new AliasPayload(analyticsContext, finalOptions, newId);
-            enqueue(payload);
+            AliasPayload.Builder builder =
+                new AliasPayload.Builder()
+                    .userId(newId)
+                    .previousId(analyticsContext.traits().currentId());
+            fillAndEnqueue(builder, finalOptions);
           }
         });
   }
 
-  void waitForAdvertisingId() {
+  private void waitForAdvertisingId() {
     try {
       advertisingIdLatch.await(15, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
@@ -770,17 +759,36 @@ public class Analytics {
     }
     if (advertisingIdLatch.getCount() == 1) {
       logger.debug(
-          "Advertising ID may not be collected because the Advertising ID API did not "
-              + "respond within 15 seconds.");
+          "Advertising ID may not be collected because the API did not respond within 15 seconds.");
     }
+  }
+
+  @Private
+  void fillAndEnqueue(BasePayload.Builder<?, ?> builder, Options options) {
+    waitForAdvertisingId();
+
+    AnalyticsContext contextCopy = analyticsContext.unmodifiableCopy();
+    builder.context(contextCopy);
+    builder.anonymousId(contextCopy.traits().anonymousId());
+    builder.integrations(options.integrations());
+    String userId = contextCopy.traits().userId();
+    if (!isNullOrEmpty(userId)) {
+      builder.userId(userId);
+    }
+    enqueue(builder.build());
   }
 
   void enqueue(BasePayload payload) {
     if (optOut.get()) {
       return;
     }
-
     logger.verbose("Created payload %s.", payload);
+    Interceptor.Chain chain = new RealInterceptorChain(0, payload, interceptors, this);
+    chain.proceed(payload);
+  }
+
+  void run(BasePayload payload) {
+    logger.verbose("Running payload %s.", payload);
     final IntegrationOperation operation;
     switch (payload.type()) {
       case identify:
@@ -992,6 +1000,12 @@ public class Analytics {
     }
   }
 
+  private void assertNotShutdown() {
+    if (shutdown) {
+      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
+    }
+  }
+
   /** Controls the level of logging. */
   public enum LogLevel {
     /** No logging. */
@@ -1020,6 +1034,7 @@ public class Analytics {
    * integrations.
    */
   public interface Callback<T> {
+
     /**
      * This method will be invoked once for each callback.
      *
@@ -1031,6 +1046,7 @@ public class Analytics {
 
   /** Fluent API for creating {@link Analytics} instances. */
   public static class Builder {
+
     private final Application application;
     private String writeKey;
     private boolean collectDeviceID = Utils.DEFAULT_COLLECT_DEVICE_ID;
@@ -1042,6 +1058,7 @@ public class Analytics {
     private ExecutorService networkExecutor;
     private ConnectionFactory connectionFactory;
     private List<Integration.Factory> factories;
+    private List<Interceptor> interceptors;
     private boolean trackApplicationLifecycleEvents = false;
     private boolean recordScreenViews = false;
     private boolean trackAttributionInformation = true;
@@ -1235,6 +1252,21 @@ public class Analytics {
       return this;
     }
 
+    /** Add a {@link Interceptor} for intercepting messages. */
+    public Builder interceptor(Interceptor interceptor) {
+      if (interceptor == null) {
+        throw new IllegalArgumentException("interceptor must not be null.");
+      }
+      if (interceptors == null) {
+        interceptors = new ArrayList<>();
+      }
+      if (interceptors.contains(interceptor)) {
+        throw new IllegalStateException("Interceptor is already registered.");
+      }
+      interceptors.add(interceptor);
+      return this;
+    }
+
     /** Create a {@link Analytics} client. */
     public Analytics build() {
       if (isNullOrEmpty(tag)) {
@@ -1316,7 +1348,8 @@ public class Analytics {
           recordScreenViews,
           trackAttributionInformation,
           optOut,
-          crypto);
+          crypto,
+          interceptors);
     }
   }
 

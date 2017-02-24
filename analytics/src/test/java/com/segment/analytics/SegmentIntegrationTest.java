@@ -5,11 +5,11 @@ import static android.content.Context.CONNECTIVITY_SERVICE;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.SegmentIntegration.MAX_QUEUE_SIZE;
+import static com.segment.analytics.SegmentIntegration.UTF_8;
 import static com.segment.analytics.TestUtils.SynchronousExecutor;
 import static com.segment.analytics.TestUtils.TRACK_PAYLOAD;
 import static com.segment.analytics.TestUtils.TRACK_PAYLOAD_JSON;
 import static com.segment.analytics.TestUtils.mockApplication;
-import static com.segment.analytics.Utils.createContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
@@ -28,6 +28,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import com.segment.analytics.Client.Connection;
+import com.segment.analytics.PayloadQueue.PersistentQueue;
 import com.segment.analytics.core.BuildConfig;
 import com.segment.analytics.integrations.Logger;
 import com.segment.analytics.integrations.TrackPayload;
@@ -49,6 +50,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
@@ -57,7 +59,8 @@ import org.robolectric.shadows.ShadowLog;
 @Config(constants = BuildConfig.class, sdk = 18, manifest = Config.NONE)
 public class SegmentIntegrationTest {
 
-  @Rule public TemporaryFolder folder = new TemporaryFolder();
+  @Rule
+  public TemporaryFolder folder = new TemporaryFolder();
   QueueFile queueFile;
 
   private static Client.Connection mockConnection() {
@@ -85,12 +88,10 @@ public class SegmentIntegrationTest {
 
   @Test
   public void enqueueAddsToQueueFile() throws IOException {
-    PayloadQueue payloadQueue = mock(PayloadQueue.class);
+    PayloadQueue payloadQueue = new PersistentQueue(queueFile);
     SegmentIntegration segmentIntegration = new SegmentBuilder().payloadQueue(payloadQueue).build();
-
     segmentIntegration.performEnqueue(TRACK_PAYLOAD);
-
-    verify(payloadQueue).add(TRACK_PAYLOAD_JSON.getBytes());
+    assertThat(payloadQueue.size()).isEqualTo(1);
   }
 
   @Test
@@ -106,42 +107,45 @@ public class SegmentIntegrationTest {
             .integrations(integrations)
             .build();
 
-    AnalyticsContext analyticsContext = createContext(new Traits());
-    TrackPayload trackPayload =
-        new TrackPayload(analyticsContext, new Options(), "foo", new Properties());
-    // put some predictable values for data that is automatically generated
-    trackPayload.put("messageId", "a161304c-498c-4830-9291-fcfb8498877b");
-    trackPayload.put("timestamp", "2014-12-15T13:32:44-0700");
+    TrackPayload trackPayload = new TrackPayload.Builder()
+        .messageId("a161304c-498c-4830-9291-fcfb8498877b")
+        .timestamp(Utils.parseISO8601Date("2014-12-15T13:32:44-0700"))
+        .event("foo")
+        .userId("userId")
+        .build();
 
     segmentIntegration.performEnqueue(trackPayload);
 
     String expected =
-        "{\""
-            + "messageId\":\"a161304c-498c-4830-9291-fcfb8498877b\","
-            + "\"type\":\"track\","
+        "{"
             + "\"channel\":\"mobile\","
-            + "\"context\":{\"traits\":{}},"
+            + "\"type\":\"track\","
+            + "\"messageId\":\"a161304c-498c-4830-9291-fcfb8498877b\","
+            + "\"timestamp\":\"2014-12-15T20:32:44.000Z\","
+            + "\"context\":{},"
+            + "\"integrations\":{\"All\":false,\"foo\":true},"
+            + "\"userId\":\"userId\","
             + "\"anonymousId\":null,"
-            + "\"timestamp\":\"2014-12-15T13:32:44-0700\","
-            + "\"integrations\":"
-            + "{\"All\":false,\"foo\":true},"
             + "\"event\":\"foo\","
             + "\"properties\":{}"
             + "}";
-    verify(payloadQueue).add(expected.getBytes());
+    ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
+    verify(payloadQueue).add(captor.capture());
+    String got = new String(captor.getValue(), UTF_8);
+    assertThat(got).isEqualTo(expected);
   }
 
   @Test
   public void enqueueLimitsQueueSize() throws IOException {
     PayloadQueue payloadQueue = mock(PayloadQueue.class);
-    // we want to trigger a remove, but not a flush
+    // We want to trigger a remove, but not a flush.
     when(payloadQueue.size()).thenReturn(0, MAX_QUEUE_SIZE, MAX_QUEUE_SIZE, 0);
     SegmentIntegration segmentIntegration = new SegmentBuilder().payloadQueue(payloadQueue).build();
 
     segmentIntegration.performEnqueue(TRACK_PAYLOAD);
 
-    verify(payloadQueue).remove(1); // oldest entry is removed
-    verify(payloadQueue).add(TRACK_PAYLOAD_JSON.getBytes()); // newest entry is added
+    verify(payloadQueue).remove(1); // Oldest entry is removed.
+    verify(payloadQueue).add(any(byte[].class)); // Newest entry is added.
   }
 
   @Test
@@ -335,7 +339,7 @@ public class SegmentIntegrationTest {
   public void serializationErrorSkipsAddingPayload() throws IOException {
     PayloadQueue payloadQueue = mock(PayloadQueue.class);
     Cartographer cartographer = mock(Cartographer.class);
-    TrackPayload payload = new TrackPayloadBuilder().build();
+    TrackPayload payload = new TrackPayload.Builder().event("event").userId("userId").build();
     SegmentIntegration segmentIntegration =
         new SegmentBuilder() //
             .cartographer(cartographer)
@@ -379,60 +383,60 @@ public class SegmentIntegrationTest {
             mock(SegmentIntegration.BatchPayloadWriter.class), Crypto.none());
     byte[] bytes =
         ("{\n"
-                + "        \"context\": {\n"
-                + "          \"library\": \"analytics-android\",\n"
-                + "          \"libraryVersion\": \"0.4.4\",\n"
-                + "          \"telephony\": {\n"
-                + "            \"radio\": \"gsm\",\n"
-                + "            \"carrier\": \"FI elisa\"\n"
-                + "          },\n"
-                + "          \"wifi\": {\n"
-                + "            \"connected\": false,\n"
-                + "            \"available\": false\n"
-                + "          },\n"
-                + "          \"providers\": {\n"
-                + "            \"Tapstream\": false,\n"
-                + "            \"Amplitude\": false,\n"
-                + "            \"Localytics\": false,\n"
-                + "            \"Flurry\": false,\n"
-                + "            \"Countly\": false,\n"
-                + "            \"Bugsnag\": false,\n"
-                + "            \"Quantcast\": false,\n"
-                + "            \"Crittercism\": false,\n"
-                + "            \"Google Analytics\": false,\n"
-                + "            \"Omniture\": false,\n"
-                + "            \"Mixpanel\": false\n"
-                + "          },\n"
-                + "          \"location\": {\n"
-                + "            \"speed\": 0,\n"
-                + "            \"longitude\": 24.937207,\n"
-                + "            \"latitude\": 60.2495497\n"
-                + "          },\n"
-                + "          \"locale\": {\n"
-                + "            \"carrier\": \"FI elisa\",\n"
-                + "            \"language\": \"English\",\n"
-                + "            \"country\": \"United States\"\n"
-                + "          },\n"
-                + "          \"device\": {\n"
-                + "            \"userId\": \"123\",\n"
-                + "            \"brand\": \"samsung\",\n"
-                + "            \"release\": \"4.2.2\",\n"
-                + "            \"manufacturer\": \"samsung\",\n"
-                + "            \"sdk\": 17\n"
-                + "          },\n"
-                + "          \"display\": {\n"
-                + "            \"density\": 1.5,\n"
-                + "            \"width\": 800,\n"
-                + "            \"height\": 480\n"
-                + "          },\n"
-                + "          \"build\": {\n"
-                + "            \"name\": \"1.0\",\n"
-                + "            \"code\": 1\n"
-                + "          },\n"
-                + "          \"ip\": \"80.186.195.102\",\n"
-                + "          \"inferredIp\": true\n"
-                + "        }\n"
-                + "      }")
+            + "        \"context\": {\n"
+            + "          \"library\": \"analytics-android\",\n"
+            + "          \"libraryVersion\": \"0.4.4\",\n"
+            + "          \"telephony\": {\n"
+            + "            \"radio\": \"gsm\",\n"
+            + "            \"carrier\": \"FI elisa\"\n"
+            + "          },\n"
+            + "          \"wifi\": {\n"
+            + "            \"connected\": false,\n"
+            + "            \"available\": false\n"
+            + "          },\n"
+            + "          \"providers\": {\n"
+            + "            \"Tapstream\": false,\n"
+            + "            \"Amplitude\": false,\n"
+            + "            \"Localytics\": false,\n"
+            + "            \"Flurry\": false,\n"
+            + "            \"Countly\": false,\n"
+            + "            \"Bugsnag\": false,\n"
+            + "            \"Quantcast\": false,\n"
+            + "            \"Crittercism\": false,\n"
+            + "            \"Google Analytics\": false,\n"
+            + "            \"Omniture\": false,\n"
+            + "            \"Mixpanel\": false\n"
+            + "          },\n"
+            + "          \"location\": {\n"
+            + "            \"speed\": 0,\n"
+            + "            \"longitude\": 24.937207,\n"
+            + "            \"latitude\": 60.2495497\n"
+            + "          },\n"
+            + "          \"locale\": {\n"
+            + "            \"carrier\": \"FI elisa\",\n"
+            + "            \"language\": \"English\",\n"
+            + "            \"country\": \"United States\"\n"
+            + "          },\n"
+            + "          \"device\": {\n"
+            + "            \"userId\": \"123\",\n"
+            + "            \"brand\": \"samsung\",\n"
+            + "            \"release\": \"4.2.2\",\n"
+            + "            \"manufacturer\": \"samsung\",\n"
+            + "            \"sdk\": 17\n"
+            + "          },\n"
+            + "          \"display\": {\n"
+            + "            \"density\": 1.5,\n"
+            + "            \"width\": 800,\n"
+            + "            \"height\": 480\n"
+            + "          },\n"
+            + "          \"build\": {\n"
+            + "            \"name\": \"1.0\",\n"
+            + "            \"code\": 1\n"
+            + "          },\n"
+            + "          \"ip\": \"80.186.195.102\",\n"
+            + "          \"inferredIp\": true\n"
+            + "        }\n"
+            + "      }")
             .getBytes(); // length 1432
     // Fill the payload with (1432 * 500) = ~716kb of data
     for (int i = 0; i < 500; i++) {

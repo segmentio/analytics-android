@@ -24,15 +24,30 @@
 
 package com.segment.analytics.integrations;
 
-import com.segment.analytics.AnalyticsContext;
-import com.segment.analytics.Options;
+import static com.segment.analytics.internal.Utils.assertNotNull;
+import static com.segment.analytics.internal.Utils.immutableCopyOf;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import com.segment.analytics.Traits;
+import com.segment.analytics.internal.Private;
+import java.util.Date;
+import java.util.Map;
 
 public class IdentifyPayload extends BasePayload {
+
   private static final String TRAITS_KEY = "traits";
 
-  public IdentifyPayload(AnalyticsContext context, Options options, Traits traits) {
-    super(Type.identify, context, options);
+  IdentifyPayload(
+      @NonNull String messageId,
+      @NonNull Date timestamp,
+      @NonNull Map<String, Object> context,
+      @NonNull Map<String, Object> integrations,
+      @Nullable String userId,
+      @NonNull String anonymousId,
+      @NonNull Map<String, Object> traits) {
+    super(Type.identify, messageId, timestamp, context, integrations, userId, anonymousId);
     put(TRAITS_KEY, traits);
   }
 
@@ -42,6 +57,7 @@ public class IdentifyPayload extends BasePayload {
    * recording that information. You can also add any custom traits that are specific to your
    * project to the dictionary, like friendCount or subscriptionType.
    */
+  @NonNull
   public Traits traits() {
     return getValueMap(TRAITS_KEY, Traits.class);
   }
@@ -49,5 +65,49 @@ public class IdentifyPayload extends BasePayload {
   @Override
   public String toString() {
     return "IdentifyPayload{\"userId=\"" + userId() + "\"}";
+  }
+
+  /** Fluent API for creating {@link IdentifyPayload} instances. */
+  public static class Builder extends BasePayload.Builder<IdentifyPayload, Builder> {
+
+    private Map<String, Object> traits;
+
+    public Builder() {
+      // Empty constructor.
+    }
+
+    @Private
+    Builder(IdentifyPayload identify) {
+      super(identify);
+      traits = identify.traits();
+    }
+
+    @NonNull
+    public Builder traits(@NonNull Map<String, Object> traits) {
+      assertNotNull(traits, "traits");
+      this.traits = immutableCopyOf(traits);
+      return this;
+    }
+
+    @Override
+    IdentifyPayload realBuild(
+        @NonNull String messageId,
+        @NonNull Date timestamp,
+        @NonNull Map<String, Object> context,
+        @NonNull Map<String, Object> integrations,
+        String userId,
+        @NonNull String anonymousId) {
+      if (isNullOrEmpty(userId) && isNullOrEmpty(traits)) {
+        throw new NullPointerException("either userId or traits are required");
+      }
+
+      return new IdentifyPayload(
+          messageId, timestamp, context, integrations, userId, anonymousId, traits);
+    }
+
+    @Override
+    Builder self() {
+      return this;
+    }
   }
 }
