@@ -48,6 +48,12 @@ public class AliasPayloadBuilder {
     if (newId == null) {
       newId = "foo";
     }
-    return new AliasPayload(context, options, newId);
+    return new AliasPayload.Builder()
+        .userId(newId)
+        .previousId(traits.currentId())
+        .anonymousId(traits.anonymousId())
+        .context(context)
+        .integrations(options.integrations())
+        .build();
   }
 }

@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.robolectric.annotation.Config.NONE;
 
+import com.google.common.collect.ImmutableMap;
 import com.segment.analytics.core.BuildConfig;
 import com.segment.analytics.integrations.Integration;
 import com.segment.analytics.integrations.TrackPayload;
@@ -22,7 +23,8 @@ import org.robolectric.annotation.Config;
 @Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
 public class IntegrationOperationTest {
 
-  @Mock Integration<Void> integration;
+  @Mock
+  Integration<Void> integration;
 
   @Before
   public void setUp() {
@@ -35,7 +37,7 @@ public class IntegrationOperationTest {
 
   @Test
   public void trackNoOptions() {
-    TrackPayload payload = new TrackPayloadBuilder().build();
+    TrackPayload payload = new TrackPayload.Builder().event("event").userId("userId").build();
     track(payload, "Mixpanel", Collections.<String, Object>emptyMap());
     verify(integration).track(payload);
   }
@@ -43,7 +45,11 @@ public class IntegrationOperationTest {
   @Test
   public void trackDisabledInOptions() {
     TrackPayload payload =
-        new TrackPayloadBuilder().options(new Options().setIntegration("Mixpanel", false)).build();
+        new TrackPayload.Builder()
+            .event("event")
+            .userId("userId")
+            .integrations(Collections.singletonMap("Mixpanel", false))
+            .build();
     track(payload, "Mixpanel", Collections.<String, Object>emptyMap());
     verify(integration, never()).track(payload);
   }
@@ -51,7 +57,10 @@ public class IntegrationOperationTest {
   @Test
   public void trackAllDisabledInOptions() {
     TrackPayload payload =
-        new TrackPayloadBuilder().options(new Options().setIntegration("All", false)).build();
+        new TrackPayload.Builder()
+            .event("event")
+            .userId("userId")
+            .integrations(Collections.singletonMap("All", false)).build();
     track(payload, "Mixpanel", Collections.<String, Object>emptyMap());
     verify(integration, never()).track(payload);
   }
@@ -59,8 +68,10 @@ public class IntegrationOperationTest {
   @Test
   public void trackAllDisabledInOptionsButIntegrationEnabled() {
     TrackPayload payload =
-        new TrackPayloadBuilder()
-            .options(new Options().setIntegration("All", false).setIntegration("Mixpanel", true))
+        new TrackPayload.Builder()
+            .event("event")
+            .userId("userId")
+            .integrations(ImmutableMap.of("All", false, "Mixpanel", true))
             .build();
     track(payload, "Mixpanel", Collections.<String, Object>emptyMap());
     verify(integration).track(payload);
@@ -69,11 +80,10 @@ public class IntegrationOperationTest {
   @Test
   public void trackAllDisabledInOptionsButIntegrationEnabledWithOptions() {
     TrackPayload payload =
-        new TrackPayloadBuilder()
-            .options(
-                new Options()
-                    .setIntegration("All", false)
-                    .setIntegrationOptions("Mixpanel", Collections.<String, Object>emptyMap()))
+        new TrackPayload.Builder()
+            .event("event")
+            .userId("userId")
+            .integrations(ImmutableMap.of("All", false, "Mixpanel", Collections.emptyMap()))
             .build();
     track(payload, "Mixpanel", Collections.<String, Object>emptyMap());
     verify(integration).track(payload);
@@ -81,7 +91,10 @@ public class IntegrationOperationTest {
 
   @Test
   public void trackNoEventPlan() throws IOException {
-    TrackPayload payload = new TrackPayloadBuilder().event("Install Attributed").build();
+    TrackPayload payload = new TrackPayload.Builder()
+        .event("Install Attributed")
+        .userId("userId")
+        .build();
     track(
         payload,
         "Mixpanel",
@@ -98,7 +111,10 @@ public class IntegrationOperationTest {
 
   @Test
   public void trackPlanDisabledEvent() throws IOException {
-    TrackPayload payload = new TrackPayloadBuilder().event("Install Attributed").build();
+    TrackPayload payload = new TrackPayload.Builder()
+        .event("Install Attributed")
+        .userId("userId")
+        .build();
     track(
         payload,
         "Amplitude",
@@ -117,7 +133,10 @@ public class IntegrationOperationTest {
 
   @Test
   public void trackPlanDisabledIntegration() throws IOException {
-    TrackPayload payload = new TrackPayloadBuilder().event("Install Attributed").build();
+    TrackPayload payload = new TrackPayload.Builder()
+        .event("Install Attributed")
+        .userId("userId")
+        .build();
     track(
         payload,
         "Amplitude",
@@ -138,7 +157,10 @@ public class IntegrationOperationTest {
 
   @Test
   public void trackPlanEnabledIntegration() throws IOException {
-    TrackPayload payload = new TrackPayloadBuilder().event("Install Attributed").build();
+    TrackPayload payload = new TrackPayload.Builder()
+        .event("Install Attributed")
+        .userId("userId")
+        .build();
     track(
         payload,
         "Mixpanel",
@@ -159,7 +181,10 @@ public class IntegrationOperationTest {
 
   @Test
   public void ignoresSegment() throws IOException {
-    TrackPayload payload = new TrackPayloadBuilder().event("Install Attributed").build();
+    TrackPayload payload = new TrackPayload.Builder()
+        .event("Install Attributed")
+        .userId("userId")
+        .build();
     track(
         payload,
         "Segment.io",

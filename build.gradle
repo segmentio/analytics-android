@@ -47,3 +47,7 @@ ext {
 
   preDexLibraries = preDexEnabled && !isCI
 }
+
+ext.deps = [
+  supportAnnotations: 'com.android.support:support-annotations:23.0.1'
+]

@@ -4,6 +4,7 @@ import static android.content.Context.MODE_PRIVATE;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
 import static com.segment.analytics.TestUtils.SynchronousExecutor;
+import static com.segment.analytics.TestUtils.grantPermission;
 import static com.segment.analytics.TestUtils.mockApplication;
 import static com.segment.analytics.Utils.createContext;
 import static com.segment.analytics.internal.Utils.DEFAULT_FLUSH_INTERVAL;
@@ -59,13 +60,12 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowApplication;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 18, manifest = Config.NONE)
 public class AnalyticsTest {
+
   private static final String SETTINGS =
       "{\n"
           + "  \"integrations\": {\n"
@@ -78,14 +78,22 @@ public class AnalyticsTest {
           + "  }\n"
           + "}";
 
-  @Mock Traits.Cache traitsCache;
-  @Mock Options defaultOptions;
-  @Spy AnalyticsNetworkExecutorService networkExecutor;
-  @Spy ExecutorService analyticsExecutor = new SynchronousExecutor();
-  @Mock Client client;
-  @Mock Stats stats;
-  @Mock ProjectSettings.Cache projectSettingsCache;
-  @Mock Integration integration;
+  @Mock
+  Traits.Cache traitsCache;
+  @Mock
+  Options defaultOptions;
+  @Spy
+  AnalyticsNetworkExecutorService networkExecutor;
+  @Spy
+  ExecutorService analyticsExecutor = new SynchronousExecutor();
+  @Mock
+  Client client;
+  @Mock
+  Stats stats;
+  @Mock
+  ProjectSettings.Cache projectSettingsCache;
+  @Mock
+  Integration integration;
   Integration.Factory factory;
   BooleanPreference optOut;
   Application application;
@@ -94,10 +102,6 @@ public class AnalyticsTest {
 
   private Analytics analytics;
 
-  public static void grantPermission(final Application app, final String permission) {
-    ShadowApplication shadowApp = Shadows.shadowOf(app);
-    shadowApp.grantPermissions(permission);
-  }
 
   @Before
   public void setUp() throws IOException {
@@ -150,7 +154,8 @@ public class AnalyticsTest {
             false,
             false,
             optOut,
-            Crypto.none());
+            Crypto.none(),
+            Collections.<Middleware>emptyList());
 
     // Used by singleton tests.
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
@@ -279,7 +284,7 @@ public class AnalyticsTest {
   @Test
   public void invalidScreen() throws Exception {
     try {
-      analytics.screen(null, null);
+      analytics.screen(null, (String) null);
       fail("null category and name should throw exception");
     } catch (IllegalArgumentException expected) {
       assertThat(expected).hasMessage("either category or name must be provided.");
@@ -566,7 +571,8 @@ public class AnalyticsTest {
                   }
 
                   @Override
-                  public void describeTo(Description description) {}
+                  public void describeTo(Description description) {
+                  }
                 }));
     assertThat(analyticsContext.traits()).hasSize(1).containsKey("anonymousId");
   }
@@ -746,7 +752,8 @@ public class AnalyticsTest {
             false,
             false,
             optOut,
-            Crypto.none());
+            Crypto.none(),
+            Collections.<Middleware>emptyList());
 
     callback.get().onActivityCreated(null, null);
 
@@ -839,7 +846,8 @@ public class AnalyticsTest {
             false,
             false,
             optOut,
-            Crypto.none());
+            Crypto.none(),
+            Collections.<Middleware>emptyList());
 
     callback.get().onActivityCreated(null, null);
 
@@ -916,7 +924,8 @@ public class AnalyticsTest {
             true,
             false,
             optOut,
-            Crypto.none());
+            Crypto.none(),
+            Collections.<Middleware>emptyList());
 
     Activity activity = mock(Activity.class);
     PackageManager packageManager = mock(PackageManager.class);
@@ -982,7 +991,8 @@ public class AnalyticsTest {
             false,
             false,
             optOut,
-            Crypto.none());
+            Crypto.none(),
+            Collections.<Middleware>emptyList());
 
     Activity activity = mock(Activity.class);
     Bundle bundle = new Bundle();

@@ -6,6 +6,7 @@ import static com.segment.analytics.Utils.createTraits;
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
+import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.IdentifyPayload;
 
 public class IdentifyPayloadBuilder {
@@ -39,6 +40,13 @@ public class IdentifyPayloadBuilder {
     if (options == null) {
       options = new Options();
     }
-    return new IdentifyPayload(context, options, traits);
+
+    return new IdentifyPayload.Builder()
+        .userId(traits.userId())
+        .traits(traits)
+        .anonymousId(traits.anonymousId())
+        .context(context)
+        .integrations(options.integrations())
+        .build();
   }
 }

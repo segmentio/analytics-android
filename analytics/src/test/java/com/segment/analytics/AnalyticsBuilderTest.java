@@ -90,6 +90,29 @@ public class AnalyticsBuilderTest {
   }
 
   @Test
+  public void invalidMiddlewareThrowsException() throws Exception {
+    try {
+      new Builder(context, "foo").middleware(null);
+      fail("Null middleware should throw exception.");
+    } catch (NullPointerException expected) {
+      assertThat(expected).hasMessage("middleware == null");
+    }
+
+    try {
+      Middleware middleware = new Middleware() {
+        @Override
+        public void intercept(Chain chain) {
+          throw new AssertionError("should not be invoked");
+        }
+      };
+      new Builder(context, "foo").middleware(middleware).middleware(middleware);
+      fail("Registering middleware twice throw exception.");
+    } catch (IllegalStateException expected) {
+      assertThat(expected).hasMessage("Middleware is already registered.");
+    }
+  }
+
+  @Test
   public void invalidWriteKeyThrowsException() throws Exception {
     try {
       new Builder(context, null);

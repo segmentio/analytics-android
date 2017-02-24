@@ -2,7 +2,6 @@ package com.segment.analytics;
 
 import static android.Manifest.permission.INTERNET;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
-import static com.segment.analytics.Utils.createContext;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
@@ -26,6 +25,8 @@ import org.json.JSONObject;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
+import org.robolectric.shadows.ShadowApplication;
 
 public final class TestUtils {
 
@@ -69,7 +70,7 @@ public final class TestUtils {
             + "\"type\":\"track\","
             + "\"channel\":\"mobile\","
             + "\"context\":{\"traits\":{}},"
-            + "\"anonymousId\":null,"
+            + "\"userId\":\"userId\","
             + "\"timestamp\":\"2014-12-15T13:32:44-0700\","
             + "\"integrations\":"
             + "{},"
@@ -77,11 +78,13 @@ public final class TestUtils {
             + "\"properties\":{}"
             + "}";
 
-    AnalyticsContext analyticsContext = createContext(new Traits());
-    TRACK_PAYLOAD = new TrackPayload(analyticsContext, new Options(), "foo", new Properties());
-    // put some predictable values for data that is automatically generated
-    TRACK_PAYLOAD.put("messageId", "a161304c-498c-4830-9291-fcfb8498877b");
-    TRACK_PAYLOAD.put("timestamp", "2014-12-15T13:32:44-0700");
+    TRACK_PAYLOAD = new TrackPayload.Builder()
+        .event("foo")
+        .userId("userId")
+        .messageId("a161304c-498c-4830-9291-fcfb8498877b")
+        .timestamp(
+            com.segment.analytics.internal.Utils.parseISO8601Date("2010-01-01T12:00:00+01:00"))
+        .build();
   }
 
   public static Application mockApplication() {
@@ -89,26 +92,26 @@ public final class TestUtils {
     when(application.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_GRANTED);
     final File parent = RuntimeEnvironment.application.getFilesDir();
     doAnswer(
-            new Answer() {
-              @Override
-              public Object answer(InvocationOnMock invocation) throws Throwable {
-                Object[] args = invocation.getArguments();
-                String fileName = (String) args[0];
-                return new File(parent, fileName);
-              }
-            })
+        new Answer() {
+          @Override
+          public Object answer(InvocationOnMock invocation) throws Throwable {
+            Object[] args = invocation.getArguments();
+            String fileName = (String) args[0];
+            return new File(parent, fileName);
+          }
+        })
         .when(application)
         .getDir(anyString(), anyInt());
     doAnswer(
-            new Answer() {
-              @Override
-              public Object answer(InvocationOnMock invocation) throws Throwable {
-                Object[] args = invocation.getArguments();
-                String name = (String) args[0];
-                int mode = (int) args[1];
-                return RuntimeEnvironment.application.getSharedPreferences(name, mode);
-              }
-            })
+        new Answer() {
+          @Override
+          public Object answer(InvocationOnMock invocation) throws Throwable {
+            Object[] args = invocation.getArguments();
+            String name = (String) args[0];
+            int mode = (int) args[1];
+            return RuntimeEnvironment.application.getSharedPreferences(name, mode);
+          }
+        })
         .when(application)
         .getSharedPreferences(anyString(), anyInt());
     return application;
@@ -134,6 +137,7 @@ public final class TestUtils {
   }
 
   private static class MapMatcher<K, V> extends TypeSafeMatcher<Map<K, V>> {
+
     private final Map<K, V> expected;
 
     MapMatcher(Map<K, V> expected) {
@@ -156,6 +160,7 @@ public final class TestUtils {
   }
 
   private static class JSONObjectMatcher extends TypeSafeMatcher<JSONObject> {
+
     private final JSONObject expected;
 
     JSONObjectMatcher(JSONObject expected) {
@@ -175,6 +180,7 @@ public final class TestUtils {
   }
 
   public static class SynchronousExecutor extends AbstractExecutorService {
+
     private final AtomicBoolean terminated = new AtomicBoolean(false);
 
     @Override
@@ -208,8 +214,16 @@ public final class TestUtils {
     }
   }
 
+
+  public static void grantPermission(final Application app, final String permission) {
+    ShadowApplication shadowApp = Shadows.shadowOf(app);
+    shadowApp.grantPermissions(permission);
+  }
+
   public abstract static class NoDescriptionMatcher<T> extends TypeSafeMatcher<T> {
+
     @Override
-    public void describeTo(Description description) {}
+    public void describeTo(Description description) {
+    }
   }
 }
