@@ -1,8 +1,7 @@
 apply plugin: 'com.android.application'
-apply plugin: 'checkstyle'
-apply plugin: 'com.f2prateek.checkstyle'
-
+apply plugin: 'com.f2prateek.javafmt'
 apply from: rootProject.file('gradle/android.gradle')
+
 android {
   defaultConfig {
     minSdkVersion rootProject.ext.minSdkVersionWear
@@ -13,10 +12,4 @@ dependencies {
   compile project(':analytics')
   compile project(':analytics-wear')
   compile 'com.google.android.support:wearable:1.1.0'
-}
-
-checkstyle {
-  configFile rootProject.file('codestyle/checkstyle.xml')
-  toolVersion = "7.5.1"
-  showViolations true
 }

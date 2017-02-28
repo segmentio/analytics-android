@@ -22,9 +22,9 @@ public class SampleApp extends Application {
 
     // Initialize a new instance of the Analytics client.
     Analytics.Builder builder =
-        new Analytics.Builder(this, ANALYTICS_WRITE_KEY) //
-            .trackApplicationLifecycleEvents() //
-            .trackAttributionInformation() //
+        new Analytics.Builder(this, ANALYTICS_WRITE_KEY)
+            .trackApplicationLifecycleEvents()
+            .trackAttributionInformation()
             .recordScreenViews();
 
     // Set the initialized instance as a globally accessible instance.

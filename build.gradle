@@ -5,8 +5,8 @@ buildscript {
   }
   dependencies {
     classpath 'com.android.tools.build:gradle:2.2.3'
-    classpath 'com.f2prateek.checkstyle:checkstyle:1.0.1'
     classpath 'com.vanniktech:gradle-android-junit-jacoco-plugin:0.5.0'
+    classpath 'com.f2prateek.javafmt:javafmt:0.1.2'
   }
 }
 
