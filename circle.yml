@@ -23,7 +23,6 @@ dependencies:
 
 test:
   override:
-    - .buildscript/verify-fmt.sh
     - TERM=dumb ./gradlew build --profile
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
