@@ -32,6 +32,6 @@ android {
   }
 
   lintOptions {
-    disable 'InvalidPackage'
+    disable 'InvalidPackage', 'GradleCompatible'
   }
 }
