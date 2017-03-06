@@ -41,6 +41,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Process;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import java.io.BufferedReader;
@@ -50,15 +52,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -78,13 +77,6 @@ public final class Utils {
   public static final int DEFAULT_FLUSH_INTERVAL = 30 * 1000; // 30s
   public static final int DEFAULT_FLUSH_QUEUE_SIZE = 20;
   public static final boolean DEFAULT_COLLECT_DEVICE_ID = true;
-  private static final ThreadLocal<DateFormat> ISO_8601_DATE_FORMAT =
-      new ThreadLocal<DateFormat>() {
-        @Override
-        protected DateFormat initialValue() {
-          return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
-        }
-      };
 
   /** Creates a mutable HashSet instance containing the given elements in unspecified order */
   public static <T> Set<T> newSet(T... values) {
@@ -93,14 +85,30 @@ public final class Utils {
     return set;
   }
 
-  /** Returns the date as a string formatted with {@link #ISO_8601_DATE_FORMAT}. */
+  /** @deprecated Use {@link #toISO8601String(Date)}. */
   public static String toISO8601Date(Date date) {
-    return ISO_8601_DATE_FORMAT.get().format(date);
+    return toISO8601String(date);
   }
 
-  /** Returns the string as a date parsed with {@link #ISO_8601_DATE_FORMAT}. */
+  /** Returns {@code date} formatted as yyyy-MM-ddThh:mm:ss.sssZ */
+  public static String toISO8601String(Date date) {
+    return Iso8601Utils.format(date);
+  }
+
+  /**
+   * Parse a date from ISO-8601 formatted string. It expects a format
+   * [yyyy-MM-dd|yyyyMMdd][T(hh:mm[:ss[.sss]]|hhmm[ss[.sss]])]?[Z|[+-]hh:mm]]
+   *
+   * @param date ISO string to parse in the appropriate format.
+   * @return the parsed date
+   */
+  public static Date parseISO8601Date(String date) {
+    return Iso8601Utils.parse(date);
+  }
+
+  /** @deprecated Use {@link #parseISO8601Date(String)}. */
   public static Date toISO8601Date(String date) throws ParseException {
-    return ISO_8601_DATE_FORMAT.get().parse(date);
+    return parseISO8601Date(date);
   }
 
   //TODO: Migrate other coercion methods.
@@ -158,6 +166,39 @@ public final class Utils {
   /** Returns true if the map is null or empty, false otherwise. */
   public static boolean isNullOrEmpty(Map map) {
     return map == null || map.size() == 0;
+  }
+
+  /** Throws a {@link NullPointerException} if the given text is null or empty. */
+  @NonNull
+  public static String assertNotNullOrEmpty(String text, @Nullable String name) {
+    if (isNullOrEmpty(text)) {
+      throw new NullPointerException(name + " cannot be null or empty");
+    }
+    return text;
+  }
+
+  /** Throws a {@link NullPointerException} if the given map is null or empty. */
+  @NonNull
+  public static <K, V> Map<K, V> assertNotNullOrEmpty(Map<K, V> data, @Nullable String name) {
+    if (isNullOrEmpty(data)) {
+      throw new NullPointerException(name + " cannot be null or empty");
+    }
+    return data;
+  }
+
+  /** Throws a {@link NullPointerException} if the given object is null. */
+  @NonNull
+  public static <T> T assertNotNull(T object, String item) {
+    if (object == null) {
+      throw new NullPointerException(item + " == null");
+    }
+    return object;
+  }
+
+  /** Returns an immutable copy of the provided map. */
+  @NonNull
+  public static <K, V> Map<K, V> immutableCopyOf(@NonNull Map<K, V> map) {
+    return Collections.unmodifiableMap(new LinkedHashMap<>(map));
   }
 
   /** Creates a unique device id. */
@@ -237,7 +278,9 @@ public final class Utils {
    * this will quietly ignore it. Does nothing if {@code closeable} is {@code null}.
    */
   public static void closeQuietly(Closeable closeable) {
-    if (closeable == null) return;
+    if (closeable == null) {
+      return;
+    }
     try {
       closeable.close();
     } catch (IOException ignored) {
@@ -408,6 +451,7 @@ public final class Utils {
    * user-supplied instance.
    */
   public static class AnalyticsNetworkExecutorService extends ThreadPoolExecutor {
+
     private static final int DEFAULT_THREAD_COUNT = 1;
     // At most we perform two network requests concurrently
     private static final int MAX_THREAD_COUNT = 2;
@@ -425,6 +469,7 @@ public final class Utils {
   }
 
   public static class AnalyticsThreadFactory implements ThreadFactory {
+
     @SuppressWarnings("NullableProblems")
     public Thread newThread(Runnable r) {
       return new AnalyticsThread(r);
@@ -432,6 +477,7 @@ public final class Utils {
   }
 
   private static class AnalyticsThread extends Thread {
+
     private static final AtomicInteger SEQUENCE_GENERATOR = new AtomicInteger(1);
 
     public AnalyticsThread(Runnable r) {

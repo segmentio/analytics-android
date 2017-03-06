@@ -7,6 +7,7 @@ import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
+import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
 
 public class TrackPayloadBuilder {
@@ -58,6 +59,12 @@ public class TrackPayloadBuilder {
     if (options == null) {
       options = new Options();
     }
-    return new TrackPayload(context, options, event, properties);
+    return new TrackPayload.Builder()
+        .event(event)
+        .properties(properties)
+        .anonymousId(traits.anonymousId())
+        .context(context)
+        .integrations(options.integrations())
+        .build();
   }
 }

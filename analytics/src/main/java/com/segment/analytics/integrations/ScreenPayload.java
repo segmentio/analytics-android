@@ -24,57 +24,147 @@
 
 package com.segment.analytics.integrations;
 
+import static com.segment.analytics.internal.Utils.assertNotNull;
+import static com.segment.analytics.internal.Utils.assertNotNullOrEmpty;
+import static com.segment.analytics.internal.Utils.immutableCopyOf;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
-import com.segment.analytics.AnalyticsContext;
-import com.segment.analytics.Options;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import com.segment.analytics.Properties;
+import com.segment.analytics.internal.Private;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Map;
 
 public class ScreenPayload extends BasePayload {
+
   private static final String CATEGORY_KEY = "category";
   private static final String NAME_KEY = "name";
   private static final String PROPERTIES_KEY = "properties";
 
-  /** Either the name or category of the event. */
-  private String event;
-
-  public ScreenPayload(
-      AnalyticsContext context,
-      Options options,
-      String category,
-      String name,
-      Properties properties) {
-    super(Type.screen, context, options);
-    put(CATEGORY_KEY, category);
-    put(NAME_KEY, name);
+  ScreenPayload(
+      @NonNull String messageId,
+      @NonNull Date timestamp,
+      @NonNull Map<String, Object> context,
+      @NonNull Map<String, Object> integrations,
+      @Nullable String userId,
+      @NonNull String anonymousId,
+      @Nullable String name,
+      @Nullable String category,
+      @NonNull Map<String, Object> properties) {
+    super(Type.screen, messageId, timestamp, context, integrations, userId, anonymousId);
+    if (!isNullOrEmpty(name)) {
+      put(NAME_KEY, name);
+    }
+    if (!isNullOrEmpty(category)) {
+      put(CATEGORY_KEY, category);
+    }
     put(PROPERTIES_KEY, properties);
   }
 
   /** The category of the page or screen. We recommend using title case, like "Docs". */
+  @Nullable
+  @Deprecated
   public String category() {
     return getString(CATEGORY_KEY);
   }
 
   /** The name of the page or screen. We recommend using title case, like "About". */
+  @Nullable
   public String name() {
     return getString(NAME_KEY);
   }
 
-  /** Either the name or category of the event. */
+  /** Either the name or category of the screen payload. */
+  @NonNull
   public String event() {
-    if (isNullOrEmpty(event)) {
-      event = isNullOrEmpty(name()) ? category() : name();
+    String name = name();
+    if (isNullOrEmpty(name)) {
+      return name;
     }
-    return event;
+    return category();
   }
 
   /** The page and screen methods also take a properties dictionary, just like track. */
+  @NonNull
   public Properties properties() {
-    return (Properties) get(PROPERTIES_KEY);
+    return getValueMap(PROPERTIES_KEY, Properties.class);
   }
 
   @Override
   public String toString() {
     return "ScreenPayload{name=\"" + name() + ",category=\"" + category() + "\"}";
+  }
+
+  /** Fluent API for creating {@link ScreenPayload} instances. */
+  public static class Builder extends BasePayload.Builder<ScreenPayload, Builder> {
+
+    private String name;
+    private String category;
+    private Map<String, Object> properties;
+
+    public Builder() {
+      // Empty constructor.
+    }
+
+    @Private
+    Builder(ScreenPayload screen) {
+      super(screen);
+      name = screen.name();
+      properties = screen.properties();
+    }
+
+    @NonNull
+    public Builder name(@Nullable String name) {
+      this.name = name;
+      return this;
+    }
+
+    @NonNull
+    @Deprecated
+    public Builder category(@Nullable String category) {
+      this.category = category;
+      return this;
+    }
+
+    @NonNull
+    public Builder properties(@NonNull Map<String, Object> properties) {
+      assertNotNull(properties, "properties");
+      this.properties = immutableCopyOf(properties);
+      return this;
+    }
+
+    @Override
+    protected ScreenPayload realBuild(
+        @NonNull String messageId,
+        @NonNull Date timestamp,
+        @NonNull Map<String, Object> context,
+        @NonNull Map<String, Object> integrations,
+        String userId,
+        @NonNull String anonymousId) {
+      assertNotNullOrEmpty(name, "name");
+
+      Map<String, Object> properties = this.properties;
+      if (isNullOrEmpty(properties)) {
+        properties = Collections.emptyMap();
+      }
+
+      return new ScreenPayload(
+          messageId,
+          timestamp,
+          context,
+          integrations,
+          userId,
+          anonymousId,
+          name,
+          category,
+          properties);
+    }
+
+    @Override
+    Builder self() {
+      return this;
+    }
   }
 }

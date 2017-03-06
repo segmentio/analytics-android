@@ -65,6 +65,14 @@ public class ScreenPayloadBuilder {
     if (properties == null) {
       properties = new Properties();
     }
-    return new ScreenPayload(context, options, category, name, properties);
+
+    return new ScreenPayload.Builder()
+        .category(category)
+        .name(name)
+        .properties(properties)
+        .anonymousId(traits.anonymousId())
+        .context(context)
+        .integrations(options.integrations())
+        .build();
   }
 }

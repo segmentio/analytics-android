@@ -3,6 +3,9 @@ package com.segment.analytics.sample;
 import android.app.Application;
 import android.util.Log;
 import com.segment.analytics.Analytics;
+import com.segment.analytics.Interceptor;
+import com.segment.analytics.integrations.BasePayload;
+import com.segment.analytics.integrations.TrackPayload;
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 
 public class SampleApp extends Application {
@@ -25,7 +28,15 @@ public class SampleApp extends Application {
         new Analytics.Builder(this, ANALYTICS_WRITE_KEY)
             .trackApplicationLifecycleEvents()
             .trackAttributionInformation()
-            .recordScreenViews();
+            .recordScreenViews()
+            .interceptor(
+                new Interceptor() {
+                  @Override
+                  public void intercept(Chain chain) {
+                    BasePayload payload = chain.payload();
+                    // todo: builder types.
+                  }
+                });
 
     // Set the initialized instance as a globally accessible instance.
     Analytics.setSingletonInstance(builder.build());
