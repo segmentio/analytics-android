@@ -15,6 +15,7 @@ import com.segment.analytics.ValueMap;
 public abstract class Integration<T> {
 
   public interface Factory {
+
     /**
      * Attempts to create an adapter for with {@code settings}. This returns the adapter if one was
      * created, or null if this factory isn't capable of creating such an adapter.
@@ -25,58 +26,53 @@ public abstract class Integration<T> {
     String key();
   }
 
-  /** @see {@link android.app.Application.ActivityLifecycleCallbacks} */
+  /** @see android.app.Application.ActivityLifecycleCallbacks */
   public void onActivityCreated(Activity activity, Bundle savedInstanceState) {}
 
-  /** @see {@link android.app.Application.ActivityLifecycleCallbacks} */
+  /** @see android.app.Application.ActivityLifecycleCallbacks */
   public void onActivityStarted(Activity activity) {}
 
-  /** @see {@link android.app.Application.ActivityLifecycleCallbacks} */
+  /** @see android.app.Application.ActivityLifecycleCallbacks */
   public void onActivityResumed(Activity activity) {}
 
-  /** @see {@link android.app.Application.ActivityLifecycleCallbacks} */
+  /** @see android.app.Application.ActivityLifecycleCallbacks */
   public void onActivityPaused(Activity activity) {}
 
-  /** @see {@link android.app.Application.ActivityLifecycleCallbacks} */
+  /** @see android.app.Application.ActivityLifecycleCallbacks */
   public void onActivityStopped(Activity activity) {}
 
-  /** @see {@link android.app.Application.ActivityLifecycleCallbacks} */
+  /** @see android.app.Application.ActivityLifecycleCallbacks */
   public void onActivitySaveInstanceState(Activity activity, Bundle outState) {}
 
-  /** @see {@link android.app.Application.ActivityLifecycleCallbacks} */
+  /** @see android.app.Application.ActivityLifecycleCallbacks */
   public void onActivityDestroyed(Activity activity) {}
 
   /**
-   * @see {@link Analytics#identify(String, com.segment.analytics.Traits,
-   *     com.segment.analytics.Options)}
+   * @see Analytics#identify(String, com.segment.analytics.Traits, com.segment.analytics.Options)
    */
   public void identify(IdentifyPayload identify) {}
 
-  /**
-   * @see {@link Analytics#group(String, com.segment.analytics.Traits,
-   *     com.segment.analytics.Options)}
-   */
+  /** @see Analytics#group(String, com.segment.analytics.Traits, com.segment.analytics.Options) */
   public void group(GroupPayload group) {}
 
   /**
-   * @see {@link Analytics#track(String, com.segment.analytics.Properties,
-   *     com.segment.analytics.Options)}
+   * @see Analytics#track(String, com.segment.analytics.Properties, com.segment.analytics.Options)
    */
   public void track(TrackPayload track) {}
 
-  /** @see {@link Analytics#alias(String, com.segment.analytics.Options)} */
+  /** @see Analytics#alias(String, com.segment.analytics.Options) */
   public void alias(AliasPayload alias) {}
 
   /**
-   * @see {@link Analytics#screen(String, String, com.segment.analytics.Properties,
+   * @see Analytics#screen(String, String, com.segment.analytics.Properties,
    *     com.segment.analytics.Options)}
    */
   public void screen(ScreenPayload screen) {}
 
-  /** @see {@link Analytics#flush()} */
+  /** @see Analytics#flush() */
   public void flush() {}
 
-  /** @see {@link Analytics#reset()} */
+  /** @see Analytics#reset() */
   public void reset() {}
 
   /**

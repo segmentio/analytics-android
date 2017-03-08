@@ -24,16 +24,29 @@
 
 package com.segment.analytics.integrations;
 
-import com.segment.analytics.AnalyticsContext;
-import com.segment.analytics.Options;
+import static com.segment.analytics.internal.Utils.assertNotNullOrEmpty;
+
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import com.segment.analytics.internal.Private;
+import java.util.Date;
+import java.util.Map;
 
 public class AliasPayload extends BasePayload {
-  private static final String PREVIOUS_ID_KEY = "previousId";
 
-  public AliasPayload(AnalyticsContext context, Options options, String newId) {
-    super(Type.alias, context, options);
-    put(USER_ID_KEY, newId);
-    put(PREVIOUS_ID_KEY, context().traits().currentId());
+  static final String PREVIOUS_ID_KEY = "previousId";
+
+  @Private
+  AliasPayload(
+      @NonNull String messageId,
+      @NonNull Date timestamp,
+      @NonNull Map<String, Object> context,
+      @NonNull Map<String, Object> integrations,
+      @Nullable String userId,
+      @NonNull String anonymousId,
+      @NonNull String previousId) {
+    super(Type.alias, messageId, timestamp, context, integrations, userId, anonymousId);
+    put(PREVIOUS_ID_KEY, previousId);
   }
 
   /**
@@ -47,5 +60,53 @@ public class AliasPayload extends BasePayload {
   @Override
   public String toString() {
     return "AliasPayload{userId=\"" + userId() + ",previousId=\"" + previousId() + "\"}";
+  }
+
+  @NonNull
+  @Override
+  public AliasPayload.Builder toBuilder() {
+    return new Builder(this);
+  }
+
+  /** Fluent API for creating {@link AliasPayload} instances. */
+  public static final class Builder extends BasePayload.Builder<AliasPayload, Builder> {
+
+    private String previousId;
+
+    public Builder() {
+      // Empty constructor.
+    }
+
+    @Private
+    Builder(AliasPayload alias) {
+      super(alias);
+      this.previousId = alias.previousId();
+    }
+
+    @NonNull
+    public Builder previousId(@NonNull String previousId) {
+      this.previousId = assertNotNullOrEmpty(previousId, "previousId");
+      return this;
+    }
+
+    @Override
+    protected AliasPayload realBuild(
+        @NonNull String messageId,
+        @NonNull Date timestamp,
+        @NonNull Map<String, Object> context,
+        @NonNull Map<String, Object> integrations,
+        @Nullable String userId,
+        @NonNull String anonymousId) {
+      assertNotNullOrEmpty(userId, "userId");
+      assertNotNullOrEmpty(previousId, "previousId");
+
+      return new AliasPayload(
+          messageId, timestamp, context, integrations, userId, anonymousId, previousId);
+    }
+
+    @Override
+    Builder self() {
+      return this;
+    }
   }
 }

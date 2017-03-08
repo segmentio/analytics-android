@@ -25,25 +25,34 @@
 package com.segment.analytics.internal;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
+import static android.content.pm.PackageManager.FEATURE_TELEPHONY;
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static com.segment.analytics.internal.Utils.isConnected;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.transform;
 import static org.assertj.android.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.robolectric.annotation.Config.NONE;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import com.google.common.collect.ImmutableMap;
 import com.segment.analytics.core.BuildConfig;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import okio.Buffer;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,7 +66,8 @@ import org.robolectric.annotation.Config;
 @Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
 public class UtilsTest {
 
-  @Mock Context context;
+  @Mock
+  Context context;
 
   @Before
   public void setUp() {
@@ -166,5 +176,99 @@ public class UtilsTest {
         .contains("aFloat", 3.14f)
         .contains("aLong", 12345678910L)
         .contains("aStringSet", new HashSet<>(Arrays.asList("foo", "bar")));
+  }
+
+  @Test
+  public void newSet() {
+    assertThat(Utils.newSet("foo", "bar")).containsOnly("foo", "bar");
+  }
+
+  @Test
+  public void coerceToFloat() {
+    assertThat(Utils.coerceToFloat("not a number", 1)).isEqualTo(1);
+    assertThat(Utils.coerceToFloat(3.14f, 0)).isEqualTo(3.14f);
+    assertThat(Utils.coerceToFloat(1, 0)).isEqualTo(1);
+  }
+
+  @Test
+  public void hasPermission() {
+    when(context.checkCallingOrSelfPermission(Manifest.permission.INTERNET))
+        .thenReturn(PERMISSION_DENIED);
+    assertThat(Utils.hasPermission(context, Manifest.permission.INTERNET)).isFalse();
+
+    when(context.checkCallingOrSelfPermission(Manifest.permission.INTERNET))
+        .thenReturn(PERMISSION_GRANTED);
+    assertThat(Utils.hasPermission(context, Manifest.permission.INTERNET)).isTrue();
+  }
+
+  @Test
+  public void hasFeature() {
+    PackageManager packageManager = mock(PackageManager.class);
+    when(context.getPackageManager())
+        .thenReturn(packageManager);
+
+    when(packageManager.hasSystemFeature(FEATURE_TELEPHONY)).thenReturn(false);
+    assertThat(Utils.hasFeature(context, FEATURE_TELEPHONY)).isFalse();
+
+    when(packageManager.hasSystemFeature(FEATURE_TELEPHONY)).thenReturn(true);
+    assertThat(Utils.hasFeature(context, FEATURE_TELEPHONY)).isTrue();
+  }
+
+  @Test
+  public void assertNotNullOrEmptyMap() {
+    try {
+      Utils.assertNotNullOrEmpty((Map) null, "foo");
+      fail();
+    } catch (NullPointerException e) {
+      assertThat(e).hasMessage("foo cannot be null or empty");
+    }
+
+    try {
+      Utils.assertNotNullOrEmpty(ImmutableMap.of(), "bar");
+      fail();
+    } catch (NullPointerException e) {
+      assertThat(e).hasMessage("bar cannot be null or empty");
+    }
+
+    assertThat(Utils.assertNotNullOrEmpty(ImmutableMap.of("key", "val"), "foo"))
+        .isEqualTo(ImmutableMap.of("key", "val"));
+  }
+
+  @Test
+  public void assertNotNullOrEmptyText() {
+    try {
+      Utils.assertNotNullOrEmpty((String) null, "foo");
+      fail();
+    } catch (NullPointerException e) {
+      assertThat(e).hasMessage("foo cannot be null or empty");
+    }
+
+    try {
+      Utils.assertNotNullOrEmpty("", "bar");
+      fail();
+    } catch (NullPointerException e) {
+      assertThat(e).hasMessage("bar cannot be null or empty");
+    }
+
+    assertThat(Utils.assertNotNullOrEmpty("foo", "bar")).isEqualTo("foo");
+  }
+
+  @Test
+  public void assertNotNull() {
+    try {
+      Utils.assertNotNull(null, "foo");
+      fail();
+    } catch (NullPointerException e) {
+      assertThat(e).hasMessage("foo == null");
+    }
+
+    Object something = new Object();
+    assertThat(Utils.assertNotNull(something, "foo")).isEqualTo(something);
+  }
+
+  @Test
+  public void readFully() throws IOException {
+    assertThat(Utils.readFully(Utils.buffer(new Buffer().writeUtf8("foo\nbar").inputStream())))
+        .isEqualTo("foobar");
   }
 }

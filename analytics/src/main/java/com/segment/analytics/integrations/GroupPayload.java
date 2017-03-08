@@ -24,19 +24,37 @@
 
 package com.segment.analytics.integrations;
 
-import com.segment.analytics.AnalyticsContext;
-import com.segment.analytics.Options;
+import static com.segment.analytics.internal.Utils.assertNotNull;
+import static com.segment.analytics.internal.Utils.assertNotNullOrEmpty;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import com.segment.analytics.Traits;
+import com.segment.analytics.internal.Private;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class GroupPayload extends BasePayload {
-  private static final String GROUP_ID_KEY = "groupId";
-  private static final String TRAITS_KEY = "traits";
 
+  static final String GROUP_ID_KEY = "groupId";
+  static final String TRAITS_KEY = "traits";
+
+  @Private
   public GroupPayload(
-      AnalyticsContext context, Options options, String groupId, Traits groupTraits) {
-    super(Type.group, context, options);
+      @NonNull String messageId,
+      @NonNull Date timestamp,
+      @NonNull Map<String, Object> context,
+      @NonNull Map<String, Object> integrations,
+      @Nullable String userId,
+      @NonNull String anonymousId,
+      @NonNull String groupId,
+      @NonNull Map<String, Object> traits) {
+    super(Type.group, messageId, timestamp, context, integrations, userId, anonymousId);
     put(GROUP_ID_KEY, groupId);
-    put(TRAITS_KEY, groupTraits.unmodifiableCopy());
+    put(TRAITS_KEY, traits);
   }
 
   /**
@@ -44,11 +62,13 @@ public class GroupPayload extends BasePayload {
    * groups people by "organization" you would use the organization's ID in your database as the
    * group ID.
    */
+  @NonNull
   public String groupId() {
     return getString(GROUP_ID_KEY);
   }
 
   /** The group method also takes a traits dictionary, just like identify. */
+  @NonNull
   public Traits traits() {
     return getValueMap(TRAITS_KEY, Traits.class);
   }
@@ -56,5 +76,66 @@ public class GroupPayload extends BasePayload {
   @Override
   public String toString() {
     return "GroupPayload{groupId=\"" + groupId() + "\"}";
+  }
+
+  @NonNull
+  @Override
+  public GroupPayload.Builder toBuilder() {
+    return new Builder(this);
+  }
+
+  /** Fluent API for creating {@link GroupPayload} instances. */
+  public static class Builder extends BasePayload.Builder<GroupPayload, Builder> {
+
+    private String groupId;
+    private Map<String, Object> traits;
+
+    public Builder() {
+      // Empty constructor.
+    }
+
+    @Private
+    Builder(GroupPayload group) {
+      super(group);
+      groupId = group.groupId();
+      traits = group.traits();
+    }
+
+    @NonNull
+    public Builder groupId(@NonNull String groupId) {
+      this.groupId = assertNotNullOrEmpty(groupId, "groupId");
+      return this;
+    }
+
+    @NonNull
+    public Builder traits(@NonNull Map<String, ?> traits) {
+      assertNotNull(traits, "traits");
+      this.traits = Collections.unmodifiableMap(new LinkedHashMap<>(traits));
+      return this;
+    }
+
+    @Override
+    protected GroupPayload realBuild(
+        @NonNull String messageId,
+        @NonNull Date timestamp,
+        @NonNull Map<String, Object> context,
+        @NonNull Map<String, Object> integrations,
+        @Nullable String userId,
+        @NonNull String anonymousId) {
+      assertNotNullOrEmpty(groupId, "groupId");
+
+      Map<String, Object> traits = this.traits;
+      if (isNullOrEmpty(traits)) {
+        traits = Collections.emptyMap();
+      }
+
+      return new GroupPayload(
+          messageId, timestamp, context, integrations, userId, anonymousId, groupId, traits);
+    }
+
+    @Override
+    Builder self() {
+      return this;
+    }
   }
 }
