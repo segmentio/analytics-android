@@ -1,9 +1,7 @@
 package com.segment.analytics;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.robolectric.annotation.Config.NONE;
 
-import com.segment.analytics.core.BuildConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -3,7 +3,6 @@ package com.segment.analytics;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.robolectric.annotation.Config.NONE;
 
 import com.google.common.collect.ImmutableMap;
 import com.segment.analytics.integrations.Integration;

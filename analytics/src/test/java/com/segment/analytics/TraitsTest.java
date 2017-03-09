@@ -2,10 +2,8 @@ package com.segment.analytics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.robolectric.annotation.Config.NONE;
 
 import com.segment.analytics.Traits.Address;
-import com.segment.analytics.core.BuildConfig;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Map;

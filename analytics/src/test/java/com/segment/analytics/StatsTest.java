@@ -26,10 +26,8 @@ package com.segment.analytics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.robolectric.annotation.Config.NONE;
 
 import android.util.Pair;
-import com.segment.analytics.core.BuildConfig;
 import java.io.IOException;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;

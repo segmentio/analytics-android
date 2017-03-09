@@ -7,7 +7,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.Manifest;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.segment.analytics.Analytics.Builder;
-import com.segment.analytics.core.BuildConfig;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;

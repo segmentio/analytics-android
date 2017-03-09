@@ -29,7 +29,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import com.segment.analytics.Client.Connection;
 import com.segment.analytics.PayloadQueue.PersistentQueue;
-import com.segment.analytics.core.BuildConfig;
 import com.segment.analytics.integrations.Logger;
 import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Utils;

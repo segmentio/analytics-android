@@ -3,11 +3,9 @@ package com.segment.analytics.integrations;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
-import static org.robolectric.annotation.Config.NONE;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.segment.analytics.core.BuildConfig;
 import com.segment.analytics.integrations.BasePayload.Builder;
 import com.segment.analytics.integrations.BasePayload.Channel;
 import com.segment.analytics.integrations.BasePayload.Type;
@@ -16,9 +14,6 @@ import java.util.List;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 public class BasePayloadTest {
 
