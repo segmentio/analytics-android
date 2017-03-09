@@ -51,7 +51,7 @@ import org.robolectric.annotation.Config;
 @Config(constants = BuildConfig.class, sdk = 18, manifest = Config.NONE)
 public class AnalyticsBuilderTest {
 
-  Application context;
+  private Application context;
 
   @Before
   public void setUp() {

@@ -3,8 +3,6 @@ package com.segment.analytics.sample;
 import android.app.Application;
 import android.util.Log;
 import com.segment.analytics.Analytics;
-import com.segment.analytics.Middleware;
-import com.segment.analytics.integrations.BasePayload;
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 
 public class SampleApp extends Application {

@@ -17,7 +17,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE) //
+@Config(manifest = Config.NONE)
 public class TraitsTest {
 
   Traits traits;

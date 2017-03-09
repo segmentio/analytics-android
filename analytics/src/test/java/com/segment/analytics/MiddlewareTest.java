@@ -20,8 +20,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = Config.NONE)
-
+@Config(manifest = Config.NONE)
 public class MiddlewareTest {
 
   Analytics.Builder builder;

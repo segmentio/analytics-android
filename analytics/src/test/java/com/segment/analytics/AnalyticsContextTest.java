@@ -25,8 +25,8 @@ import org.robolectric.annotation.Config;
 @Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
 public class AnalyticsContextTest {
 
-  AnalyticsContext context;
-  Traits traits;
+  private AnalyticsContext context;
+  private Traits traits;
 
   @Before
   public void setUp() {

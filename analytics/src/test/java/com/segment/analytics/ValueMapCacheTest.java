@@ -12,7 +12,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
+@Config(manifest = Config.NONE)
 public class ValueMapCacheTest {
 
   private ValueMap.Cache<Traits> traitsCache;

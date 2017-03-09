@@ -56,7 +56,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = Config.NONE)
+@Config(manifest = Config.NONE)
 public class SegmentIntegrationTest {
 
   @Rule

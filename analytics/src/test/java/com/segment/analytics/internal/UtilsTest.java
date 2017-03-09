@@ -37,14 +37,12 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.robolectric.annotation.Config.NONE;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import com.google.common.collect.ImmutableMap;
-import com.segment.analytics.core.BuildConfig;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,11 +61,10 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
+@Config(manifest = Config.NONE)
 public class UtilsTest {
 
-  @Mock
-  Context context;
+  @Mock Context context;
 
   @Before
   public void setUp() {

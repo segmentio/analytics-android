@@ -11,10 +11,12 @@ import com.segment.analytics.integrations.IdentifyPayload;
 import com.segment.analytics.integrations.Integration;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
+import com.segment.analytics.internal.Private;
 
 /** Abstraction for a task that a {@link Integration <?>} can execute. */
 abstract class IntegrationOperation {
-  private static boolean isIntegrationEnabled(ValueMap integrations, String key) {
+  @Private
+  static boolean isIntegrationEnabled(ValueMap integrations, String key) {
     if (isNullOrEmpty(integrations)) {
       return true;
     }
