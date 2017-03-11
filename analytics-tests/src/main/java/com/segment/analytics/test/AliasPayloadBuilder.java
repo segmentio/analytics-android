@@ -8,6 +8,7 @@ import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
 import com.segment.analytics.integrations.AliasPayload;
 
+@Deprecated
 public class AliasPayloadBuilder {
 
   private AnalyticsContext context;

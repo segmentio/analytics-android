@@ -6,10 +6,8 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.robolectric.annotation.Config.NONE;
 
 import com.google.common.collect.ImmutableMap;
-import com.segment.analytics.core.BuildConfig;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -22,7 +20,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE) //
+@Config(manifest = Config.NONE)
 public class ValueMapTest {
 
   ValueMap valueMap;

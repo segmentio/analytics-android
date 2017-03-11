@@ -6,7 +6,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import static org.robolectric.annotation.Config.NONE;
 
 import com.google.common.collect.ImmutableMap;
-import com.segment.analytics.core.BuildConfig;
 import com.segment.analytics.integrations.Integration;
 import com.segment.analytics.integrations.TrackPayload;
 import java.io.IOException;
@@ -20,11 +19,10 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
+@Config(manifest = NONE)
 public class IntegrationOperationTest {
 
-  @Mock
-  Integration<Void> integration;
+  @Mock Integration<Void> integration;
 
   @Before
   public void setUp() {

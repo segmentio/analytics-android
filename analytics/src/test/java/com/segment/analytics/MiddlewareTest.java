@@ -7,7 +7,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import android.Manifest;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.segment.analytics.Analytics.Builder;
-import com.segment.analytics.core.BuildConfig;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
@@ -20,8 +19,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = Config.NONE)
-
+@Config(manifest = Config.NONE)
 public class MiddlewareTest {
 
   Analytics.Builder builder;

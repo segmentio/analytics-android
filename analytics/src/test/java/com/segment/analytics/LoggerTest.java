@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.robolectric.annotation.Config.NONE;
 
 import android.util.Log;
-import com.segment.analytics.core.BuildConfig;
 import com.segment.analytics.integrations.Logger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,7 +12,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
+@Config(manifest = NONE)
 public class LoggerTest {
 
   @Test

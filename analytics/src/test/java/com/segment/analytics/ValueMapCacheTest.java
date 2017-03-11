@@ -1,9 +1,7 @@
 package com.segment.analytics;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.robolectric.annotation.Config.NONE;
 
-import com.segment.analytics.core.BuildConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,7 +10,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
+@Config(manifest = Config.NONE)
 public class ValueMapCacheTest {
 
   private ValueMap.Cache<Traits> traitsCache;

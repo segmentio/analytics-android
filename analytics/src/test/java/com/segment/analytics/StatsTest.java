@@ -26,10 +26,8 @@ package com.segment.analytics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.robolectric.annotation.Config.NONE;
 
 import android.util.Pair;
-import com.segment.analytics.core.BuildConfig;
 import java.io.IOException;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;
@@ -39,7 +37,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
+@Config(manifest = Config.NONE)
 public class StatsTest {
 
   Stats stats;

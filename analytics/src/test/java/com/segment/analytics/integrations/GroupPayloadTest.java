@@ -3,16 +3,11 @@ package com.segment.analytics.integrations;
 
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.robolectric.annotation.Config.NONE;
 
 import com.google.common.collect.ImmutableMap;
-import com.segment.analytics.core.BuildConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 public class GroupPayloadTest {
 

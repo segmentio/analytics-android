@@ -44,7 +44,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import com.google.common.collect.ImmutableMap;
-import com.segment.analytics.core.BuildConfig;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,11 +62,10 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
+@Config(manifest = NONE)
 public class UtilsTest {
 
-  @Mock
-  Context context;
+  @Mock Context context;
 
   @Before
   public void setUp() {

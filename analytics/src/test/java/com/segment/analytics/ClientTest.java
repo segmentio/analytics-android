@@ -8,7 +8,7 @@ import static org.mockito.Mockito.when;
 import static org.robolectric.annotation.Config.NONE;
 
 import android.net.Uri;
-import com.segment.analytics.core.BuildConfig;
+import com.segment.analytics.internal.Private;
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.RecordedRequest;
 import com.squareup.okhttp.mockwebserver.rule.MockWebServerRule;
@@ -28,15 +28,14 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
+@Config(manifest = NONE)
 public class ClientTest {
 
   @Rule public MockWebServerRule server = new MockWebServerRule();
   @Rule public TemporaryFolder folder = new TemporaryFolder();
-
   private Client client;
   private Client mockClient;
-  HttpURLConnection mockConnection;
+  @Private HttpURLConnection mockConnection;
 
   @Before
   public void setUp() {

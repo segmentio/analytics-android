@@ -2,10 +2,8 @@ package com.segment.analytics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.robolectric.annotation.Config.NONE;
 
 import com.segment.analytics.Traits.Address;
-import com.segment.analytics.core.BuildConfig;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Map;
@@ -17,7 +15,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE) //
+@Config(manifest = Config.NONE)
 public class TraitsTest {
 
   Traits traits;

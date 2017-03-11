@@ -16,7 +16,6 @@ package com.segment.analytics.internal;
  * limitations under the License.
  */
 
-import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;

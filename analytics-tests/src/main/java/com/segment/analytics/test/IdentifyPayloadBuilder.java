@@ -6,9 +6,9 @@ import static com.segment.analytics.Utils.createTraits;
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
-import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.IdentifyPayload;
 
+@Deprecated
 public class IdentifyPayloadBuilder {
 
   private AnalyticsContext context;

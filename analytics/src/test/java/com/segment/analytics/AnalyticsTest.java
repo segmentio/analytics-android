@@ -63,7 +63,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = Config.NONE)
+@Config(manifest = Config.NONE)
 public class AnalyticsTest {
 
   private static final String SETTINGS =
@@ -78,30 +78,20 @@ public class AnalyticsTest {
           + "  }\n"
           + "}";
 
-  @Mock
-  Traits.Cache traitsCache;
-  @Mock
-  Options defaultOptions;
-  @Spy
-  AnalyticsNetworkExecutorService networkExecutor;
-  @Spy
-  ExecutorService analyticsExecutor = new SynchronousExecutor();
-  @Mock
-  Client client;
-  @Mock
-  Stats stats;
-  @Mock
-  ProjectSettings.Cache projectSettingsCache;
-  @Mock
-  Integration integration;
-  Integration.Factory factory;
-  BooleanPreference optOut;
-  Application application;
-  Traits traits;
-  AnalyticsContext analyticsContext;
-
+  @Mock Traits.Cache traitsCache;
+  @Mock Options defaultOptions;
+  @Spy AnalyticsNetworkExecutorService networkExecutor;
+  @Spy ExecutorService analyticsExecutor = new SynchronousExecutor();
+  @Mock Client client;
+  @Mock Stats stats;
+  @Mock ProjectSettings.Cache projectSettingsCache;
+  @Mock Integration integration;
+  private Integration.Factory factory;
+  private BooleanPreference optOut;
+  private Application application;
+  private Traits traits;
+  private AnalyticsContext analyticsContext;
   private Analytics analytics;
-
 
   @Before
   public void setUp() throws IOException {
