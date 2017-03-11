@@ -37,6 +37,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.robolectric.annotation.Config.NONE;
 
 import android.Manifest;
 import android.content.Context;
@@ -61,7 +62,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@Config(manifest = NONE)
 public class UtilsTest {
 
   @Mock Context context;

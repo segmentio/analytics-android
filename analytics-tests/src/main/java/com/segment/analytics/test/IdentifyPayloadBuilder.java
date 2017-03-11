@@ -8,6 +8,7 @@ import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
 import com.segment.analytics.integrations.IdentifyPayload;
 
+@Deprecated
 public class IdentifyPayloadBuilder {
 
   private AnalyticsContext context;

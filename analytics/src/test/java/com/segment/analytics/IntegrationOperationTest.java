@@ -3,6 +3,7 @@ package com.segment.analytics;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.robolectric.annotation.Config.NONE;
 
 import com.google.common.collect.ImmutableMap;
 import com.segment.analytics.integrations.Integration;
@@ -18,7 +19,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@Config(manifest = NONE)
 public class IntegrationOperationTest {
 
   @Mock Integration<Void> integration;

@@ -9,6 +9,7 @@ import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.integrations.TrackPayload;
 
+@Deprecated
 public class TrackPayloadBuilder {
 
   private AnalyticsContext context;

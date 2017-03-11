@@ -22,7 +22,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 18, manifest = NONE)
+@Config(manifest = NONE)
 public class AnalyticsContextTest {
 
   private AnalyticsContext context;
@@ -50,9 +50,9 @@ public class AnalyticsContextTest {
         .containsKey("traits");
 
     assertThat(context.getValueMap("app")) //
-        .containsEntry("name", "com.segment.analytics.core")
+        .containsEntry("name", "org.robolectric.default")
         .containsEntry("version", "undefined")
-        .containsEntry("namespace", "com.segment.analytics.core")
+        .containsEntry("namespace", "org.robolectric.default")
         .containsEntry("build", 0);
 
     assertThat(context.getValueMap("device")) //
@@ -70,7 +70,7 @@ public class AnalyticsContextTest {
 
     assertThat(context.getValueMap("os")) //
         .containsEntry("name", "Android") //
-        .containsEntry("version", "4.3_r2");
+        .containsEntry("version", "4.1.2_r1");
 
     assertThat(context.getValueMap("screen")) //
         .containsEntry("density", 1.5f) //

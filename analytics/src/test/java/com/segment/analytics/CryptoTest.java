@@ -1,6 +1,7 @@
 package com.segment.analytics;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.robolectric.annotation.Config.NONE;
 
 import java.io.IOException;
 import okio.Buffer;
@@ -12,7 +13,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@Config(manifest = NONE)
 public class CryptoTest {
   @Test
   public void noneCryptoWrite() throws IOException {
