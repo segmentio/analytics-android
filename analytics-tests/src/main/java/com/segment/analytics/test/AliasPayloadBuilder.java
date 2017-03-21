@@ -1,13 +1,14 @@
 package com.segment.analytics.test;
 
+import static com.segment.analytics.Utils.createContext;
+import static com.segment.analytics.Utils.createTraits;
+
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
 import com.segment.analytics.integrations.AliasPayload;
 
-import static com.segment.analytics.Utils.createContext;
-import static com.segment.analytics.Utils.createTraits;
-
+@Deprecated
 public class AliasPayloadBuilder {
 
   private AnalyticsContext context;
@@ -48,6 +49,12 @@ public class AliasPayloadBuilder {
     if (newId == null) {
       newId = "foo";
     }
-    return new AliasPayload(context, options, newId);
+    return new AliasPayload.Builder()
+        .userId(newId)
+        .previousId(traits.currentId())
+        .anonymousId(traits.anonymousId())
+        .context(context)
+        .integrations(options.integrations())
+        .build();
   }
 }

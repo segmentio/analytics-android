@@ -1,13 +1,14 @@
 package com.segment.analytics.test;
 
+import static com.segment.analytics.Utils.createContext;
+import static com.segment.analytics.Utils.createTraits;
+
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
 import com.segment.analytics.integrations.GroupPayload;
 
-import static com.segment.analytics.Utils.createContext;
-import static com.segment.analytics.Utils.createTraits;
-
+@Deprecated
 public class GroupPayloadBuilder {
 
   private AnalyticsContext context;
@@ -57,6 +58,13 @@ public class GroupPayloadBuilder {
     if (groupId == null) {
       groupId = "bar";
     }
-    return new GroupPayload(context, options, groupId, groupTraits);
+
+    return new GroupPayload.Builder()
+        .groupId(groupId)
+        .traits(groupTraits)
+        .anonymousId(traits.anonymousId())
+        .context(context)
+        .integrations(options.integrations())
+        .build();
   }
 }

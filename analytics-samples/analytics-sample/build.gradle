@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
-apply plugin: 'checkstyle'
-apply plugin: 'com.f2prateek.checkstyle'
+apply plugin: 'com.f2prateek.javafmt'
 
 apply from: rootProject.file('gradle/android.gradle')
 
@@ -11,9 +10,4 @@ dependencies {
   compile 'com.jakewharton:butterknife:8.4.0'
   provided 'com.jakewharton:butterknife-compiler:8.4.0'
   compile 'uk.co.chrisjenx:calligraphy:2.2.0'
-}
-
-checkstyle {
-  configFile rootProject.file('gradle/checkstyle.xml')
-  showViolations true
 }

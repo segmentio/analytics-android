@@ -1,14 +1,15 @@
 package com.segment.analytics.test;
 
+import static com.segment.analytics.Utils.createContext;
+import static com.segment.analytics.Utils.createTraits;
+
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.integrations.ScreenPayload;
 
-import static com.segment.analytics.Utils.createContext;
-import static com.segment.analytics.Utils.createTraits;
-
+@Deprecated
 public class ScreenPayloadBuilder {
 
   private AnalyticsContext context;
@@ -65,7 +66,14 @@ public class ScreenPayloadBuilder {
     if (properties == null) {
       properties = new Properties();
     }
-    return new ScreenPayload(context, options, category, name, properties);
+
+    return new ScreenPayload.Builder()
+        .category(category)
+        .name(name)
+        .properties(properties)
+        .anonymousId(traits.anonymousId())
+        .context(context)
+        .integrations(options.integrations())
+        .build();
   }
 }
-

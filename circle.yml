@@ -1,28 +1,24 @@
-general:
-  artifacts:
-    - analytics-core/build/test-report
-    - analytics-integrations/*/build/test-report
-    - build/reports/profile
-
 machine:
   environment:
-    ANDROID_HOME: /home/ubuntu/android
     CIRCLE_JDK_VERSION: oraclejdk8
   java:
     version: oraclejdk8
 
 dependencies:
   cache_directories:
-    - /home/ubuntu/.android
-    - /home/ubuntu/android
     - /home/ubuntu/.gradle
+    - /home/ubuntu/.m2
   override:
-    - .buildscript/setup.sh
+    - cp -R .buildscript/licenses $ANDROID_HOME/licenses
     - TERM=dumb ./gradlew dependencies
 
 test:
   override:
-    - TERM=dumb ./gradlew checkRelease testRelease --profile
+    - TERM=dumb ./gradlew build
+  post:
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+    - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+    - bash <(curl -s https://codecov.io/bash)
 
 deployment:
   snapshots:

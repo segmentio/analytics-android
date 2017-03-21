@@ -24,6 +24,14 @@
 
 package com.segment.analytics;
 
+import static com.segment.analytics.internal.Utils.assertNotNull;
+import static com.segment.analytics.internal.Utils.buffer;
+import static com.segment.analytics.internal.Utils.closeQuietly;
+import static com.segment.analytics.internal.Utils.getResourceString;
+import static com.segment.analytics.internal.Utils.getSegmentSharedPreferences;
+import static com.segment.analytics.internal.Utils.hasPermission;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+
 import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
@@ -37,6 +45,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
@@ -66,42 +76,38 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.segment.analytics.internal.Utils.buffer;
-import static com.segment.analytics.internal.Utils.closeQuietly;
-import static com.segment.analytics.internal.Utils.getResourceString;
-import static com.segment.analytics.internal.Utils.getSegmentSharedPreferences;
-import static com.segment.analytics.internal.Utils.hasPermission;
-import static com.segment.analytics.internal.Utils.isNullOrEmpty;
-
 /**
  * The entry point into the Segment for Android SDK.
- * <p/>
- * The idea is simple: one pipeline for all your data. Segment is the single hub to collect,
+ *
+ * <p>The idea is simple: one pipeline for all your data. Segment is the single hub to collect,
  * translate and route your data with the flip of a switch.
- * <p/>
- * Analytics for Android will automatically batch events, queue them to disk, and upload it
+ *
+ * <p>Analytics for Android will automatically batch events, queue them to disk, and upload it
  * periodically to Segment for you. It will also look up your project's settings (that you've
  * configured in the web interface), specifically looking up settings for bundled integrations, and
  * then initialize them for you on the user's phone, and mapping our standardized events to formats
  * they can all understand. You only need to instrument Segment once, then flip a switch to install
  * new tools.
- * <p/>
- * This class is the main entry point into the client API. Use {@link
+ *
+ * <p>This class is the main entry point into the client API. Use {@link
  * #with(android.content.Context)} for the global singleton instance or construct your own instance
  * with {@link Builder}.
  *
  * @see <a href="https://Segment/">Segment</a>
  */
 public class Analytics {
-  static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
-    @Override public void handleMessage(Message msg) {
-      throw new AssertionError("Unknown handler message received: " + msg.what);
-    }
-  };
+
+  static final Handler HANDLER =
+      new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+          throw new AssertionError("Unknown handler message received: " + msg.what);
+        }
+      };
   @Private static final String OPT_OUT_PREFERENCE_KEY = "opt-out";
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
   static final List<String> INSTANCES = new ArrayList<>(1);
-  volatile static Analytics singleton = null;
+  static volatile Analytics singleton = null;
   @Private static final Properties EMPTY_PROPERTIES = new Properties();
   private static final String VERSION_KEY = "version";
   private static final String BUILD_KEY = "build";
@@ -110,6 +116,7 @@ public class Analytics {
   private final Application application;
   final ExecutorService networkExecutor;
   final Stats stats;
+  private final List<Middleware> middlewares;
   @Private final Options defaultOptions;
   @Private final Traits.Cache traitsCache;
   @Private final AnalyticsContext analyticsContext;
@@ -125,9 +132,9 @@ public class Analytics {
   final long flushIntervalInMillis;
   // Retrieving the advertising ID is asynchronous. This latch helps us wait to ensure the
   // advertising ID is ready.
-  final CountDownLatch advertisingIdLatch;
-  final ExecutorService analyticsExecutor;
-  final BooleanPreference optOut;
+  private final CountDownLatch advertisingIdLatch;
+  private final ExecutorService analyticsExecutor;
+  private final BooleanPreference optOut;
 
   final Map<String, Boolean> bundledIntegrations = new ConcurrentHashMap<>();
   private List<Integration.Factory> factories;
@@ -137,16 +144,16 @@ public class Analytics {
 
   /**
    * Return a reference to the global default {@link Analytics} instance.
-   * <p/>
-   * This instance is automatically initialized with defaults that are suitable to most
+   *
+   * <p>This instance is automatically initialized with defaults that are suitable to most
    * implementations.
-   * <p/>
-   * If these settings do not meet the requirements of your application, you can override defaults
-   * in {@code analytics.xml}, or you can construct your own instance with full control over the
-   * configuration by using {@link Builder}.
-   * <p/>
-   * By default, events are uploaded every 30 seconds, or every 20 events (whichever occurs first),
-   * and debugging is disabled.
+   *
+   * <p>If these settings do not meet the requirements of your application, you can override
+   * defaults in {@code analytics.xml}, or you can construct your own instance with full control
+   * over the configuration by using {@link Builder}.
+   *
+   * <p>By default, events are uploaded every 30 seconds, or every 20 events (whichever occurs
+   * first), and debugging is disabled.
    */
   public static Analytics with(Context context) {
     if (singleton == null) {
@@ -177,8 +184,8 @@ public class Analytics {
 
   /**
    * Set the global instance returned from {@link #with}.
-   * <p/>
-   * This method must be called before any calls to {@link #with} and may only be called once.
+   *
+   * <p>This method must be called before any calls to {@link #with} and may only be called once.
    */
   public static void setSingletonInstance(Analytics analytics) {
     synchronized (Analytics.class) {
@@ -189,14 +196,30 @@ public class Analytics {
     }
   }
 
-  Analytics(Application application, ExecutorService networkExecutor, Stats stats,
-      Traits.Cache traitsCache, AnalyticsContext analyticsContext, Options defaultOptions,
-      final Logger logger, String tag, final List<Integration.Factory> factories, Client client,
-      Cartographer cartographer, ProjectSettings.Cache projectSettingsCache, String writeKey,
-      int flushQueueSize, long flushIntervalInMillis, final ExecutorService analyticsExecutor,
-      final boolean shouldTrackApplicationLifecycleEvents, CountDownLatch advertisingIdLatch,
-      final boolean shouldRecordScreenViews, final boolean trackAttributionInformation,
-      BooleanPreference optOut, Crypto crypto) {
+  Analytics(
+      Application application,
+      ExecutorService networkExecutor,
+      Stats stats,
+      Traits.Cache traitsCache,
+      AnalyticsContext analyticsContext,
+      Options defaultOptions,
+      final Logger logger,
+      String tag,
+      final List<Integration.Factory> factories,
+      Client client,
+      Cartographer cartographer,
+      ProjectSettings.Cache projectSettingsCache,
+      String writeKey,
+      int flushQueueSize,
+      long flushIntervalInMillis,
+      final ExecutorService analyticsExecutor,
+      final boolean shouldTrackApplicationLifecycleEvents,
+      CountDownLatch advertisingIdLatch,
+      final boolean shouldRecordScreenViews,
+      final boolean trackAttributionInformation,
+      BooleanPreference optOut,
+      Crypto crypto,
+      List<Middleware> middlewares) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -216,87 +239,109 @@ public class Analytics {
     this.factories = Collections.unmodifiableList(factories);
     this.analyticsExecutor = analyticsExecutor;
     this.crypto = crypto;
+    this.middlewares = middlewares;
 
     namespaceSharedPreferences();
 
-    analyticsExecutor.submit(new Runnable() {
-      @Override public void run() {
-        projectSettings = getSettings();
-        if (isNullOrEmpty(projectSettings)) {
-          // Backup mode — Enable just the Segment integration.
-          // {
-          //   integrations: {
-          //     Segment.io: {
-          //       apiKey: "{writeKey}"
-          //     }
-          //   }
-          // }
-          projectSettings = ProjectSettings.create(new ValueMap() //
-              .putValue("integrations", new ValueMap().putValue("Segment.io",
-                  new ValueMap().putValue("apiKey", Analytics.this.writeKey))));
-        }
-        HANDLER.post(new Runnable() {
-          @Override public void run() {
-            performInitializeIntegrations(projectSettings);
+    analyticsExecutor.submit(
+        new Runnable() {
+          @Override
+          public void run() {
+            projectSettings = getSettings();
+            if (isNullOrEmpty(projectSettings)) {
+              // Backup mode — Enable just the Segment integration.
+              // {
+              //   integrations: {
+              //     Segment.io: {
+              //       apiKey: "{writeKey}"
+              //     }
+              //   }
+              // }
+              projectSettings =
+                  ProjectSettings.create(
+                      new ValueMap() //
+                          .putValue(
+                              "integrations",
+                              new ValueMap()
+                                  .putValue(
+                                      "Segment.io",
+                                      new ValueMap().putValue("apiKey", Analytics.this.writeKey))));
+            }
+            HANDLER.post(
+                new Runnable() {
+                  @Override
+                  public void run() {
+                    performInitializeIntegrations(projectSettings);
+                  }
+                });
           }
         });
-      }
-    });
 
     logger.debug("Created analytics client for project with tag:%s.", tag);
 
-    application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
-      final AtomicBoolean trackedApplicationLifecycleEvents = new AtomicBoolean(false);
+    application.registerActivityLifecycleCallbacks(
+        new Application.ActivityLifecycleCallbacks() {
+          final AtomicBoolean trackedApplicationLifecycleEvents = new AtomicBoolean(false);
 
-      @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-        if (!trackedApplicationLifecycleEvents.getAndSet(true)
-            && shouldTrackApplicationLifecycleEvents) {
-          trackApplicationLifecycleEvents();
+          @Override
+          public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+            if (!trackedApplicationLifecycleEvents.getAndSet(true)
+                && shouldTrackApplicationLifecycleEvents) {
+              trackApplicationLifecycleEvents();
 
-          if (trackAttributionInformation) {
-            analyticsExecutor.submit(new Runnable() {
-              @Override public void run() {
-                trackAttributionInformation();
+              if (trackAttributionInformation) {
+                analyticsExecutor.submit(
+                    new Runnable() {
+                      @Override
+                      public void run() {
+                        trackAttributionInformation();
+                      }
+                    });
               }
-            });
+            }
+            runOnMainThread(IntegrationOperation.onActivityCreated(activity, savedInstanceState));
           }
-        }
-        runOnMainThread(IntegrationOperation.onActivityCreated(activity, savedInstanceState));
-      }
 
-      @Override public void onActivityStarted(Activity activity) {
-        if (shouldRecordScreenViews) {
-          recordScreenViews(activity);
-        }
-        runOnMainThread(IntegrationOperation.onActivityStarted(activity));
-      }
+          @Override
+          public void onActivityStarted(Activity activity) {
+            if (shouldRecordScreenViews) {
+              recordScreenViews(activity);
+            }
+            runOnMainThread(IntegrationOperation.onActivityStarted(activity));
+          }
 
-      @Override public void onActivityResumed(Activity activity) {
-        runOnMainThread(IntegrationOperation.onActivityResumed(activity));
-      }
+          @Override
+          public void onActivityResumed(Activity activity) {
+            runOnMainThread(IntegrationOperation.onActivityResumed(activity));
+          }
 
-      @Override public void onActivityPaused(Activity activity) {
-        runOnMainThread(IntegrationOperation.onActivityPaused(activity));
-      }
+          @Override
+          public void onActivityPaused(Activity activity) {
+            runOnMainThread(IntegrationOperation.onActivityPaused(activity));
+          }
 
-      @Override public void onActivityStopped(Activity activity) {
-        runOnMainThread(IntegrationOperation.onActivityStopped(activity));
-      }
+          @Override
+          public void onActivityStopped(Activity activity) {
+            runOnMainThread(IntegrationOperation.onActivityStopped(activity));
+          }
 
-      @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-        runOnMainThread(IntegrationOperation.onActivitySaveInstanceState(activity, outState));
-      }
+          @Override
+          public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+            runOnMainThread(IntegrationOperation.onActivitySaveInstanceState(activity, outState));
+          }
 
-      @Override public void onActivityDestroyed(Activity activity) {
-        runOnMainThread(IntegrationOperation.onActivityDestroyed(activity));
-      }
-    });
+          @Override
+          public void onActivityDestroyed(Activity activity) {
+            runOnMainThread(IntegrationOperation.onActivityDestroyed(activity));
+          }
+        });
   }
 
-  @Private void trackAttributionInformation() {
+  @Private
+  void trackAttributionInformation() {
     BooleanPreference trackedAttribution =
-        new BooleanPreference(getSegmentSharedPreferences(application, tag),
-            TRACKED_ATTRIBUTION_KEY, false);
+        new BooleanPreference(
+            getSegmentSharedPreferences(application, tag), TRACKED_ATTRIBUTION_KEY, false);
     if (trackedAttribution.get()) {
       return;
     }
@@ -325,7 +370,8 @@ public class Analytics {
     }
   }
 
-  @Private void trackApplicationLifecycleEvents() {
+  @Private
+  void trackApplicationLifecycleEvents() {
     // Get the current version.
     PackageInfo packageInfo = getPackageInfo(application);
     String currentVersion = packageInfo.versionName;
@@ -338,20 +384,27 @@ public class Analytics {
 
     // Check and track Application Installed or Application Updated.
     if (previousBuild == -1) {
-      track("Application Installed", new Properties() //
-          .putValue(VERSION_KEY, currentVersion).putValue(BUILD_KEY, currentBuild));
+      track(
+          "Application Installed",
+          new Properties() //
+              .putValue(VERSION_KEY, currentVersion)
+              .putValue(BUILD_KEY, currentBuild));
     } else if (currentBuild != previousBuild) {
-      track("Application Updated", new Properties() //
-          .putValue(VERSION_KEY, currentVersion)
-          .putValue(BUILD_KEY, currentBuild)
-          .putValue("previous_" + VERSION_KEY, previousVersion)
-          .putValue("previous_" + BUILD_KEY, previousBuild));
+      track(
+          "Application Updated",
+          new Properties() //
+              .putValue(VERSION_KEY, currentVersion)
+              .putValue(BUILD_KEY, currentBuild)
+              .putValue("previous_" + VERSION_KEY, previousVersion)
+              .putValue("previous_" + BUILD_KEY, previousBuild));
     }
 
     // Track Application Opened.
-    track("Application Opened", new Properties() //
-        .putValue("version", currentVersion) //
-        .putValue("build", currentBuild));
+    track(
+        "Application Opened",
+        new Properties() //
+            .putValue("version", currentVersion) //
+            .putValue("build", currentBuild));
 
     // Update the recorded version.
     SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -369,7 +422,8 @@ public class Analytics {
     }
   }
 
-  @Private void recordScreenViews(Activity activity) {
+  @Private
+  void recordScreenViews(Activity activity) {
     PackageManager packageManager = activity.getPackageManager();
     try {
       ActivityInfo info =
@@ -381,62 +435,53 @@ public class Analytics {
     }
   }
 
-  @Private void runOnMainThread(final IntegrationOperation operation) {
-    analyticsExecutor.submit(new Runnable() {
-      @Override public void run() {
-        HANDLER.post(new Runnable() {
-          @Override public void run() {
-            performRun(operation);
+  @Private
+  void runOnMainThread(final IntegrationOperation operation) {
+    analyticsExecutor.submit(
+        new Runnable() {
+          @Override
+          public void run() {
+            HANDLER.post(
+                new Runnable() {
+                  @Override
+                  public void run() {
+                    performRun(operation);
+                  }
+                });
           }
         });
-      }
-    });
   }
 
   // Analytics API
 
-  /**
-   * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
-   * also lets you record {@code traits} about the user, like their email, name, account type, etc.
-   * This method will simply set the userId for the current user.
-   *
-   * @see #identify(String, Traits, Options)
-   */
-  public void identify(String userId) {
+  /** @see #identify(String, Traits, Options) */
+  public void identify(@NonNull String userId) {
     identify(userId, null, null);
   }
 
-  /**
-   * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
-   * also lets you record {@code traits} about the user, like their email, name, account type, etc.
-   * This method will simply add the given traits to the user profile.
-   *
-   * @see #identify(String, Traits, Options)
-   */
-  public void identify(Traits traits) {
+  /** @see #identify(String, Traits, Options) */
+  public void identify(@NonNull Traits traits) {
     identify(null, traits, null);
   }
 
   /**
    * Identify lets you tie one of your users and their actions to a recognizable {@code userId}. It
    * also lets you record {@code traits} about the user, like their email, name, account type, etc.
-   * <p/>
-   * Traits and userId will be automatically cached and available on future sessions for the same
+   *
+   * <p>Traits and userId will be automatically cached and available on future sessions for the same
    * user. To update a trait on the server, call identify with the same user id (or null). You can
    * also use {@link #identify(Traits)} for this purpose.
    *
-   * @param userId Unique identifier which you recognize a user by in your own database. If this
-   * is null or empty, any previous id we have (could be the anonymous id) will be
-   * used.
-   * @param newTraits Traits about the user
-   * @param options To configure the call
+   * @param userId Unique identifier which you recognize a user by in your own database. If this is
+   *     null or empty, any previous id we have (could be the anonymous id) will be used.
+   * @param newTraits Traits about the user.
+   * @param options To configure the call.
    * @throws IllegalArgumentException if both {@code userId} and {@code newTraits} are not provided
-   * @see <a href="https://segment.com/docs/tracking-api/identify/">Identify Documentation</a>
+   * @see <a href="https://segment.com/docs/spec/identify/">Identify Documentation</a>.
    */
-  public void identify(String userId, Traits newTraits, final Options options) {
-    if (shutdown) {
-      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
-    }
+  public void identify(
+      @Nullable String userId, @Nullable Traits newTraits, final @Nullable Options options) {
+    assertNotShutdown();
     if (isNullOrEmpty(userId) && isNullOrEmpty(newTraits)) {
       throw new IllegalArgumentException("Either userId or some traits must be provided.");
     }
@@ -452,207 +497,213 @@ public class Analytics {
     traitsCache.set(traits); // Save the new traits
     analyticsContext.setTraits(traits); // Update the references
 
-    analyticsExecutor.submit(new Runnable() {
-      @Override public void run() {
-        final Options finalOptions;
-        if (options == null) {
-          finalOptions = defaultOptions;
-        } else {
-          finalOptions = options;
-        }
+    analyticsExecutor.submit(
+        new Runnable() {
+          @Override
+          public void run() {
+            final Options finalOptions;
+            if (options == null) {
+              finalOptions = defaultOptions;
+            } else {
+              finalOptions = options;
+            }
 
-        waitForAdvertisingId();
-        IdentifyPayload payload =
-            new IdentifyPayload(analyticsContext, finalOptions, traitsCache.get());
-        enqueue(payload);
-      }
-    });
+            IdentifyPayload.Builder builder =
+                new IdentifyPayload.Builder().traits(traitsCache.get());
+            fillAndEnqueue(builder, finalOptions);
+          }
+        });
   }
 
-  /**
-   * The group method lets you associate a user with a group. It also lets you record custom traits
-   * about the group, like industry or number of employees.
-   *
-   * @see #group(String, Traits, Options)
-   */
-  public void group(String groupId) {
+  /** @see #group(String, Traits, Options) */
+  public void group(@NonNull String groupId) {
     group(groupId, null, null);
   }
 
+  /** @see #group(String, Traits, Options) */
+  public void group(@NonNull String groupId, @Nullable Traits traits) {
+    group(groupId, traits, null);
+  }
+
   /**
    * The group method lets you associate a user with a group. It also lets you record custom traits
    * about the group, like industry or number of employees.
-   * <p/>
-   * If you've called {@link #identify(String, Traits, Options)} before, this will automatically
+   *
+   * <p>If you've called {@link #identify(String, Traits, Options)} before, this will automatically
    * remember the userId. If not, it will fall back to use the anonymousId instead.
    *
    * @param groupId Unique identifier which you recognize a group by in your own database. Must not
-   * be null or empty.
-   * @param options To configure the call
-   * @throws IllegalArgumentException if groupId is null or an empty string
-   * @see <a href="https://segment.com/docs/tracking-api/group/">Group Documentation</a>
+   *     be null or empty.
+   * @param options To configure the call.
+   * @throws IllegalArgumentException if groupId is null or an empty string.
+   * @see <a href="https://segment.com/docs/spec/group/">Group Documentation</a>
    */
-  public void group(final String groupId, final Traits groupTraits, final Options options) {
-    if (shutdown) {
-      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
-    }
+  public void group(
+      @NonNull final String groupId,
+      @Nullable final Traits groupTraits,
+      @Nullable final Options options) {
+    assertNotShutdown();
     if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException("groupId must not be null or empty.");
     }
 
-    analyticsExecutor.submit(new Runnable() {
-      @Override public void run() {
-        final Traits finalGroupTraits;
-        if (groupTraits == null) {
-          finalGroupTraits = new Traits();
-        } else {
-          finalGroupTraits = groupTraits;
-        }
+    analyticsExecutor.submit(
+        new Runnable() {
+          @Override
+          public void run() {
+            final Traits finalGroupTraits;
+            if (groupTraits == null) {
+              finalGroupTraits = new Traits();
+            } else {
+              finalGroupTraits = groupTraits;
+            }
 
-        final Options finalOptions;
-        if (options == null) {
-          finalOptions = defaultOptions;
-        } else {
-          finalOptions = options;
-        }
+            final Options finalOptions;
+            if (options == null) {
+              finalOptions = defaultOptions;
+            } else {
+              finalOptions = options;
+            }
 
-        waitForAdvertisingId();
-        GroupPayload payload =
-            new GroupPayload(analyticsContext, finalOptions, groupId, finalGroupTraits);
-        enqueue(payload);
-      }
-    });
+            GroupPayload.Builder builder =
+                new GroupPayload.Builder().groupId(groupId).traits(finalGroupTraits);
+            fillAndEnqueue(builder, finalOptions);
+          }
+        });
   }
 
-  /**
-   * The track method is how you record any actions your users perform. Each action is known by a
-   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
-   * For example a 'Purchased a Shirt' event might have properties like revenue or size.
-   *
-   * @see #track(String, Properties, Options)
-   */
-  public void track(String event) {
+  /** @see #track(String, Properties, Options) */
+  public void track(@NonNull String event) {
     track(event, null, null);
   }
 
-  /**
-   * The track method is how you record any actions your users perform. Each action is known by a
-   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
-   * For example a 'Purchased a Shirt' event might have properties like revenue or size.
-   *
-   * @see #track(String, Properties, Options)
-   */
-  public void track(String event, Properties properties) {
+  /** @see #track(String, Properties, Options) */
+  public void track(@NonNull String event, @Nullable Properties properties) {
     track(event, properties, null);
   }
 
   /**
    * The track method is how you record any actions your users perform. Each action is known by a
-   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
-   * For example a 'Purchased a Shirt' event might have properties like revenue or size.
+   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions. For
+   * example a 'Purchased a Shirt' event might have properties like revenue or size.
    *
    * @param event Name of the event. Must not be null or empty.
-   * @param properties {@link Properties} to add extra information to this call
-   * @param options To configure the call
-   * @throws IllegalArgumentException if event name is null or an empty string
-   * @see <a href="https://segment.com/docs/tracking-api/track/">Track Documentation</a>
+   * @param properties {@link Properties} to add extra information to this call.
+   * @param options To configure the call.
+   * @throws IllegalArgumentException if event name is null or an empty string.
+   * @see <a href="https://segment.com/docs/spec/track/">Track Documentation</a>
    */
-  public void track(final String event, final Properties properties, final Options options) {
-    if (shutdown) {
-      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
-    }
+  public void track(
+      final @NonNull String event,
+      final @Nullable Properties properties,
+      @Nullable final Options options) {
+    assertNotShutdown();
     if (isNullOrEmpty(event)) {
       throw new IllegalArgumentException("event must not be null or empty.");
     }
 
-    analyticsExecutor.submit(new Runnable() {
-      @Override public void run() {
-        final Options finalOptions;
-        if (options == null) {
-          finalOptions = defaultOptions;
-        } else {
-          finalOptions = options;
-        }
+    analyticsExecutor.submit(
+        new Runnable() {
+          @Override
+          public void run() {
+            final Options finalOptions;
+            if (options == null) {
+              finalOptions = defaultOptions;
+            } else {
+              finalOptions = options;
+            }
 
-        final Properties finalProperties;
-        if (properties == null) {
-          finalProperties = EMPTY_PROPERTIES;
-        } else {
-          finalProperties = properties;
-        }
+            final Properties finalProperties;
+            if (properties == null) {
+              finalProperties = EMPTY_PROPERTIES;
+            } else {
+              finalProperties = properties;
+            }
 
-        waitForAdvertisingId();
-        TrackPayload payload =
-            new TrackPayload(analyticsContext, finalOptions, event, finalProperties);
-        enqueue(payload);
-      }
-    });
-  }
-
-  /** @see #screen(String, String, Properties, Options) */
-  public void screen(String category, String name) {
-    screen(category, name, null, null);
-  }
-
-  /** @see #screen(String, String, Properties, Options) */
-  public void screen(String category, String name, Properties properties) {
-    screen(category, name, properties, null);
+            TrackPayload.Builder builder =
+                new TrackPayload.Builder().event(event).properties(finalProperties);
+            fillAndEnqueue(builder, finalOptions);
+          }
+        });
   }
 
   /**
-   * The screen methods let your record whenever a user sees a screen of your mobile app, and
-   * attach
-   * a name, category or properties to the screen.
-   * <p/>
-   * Either category or name must be provided.
-   *
-   * @param category A category to describe the screen
-   * @param name A name for the screen
-   * @param properties {@link Properties} to add extra information to this call
-   * @param options To configure the call
-   * @see <a href="http://segment.com/docs/tracking-api/page-and-screen/">Screen Documentation</a>
+   * @see #screen(String, String, Properties, Options)
+   * @deprecated Use {@link #screen(String)} instead.
    */
-  public void screen(final String category, final String name, final Properties properties,
-      final Options options) {
-    if (shutdown) {
-      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
-    }
+  public void screen(@Nullable String category, @Nullable String name) {
+    screen(category, name, null, null);
+  }
+
+  /**
+   * @see #screen(String, String, Properties, Options)
+   * @deprecated Use {@link #screen(String, Properties)} instead.
+   */
+  public void screen(
+      @Nullable String category, @Nullable String name, @Nullable Properties properties) {
+    screen(category, name, properties, null);
+  }
+
+  /** @see #screen(String, String, Properties, Options) */
+  public void screen(@Nullable String name) {
+    screen(null, name, null, null);
+  }
+
+  /** @see #screen(String, String, Properties, Options) */
+  public void screen(@Nullable String name, @Nullable Properties properties) {
+    screen(null, name, properties, null);
+  }
+
+  /**
+   * The screen methods let your record whenever a user sees a screen of your mobile app, and attach
+   * a name, category or properties to the screen. Either category or name must be provided.
+   *
+   * @param category A category to describe the screen. Deprecated.
+   * @param name A name for the screen.
+   * @param properties {@link Properties} to add extra information to this call.
+   * @param options To configure the call.
+   * @see <a href="https://segment.com/docs/spec/screen/">Screen Documentation</a>
+   */
+  public void screen(
+      @Nullable final String category,
+      @Nullable final String name,
+      @Nullable final Properties properties,
+      @Nullable final Options options) {
+    assertNotShutdown();
     if (isNullOrEmpty(category) && isNullOrEmpty(name)) {
       throw new IllegalArgumentException("either category or name must be provided.");
     }
 
-    analyticsExecutor.submit(new Runnable() {
-      @Override public void run() {
-        final Options finalOptions;
-        if (options == null) {
-          finalOptions = defaultOptions;
-        } else {
-          finalOptions = options;
-        }
+    analyticsExecutor.submit(
+        new Runnable() {
+          @Override
+          public void run() {
+            final Options finalOptions;
+            if (options == null) {
+              finalOptions = defaultOptions;
+            } else {
+              finalOptions = options;
+            }
 
-        final Properties finalProperties;
-        if (properties == null) {
-          finalProperties = EMPTY_PROPERTIES;
-        } else {
-          finalProperties = properties;
-        }
+            final Properties finalProperties;
+            if (properties == null) {
+              finalProperties = EMPTY_PROPERTIES;
+            } else {
+              finalProperties = properties;
+            }
 
-        waitForAdvertisingId();
-        ScreenPayload payload =
-            new ScreenPayload(analyticsContext, finalOptions, category, name, finalProperties);
-        enqueue(payload);
-      }
-    });
+            ScreenPayload.Builder builder =
+                new ScreenPayload.Builder()
+                    .name(name)
+                    .category(category)
+                    .properties(finalProperties);
+            fillAndEnqueue(builder, finalOptions);
+          }
+        });
   }
 
-  /**
-   * The alias method is used to merge two user identities, effectively connecting two sets of user
-   * data as one. This is an advanced method, but it is required to manage user identities
-   * successfully in some of our integrations.
-   *
-   * @see #alias(String, Options)
-   */
-  public void alias(String newId) {
+  /** @see #alias(String, Options) */
+  public void alias(@NonNull String newId) {
     alias(newId, null);
   }
 
@@ -660,9 +711,9 @@ public class Analytics {
    * The alias method is used to merge two user identities, effectively connecting two sets of user
    * data as one. This is an advanced method, but it is required to manage user identities
    * successfully in some of our integrations.
-   * <p>
    *
-   * Usage:
+   * <p>Usage:
+   *
    * <pre> <code>
    *   analytics.track("user did something");
    *   analytics.alias(newId);
@@ -670,53 +721,75 @@ public class Analytics {
    * </code> </pre>
    *
    * @param newId The new ID you want to alias the existing ID to. The existing ID will be either
-   * the previousId if you have called identify, or the anonymous ID.
+   *     the previousId if you have called identify, or the anonymous ID.
    * @param options To configure the call
    * @throws IllegalArgumentException if newId is null or empty
    * @see <a href="https://segment.com/docs/tracking-api/alias/">Alias Documentation</a>
    */
-  public void alias(final String newId, final Options options) {
-    if (shutdown) {
-      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
-    }
+  public void alias(final @NonNull String newId, final @Nullable Options options) {
+    assertNotShutdown();
     if (isNullOrEmpty(newId)) {
       throw new IllegalArgumentException("newId must not be null or empty.");
     }
 
-    analyticsExecutor.submit(new Runnable() {
-      @Override public void run() {
-        final Options finalOptions;
-        if (options == null) {
-          finalOptions = defaultOptions;
-        } else {
-          finalOptions = options;
-        }
+    analyticsExecutor.submit(
+        new Runnable() {
+          @Override
+          public void run() {
+            final Options finalOptions;
+            if (options == null) {
+              finalOptions = defaultOptions;
+            } else {
+              finalOptions = options;
+            }
 
-        waitForAdvertisingId();
-        AliasPayload payload = new AliasPayload(analyticsContext, finalOptions, newId);
-        enqueue(payload);
-      }
-    });
+            AliasPayload.Builder builder =
+                new AliasPayload.Builder()
+                    .userId(newId)
+                    .previousId(analyticsContext.traits().currentId());
+            fillAndEnqueue(builder, finalOptions);
+          }
+        });
   }
 
-  void waitForAdvertisingId() {
+  private void waitForAdvertisingId() {
     try {
       advertisingIdLatch.await(15, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
       logger.error(e, "Thread interrupted while waiting for advertising ID.");
     }
     if (advertisingIdLatch.getCount() == 1) {
-      logger.debug("Advertising ID may not be collected because the Advertising ID API did not "
-          + "respond within 15 seconds.");
+      logger.debug(
+          "Advertising ID may not be collected because the API did not respond within 15 seconds.");
     }
+  }
+
+  @Private
+  void fillAndEnqueue(BasePayload.Builder<?, ?> builder, Options options) {
+    waitForAdvertisingId();
+
+    AnalyticsContext contextCopy = analyticsContext.unmodifiableCopy();
+    builder.context(contextCopy);
+    builder.anonymousId(contextCopy.traits().anonymousId());
+    builder.integrations(options.integrations());
+    String userId = contextCopy.traits().userId();
+    if (!isNullOrEmpty(userId)) {
+      builder.userId(userId);
+    }
+    enqueue(builder.build());
   }
 
   void enqueue(BasePayload payload) {
     if (optOut.get()) {
       return;
     }
-
     logger.verbose("Created payload %s.", payload);
+    Middleware.Chain chain = new RealMiddlewareChain(0, payload, middlewares, this);
+    chain.proceed(payload);
+  }
+
+  void run(BasePayload payload) {
+    logger.verbose("Running payload %s.", payload);
     final IntegrationOperation operation;
     switch (payload.type()) {
       case identify:
@@ -737,11 +810,13 @@ public class Analytics {
       default:
         throw new AssertionError("unknown type " + payload.type());
     }
-    HANDLER.post(new Runnable() {
-      @Override public void run() {
-        performRun(operation);
-      }
-    });
+    HANDLER.post(
+        new Runnable() {
+          @Override
+          public void run() {
+            performRun(operation);
+          }
+        });
   }
 
   /**
@@ -756,7 +831,8 @@ public class Analytics {
   }
 
   /** Get the {@link AnalyticsContext} used by this instance. */
-  @SuppressWarnings("UnusedDeclaration") public AnalyticsContext getAnalyticsContext() {
+  @SuppressWarnings("UnusedDeclaration")
+  public AnalyticsContext getAnalyticsContext() {
     return analyticsContext;
   }
 
@@ -775,7 +851,8 @@ public class Analytics {
    *
    * @deprecated This will be removed in a future release.
    */
-  @Deprecated public LogLevel getLogLevel() {
+  @Deprecated
+  public LogLevel getLogLevel() {
     return logger.logLevel;
   }
 
@@ -798,13 +875,14 @@ public class Analytics {
    *
    * @deprecated Use {@link #reset()} instead
    */
-  @Deprecated public void logout() {
+  @Deprecated
+  public void logout() {
     reset();
   }
 
   /**
-   * Resets the analytics client by clearing any stored information about the user. Events queued
-   * on disk are not cleared, and will be uploaded at a later time.
+   * Resets the analytics client by clearing any stored information about the user. Events queued on
+   * disk are not cleared, and will be uploaded at a later time.
    */
   public void reset() {
     Utils.getSegmentSharedPreferences(application, tag).edit().clear().apply();
@@ -816,8 +894,8 @@ public class Analytics {
 
   /**
    * Set the opt-out status for the current device and analytics client combination. This flag is
-   * persisted across device reboots, so you can simply call this once during your application
-   * (such as in a screen where a user can opt out of analytics tracking).
+   * persisted across device reboots, so you can simply call this once during your application (such
+   * as in a screen where a user can opt out of analytics tracking).
    */
   public void optOut(boolean optOut) {
     this.optOut.set(optOut);
@@ -825,25 +903,26 @@ public class Analytics {
 
   /**
    * Register to be notified when a bundled integration is ready.
-   * <p/>
-   * In most cases, integrations would have already been initialized, and the callback will be
+   *
+   * <p>In most cases, integrations would have already been initialized, and the callback will be
    * invoked fairly quickly. However there may be a latency the first time the app is launched, and
    * we don't have settings for bundled integrations yet. This is compounded if the user is offline
    * on the first run.
-   * <p/>
-   * You can only register for one callback per integration at a time, and passing in a {@code
+   *
+   * <p>You can only register for one callback per integration at a time, and passing in a {@code
    * callback} will remove the previous callback for that integration.
-   * <p/>
-   * Usage:
+   *
+   * <p>Usage:
+   *
    * <pre> <code>
    *   analytics.onIntegrationReady("Amplitude", new Callback() {
    *     {@literal @}Override public void onIntegrationReady(Object instance) {
    *       Amplitude.enableLocationListening();
    *     }
    *   });
-   *   analytics.onIntegrationReady("Mixpanel", new Callback() {
-   *     {@literal @}Override public void onIntegrationReady(Object instance) {
-   *       ((MixpanelAPI) instance).clearSuperProperties();
+   *   analytics.onIntegrationReady("Mixpanel", new Callback<>() {
+   *     {@literal @}Override public void onIntegrationReady(MixpanelAPI mixpanel) {
+   *       mixpanel.clearSuperProperties();
    *     }
    *   })*
    * </code> </pre>
@@ -853,15 +932,19 @@ public class Analytics {
       throw new IllegalArgumentException("key cannot be null or empty.");
     }
 
-    analyticsExecutor.submit(new Runnable() {
-      @Override public void run() {
-        HANDLER.post(new Runnable() {
-          @Override public void run() {
-            performCallback(key, callback);
+    analyticsExecutor.submit(
+        new Runnable() {
+          @Override
+          public void run() {
+            HANDLER.post(
+                new Runnable() {
+                  @Override
+                  public void run() {
+                    performCallback(key, callback);
+                  }
+                });
           }
         });
-      }
-    });
   }
 
   /** @deprecated Use {@link #onIntegrationReady(String, Callback)} instead. */
@@ -872,7 +955,7 @@ public class Analytics {
     onIntegrationReady(integration.key, callback);
   }
 
-  /** @deprecated  */
+  /** @deprecated */
   public enum BundledIntegration {
     AMPLITUDE("Amplitude"),
     APPS_FLYER("AppsFlyer"),
@@ -907,6 +990,8 @@ public class Analytics {
     if (shutdown) {
       return;
     }
+    // Only supplied by us for testing, so it's ok to shut it down. If we were to make this public,
+    // we'll have to add a check similar to that of AnalyticsNetworkExecutorService below.
     analyticsExecutor.shutdown();
     if (networkExecutor instanceof AnalyticsNetworkExecutorService) {
       networkExecutor.shutdown();
@@ -915,6 +1000,12 @@ public class Analytics {
     shutdown = true;
     synchronized (INSTANCES) {
       INSTANCES.remove(tag);
+    }
+  }
+
+  private void assertNotShutdown() {
+    if (shutdown) {
+      throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
     }
   }
 
@@ -931,7 +1022,8 @@ public class Analytics {
      *
      * @deprecated Use {@link LogLevel#DEBUG} instead.
      */
-    @Deprecated BASIC,
+    @Deprecated
+    BASIC,
     /** Same as {@link LogLevel#DEBUG}, and log transformations in bundled integrations. */
     VERBOSE;
 
@@ -945,17 +1037,19 @@ public class Analytics {
    * integrations.
    */
   public interface Callback<T> {
+
     /**
      * This method will be invoked once for each callback.
      *
      * @param instance The underlying instance that has been initialized with the settings from
-     * Segment.
+     *     Segment.
      */
     void onReady(T instance);
   }
 
   /** Fluent API for creating {@link Analytics} instances. */
   public static class Builder {
+
     private final Application application;
     private String writeKey;
     private boolean collectDeviceID = Utils.DEFAULT_COLLECT_DEVICE_ID;
@@ -965,8 +1059,10 @@ public class Analytics {
     private String tag;
     private LogLevel logLevel;
     private ExecutorService networkExecutor;
+    private ExecutorService executor;
     private ConnectionFactory connectionFactory;
     private List<Integration.Factory> factories;
+    private List<Middleware> middlewares;
     private boolean trackApplicationLifecycleEvents = false;
     private boolean recordScreenViews = false;
     private boolean trackAttributionInformation = true;
@@ -1013,9 +1109,8 @@ public class Analytics {
     }
 
     /**
-     * Set the interval at which the client should flush events. The client will automatically
-     * flush events to Segment every {@code flushInterval} duration, regardless of {@code
-     * flushQueueSize}.
+     * Set the interval at which the client should flush events. The client will automatically flush
+     * events to Segment every {@code flushInterval} duration, regardless of {@code flushQueueSize}.
      *
      * @throws IllegalArgumentException if the flushInterval is less than or equal to zero.
      */
@@ -1031,9 +1126,9 @@ public class Analytics {
     }
 
     /**
-     * Enable or disable collection of {@link android.provider.Settings.Secure#ANDROID_ID},
-     * {@link android.os.Build#SERIAL} or the Telephony Identifier retrieved via
-     * TelephonyManager as available. Collection of the device identifier is enabled by default.
+     * Enable or disable collection of {@link android.provider.Settings.Secure#ANDROID_ID}, {@link
+     * android.os.Build#SERIAL} or the Telephony Identifier retrieved via TelephonyManager as
+     * available. Collection of the device identifier is enabled by default.
      */
     public Builder collectDeviceId(boolean collect) {
       this.collectDeviceID = collect;
@@ -1064,10 +1159,9 @@ public class Analytics {
     }
 
     /**
-     * Set a tag for this instance. The tag is used to generate keys for caching.
-     * </p>
-     * By default the writeKey is used. You may want to specify an alternative one, if you want
-     * the instances with the same writeKey to share different caches (you probably do).
+     * Set a tag for this instance. The tag is used to generate keys for caching. By default the
+     * writeKey is used. You may want to specify an alternative one, if you want the instances with
+     * the same writeKey to share different caches (you probably do).
      *
      * @throws IllegalArgumentException if the tag is null or empty.
      */
@@ -1089,16 +1183,17 @@ public class Analytics {
     }
 
     /** @deprecated As of {@code 3.0.1}, this method does nothing. */
-    @Deprecated public Builder disableBundledIntegrations() {
+    @Deprecated
+    public Builder disableBundledIntegrations() {
       return this;
     }
 
     /**
      * Specify the executor service for making network calls in the background.
-     * <p/>
-     * Note: Calling {@link Analytics#shutdown()} will not shutdown supplied executors.
-     * <p/>
-     * Use it with care! http://bit.ly/1JVlA2e
+     *
+     * <p>Note: Calling {@link Analytics#shutdown()} will not shutdown supplied executors.
+     *
+     * <p>Use it with care! http://bit.ly/1JVlA2e
      */
     public Builder networkExecutor(ExecutorService networkExecutor) {
       if (networkExecutor == null) {
@@ -1110,9 +1205,9 @@ public class Analytics {
 
     /**
      * Specify the connection factory for customizing how connections are created.
-     * <p/>
-     * This is a beta API, and might be changed in the future.
-     * Use it with care! http://bit.ly/1JVlA2e
+     *
+     * <p>This is a beta API, and might be changed in the future. Use it with care!
+     * http://bit.ly/1JVlA2e
      */
     public Builder connectionFactory(ConnectionFactory connectionFactory) {
       if (connectionFactory == null) {
@@ -1122,9 +1217,7 @@ public class Analytics {
       return this;
     }
 
-    /**
-     * Specify the crypto interface for customizing how data is stored at rest.
-     */
+    /** Specify the crypto interface for customizing how data is stored at rest. */
     public Builder crypto(Crypto crypto) {
       if (crypto == null) {
         throw new IllegalArgumentException("Crypto must not be null.");
@@ -1163,6 +1256,27 @@ public class Analytics {
       return this;
     }
 
+    /** Add a {@link Middleware} for intercepting messages. */
+    public Builder middleware(Middleware middleware) {
+      assertNotNull(middleware, "middleware");
+      if (middlewares == null) {
+        middlewares = new ArrayList<>();
+      }
+      if (middlewares.contains(middleware)) {
+        throw new IllegalStateException("Middleware is already registered.");
+      }
+      middlewares.add(middleware);
+      return this;
+    }
+
+    /**
+     * The executor on which payloads are dispatched asynchronously. This is not exposed publicly.
+     */
+    Builder executor(ExecutorService executor) {
+      this.executor = assertNotNull(executor, "executor");
+      return this;
+    }
+
     /** Create a {@link Analytics} client. */
     public Analytics build() {
       if (isNullOrEmpty(tag)) {
@@ -1170,10 +1284,11 @@ public class Analytics {
       }
       synchronized (INSTANCES) {
         if (INSTANCES.contains(tag)) {
-          throw new IllegalStateException("Duplicate analytics client created with tag: "
-              + tag
-              + ". If you want to use multiple Analytics clients, use a different writeKey "
-              + "or set a tag via the builder during construction.");
+          throw new IllegalStateException(
+              "Duplicate analytics client created with tag: "
+                  + tag
+                  + ". If you want to use multiple Analytics clients, use a different writeKey "
+                  + "or set a tag via the builder during construction.");
         }
         INSTANCES.add(tag);
       }
@@ -1202,8 +1317,8 @@ public class Analytics {
           new ProjectSettings.Cache(application, cartographer, tag);
 
       BooleanPreference optOut =
-          new BooleanPreference(getSegmentSharedPreferences(application, tag),
-              OPT_OUT_PREFERENCE_KEY, false);
+          new BooleanPreference(
+              getSegmentSharedPreferences(application, tag), OPT_OUT_PREFERENCE_KEY, false);
 
       Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
       if (!traitsCache.isSet() || traitsCache.get() == null) {
@@ -1221,11 +1336,35 @@ public class Analytics {
       factories.add(SegmentIntegration.FACTORY);
       factories.addAll(this.factories);
 
-      return new Analytics(application, networkExecutor, stats, traitsCache, analyticsContext,
-          defaultOptions, logger, tag, factories, client, cartographer, projectSettingsCache,
-          writeKey, flushQueueSize, flushIntervalInMillis, Executors.newSingleThreadExecutor(),
-          trackApplicationLifecycleEvents, advertisingIdLatch, recordScreenViews,
-          trackAttributionInformation, optOut, crypto);
+      ExecutorService executor = this.executor;
+      if (executor == null) {
+        executor = Executors.newSingleThreadExecutor();
+      }
+
+      return new Analytics(
+          application,
+          networkExecutor,
+          stats,
+          traitsCache,
+          analyticsContext,
+          defaultOptions,
+          logger,
+          tag,
+          factories,
+          client,
+          cartographer,
+          projectSettingsCache,
+          writeKey,
+          flushQueueSize,
+          flushIntervalInMillis,
+          executor,
+          trackApplicationLifecycleEvents,
+          advertisingIdLatch,
+          recordScreenViews,
+          trackAttributionInformation,
+          optOut,
+          crypto,
+          middlewares);
     }
   }
 
@@ -1235,18 +1374,23 @@ public class Analytics {
 
   private ProjectSettings downloadSettings() {
     try {
-      ProjectSettings projectSettings = networkExecutor.submit(new Callable<ProjectSettings>() {
-        @Override public ProjectSettings call() throws Exception {
-          Client.Connection connection = null;
-          try {
-            connection = client.fetchSettings();
-            Map<String, Object> map = cartographer.fromJson(buffer(connection.is));
-            return ProjectSettings.create(map);
-          } finally {
-            closeQuietly(connection);
-          }
-        }
-      }).get();
+      ProjectSettings projectSettings =
+          networkExecutor
+              .submit(
+                  new Callable<ProjectSettings>() {
+                    @Override
+                    public ProjectSettings call() throws Exception {
+                      Client.Connection connection = null;
+                      try {
+                        connection = client.fetchSettings();
+                        Map<String, Object> map = cartographer.fromJson(buffer(connection.is));
+                        return ProjectSettings.create(map);
+                      } finally {
+                        closeQuietly(connection);
+                      }
+                    }
+                  })
+              .get();
       projectSettingsCache.set(projectSettings);
       return projectSettings;
     } catch (InterruptedException e) {
@@ -1258,12 +1402,11 @@ public class Analytics {
   }
 
   /**
-   * Retrieve settings from the cache or the network:
-   * 1. If the cache is empty, fetch new settings.
-   * 2. If the cache is not stale, use it.
-   * 2. If the cache is stale, try to get new settings.
+   * Retrieve settings from the cache or the network: 1. If the cache is empty, fetch new settings.
+   * 2. If the cache is not stale, use it. 2. If the cache is stale, try to get new settings.
    */
-  @Private ProjectSettings getSettings() {
+  @Private
+  ProjectSettings getSettings() {
     ProjectSettings cachedSettings = projectSettingsCache.get();
     if (isNullOrEmpty(cachedSettings)) {
       return downloadSettings();
@@ -1310,12 +1453,14 @@ public class Analytics {
       long startTime = System.nanoTime();
       operation.run(key, entry.getValue(), projectSettings);
       long endTime = System.nanoTime();
-      long duration = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-      stats.dispatchIntegrationOperation(key, duration);
+      long durationInMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+      stats.dispatchIntegrationOperation(key, durationInMillis);
+      logger.debug("Ran %s on integration %s in %d ns.", operation, key, endTime - startTime);
     }
   }
 
-  @Private <T> void performCallback(String key, Callback<T> callback) {
+  @Private
+  <T> void performCallback(String key, Callback<T> callback) {
     for (Map.Entry<String, Integration<?>> entry : integrations.entrySet()) {
       if (key.equals(entry.getKey())) {
         callback.onReady((T) entry.getValue().getUnderlyingInstance());
@@ -1325,13 +1470,12 @@ public class Analytics {
   }
 
   /**
-   * Previously (until version 4.1.7) shared preferences were not namespaced by a tag.
-   * This meant that all analytics instances shared the same shared preferences.
-   * This migration checks if the namespaced shared preferences instance contains
-   * {@code namespaceSharedPreferences: true}.
-   * If it does, the migration is already run and does not need to be run again.
-   * If it doesn't, it copies the legacy shared preferences mapping into the namespaced shared
-   * preferences, and sets namespaceSharedPreferences to false.
+   * Previously (until version 4.1.7) shared preferences were not namespaced by a tag. This meant
+   * that all analytics instances shared the same shared preferences. This migration checks if the
+   * namespaced shared preferences instance contains {@code namespaceSharedPreferences: true}. If it
+   * does, the migration is already run and does not need to be run again. If it doesn't, it copies
+   * the legacy shared preferences mapping into the namespaced shared preferences, and sets
+   * namespaceSharedPreferences to false.
    */
   private void namespaceSharedPreferences() {
     SharedPreferences newSharedPreferences = Utils.getSegmentSharedPreferences(application, tag);

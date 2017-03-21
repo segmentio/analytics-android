@@ -1,13 +1,14 @@
 package com.segment.analytics.test;
 
+import static com.segment.analytics.Utils.createContext;
+import static com.segment.analytics.Utils.createTraits;
+
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.Options;
 import com.segment.analytics.Traits;
 import com.segment.analytics.integrations.IdentifyPayload;
 
-import static com.segment.analytics.Utils.createContext;
-import static com.segment.analytics.Utils.createTraits;
-
+@Deprecated
 public class IdentifyPayloadBuilder {
 
   private AnalyticsContext context;
@@ -39,6 +40,13 @@ public class IdentifyPayloadBuilder {
     if (options == null) {
       options = new Options();
     }
-    return new IdentifyPayload(context, options, traits);
+
+    return new IdentifyPayload.Builder()
+        .userId(traits.userId())
+        .traits(traits)
+        .anonymousId(traits.anonymousId())
+        .context(context)
+        .integrations(options.integrations())
+        .build();
   }
 }

@@ -28,20 +28,27 @@ public class StatsSnapshot {
   /** Total time to run operations, including lifecycle events and flushes, by integration. */
   public final Map<String, Long> integrationOperationDurationByIntegration;
 
-  public StatsSnapshot(long timestamp, long flushCount, long flushEventCount,
-      long integrationOperationCount, long integrationOperationDuration,
+  public StatsSnapshot(
+      long timestamp,
+      long flushCount,
+      long flushEventCount,
+      long integrationOperationCount,
+      long integrationOperationDuration,
       Map<String, Long> integrationOperationDurationByIntegration) {
     this.timestamp = timestamp;
     this.flushCount = flushCount;
     this.flushEventCount = flushEventCount;
     this.integrationOperationCount = integrationOperationCount;
     this.integrationOperationDuration = integrationOperationDuration;
-    this.integrationOperationAverageDuration = (integrationOperationCount == 0) ? 0
-        : ((float) integrationOperationDuration / integrationOperationCount);
+    this.integrationOperationAverageDuration =
+        (integrationOperationCount == 0)
+            ? 0
+            : ((float) integrationOperationDuration / integrationOperationCount);
     this.integrationOperationDurationByIntegration = integrationOperationDurationByIntegration;
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return "StatsSnapshot{"
         + "timestamp="
         + timestamp
@@ -49,19 +56,14 @@ public class StatsSnapshot {
         + flushCount
         + ", flushEventCount="
         + flushEventCount
-        +
-        ", integrationOperationCount="
+        + ", integrationOperationCount="
         + integrationOperationCount
-        +
-        ", integrationOperationDuration="
+        + ", integrationOperationDuration="
         + integrationOperationDuration
-        +
-        ", integrationOperationAverageDuration="
+        + ", integrationOperationAverageDuration="
         + integrationOperationAverageDuration
-        +
-        ", integrationOperationDurationByIntegration="
+        + ", integrationOperationDurationByIntegration="
         + integrationOperationDurationByIntegration
-        +
-        '}';
+        + '}';
   }
 }

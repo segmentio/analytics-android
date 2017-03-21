@@ -1,5 +1,8 @@
 package com.segment.analytics;
 
+import static com.segment.analytics.Options.ALL_INTEGRATIONS_KEY;
+import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+
 import android.app.Activity;
 import android.os.Bundle;
 import com.segment.analytics.integrations.AliasPayload;
@@ -8,12 +11,11 @@ import com.segment.analytics.integrations.IdentifyPayload;
 import com.segment.analytics.integrations.Integration;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
-
-import static com.segment.analytics.Options.ALL_INTEGRATIONS_KEY;
-import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import com.segment.analytics.internal.Private;
 
 /** Abstraction for a task that a {@link Integration <?>} can execute. */
 abstract class IntegrationOperation {
+  @Private
   static boolean isIntegrationEnabled(ValueMap integrations, String key) {
     if (isNullOrEmpty(integrations)) {
       return true;
@@ -30,16 +32,6 @@ abstract class IntegrationOperation {
     return enabled;
   }
 
-  static boolean isIntegrationEnabledInPlan(ValueMap plan, String key) {
-    boolean eventEnabled = plan.getBoolean("enabled", true);
-    if (eventEnabled) {
-      // Check if there is an integration specific setting.
-      ValueMap integrationPlan = plan.getValueMap("integrations");
-      eventEnabled = isIntegrationEnabled(integrationPlan, key);
-    }
-    return eventEnabled;
-  }
-
   static IntegrationOperation onActivityCreated(final Activity activity, final Bundle bundle) {
     return new IntegrationOperation() {
       @Override
@@ -47,7 +39,8 @@ abstract class IntegrationOperation {
         integration.onActivityCreated(activity, bundle);
       }
 
-      @Override public String toString() {
+      @Override
+      public String toString() {
         return "Activity Created";
       }
     };
@@ -60,7 +53,8 @@ abstract class IntegrationOperation {
         integration.onActivityStarted(activity);
       }
 
-      @Override public String toString() {
+      @Override
+      public String toString() {
         return "Activity Started";
       }
     };
@@ -73,7 +67,8 @@ abstract class IntegrationOperation {
         integration.onActivityResumed(activity);
       }
 
-      @Override public String toString() {
+      @Override
+      public String toString() {
         return "Activity Resumed";
       }
     };
@@ -86,7 +81,8 @@ abstract class IntegrationOperation {
         integration.onActivityPaused(activity);
       }
 
-      @Override public String toString() {
+      @Override
+      public String toString() {
         return "Activity Paused";
       }
     };
@@ -99,21 +95,23 @@ abstract class IntegrationOperation {
         integration.onActivityStopped(activity);
       }
 
-      @Override public String toString() {
+      @Override
+      public String toString() {
         return "Activity Stopped";
       }
     };
   }
 
-  static IntegrationOperation onActivitySaveInstanceState(final Activity activity,
-      final Bundle bundle) {
+  static IntegrationOperation onActivitySaveInstanceState(
+      final Activity activity, final Bundle bundle) {
     return new IntegrationOperation() {
       @Override
       public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
         integration.onActivitySaveInstanceState(activity, bundle);
       }
 
-      @Override public String toString() {
+      @Override
+      public String toString() {
         return "Activity Save Instance";
       }
     };
@@ -126,7 +124,8 @@ abstract class IntegrationOperation {
         integration.onActivityDestroyed(activity);
       }
 
-      @Override public String toString() {
+      @Override
+      public String toString() {
         return "Activity Destroyed";
       }
     };
@@ -141,7 +140,8 @@ abstract class IntegrationOperation {
         }
       }
 
-      @Override public String toString() {
+      @Override
+      public String toString() {
         return identifyPayload.toString();
       }
     };
@@ -156,7 +156,8 @@ abstract class IntegrationOperation {
         }
       }
 
-      @Override public String toString() {
+      @Override
+      public String toString() {
         return groupPayload.toString();
       }
     };
@@ -206,7 +207,8 @@ abstract class IntegrationOperation {
         }
       }
 
-      @Override public String toString() {
+      @Override
+      public String toString() {
         return trackPayload.toString();
       }
     };
@@ -221,7 +223,8 @@ abstract class IntegrationOperation {
         }
       }
 
-      @Override public String toString() {
+      @Override
+      public String toString() {
         return screenPayload.toString();
       }
     };
@@ -236,34 +239,40 @@ abstract class IntegrationOperation {
         }
       }
 
-      @Override public String toString() {
+      @Override
+      public String toString() {
         return aliasPayload.toString();
       }
     };
   }
 
-  static final IntegrationOperation FLUSH = new IntegrationOperation() {
-    @Override void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
-      integration.flush();
-    }
+  static final IntegrationOperation FLUSH =
+      new IntegrationOperation() {
+        @Override
+        void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
+          integration.flush();
+        }
 
-    @Override public String toString() {
-      return "Flush";
-    }
-  };
+        @Override
+        public String toString() {
+          return "Flush";
+        }
+      };
 
-  static final IntegrationOperation RESET = new IntegrationOperation() {
-    @Override void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
-      integration.reset();
-    }
+  static final IntegrationOperation RESET =
+      new IntegrationOperation() {
+        @Override
+        void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
+          integration.reset();
+        }
 
-    @Override public String toString() {
-      return "Reset";
-    }
-  };
+        @Override
+        public String toString() {
+          return "Reset";
+        }
+      };
 
-  private IntegrationOperation() {
-  }
+  private IntegrationOperation() {}
 
   /** Run this operation on the given integration. */
   abstract void run(String key, Integration<?> integration, ProjectSettings projectSettings);
