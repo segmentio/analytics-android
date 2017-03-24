@@ -53,11 +53,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -233,6 +235,15 @@ public final class Utils {
   @NonNull
   public static <K, V> Map<K, V> immutableCopyOf(@NonNull Map<K, V> map) {
     return Collections.unmodifiableMap(new LinkedHashMap<>(map));
+  }
+
+  /** Returns an immutable copy of the provided list. */
+  @NonNull
+  public static <T> List<T> immutableCopyOf(@Nullable List<T> list) {
+    if (isNullOrEmpty(list)) {
+      return Collections.emptyList();
+    }
+    return Collections.unmodifiableList(new ArrayList<>(list));
   }
 
   /** Creates a unique device id. */
