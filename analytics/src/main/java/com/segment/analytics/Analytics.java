@@ -116,7 +116,7 @@ public class Analytics {
   private final Application application;
   final ExecutorService networkExecutor;
   final Stats stats;
-  private final List<Middleware> middlewares;
+  private final @NonNull List<Middleware> middlewares;
   @Private final Options defaultOptions;
   @Private final Traits.Cache traitsCache;
   @Private final AnalyticsContext analyticsContext;
@@ -203,9 +203,9 @@ public class Analytics {
       Traits.Cache traitsCache,
       AnalyticsContext analyticsContext,
       Options defaultOptions,
-      final Logger logger,
+      @NonNull Logger logger,
       String tag,
-      final List<Integration.Factory> factories,
+      @NonNull List<Integration.Factory> factories,
       Client client,
       Cartographer cartographer,
       ProjectSettings.Cache projectSettingsCache,
@@ -219,7 +219,7 @@ public class Analytics {
       final boolean trackAttributionInformation,
       BooleanPreference optOut,
       Crypto crypto,
-      List<Middleware> middlewares) {
+      @NonNull List<Middleware> middlewares) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -236,7 +236,7 @@ public class Analytics {
     this.flushIntervalInMillis = flushIntervalInMillis;
     this.advertisingIdLatch = advertisingIdLatch;
     this.optOut = optOut;
-    this.factories = Collections.unmodifiableList(factories);
+    this.factories = factories;
     this.analyticsExecutor = analyticsExecutor;
     this.crypto = crypto;
     this.middlewares = middlewares;
@@ -429,6 +429,7 @@ public class Analytics {
       ActivityInfo info =
           packageManager.getActivityInfo(activity.getComponentName(), PackageManager.GET_META_DATA);
       CharSequence activityLabel = info.loadLabel(packageManager);
+      //noinspection deprecation
       screen(null, activityLabel.toString());
     } catch (PackageManager.NameNotFoundException e) {
       throw new AssertionError("Activity Not Found: " + e.toString());
@@ -692,6 +693,7 @@ public class Analytics {
               finalProperties = properties;
             }
 
+            //noinspection deprecation
             ScreenPayload.Builder builder =
                 new ScreenPayload.Builder()
                     .name(name)
@@ -948,7 +950,8 @@ public class Analytics {
   }
 
   /** @deprecated Use {@link #onIntegrationReady(String, Callback)} instead. */
-  public void onIntegrationReady(BundledIntegration integration, Callback callback) {
+  public void onIntegrationReady(
+      @SuppressWarnings("deprecation") BundledIntegration integration, Callback callback) {
     if (integration == null) {
       throw new IllegalArgumentException("integration cannot be null");
     }
@@ -1061,7 +1064,7 @@ public class Analytics {
     private ExecutorService networkExecutor;
     private ExecutorService executor;
     private ConnectionFactory connectionFactory;
-    private List<Integration.Factory> factories;
+    private final List<Integration.Factory> factories = new ArrayList<>();
     private List<Middleware> middlewares;
     private boolean trackApplicationLifecycleEvents = false;
     private boolean recordScreenViews = false;
@@ -1085,8 +1088,6 @@ public class Analytics {
         throw new IllegalArgumentException("writeKey must not be null or empty.");
       }
       this.writeKey = writeKey;
-
-      factories = new ArrayList<>();
     }
 
     /**
@@ -1139,7 +1140,7 @@ public class Analytics {
      * Set some default options for all calls. This will only be used to figure out which
      * integrations should be enabled or not for actions by default.
      *
-     * @see {@link Options}
+     * @see Options
      */
     public Builder defaultOptions(Options defaultOptions) {
       if (defaultOptions == null) {
@@ -1336,6 +1337,8 @@ public class Analytics {
       factories.add(SegmentIntegration.FACTORY);
       factories.addAll(this.factories);
 
+      List<Middleware> middlewares = Utils.immutableCopyOf(this.middlewares);
+
       ExecutorService executor = this.executor;
       if (executor == null) {
         executor = Executors.newSingleThreadExecutor();
@@ -1350,7 +1353,7 @@ public class Analytics {
           defaultOptions,
           logger,
           tag,
-          factories,
+          Collections.unmodifiableList(factories),
           client,
           cartographer,
           projectSettingsCache,

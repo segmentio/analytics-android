@@ -1,17 +1,21 @@
 package com.segment.analytics;
 
+import android.support.annotation.NonNull;
 import com.segment.analytics.integrations.BasePayload;
 import java.util.List;
 
 class RealMiddlewareChain implements Middleware.Chain {
 
   private int index;
-  private final BasePayload payload;
-  private final List<Middleware> middlewares;
-  private final Analytics analytics;
+  private final @NonNull BasePayload payload;
+  private final @NonNull List<Middleware> middlewares;
+  private final @NonNull Analytics analytics;
 
   RealMiddlewareChain(
-      int index, BasePayload payload, List<Middleware> middlewares, Analytics analytics) {
+      int index,
+      @NonNull BasePayload payload,
+      @NonNull List<Middleware> middlewares,
+      @NonNull Analytics analytics) {
     this.index = index;
     this.payload = payload;
     this.middlewares = middlewares;
