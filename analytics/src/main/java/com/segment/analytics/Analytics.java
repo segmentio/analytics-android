@@ -126,7 +126,7 @@ public class Analytics {
   final Cartographer cartographer;
   private final ProjectSettings.Cache projectSettingsCache;
   final Crypto crypto;
-  private final Application.ActivityLifecycleCallbacks activityLifecycleCallback;
+  @Private final Application.ActivityLifecycleCallbacks activityLifecycleCallback;
   ProjectSettings projectSettings; // todo: make final (non-final for testing).
   @Private final String writeKey;
   final int flushQueueSize;
@@ -439,6 +439,9 @@ public class Analytics {
 
   @Private
   void runOnMainThread(final IntegrationOperation operation) {
+    if (shutdown) {
+      return;
+    }
     analyticsExecutor.submit(
         new Runnable() {
           @Override
