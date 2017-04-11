@@ -126,6 +126,7 @@ public class Analytics {
   final Cartographer cartographer;
   private final ProjectSettings.Cache projectSettingsCache;
   final Crypto crypto;
+  private final Application.ActivityLifecycleCallbacks activityLifecycleCallback;
   ProjectSettings projectSettings; // todo: make final (non-final for testing).
   @Private final String writeKey;
   final int flushQueueSize;
@@ -279,62 +280,62 @@ public class Analytics {
 
     logger.debug("Created analytics client for project with tag:%s.", tag);
 
-    application.registerActivityLifecycleCallbacks(
-        new Application.ActivityLifecycleCallbacks() {
-          final AtomicBoolean trackedApplicationLifecycleEvents = new AtomicBoolean(false);
+    activityLifecycleCallback = new Application.ActivityLifecycleCallbacks() {
+      final AtomicBoolean trackedApplicationLifecycleEvents = new AtomicBoolean(false);
 
-          @Override
-          public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-            if (!trackedApplicationLifecycleEvents.getAndSet(true)
+      @Override
+      public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+        if (!trackedApplicationLifecycleEvents.getAndSet(true)
                 && shouldTrackApplicationLifecycleEvents) {
-              trackApplicationLifecycleEvents();
+          trackApplicationLifecycleEvents();
 
-              if (trackAttributionInformation) {
-                analyticsExecutor.submit(
+          if (trackAttributionInformation) {
+            analyticsExecutor.submit(
                     new Runnable() {
                       @Override
                       public void run() {
                         trackAttributionInformation();
                       }
                     });
-              }
-            }
-            runOnMainThread(IntegrationOperation.onActivityCreated(activity, savedInstanceState));
           }
+        }
+        runOnMainThread(IntegrationOperation.onActivityCreated(activity, savedInstanceState));
+      }
 
-          @Override
-          public void onActivityStarted(Activity activity) {
-            if (shouldRecordScreenViews) {
-              recordScreenViews(activity);
-            }
-            runOnMainThread(IntegrationOperation.onActivityStarted(activity));
-          }
+      @Override
+      public void onActivityStarted(Activity activity) {
+        if (shouldRecordScreenViews) {
+          recordScreenViews(activity);
+        }
+        runOnMainThread(IntegrationOperation.onActivityStarted(activity));
+      }
 
-          @Override
-          public void onActivityResumed(Activity activity) {
-            runOnMainThread(IntegrationOperation.onActivityResumed(activity));
-          }
+      @Override
+      public void onActivityResumed(Activity activity) {
+        runOnMainThread(IntegrationOperation.onActivityResumed(activity));
+      }
 
-          @Override
-          public void onActivityPaused(Activity activity) {
-            runOnMainThread(IntegrationOperation.onActivityPaused(activity));
-          }
+      @Override
+      public void onActivityPaused(Activity activity) {
+        runOnMainThread(IntegrationOperation.onActivityPaused(activity));
+      }
 
-          @Override
-          public void onActivityStopped(Activity activity) {
-            runOnMainThread(IntegrationOperation.onActivityStopped(activity));
-          }
+      @Override
+      public void onActivityStopped(Activity activity) {
+        runOnMainThread(IntegrationOperation.onActivityStopped(activity));
+      }
 
-          @Override
-          public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-            runOnMainThread(IntegrationOperation.onActivitySaveInstanceState(activity, outState));
-          }
+      @Override
+      public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+        runOnMainThread(IntegrationOperation.onActivitySaveInstanceState(activity, outState));
+      }
 
-          @Override
-          public void onActivityDestroyed(Activity activity) {
-            runOnMainThread(IntegrationOperation.onActivityDestroyed(activity));
-          }
-        });
+      @Override
+      public void onActivityDestroyed(Activity activity) {
+        runOnMainThread(IntegrationOperation.onActivityDestroyed(activity));
+      }
+    };
+    application.registerActivityLifecycleCallbacks(activityLifecycleCallback);
   }
 
   @Private
@@ -993,6 +994,7 @@ public class Analytics {
     if (shutdown) {
       return;
     }
+    application.unregisterActivityLifecycleCallbacks(activityLifecycleCallback);
     // Only supplied by us for testing, so it's ok to shut it down. If we were to make this public,
     // we'll have to add a check similar to that of AnalyticsNetworkExecutorService below.
     analyticsExecutor.shutdown();
