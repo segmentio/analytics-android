@@ -1,5 +1,46 @@
 package com.segment.analytics;
 
+import android.Manifest;
+import android.app.Activity;
+import android.app.Application;
+import android.content.ComponentName;
+import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Bundle;
+
+import com.segment.analytics.TestUtils.NoDescriptionMatcher;
+import com.segment.analytics.integrations.AliasPayload;
+import com.segment.analytics.integrations.GroupPayload;
+import com.segment.analytics.integrations.IdentifyPayload;
+import com.segment.analytics.integrations.Integration;
+import com.segment.analytics.integrations.Logger;
+import com.segment.analytics.integrations.ScreenPayload;
+import com.segment.analytics.integrations.TrackPayload;
+import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
+
+import org.assertj.core.data.MapEntry;
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeMatcher;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
+
 import static android.content.Context.MODE_PRIVATE;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
@@ -17,50 +58,12 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-
-import android.Manifest;
-import android.app.Activity;
-import android.app.Application;
-import android.content.ComponentName;
-import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Bundle;
-import com.segment.analytics.TestUtils.NoDescriptionMatcher;
-import com.segment.analytics.core.BuildConfig;
-import com.segment.analytics.integrations.AliasPayload;
-import com.segment.analytics.integrations.GroupPayload;
-import com.segment.analytics.integrations.IdentifyPayload;
-import com.segment.analytics.integrations.Integration;
-import com.segment.analytics.integrations.Logger;
-import com.segment.analytics.integrations.ScreenPayload;
-import com.segment.analytics.integrations.TrackPayload;
-import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicReference;
-import org.assertj.core.data.MapEntry;
-import org.hamcrest.Description;
-import org.hamcrest.TypeSafeMatcher;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
@@ -588,10 +591,10 @@ public class AnalyticsTest {
   public void shutdown() {
     assertThat(analytics.shutdown).isFalse();
     analytics.shutdown();
+    verify(application).unregisterActivityLifecycleCallbacks(analytics.activityLifecycleCallback);
     verify(stats).shutdown();
     verify(networkExecutor).shutdown();
     assertThat(analytics.shutdown).isTrue();
-
     try {
       analytics.track("foo");
       fail("Enqueuing a message after shutdown should throw.");
@@ -1007,6 +1010,96 @@ public class AnalyticsTest {
 
     callback.get().onActivityDestroyed(activity);
     verify(integration).onActivityDestroyed(activity);
+
+    verifyNoMoreInteractions(integration);
+  }
+
+  @Test
+  public void unregisterActivityLifecycleCallbacks() throws NameNotFoundException {
+    Analytics.INSTANCES.clear();
+
+    final AtomicReference<Application.ActivityLifecycleCallbacks> registeredCallback =
+        new AtomicReference<>();
+    final AtomicReference<Application.ActivityLifecycleCallbacks> unregisteredCallback =
+        new AtomicReference<>();
+    doNothing()
+        .when(application)
+        .registerActivityLifecycleCallbacks(
+            argThat(new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+              @Override
+              protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                registeredCallback.set(item);
+                return true;
+              }
+            }));
+    doNothing()
+        .when(application)
+        .unregisterActivityLifecycleCallbacks(
+            argThat(new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+              @Override
+              protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                unregisteredCallback.set(item);
+                return true;
+              }
+            }));
+
+    analytics =
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            false,
+            new CountDownLatch(0),
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList());
+
+    assertThat(analytics.shutdown).isFalse();
+    analytics.shutdown();
+
+    // Same callback was registered and unregistered
+    assertThat(analytics.activityLifecycleCallback).isSameAs(registeredCallback.get());
+    assertThat(analytics.activityLifecycleCallback).isSameAs(unregisteredCallback.get());
+
+    Activity activity = mock(Activity.class);
+    Bundle bundle = new Bundle();
+
+    // Verify callbacks do not call through after shutdown
+    registeredCallback.get().onActivityCreated(activity, bundle);
+    verify(integration, never()).onActivityCreated(activity, bundle);
+
+    registeredCallback.get().onActivityStarted(activity);
+    verify(integration, never()).onActivityStarted(activity);
+
+    registeredCallback.get().onActivityResumed(activity);
+    verify(integration, never()).onActivityResumed(activity);
+
+    registeredCallback.get().onActivityPaused(activity);
+    verify(integration, never()).onActivityPaused(activity);
+
+    registeredCallback.get().onActivityStopped(activity);
+    verify(integration, never()).onActivityStopped(activity);
+
+    registeredCallback.get().onActivitySaveInstanceState(activity, bundle);
+    verify(integration, never()).onActivitySaveInstanceState(activity, bundle);
+
+    registeredCallback.get().onActivityDestroyed(activity);
+    verify(integration, never()).onActivityDestroyed(activity);
 
     verifyNoMoreInteractions(integration);
   }

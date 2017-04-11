@@ -126,6 +126,7 @@ public class Analytics {
   final Cartographer cartographer;
   private final ProjectSettings.Cache projectSettingsCache;
   final Crypto crypto;
+  @Private final Application.ActivityLifecycleCallbacks activityLifecycleCallback;
   ProjectSettings projectSettings; // todo: make final (non-final for testing).
   @Private final String writeKey;
   final int flushQueueSize;
@@ -279,7 +280,7 @@ public class Analytics {
 
     logger.debug("Created analytics client for project with tag:%s.", tag);
 
-    application.registerActivityLifecycleCallbacks(
+    activityLifecycleCallback =
         new Application.ActivityLifecycleCallbacks() {
           final AtomicBoolean trackedApplicationLifecycleEvents = new AtomicBoolean(false);
 
@@ -334,7 +335,8 @@ public class Analytics {
           public void onActivityDestroyed(Activity activity) {
             runOnMainThread(IntegrationOperation.onActivityDestroyed(activity));
           }
-        });
+        };
+    application.registerActivityLifecycleCallbacks(activityLifecycleCallback);
   }
 
   @Private
@@ -438,6 +440,9 @@ public class Analytics {
 
   @Private
   void runOnMainThread(final IntegrationOperation operation) {
+    if (shutdown) {
+      return;
+    }
     analyticsExecutor.submit(
         new Runnable() {
           @Override
@@ -993,6 +998,7 @@ public class Analytics {
     if (shutdown) {
       return;
     }
+    application.unregisterActivityLifecycleCallbacks(activityLifecycleCallback);
     // Only supplied by us for testing, so it's ok to shut it down. If we were to make this public,
     // we'll have to add a check similar to that of AnalyticsNetworkExecutorService below.
     analyticsExecutor.shutdown();
