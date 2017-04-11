@@ -37,14 +37,12 @@ class GetAdvertisingIdTask extends AsyncTask<Context, Void, Pair<String, Boolean
                   .getMethod("isLimitAdTrackingEnabled")
                   .invoke(advertisingInfo);
 
-      if (isLimitAdTrackingEnabled) {
-        logger.debug("Not collecting advertising ID because isLimitAdTrackingEnabled is true.");
-        return Pair.create(null, false);
-      }
+      // isNotLimitAdTrackingEnabled is equivalent to adTrackingEnabled.
+      boolean adTrackingEnabled = !isLimitAdTrackingEnabled;
 
       String advertisingId =
           (String) advertisingInfo.getClass().getMethod("getId").invoke(advertisingInfo);
-      return Pair.create(advertisingId, true);
+      return Pair.create(advertisingId, adTrackingEnabled);
     } catch (Exception e) {
       logger.error(e, "Unable to collect advertising ID.");
     }
