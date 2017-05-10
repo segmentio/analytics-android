@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 4.3.0-RC1 (May 10th, 2017)
+==============================
+ * [New](https://github.com/segmentio/analytics-android/pull/515): Add Middlewares.
+ * [Fix](https://github.com/segmentio/analytics-android/pull/524): Unregister Application lifecycle callbacks on shutdown.
+ * [Fix](https://github.com/segmentio/analytics-android/pull/499): Record `ms` precision in timestamps.
+ * [Fix](https://github.com/segmentio/analytics-android/pull/508): Support serialization of Primitive arrays.
+
+
 Version 4.2.6 (January 31st, 2017)
 ==================================
  * [Fix](https://github.com/segmentio/analytics-android/pull/495): Update Cartographer. This fixes an issue where sending custom values sent as arrays would not be serialized correctly.
