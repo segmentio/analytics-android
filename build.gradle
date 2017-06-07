@@ -4,9 +4,9 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'com.android.tools.build:gradle:2.3.1'
+    classpath 'com.android.tools.build:gradle:2.3.2'
     classpath 'com.vanniktech:gradle-android-junit-jacoco-plugin:0.5.0'
-    classpath 'com.f2prateek.javafmt:javafmt:0.1.2'
+    classpath 'com.f2prateek.javafmt:javafmt:0.1.6'
     classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.6.2'
   }
 }
@@ -40,7 +40,7 @@ ext {
   minSdkVersionWear = 21
   targetSdkVersion = 23
   compileSdkVersion = 23
-  buildToolsVersion = '25.0.0'
+  buildToolsVersion = '25.0.3'
 
   sourceCompatibilityVersion = JavaVersion.VERSION_1_7
   targetCompatibilityVersion = JavaVersion.VERSION_1_7
