@@ -1074,7 +1074,7 @@ public class Analytics {
     private List<Middleware> middlewares;
     private boolean trackApplicationLifecycleEvents = false;
     private boolean recordScreenViews = false;
-    private boolean trackAttributionInformation = true;
+    private boolean trackAttributionInformation = false;
     private Crypto crypto;
 
     /** Start building a new {@link Analytics} instance. */
