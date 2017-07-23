@@ -12,6 +12,8 @@ import com.segment.analytics.internal.Private;
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.RecordedRequest;
 import com.squareup.okhttp.mockwebserver.rule.MockWebServerRule;
+
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -145,6 +147,34 @@ public class ClientTest {
               "HTTP 300: bar. "
                   + "Response: Could not read response body for rejected message: "
                   + "java.io.IOException: Underlying input stream returned zero bytes");
+    }
+    verify(mockConnection).disconnect();
+    verify(os).close();
+  }
+
+  @Test
+  public void uploadFailureWithErrorStreamClosesStreamsAndThrowsException() throws Exception {
+    OutputStream os = mock(OutputStream.class);
+    InputStream is = mock(InputStream.class);
+    when(mockConnection.getOutputStream()).thenReturn(os);
+    when(mockConnection.getResponseCode()).thenReturn(404);
+    when(mockConnection.getResponseMessage()).thenReturn("bar");
+    when(mockConnection.getInputStream()).thenThrow(new FileNotFoundException());
+    when(mockConnection.getErrorStream()).thenReturn(is);
+
+    Client.Connection connection = mockClient.upload();
+    verify(mockConnection).setDoOutput(true);
+    verify(mockConnection).setChunkedStreamingMode(0);
+
+    try {
+      connection.close();
+      fail(">= 300 return code should throw an exception");
+    } catch (Client.HTTPException e) {
+      assertThat(e)
+              .hasMessage(
+                      "HTTP 404: bar. "
+                              + "Response: Could not read response body for rejected message: "
+                              + "java.io.IOException: Underlying input stream returned zero bytes");
     }
     verify(mockConnection).disconnect();
     verify(os).close();
