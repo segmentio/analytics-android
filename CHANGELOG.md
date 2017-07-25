@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 4.3.0-RC2 (July 25th, 2017)
+==============================
+ * [New](https://github.com/segmentio/analytics-android/pull/536): Look up Advertising ID for Amazon Fire devices.
+ * [Fix](https://github.com/segmentio/analytics-android/pull/534): Attribution tracking using mobile service should be false by default.
+
 Version 4.3.0-RC1 (May 10th, 2017)
 ==============================
  * [New](https://github.com/segmentio/analytics-android/pull/515): Add Middlewares.
