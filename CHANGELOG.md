@@ -1,13 +1,21 @@
 Changelog
 =========
 
+Version 4.3.0 (Oct 2nd, 2017)
+=============================
+
+ * Promoting RC to stable release. This includes all the improvements from 4.3.0-RC1 and 4.3.0-RC2.
+
+
 Version 4.3.0-RC2 (July 25th, 2017)
-==============================
+===================================
+
  * [New](https://github.com/segmentio/analytics-android/pull/536): Look up Advertising ID for Amazon Fire devices.
  * [Fix](https://github.com/segmentio/analytics-android/pull/534): Attribution tracking using mobile service should be false by default.
 
+
 Version 4.3.0-RC1 (May 10th, 2017)
-==============================
+==================================
  * [New](https://github.com/segmentio/analytics-android/pull/515): Add Middlewares.
  * [Fix](https://github.com/segmentio/analytics-android/pull/524): Unregister Application lifecycle callbacks on shutdown.
  * [Fix](https://github.com/segmentio/analytics-android/pull/499): Record `ms` precision in timestamps.
@@ -16,12 +24,14 @@ Version 4.3.0-RC1 (May 10th, 2017)
 
 Version 4.2.6 (January 31st, 2017)
 ==================================
+
  * [Fix](https://github.com/segmentio/analytics-android/pull/495): Update Cartographer. This fixes an issue where sending custom values sent as arrays would not be serialized correctly.
  * [Fix](https://github.com/segmentio/analytics-android/pull/494): Make DateFormat access thread safe. This fixes an issue where generated timestamps could be sometimes be malformed and not conform to the ISO 8601 standard.
 
 
 Version 4.2.5 (January 2nd, 2017)
 ==================================
+
  * [Fix](https://github.com/segmentio/analytics-android/pull/487/commits/8649050b4b7b74be17fc7b7e4ec0add7362325fd): Using `Properties#putProducts` was stored as an array instead of a list, and not serialized correctly. This caused it to be usable by Segment and server side integrations. If you're stuck on a previous version for some reason, you can manually store it as a list:
 
  ```java
@@ -36,12 +46,14 @@ Version 4.2.5 (January 2nd, 2017)
 
 Version 4.2.4 (November 14th, 2016)
 ==================================
+
  * [Fix](https://github.com/segmentio/analytics-android/pull/484): Version 4.2.2 introduced a change where a default application wide cache was being installed for HTTPURLConnection requests. If you were not using an HTTP cache already or relying on this behaviour, this may have resulted in unintended caching behaviour for your application. This fix returns to the behaviour before 4.2.2, where this library does not install a cache. You may continue to choose to install an application level cache for HTTPURLConnection if you wish.
 
 
 Version 4.2.3 (November 4th, 2016)
 ==================================
- * [Improvement]: Update CDN hostname from `cdn.segment.com` to `cdn-settings.segment.com`. This endpoint has been added to improve performance for mobile clients.
+
+  * [Improvement]: Update CDN hostname from `cdn.segment.com` to `cdn-settings.segment.com`. This endpoint has been added to improve performance for mobile clients.
 
 
 Version 4.2.2 (October 13th, 2016)
