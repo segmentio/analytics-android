@@ -27,6 +27,7 @@ package com.segment.analytics;
 import static com.segment.analytics.internal.Utils.assertNotNull;
 import static com.segment.analytics.internal.Utils.buffer;
 import static com.segment.analytics.internal.Utils.closeQuietly;
+import static com.segment.analytics.internal.Utils.getInputStream;
 import static com.segment.analytics.internal.Utils.getResourceString;
 import static com.segment.analytics.internal.Utils.getSegmentSharedPreferences;
 import static com.segment.analytics.internal.Utils.hasPermission;
@@ -360,7 +361,7 @@ public class Analytics {
 
       // Read the response body.
       Map<String, Object> map =
-          cartographer.fromJson(buffer(connection.connection.getInputStream()));
+          cartographer.fromJson(buffer(getInputStream(connection.connection)));
       Properties properties = new Properties(map);
 
       track("Install Attributed", properties);

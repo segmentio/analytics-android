@@ -25,6 +25,7 @@
 package com.segment.analytics;
 
 import static com.segment.analytics.internal.Utils.readFully;
+import static com.segment.analytics.internal.Utils.getInputStream;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 import android.text.TextUtils;
@@ -58,7 +59,7 @@ class Client {
           if (responseCode >= 300) {
             String responseBody;
             try {
-              responseBody = readFully(connection.getInputStream());
+              responseBody = readFully(getInputStream(connection));
             } catch (IOException e) {
               responseBody = "Could not read response body for rejected message: " + e.toString();
             }
@@ -73,7 +74,7 @@ class Client {
   }
 
   private static Connection createGetConnection(HttpURLConnection connection) throws IOException {
-    return new Connection(connection, connection.getInputStream(), null) {
+    return new Connection(connection, getInputStream(connection), null) {
       @Override
       public void close() throws IOException {
         super.close();
