@@ -32,6 +32,8 @@ android {
   }
 
   lintOptions {
+    textReport true
+    textOutput 'stdout'
     disable 'InvalidPackage', 'GradleCompatible'
   }
 }
