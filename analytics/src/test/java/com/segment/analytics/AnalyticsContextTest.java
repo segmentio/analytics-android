@@ -41,7 +41,7 @@ public class AnalyticsContextTest {
         .containsKey("app") //
         .containsKey("device") //
         .containsKey("library") //
-        .containsEntry("locale", "en-US") //
+        .containsKey("locale") //
         .containsKey("network") //
         .containsKey("os") //
         .containsKey("screen")
@@ -76,15 +76,17 @@ public class AnalyticsContextTest {
         .containsEntry("density", 1.5f) //
         .containsEntry("width", 480) //
         .containsEntry("height", 800);
+  }
 
-    // disable device id collection
+  @Test
+  public void createWithoutDeviceIdCollection() {
     context = AnalyticsContext.create(RuntimeEnvironment.application, traits, false);
 
     assertThat(context.getValueMap("device")) //
-        .containsEntry("id", traits.anonymousId())
-        .containsEntry("manufacturer", "unknown")
-        .containsEntry("model", "unknown")
-        .containsEntry("name", "unknown");
+            .containsEntry("id", traits.anonymousId())
+            .containsEntry("manufacturer", "unknown")
+            .containsEntry("model", "unknown")
+            .containsEntry("name", "unknown");
   }
 
   @Test
