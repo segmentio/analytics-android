@@ -796,6 +796,7 @@ public class AnalyticsTest {
     editor.putInt("build", 100);
     editor.putString("version", "1.0.0");
     editor.apply();
+    when(application.getSharedPreferences("analytics-android-qaz", MODE_PRIVATE)).thenReturn(sharedPreferences);
 
     PackageManager packageManager = mock(PackageManager.class);
     when(packageManager.getPackageInfo("com.foo", 0)).thenReturn(packageInfo);
