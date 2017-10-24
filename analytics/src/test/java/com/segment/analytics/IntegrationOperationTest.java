@@ -130,6 +130,28 @@ public class IntegrationOperationTest {
   }
 
   @Test
+  public void trackPlanDisabledEventSendsToSegment() throws IOException {
+    TrackPayload payload = new TrackPayload.Builder()
+            .event("Install Attributed")
+            .userId("userId")
+            .build();
+    track(
+            payload,
+            "Segment.io",
+            Cartographer.INSTANCE.fromJson(
+                    "{\n"
+                            + "  \"plan\": {\n"
+                            + "    \"track\": {\n"
+                            + "      \"Install Attributed\": {\n"
+                            + "        \"enabled\": false\n"
+                            + "      }\n"
+                            + "    }\n"
+                            + "  }\n"
+                            + "}"));
+    verify(integration).track(payload);
+  }
+
+  @Test
   public void trackPlanDisabledIntegration() throws IOException {
     TrackPayload payload = new TrackPayload.Builder()
         .event("Install Attributed")
