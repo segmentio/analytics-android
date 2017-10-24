@@ -38,8 +38,8 @@ ext {
 
   minSdkVersion = 14
   minSdkVersionWear = 21
-  targetSdkVersion = 23
-  compileSdkVersion = 23
+  targetSdkVersion = 26
+  compileSdkVersion = 26
   buildToolsVersion = '26.0.1'
 
   sourceCompatibilityVersion = JavaVersion.VERSION_1_7
@@ -49,5 +49,5 @@ ext {
 }
 
 ext.deps = [
-  supportAnnotations: 'com.android.support:support-annotations:23.0.1'
+  supportAnnotations: 'com.android.support:support-annotations:26.1.0'
 ]

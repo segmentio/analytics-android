@@ -9,6 +9,7 @@ dependencies:
     - /home/ubuntu/.gradle
     - /home/ubuntu/.m2
   override:
+    - echo y | android update sdk --no-ui --all --filter "platform-tools,tools"
     - cp -fR .buildscript/licenses $ANDROID_HOME/licenses
     - TERM=dumb ./gradlew dependencies
 
