@@ -282,7 +282,7 @@ public class Properties extends ValueMap {
     return putValue(SUBTOTAL_KEY, subtotal);
   }
 
-  public double putSubtotal() {
+  public double subtotal() {
     return getDouble(SUBTOTAL_KEY, 0);
   }
 
