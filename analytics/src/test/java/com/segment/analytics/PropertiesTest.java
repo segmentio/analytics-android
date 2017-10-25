@@ -115,7 +115,7 @@ public class PropertiesTest {
   @Test
   public void subtotal() {
     properties.putSubtotal(9.99);
-    assertThat(properties.putSubtotal()).isEqualTo(9.99);
+    assertThat(properties.subtotal()).isEqualTo(9.99);
   }
 
   @Test
