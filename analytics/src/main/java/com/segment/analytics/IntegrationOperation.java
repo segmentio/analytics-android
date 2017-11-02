@@ -191,8 +191,10 @@ abstract class IntegrationOperation {
         // We have a tracking plan for the event.
         boolean isEnabled = eventPlan.getBoolean("enabled", true);
         if (!isEnabled) {
-          // If event is disabled in the tracking plan, don't send it to any
-          // integrations (Segment included), regardless of options in code.
+          // If event is disabled in the tracking plan, send it only Segment.
+          if (SegmentIntegration.SEGMENT_KEY.equals(key)) {
+            integration.track(trackPayload);
+          }
           return;
         }
 
