@@ -179,12 +179,32 @@ abstract class IntegrationOperation {
         }
 
         String event = trackPayload.event();
+
         ValueMap eventPlan = trackingPlan.getValueMap(event);
         if (isNullOrEmpty(eventPlan)) {
-          // No event plan, use options provided.
-          if (isIntegrationEnabled(integrationOptions, key)) {
+          if (!isNullOrEmpty(integrationOptions)) {
+            // No event plan, use options provided.
+            if (isIntegrationEnabled(integrationOptions, key)) {
+              integration.track(trackPayload);
+            }
+            return;
+          }
+
+          // Use schema defaults if no options are provided.
+          ValueMap defaultPlan = trackingPlan.getValueMap("__default");
+
+          // No defaults, send the event.
+          if (isNullOrEmpty(defaultPlan)) {
+              integration.track(trackPayload);
+              return;
+          }
+
+          // Send the event if new events are enabled or if this is the Segment integration.
+          boolean defaultEventsEnabled = defaultPlan.getBoolean("enabled", true);
+          if (defaultEventsEnabled || SegmentIntegration.SEGMENT_KEY.equals(key)) {
             integration.track(trackPayload);
           }
+
           return;
         }
 
