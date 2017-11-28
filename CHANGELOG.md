@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 4.3.1 (Nov 28, 2017)
+=============================
+
+ * [Fix](https://github.com/segmentio/analytics-android/pull/547): Rename `Properties#putSubtotal` helper to `Properties#subtotal`.
+ * [New](https://github.com/segmentio/analytics-android/pull/552): Send disabled events to Segment's API so that it can be surfaced in the debugger. These events will not be sent to any destination.
+ * [Fix](https://github.com/segmentio/analytics-android/pull/537): Show better errors for unexpected 3xx response codes.
+
+
 Version 4.3.0 (Oct 2nd, 2017)
 =============================
 
