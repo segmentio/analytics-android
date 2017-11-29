@@ -282,9 +282,7 @@ public class Properties extends ValueMap {
     return putValue(SUBTOTAL_KEY, subtotal);
   }
 
-  /**
-   * @deprecated use {@link #subtotal()}
-   */
+  /** @deprecated use {@link #subtotal()} */
   @Deprecated
   public double putSubtotal() {
     return subtotal();
