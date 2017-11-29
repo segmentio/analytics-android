@@ -195,8 +195,8 @@ abstract class IntegrationOperation {
 
           // No defaults, send the event.
           if (isNullOrEmpty(defaultPlan)) {
-              integration.track(trackPayload);
-              return;
+            integration.track(trackPayload);
+            return;
           }
 
           // Send the event if new events are enabled or if this is the Segment integration.
