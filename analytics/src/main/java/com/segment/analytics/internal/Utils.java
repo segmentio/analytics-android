@@ -35,6 +35,7 @@ import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static android.provider.Settings.Secure.ANDROID_ID;
 import static android.provider.Settings.Secure.getString;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -265,6 +266,7 @@ public final class Utils {
     // Telephony ID, guaranteed to be on all phones, requires READ_PHONE_STATE permission
     if (hasPermission(context, READ_PHONE_STATE) && hasFeature(context, FEATURE_TELEPHONY)) {
       TelephonyManager telephonyManager = getSystemService(context, TELEPHONY_SERVICE);
+      @SuppressLint("MissingPermission")
       String telephonyId = telephonyManager.getDeviceId();
       if (!isNullOrEmpty(telephonyId)) {
         return telephonyId;
@@ -301,9 +303,10 @@ public final class Utils {
    */
   public static boolean isConnected(Context context) {
     if (!hasPermission(context, ACCESS_NETWORK_STATE)) {
-      return true; // assume we have the connection and try to upload
+      return true; // Assume we have a connection and try to upload.
     }
     ConnectivityManager cm = getSystemService(context, CONNECTIVITY_SERVICE);
+    @SuppressLint("MissingPermission")
     NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
     return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
   }

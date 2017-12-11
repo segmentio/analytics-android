@@ -16,6 +16,7 @@ allprojects {
     repositories {
       mavenCentral()
       jcenter()
+      google()
     }
   }
 
@@ -23,6 +24,8 @@ allprojects {
 
   repositories {
     mavenCentral()
+    jcenter()
+    google()
   }
 
   group = GROUP
@@ -40,7 +43,7 @@ ext {
   minSdkVersionWear = 21
   targetSdkVersion = 26
   compileSdkVersion = 26
-  buildToolsVersion = '26.0.1'
+  buildToolsVersion = '26.0.2'
 
   sourceCompatibilityVersion = JavaVersion.VERSION_1_7
   targetCompatibilityVersion = JavaVersion.VERSION_1_7

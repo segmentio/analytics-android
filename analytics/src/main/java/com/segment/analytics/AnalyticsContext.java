@@ -39,6 +39,7 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.isOnClassPath;
 import static java.util.Collections.unmodifiableMap;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -264,8 +265,9 @@ public class AnalyticsContext extends ValueMap {
 
   /**
    * Fill this instance with network information. No need to expose a getter for this for bundled
-   * integrations (they'll automatically fill what they need themselves)
+   * integrations (they'll automatically fill what they need themselves).
    */
+  @SuppressLint("MissingPermission")
   void putNetwork(Context context) {
     Map<String, Object> network = createMap();
     if (hasPermission(context, ACCESS_NETWORK_STATE)) {
