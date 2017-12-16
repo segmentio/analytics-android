@@ -34,6 +34,7 @@ import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
@@ -108,7 +109,10 @@ public class Analytics {
   @Private static final String OPT_OUT_PREFERENCE_KEY = "opt-out";
   static final String WRITE_KEY_RESOURCE_IDENTIFIER = "analytics_write_key";
   static final List<String> INSTANCES = new ArrayList<>(1);
+  /* This is intentional since we're only using the application context. */
+  @SuppressLint("StaticFieldLeak")
   static volatile Analytics singleton = null;
+
   @Private static final Properties EMPTY_PROPERTIES = new Properties();
   private static final String VERSION_KEY = "version";
   private static final String BUILD_KEY = "build";

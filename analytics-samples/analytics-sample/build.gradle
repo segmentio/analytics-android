@@ -3,6 +3,13 @@ apply plugin: 'com.f2prateek.javafmt'
 
 apply from: rootProject.file('gradle/android.gradle')
 
+android {
+  lintOptions {
+    // Since this is just a sample app, it's ok to ignore these warnings.
+    disable 'IconMissingDensityFolder', 'GoogleAppIndexingWarning', 'AllowBackup'
+  }
+}
+
 dependencies {
   compile project(':analytics')
   compile project(':analytics-wear')

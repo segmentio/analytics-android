@@ -7,10 +7,17 @@ android {
   defaultConfig {
     minSdkVersion rootProject.ext.minSdkVersionWear
   }
+
+  lintOptions {
+    // Since this is just a sample app, it's ok to ignore these warnings.
+    disable 'IconMissingDensityFolder', 'GoogleAppIndexingWarning', 'AllowBackup'
+  }
 }
 
 dependencies {
   compile project(':analytics')
   compile project(':analytics-wear')
+  // TODO: Update this dependency alongside the GPS dependency in analytics-wear.
+  //noinspection GradleDependency
   compile 'com.google.android.support:wearable:1.1.0'
 }

@@ -248,7 +248,11 @@ public final class Utils {
     return Collections.unmodifiableList(new ArrayList<>(list));
   }
 
-  /** Creates a unique device id. */
+  /**
+   * Creates a unique device id. Suppresses `HardwareIds` lint warnings as we don't use this ID for
+   * identifying specific users. This is also what is required by the Segment spec.
+   */
+  @SuppressLint("HardwareIds")
   public static String getDeviceId(Context context) {
     String androidId = getString(context.getContentResolver(), ANDROID_ID);
     if (!isNullOrEmpty(androidId)
@@ -258,7 +262,7 @@ public final class Utils {
       return androidId;
     }
 
-    // Serial number, guaranteed to be on all non phones in 2.3+
+    // Serial number, guaranteed to be on all non phones in 2.3+.
     if (!isNullOrEmpty(Build.SERIAL)) {
       return Build.SERIAL;
     }
