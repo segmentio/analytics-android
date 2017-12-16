@@ -1,5 +1,6 @@
 package com.segment.analytics;
 
+import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.segment.analytics.Properties.Product;
@@ -146,6 +147,7 @@ public class PropertiesTest {
   public void products() {
     try {
       properties.putProducts();
+      fail("null products should throw");
     } catch (IllegalArgumentException e) {
       assertThat(e).hasMessage("products cannot be null or empty.");
     }

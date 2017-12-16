@@ -97,7 +97,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @see <a href="https://Segment/">Segment</a>
  */
 public class Analytics {
-
   static final Handler HANDLER =
       new Handler(Looper.getMainLooper()) {
         @Override

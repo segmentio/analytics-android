@@ -2,12 +2,16 @@ buildscript {
   repositories {
     mavenCentral()
     jcenter()
+    maven {
+      url 'https://plugins.gradle.org/m2'
+    }
   }
   dependencies {
     classpath 'com.android.tools.build:gradle:2.3.3'
     classpath 'com.vanniktech:gradle-android-junit-jacoco-plugin:0.5.0'
     classpath 'com.f2prateek.javafmt:javafmt:0.1.6'
     classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.6.2'
+    classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.10'
   }
 }
 
@@ -21,6 +25,7 @@ allprojects {
   }
 
   apply plugin: 'idea'
+  apply plugin: 'net.ltgt.errorprone'
 
   repositories {
     mavenCentral()
@@ -30,6 +35,19 @@ allprojects {
 
   group = GROUP
   version = VERSION_NAME
+
+  tasks.withType(JavaCompile) {
+      options.compilerArgs += [
+          '-Xep:UnnecessaryDefaultInEnumSwitch:ERROR',
+          '-Xep:TypeParameterUnusedInFormals:ERROR',
+          '-Xep:MissingOverride:ERROR',
+          '-Xep:ClassCanBeStatic:ERROR',
+          '-Xep:OperatorPrecedence:ERROR',
+          '-Xep:ReferenceEquality:ERROR',
+          '-Xep:FloatingPointLiteralPrecision:ERROR',
+          '-Xep:SimpleDateFormatConstant:ERROR',
+      ]
+  }
 }
 
 def isCI = "true".equals(System.getenv("CIRCLECI"))

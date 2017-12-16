@@ -271,7 +271,8 @@ public class AnalyticsContext extends ValueMap {
   void putNetwork(Context context) {
     Map<String, Object> network = createMap();
     if (hasPermission(context, ACCESS_NETWORK_STATE)) {
-      ConnectivityManager connectivityManager = getSystemService(context, CONNECTIVITY_SERVICE);
+      ConnectivityManager connectivityManager =
+          getSystemService(ConnectivityManager.class, context, CONNECTIVITY_SERVICE);
       if (connectivityManager != null) {
         NetworkInfo wifiInfo = connectivityManager.getNetworkInfo(TYPE_WIFI);
         network.put(NETWORK_WIFI_KEY, wifiInfo != null && wifiInfo.isConnected());
@@ -282,7 +283,8 @@ public class AnalyticsContext extends ValueMap {
       }
     }
 
-    TelephonyManager telephonyManager = getSystemService(context, TELEPHONY_SERVICE);
+    TelephonyManager telephonyManager =
+        getSystemService(TelephonyManager.class, context, TELEPHONY_SERVICE);
     if (telephonyManager != null) {
       network.put(NETWORK_CARRIER_KEY, telephonyManager.getNetworkOperatorName());
     } else {
@@ -312,7 +314,7 @@ public class AnalyticsContext extends ValueMap {
    */
   void putScreen(Context context) {
     Map<String, Object> screen = createMap();
-    WindowManager manager = getSystemService(context, Context.WINDOW_SERVICE);
+    WindowManager manager = getSystemService(WindowManager.class, context, Context.WINDOW_SERVICE);
     Display display = manager.getDefaultDisplay();
     DisplayMetrics displayMetrics = new DisplayMetrics();
     display.getMetrics(displayMetrics);

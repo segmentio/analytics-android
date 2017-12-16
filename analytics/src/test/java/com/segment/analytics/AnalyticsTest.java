@@ -21,6 +21,7 @@ import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
 
+import junit.framework.Assert;
 import org.assertj.core.data.MapEntry;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -248,11 +249,13 @@ public class AnalyticsTest {
   public void invalidTrack() {
     try {
       analytics.track(null);
+      fail("null event should throw");
     } catch (IllegalArgumentException e) {
       assertThat(e).hasMessage("event must not be null or empty.");
     }
     try {
       analytics.track("   ");
+      fail("empty event should throw");
     } catch (IllegalArgumentException e) {
       assertThat(e).hasMessage("event must not be null or empty.");
     }
