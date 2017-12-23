@@ -216,3 +216,8 @@ afterEvaluate { project ->
     }
   }
 }
+
+// Ref: https://github.com/chrisbanes/gradle-mvn-push/issues/39#issue-42709896
+afterEvaluate {
+  androidJavadocs.classpath += project.android.libraryVariants.toList().first().javaCompile.classpath
+}
