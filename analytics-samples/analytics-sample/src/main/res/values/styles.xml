@@ -22,7 +22,7 @@
   ~ SOFTWARE.
   -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
   <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
     <item name="android:textViewStyle">@style/AppTheme.Widget.TextView</item>
@@ -38,7 +38,8 @@
     <item name="fontPath">fonts/Aleo-Regular.otf</item>
   </style>
 
-  <style name="AppTheme.Widget"/>
+  <!-- This is an parent for AppTheme.Widget.TextView. It's empty, but it is definitely used. -->
+  <style name="AppTheme.Widget" tools:ignore="UnusedResources"/>
 
   <style name="AppTheme.Widget.TextView" parent="android:Widget.Holo.Light.TextView">
     <item name="fontPath">fonts/CircularStd-Book.otf</item>
