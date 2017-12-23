@@ -4,11 +4,11 @@ apply plugin: 'com.f2prateek.javafmt'
 apply from: rootProject.file('gradle/android.gradle')
 
 dependencies {
-  compile project(':analytics')
+  api project(':analytics')
 
   // TODO: we should update this dependency.
   //noinspection GradleDependency
-  compile 'com.google.android.gms:play-services-wearable:10.2.6'
+  api 'com.google.android.gms:play-services-wearable:10.2.6'
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

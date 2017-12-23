@@ -15,9 +15,9 @@ android {
 }
 
 dependencies {
-  compile project(':analytics')
-  compile project(':analytics-wear')
+  implementation project(':analytics')
+  implementation project(':analytics-wear')
   // TODO: Update this dependency alongside the GPS dependency in analytics-wear.
   //noinspection GradleDependency
-  compile 'com.google.android.support:wearable:1.1.0'
+  implementation 'com.google.android.support:wearable:1.1.0'
 }
