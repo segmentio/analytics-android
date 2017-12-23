@@ -15,6 +15,6 @@ dependencies {
   compile project(':analytics-wear')
 
   compile 'com.jakewharton:butterknife:8.6.0'
-  provided 'com.jakewharton:butterknife-compiler:8.6.0'
+  annotationProcessor 'com.jakewharton:butterknife-compiler:8.6.0'
   compile 'uk.co.chrisjenx:calligraphy:2.2.0'
 }
