@@ -488,7 +488,7 @@ public class Analytics {
    * @param newTraits Traits about the user.
    * @param options To configure the call.
    * @throws IllegalArgumentException if both {@code userId} and {@code newTraits} are not provided
-   * @see <a href="https://segment.com/docs/spec/identify/">Identify Documentation</a>.
+   * @see <a href="https://segment.com/docs/spec/identify/">Identify Documentation</a>
    */
   public void identify(
       @Nullable String userId, @Nullable Traits newTraits, final @Nullable Options options) {

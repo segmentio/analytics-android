@@ -65,7 +65,7 @@ public abstract class Integration<T> {
 
   /**
    * @see Analytics#screen(String, String, com.segment.analytics.Properties,
-   *     com.segment.analytics.Options)}
+   *     com.segment.analytics.Options)
    */
   public void screen(ScreenPayload screen) {}
 

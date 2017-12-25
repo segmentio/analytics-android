@@ -82,7 +82,7 @@ public class Options {
    * @param bundledIntegration The target integration
    * @param enabled <code>true</code> for enabled, <code>false</code> for disabled
    * @return This options object for chaining
-   * @see {@link Options#setIntegration(String, boolean)}
+   * @see #setIntegration(String, boolean)
    */
   public Options setIntegration(Analytics.BundledIntegration bundledIntegration, boolean enabled) {
     setIntegration(bundledIntegration.key, enabled);
