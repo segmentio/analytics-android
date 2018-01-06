@@ -3,21 +3,41 @@ jobs:
   build:
     working_directory: ~/analytics-android
     docker:
-      - image: circleci/android:api-26-alpha
+      - image: circleci/android:api-27-alpha
     environment:
       JVM_OPTS: -Xmx3200m
       CIRCLE_JDK_VERSION: oraclejdk8
     steps:
       - checkout
       - restore_cache:
-          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "analytics/build.gradle" }}
+          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "analytics/build.gradle" }}-{{ checksum  "analytics-samples/analytics-sample/build.gradle" }}
+      - run:
+          name: Accept licenses
+          command: yes | sdkmanager --licenses || true
+      - run:
+          name: Copy E2E Test Credentials
+          command: |
+            if [ "${RUN_E2E_TESTS}" == "true" ]; then
+              echo "RUNSCOPE_TOKEN=\"${RUNSCOPE_TOKEN}\"" >> "analytics-samples/analytics-sample/e2e_test.properties"
+            fi
       - run:
           name: Build
-          command: ./gradlew checkFmt build
+          command: ./gradlew checkFmt build assembleAndroidTest
+      - run:
+          name: Run E2E Test
+          command: |
+            if [ "${RUN_E2E_TESTS}" == "true" ]; then
+              echo "${FIREBASE_TOKEN}" >> "secret.json"
+              curl -O https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.zip
+              unzip -qq google-cloud-sdk.zip
+              ./google-cloud-sdk/bin/gcloud config set project analytics-android-e2e-test
+              ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file secret.json
+              ./google-cloud-sdk/bin/gcloud firebase test android run --app analytics-samples/analytics-sample/build/outputs/apk/debug/analytics-sample-debug.apk  --test analytics-samples/analytics-sample/build/outputs/apk/androidTest/debug/analytics-sample-debug-androidTest.apk --device-ids sailfish,NexusLowRes,hammerhead --os-version-ids 19,21,22,23,24,25,26,27 --locales en,fr --orientations portrait
+            fi
       - save_cache:
           paths:
             - ~/.gradle
-          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "analytics/build.gradle" }}
+          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "analytics/build.gradle" }}-{{ checksum  "analytics-samples/analytics-sample/build.gradle" }}
       - run:
           name: Upload code coverage reports
           command: bash <(curl -s https://codecov.io/bash)

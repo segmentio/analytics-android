@@ -12,7 +12,6 @@ import com.segment.analytics.internal.Private;
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.RecordedRequest;
 import com.squareup.okhttp.mockwebserver.rule.MockWebServerRule;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
