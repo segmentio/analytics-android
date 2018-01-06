@@ -3,10 +3,29 @@ apply plugin: 'com.f2prateek.javafmt'
 
 apply from: rootProject.file('gradle/android.gradle')
 
+def RUNSCOPE_TOKEN = ""
+def RUN_E2E_TESTS = false
+
+// e2e_test.properties is a file with a single line: RUNSCOPE_TOKEN="<token>"
+def e2eTestPropertiesFile = file('e2e_test.properties')
+if (e2eTestPropertiesFile.exists()) {
+  def props = new Properties()
+  file(e2eTestPropertiesFile).withInputStream { stream -> props.load(stream) }
+  RUNSCOPE_TOKEN = props.getProperty("RUNSCOPE_TOKEN")
+  RUN_E2E_TESTS = true
+}
+
 android {
   lintOptions {
     // Since this is just a sample app, it's ok to ignore these warnings.
     disable 'IconMissingDensityFolder', 'GoogleAppIndexingWarning', 'AllowBackup'
+  }
+
+  defaultConfig {
+    testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    buildConfigField 'String', 'RUNSCOPE_TOKEN', "$RUNSCOPE_TOKEN"
+    buildConfigField 'boolean', 'RUN_E2E_TESTS', "$RUN_E2E_TESTS"
   }
 }
 
@@ -17,4 +36,12 @@ dependencies {
   implementation 'uk.co.chrisjenx:calligraphy:2.2.0'
   implementation 'com.jakewharton:butterknife:8.6.0'
   annotationProcessor 'com.jakewharton:butterknife-compiler:8.6.0'
+
+  androidTestImplementation 'com.squareup.retrofit2:retrofit:2.3.0'
+  androidTestImplementation 'com.squareup.retrofit2:converter-moshi:2.3.0'
+
+  androidTestImplementation 'com.android.support:support-annotations:27.0.2'
+  androidTestImplementation 'com.android.support.test:runner:1.0.1'
+  androidTestImplementation 'com.android.support.test:rules:1.0.1'
+  androidTestImplementation 'com.segment.backo:backo:1.0.0'
 }
