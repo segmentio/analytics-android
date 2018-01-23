@@ -16,7 +16,7 @@ if [ "$CIRCLE_PROJECT_REPONAME" != "$REPO" ]; then
 elif [ "$CIRCLE_PROJECT_USERNAME" != "$USERNAME" ]; then
   echo "Skipping snapshot deployment: wrong owner. Expected '$USERNAME' but was '$CIRCLE_PROJECT_USERNAME'."
 elif [ "$CIRCLE_JDK_VERSION" != "$JDK" ]; then
-  # $CIRCLE_JDK_VERSION must be manually set in circle.yml
+  # $CIRCLE_JDK_VERSION must be manually set in .circleci/config.yml
   echo "Skipping snapshot deployment: wrong JDK. Expected '$JDK' but was '$CIRCLE_JDK_VERSION'."
 elif [ "$CIRCLE_BRANCH" != "$BRANCH" ]; then
   echo "Skipping snapshot deployment: wrong branch. Expected '$BRANCH' but was '$CIRCLE_BRANCH'."
