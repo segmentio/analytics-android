@@ -18,7 +18,7 @@ jobs:
           name: Copy E2E Test Credentials
           command: |
             if [ "${RUN_E2E_TESTS}" == "true" ]; then
-              echo "RUNSCOPE_TOKEN=\"${RUNSCOPE_TOKEN}\"" >> "analytics-samples/analytics-sample/e2e_test.properties"
+              echo "RUNSCOPE_TOKEN=${RUNSCOPE_TOKEN}" >> "analytics-samples/analytics-sample/e2e_test.properties"
             fi
       - run:
           name: Build
