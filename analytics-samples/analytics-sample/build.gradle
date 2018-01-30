@@ -6,7 +6,7 @@ apply from: rootProject.file('gradle/android.gradle')
 def RUNSCOPE_TOKEN = ""
 def RUN_E2E_TESTS = false
 
-// e2e_test.properties is a file with a single line: RUNSCOPE_TOKEN="<token>"
+// e2e_test.properties is a file with a single line: RUNSCOPE_TOKEN=<token>
 def e2eTestPropertiesFile = file('e2e_test.properties')
 if (e2eTestPropertiesFile.exists()) {
   def props = new Properties()
@@ -24,7 +24,7 @@ android {
   defaultConfig {
     testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-    buildConfigField 'String', 'RUNSCOPE_TOKEN', "$RUNSCOPE_TOKEN"
+    buildConfigField 'String', 'RUNSCOPE_TOKEN', "\"$RUNSCOPE_TOKEN\""
     buildConfigField 'boolean', 'RUN_E2E_TESTS', "$RUN_E2E_TESTS"
   }
 }
