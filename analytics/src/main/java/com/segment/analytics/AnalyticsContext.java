@@ -209,7 +209,7 @@ public class AnalyticsContext extends ValueMap {
       putUndefinedIfNull(app, APP_NAME_KEY, packageInfo.applicationInfo.loadLabel(packageManager));
       putUndefinedIfNull(app, APP_VERSION_KEY, packageInfo.versionName);
       putUndefinedIfNull(app, APP_NAMESPACE_KEY, packageInfo.packageName);
-      app.put(APP_BUILD_KEY, packageInfo.versionCode);
+      app.put(APP_BUILD_KEY, String.valueOf(packageInfo.versionCode));
       put(APP_KEY, app);
     } catch (PackageManager.NameNotFoundException e) {
       // ignore
