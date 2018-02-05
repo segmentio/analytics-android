@@ -491,27 +491,29 @@ public class Analytics {
    * @see <a href="https://segment.com/docs/spec/identify/">Identify Documentation</a>
    */
   public void identify(
-      @Nullable String userId, @Nullable Traits newTraits, final @Nullable Options options) {
+      final @Nullable String userId,
+      final @Nullable Traits newTraits,
+      final @Nullable Options options) {
     assertNotShutdown();
     if (isNullOrEmpty(userId) && isNullOrEmpty(newTraits)) {
       throw new IllegalArgumentException("Either userId or some traits must be provided.");
     }
 
-    Traits traits = traitsCache.get();
-    if (!isNullOrEmpty(userId)) {
-      traits.putUserId(userId);
-    }
-    if (!isNullOrEmpty(newTraits)) {
-      traits.putAll(newTraits);
-    }
-
-    traitsCache.set(traits); // Save the new traits
-    analyticsContext.setTraits(traits); // Update the references
-
     analyticsExecutor.submit(
         new Runnable() {
           @Override
           public void run() {
+            Traits traits = traitsCache.get();
+            if (!isNullOrEmpty(userId)) {
+              traits.putUserId(userId);
+            }
+            if (!isNullOrEmpty(newTraits)) {
+              traits.putAll(newTraits);
+            }
+
+            traitsCache.set(traits); // Save the new traits
+            analyticsContext.setTraits(traits); // Update the references
+
             final Options finalOptions;
             if (options == null) {
               finalOptions = defaultOptions;
