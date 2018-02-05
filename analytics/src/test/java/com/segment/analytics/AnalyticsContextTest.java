@@ -53,7 +53,7 @@ public class AnalyticsContextTest {
         .containsEntry("name", "org.robolectric.default")
         .containsEntry("version", "undefined")
         .containsEntry("namespace", "org.robolectric.default")
-        .containsEntry("build", 0);
+        .containsEntry("build", "0");
 
     assertThat(context.getValueMap("device")) //
         .containsEntry("id", "unknown")
