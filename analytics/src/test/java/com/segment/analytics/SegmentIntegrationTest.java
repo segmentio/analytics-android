@@ -355,7 +355,7 @@ public class SegmentIntegrationTest {
     segmentIntegration.performEnqueue(payload);
     verify(payloadQueue, never()).add((byte[]) any());
 
-    // Serialized json is too large (> 15kb).
+    // Serialized json is too large (> MAX_PAYLOAD_SIZE).
     StringBuilder stringBuilder = new StringBuilder();
     for (int i = 0; i < SegmentIntegration.MAX_PAYLOAD_SIZE + 1; i++) {
       stringBuilder.append("a");

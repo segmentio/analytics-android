@@ -69,13 +69,13 @@ class SegmentIntegration extends Integration<Void> {
       };
 
   /**
-   * Drop old payloads if queue contains more than 1000 items. Since each item can be at most 15KB,
-   * this bounds the queue size to ~15MB (ignoring headers), which also leaves room for QueueFile's
+   * Drop old payloads if queue contains more than 1000 items. Since each item can be at most 32KB,
+   * this bounds the queue size to ~32MB (ignoring headers), which also leaves room for QueueFile's
    * 2GB limit.
    */
   static final int MAX_QUEUE_SIZE = 1000;
-  /** Our servers only accept payloads < 15KB. */
-  static final int MAX_PAYLOAD_SIZE = 15000; // 15KB.
+  /** Our servers only accept payloads < 32KB. */
+  static final int MAX_PAYLOAD_SIZE = 32000; // 32KB.
   /**
    * Our servers only accept batches < 500KB. This limit is 475KB to account for extra data that is
    * not present in payloads themselves, but is added later, such as {@code sentAt}, {@code
