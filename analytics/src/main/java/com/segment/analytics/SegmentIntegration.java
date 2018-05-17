@@ -354,7 +354,7 @@ class SegmentIntegration extends Integration<Void> {
       // Upload the payloads.
       connection.close();
     } catch (Client.HTTPException e) {
-      if (e.responseCode >= 400 && e.responseCode < 500) {
+      if (e.is4xx() && e.responseCode != 429) {
         // Simply log and proceed to remove the rejected payloads from the queue.
         logger.error(e, "Payloads were rejected by server. Marked for removal.");
         try {
