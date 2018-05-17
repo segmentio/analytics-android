@@ -303,6 +303,7 @@ public class SegmentIntegrationTest {
     segmentIntegration.submitFlush();
 
     assertThat(queueFile.size()).isEqualTo(0);
+    verify(client).upload();
   }
 
   @Test
@@ -332,6 +333,38 @@ public class SegmentIntegrationTest {
     segmentIntegration.submitFlush();
 
     assertThat(queueFile.size()).isEqualTo(4);
+    verify(client).upload();
+  }
+
+  @Test
+  public void ignoresHTTP429Error() throws IOException {
+    // todo: rewrite using mockwebserver.
+    PayloadQueue payloadQueue = new PayloadQueue.PersistentQueue(queueFile);
+    Client client = mock(Client.class);
+    when(client.upload())
+        .thenReturn(
+            new Connection(
+                mock(HttpURLConnection.class), mock(InputStream.class), mock(OutputStream.class)) {
+              @Override
+              public void close() throws IOException {
+                throw new Client.HTTPException(
+                    429, "Too Many Requests", "too many requests");
+              }
+            });
+    SegmentIntegration segmentIntegration =
+        new SegmentBuilder() //
+            .client(client)
+            .payloadQueue(payloadQueue)
+            .build();
+    for (int i = 0; i < 4; i++) {
+      payloadQueue.add(TRACK_PAYLOAD_JSON.getBytes());
+    }
+
+    segmentIntegration.submitFlush();
+
+    // Verify that messages were not removed from the queue when server returned a 429.
+    assertThat(queueFile.size()).isEqualTo(4);
+    verify(client).upload();
   }
 
   @Test

@@ -120,6 +120,10 @@ class Client {
       this.responseMessage = responseMessage;
       this.responseBody = responseBody;
     }
+
+    boolean is4xx() {
+      return responseCode >= 400 && responseCode < 500;
+    }
   }
 
   /**
