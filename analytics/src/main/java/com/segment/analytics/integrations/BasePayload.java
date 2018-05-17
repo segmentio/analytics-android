@@ -295,7 +295,7 @@ public abstract class BasePayload extends ValueMap {
     }
 
     /**
-     * The Anonymous ID is a pseudo-unique substitute for a User ID, for cases when you don’t have
+     * The Anonymous ID is a pseudo-unique substitute for a User ID, for cases when you don't have
      * an absolutely unique identifier.
      *
      * @see <a href="https://segment.com/docs/spec/identify/#identities">Identities</a>

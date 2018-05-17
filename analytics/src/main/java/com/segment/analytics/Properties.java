@@ -95,7 +95,7 @@ public class Properties extends ValueMap {
 
   /**
    * Set an abstract value to associate with an event. This is typically used in situations where
-   * the event doesn’t generate real-dollar revenue, but has an intrinsic value to a marketing team,
+   * the event doesn't generate real-dollar revenue, but has an intrinsic value to a marketing team,
    * like newsletter signups.
    */
   public Properties putValue(double value) {
@@ -186,7 +186,7 @@ public class Properties extends ValueMap {
   }
 
   /**
-   * Set a category for this action. You’ll want to track all of your product category pages so you
+   * Set a category for this action. You'll want to track all of your product category pages so you
    * can quickly see which categories are most popular.
    *
    * @see <a href="https://segment.com/docs/api/tracking/ecommerce/">Ecommerce API</a>
