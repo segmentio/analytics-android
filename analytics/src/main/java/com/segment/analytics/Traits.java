@@ -173,7 +173,7 @@ public class Traits extends ValueMap {
   }
 
   /**
-   * Set the date the user’s or group’s account was first created. We accept date objects and a wide
+   * Set the date the user's or group's account was first created. We accept date objects and a wide
    * range of date formats, including ISO strings and Unix timestamps. Feel free to use whatever
    * format is easiest for you - although ISO string is recommended for Android.
    */
@@ -310,7 +310,7 @@ public class Traits extends ValueMap {
   }
 
   /**
-   * Set the user’s username. This should be unique to each user, like the usernames of Twitter or
+   * Set the user's username. This should be unique to each user, like the usernames of Twitter or
    * GitHub.
    */
   public Traits putUsername(String username) {

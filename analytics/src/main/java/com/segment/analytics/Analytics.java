@@ -255,7 +255,7 @@ public class Analytics {
           public void run() {
             projectSettings = getSettings();
             if (isNullOrEmpty(projectSettings)) {
-              // Backup mode — Enable just the Segment integration.
+              // Backup mode - Enable just the Segment integration.
               // {
               //   integrations: {
               //     Segment.io: {
