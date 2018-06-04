@@ -31,9 +31,6 @@
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
   <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
-  <!-- Allow you to get LOGCAT information when a crash occurs. -->
-  <uses-permission android:name="android.permission.READ_LOGS"/>
-
   <!-- Allow you to see which activity was active when a crash occurs. -->
   <uses-permission android:name="android.permission.GET_TASKS"/>
 
