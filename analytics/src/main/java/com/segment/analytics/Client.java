@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.GZIPOutputStream;
 
 /** HTTP client which can upload payloads and fetch project settings from the Segment public API. */
@@ -108,7 +109,13 @@ class Client {
     return createGetConnection(connection);
   }
 
-  /** Represents an HTTP exception thrown for unexpected/non 2xx response codes. */
+  /**
+   * Represents an HTTP exception thrown for unexpected/non 2xx response codes.
+   *
+   * This implementation is net meant to be used with Serializable and hence does not have a
+   * serialVersionUID.
+   */
+  @SuppressWarnings("serial")
   static class HTTPException extends IOException {
     final int responseCode;
     final String responseMessage;
