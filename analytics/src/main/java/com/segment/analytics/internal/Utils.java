@@ -595,7 +595,13 @@ public final class Utils {
     }
   }
 
-  /** A {@link ConcurrentHashMap} that rejects null keys and values instead of failing. */
+  /**
+   * A {@link ConcurrentHashMap} that rejects null keys and values instead of failing.
+   *
+   * This implementation is net meant to be used with Serializable and hence does not have a
+   * serialVersionUID.
+   */
+  @SuppressWarnings("serial")
   public static class NullableConcurrentHashMap<K, V> extends ConcurrentHashMap<K, V> {
 
     public NullableConcurrentHashMap() {
