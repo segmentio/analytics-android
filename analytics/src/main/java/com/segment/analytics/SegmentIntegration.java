@@ -206,6 +206,11 @@ class SegmentIntegration extends Integration<Void> {
     segmentThread.start();
     handler = new SegmentDispatcherHandler(segmentThread.getLooper(), this);
 
+    scheduleFlush(flushIntervalInMillis);
+  }
+
+  @SuppressWarnings("FutureReturnValueIgnored")
+  private void scheduleFlush(long flushIntervalInMillis) {
     long initialDelay = payloadQueue.size() >= flushQueueSize ? 0L : flushIntervalInMillis;
     flushScheduler.scheduleAtFixedRate(
         new Runnable() {
@@ -307,6 +312,7 @@ class SegmentIntegration extends Integration<Void> {
   }
 
   /** Submits a flush message to the network executor. */
+  @SuppressWarnings("FutureReturnValueIgnored")
   void submitFlush() {
     if (!shouldFlush()) {
       return;
