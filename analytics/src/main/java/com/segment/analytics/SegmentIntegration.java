@@ -59,7 +59,7 @@ class SegmentIntegration extends Integration<Void> {
               analytics.tag,
               analytics.flushIntervalInMillis,
               analytics.flushQueueSize,
-              analytics.getLogger(),
+              analytics.logger("Segment"),
               analytics.crypto);
         }
 
