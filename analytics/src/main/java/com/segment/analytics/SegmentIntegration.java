@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /** Entity that queues payloads on disks and uploads them periodically. */
@@ -282,7 +283,7 @@ class SegmentIntegration extends Integration<Void> {
     try {
       ByteArrayOutputStream bos = new ByteArrayOutputStream();
       OutputStream cos = crypto.encrypt(bos);
-      cartographer.toJson(payload, new OutputStreamWriter(cos));
+      cartographer.toJson(payload, new OutputStreamWriter(cos, UTF_8));
       byte[] bytes = bos.toByteArray();
       if (bytes == null || bytes.length == 0 || bytes.length > MAX_PAYLOAD_SIZE) {
         throw new IOException("Could not serialize payload " + payload);
@@ -434,7 +435,7 @@ class SegmentIntegration extends Integration<Void> {
     private boolean needsComma = false;
 
     BatchPayloadWriter(OutputStream stream) {
-      bufferedWriter = new BufferedWriter(new OutputStreamWriter(stream));
+      bufferedWriter = new BufferedWriter(new OutputStreamWriter(stream, UTF_8));
       jsonWriter = new JsonWriter(bufferedWriter);
     }
 
