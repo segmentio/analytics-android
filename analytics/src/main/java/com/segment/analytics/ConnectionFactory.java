@@ -1,7 +1,10 @@
 package com.segment.analytics;
 
+import static com.segment.analytics.internal.Utils.UTF_8;
+
 import android.util.Base64;
 import com.segment.analytics.core.BuildConfig;
+import com.segment.analytics.internal.Utils;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -17,7 +20,7 @@ public class ConnectionFactory {
   static final String USER_AGENT = "analytics-android/" + BuildConfig.VERSION_NAME;
 
   private String authorizationHeader(String writeKey) {
-    return "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP);
+    return "Basic " + Base64.encodeToString((writeKey + ":").getBytes(UTF_8), Base64.NO_WRAP);
   }
 
   /** Return a {@link HttpURLConnection} that reads JSON formatted project settings. */
