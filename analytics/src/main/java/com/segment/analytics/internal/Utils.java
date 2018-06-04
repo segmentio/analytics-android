@@ -148,8 +148,9 @@ public final class Utils {
 
   /** Returns the system service for the given string. */
   @SuppressWarnings("unchecked")
-  public static <T> T getSystemService(Context context, String serviceConstant) {
-    return (T) context.getSystemService(serviceConstant);
+  public static <T> T getSystemService(Context context, Class<T> clazz, String serviceConstant) {
+    Object o = context.getSystemService(serviceConstant);
+    return clazz.cast(o);
   }
 
   /** Returns true if the string is null, or empty (once trimmed). */
@@ -301,7 +302,8 @@ public final class Utils {
     if (!hasPermission(context, READ_PHONE_STATE) && hasFeature(context, FEATURE_TELEPHONY)) {
       return null;
     }
-    TelephonyManager telephonyManager = getSystemService(context, TELEPHONY_SERVICE);
+    TelephonyManager telephonyManager = getSystemService(context, TelephonyManager.class,
+        TELEPHONY_SERVICE);
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
       return telephonyManager.getDeviceId();
     }
@@ -331,7 +333,8 @@ public final class Utils {
     if (!hasPermission(context, ACCESS_NETWORK_STATE)) {
       return true; // Assume we have a connection and try to upload.
     }
-    ConnectivityManager cm = getSystemService(context, CONNECTIVITY_SERVICE);
+    ConnectivityManager cm = getSystemService(context, ConnectivityManager.class,
+        CONNECTIVITY_SERVICE);
     @SuppressLint("MissingPermission")
     NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
     return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
