@@ -83,7 +83,7 @@ public final class Utils {
   public static final boolean DEFAULT_COLLECT_DEVICE_ID = true;
 
   /** Creates a mutable HashSet instance containing the given elements in unspecified order */
-  public static <T> Set<T> newSet(T... values) {
+  @SafeVarargs @SuppressWarnings("varargs") public static <T> Set<T> newSet(T... values) {
     Set<T> set = new HashSet<>(values.length);
     Collections.addAll(set, values);
     return set;
