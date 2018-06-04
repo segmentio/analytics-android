@@ -90,7 +90,7 @@ public final class Utils {
   }
 
   /** @deprecated Use {@link #toISO8601String(Date)}. */
-  public static String toISO8601Date(Date date) {
+  @Deprecated public static String toISO8601Date(Date date) {
     return toISO8601String(date);
   }
 
@@ -111,7 +111,7 @@ public final class Utils {
   }
 
   /** @deprecated Use {@link #parseISO8601Date(String)}. */
-  public static Date toISO8601Date(String date) throws ParseException {
+  @Deprecated public static Date toISO8601Date(String date) throws ParseException {
     return parseISO8601Date(date);
   }
 
@@ -192,7 +192,7 @@ public final class Utils {
   }
 
   /** Returns true if the collection is null or has a size of 0. */
-  public static boolean isNullOrEmpty(Collection collection) {
+  public static boolean isNullOrEmpty(Collection<?> collection) {
     return collection == null || collection.size() == 0;
   }
 
@@ -202,7 +202,7 @@ public final class Utils {
   }
 
   /** Returns true if the map is null or empty, false otherwise. */
-  public static boolean isNullOrEmpty(Map map) {
+  public static boolean isNullOrEmpty(Map<?, ?> map) {
     return map == null || map.size() == 0;
   }
 
