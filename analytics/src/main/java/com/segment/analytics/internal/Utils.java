@@ -263,8 +263,9 @@ public final class Utils {
     }
 
     // Serial number, guaranteed to be on all non phones in 2.3+.
-    if (!isNullOrEmpty(Build.SERIAL)) {
-      return Build.SERIAL;
+    String serial = getSerialCompat(context);
+    if (!isNullOrEmpty(serial)) {
+      return serial;
     }
 
     // Telephony ID, guaranteed to be on all phones, requires READ_PHONE_STATE permission
@@ -284,6 +285,18 @@ public final class Utils {
   /** Returns a shared preferences for storing any library preferences. */
   public static SharedPreferences getSegmentSharedPreferences(Context context, String tag) {
     return context.getSharedPreferences("analytics-android-" + tag, MODE_PRIVATE);
+  }
+
+  @SuppressWarnings("deprecation")
+  @SuppressLint({"MissingPermission", "HardwareIds"})
+  private static String getSerialCompat(Context context) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+      return Build.SERIAL;
+    }
+    if (hasPermission(context, READ_PHONE_STATE)) {
+      return Build.getSerial();
+    }
+    return null;
   }
 
   /** Get the string resource for the given key. Returns null if not found. */
