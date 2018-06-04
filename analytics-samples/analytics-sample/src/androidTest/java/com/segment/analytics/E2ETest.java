@@ -21,7 +21,10 @@ import okhttp3.OkHttpClient;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.MethodRule;
 import org.junit.runner.RunWith;
+import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.Statement;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.moshi.MoshiConverterFactory;
@@ -39,6 +42,9 @@ public class E2ETest {
   @Rule
   public final ActivityTestRule<MainActivity> activityActivityTestRule =
       new ActivityTestRule<>(MainActivity.class);
+
+  @Rule
+  public EndToEndTestsDisabledRule endToEndTestsDisabledRule = new EndToEndTestsDisabledRule();
 
   /**
    * Write key for the Segment project to send data to.
@@ -86,11 +92,6 @@ public class E2ETest {
 
   @Test
   public void track() throws InterruptedException, IOException {
-    // Skip the test if End to End tests are disabled (e.g. contributor PRs).
-    if (!BuildConfig.RUN_E2E_TESTS) {
-      return;
-    }
-
     final String uuid = UUID.randomUUID().toString();
     analytics.track("E2E Test", new Properties().putValue("id", uuid));
     analytics.flush();
@@ -106,7 +107,9 @@ public class E2ETest {
     fail("did not find message with id: " + uuid);
   }
 
-  /** Returns {@code true} if a message with the provided ID is found in Runscope. */
+  /**
+   * Returns {@code true} if a message with the provided ID is found in Runscope.
+   */
   @SuppressWarnings("ConstantConditions")
   private boolean hasMatchingRequest(String id) throws IOException {
     Response<MessagesResponse> messagesResponse = runscopeService
@@ -125,5 +128,23 @@ public class E2ETest {
     }
 
     return false;
+  }
+
+  /** Skips tests if they were supposed to be ignored. */
+  static class EndToEndTestsDisabledRule implements MethodRule {
+
+    @Override
+    public Statement apply(final Statement base, FrameworkMethod method, Object target) {
+      return new Statement() {
+        @Override
+        public void evaluate() throws Throwable {
+          // Skip the test if End to End tests are disabled (e.g. contributor PRs).
+          if (!BuildConfig.RUN_E2E_TESTS) {
+            return;
+          }
+          base.evaluate();
+        }
+      };
+    }
   }
 }
