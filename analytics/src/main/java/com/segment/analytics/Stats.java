@@ -95,8 +95,9 @@ class Stats {
           stats.performFlush(msg.arg1);
           break;
         case TRACK_INTEGRATION_OPERATION:
-          //noinspection unchecked
-          stats.performIntegrationOperation((Pair<String, Long>) msg.obj);
+          // Only we post to this handler, and we know the types passed to it.
+          @SuppressWarnings("unchecked") Pair<String, Long> obj = (Pair<String, Long>) msg.obj;
+          stats.performIntegrationOperation(obj);
           break;
         default:
           throw new AssertionError("Unknown Stats handler message: " + msg);
