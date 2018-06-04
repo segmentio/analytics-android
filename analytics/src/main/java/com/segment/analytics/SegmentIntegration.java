@@ -5,7 +5,7 @@ import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
 import static com.segment.analytics.internal.Utils.closeQuietly;
 import static com.segment.analytics.internal.Utils.createDirectory;
 import static com.segment.analytics.internal.Utils.isConnected;
-import static com.segment.analytics.internal.Utils.toISO8601Date;
+import static com.segment.analytics.internal.Utils.toISO8601String;
 
 import android.content.Context;
 import android.os.Handler;
@@ -477,7 +477,7 @@ class SegmentIntegration extends Integration<Void> {
        * assumed to have occurred at the same time, and therefore the difference is the local clock
        * skew.
        */
-      jsonWriter.name("sentAt").value(toISO8601Date(new Date())).endObject();
+      jsonWriter.name("sentAt").value(toISO8601String(new Date())).endObject();
       return this;
     }
 

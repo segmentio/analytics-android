@@ -26,12 +26,12 @@ package com.segment.analytics;
 
 import static com.segment.analytics.internal.Utils.NullableConcurrentHashMap;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
-import static com.segment.analytics.internal.Utils.toISO8601Date;
+import static com.segment.analytics.internal.Utils.parseISO8601Date;
+import static com.segment.analytics.internal.Utils.toISO8601String;
 import static java.util.Collections.unmodifiableMap;
 
 import android.content.Context;
 import com.segment.analytics.internal.Private;
-import java.text.ParseException;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -159,17 +159,13 @@ public class Traits extends ValueMap {
 
   /** Set the user's birthday. */
   public Traits putBirthday(Date birthday) {
-    return putValue(BIRTHDAY_KEY, toISO8601Date(birthday));
+    return putValue(BIRTHDAY_KEY, toISO8601String(birthday));
   }
 
   public Date birthday() {
-    try {
-      String birthday = getString(BIRTHDAY_KEY);
-      if (isNullOrEmpty(birthday)) return null;
-      return toISO8601Date(birthday);
-    } catch (ParseException e) {
-      return null;
-    }
+    String birthday = getString(BIRTHDAY_KEY);
+    if (isNullOrEmpty(birthday)) return null;
+    return parseISO8601Date(birthday);
   }
 
   /**
