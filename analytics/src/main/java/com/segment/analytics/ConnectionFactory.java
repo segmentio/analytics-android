@@ -1,6 +1,7 @@
 package com.segment.analytics;
 
 import android.util.Base64;
+import com.segment.analytics.core.BuildConfig;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -13,6 +14,7 @@ public class ConnectionFactory {
 
   private static final int DEFAULT_READ_TIMEOUT_MILLIS = 20 * 1000; // 20s
   private static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 15 * 1000; // 15s
+  static final String USER_AGENT = "analytics-android/" + BuildConfig.VERSION_NAME;
 
   private String authorizationHeader(String writeKey) {
     return "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP);
@@ -58,6 +60,7 @@ public class ConnectionFactory {
     connection.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS);
     connection.setReadTimeout(DEFAULT_READ_TIMEOUT_MILLIS);
     connection.setRequestProperty("Content-Type", "application/json");
+    connection.setRequestProperty("User-Agent", USER_AGENT);
     connection.setDoInput(true);
     return connection;
   }
