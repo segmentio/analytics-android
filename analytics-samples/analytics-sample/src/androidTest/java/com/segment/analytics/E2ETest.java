@@ -3,8 +3,6 @@ package com.segment.analytics;
 
 import static org.junit.Assert.fail;
 
-import android.support.test.InstrumentationRegistry;
-import android.support.test.filters.RequiresDevice;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import com.segment.analytics.runscope.MessageResponse;
@@ -18,6 +16,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -90,21 +89,60 @@ public class E2ETest {
         .create(RunscopeService.class);
   }
 
+  @After
+  public void tearDown() {
+    analytics.shutdown();
+  }
+
   @Test
-  public void track() throws InterruptedException, IOException {
+  public void track() {
     final String uuid = UUID.randomUUID().toString();
-    analytics.track("E2E Test", new Properties().putValue("id", uuid));
+    analytics.track("Simple Track", new Properties().putValue("id", uuid));
     analytics.flush();
 
-    for (int i = 0; i < 10; i++) {
-      BACKO.sleep(i);
+    assertMessageReceivedByWebhook(uuid);
+  }
 
-      if (hasMatchingRequest(uuid)) {
-        return;
+  @Test
+  public void screen() {
+    final String uuid = UUID.randomUUID().toString();
+    analytics.screen("Home", new Properties().putValue("id", uuid));
+    analytics.flush();
+
+    assertMessageReceivedByWebhook(uuid);
+  }
+
+  @Test
+  public void group() {
+    final String uuid = UUID.randomUUID().toString();
+    analytics.group("segment", new Traits().putValue("id", uuid));
+    analytics.flush();
+
+    assertMessageReceivedByWebhook(uuid);
+  }
+
+  @Test
+  public void identify() throws Exception {
+    final String uuid = UUID.randomUUID().toString();
+    analytics.group("prateek", new Traits().putValue("id", uuid));
+    analytics.flush();
+
+    assertMessageReceivedByWebhook(uuid);
+  }
+
+  private void assertMessageReceivedByWebhook(String id) {
+    for (int i = 0; i < 10; i++) {
+      try {
+        BACKO.sleep(i);
+        if (hasMatchingRequest(id)) {
+          return;
+        }
+      } catch (Exception ignored) {
+        // Catch and ignore so that we can retry.
       }
     }
 
-    fail("did not find message with id: " + uuid);
+    fail("did not find message with id: " + id);
   }
 
   /**
@@ -130,7 +168,9 @@ public class E2ETest {
     return false;
   }
 
-  /** Skips tests if they were supposed to be ignored. */
+  /**
+   * Skips tests if they were supposed to be ignored.
+   */
   static class EndToEndTestsDisabledRule implements MethodRule {
 
     @Override
