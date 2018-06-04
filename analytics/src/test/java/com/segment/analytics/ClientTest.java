@@ -75,6 +75,7 @@ public class ClientTest {
     assertThat(connection.connection.getResponseCode()).isEqualTo(200); // consume the response.
     RecordedRequestAssert.assertThat(server.takeRequest())
         .hasRequestLine("POST /v1/import HTTP/1.1")
+        .containsHeader("User-Agent", ConnectionFactory.USER_AGENT)
         .containsHeader("Content-Type", "application/json")
         .containsHeader("Content-Encoding", "gzip")
         .containsHeader("Authorization", "Basic Zm9vOg==");
@@ -90,6 +91,7 @@ public class ClientTest {
     assertThat(connection.connection.getResponseCode()).isEqualTo(200); // consume the response.
     RecordedRequestAssert.assertThat(server.takeRequest())
         .hasRequestLine("POST /v1/attribution HTTP/1.1")
+        .containsHeader("User-Agent", ConnectionFactory.USER_AGENT)
         .containsHeader("Content-Type", "application/json")
         .containsHeader("Authorization", "Basic Zm9vOg==");
   }
@@ -170,10 +172,10 @@ public class ClientTest {
       fail(">= 300 return code should throw an exception");
     } catch (Client.HTTPException e) {
       assertThat(e)
-              .hasMessage(
-                      "HTTP 404: bar. "
-                              + "Response: Could not read response body for rejected message: "
-                              + "java.io.IOException: Underlying input stream returned zero bytes");
+          .hasMessage(
+              "HTTP 404: bar. "
+                  + "Response: Could not read response body for rejected message: "
+                  + "java.io.IOException: Underlying input stream returned zero bytes");
     }
     verify(mockConnection).disconnect();
     verify(os).close();
@@ -189,6 +191,7 @@ public class ClientTest {
     assertThat(connection.connection.getResponseCode()).isEqualTo(200);
     RecordedRequestAssert.assertThat(server.takeRequest())
         .hasRequestLine("GET /v1/projects/foo/settings HTTP/1.1")
+        .containsHeader("User-Agent", ConnectionFactory.USER_AGENT)
         .containsHeader("Content-Type", "application/json");
   }
 
