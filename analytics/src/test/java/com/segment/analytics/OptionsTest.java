@@ -31,6 +31,7 @@ public class OptionsTest {
     }
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void setIntegration() throws Exception {
     options.setIntegration("Mixpanel", true);

@@ -24,6 +24,7 @@
 
 package com.segment.analytics;
 
+import static com.segment.analytics.internal.Utils.UTF_8;
 import static com.segment.analytics.internal.Utils.assertNotNull;
 import static com.segment.analytics.internal.Utils.buffer;
 import static com.segment.analytics.internal.Utils.closeQuietly;
@@ -97,6 +98,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @see <a href="https://Segment/">Segment</a>
  */
+// TODO: we should eventually return futures as part of the API.
+@SuppressWarnings("FutureReturnValueIgnored")
 public class Analytics {
 
   static final Handler HANDLER =
@@ -360,7 +363,7 @@ public class Analytics {
       connection = client.attribution();
 
       // Write the request body.
-      Writer writer = new BufferedWriter(new OutputStreamWriter(connection.os));
+      Writer writer = new BufferedWriter(new OutputStreamWriter(connection.os, UTF_8));
       cartographer.toJson(analyticsContext, writer);
 
       // Read the response body.
@@ -644,7 +647,7 @@ public class Analytics {
    * @see #screen(String, String, Properties, Options)
    * @deprecated Use {@link #screen(String)} instead.
    */
-  public void screen(@Nullable String category, @Nullable String name) {
+  @Deprecated public void screen(@Nullable String category, @Nullable String name) {
     screen(category, name, null, null);
   }
 
@@ -652,7 +655,7 @@ public class Analytics {
    * @see #screen(String, String, Properties, Options)
    * @deprecated Use {@link #screen(String, Properties)} instead.
    */
-  public void screen(
+  @Deprecated public void screen(
       @Nullable String category, @Nullable String name, @Nullable Properties properties) {
     screen(category, name, properties, null);
   }
@@ -705,8 +708,7 @@ public class Analytics {
               finalProperties = properties;
             }
 
-            //noinspection deprecation
-            ScreenPayload.Builder builder =
+            @SuppressWarnings("deprecation") ScreenPayload.Builder builder =
                 new ScreenPayload.Builder()
                     .name(name)
                     .category(category)
@@ -875,6 +877,7 @@ public class Analytics {
    *
    * @deprecated This will be removed in a future release.
    */
+  @Deprecated
   public Logger getLogger() {
     return logger;
   }
@@ -929,7 +932,7 @@ public class Analytics {
    * <p>Usage:
    *
    * <pre> <code>
-   *   analytics.onIntegrationReady("Amplitude", new Callback() {
+   *   analytics.onIntegrationReady("Amplitude", new Callback<>() {
    *     {@literal @}Override public void onIntegrationReady(Object instance) {
    *       Amplitude.enableLocationListening();
    *     }
@@ -962,8 +965,8 @@ public class Analytics {
   }
 
   /** @deprecated Use {@link #onIntegrationReady(String, Callback)} instead. */
-  public void onIntegrationReady(
-      @SuppressWarnings("deprecation") BundledIntegration integration, Callback callback) {
+  @Deprecated public void onIntegrationReady(
+      @SuppressWarnings("deprecation") BundledIntegration integration, Callback<?> callback) {
     if (integration == null) {
       throw new IllegalArgumentException("integration cannot be null");
     }
@@ -971,7 +974,7 @@ public class Analytics {
   }
 
   /** @deprecated */
-  public enum BundledIntegration {
+  @Deprecated public enum BundledIntegration {
     AMPLITUDE("Amplitude"),
     APPS_FLYER("AppsFlyer"),
     APPTIMIZE("Apptimize"),
@@ -1451,7 +1454,7 @@ public class Analytics {
         logger.debug("Integration %s is not enabled.", key);
         continue;
       }
-      Integration integration = factory.create(settings, this);
+      Integration<?> integration = factory.create(settings, this);
       if (integration == null) {
         logger.info("Factory %s couldn't create integration.", factory);
       } else {
@@ -1475,6 +1478,7 @@ public class Analytics {
     }
   }
 
+  @SuppressWarnings("unchecked")
   @Private
   <T> void performCallback(String key, Callback<T> callback) {
     for (Map.Entry<String, Integration<?>> entry : integrations.entrySet()) {
