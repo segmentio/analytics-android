@@ -2,6 +2,7 @@ package com.segment.analytics;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 import static com.segment.analytics.internal.Utils.THREAD_PREFIX;
+import static com.segment.analytics.internal.Utils.UTF_8;
 import static com.segment.analytics.internal.Utils.closeQuietly;
 import static com.segment.analytics.internal.Utils.createDirectory;
 import static com.segment.analytics.internal.Utils.isConnected;
@@ -83,7 +84,6 @@ class SegmentIntegration extends Integration<Void> {
    */
   @Private static final int MAX_BATCH_SIZE = 475000; // 475KB.
 
-  @Private static final Charset UTF_8 = Charset.forName("UTF-8");
   private static final String SEGMENT_THREAD_NAME = THREAD_PREFIX + "SegmentDispatcher";
   static final String SEGMENT_KEY = "Segment.io";
   private final Context context;

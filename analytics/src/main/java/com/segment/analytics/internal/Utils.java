@@ -54,6 +54,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -81,6 +82,7 @@ public final class Utils {
   public static final int DEFAULT_FLUSH_INTERVAL = 30 * 1000; // 30s
   public static final int DEFAULT_FLUSH_QUEUE_SIZE = 20;
   public static final boolean DEFAULT_COLLECT_DEVICE_ID = true;
+  public static final Charset UTF_8 = Charset.forName("UTF-8");
 
   /** Creates a mutable HashSet instance containing the given elements in unspecified order */
   @SafeVarargs @SuppressWarnings("varargs") public static <T> Set<T> newSet(T... values) {
@@ -367,7 +369,7 @@ public final class Utils {
 
   /** Buffers the given {@code InputStream}. */
   public static BufferedReader buffer(InputStream is) {
-    return new BufferedReader(new InputStreamReader(is));
+    return new BufferedReader(new InputStreamReader(is, UTF_8));
   }
 
   /** Reads the give {@code InputStream} into a String. */
