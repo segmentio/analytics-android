@@ -263,19 +263,15 @@ public final class Utils {
     }
 
     // Serial number, guaranteed to be on all non phones in 2.3+.
-    String serial = getSerialCompat(context);
+    String serial = getBuildSerialCompat(context);
     if (!isNullOrEmpty(serial)) {
       return serial;
     }
 
-    // Telephony ID, guaranteed to be on all phones, requires READ_PHONE_STATE permission
-    if (hasPermission(context, READ_PHONE_STATE) && hasFeature(context, FEATURE_TELEPHONY)) {
-      TelephonyManager telephonyManager = getSystemService(context, TELEPHONY_SERVICE);
-      @SuppressLint("MissingPermission")
-      String telephonyId = telephonyManager.getDeviceId();
-      if (!isNullOrEmpty(telephonyId)) {
-        return telephonyId;
-      }
+    // Telephony ID, guaranteed to be on all phones.
+    String telephonyId = getTelephonyManagerDeviceIdCompat(context);
+    if (!isNullOrEmpty(telephonyId)) {
+      return telephonyId;
     }
 
     // If this still fails, generate random identifier that does not persist across installations
@@ -289,7 +285,7 @@ public final class Utils {
 
   @SuppressWarnings("deprecation")
   @SuppressLint({"MissingPermission", "HardwareIds"})
-  private static String getSerialCompat(Context context) {
+  private static String getBuildSerialCompat(Context context) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
       return Build.SERIAL;
     }
@@ -297,6 +293,19 @@ public final class Utils {
       return Build.getSerial();
     }
     return null;
+  }
+
+  @SuppressWarnings("deprecation")
+  @SuppressLint({"MissingPermission", "HardwareIds"})
+  private static String getTelephonyManagerDeviceIdCompat(Context context) {
+    if (!hasPermission(context, READ_PHONE_STATE) && hasFeature(context, FEATURE_TELEPHONY)) {
+      return null;
+    }
+    TelephonyManager telephonyManager = getSystemService(context, TELEPHONY_SERVICE);
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+      return telephonyManager.getDeviceId();
+    }
+    return telephonyManager.getImei();
   }
 
   /** Get the string resource for the given key. Returns null if not found. */
