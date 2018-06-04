@@ -467,8 +467,8 @@ public final class Utils {
         return array;
       }
       if (o instanceof Map) {
-        //noinspection unchecked
-        return toJsonObject((Map) o);
+        // JSON maps must have string keys, so we can assume this is a Map<String, ?>
+        return mapToJsonObject(o);
       }
       if (o instanceof Boolean
           || o instanceof Byte
@@ -488,6 +488,16 @@ public final class Utils {
     }
     // Deviate from original and return JSONObject.NULL instead of null.
     return JSONObject.NULL;
+  }
+
+  /**
+   * Convert a Java object which is a map to a json object. In it's own method so we can use method
+   * annotations to suppress this warning and please error prone.
+   */
+  @SuppressWarnings("unchecked")
+  private static JSONObject mapToJsonObject(Object o) {
+    return toJsonObject((Map<String, ?>) o);
+
   }
 
   public static <T> Map<String, T> createMap() {
@@ -510,7 +520,9 @@ public final class Utils {
       if (value instanceof String) {
         editor.putString(key, (String) value);
       } else if (value instanceof Set) {
-        editor.putStringSet(key, (Set<String>) value);
+        // SharedPreferences can only store sets of the String type, so we can assume this is
+        // a Set<String>.
+        putStringSet(editor, key, value);
       } else if (value instanceof Integer) {
         editor.putInt(key, (Integer) value);
       } else if (value instanceof Long) {
@@ -522,6 +534,15 @@ public final class Utils {
       }
     }
     editor.apply();
+  }
+
+  /**
+   * Store a value which is a set. In it's own method so we can use method annotations to suppress
+   * this warning and please error prone.
+   */
+  @SuppressWarnings("unchecked")
+  private static void putStringSet(SharedPreferences.Editor editor, String key, Object value) {
+    editor.putStringSet(key, (Set<String>) value);
   }
 
   private Utils() {
