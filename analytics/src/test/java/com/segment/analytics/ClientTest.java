@@ -10,8 +10,8 @@ import static org.robolectric.annotation.Config.NONE;
 import android.net.Uri;
 import com.segment.analytics.internal.Private;
 import com.squareup.okhttp.mockwebserver.MockResponse;
+import com.squareup.okhttp.mockwebserver.MockWebServer;
 import com.squareup.okhttp.mockwebserver.RecordedRequest;
-import com.squareup.okhttp.mockwebserver.rule.MockWebServerRule;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +32,7 @@ import org.robolectric.annotation.Config;
 @Config(manifest = NONE)
 public class ClientTest {
 
-  @Rule public MockWebServerRule server = new MockWebServerRule();
+  @Rule public MockWebServer server = new MockWebServer();
   @Rule public TemporaryFolder folder = new TemporaryFolder();
   private Client client;
   private Client mockClient;
