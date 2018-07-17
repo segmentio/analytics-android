@@ -1,6 +1,5 @@
 package com.segment.analytics.internal;
 
-
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -11,7 +10,6 @@ import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
-
 
 public class Iso8601UtilsTest {
 
@@ -156,8 +154,15 @@ public class Iso8601UtilsTest {
     }
   }
 
-  private Date newDate(int year, int month, int day, int hour,
-      int minute, int second, int millis, int timezoneOffsetMinutes) {
+  private Date newDate(
+      int year,
+      int month,
+      int day,
+      int hour,
+      int minute,
+      int second,
+      int millis,
+      int timezoneOffsetMinutes) {
     Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
     calendar.set(year, month - 1, day, hour, minute, second);
     calendar.set(Calendar.MILLISECOND, millis);

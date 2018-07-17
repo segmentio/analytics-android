@@ -1,6 +1,5 @@
 package com.segment.analytics.integrations;
 
-
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -55,10 +54,7 @@ public class ScreenPayloadTest {
 
   @Test
   public void properties() {
-    ScreenPayload payload = builder
-        .name("name")
-        .properties(ImmutableMap.of("foo", "bar"))
-        .build();
+    ScreenPayload payload = builder.name("name").properties(ImmutableMap.of("foo", "bar")).build();
     assertThat(payload.properties()).isEqualTo(ImmutableMap.of("foo", "bar"));
     assertThat(payload).containsEntry(ScreenPayload.PROPERTIES_KEY, ImmutableMap.of("foo", "bar"));
   }

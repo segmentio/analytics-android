@@ -58,7 +58,8 @@ public class IntegrationOperationTest {
         new TrackPayload.Builder()
             .event("event")
             .userId("userId")
-            .integrations(Collections.singletonMap("All", false)).build();
+            .integrations(Collections.singletonMap("All", false))
+            .build();
     track(payload, "Mixpanel", Collections.<String, Object>emptyMap());
     verify(integration, never()).track(payload);
   }
@@ -89,10 +90,8 @@ public class IntegrationOperationTest {
 
   @Test
   public void trackPlanForEvent() throws IOException {
-    TrackPayload payload = new TrackPayload.Builder()
-        .event("Install Attributed")
-        .userId("userId")
-        .build();
+    TrackPayload payload =
+        new TrackPayload.Builder().event("Install Attributed").userId("userId").build();
     track(
         payload,
         "Mixpanel",
@@ -107,56 +106,54 @@ public class IntegrationOperationTest {
     verify(integration).track(payload);
   }
 
-
   @Test
   public void trackWithOptionsAndWithoutEventPlan() throws IOException {
-    TrackPayload payload = new TrackPayload.Builder()
+    TrackPayload payload =
+        new TrackPayload.Builder()
             .event("Install Attributed")
             .userId("userId")
             .integrations(ImmutableMap.of("Mixpanel", false))
             .build();
     track(
-            payload,
-            "Mixpanel",
-            Cartographer.INSTANCE.fromJson(
-                    "{\n"
-                            + "  \"plan\": {\n"
-                            + "    \"track\": {\n"
-                            + "      \"Completed Order\": {}\n"
-                            + "    }\n"
-                            + "  }\n"
-                            + "}"));
+        payload,
+        "Mixpanel",
+        Cartographer.INSTANCE.fromJson(
+            "{\n"
+                + "  \"plan\": {\n"
+                + "    \"track\": {\n"
+                + "      \"Completed Order\": {}\n"
+                + "    }\n"
+                + "  }\n"
+                + "}"));
     verify(integration, never()).track(payload);
   }
 
-
   @Test
   public void trackPlanForEventWithOptions() throws IOException {
-    TrackPayload payload = new TrackPayload.Builder()
+    TrackPayload payload =
+        new TrackPayload.Builder()
             .event("Install Attributed")
             .userId("userId")
             .integrations(Collections.singletonMap("All", false))
             .build();
     track(
-            payload,
-            "Mixpanel",
-            Cartographer.INSTANCE.fromJson(
-                    "{\n"
-                            + "  \"plan\": {\n"
-                            + "    \"track\": {\n"
-                            + "      \"Completed Order\": {}\n"
-                            + "    }\n"
-                            + "  }\n"
-                            + "}"));
+        payload,
+        "Mixpanel",
+        Cartographer.INSTANCE.fromJson(
+            "{\n"
+                + "  \"plan\": {\n"
+                + "    \"track\": {\n"
+                + "      \"Completed Order\": {}\n"
+                + "    }\n"
+                + "  }\n"
+                + "}"));
     verify(integration, never()).track(payload);
   }
 
   @Test
   public void trackPlanDisabledEvent() throws IOException {
-    TrackPayload payload = new TrackPayload.Builder()
-        .event("Install Attributed")
-        .userId("userId")
-        .build();
+    TrackPayload payload =
+        new TrackPayload.Builder().event("Install Attributed").userId("userId").build();
     track(
         payload,
         "Amplitude",
@@ -175,32 +172,28 @@ public class IntegrationOperationTest {
 
   @Test
   public void trackPlanDisabledEventSendsToSegment() throws IOException {
-    TrackPayload payload = new TrackPayload.Builder()
-            .event("Install Attributed")
-            .userId("userId")
-            .build();
+    TrackPayload payload =
+        new TrackPayload.Builder().event("Install Attributed").userId("userId").build();
     track(
-            payload,
-            "Segment.io",
-            Cartographer.INSTANCE.fromJson(
-                    "{\n"
-                            + "  \"plan\": {\n"
-                            + "    \"track\": {\n"
-                            + "      \"Install Attributed\": {\n"
-                            + "        \"enabled\": false\n"
-                            + "      }\n"
-                            + "    }\n"
-                            + "  }\n"
-                            + "}"));
+        payload,
+        "Segment.io",
+        Cartographer.INSTANCE.fromJson(
+            "{\n"
+                + "  \"plan\": {\n"
+                + "    \"track\": {\n"
+                + "      \"Install Attributed\": {\n"
+                + "        \"enabled\": false\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "}"));
     verify(integration).track(payload);
   }
 
   @Test
   public void trackPlanDisabledIntegration() throws IOException {
-    TrackPayload payload = new TrackPayload.Builder()
-        .event("Install Attributed")
-        .userId("userId")
-        .build();
+    TrackPayload payload =
+        new TrackPayload.Builder().event("Install Attributed").userId("userId").build();
     track(
         payload,
         "Amplitude",
@@ -221,10 +214,8 @@ public class IntegrationOperationTest {
 
   @Test
   public void trackPlanEnabledIntegration() throws IOException {
-    TrackPayload payload = new TrackPayload.Builder()
-        .event("Install Attributed")
-        .userId("userId")
-        .build();
+    TrackPayload payload =
+        new TrackPayload.Builder().event("Install Attributed").userId("userId").build();
     track(
         payload,
         "Mixpanel",
@@ -245,10 +236,8 @@ public class IntegrationOperationTest {
 
   @Test
   public void ignoresSegment() throws IOException {
-    TrackPayload payload = new TrackPayload.Builder()
-        .event("Install Attributed")
-        .userId("userId")
-        .build();
+    TrackPayload payload =
+        new TrackPayload.Builder().event("Install Attributed").userId("userId").build();
     track(
         payload,
         "Segment.io",
@@ -269,92 +258,84 @@ public class IntegrationOperationTest {
 
   @Test
   public void defaultNewEventsEnabled() throws IOException {
-    TrackPayload payload = new TrackPayload.Builder()
-            .event("Install Attributed")
-            .userId("userId")
-            .build();
+    TrackPayload payload =
+        new TrackPayload.Builder().event("Install Attributed").userId("userId").build();
     track(
-            payload,
-            "Segment.io",
-            Cartographer.INSTANCE.fromJson(
-                    "{\n" +
-                            "  \"plan\": {\n" +
-                            "    \"track\": {\n" +
-                            "      \"__default\": {\n" +
-                            "        \"enabled\": true\n" +
-                            "      }\n" +
-                            "    }\n" +
-                            "  }\n" +
-                            "}"));
+        payload,
+        "Segment.io",
+        Cartographer.INSTANCE.fromJson(
+            "{\n"
+                + "  \"plan\": {\n"
+                + "    \"track\": {\n"
+                + "      \"__default\": {\n"
+                + "        \"enabled\": true\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "}"));
     verify(integration).track(payload);
   }
 
   @Test
   public void defaultNewEventsDisabled() throws IOException {
-    TrackPayload payload = new TrackPayload.Builder()
-            .event("Install Attributed")
-            .userId("userId")
-            .build();
+    TrackPayload payload =
+        new TrackPayload.Builder().event("Install Attributed").userId("userId").build();
     track(
-            payload,
-            "Mixpanel",
-            Cartographer.INSTANCE.fromJson(
-                    "{\n" +
-                            "  \"plan\": {\n" +
-                            "    \"track\": {\n" +
-                            "      \"__default\": {\n" +
-                            "        \"enabled\": false\n" +
-                            "      }\n" +
-                            "    }\n" +
-                            "  }\n" +
-                            "}"));
+        payload,
+        "Mixpanel",
+        Cartographer.INSTANCE.fromJson(
+            "{\n"
+                + "  \"plan\": {\n"
+                + "    \"track\": {\n"
+                + "      \"__default\": {\n"
+                + "        \"enabled\": false\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "}"));
     verify(integration, never()).track(payload);
   }
 
   @Test
   public void defaultNewEventsDisabledSendToSegment() throws IOException {
-    TrackPayload payload = new TrackPayload.Builder()
-            .event("Install Attributed")
-            .userId("userId")
-            .build();
+    TrackPayload payload =
+        new TrackPayload.Builder().event("Install Attributed").userId("userId").build();
     track(
-            payload,
-            "Segment.io",
-            Cartographer.INSTANCE.fromJson(
-                    "{\n" +
-                            "  \"plan\": {\n" +
-                            "    \"track\": {\n" +
-                            "      \"__default\": {\n" +
-                            "        \"enabled\": false\n" +
-                            "      }\n" +
-                            "    }\n" +
-                            "  }\n" +
-                            "}"));
+        payload,
+        "Segment.io",
+        Cartographer.INSTANCE.fromJson(
+            "{\n"
+                + "  \"plan\": {\n"
+                + "    \"track\": {\n"
+                + "      \"__default\": {\n"
+                + "        \"enabled\": false\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "}"));
     verify(integration).track(payload);
   }
 
   @Test
   public void eventPlanOverridesSchemaDefault() throws IOException {
-    TrackPayload payload = new TrackPayload.Builder()
-            .event("Install Attributed")
-            .userId("userId")
-            .build();
+    TrackPayload payload =
+        new TrackPayload.Builder().event("Install Attributed").userId("userId").build();
     track(
-            payload,
-            "Mixpanel",
-            Cartographer.INSTANCE.fromJson(
-                    "{\n" +
-                            "  \"plan\": {\n" +
-                            "    \"track\": {\n" +
-                            "      \"__default\": {\n" +
-                            "        \"enabled\": true\n" +
-                            "      },\n" +
-                            "      \"Install Attributed\": {\n" +
-                            "        \"enabled\": false\n" +
-                            "      }\n" +
-                            "    }\n" +
-                            "  }\n" +
-                            "}"));
+        payload,
+        "Mixpanel",
+        Cartographer.INSTANCE.fromJson(
+            "{\n"
+                + "  \"plan\": {\n"
+                + "    \"track\": {\n"
+                + "      \"__default\": {\n"
+                + "        \"enabled\": true\n"
+                + "      },\n"
+                + "      \"Install Attributed\": {\n"
+                + "        \"enabled\": false\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "}"));
     verify(integration, never()).track(payload);
   }
 }

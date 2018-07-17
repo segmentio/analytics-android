@@ -520,9 +520,12 @@ public class QueueFileTest {
                 // In the past, the ElementInputStream.read(byte[], int, int) method would return 0
                 // when no more bytes were available for reading. This test detects that error.
                 //
-                // Note: 0 is a valid return value for InputStream.read(byte[], int, int), which happens
-                // when the passed length is zero. We could trigger that through InputStream.read(byte[])
-                // by passing a zero-length buffer. However, since we won't do that during this test,
+                // Note: 0 is a valid return value for InputStream.read(byte[], int, int), which
+                // happens
+                // when the passed length is zero. We could trigger that through
+                // InputStream.read(byte[])
+                // by passing a zero-length buffer. However, since we won't do that during this
+                // test,
                 // we can safely assume that a return value of 0 indicates the past error in logic.
                 fail("This test should never receive a result of 0 from InputStream.read(byte[])");
               }

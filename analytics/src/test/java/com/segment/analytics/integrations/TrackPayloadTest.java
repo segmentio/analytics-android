@@ -1,6 +1,5 @@
 package com.segment.analytics.integrations;
 
-
 import static com.segment.analytics.integrations.TrackPayload.EVENT_KEY;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,7 +43,6 @@ public class TrackPayloadTest {
     assertThat(payload).containsEntry(EVENT_KEY, "event");
   }
 
-
   @Test
   public void eventIsRequired() {
     try {
@@ -69,10 +67,7 @@ public class TrackPayloadTest {
 
   @Test
   public void properties() {
-    TrackPayload payload = builder
-        .event("event")
-        .properties(ImmutableMap.of("foo", "bar"))
-        .build();
+    TrackPayload payload = builder.event("event").properties(ImmutableMap.of("foo", "bar")).build();
     assertThat(payload.properties()).isEqualTo(ImmutableMap.of("foo", "bar"));
     assertThat(payload).containsEntry(TrackPayload.PROPERTIES_KEY, ImmutableMap.of("foo", "bar"));
   }

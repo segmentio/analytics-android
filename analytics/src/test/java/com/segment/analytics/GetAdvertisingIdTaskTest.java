@@ -70,7 +70,8 @@ public class GetAdvertisingIdTaskTest {
     task.execute(context);
     latch.await();
 
-    assertThat(analyticsContext.device()).containsEntry("advertisingId", "df07c7dc-cea7-4a89-b328-810ff5acb15d");
+    assertThat(analyticsContext.device())
+        .containsEntry("advertisingId", "df07c7dc-cea7-4a89-b328-810ff5acb15d");
     assertThat(analyticsContext.device()).containsEntry("adTrackingEnabled", true);
   }
 }

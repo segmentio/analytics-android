@@ -22,7 +22,7 @@ jobs:
             fi
       - run:
           name: Build
-          command: ./gradlew checkFmt build assembleAndroidTest
+          command: ./gradlew check build assembleAndroidTest
       - run:
           name: Run E2E Test
           command: |

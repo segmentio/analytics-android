@@ -1,14 +1,13 @@
 package com.segment.analytics;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
-import com.segment.analytics.webhook.WebhookService;
 import com.segment.analytics.sample.MainActivity;
 import com.segment.analytics.sample.test.BuildConfig;
+import com.segment.analytics.webhook.WebhookService;
 import com.segment.backo.Backo;
 import java.io.IOException;
 import java.util.List;
@@ -34,7 +33,8 @@ import retrofit2.converter.moshi.MoshiConverterFactory;
  * connected to the source connected to the source (configured manually via the app) is able to
  * receive the data sent by this library.
  *
- * See https://paper.dropbox.com/doc/Libraries-End-to-End-Tests-ESEakc3LxFrqcHz69AmyN for details.
+ * <p>See https://paper.dropbox.com/doc/Libraries-End-to-End-Tests-ESEakc3LxFrqcHz69AmyN for
+ * details.
  */
 @RunWith(AndroidJUnit4.class)
 public class E2ETest {
@@ -56,35 +56,40 @@ public class E2ETest {
   /** Credentials to retrieve data from the webhook. */
   private static final String WEBHOOK_AUTH_USERNAME = BuildConfig.WEBHOOK_AUTH_USERNAME;
 
-  private static final Backo BACKO = Backo.builder()
-      .base(TimeUnit.SECONDS, 1)
-      .cap(TimeUnit.SECONDS, 5)
-      .build();
+  private static final Backo BACKO =
+      Backo.builder().base(TimeUnit.SECONDS, 1).cap(TimeUnit.SECONDS, 5).build();
 
   private Analytics analytics;
   private WebhookService webhookService;
 
   @Before
   public void setup() {
-    analytics = new Analytics.Builder(activityActivityTestRule.getActivity(), SEGMENT_WRITE_KEY)
-        .build();
+    analytics =
+        new Analytics.Builder(activityActivityTestRule.getActivity(), SEGMENT_WRITE_KEY).build();
 
-    webhookService = new Retrofit.Builder()
-        .baseUrl("https://webhook-e2e.segment.com")
-        .addConverterFactory(MoshiConverterFactory.create())
-        .client(new OkHttpClient.Builder()
-            .addNetworkInterceptor(new Interceptor() {
-              @Override
-              public okhttp3.Response intercept(Chain chain) throws IOException {
-                return chain.proceed(chain.request()
-                    .newBuilder()
-                    .addHeader("Authorization", Credentials.basic(WEBHOOK_AUTH_USERNAME, ""))
-                    .build());
-              }
-            })
-            .build())
-        .build()
-        .create(WebhookService.class);
+    webhookService =
+        new Retrofit.Builder()
+            .baseUrl("https://webhook-e2e.segment.com")
+            .addConverterFactory(MoshiConverterFactory.create())
+            .client(
+                new OkHttpClient.Builder()
+                    .addNetworkInterceptor(
+                        new Interceptor() {
+                          @Override
+                          public okhttp3.Response intercept(Chain chain) throws IOException {
+                            return chain.proceed(
+                                chain
+                                    .request()
+                                    .newBuilder()
+                                    .addHeader(
+                                        "Authorization",
+                                        Credentials.basic(WEBHOOK_AUTH_USERNAME, ""))
+                                    .build());
+                          }
+                        })
+                    .build())
+            .build()
+            .create(WebhookService.class);
   }
 
   @After
@@ -143,14 +148,11 @@ public class E2ETest {
     fail("did not find message with id: " + id);
   }
 
-  /**
-   * Returns {@code true} if a message with the provided ID is found in the webhook.
-   */
+  /** Returns {@code true} if a message with the provided ID is found in the webhook. */
   @SuppressWarnings("ConstantConditions")
   private boolean hasMatchingRequest(String id) throws IOException {
-    Response<List<String>> messagesResponse = webhookService
-        .messages(WEBHOOK_BUCKET, 500)
-        .execute();
+    Response<List<String>> messagesResponse =
+        webhookService.messages(WEBHOOK_BUCKET, 500).execute();
 
     assertThat(messagesResponse.code()).isEqualTo(200);
 
@@ -164,9 +166,7 @@ public class E2ETest {
     return false;
   }
 
-  /**
-   * Skips tests if they were supposed to be ignored.
-   */
+  /** Skips tests if they were supposed to be ignored. */
   static class EndToEndTestsDisabledRule implements MethodRule {
 
     @Override

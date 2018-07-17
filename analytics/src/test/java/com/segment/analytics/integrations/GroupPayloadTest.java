@@ -1,6 +1,5 @@
 package com.segment.analytics.integrations;
 
-
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -68,9 +67,8 @@ public class GroupPayloadTest {
 
   @Test
   public void traits() {
-    GroupPayload payload = builder.groupId("group_id")
-        .traits(ImmutableMap.of("foo", "bar"))
-        .build();
+    GroupPayload payload =
+        builder.groupId("group_id").traits(ImmutableMap.of("foo", "bar")).build();
     assertThat(payload.traits()).isEqualTo(ImmutableMap.of("foo", "bar"));
     assertThat(payload).containsEntry(GroupPayload.TRAITS_KEY, ImmutableMap.of("foo", "bar"));
   }

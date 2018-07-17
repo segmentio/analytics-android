@@ -83,10 +83,10 @@ public class AnalyticsContextTest {
     context = AnalyticsContext.create(RuntimeEnvironment.application, traits, false);
 
     assertThat(context.getValueMap("device")) //
-            .containsEntry("id", traits.anonymousId())
-            .containsEntry("manufacturer", "unknown")
-            .containsEntry("model", "unknown")
-            .containsEntry("name", "unknown");
+        .containsEntry("id", traits.anonymousId())
+        .containsEntry("manufacturer", "unknown")
+        .containsEntry("model", "unknown")
+        .containsEntry("name", "unknown");
   }
 
   @Test
