@@ -59,7 +59,8 @@
         android:id="@+id/user_id"
         android:hint="@string/identify_user_id"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:inputType="text"/>
 
     <Button
         android:id="@+id/action_identify"

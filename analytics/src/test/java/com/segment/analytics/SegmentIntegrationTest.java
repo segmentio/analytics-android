@@ -58,8 +58,7 @@ import org.robolectric.shadows.ShadowLog;
 @Config(manifest = Config.NONE)
 public class SegmentIntegrationTest {
 
-  @Rule
-  public TemporaryFolder folder = new TemporaryFolder();
+  @Rule public TemporaryFolder folder = new TemporaryFolder();
   QueueFile queueFile;
 
   private static Client.Connection mockConnection() {
@@ -106,12 +105,13 @@ public class SegmentIntegrationTest {
             .integrations(integrations)
             .build();
 
-    TrackPayload trackPayload = new TrackPayload.Builder()
-        .messageId("a161304c-498c-4830-9291-fcfb8498877b")
-        .timestamp(Utils.parseISO8601Date("2014-12-15T13:32:44-0700"))
-        .event("foo")
-        .userId("userId")
-        .build();
+    TrackPayload trackPayload =
+        new TrackPayload.Builder()
+            .messageId("a161304c-498c-4830-9291-fcfb8498877b")
+            .timestamp(Utils.parseISO8601Date("2014-12-15T13:32:44-0700"))
+            .event("foo")
+            .userId("userId")
+            .build();
 
     segmentIntegration.performEnqueue(trackPayload);
 
@@ -347,8 +347,7 @@ public class SegmentIntegrationTest {
                 mock(HttpURLConnection.class), mock(InputStream.class), mock(OutputStream.class)) {
               @Override
               public void close() throws IOException {
-                throw new Client.HTTPException(
-                    429, "Too Many Requests", "too many requests");
+                throw new Client.HTTPException(429, "Too Many Requests", "too many requests");
               }
             });
     SegmentIntegration segmentIntegration =
@@ -415,60 +414,60 @@ public class SegmentIntegrationTest {
             mock(SegmentIntegration.BatchPayloadWriter.class), Crypto.none());
     byte[] bytes =
         ("{\n"
-            + "        \"context\": {\n"
-            + "          \"library\": \"analytics-android\",\n"
-            + "          \"libraryVersion\": \"0.4.4\",\n"
-            + "          \"telephony\": {\n"
-            + "            \"radio\": \"gsm\",\n"
-            + "            \"carrier\": \"FI elisa\"\n"
-            + "          },\n"
-            + "          \"wifi\": {\n"
-            + "            \"connected\": false,\n"
-            + "            \"available\": false\n"
-            + "          },\n"
-            + "          \"providers\": {\n"
-            + "            \"Tapstream\": false,\n"
-            + "            \"Amplitude\": false,\n"
-            + "            \"Localytics\": false,\n"
-            + "            \"Flurry\": false,\n"
-            + "            \"Countly\": false,\n"
-            + "            \"Bugsnag\": false,\n"
-            + "            \"Quantcast\": false,\n"
-            + "            \"Crittercism\": false,\n"
-            + "            \"Google Analytics\": false,\n"
-            + "            \"Omniture\": false,\n"
-            + "            \"Mixpanel\": false\n"
-            + "          },\n"
-            + "          \"location\": {\n"
-            + "            \"speed\": 0,\n"
-            + "            \"longitude\": 24.937207,\n"
-            + "            \"latitude\": 60.2495497\n"
-            + "          },\n"
-            + "          \"locale\": {\n"
-            + "            \"carrier\": \"FI elisa\",\n"
-            + "            \"language\": \"English\",\n"
-            + "            \"country\": \"United States\"\n"
-            + "          },\n"
-            + "          \"device\": {\n"
-            + "            \"userId\": \"123\",\n"
-            + "            \"brand\": \"samsung\",\n"
-            + "            \"release\": \"4.2.2\",\n"
-            + "            \"manufacturer\": \"samsung\",\n"
-            + "            \"sdk\": 17\n"
-            + "          },\n"
-            + "          \"display\": {\n"
-            + "            \"density\": 1.5,\n"
-            + "            \"width\": 800,\n"
-            + "            \"height\": 480\n"
-            + "          },\n"
-            + "          \"build\": {\n"
-            + "            \"name\": \"1.0\",\n"
-            + "            \"code\": 1\n"
-            + "          },\n"
-            + "          \"ip\": \"80.186.195.102\",\n"
-            + "          \"inferredIp\": true\n"
-            + "        }\n"
-            + "      }")
+                + "        \"context\": {\n"
+                + "          \"library\": \"analytics-android\",\n"
+                + "          \"libraryVersion\": \"0.4.4\",\n"
+                + "          \"telephony\": {\n"
+                + "            \"radio\": \"gsm\",\n"
+                + "            \"carrier\": \"FI elisa\"\n"
+                + "          },\n"
+                + "          \"wifi\": {\n"
+                + "            \"connected\": false,\n"
+                + "            \"available\": false\n"
+                + "          },\n"
+                + "          \"providers\": {\n"
+                + "            \"Tapstream\": false,\n"
+                + "            \"Amplitude\": false,\n"
+                + "            \"Localytics\": false,\n"
+                + "            \"Flurry\": false,\n"
+                + "            \"Countly\": false,\n"
+                + "            \"Bugsnag\": false,\n"
+                + "            \"Quantcast\": false,\n"
+                + "            \"Crittercism\": false,\n"
+                + "            \"Google Analytics\": false,\n"
+                + "            \"Omniture\": false,\n"
+                + "            \"Mixpanel\": false\n"
+                + "          },\n"
+                + "          \"location\": {\n"
+                + "            \"speed\": 0,\n"
+                + "            \"longitude\": 24.937207,\n"
+                + "            \"latitude\": 60.2495497\n"
+                + "          },\n"
+                + "          \"locale\": {\n"
+                + "            \"carrier\": \"FI elisa\",\n"
+                + "            \"language\": \"English\",\n"
+                + "            \"country\": \"United States\"\n"
+                + "          },\n"
+                + "          \"device\": {\n"
+                + "            \"userId\": \"123\",\n"
+                + "            \"brand\": \"samsung\",\n"
+                + "            \"release\": \"4.2.2\",\n"
+                + "            \"manufacturer\": \"samsung\",\n"
+                + "            \"sdk\": 17\n"
+                + "          },\n"
+                + "          \"display\": {\n"
+                + "            \"density\": 1.5,\n"
+                + "            \"width\": 800,\n"
+                + "            \"height\": 480\n"
+                + "          },\n"
+                + "          \"build\": {\n"
+                + "            \"name\": \"1.0\",\n"
+                + "            \"code\": 1\n"
+                + "          },\n"
+                + "          \"ip\": \"80.186.195.102\",\n"
+                + "          \"inferredIp\": true\n"
+                + "        }\n"
+                + "      }")
             .getBytes(); // length 1432
     // Fill the payload with (1432 * 500) = ~716kb of data
     for (int i = 0; i < 500; i++) {

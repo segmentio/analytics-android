@@ -1,6 +1,5 @@
 package com.segment.analytics.integrations;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
@@ -21,14 +20,13 @@ public class BasePayloadTest {
 
   @Before
   public void setUp() {
-    builders = ImmutableList
-        .of(
+    builders =
+        ImmutableList.of(
             new AliasPayload.Builder().previousId("previousId").userId("userId"),
             new TrackPayload.Builder().event("event"),
             new ScreenPayload.Builder().name("name"),
             new GroupPayload.Builder().groupId("groupId"),
-            new IdentifyPayload.Builder().traits(ImmutableMap.<String, Object>of("foo", "bar"))
-        );
+            new IdentifyPayload.Builder().traits(ImmutableMap.<String, Object>of("foo", "bar")));
   }
 
   @Test
@@ -188,8 +186,8 @@ public class BasePayloadTest {
   @Test
   public void context() {
     for (Builder builder : builders) {
-      BasePayload payload = builder.userId("user_id").context(ImmutableMap.of("foo", "bar"))
-          .build();
+      BasePayload payload =
+          builder.userId("user_id").context(ImmutableMap.of("foo", "bar")).build();
       assertThat(payload.context()).containsExactly(MapEntry.entry("foo", "bar"));
       assertThat(payload).containsEntry(BasePayload.CONTEXT_KEY, ImmutableMap.of("foo", "bar"));
     }
@@ -217,7 +215,6 @@ public class BasePayloadTest {
       }
     }
   }
-
 
   @Test
   public void invalidIntegrationOption() {
@@ -261,8 +258,8 @@ public class BasePayloadTest {
   @Test
   public void integrations() {
     for (Builder builder : builders) {
-      BasePayload payload = builder.userId("user_id").integrations(ImmutableMap.of("foo", "bar"))
-          .build();
+      BasePayload payload =
+          builder.userId("user_id").integrations(ImmutableMap.of("foo", "bar")).build();
       assertThat(payload.integrations()).containsExactly(MapEntry.entry("foo", "bar"));
       assertThat(payload)
           .containsEntry(BasePayload.INTEGRATIONS_KEY, ImmutableMap.of("foo", "bar"));
@@ -272,8 +269,7 @@ public class BasePayloadTest {
   @Test
   public void integration() {
     for (Builder builder : builders) {
-      BasePayload payload = builder.userId("user_id").integration("foo", false)
-          .build();
+      BasePayload payload = builder.userId("user_id").integration("foo", false).build();
       assertThat(payload.integrations()).containsExactly(MapEntry.entry("foo", false));
     }
   }
@@ -281,9 +277,8 @@ public class BasePayloadTest {
   @Test
   public void integrationOptions() {
     for (Builder builder : builders) {
-      BasePayload payload = builder.userId("user_id")
-          .integration("foo", ImmutableMap.of("bar", true))
-          .build();
+      BasePayload payload =
+          builder.userId("user_id").integration("foo", ImmutableMap.of("bar", true)).build();
       assertThat(payload.integrations())
           .containsExactly(MapEntry.entry("foo", ImmutableMap.of("bar", true)));
     }
@@ -300,12 +295,8 @@ public class BasePayloadTest {
   @Test
   public void builderCopy() {
     for (Builder builder : builders) {
-      BasePayload payload = builder
-          .userId("user_id")
-          .build()
-          .toBuilder()
-          .userId("a_new_user_id")
-          .build();
+      BasePayload payload =
+          builder.userId("user_id").build().toBuilder().userId("a_new_user_id").build();
       assertThat(payload.userId()).isEqualTo("a_new_user_id");
     }
   }

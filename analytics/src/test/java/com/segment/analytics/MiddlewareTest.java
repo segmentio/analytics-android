@@ -29,24 +29,31 @@ public class MiddlewareTest {
     initMocks(this);
     Analytics.INSTANCES.clear();
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
-    builder = new Builder(RuntimeEnvironment.application, "write_key")
-        .executor(MoreExecutors.newDirectExecutorService());
+    builder =
+        new Builder(RuntimeEnvironment.application, "write_key")
+            .executor(MoreExecutors.newDirectExecutorService());
   }
 
   @Test
   public void middlewareCanShortCircuit() throws Exception {
     final AtomicReference<TrackPayload> payloadRef = new AtomicReference<>();
-    Analytics analytics = builder.middleware(new Middleware() {
-      @Override
-      public void intercept(Chain chain) {
-        payloadRef.set((TrackPayload) chain.payload());
-      }
-    }).middleware(new Middleware() {
-      @Override
-      public void intercept(Chain chain) {
-        throw new AssertionError("should not be invoked");
-      }
-    }).build();
+    Analytics analytics =
+        builder
+            .middleware(
+                new Middleware() {
+                  @Override
+                  public void intercept(Chain chain) {
+                    payloadRef.set((TrackPayload) chain.payload());
+                  }
+                })
+            .middleware(
+                new Middleware() {
+                  @Override
+                  public void intercept(Chain chain) {
+                    throw new AssertionError("should not be invoked");
+                  }
+                })
+            .build();
 
     analytics.track("foo");
     assertThat(payloadRef.get().event()).isEqualTo("foo");
@@ -55,19 +62,25 @@ public class MiddlewareTest {
   @Test
   public void middlewareCanProceed() throws Exception {
     final AtomicReference<ScreenPayload> payloadRef = new AtomicReference<>();
-    Analytics analytics = builder.middleware(new Middleware() {
-      @Override
-      public void intercept(Chain chain) {
-        chain.proceed(chain.payload());
-      }
-    }).middleware(new Middleware() {
-      @Override
-      public void intercept(Chain chain) {
-        BasePayload payload = chain.payload();
-        payloadRef.set((ScreenPayload) payload);
-        chain.proceed(payload);
-      }
-    }).build();
+    Analytics analytics =
+        builder
+            .middleware(
+                new Middleware() {
+                  @Override
+                  public void intercept(Chain chain) {
+                    chain.proceed(chain.payload());
+                  }
+                })
+            .middleware(
+                new Middleware() {
+                  @Override
+                  public void intercept(Chain chain) {
+                    BasePayload payload = chain.payload();
+                    payloadRef.set((ScreenPayload) payload);
+                    chain.proceed(payload);
+                  }
+                })
+            .build();
 
     analytics.screen("foo");
     assertThat(payloadRef.get().name()).isEqualTo("foo");
@@ -76,19 +89,25 @@ public class MiddlewareTest {
   @Test
   public void middlewareCanTransform() throws Exception {
     final AtomicReference<BasePayload> payloadRef = new AtomicReference<>();
-    Analytics analytics = builder.middleware(new Middleware() {
-      @Override
-      public void intercept(Chain chain) {
-        chain.proceed(chain.payload().toBuilder().messageId("override").build());
-      }
-    }).middleware(new Middleware() {
-      @Override
-      public void intercept(Chain chain) {
-        BasePayload payload = chain.payload();
-        payloadRef.set(payload);
-        chain.proceed(payload);
-      }
-    }).build();
+    Analytics analytics =
+        builder
+            .middleware(
+                new Middleware() {
+                  @Override
+                  public void intercept(Chain chain) {
+                    chain.proceed(chain.payload().toBuilder().messageId("override").build());
+                  }
+                })
+            .middleware(
+                new Middleware() {
+                  @Override
+                  public void intercept(Chain chain) {
+                    BasePayload payload = chain.payload();
+                    payloadRef.set(payload);
+                    chain.proceed(payload);
+                  }
+                })
+            .build();
 
     analytics.identify("prateek");
     assertThat(payloadRef.get().messageId()).isEqualTo("override");

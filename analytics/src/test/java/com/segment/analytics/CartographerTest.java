@@ -232,7 +232,7 @@ public class CartographerTest {
   @Test
   public void encodesArraysWithArrays() throws IOException {
     Map<String, Object> map =
-        ImmutableMap.<String, Object>builder().put("a", new String[]{"b", "c", "d"}).build();
+        ImmutableMap.<String, Object>builder().put("a", new String[] {"b", "c", "d"}).build();
 
     assertThat(cartographer.toJson(map))
         .isEqualTo(
@@ -250,7 +250,7 @@ public class CartographerTest {
     // Exercise a bug where primitive arrays would throw an IOException.
     // https://github.com/segmentio/analytics-android/issues/507
     Map<String, Object> map =
-        ImmutableMap.<String, Object>builder().put("a", new int[]{1, 2}).build();
+        ImmutableMap.<String, Object>builder().put("a", new int[] {1, 2}).build();
 
     assertThat(cartographer.toJson(map))
         .isEqualTo("{\n" + "  \"a\": [\n" + "    1,\n" + "    2\n" + "  ]\n" + "}");

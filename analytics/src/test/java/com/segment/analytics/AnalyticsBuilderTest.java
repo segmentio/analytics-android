@@ -99,12 +99,13 @@ public class AnalyticsBuilderTest {
     }
 
     try {
-      Middleware middleware = new Middleware() {
-        @Override
-        public void intercept(Chain chain) {
-          throw new AssertionError("should not be invoked");
-        }
-      };
+      Middleware middleware =
+          new Middleware() {
+            @Override
+            public void intercept(Chain chain) {
+              throw new AssertionError("should not be invoked");
+            }
+          };
       new Builder(context, "foo").middleware(middleware).middleware(middleware);
       fail("Registering middleware twice throw exception.");
     } catch (IllegalStateException expected) {

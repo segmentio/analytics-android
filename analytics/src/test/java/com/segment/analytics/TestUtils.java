@@ -78,13 +78,14 @@ public final class TestUtils {
             + "\"properties\":{}"
             + "}";
 
-    TRACK_PAYLOAD = new TrackPayload.Builder()
-        .event("foo")
-        .userId("userId")
-        .messageId("a161304c-498c-4830-9291-fcfb8498877b")
-        .timestamp(
-            com.segment.analytics.internal.Utils.parseISO8601Date("2010-01-01T12:00:00+01:00"))
-        .build();
+    TRACK_PAYLOAD =
+        new TrackPayload.Builder()
+            .event("foo")
+            .userId("userId")
+            .messageId("a161304c-498c-4830-9291-fcfb8498877b")
+            .timestamp(
+                com.segment.analytics.internal.Utils.parseISO8601Date("2010-01-01T12:00:00+01:00"))
+            .build();
   }
 
   public static Application mockApplication() {
@@ -92,26 +93,26 @@ public final class TestUtils {
     when(application.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_GRANTED);
     final File parent = RuntimeEnvironment.application.getFilesDir();
     doAnswer(
-        new Answer() {
-          @Override
-          public Object answer(InvocationOnMock invocation) throws Throwable {
-            Object[] args = invocation.getArguments();
-            String fileName = (String) args[0];
-            return new File(parent, fileName);
-          }
-        })
+            new Answer() {
+              @Override
+              public Object answer(InvocationOnMock invocation) throws Throwable {
+                Object[] args = invocation.getArguments();
+                String fileName = (String) args[0];
+                return new File(parent, fileName);
+              }
+            })
         .when(application)
         .getDir(anyString(), anyInt());
     doAnswer(
-        new Answer() {
-          @Override
-          public Object answer(InvocationOnMock invocation) throws Throwable {
-            Object[] args = invocation.getArguments();
-            String name = (String) args[0];
-            int mode = (int) args[1];
-            return RuntimeEnvironment.application.getSharedPreferences(name, mode);
-          }
-        })
+            new Answer() {
+              @Override
+              public Object answer(InvocationOnMock invocation) throws Throwable {
+                Object[] args = invocation.getArguments();
+                String name = (String) args[0];
+                int mode = (int) args[1];
+                return RuntimeEnvironment.application.getSharedPreferences(name, mode);
+              }
+            })
         .when(application)
         .getSharedPreferences(anyString(), anyInt());
     return application;
@@ -214,7 +215,6 @@ public final class TestUtils {
     }
   }
 
-
   public static void grantPermission(final Application app, final String permission) {
     ShadowApplication shadowApp = Shadows.shadowOf(app);
     shadowApp.grantPermissions(permission);
@@ -223,7 +223,6 @@ public final class TestUtils {
   public abstract static class NoDescriptionMatcher<T> extends TypeSafeMatcher<T> {
 
     @Override
-    public void describeTo(Description description) {
-    }
+    public void describeTo(Description description) {}
   }
 }

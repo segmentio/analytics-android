@@ -202,8 +202,7 @@ public class UtilsTest {
   @Test
   public void hasFeature() {
     PackageManager packageManager = mock(PackageManager.class);
-    when(context.getPackageManager())
-        .thenReturn(packageManager);
+    when(context.getPackageManager()).thenReturn(packageManager);
 
     when(packageManager.hasSystemFeature(FEATURE_TELEPHONY)).thenReturn(false);
     assertThat(Utils.hasFeature(context, FEATURE_TELEPHONY)).isFalse();

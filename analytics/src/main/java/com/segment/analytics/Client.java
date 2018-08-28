@@ -24,8 +24,8 @@
 
 package com.segment.analytics;
 
-import static com.segment.analytics.internal.Utils.readFully;
 import static com.segment.analytics.internal.Utils.getInputStream;
+import static com.segment.analytics.internal.Utils.readFully;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 import android.text.TextUtils;

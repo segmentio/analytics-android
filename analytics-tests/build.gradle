@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.f2prateek.javafmt'
 
 apply from: rootProject.file('gradle/android.gradle')
 

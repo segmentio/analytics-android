@@ -1,46 +1,5 @@
 package com.segment.analytics;
 
-import android.Manifest;
-import android.app.Activity;
-import android.app.Application;
-import android.content.ComponentName;
-import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Bundle;
-
-import com.segment.analytics.TestUtils.NoDescriptionMatcher;
-import com.segment.analytics.integrations.AliasPayload;
-import com.segment.analytics.integrations.GroupPayload;
-import com.segment.analytics.integrations.IdentifyPayload;
-import com.segment.analytics.integrations.Integration;
-import com.segment.analytics.integrations.Logger;
-import com.segment.analytics.integrations.ScreenPayload;
-import com.segment.analytics.integrations.TrackPayload;
-import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
-
-import org.assertj.core.data.MapEntry;
-import org.hamcrest.Description;
-import org.hamcrest.TypeSafeMatcher;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicReference;
-
 import static android.content.Context.MODE_PRIVATE;
 import static com.segment.analytics.Analytics.LogLevel.NONE;
 import static com.segment.analytics.Analytics.LogLevel.VERBOSE;
@@ -64,6 +23,44 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import android.Manifest;
+import android.app.Activity;
+import android.app.Application;
+import android.content.ComponentName;
+import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Bundle;
+import com.segment.analytics.TestUtils.NoDescriptionMatcher;
+import com.segment.analytics.integrations.AliasPayload;
+import com.segment.analytics.integrations.GroupPayload;
+import com.segment.analytics.integrations.IdentifyPayload;
+import com.segment.analytics.integrations.Integration;
+import com.segment.analytics.integrations.Logger;
+import com.segment.analytics.integrations.ScreenPayload;
+import com.segment.analytics.integrations.TrackPayload;
+import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
+import org.assertj.core.data.MapEntry;
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeMatcher;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
@@ -564,8 +561,7 @@ public class AnalyticsTest {
                   }
 
                   @Override
-                  public void describeTo(Description description) {
-                  }
+                  public void describeTo(Description description) {}
                 }));
     assertThat(analyticsContext.traits()).hasSize(1).containsKey("anonymousId");
   }
@@ -796,7 +792,8 @@ public class AnalyticsTest {
     editor.putInt("build", 100);
     editor.putString("version", "1.0.0");
     editor.apply();
-    when(application.getSharedPreferences("analytics-android-qaz", MODE_PRIVATE)).thenReturn(sharedPreferences);
+    when(application.getSharedPreferences("analytics-android-qaz", MODE_PRIVATE))
+        .thenReturn(sharedPreferences);
 
     PackageManager packageManager = mock(PackageManager.class);
     when(packageManager.getPackageInfo("com.foo", 0)).thenReturn(packageInfo);
@@ -1026,23 +1023,25 @@ public class AnalyticsTest {
     doNothing()
         .when(application)
         .registerActivityLifecycleCallbacks(
-            argThat(new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
-              @Override
-              protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
-                registeredCallback.set(item);
-                return true;
-              }
-            }));
+            argThat(
+                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                  @Override
+                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                    registeredCallback.set(item);
+                    return true;
+                  }
+                }));
     doNothing()
         .when(application)
         .unregisterActivityLifecycleCallbacks(
-            argThat(new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
-              @Override
-              protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
-                unregisteredCallback.set(item);
-                return true;
-              }
-            }));
+            argThat(
+                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                  @Override
+                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                    unregisteredCallback.set(item);
+                    return true;
+                  }
+                }));
 
     analytics =
         new Analytics(
