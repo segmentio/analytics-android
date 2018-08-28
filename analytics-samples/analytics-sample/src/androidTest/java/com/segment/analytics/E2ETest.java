@@ -1,19 +1,20 @@
 package com.segment.analytics;
 
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
-import com.segment.analytics.runscope.MessageResponse;
-import com.segment.analytics.runscope.MessagesResponse;
-import com.segment.analytics.runscope.RunscopeService;
+import com.segment.analytics.webhook.WebhookService;
 import com.segment.analytics.sample.MainActivity;
 import com.segment.analytics.sample.test.BuildConfig;
 import com.segment.backo.Backo;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import okhttp3.Credentials;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import org.junit.After;
@@ -50,13 +51,10 @@ public class E2ETest {
    * https://app.segment.com/segment-libraries/sources/analytics_android_e2e_test/overview
    */
   private static final String SEGMENT_WRITE_KEY = "OAtgAHjkAD5MP31srDe9wiBjpvcXC8De";
-  /**
-   * Runscope bucket that is connect to the Segment project.
-   * https://www.runscope.com/radar/uy22axz4sdb8
-   */
-  private static final String RUNSCOPE_BUCKET = "uy22axz4sdb8";
-  // Token to read data from the Runscope bucket.
-  private static final String RUNSCOPE_TOKEN = BuildConfig.RUNSCOPE_TOKEN;
+  /** Webhook bucket that is connected to the Segment project. */
+  private static final String WEBHOOK_BUCKET = "android";
+  /** Credentials to retrieve data from the webhook. */
+  private static final String WEBHOOK_AUTH_USERNAME = BuildConfig.WEBHOOK_AUTH_USERNAME;
 
   private static final Backo BACKO = Backo.builder()
       .base(TimeUnit.SECONDS, 1)
@@ -64,15 +62,15 @@ public class E2ETest {
       .build();
 
   private Analytics analytics;
-  private RunscopeService runscopeService;
+  private WebhookService webhookService;
 
   @Before
   public void setup() {
     analytics = new Analytics.Builder(activityActivityTestRule.getActivity(), SEGMENT_WRITE_KEY)
         .build();
 
-    runscopeService = new Retrofit.Builder()
-        .baseUrl("https://api.runscope.com")
+    webhookService = new Retrofit.Builder()
+        .baseUrl("https://webhook-e2e.segment.com")
         .addConverterFactory(MoshiConverterFactory.create())
         .client(new OkHttpClient.Builder()
             .addNetworkInterceptor(new Interceptor() {
@@ -80,13 +78,13 @@ public class E2ETest {
               public okhttp3.Response intercept(Chain chain) throws IOException {
                 return chain.proceed(chain.request()
                     .newBuilder()
-                    .addHeader("Authorization", "Bearer " + RUNSCOPE_TOKEN)
+                    .addHeader("Authorization", Credentials.basic(WEBHOOK_AUTH_USERNAME, ""))
                     .build());
               }
             })
             .build())
         .build()
-        .create(RunscopeService.class);
+        .create(WebhookService.class);
   }
 
   @After
@@ -146,21 +144,19 @@ public class E2ETest {
   }
 
   /**
-   * Returns {@code true} if a message with the provided ID is found in Runscope.
+   * Returns {@code true} if a message with the provided ID is found in the webhook.
    */
   @SuppressWarnings("ConstantConditions")
   private boolean hasMatchingRequest(String id) throws IOException {
-    Response<MessagesResponse> messagesResponse = runscopeService
-        .messages(RUNSCOPE_BUCKET)
+    Response<List<String>> messagesResponse = webhookService
+        .messages(WEBHOOK_BUCKET, 500)
         .execute();
 
-    for (MessagesResponse.Message message : messagesResponse.body().data) {
-      Response<MessageResponse> messageResponse = runscopeService
-          .message(RUNSCOPE_BUCKET, message.uuid)
-          .execute();
+    assertThat(messagesResponse.code()).isEqualTo(200);
 
+    for (String message : messagesResponse.body()) {
       // TODO: Deserialize into Segment message and check against properties.
-      if (messageResponse.body().data.request.body.contains(id)) {
+      if (message.contains(id)) {
         return true;
       }
     }
