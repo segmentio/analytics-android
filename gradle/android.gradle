@@ -45,5 +45,19 @@ spotless {
   java {
     googleJavaFormat()
     target '**/*.java'
+    licenseHeader getLicenseText()
   }
+}
+
+def getLicenseText() {
+  def rawTextLines = rootProject.file('LICENSE.md').text.split('\n')
+  def text = ""
+  for (def line : rawTextLines) {
+    if (line.trim().length() == 0) {
+      text = text + '\n *' + line
+    } else {
+      text = text + '\n * ' + line
+    }
+  }
+  return '/**' + text + '\n */'
 }
