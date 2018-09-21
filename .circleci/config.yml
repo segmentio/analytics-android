@@ -34,6 +34,13 @@ jobs:
               ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file secret.json
               ./google-cloud-sdk/bin/gcloud firebase test android run --app analytics-samples/analytics-sample/build/outputs/apk/debug/analytics-sample-debug.apk --test analytics-samples/analytics-sample/build/outputs/apk/androidTest/debug/analytics-sample-debug-androidTest.apk --device-ids Nexus6,hammerhead,sailfish --os-version-ids 19,21,22,23,24,25,26,27
             fi
+      - run:
+          name: Build Failed
+          when: on_fail
+          command: |
+            wget https://raw.githubusercontent.com/segmentio/circleci-notifications/master/slack-notify-branch.sh
+            chmod u+x slack-notify-branch.sh
+            BUILD_STATUS="Failed" NOTIFY_BRANCH="master" ./slack-notify-branch.sh
       - save_cache:
           paths:
             - ~/.gradle
