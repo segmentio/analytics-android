@@ -781,7 +781,14 @@ public class Analytics {
   void fillAndEnqueue(BasePayload.Builder<?, ?> builder, Options options) {
     waitForAdvertisingId();
 
-    AnalyticsContext contextCopy = analyticsContext.unmodifiableCopy();
+    AnalyticsContext contextCopy = new AnalyticsContext(analyticsContext);
+
+    for (Map.Entry<String, Object> pair : options.context().entrySet()) {
+      contextCopy.put(pair.getKey(), pair.getValue());
+    }
+
+    contextCopy = contextCopy.unmodifiableCopy();
+
     builder.context(contextCopy);
     builder.anonymousId(contextCopy.traits().anonymousId());
     builder.integrations(options.integrations());

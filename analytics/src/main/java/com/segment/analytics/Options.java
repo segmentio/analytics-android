@@ -41,9 +41,11 @@ public class Options {
   public static final String ALL_INTEGRATIONS_KEY = "All";
 
   private final Map<String, Object> integrations; // passed in by the user
+  private final Map<String, Object> context;
 
   public Options() {
     integrations = new ConcurrentHashMap<>();
+    context = new ConcurrentHashMap<>();
   }
 
   /**
@@ -114,8 +116,27 @@ public class Options {
     return this;
   }
 
+  /**
+   * Attach some additional context information.
+   * Unlike with {@link com.segment.analytics.Analytics#getAnalyticsContext()}, this only has effect
+   * for this call.
+   *
+   * @param key The key of the extra context data
+   * @param value The value of the extra context data
+   * @return This options object for chaining
+   */
+  public Options putContext(String key, Object value) {
+    context.put(key, value);
+    return this;
+  }
+
   /** Returns a copy of settings for integrations. */
   public Map<String, Object> integrations() {
     return new LinkedHashMap<>(integrations);
+  }
+
+  /** Returns a copy of the context. */
+  public Map<String, Object> context() {
+    return new LinkedHashMap<>(context);
   }
 }
