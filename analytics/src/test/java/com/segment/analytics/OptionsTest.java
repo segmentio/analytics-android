@@ -84,22 +84,18 @@ public class OptionsTest {
   public void setOptions() {
     options.putContext("foo", "bar");
     options.putContext(
-            "library",
-            new ImmutableMap.Builder<String, Object>()
-                    .put("name", "analytics-test")
-                    .build()
-    );
+        "library",
+        new ImmutableMap.Builder<String, Object>().put("name", "analytics-test").build());
 
-    assertThat(options.context()).isEqualTo(
+    assertThat(options.context())
+        .isEqualTo(
             new ImmutableMap.Builder<String, Object>()
-              .put("foo", "bar")
-              .put(
-                      "library",
-                      new ImmutableMap.Builder<String, Object>()
-                              .put("name", "analytics-test")
-                              .build()
-              )
-              .build()
-    );
+                .put("foo", "bar")
+                .put(
+                    "library",
+                    new ImmutableMap.Builder<String, Object>()
+                        .put("name", "analytics-test")
+                        .build())
+                .build());
   }
 }

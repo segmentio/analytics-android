@@ -352,16 +352,15 @@ public class AnalyticsTest {
   public void optionsCustomContext() {
     analytics.track("foo", null, new Options().putContext("from_tests", true));
 
-    verify(integration).track(
-      argThat(
-        new NoDescriptionMatcher<TrackPayload>() {
-          @Override
-          protected boolean matchesSafely(TrackPayload payload) {
-            return payload.context().get("from_tests") == Boolean.TRUE;
-          }
-        }
-      )
-    );
+    verify(integration)
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.context().get("from_tests") == Boolean.TRUE;
+                  }
+                }));
   }
 
   @Test

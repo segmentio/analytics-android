@@ -117,9 +117,8 @@ public class Options {
   }
 
   /**
-   * Attach some additional context information.
-   * Unlike with {@link com.segment.analytics.Analytics#getAnalyticsContext()}, this only has effect
-   * for this call.
+   * Attach some additional context information. Unlike with {@link
+   * com.segment.analytics.Analytics#getAnalyticsContext()}, this only has effect for this call.
    *
    * @param key The key of the extra context data
    * @param value The value of the extra context data
