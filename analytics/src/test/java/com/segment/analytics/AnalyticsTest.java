@@ -349,6 +349,21 @@ public class AnalyticsTest {
   }
 
   @Test
+  public void optionsCustomContext() {
+    analytics.track("foo", null, new Options().putContext("from_tests", true));
+
+    verify(integration)
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.context().get("from_tests") == Boolean.TRUE;
+                  }
+                }));
+  }
+
+  @Test
   public void optOutDisablesEvents() throws IOException {
     analytics.optOut(true);
     analytics.track("foo");
