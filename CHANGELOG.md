@@ -1,6 +1,41 @@
 Changelog
 =========
 
+Version 4.4.0-beta1 (Nov 28, 2018)
+==================================
+
+ * [Fix](https://github.com/segmentio/analytics-android/pull/574): Send application build number as a string to match our documentation and other libraries. If you were relying on this field being a number, you may need to update reports that rely on the now deprecated behaviour. You can also override this behaviour and keep the deprecated behaviour by supplying the `build` field manually.
+
+ ```java
+ PackageManager packageManager = context.getPackageManager();
+ PackageInfo packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
+ Map<String, Object> app = new LinkedHashMap<>();
+
+ // Put the build as an integer instead of string.
+ app.put("build", packageInfo.versionCode);
+
+ // Put other application context fields that the library collects. Not shown in this example, but you should filter out any null fields.
+ app.put("name", packageInfo.applicationInfo.loadLabel(packageManager));
+ app.put("version", packageInfo.versionName);
+ app.put("namespace", packageInfo.packageName);
+
+ analytics.getAnalyticsContext().put("app", app);
+ ```
+
+ * [New](https://github.com/segmentio/analytics-android/pull/595): Add `Options#putContext` method. This allows you to send context fields for a single event. This can also override default context fields for a single event.
+
+ ```java
+ analytics.track("My Event", properties, new Options().putContext("custom_context_field", true));
+ ```
+
+ * [New](https://github.com/segmentio/analytics-android/pull/582): Send a custom user agent on HTTP requests originating the library. The new user-agent will be formatted as `analytics-android/{version}`.
+
+ * [Fix](https://github.com/segmentio/analytics-android/pull/578): Retry network requests when server responds with a HTTP 429 response code.
+
+ * [Fix](https://github.com/segmentio/analytics-android/pull/575): Update maximum message limit to be 32kb to match our API limits.
+
+ * [Fix](https://github.com/segmentio/analytics-android/pull/573): Fix race condition that could cause events to pick up user IDs after the event was originally recorded.
+
 Version 4.3.1 (Nov 28, 2017)
 =============================
 
