@@ -8,7 +8,7 @@ analytics-android is an Android client for [Segment](https://segment.com)
 
 ## Documentation
 
-You can find usage documentation at [https://segment.com/libraries/android](https://segment.com/libraries/android).
+You can find usage documentation at [https://segment.com/docs/sources/mobile/android/](https://segment.com/docs/sources/mobile/android/).
 
 ## Integrating with Segment
 
