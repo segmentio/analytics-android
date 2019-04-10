@@ -26,6 +26,7 @@ package com.segment.analytics;
 import static com.segment.analytics.TestUtils.grantPermission;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.Mockito.when;
 
 import android.Manifest;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -34,9 +35,12 @@ import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
@@ -46,6 +50,7 @@ import org.robolectric.annotation.Config;
 public class MiddlewareTest {
 
   Analytics.Builder builder;
+  @Mock ProjectSettings.Cache projectSettingsCache;
 
   @Before
   public void setUp() {
@@ -134,5 +139,40 @@ public class MiddlewareTest {
 
     analytics.identify("prateek");
     assertThat(payloadRef.get().messageId()).isEqualTo("override");
+  }
+
+  @Test
+  public void middlewareHasAccessToSettings() throws Exception {
+    final Map<String, Object> settings = new HashMap<>();
+    settings.put("mySetting", "value");
+    when(projectSettingsCache.get()).thenReturn(ProjectSettings.create(settings));
+
+    final AtomicReference<BasePayload> payloadRef = new AtomicReference<>();
+    Analytics analytics =
+        builder
+            .middleware(
+                new Middleware() {
+                  @Override
+                  public void intercept(Chain chain) {
+                    ProjectSettings settings = chain.settings();
+                    BasePayload payload = chain.payload();
+                    payload.put("mySetting", settings.get("mySetting"));
+                    chain.proceed(payload);
+                  }
+                })
+            .middleware(
+                new Middleware() {
+                  @Override
+                  public void intercept(Chain chain) {
+                    BasePayload payload = chain.payload();
+                    payloadRef.set(payload);
+                    chain.proceed(payload);
+                  }
+                })
+            .projectSettingsCache(projectSettingsCache)
+            .build();
+
+    analytics.identify("prateek");
+    assertThat(payloadRef.get().get("mySetting")).isEqualTo("value");
   }
 }

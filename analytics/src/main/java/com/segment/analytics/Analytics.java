@@ -1089,6 +1089,7 @@ public class Analytics {
     private boolean recordScreenViews = false;
     private boolean trackAttributionInformation = false;
     private Crypto crypto;
+    private ProjectSettings.Cache projectSettingsCache;
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -1297,6 +1298,14 @@ public class Analytics {
       return this;
     }
 
+    /**
+     * The ProjectSettings cache for storing settings. This is not exposed publicly.
+     */
+    Builder projectSettingsCache(ProjectSettings.Cache projectSettingsCache) {
+      this.projectSettingsCache = assertNotNull(projectSettingsCache, "projectSettingsCache");
+      return this;
+    }
+
     /** Create a {@link Analytics} client. */
     public Analytics build() {
       if (isNullOrEmpty(tag)) {
@@ -1333,8 +1342,10 @@ public class Analytics {
       final Cartographer cartographer = Cartographer.INSTANCE;
       final Client client = new Client(writeKey, connectionFactory);
 
-      ProjectSettings.Cache projectSettingsCache =
-          new ProjectSettings.Cache(application, cartographer, tag);
+      ProjectSettings.Cache projectSettingsCache = this.projectSettingsCache;
+      if (projectSettingsCache == null) {
+        projectSettingsCache = new ProjectSettings.Cache(application, cartographer, tag);
+      }
 
       BooleanPreference optOut =
           new BooleanPreference(

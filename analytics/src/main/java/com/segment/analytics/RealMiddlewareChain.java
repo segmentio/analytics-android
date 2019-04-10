@@ -51,6 +51,11 @@ class RealMiddlewareChain implements Middleware.Chain {
   }
 
   @Override
+  public ProjectSettings settings() {
+    return analytics.getSettings();
+  }
+
+  @Override
   public void proceed(BasePayload payload) {
     // If there's another middleware in the chain, call that.
     if (index < middlewares.size()) {

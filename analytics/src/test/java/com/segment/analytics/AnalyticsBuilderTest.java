@@ -89,6 +89,16 @@ public class AnalyticsBuilderTest {
   }
 
   @Test
+  public void invalidProjectSettingsCacheThrowsException() throws Exception {
+    try {
+      new Builder(context, "foo").projectSettingsCache(null);
+      fail("Null projectSettingsCache should throw exception.");
+    } catch (NullPointerException expected) {
+      assertThat(expected).hasMessage("projectSettingsCache == null");
+    }
+  }
+
+  @Test
   public void invalidMiddlewareThrowsException() throws Exception {
     try {
       new Builder(context, "foo").middleware(null);
