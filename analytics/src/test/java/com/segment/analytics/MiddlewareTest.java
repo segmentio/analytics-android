@@ -25,8 +25,8 @@ package com.segment.analytics;
 
 import static com.segment.analytics.TestUtils.grantPermission;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.MockitoAnnotations.initMocks;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 import android.Manifest;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -34,9 +34,9 @@ import com.segment.analytics.Analytics.Builder;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

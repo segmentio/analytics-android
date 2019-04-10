@@ -24,7 +24,6 @@
 package com.segment.analytics;
 
 import com.segment.analytics.integrations.BasePayload;
-import com.segment.analytics.ProjectSettings;
 
 /** Middlewares run for every message after it is built to process it further. */
 public interface Middleware {
@@ -35,6 +34,7 @@ public interface Middleware {
   interface Chain {
 
     BasePayload payload();
+
     ProjectSettings settings();
 
     void proceed(BasePayload payload);

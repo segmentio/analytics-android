@@ -1298,9 +1298,7 @@ public class Analytics {
       return this;
     }
 
-    /**
-     * The ProjectSettings cache for storing settings. This is not exposed publicly.
-     */
+    /** The ProjectSettings cache for storing settings. This is not exposed publicly. */
     Builder projectSettingsCache(ProjectSettings.Cache projectSettingsCache) {
       this.projectSettingsCache = assertNotNull(projectSettingsCache, "projectSettingsCache");
       return this;
