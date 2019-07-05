@@ -9,8 +9,8 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:3.1.2'
-    classpath 'com.vanniktech:gradle-android-junit-jacoco-plugin:0.5.0'
+    classpath 'com.android.tools.build:gradle:3.4.1'
+    classpath 'com.vanniktech:gradle-android-junit-jacoco-plugin:0.15.0'
     classpath 'com.diffplug.spotless:spotless-plugin-gradle:3.13.0'
     classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.6.2'
   }
@@ -46,9 +46,9 @@ ext {
 
   minSdkVersion = 14
   minSdkVersionWear = 21
-  targetSdkVersion = 27
-  compileSdkVersion = 27
-  buildToolsVersion = '27.0.3'
+  targetSdkVersion = 28
+  compileSdkVersion = 28
+  buildToolsVersion = '28.0.3'
 
   sourceCompatibilityVersion = JavaVersion.VERSION_1_7
   targetCompatibilityVersion = JavaVersion.VERSION_1_7
@@ -57,5 +57,5 @@ ext {
 }
 
 ext.deps = [
-  supportAnnotations: 'com.android.support:support-annotations:27.1.1'
+  supportAnnotations: 'com.android.support:support-annotations:28.0.0'
 ]

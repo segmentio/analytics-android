@@ -39,7 +39,7 @@ dependencies {
   androidTestImplementation 'com.squareup.retrofit2:retrofit:2.3.0'
   androidTestImplementation 'com.squareup.retrofit2:converter-moshi:2.3.0'
 
-  androidTestImplementation 'com.android.support:support-annotations:27.1.1'
+  androidTestImplementation rootProject.ext.deps.supportAnnotations
   androidTestImplementation 'com.android.support.test:runner:1.0.2'
   androidTestImplementation 'com.android.support.test:rules:1.0.2'
   androidTestImplementation 'com.segment.backo:backo:1.0.0'
