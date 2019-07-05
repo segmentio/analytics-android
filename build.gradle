@@ -50,12 +50,12 @@ ext {
   compileSdkVersion = 28
   buildToolsVersion = '28.0.3'
 
-  sourceCompatibilityVersion = JavaVersion.VERSION_1_7
-  targetCompatibilityVersion = JavaVersion.VERSION_1_7
+  sourceCompatibilityVersion = JavaVersion.VERSION_1_8
+  targetCompatibilityVersion = JavaVersion.VERSION_1_8
 
   preDexLibraries = preDexEnabled && !isCI
 }
 
 ext.deps = [
-  supportAnnotations: 'com.android.support:support-annotations:28.0.0'
+  supportAnnotations: 'androidx.annotation:annotation:1.0.0'
 ]

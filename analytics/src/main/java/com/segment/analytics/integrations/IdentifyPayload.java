@@ -26,8 +26,8 @@ package com.segment.analytics.integrations;
 import static com.segment.analytics.internal.Utils.assertNotNull;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.segment.analytics.Traits;
 import com.segment.analytics.internal.Private;
 import java.util.Collections;
