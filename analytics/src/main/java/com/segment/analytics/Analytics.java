@@ -322,7 +322,8 @@ public class Analytics {
           @Override
           public void onActivityResumed(Activity activity) {
             runOnMainThread(IntegrationOperation.onActivityResumed(activity));
-            track("Application Opened",
+            track(
+                "Application Opened",
                 new Properties()
                     .putValue("version", currentVersion)
                     .putValue("build", currentBuild));
