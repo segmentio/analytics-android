@@ -288,6 +288,10 @@ public class Analytics {
         new Application.ActivityLifecycleCallbacks() {
           final AtomicBoolean trackedApplicationLifecycleEvents = new AtomicBoolean(false);
 
+          PackageInfo packageInfo = getPackageInfo(getApplication());
+          String currentVersion = packageInfo.versionName;
+          int currentBuild = packageInfo.versionCode;
+
           @Override
           public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
             if (!trackedApplicationLifecycleEvents.getAndSet(true)
@@ -318,6 +322,10 @@ public class Analytics {
           @Override
           public void onActivityResumed(Activity activity) {
             runOnMainThread(IntegrationOperation.onActivityResumed(activity));
+            track("Application Opened",
+                new Properties()
+                    .putValue("version", currentVersion)
+                    .putValue("build", currentBuild));
           }
 
           @Override
