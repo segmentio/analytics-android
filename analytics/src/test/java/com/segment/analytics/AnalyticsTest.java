@@ -35,9 +35,7 @@ import static com.segment.analytics.internal.Utils.DEFAULT_FLUSH_QUEUE_SIZE;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -51,6 +49,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
@@ -79,6 +78,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.robolectric.RobolectricTestRunner;
@@ -117,13 +117,23 @@ public class AnalyticsTest {
   private Analytics analytics;
 
   @Before
-  public void setUp() throws IOException {
+  public void setUp() throws IOException, NameNotFoundException {
     Analytics.INSTANCES.clear();
 
     initMocks(this);
     application = mockApplication();
     traits = Traits.create();
     when(traitsCache.get()).thenReturn(traits);
+
+    PackageInfo packageInfo = new PackageInfo();
+    packageInfo.versionCode = 100;
+    packageInfo.versionName = "1.0.0";
+
+    PackageManager packageManager = mock(PackageManager.class);
+    when(packageManager.getPackageInfo("com.foo", 0)).thenReturn(packageInfo);
+    when(application.getPackageName()).thenReturn("com.foo");
+    when(application.getPackageManager()).thenReturn(packageManager);
+
     analyticsContext = createContext(traits);
     factory =
         new Integration.Factory() {
@@ -733,15 +743,6 @@ public class AnalyticsTest {
   public void trackApplicationLifecycleEventsInstalled() throws NameNotFoundException {
     Analytics.INSTANCES.clear();
 
-    PackageInfo packageInfo = new PackageInfo();
-    packageInfo.versionCode = 100;
-    packageInfo.versionName = "1.0.0";
-
-    PackageManager packageManager = mock(PackageManager.class);
-    when(packageManager.getPackageInfo("com.foo", 0)).thenReturn(packageInfo);
-    when(application.getPackageName()).thenReturn("com.foo");
-    when(application.getPackageManager()).thenReturn(packageManager);
-
     final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
         new AtomicReference<>();
     doNothing()
@@ -1034,9 +1035,23 @@ public class AnalyticsTest {
 
     callback.get().onActivityResumed(activity);
     verify(integration).onActivityResumed(activity);
+    verify(integration).track(argThat(
+        new NoDescriptionMatcher<TrackPayload>() {
+          @Override
+          protected boolean matchesSafely(TrackPayload payload) {
+            return payload.event().equals("Application Opened");
+          }
+        }));
 
     callback.get().onActivityPaused(activity);
     verify(integration).onActivityPaused(activity);
+    verify(integration).track(argThat(
+        new NoDescriptionMatcher<TrackPayload>() {
+          @Override
+          protected boolean matchesSafely(TrackPayload payload) {
+            return payload.event().equals("Application Backgrounded");
+          }
+        }));
 
     callback.get().onActivityStopped(activity);
     verify(integration).onActivityStopped(activity);

@@ -284,13 +284,13 @@ public class Analytics {
 
     logger.debug("Created analytics client for project with tag:%s.", tag);
 
+    PackageInfo packageInfo = getPackageInfo(application);
+    final String currentVersion = packageInfo.versionName;
+    final int currentBuild = packageInfo.versionCode;
+
     activityLifecycleCallback =
         new Application.ActivityLifecycleCallbacks() {
           final AtomicBoolean trackedApplicationLifecycleEvents = new AtomicBoolean(false);
-
-          PackageInfo packageInfo = getPackageInfo(getApplication());
-          String currentVersion = packageInfo.versionName;
-          int currentBuild = packageInfo.versionCode;
 
           @Override
           public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -322,6 +322,9 @@ public class Analytics {
           @Override
           public void onActivityResumed(Activity activity) {
             runOnMainThread(IntegrationOperation.onActivityResumed(activity));
+            if (shutdown) {
+              return;
+            }
             track(
                 "Application Opened",
                 new Properties()
@@ -332,6 +335,14 @@ public class Analytics {
           @Override
           public void onActivityPaused(Activity activity) {
             runOnMainThread(IntegrationOperation.onActivityPaused(activity));
+            if (shutdown) {
+              return;
+            }
+            track(
+                "Application Backgrounded",
+                new Properties()
+                    .putValue("version", currentVersion)
+                    .putValue("build", currentBuild));
           }
 
           @Override
