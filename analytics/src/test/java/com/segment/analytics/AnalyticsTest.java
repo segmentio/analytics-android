@@ -49,7 +49,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
@@ -78,7 +77,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.robolectric.RobolectricTestRunner;
@@ -1035,23 +1033,27 @@ public class AnalyticsTest {
 
     callback.get().onActivityResumed(activity);
     verify(integration).onActivityResumed(activity);
-    verify(integration).track(argThat(
-        new NoDescriptionMatcher<TrackPayload>() {
-          @Override
-          protected boolean matchesSafely(TrackPayload payload) {
-            return payload.event().equals("Application Opened");
-          }
-        }));
+    verify(integration)
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.event().equals("Application Opened");
+                  }
+                }));
 
     callback.get().onActivityPaused(activity);
     verify(integration).onActivityPaused(activity);
-    verify(integration).track(argThat(
-        new NoDescriptionMatcher<TrackPayload>() {
-          @Override
-          protected boolean matchesSafely(TrackPayload payload) {
-            return payload.event().equals("Application Backgrounded");
-          }
-        }));
+    verify(integration)
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.event().equals("Application Backgrounded");
+                  }
+                }));
 
     callback.get().onActivityStopped(activity);
     verify(integration).onActivityStopped(activity);
