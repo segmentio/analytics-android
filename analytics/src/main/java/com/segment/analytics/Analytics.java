@@ -76,6 +76,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The entry point into the Segment for Android SDK.
@@ -291,11 +292,18 @@ public class Analytics {
     activityLifecycleCallback =
         new Application.ActivityLifecycleCallbacks() {
           final AtomicBoolean trackedApplicationLifecycleEvents = new AtomicBoolean(false);
+          final AtomicInteger numberOfActivities = new AtomicInteger(1);
+          final AtomicBoolean isChangingActivityConfigurations = new AtomicBoolean(false);
+          final AtomicBoolean firstLaunch = new AtomicBoolean(false);
 
           @Override
           public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+            runOnMainThread(IntegrationOperation.onActivityCreated(activity, savedInstanceState));
+
             if (!trackedApplicationLifecycleEvents.getAndSet(true)
                 && shouldTrackApplicationLifecycleEvents) {
+              numberOfActivities.set(0);
+              firstLaunch.set(true);
               trackApplicationLifecycleEvents();
 
               if (trackAttributionInformation) {
@@ -308,7 +316,6 @@ public class Analytics {
                     });
               }
             }
-            runOnMainThread(IntegrationOperation.onActivityCreated(activity, savedInstanceState));
           }
 
           @Override
@@ -322,32 +329,36 @@ public class Analytics {
           @Override
           public void onActivityResumed(Activity activity) {
             runOnMainThread(IntegrationOperation.onActivityResumed(activity));
-            if (shutdown) {
-              return;
+
+            if (shouldTrackApplicationLifecycleEvents
+                && numberOfActivities.incrementAndGet() == 1
+                && !isChangingActivityConfigurations.get()) {
+
+              Properties properties = new Properties();
+              if (firstLaunch.get()) {
+                properties.putValue("version", currentVersion).putValue("build", currentBuild);
+              }
+              properties.putValue("from_background", !firstLaunch.getAndSet(false));
+
+              track("Application Opened", properties);
             }
-            track(
-                "Application Opened",
-                new Properties()
-                    .putValue("version", currentVersion)
-                    .putValue("build", currentBuild));
           }
 
           @Override
           public void onActivityPaused(Activity activity) {
             runOnMainThread(IntegrationOperation.onActivityPaused(activity));
-            if (shutdown) {
-              return;
-            }
-            track(
-                "Application Backgrounded",
-                new Properties()
-                    .putValue("version", currentVersion)
-                    .putValue("build", currentBuild));
           }
 
           @Override
           public void onActivityStopped(Activity activity) {
             runOnMainThread(IntegrationOperation.onActivityStopped(activity));
+
+            isChangingActivityConfigurations.set(activity.isChangingConfigurations());
+            if (shouldTrackApplicationLifecycleEvents
+                && numberOfActivities.decrementAndGet() == 0
+                && !isChangingActivityConfigurations.get()) {
+              track("Application Backgrounded");
+            }
           }
 
           @Override
@@ -424,13 +435,6 @@ public class Analytics {
               .putValue("previous_" + VERSION_KEY, previousVersion)
               .putValue("previous_" + BUILD_KEY, previousBuild));
     }
-
-    // Track Application Opened.
-    track(
-        "Application Opened",
-        new Properties() //
-            .putValue("version", currentVersion) //
-            .putValue("build", currentBuild));
 
     // Update the recorded version.
     SharedPreferences.Editor editor = sharedPreferences.edit();

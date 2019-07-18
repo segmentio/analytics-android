@@ -796,19 +796,6 @@ public class AnalyticsTest {
                         payload.properties().getInt("build", -1) == 100;
                   }
                 }));
-    verify(integration)
-        .track(
-            argThat(
-                new NoDescriptionMatcher<TrackPayload>() {
-                  @Override
-                  protected boolean matchesSafely(TrackPayload payload) {
-                    return payload.event().equals("Application Opened")
-                        && //
-                        payload.properties().getString("version").equals("1.0.0")
-                        && //
-                        payload.properties().getInt("build", -1) == 100;
-                  }
-                }));
 
     callback.get().onActivityCreated(null, null);
     verify(integration, times(2)).onActivityCreated(null, null);
@@ -890,19 +877,6 @@ public class AnalyticsTest {
                         payload.properties().getString("previous_version").equals("1.0.0")
                         && //
                         payload.properties().getInt("previous_build", -1) == 100
-                        && //
-                        payload.properties().getString("version").equals("1.0.1")
-                        && //
-                        payload.properties().getInt("build", -1) == 101;
-                  }
-                }));
-    verify(integration)
-        .track(
-            argThat(
-                new NoDescriptionMatcher<TrackPayload>() {
-                  @Override
-                  protected boolean matchesSafely(TrackPayload payload) {
-                    return payload.event().equals("Application Opened")
                         && //
                         payload.properties().getString("version").equals("1.0.1")
                         && //
@@ -1033,27 +1007,9 @@ public class AnalyticsTest {
 
     callback.get().onActivityResumed(activity);
     verify(integration).onActivityResumed(activity);
-    verify(integration)
-        .track(
-            argThat(
-                new NoDescriptionMatcher<TrackPayload>() {
-                  @Override
-                  protected boolean matchesSafely(TrackPayload payload) {
-                    return payload.event().equals("Application Opened");
-                  }
-                }));
 
     callback.get().onActivityPaused(activity);
     verify(integration).onActivityPaused(activity);
-    verify(integration)
-        .track(
-            argThat(
-                new NoDescriptionMatcher<TrackPayload>() {
-                  @Override
-                  protected boolean matchesSafely(TrackPayload payload) {
-                    return payload.event().equals("Application Backgrounded");
-                  }
-                }));
 
     callback.get().onActivityStopped(activity);
     verify(integration).onActivityStopped(activity);
@@ -1065,6 +1021,205 @@ public class AnalyticsTest {
     verify(integration).onActivityDestroyed(activity);
 
     verifyNoMoreInteractions(integration);
+  }
+
+  @Test
+  public void trackApplicationLifecycleEventsApplicationOpened() throws NameNotFoundException {
+    Analytics.INSTANCES.clear();
+
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+        new AtomicReference<>();
+    doNothing()
+        .when(application)
+        .registerActivityLifecycleCallbacks(
+            argThat(
+                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                  @Override
+                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                    callback.set(item);
+                    return true;
+                  }
+                }));
+
+    analytics =
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            true,
+            new CountDownLatch(0),
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList());
+
+    callback.get().onActivityCreated(null, null);
+    callback.get().onActivityResumed(null);
+
+    verify(integration)
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.event().equals("Application Opened")
+                        && payload.properties().getString("version").equals("1.0.0")
+                        && payload.properties().getInt("build", -1) == 100
+                        && !payload.properties().getBoolean("from_background", true);
+                  }
+                }));
+  }
+
+  @Test
+  public void trackApplicationLifecycleEventsApplicationBackgrounded()
+      throws NameNotFoundException {
+    Analytics.INSTANCES.clear();
+
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+        new AtomicReference<>();
+    doNothing()
+        .when(application)
+        .registerActivityLifecycleCallbacks(
+            argThat(
+                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                  @Override
+                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                    callback.set(item);
+                    return true;
+                  }
+                }));
+
+    analytics =
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            true,
+            new CountDownLatch(0),
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList());
+
+    Activity backgroundedActivity = mock(Activity.class);
+    when(backgroundedActivity.isChangingConfigurations()).thenReturn(false);
+
+    callback.get().onActivityCreated(null, null);
+    callback.get().onActivityResumed(null);
+    callback.get().onActivityStopped(backgroundedActivity);
+
+    verify(integration)
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.event().equals("Application Backgrounded");
+                  }
+                }));
+  }
+
+  @Test
+  public void trackApplicationLifecycleEventsApplicationForegrounded()
+      throws NameNotFoundException {
+    Analytics.INSTANCES.clear();
+
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+        new AtomicReference<>();
+    doNothing()
+        .when(application)
+        .registerActivityLifecycleCallbacks(
+            argThat(
+                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                  @Override
+                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                    callback.set(item);
+                    return true;
+                  }
+                }));
+
+    analytics =
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            true,
+            new CountDownLatch(0),
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList());
+
+    Activity backgroundedActivity = mock(Activity.class);
+    when(backgroundedActivity.isChangingConfigurations()).thenReturn(false);
+
+    callback.get().onActivityCreated(null, null);
+    callback.get().onActivityResumed(null);
+    callback.get().onActivityStopped(backgroundedActivity);
+    callback.get().onActivityResumed(null);
+
+    verify(integration)
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.event().equals("Application Backgrounded");
+                  }
+                }));
+
+    verify(integration)
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.event().equals("Application Opened")
+                        && payload.properties().getBoolean("from_background", false);
+                  }
+                }));
   }
 
   @Test
