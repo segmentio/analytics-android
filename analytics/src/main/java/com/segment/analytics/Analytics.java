@@ -42,7 +42,6 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -75,8 +74,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The entry point into the Segment for Android SDK.
@@ -285,14 +282,15 @@ public class Analytics {
 
     logger.debug("Created analytics client for project with tag:%s.", tag);
 
-    activityLifecycleCallback = new AnalyticsActivityLifecycleCallbacks.Builder()
-        .analytics(this)
-        .analyticsExecutor(analyticsExecutor)
-        .shouldTrackApplicationLifecycleEvents(shouldTrackApplicationLifecycleEvents)
-        .trackAttributionInformation(trackAttributionInformation)
-        .shouldRecordScreenViews(shouldRecordScreenViews)
-        .packageInfo(getPackageInfo(application))
-        .build();
+    activityLifecycleCallback =
+        new AnalyticsActivityLifecycleCallbacks.Builder()
+            .analytics(this)
+            .analyticsExecutor(analyticsExecutor)
+            .shouldTrackApplicationLifecycleEvents(shouldTrackApplicationLifecycleEvents)
+            .trackAttributionInformation(trackAttributionInformation)
+            .shouldRecordScreenViews(shouldRecordScreenViews)
+            .packageInfo(getPackageInfo(application))
+            .build();
 
     application.registerActivityLifecycleCallbacks(activityLifecycleCallback);
   }

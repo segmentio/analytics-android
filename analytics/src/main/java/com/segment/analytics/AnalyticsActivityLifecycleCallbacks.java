@@ -1,10 +1,32 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Segment.io, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.segment.analytics;
 
 import android.app.Activity;
 import android.app.Application;
 import android.content.pm.PackageInfo;
 import android.os.Bundle;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,8 +44,14 @@ public class AnalyticsActivityLifecycleCallbacks implements Application.Activity
   private AtomicBoolean isChangingActivityConfigurations;
   private AtomicBoolean firstLaunch;
 
-  private AnalyticsActivityLifecycleCallbacks(Analytics analytics, ExecutorService analyticsExecutor, Boolean shouldTrackApplicationLifecycleEvents, Boolean trackAttributionInformation, Boolean shouldRecordScreenViews, PackageInfo packageInfo) {
-    this.trackedApplicationLifecycleEvents  = new AtomicBoolean(false);
+  private AnalyticsActivityLifecycleCallbacks(
+      Analytics analytics,
+      ExecutorService analyticsExecutor,
+      Boolean shouldTrackApplicationLifecycleEvents,
+      Boolean trackAttributionInformation,
+      Boolean shouldRecordScreenViews,
+      PackageInfo packageInfo) {
+    this.trackedApplicationLifecycleEvents = new AtomicBoolean(false);
     this.numberOfActivities = new AtomicInteger(1);
     this.isChangingActivityConfigurations = new AtomicBoolean(false);
     this.firstLaunch = new AtomicBoolean(false);
@@ -75,7 +103,9 @@ public class AnalyticsActivityLifecycleCallbacks implements Application.Activity
 
       Properties properties = new Properties();
       if (firstLaunch.get()) {
-        properties.putValue("version", packageInfo.versionName).putValue("build", packageInfo.versionCode);
+        properties
+            .putValue("version", packageInfo.versionName)
+            .putValue("build", packageInfo.versionCode);
       }
       properties.putValue("from_background", !firstLaunch.getAndSet(false));
       analytics.track("Application Opened", properties);
@@ -117,8 +147,7 @@ public class AnalyticsActivityLifecycleCallbacks implements Application.Activity
     private Boolean shouldRecordScreenViews;
     private PackageInfo packageInfo;
 
-    public Builder() {
-    }
+    public Builder() {}
 
     public Builder analytics(Analytics analytics) {
       this.analytics = analytics;
