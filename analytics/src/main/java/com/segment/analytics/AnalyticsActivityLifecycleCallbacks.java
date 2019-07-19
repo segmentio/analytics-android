@@ -31,7 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
+class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
   private Analytics analytics;
   private ExecutorService analyticsExecutor;
   private Boolean shouldTrackApplicationLifecycleEvents;
