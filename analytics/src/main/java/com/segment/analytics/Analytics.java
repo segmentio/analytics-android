@@ -285,92 +285,15 @@ public class Analytics {
 
     logger.debug("Created analytics client for project with tag:%s.", tag);
 
-    PackageInfo packageInfo = getPackageInfo(application);
-    final String currentVersion = packageInfo.versionName;
-    final int currentBuild = packageInfo.versionCode;
+    activityLifecycleCallback = new AnalyticsActivityLifecycleCallbacks.Builder()
+        .analytics(this)
+        .analyticsExecutor(analyticsExecutor)
+        .shouldTrackApplicationLifecycleEvents(shouldTrackApplicationLifecycleEvents)
+        .trackAttributionInformation(trackAttributionInformation)
+        .shouldRecordScreenViews(shouldRecordScreenViews)
+        .packageInfo(getPackageInfo(application))
+        .build();
 
-    activityLifecycleCallback =
-        new Application.ActivityLifecycleCallbacks() {
-          final AtomicBoolean trackedApplicationLifecycleEvents = new AtomicBoolean(false);
-          final AtomicInteger numberOfActivities = new AtomicInteger(1);
-          final AtomicBoolean isChangingActivityConfigurations = new AtomicBoolean(false);
-          final AtomicBoolean firstLaunch = new AtomicBoolean(false);
-
-          @Override
-          public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-            runOnMainThread(IntegrationOperation.onActivityCreated(activity, savedInstanceState));
-
-            if (!trackedApplicationLifecycleEvents.getAndSet(true)
-                && shouldTrackApplicationLifecycleEvents) {
-              numberOfActivities.set(0);
-              firstLaunch.set(true);
-              trackApplicationLifecycleEvents();
-
-              if (trackAttributionInformation) {
-                analyticsExecutor.submit(
-                    new Runnable() {
-                      @Override
-                      public void run() {
-                        trackAttributionInformation();
-                      }
-                    });
-              }
-            }
-          }
-
-          @Override
-          public void onActivityStarted(Activity activity) {
-            if (shouldRecordScreenViews) {
-              recordScreenViews(activity);
-            }
-            runOnMainThread(IntegrationOperation.onActivityStarted(activity));
-          }
-
-          @Override
-          public void onActivityResumed(Activity activity) {
-            runOnMainThread(IntegrationOperation.onActivityResumed(activity));
-
-            if (shouldTrackApplicationLifecycleEvents
-                && numberOfActivities.incrementAndGet() == 1
-                && !isChangingActivityConfigurations.get()) {
-
-              Properties properties = new Properties();
-              if (firstLaunch.get()) {
-                properties.putValue("version", currentVersion).putValue("build", currentBuild);
-              }
-              properties.putValue("from_background", !firstLaunch.getAndSet(false));
-
-              track("Application Opened", properties);
-            }
-          }
-
-          @Override
-          public void onActivityPaused(Activity activity) {
-            runOnMainThread(IntegrationOperation.onActivityPaused(activity));
-          }
-
-          @Override
-          public void onActivityStopped(Activity activity) {
-            runOnMainThread(IntegrationOperation.onActivityStopped(activity));
-
-            isChangingActivityConfigurations.set(activity.isChangingConfigurations());
-            if (shouldTrackApplicationLifecycleEvents
-                && numberOfActivities.decrementAndGet() == 0
-                && !isChangingActivityConfigurations.get()) {
-              track("Application Backgrounded");
-            }
-          }
-
-          @Override
-          public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-            runOnMainThread(IntegrationOperation.onActivitySaveInstanceState(activity, outState));
-          }
-
-          @Override
-          public void onActivityDestroyed(Activity activity) {
-            runOnMainThread(IntegrationOperation.onActivityDestroyed(activity));
-          }
-        };
     application.registerActivityLifecycleCallbacks(activityLifecycleCallback);
   }
 
