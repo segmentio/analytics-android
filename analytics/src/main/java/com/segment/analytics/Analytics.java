@@ -42,7 +42,6 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -75,7 +74,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The entry point into the Segment for Android SDK.
@@ -285,61 +283,15 @@ public class Analytics {
     logger.debug("Created analytics client for project with tag:%s.", tag);
 
     activityLifecycleCallback =
-        new Application.ActivityLifecycleCallbacks() {
-          final AtomicBoolean trackedApplicationLifecycleEvents = new AtomicBoolean(false);
+        new AnalyticsActivityLifecycleCallbacks.Builder()
+            .analytics(this)
+            .analyticsExecutor(analyticsExecutor)
+            .shouldTrackApplicationLifecycleEvents(shouldTrackApplicationLifecycleEvents)
+            .trackAttributionInformation(trackAttributionInformation)
+            .shouldRecordScreenViews(shouldRecordScreenViews)
+            .packageInfo(getPackageInfo(application))
+            .build();
 
-          @Override
-          public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-            if (!trackedApplicationLifecycleEvents.getAndSet(true)
-                && shouldTrackApplicationLifecycleEvents) {
-              trackApplicationLifecycleEvents();
-
-              if (trackAttributionInformation) {
-                analyticsExecutor.submit(
-                    new Runnable() {
-                      @Override
-                      public void run() {
-                        trackAttributionInformation();
-                      }
-                    });
-              }
-            }
-            runOnMainThread(IntegrationOperation.onActivityCreated(activity, savedInstanceState));
-          }
-
-          @Override
-          public void onActivityStarted(Activity activity) {
-            if (shouldRecordScreenViews) {
-              recordScreenViews(activity);
-            }
-            runOnMainThread(IntegrationOperation.onActivityStarted(activity));
-          }
-
-          @Override
-          public void onActivityResumed(Activity activity) {
-            runOnMainThread(IntegrationOperation.onActivityResumed(activity));
-          }
-
-          @Override
-          public void onActivityPaused(Activity activity) {
-            runOnMainThread(IntegrationOperation.onActivityPaused(activity));
-          }
-
-          @Override
-          public void onActivityStopped(Activity activity) {
-            runOnMainThread(IntegrationOperation.onActivityStopped(activity));
-          }
-
-          @Override
-          public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-            runOnMainThread(IntegrationOperation.onActivitySaveInstanceState(activity, outState));
-          }
-
-          @Override
-          public void onActivityDestroyed(Activity activity) {
-            runOnMainThread(IntegrationOperation.onActivityDestroyed(activity));
-          }
-        };
     application.registerActivityLifecycleCallbacks(activityLifecycleCallback);
   }
 
@@ -404,13 +356,6 @@ public class Analytics {
               .putValue("previous_" + VERSION_KEY, previousVersion)
               .putValue("previous_" + BUILD_KEY, previousBuild));
     }
-
-    // Track Application Opened.
-    track(
-        "Application Opened",
-        new Properties() //
-            .putValue("version", currentVersion) //
-            .putValue("build", currentBuild));
 
     // Update the recorded version.
     SharedPreferences.Editor editor = sharedPreferences.edit();

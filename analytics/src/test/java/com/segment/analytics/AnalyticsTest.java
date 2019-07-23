@@ -35,9 +35,7 @@ import static com.segment.analytics.internal.Utils.DEFAULT_FLUSH_QUEUE_SIZE;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -117,13 +115,23 @@ public class AnalyticsTest {
   private Analytics analytics;
 
   @Before
-  public void setUp() throws IOException {
+  public void setUp() throws IOException, NameNotFoundException {
     Analytics.INSTANCES.clear();
 
     initMocks(this);
     application = mockApplication();
     traits = Traits.create();
     when(traitsCache.get()).thenReturn(traits);
+
+    PackageInfo packageInfo = new PackageInfo();
+    packageInfo.versionCode = 100;
+    packageInfo.versionName = "1.0.0";
+
+    PackageManager packageManager = mock(PackageManager.class);
+    when(packageManager.getPackageInfo("com.foo", 0)).thenReturn(packageInfo);
+    when(application.getPackageName()).thenReturn("com.foo");
+    when(application.getPackageManager()).thenReturn(packageManager);
+
     analyticsContext = createContext(traits);
     factory =
         new Integration.Factory() {
@@ -733,15 +741,6 @@ public class AnalyticsTest {
   public void trackApplicationLifecycleEventsInstalled() throws NameNotFoundException {
     Analytics.INSTANCES.clear();
 
-    PackageInfo packageInfo = new PackageInfo();
-    packageInfo.versionCode = 100;
-    packageInfo.versionName = "1.0.0";
-
-    PackageManager packageManager = mock(PackageManager.class);
-    when(packageManager.getPackageInfo("com.foo", 0)).thenReturn(packageInfo);
-    when(application.getPackageName()).thenReturn("com.foo");
-    when(application.getPackageManager()).thenReturn(packageManager);
-
     final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
         new AtomicReference<>();
     doNothing()
@@ -791,19 +790,6 @@ public class AnalyticsTest {
                   @Override
                   protected boolean matchesSafely(TrackPayload payload) {
                     return payload.event().equals("Application Installed")
-                        && //
-                        payload.properties().getString("version").equals("1.0.0")
-                        && //
-                        payload.properties().getInt("build", -1) == 100;
-                  }
-                }));
-    verify(integration)
-        .track(
-            argThat(
-                new NoDescriptionMatcher<TrackPayload>() {
-                  @Override
-                  protected boolean matchesSafely(TrackPayload payload) {
-                    return payload.event().equals("Application Opened")
                         && //
                         payload.properties().getString("version").equals("1.0.0")
                         && //
@@ -891,19 +877,6 @@ public class AnalyticsTest {
                         payload.properties().getString("previous_version").equals("1.0.0")
                         && //
                         payload.properties().getInt("previous_build", -1) == 100
-                        && //
-                        payload.properties().getString("version").equals("1.0.1")
-                        && //
-                        payload.properties().getInt("build", -1) == 101;
-                  }
-                }));
-    verify(integration)
-        .track(
-            argThat(
-                new NoDescriptionMatcher<TrackPayload>() {
-                  @Override
-                  protected boolean matchesSafely(TrackPayload payload) {
-                    return payload.event().equals("Application Opened")
                         && //
                         payload.properties().getString("version").equals("1.0.1")
                         && //
@@ -1048,6 +1021,205 @@ public class AnalyticsTest {
     verify(integration).onActivityDestroyed(activity);
 
     verifyNoMoreInteractions(integration);
+  }
+
+  @Test
+  public void trackApplicationLifecycleEventsApplicationOpened() throws NameNotFoundException {
+    Analytics.INSTANCES.clear();
+
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+        new AtomicReference<>();
+    doNothing()
+        .when(application)
+        .registerActivityLifecycleCallbacks(
+            argThat(
+                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                  @Override
+                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                    callback.set(item);
+                    return true;
+                  }
+                }));
+
+    analytics =
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            true,
+            new CountDownLatch(0),
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList());
+
+    callback.get().onActivityCreated(null, null);
+    callback.get().onActivityResumed(null);
+
+    verify(integration)
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.event().equals("Application Opened")
+                        && payload.properties().getString("version").equals("1.0.0")
+                        && payload.properties().getInt("build", -1) == 100
+                        && !payload.properties().getBoolean("from_background", true);
+                  }
+                }));
+  }
+
+  @Test
+  public void trackApplicationLifecycleEventsApplicationBackgrounded()
+      throws NameNotFoundException {
+    Analytics.INSTANCES.clear();
+
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+        new AtomicReference<>();
+    doNothing()
+        .when(application)
+        .registerActivityLifecycleCallbacks(
+            argThat(
+                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                  @Override
+                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                    callback.set(item);
+                    return true;
+                  }
+                }));
+
+    analytics =
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            true,
+            new CountDownLatch(0),
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList());
+
+    Activity backgroundedActivity = mock(Activity.class);
+    when(backgroundedActivity.isChangingConfigurations()).thenReturn(false);
+
+    callback.get().onActivityCreated(null, null);
+    callback.get().onActivityResumed(null);
+    callback.get().onActivityStopped(backgroundedActivity);
+
+    verify(integration)
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.event().equals("Application Backgrounded");
+                  }
+                }));
+  }
+
+  @Test
+  public void trackApplicationLifecycleEventsApplicationForegrounded()
+      throws NameNotFoundException {
+    Analytics.INSTANCES.clear();
+
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+        new AtomicReference<>();
+    doNothing()
+        .when(application)
+        .registerActivityLifecycleCallbacks(
+            argThat(
+                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                  @Override
+                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                    callback.set(item);
+                    return true;
+                  }
+                }));
+
+    analytics =
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            true,
+            new CountDownLatch(0),
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList());
+
+    Activity backgroundedActivity = mock(Activity.class);
+    when(backgroundedActivity.isChangingConfigurations()).thenReturn(false);
+
+    callback.get().onActivityCreated(null, null);
+    callback.get().onActivityResumed(null);
+    callback.get().onActivityStopped(backgroundedActivity);
+    callback.get().onActivityResumed(null);
+
+    verify(integration)
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.event().equals("Application Backgrounded");
+                  }
+                }));
+
+    verify(integration)
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.event().equals("Application Opened")
+                        && payload.properties().getBoolean("from_background", false);
+                  }
+                }));
   }
 
   @Test
