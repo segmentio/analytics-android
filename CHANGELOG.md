@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 4.5.0-beta.0 (July 25, 2019)
+===================================
+
+ * [New](https://github.com/segmentio/analytics-android/pull/620): Add Application Open and Application Backgrounded Events
+
 Version 4.4.0-beta1 (Nov 28, 2018)
 ==================================
 

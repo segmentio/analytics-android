@@ -80,7 +80,7 @@ public class E2ETest {
   private static final String WEBHOOK_AUTH_USERNAME = BuildConfig.WEBHOOK_AUTH_USERNAME;
 
   private static final Backo BACKO =
-      Backo.builder().base(TimeUnit.SECONDS, 1).cap(TimeUnit.SECONDS, 5).build();
+      Backo.builder().base(TimeUnit.SECONDS, 1).cap(TimeUnit.MINUTES, 5).build();
 
   private Analytics analytics;
   private WebhookService webhookService;
