@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
-
 apply from: rootProject.file('gradle/android.gradle')
+apply plugin: 'firebase-test-lab'
 
 def WEBHOOK_AUTH_USERNAME = ""
 def RUN_E2E_TESTS = false
@@ -21,7 +21,7 @@ android {
   }
 
   defaultConfig {
-    testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
 
     buildConfigField 'String', 'WEBHOOK_AUTH_USERNAME', "\"$WEBHOOK_AUTH_USERNAME\""
     buildConfigField 'boolean', 'RUN_E2E_TESTS', "$RUN_E2E_TESTS"
@@ -45,4 +45,38 @@ dependencies {
   androidTestImplementation 'com.segment.backo:backo:1.0.0'
 
   androidTestImplementation 'org.assertj:assertj-core:1.7.1'
+}
+
+firebaseTestLab {
+    gcloudPath = rootProject.file('bin/google-cloud-sdk/bin/gcloud')
+    bucketName = 'android_ci'
+    ignoreFailures = false
+    enableVariantLessTasks = false
+    copyArtifact {
+        junit = true
+    }
+    matrices {
+        pixel {
+            androidApiLevels = [25,26,27,28]
+            deviceIds = ["sailfish"]
+        }
+        pixel2Virtual {
+            androidApiLevels = [26,27,28]
+            deviceIds = ["Pixel2"]
+        }
+        pixel2Physical {
+            androidApiLevels = [26,27,28]
+            deviceIds = ["walleye"]
+            locales = ["en"]
+            orientations = ["portrait", "landscape"]
+        }
+        pixel3 {
+            androidApiLevels = [28]
+            deviceIds = ["blueline"]
+        }
+        nexus4 {
+            androidApiLevels = [19,21,22]
+            deviceIds = ["Nexus4"]
+        }
+    }
 }
