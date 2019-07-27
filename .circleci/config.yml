@@ -28,8 +28,6 @@ jobs:
           command: |
             if [ "${RUN_E2E_TESTS}" == "true" ]; then
               echo "${FIREBASE_TOKEN}" >> "secret.json"
-              ./tools/google-cloud-sdk/bin/gcloud config set project analytics-android-e2e-test
-              ./tools/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file secret.json
               ./gradlew firebaseTestLabExecuteDebugInstrumentation
             fi
       - run:
