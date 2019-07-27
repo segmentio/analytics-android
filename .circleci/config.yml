@@ -42,13 +42,6 @@ jobs:
               ./bin/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file secret.json
               ./gradlew firebaseTestLabExecuteDebugInstrumentation
             fi
-      - run:
-          name: Build Failed
-          when: on_fail
-          command: |
-            wget https://raw.githubusercontent.com/segmentio/circleci-notifications/master/slack-notify-branch.sh
-            chmod u+x slack-notify-branch.sh
-            BUILD_STATUS="Failed" NOTIFY_BRANCH="master" ./slack-notify-branch.sh
       - save_cache:
           paths:
             - ~/.gradle
