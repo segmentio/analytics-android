@@ -47,6 +47,7 @@ dependencies {
   androidTestImplementation 'org.assertj:assertj-core:1.7.1'
 }
 
+
 firebaseTestLab {
     gcloudPath = rootProject.file('bin/google-cloud-sdk/bin/gcloud')
     bucketName = 'android_ci'
