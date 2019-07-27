@@ -1,0 +1,43 @@
+- release_tracks: [ALPHA]
+  hidden: true
+
+  help_text:
+    brief: Create a Deployment.
+    description: Create a Cloud Game Services Deployment.
+
+  request:
+    collection: gameservices.projects.locations.gameServerDeployments
+
+  arguments:
+    resource:
+      help_text: Cloud Game Services Deployment to create.
+      spec: !REF googlecloudsdk.command_lib.game_services.resources:deployment
+
+    params:
+    - group:
+        help_text: |
+          Game server template for a new rollout. In order to start a new rollout, you should first
+          add a game server template that includes the game server spec that will be sent to Agones
+          during rollout. The spec file is a path to a JSON or YAML file that contains game server
+          spec. The game server spec follows the format of the spec field in Agones GameServer
+          custom resource. Please see https://agones.dev/site/docs/reference/gameserver/ for more
+          details.
+        params:
+        - arg_name: description
+          api_field: gameServerDeployment.newGameServerTemplate.description
+          help_text: |
+            Description of the game server template.
+        - group:
+            params:
+            - arg_name: template-id
+              api_field: gameServerDeployment.newGameServerTemplate.templateId
+              required: true
+              help_text: |
+                ID of the game server template. Required when spec-file is specified.
+            - _REF_: googlecloudsdk.command_lib.game_services.flags:spec_file
+              api_field: gameServerDeployment.newGameServerTemplate.spec
+    labels:
+      api_field: gameServerDeployment.labels
+
+  async:
+    collection: gameservices.projects.locations.operations

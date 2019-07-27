@@ -1,0 +1,38 @@
+- release_tracks: [ALPHA]
+
+  help_text:
+    brief: |
+      List Cloud Build Artifacts repositories.
+    description: |
+      List all Cloud Build Artifacts repositories in the specified project.
+
+      To specify the maximum number of repositories to list, use the --limit flag.
+    examples: |
+      The following command lists a maximum of five repositories:
+
+          $ {command} --limit=5
+
+  arguments:
+    resource:
+      spec: !REF googlecloudsdk.command_lib.build_artifacts.resources:project
+      help_text: |
+        The parent project for the list of repositories.
+
+  request: &request
+    api_version: v1alpha2
+    collection: buildartifacts.projects.repositories
+
+  response:
+    modify_response_hooks:
+    - googlecloudsdk.command_lib.build_artifacts.util:AppendParentInfoToListReposResponse
+
+  output:
+    format: |
+      table(
+         name.basename():label=REPOSITORY,
+         format:label=FORMAT,
+         description:label=DESCRIPTION,
+         location,
+         createTime.date(tz=LOCAL),
+         updateTime.date(tz=LOCAL)
+      )

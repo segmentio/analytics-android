@@ -1,0 +1,42 @@
+- release_tracks: [ALPHA]
+
+  hidden: true
+
+  help_text:
+    brief: Searches accessible IAM policies that match a query.
+    description: Searches accessible IAM policies that match a query.
+
+  request:
+    collection: cloudasset.iamPolicies
+    method: search
+    api_version: v1p1alpha1
+
+  arguments:
+    params:
+    - api_field: query
+      arg_name: query
+      required: true
+      is_positional: false
+      help_text: |-
+        The query statement.
+
+        Examples:
+
+        "policy:myuser@mydomain.com"
+        "policy:(myuser@mydomain.com viewer)"
+    - api_field: pageSize
+      arg_name: page-size
+      required: false
+      is_positional: false
+      help_text: |-
+        The page size for search result pagination. The number of matching results may be fewer than
+        requested based on the query. The maximum page size is 2000. If page-size is not given the
+        back end will pick an appropriate default page size.
+    - api_field: pageToken
+      arg_name: page-token
+      required: false
+      is_positional: false
+      help_text: |-
+        If present, retrieve the next batch of results from the preceding call to this method.
+        `page_token` must be the value of `next_page_token` from the previous response. The values
+        of all other method parameters must be identical to those in the previous call.

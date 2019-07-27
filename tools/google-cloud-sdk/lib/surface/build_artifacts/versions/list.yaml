@@ -1,0 +1,38 @@
+- release_tracks: [ALPHA]
+
+  help_text:
+    brief: |
+      List Cloud Build Artifacts package versions.
+    description: |
+      List all Cloud Build Artifacts package versions in the specified package.
+
+      To specify the maximum number of versions to list, use the --limit flag.
+    examples: |
+      The following command lists a maximum of five versions:
+
+          $ {command} --limit=5
+
+  arguments:
+    resource:
+      spec: !REF googlecloudsdk.command_lib.build_artifacts.resources:package
+      help_text: |
+        The parent package for the list of versions.
+
+  request: &request
+    api_version: v1alpha2
+    collection: buildartifacts.projects.repositories.packages.versions
+    modify_request_hooks:
+    - googlecloudsdk.command_lib.build_artifacts.util:URLEscapePackageName
+
+  response:
+    modify_response_hooks:
+    - googlecloudsdk.command_lib.build_artifacts.util:AppendParentInfoToListVersionsResponse
+
+  output:
+    format: |
+      table(
+         name.basename():label=VERSION,
+         description,
+         createTime.date(tz=LOCAL),
+         updateTime.date(tz=LOCAL)
+       )

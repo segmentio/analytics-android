@@ -1,0 +1,30 @@
+platform: &platform
+  arg_name: platform
+  # The api_field is not accurate, but a hack to make sure
+  # the processor function gets called
+  api_field: resource
+  help_text: Target platform for running commands.
+  fallback: googlecloudsdk.command_lib.run.flags:GetPlatformFallback
+  processor: googlecloudsdk.command_lib.run.flags:ValidatePlatformIsManaged
+  choices:
+  - &platform_managed
+    arg_value: 'managed'
+    help_text: |
+      Fully managed version of Cloud Run. Use with the `--region`
+      flag or set the [run/region] property to specify a Cloud Run
+      region.
+  - &platform_gke
+    arg_value: 'gke'
+    help_text: |
+      Cloud Run on Google Kubernetes Engine. This platform is not supported by
+      this command.
+
+platform_alpha:
+  <<: *platform
+  choices:
+  - *platform_managed
+  - *platform_gke
+  - arg_value: 'kubernetes'
+    help_text: |
+      Use a Knative-compatible kubernetes cluster. This platform is not supported
+      by this command.

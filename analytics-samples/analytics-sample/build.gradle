@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 apply from: rootProject.file('gradle/android.gradle')
-apply plugin: 'firebase-test-lab'
+apply plugin: 'ru.gildor.gradle.firebase.testlab'
 
 def WEBHOOK_AUTH_USERNAME = ""
 def RUN_E2E_TESTS = false
@@ -47,9 +47,8 @@ dependencies {
   androidTestImplementation 'org.assertj:assertj-core:1.7.1'
 }
 
-
 firebaseTestLab {
-    gcloudPath = rootProject.file('bin/google-cloud-sdk/bin/gcloud')
+    gcloudPath = rootProject.file('tools/google-cloud-sdk/bin/')
     bucketName = 'android_ci'
     ignoreFailures = false
     enableVariantLessTasks = false

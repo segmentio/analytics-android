@@ -1,0 +1,33 @@
+- release_tracks: [ALPHA]
+  hidden: true
+
+  help_text:
+    brief: Create a Game Server Cluster.
+    description: Create a Cloud Game Services Game Server Cluster.
+
+  request:
+    collection: gameservices.projects.locations.realms.gameServerClusters
+
+  arguments:
+    resource:
+      help_text: Cloud Game Services Game Server Cluster to create.
+      spec: !REF googlecloudsdk.command_lib.game_services.resources:game_server_cluster
+
+    params:
+    - arg_name: gke-name
+      api_field: gameServerCluster.connectionInfo.gkeName
+      required: true
+      help_text: |
+        Google Kubernetes Engine name where the game server cluster is installed, using the format:
+        "projects/*/locations/*/clusters/*". Example:
+        "projects/my-project/locations/us-central1/clusters/test".
+    - arg_name: namespace
+      api_field: gameServerCluster.connectionInfo.namespace
+      required: true
+      help_text: |
+        Namespace for Kubernetes API server endpoint.
+    labels:
+      api_field: gameServerCluster.labels
+
+  async:
+    collection: gameservices.projects.locations.operations

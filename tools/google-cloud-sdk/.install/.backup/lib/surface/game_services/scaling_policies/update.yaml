@@ -1,0 +1,92 @@
+- release_tracks: [ALPHA]
+  hidden: true
+
+  help_text:
+    brief: Update a Scaling Policy.
+    description: Update a Cloud Game Services Scaling Policy.
+
+  request:
+    collection: gameservices.projects.locations.scalingPolicies
+    modify_request_hooks:
+    - googlecloudsdk.command_lib.game_services.scaling_policies.update_hooks:UpdateLabels
+    - googlecloudsdk.command_lib.game_services.scaling_policies.update_hooks:MatchClusters
+
+  arguments:
+    resource:
+      help_text: Cloud Game Services Scaling Policy to update.
+      spec: !REF googlecloudsdk.command_lib.game_services.resources:scaling_policy
+
+    params:
+    - arg_name: priority
+      api_field: scalingPolicy.priority
+      help_text: |
+        Priority of the Scaling Policy.
+    - group:
+        mutex: true
+        params:
+        - arg_name: buffer-size
+          api_field: scalingPolicy.fleetAutoscalerSettings.bufferSizeAbsolute
+          help_text: |
+            Size of a buffer of ready game server instances in absolute number.
+        - arg_name: buffer-size-percent
+          api_field: scalingPolicy.fleetAutoscalerSettings.bufferSizePercentage
+          help_text: |
+            Size of a buffer of ready game server instances in percentage.
+        help_text: |
+          Size of the buffer of ready game server instances in either absolute number or percentage.
+          As game server instances get allocated or terminated, the fleet will be scaled up and down
+          so that this buffer is maintained.
+    - arg_name: min-replicas
+      api_field: scalingPolicy.fleetAutoscalerSettings.minReplicas
+      help_text: |
+        Minimum fleet size.
+    - arg_name: max-replicas
+      api_field: scalingPolicy.fleetAutoscalerSettings.maxReplicas
+      help_text: |
+        Maximum fleet size.
+    - arg_name: schedule
+      api_field: scalingPolicy.schedules
+      help_text: |
+        Event schedules. Schedules allow scaling policies to be adjusted for planned events. For
+        example, you can add policies to allocate from specific clusters during an event. This flag can
+        be repeated.
+
+        The following keys are allowed:
+
+        *cron-spec*::: Cron definition of the scheduled event. See https://en.wikipedia.org/wiki/Cron.
+        The cron spec specification is in the local time as defined by the realm. Requires
+        cron-job-duration to be specified.
+
+        *cron-job-duration*::: Duration for the cron job event. The duration of the event is effective
+        after the cron job's start time. See $ gcloud topic datetimes for information on
+        duration formats. Required if cron-spec is specified.
+
+        *start-time*::: Start time of the event. See $ gcloud topic datetimes for information on
+        duration formats. Either start-time or cron-spec should be specified.
+
+        *end-time*::: End time of the event. See $ gcloud topic datetimes for information on
+        duration formats.
+
+        Example:
+
+          $ {command} example-policy --schedule=start-time=2019-01-01T00:00:01Z,end-time=2030-01-01T00:00:01Z,cron-job-duration=3600s,cron-spec="10 0 1-7 5 *" --schedule=start-time=2050-01-01T00:00:01Z
+      type:
+        arg_dict:
+          flatten: false
+          spec:
+          - arg_name: cron-spec
+            api_field: cronSpec
+            required: false
+          - arg_name: cron-job-duration
+            api_field: cronJobDuration
+            required: false
+          - arg_name: start-time
+            api_field: startTime
+            required: false
+          - arg_name: end-time
+            api_field: endTime
+            required: false
+    additional_arguments_hook: googlecloudsdk.command_lib.game_services.scaling_policies.utils:AdditionalUpdateArguments
+
+  async:
+    collection: gameservices.projects.locations.operations

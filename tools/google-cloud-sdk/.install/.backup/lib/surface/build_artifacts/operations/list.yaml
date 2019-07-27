@@ -1,0 +1,32 @@
+- release_tracks: [ALPHA]
+
+  help_text:
+    brief: |
+      List Cloud Build Artifacts operations.
+    description: |
+      List all Cloud Build Artifacts operations in the specified project.
+
+      To specify the maximum number of operations to list, use the --limit flag.
+    examples: |
+      The following command lists a maximum of five operations:
+
+          $ {command} --limit=5
+
+  arguments:
+    resource:
+      spec: !REF googlecloudsdk.command_lib.build_artifacts.resources:project
+      help_text: |
+        The parent project for the list of operations.
+
+  request: &request
+    api_version: v1alpha2
+    collection: buildartifacts.projects.operations
+
+  output:
+    format: |
+      table(
+        name.basename():label=OPERATION_NAME,
+        done,
+        metadata.createTime.date():sort=1,
+        duration(start=metadata.createTime,end=metadata.endTime,precision=0,calendar=false).slice(2:).join("").yesno(no="<1S"):label=DURATION
+      )

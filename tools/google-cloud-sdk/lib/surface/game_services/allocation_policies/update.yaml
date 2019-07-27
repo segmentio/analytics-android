@@ -1,0 +1,84 @@
+- release_tracks: [ALPHA]
+  hidden: true
+
+  help_text:
+    brief: Update an Allocation Policy.
+    description: Update a Cloud Game Services Allocation Policy.
+
+  request:
+    collection: gameservices.projects.locations.allocationPolicies
+    modify_request_hooks:
+    - googlecloudsdk.command_lib.game_services.allocation_policies.update_hooks:MatchClusters
+
+  arguments:
+    resource:
+      help_text: Cloud Game Services Allocation Policy to update.
+      spec: !REF googlecloudsdk.command_lib.game_services.resources:allocation_policy
+
+    params:
+    - arg_name: priority
+      api_field: allocationPolicy.priority
+      help_text: |
+        Priority of the Allocation Policy.
+    - arg_name: weight
+      api_field: allocationPolicy.weight
+      help_text: |
+        Relative weight of the Allocation Policy.
+
+        If there are multiple policies with the same priority, a policy will
+        be selected at random, where the probability of a given policy being
+        selected is based on its weight. For example, if there are two
+        policies with priority 1, where policy A has weight 100 and policy B
+        has weight 300, policy A will be selected 25% of the time, and policy
+        B will be selected 75% of the time.
+    - arg_name: schedule
+      api_field: allocationPolicy.schedules
+      help_text: |
+        Event schedules. Schedules allow allocation policies to be adjusted for planned events. For
+        example, you can add policies to allocate from specific clusters during an event. This flag can
+        be repeated.
+
+        The following keys are allowed:
+
+        *cron-spec*::: Cron definition of the scheduled event. See https://en.wikipedia.org/wiki/Cron.
+        The cron spec specification is in the local time as defined by the realm. Requires
+        cron-job-duration to be specified.
+
+        *cron-job-duration*::: Duration for the cron job event. The duration of the event is effective
+        after the cron job's start time. See $ gcloud topic datetimes for information on
+        duration formats. Required if cron-spec is specified.
+
+        *start-time*::: Start time of the event. See $ gcloud topic datetimes for information on
+        duration formats. Either start-time or cron-spec should be specified.
+
+        *end-time*::: End time of the event. See $ gcloud topic datetimes for information on
+        duration formats.
+
+        Example:
+
+          $ {command} example-policy --schedule=start-time=2019-01-01T00:00:01Z,end-time=2030-01-01T00:00:01Z,cron-job-duration=3600s,cron-spec="10 0 1-7 5 *" --schedule=start-time=2050-01-01T00:00:01Z
+      type:
+        arg_dict:
+          flatten: false
+          spec:
+          - arg_name: cron-spec
+            api_field: cronSpec
+            required: false
+          - arg_name: cron-job-duration
+            api_field: cronJobDuration
+            required: false
+          - arg_name: start-time
+            api_field: startTime
+            required: false
+          - arg_name: end-time
+            api_field: endTime
+            required: false
+    labels:
+      api_field: allocationPolicy.labels
+    additional_arguments_hook: googlecloudsdk.command_lib.game_services.allocation_policies.utils:AdditionalUpdateArguments
+
+  async:
+    collection: gameservices.projects.locations.operations
+
+  update:
+    read_modify_update: true

@@ -1,0 +1,61 @@
+project:
+  name: project
+  collection: buildartifacts.projects
+  attributes:
+  - &project
+    parameter_name: projectsId
+    attribute_name: project
+    help: |
+      Cloud project for the {resource}.
+    property: core/project
+
+repository:
+  name: repository
+  collection: buildartifacts.projects.repositories
+  request_id_field: repository.name
+  attributes:
+  - *project
+  - &repository
+    parameter_name: repositoriesId
+    attribute_name: repository
+    help: |
+      Repository of the {resource}. Overrides the default build_artifacts/repository property value
+      for this command invocation.
+    property: build_artifacts/repository
+  disable_auto_completers: false
+
+repository_without_property:
+  name: repository
+  collection: buildartifacts.projects.repositories
+  request_id_field: repository.name
+  attributes:
+  - parameter_name: repositoriesId
+    attribute_name: repository
+    help: |
+      Repository of the {resource}.
+  disable_auto_completers: false
+
+package:
+  name: package
+  collection: buildartifacts.projects.repositories.packages
+  attributes:
+  - *project
+  - *repository
+  - &package
+    parameter_name: packagesId
+    attribute_name: package
+    help: |
+      Package of the {resource}.
+  disable_auto_completers: false
+
+operation:
+  name: operation
+  collection: buildartifacts.projects.operations
+  attributes:
+  - *project
+  - &operation
+    parameter_name: operationsId
+    attribute_name: operation
+    help: |
+      Cloud Build Artifacts operation.
+  disable_auto_completers: false

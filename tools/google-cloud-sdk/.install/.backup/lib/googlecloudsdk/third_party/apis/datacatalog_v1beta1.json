@@ -1,0 +1,1340 @@
+{
+  "kind": "discovery#restDescription",
+  "discoveryVersion": "v1",
+  "id": "datacatalog:v1beta1",
+  "name": "datacatalog",
+  "canonicalName": "Cloud DataCatalog",
+  "version": "v1beta1",
+  "revision": "0",
+  "title": "Google Cloud Data Catalog API",
+  "description": "A fully managed and highly scalable data discovery and metadata management service.\n",
+  "ownerDomain": "google.com",
+  "ownerName": "Google",
+  "icons": {
+    "x16": "http://www.google.com/images/icons/product/search-16.gif",
+    "x32": "http://www.google.com/images/icons/product/search-32.gif"
+   },
+  "documentationLink": "https://cloud.google.com/data-catalog/docs/",
+  "protocol": "rest",
+  "rootUrl": "https://datacatalog.googleapis.com/",
+  "servicePath": "",
+  "baseUrl": "https://datacatalog.googleapis.com/",
+  "batchPath": "batch",
+  "version_module": true,
+  "fullyEncodeReservedExpansion": true,
+  "parameters": {
+    "access_token": {
+      "type": "string",
+      "description": "OAuth access token.",
+      "location": "query"
+    },
+    "alt": {
+      "type": "string",
+      "description": "Data format for response.",
+      "default": "json",
+      "enum": [
+        "json",
+        "media",
+        "proto"
+      ],
+      "enumDescriptions": [
+        "Responses with Content-Type of application/json",
+        "Media download with context-dependent Content-Type",
+        "Responses with Content-Type of application/x-protobuf"
+      ],
+      "location": "query"
+    },
+    "callback": {
+      "type": "string",
+      "description": "JSONP",
+      "location": "query"
+    },
+    "fields": {
+      "type": "string",
+      "description": "Selector specifying which fields to include in a partial response.",
+      "location": "query"
+    },
+    "key": {
+      "type": "string",
+      "description": "API key. Your API key identifies your project and provides you with API access, quota, and reports. Required unless you provide an OAuth 2.0 token.",
+      "location": "query"
+    },
+    "oauth_token": {
+      "type": "string",
+      "description": "OAuth 2.0 token for the current user.",
+      "location": "query"
+    },
+    "prettyPrint": {
+      "type": "boolean",
+      "description": "Returns response with indentations and line breaks.",
+      "default": "true",
+      "location": "query"
+    },
+    "quotaUser": {
+      "type": "string",
+      "description": "Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters.",
+      "location": "query"
+    },
+    "upload_protocol": {
+      "type": "string",
+      "description": "Upload protocol for media (e.g. \"raw\", \"multipart\").",
+      "location": "query"
+    },
+    "uploadType": {
+      "type": "string",
+      "description": "Legacy upload protocol for media (e.g. \"media\", \"multipart\").",
+      "location": "query"
+    },
+    "$.xgafv": {
+      "type": "string",
+      "description": "V1 error format.",
+      "enum": [
+        "1",
+        "2"
+      ],
+      "enumDescriptions": [
+        "v1 error format",
+        "v2 error format"
+      ],
+      "location": "query"
+    }
+  },
+  "auth": {
+    "oauth2": {
+      "scopes": {
+        "https://www.googleapis.com/auth/cloud-platform": {
+          "description": "View and manage your data across Google Cloud Platform services"
+        }
+      }
+    }
+  },
+  "schemas": {
+    "GoogleCloudDatacatalogV1beta1SearchCatalogRequest": {
+      "id": "GoogleCloudDatacatalogV1beta1SearchCatalogRequest",
+      "description": "Request message for\nSearchCatalog.",
+      "type": "object",
+      "properties": {
+        "scope": {
+          "description": "Required. The scope of this search request.",
+          "$ref": "GoogleCloudDatacatalogV1beta1SearchCatalogRequestScope"
+        },
+        "query": {
+          "description": "Required. The query string in search query syntax. The query must be\nnon-empty.\n\nQuery strings can be simple as \"x\" or more qualified as:\n\n* name:x\n* column:x\n* description:y\n\nNote: Query tokens need to have a minimum of 3 characters for substring\nmatching to work correctly. See [Data Catalog Search\nSyntax](\/data-catalog\/docs\/how-to\/search-reference) for more information.",
+          "type": "string"
+        },
+        "pageSize": {
+          "description": "Number of results in the search page. If <=0 then defaults to 10. Max limit\nfor page_size is 1000. Throws an invalid argument for page_size > 1000.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageToken": {
+          "description": "Optional pagination token returned in an earlier\nSearchCatalogResponse.next_page_token, which\nindicates that this is a continuation of a prior\nSearchCatalogRequest\ncall, and that the system should return the next page of data. If empty,\nthe first page is returned.",
+          "type": "string"
+        },
+        "orderBy": {
+          "description": "Specifies the ordering of results, currently supported case-sensitive\nchoices are:\n\n  * `relevance`, only supports desecending\n  * `last_access_timestamp [asc|desc]`, defaults to descending if not\n    specified\n  * `last_modified_timestamp [asc|desc]`, defaults to descending if not\n    specified\n\nIf not specified, defaults to `relevance` descending.",
+          "type": "string"
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1SearchCatalogRequestScope": {
+      "id": "GoogleCloudDatacatalogV1beta1SearchCatalogRequestScope",
+      "type": "object",
+      "properties": {
+        "includeOrgIds": {
+          "description": "Data Catalog tries to automatically choose the right corpus of data to\nsearch through. You can ensure an organization is included by adding it\nto `include_org_ids`. You can ensure a project's org is included with\n`include_project_ids`. You must specify at least one organization\nusing `include_org_ids` or `include_project_ids` in all search requests.\n\nList of organization IDs to search within. To find your organization ID,\nfollow instructions in\nhttps:\/\/cloud.google.com\/resource-manager\/docs\/creating-managing-organization.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "includeProjectIds": {
+          "description": "List of project IDs to search within. To learn more about the\ndistinction between project names\/IDs\/numbers, go to\nhttps:\/\/cloud.google.com\/docs\/overview\/#projects.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "includeGcpPublicDatasets": {
+          "description": "If `true`, include Google Cloud Platform (GCP) public datasets in the\nsearch results. Info on GCP public datasets is available at\nhttps:\/\/cloud.google.com\/public-datasets\/. By default, GCP public\ndatasets are excluded.",
+          "type": "boolean"
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1SearchCatalogResponse": {
+      "id": "GoogleCloudDatacatalogV1beta1SearchCatalogResponse",
+      "description": "Response message for\nSearchCatalog.",
+      "type": "object",
+      "properties": {
+        "results": {
+          "description": "Search results.",
+          "type": "array",
+          "items": {
+            "$ref": "GoogleCloudDatacatalogV1beta1SearchCatalogResult"
+          }
+        },
+        "nextPageToken": {
+          "description": "The token that can be used to retrieve the next page of results.",
+          "type": "string"
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1SearchCatalogResult": {
+      "id": "GoogleCloudDatacatalogV1beta1SearchCatalogResult",
+      "description": "A result that appears in the response of a search request. Each result\ncaptures details of one entry that matches the search.",
+      "type": "object",
+      "properties": {
+        "searchResultType": {
+          "description": "Type of the search result. This field can be used to determine which Get\nmethod to call to fetch the full resource.",
+          "enumDescriptions": [
+            "Default unknown type.",
+            "An Entry.",
+            "A TagTemplate."
+          ],
+          "type": "string",
+          "enum": [
+            "SEARCH_RESULT_TYPE_UNSPECIFIED",
+            "ENTRY",
+            "TAG_TEMPLATE"
+          ]
+        },
+        "searchResultSubtype": {
+          "description": "Sub-type of the search result. This is a dot-delimited description of the\nresource's full type, and is the same as the value callers would provide in\nthe \"type\" search facet.  Examples: `entry.table`, `entry.dataStream`,\n`tagTemplate`.",
+          "type": "string"
+        },
+        "relativeResourceName": {
+          "description": "The relative resource name of the resource in URL format.\nExamples:\n\n * `projects\/{project_id}\/locations\/{location_id}\/entryGroups\/{entry_group_id}\/entries\/{entry_id}`\n * `projects\/{project_id}\/tagTemplates\/{tag_template_id}`",
+          "type": "string"
+        },
+        "linkedResource": {
+          "description": "The full name of the cloud resource the entry belongs to. See:\nhttps:\/\/cloud.google.com\/apis\/design\/resource_names#full_resource_name.\nExample:\n\n * `\/\/bigquery.googleapis.com\/projects\/projectId\/datasets\/datasetId\/tables\/tableId`",
+          "type": "string"
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1Entry": {
+      "id": "GoogleCloudDatacatalogV1beta1Entry",
+      "description": "Entry Metadata. \nA Data Catalog Entry resource represents another resource in Google\nCloud Platform, such as a BigQuery dataset or a Cloud Pub\/Sub topic. Clients\ncan use the `linked_resource` field in the Entry resource to refer to the\noriginal resource ID of the source system.\n\nAn Entry resource contains resource details, such as its schema. An Entry can\nalso be used to attach flexible metadata, such as a\nTag.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Required when used in\nUpdateEntryRequest.\nThe Data Catalog resource name of the entry in URL format. Example:\n\n* projects\/{project_id}\/locations\/{location}\/entryGroups\/{entry_group_id}\/entries\/{entry_id}\n\nNote that this Entry and its child resources may not actually be stored in\nthe location in this name.",
+          "type": "string"
+        },
+        "linkedResource": {
+          "description": "Output only. The full name of the cloud resource the entry belongs to. See:\nhttps:\/\/cloud.google.com\/apis\/design\/resource_names#full_resource_name\n\nData Catalog supports resources from select Google Cloud Platform systems.\n`linked_resource` is the full name of the Google Cloud Platform resource.\nFor example, the `linked_resource` for a table resource from BigQuery is:\n\n* \/\/bigquery.googleapis.com\/projects\/projectId\/datasets\/datasetId\/tables\/tableId",
+          "type": "string"
+        },
+        "type": {
+          "description": "The type of the entry.",
+          "enumDescriptions": [
+            "Default unknown type",
+            "Output only. The type of entry that has a GoogleSQL schema, including\nlogical views.",
+            "Output only. An entry type which is used for streaming entries. Example:\nCloud Pub\/Sub topic."
+          ],
+          "type": "string",
+          "enum": [
+            "ENTRY_TYPE_UNSPECIFIED",
+            "TABLE",
+            "DATA_STREAM"
+          ]
+        },
+        "bigqueryTableSpec": {
+          "description": "Specification that applies to a BigQuery table. This is only valid on\nentries of type `TABLE`.",
+          "$ref": "GoogleCloudDatacatalogV1beta1BigQueryTableSpec"
+        },
+        "bigqueryDateShardedSpec": {
+          "description": "Specification for a group of BigQuery tables with name pattern\n`[prefix]YYYYMMDD`. Context:\nhttps:\/\/cloud.google.com\/bigquery\/docs\/partitioned-tables#partitioning_versus_sharding.",
+          "$ref": "GoogleCloudDatacatalogV1beta1BigQueryDateShardedSpec"
+        },
+        "displayName": {
+          "description": "Optional. Display information such as title and description. A short name\nto identify the entry, for example, \"Analytics Data - Jan 2011\". Default\nvalue is an empty string.",
+          "type": "string"
+        },
+        "description": {
+          "description": "Optional. Entry description, which can consist of several sentences or\nparagraphs that describe entry contents. Default value is an empty string.",
+          "type": "string"
+        },
+        "schema": {
+          "description": "Optional. Schema of the entry. An entry might not have any schema attached\nto it.",
+          "$ref": "GoogleCloudDatacatalogV1beta1Schema"
+        },
+        "sourceSystemTimestamps": {
+          "description": "Output only. Timestamps about the underlying Google Cloud Platform resource\n-- not about this Data Catalog Entry.",
+          "$ref": "GoogleCloudDatacatalogV1beta1SystemTimestamps"
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1BigQueryTableSpec": {
+      "id": "GoogleCloudDatacatalogV1beta1BigQueryTableSpec",
+      "description": "Describes a BigQuery table.",
+      "type": "object",
+      "properties": {
+        "tableSourceType": {
+          "description": "Output only. The table source type.",
+          "enumDescriptions": [
+            "Default unknown type.",
+            "Table view.",
+            "BigQuery native table."
+          ],
+          "type": "string",
+          "enum": [
+            "TABLE_SOURCE_TYPE_UNSPECIFIED",
+            "BIGQUERY_VIEW",
+            "BIGQUERY_TABLE"
+          ]
+        },
+        "viewSpec": {
+          "description": "Table view specification. This field should only be populated if\n`table_source_type` is `BIGQUERY_VIEW`.",
+          "$ref": "GoogleCloudDatacatalogV1beta1ViewSpec"
+        },
+        "tableSpec": {
+          "description": "Spec of a BigQuery table. This field should only be populated if\n`table_source_type` is `BIGQUERY_TABLE`.",
+          "$ref": "GoogleCloudDatacatalogV1beta1TableSpec"
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1ViewSpec": {
+      "id": "GoogleCloudDatacatalogV1beta1ViewSpec",
+      "description": "Table view specification.",
+      "type": "object",
+      "properties": {
+        "viewQuery": {
+          "description": "Output only. The query that defines the table view.",
+          "type": "string"
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1TableSpec": {
+      "id": "GoogleCloudDatacatalogV1beta1TableSpec",
+      "description": "Normal BigQuery table spec.",
+      "type": "object",
+      "properties": {
+        "groupedEntry": {
+          "description": "Output only. If the table is a dated shard, i.e., with name pattern\n`[prefix]YYYYMMDD`, `grouped_entry` is the Data Catalog resource name of\nthe date sharded grouped entry, for example,\n`projects\/{project_id}\/locations\/{location}\/entrygroups\/{entry_group_id}\/entries\/{entry_id}`.\nOtherwise, `grouped_entry` is empty.",
+          "type": "string"
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1BigQueryDateShardedSpec": {
+      "id": "GoogleCloudDatacatalogV1beta1BigQueryDateShardedSpec",
+      "description": "Spec for a group of BigQuery tables with name pattern `[prefix]YYYYMMDD`.\nContext:\nhttps:\/\/cloud.google.com\/bigquery\/docs\/partitioned-tables#partitioning_versus_sharding",
+      "type": "object",
+      "properties": {
+        "dataset": {
+          "description": "Output only. The Data Catalog resource name of the dataset entry the\ncurrent table belongs to, for example,\n`projects\/{project_id}\/locations\/{location}\/entrygroups\/{entry_group_id}\/entries\/{entry_id}`.",
+          "type": "string"
+        },
+        "tablePrefix": {
+          "description": "Output only. The table name prefix of the shards. The name of any given\nshard is `[table_prefix]YYYYMMDD`, for example, for shard\n`MyTable20180101`, the `table_prefix` is `MyTable`.",
+          "type": "string"
+        },
+        "shardCount": {
+          "description": "Output only. Total number of shards.",
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1Schema": {
+      "id": "GoogleCloudDatacatalogV1beta1Schema",
+      "description": "Represents a schema (e.g. BigQuery, GoogleSQL, Avro schema).",
+      "type": "object",
+      "properties": {
+        "columns": {
+          "description": "Required. Schema of columns. A maximum of 10,000 columns and sub-columns\ncan be specified.",
+          "type": "array",
+          "items": {
+            "$ref": "GoogleCloudDatacatalogV1beta1ColumnSchema"
+          }
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1ColumnSchema": {
+      "id": "GoogleCloudDatacatalogV1beta1ColumnSchema",
+      "description": "Representation of a column within a schema. Columns could be nested inside\nother columns.",
+      "type": "object",
+      "properties": {
+        "column": {
+          "description": "Required. Name of the column.",
+          "type": "string"
+        },
+        "type": {
+          "description": "Required. Type of the column.",
+          "type": "string"
+        },
+        "description": {
+          "description": "Optional. Description of the column. Default value is an empty string.",
+          "type": "string"
+        },
+        "mode": {
+          "description": "Optional. A column's mode indicates whether the values in this column are\nrequired, nullable, etc. Only `NULLABLE`, `REQUIRED` and `REPEATED` are\nsupported. Default mode is `NULLABLE`.",
+          "type": "string"
+        },
+        "subcolumns": {
+          "description": "Optional. Schema of sub-columns. A column can have zero or more\nsub-columns.",
+          "type": "array",
+          "items": {
+            "$ref": "GoogleCloudDatacatalogV1beta1ColumnSchema"
+          }
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1SystemTimestamps": {
+      "id": "GoogleCloudDatacatalogV1beta1SystemTimestamps",
+      "description": "Timestamps about this resource according to a particular system.",
+      "type": "object",
+      "properties": {
+        "createTime": {
+          "description": "Output only. The creation time of the resource within the given system.",
+          "type": "string",
+          "format": "google-datetime"
+        },
+        "updateTime": {
+          "description": "Output only. The last-modified time of the resource within the given\nsystem.",
+          "type": "string",
+          "format": "google-datetime"
+        },
+        "expireTime": {
+          "description": "Output only. The expiration time of the resource within the given system.",
+          "type": "string",
+          "format": "google-datetime"
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1TagTemplate": {
+      "id": "GoogleCloudDatacatalogV1beta1TagTemplate",
+      "description": "A tag template defines the schema of the tags used to attach to Data Catalog\nresources. It defines the mapping of accepted field names and types that can\nbe used within the tag. The tag template also controls the access to the tag.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Required when used in\nUpdateTagTemplateRequest.\nThe resource name of the tag template in URL format. Example:\n\n* projects\/{project_id}\/locations\/{location}\/tagTemplates\/{tag_template_id}\n\nNote that this TagTemplate and its child resources may not actually be\nstored in the location in this name.",
+          "type": "string"
+        },
+        "displayName": {
+          "description": "Optional. The display name for this template. Defaults to an empty string.",
+          "type": "string"
+        },
+        "fields": {
+          "description": "Required. Map of tag template field IDs to the settings for the field.\nThis map is an exhaustive list of the allowed fields. This map must contain\nat least one field and at most 500 fields.\n\nThe keys to this map are tag template field IDs. Field IDs can contain\nletters (both uppercase and lowercase), numbers (0-9) and underscores (_).\nField IDs must be at least 1 character long and at most\n64 characters long. Field IDs must start with a letter or underscore.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "GoogleCloudDatacatalogV1beta1TagTemplateField"
+          }
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1TagTemplateField": {
+      "id": "GoogleCloudDatacatalogV1beta1TagTemplateField",
+      "description": "The template for an individual field within a tag template.",
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "description": "Optional. The display name for this field. Defaults to an empty string.",
+          "type": "string"
+        },
+        "type": {
+          "description": "Required. The type of value this tag field can contain.",
+          "$ref": "GoogleCloudDatacatalogV1beta1FieldType"
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1FieldType": {
+      "id": "GoogleCloudDatacatalogV1beta1FieldType",
+      "type": "object",
+      "properties": {
+        "primitiveType": {
+          "description": "Represents primitive types - string, bool etc.",
+          "enumDescriptions": [
+            "This is the default invalid value for a type.",
+            "A double precision number.",
+            "An UTF-8 string.",
+            "A boolean value.",
+            "A timestamp."
+          ],
+          "type": "string",
+          "enum": [
+            "PRIMITIVE_TYPE_UNSPECIFIED",
+            "DOUBLE",
+            "STRING",
+            "BOOL",
+            "TIMESTAMP"
+          ]
+        },
+        "enumType": {
+          "description": "Represents an enum type.",
+          "$ref": "GoogleCloudDatacatalogV1beta1FieldTypeEnumType"
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1FieldTypeEnumType": {
+      "id": "GoogleCloudDatacatalogV1beta1FieldTypeEnumType",
+      "type": "object",
+      "properties": {
+        "allowedValues": {
+          "description": "Required. The set of allowed values for this enum. This set must not be\nempty, the display names of the values in this set must not be empty and\nthe display names of the values must be case-insensitively unique within\nthis set. Currently, enum values can only be added to the list of allowed\nvalues. Deletion and renaming of enum values are not supported. Can have\nup to 500 allowed values.",
+          "type": "array",
+          "items": {
+            "$ref": "GoogleCloudDatacatalogV1beta1FieldTypeEnumTypeEnumValue"
+          }
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1FieldTypeEnumTypeEnumValue": {
+      "id": "GoogleCloudDatacatalogV1beta1FieldTypeEnumTypeEnumValue",
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "description": "Required. The display name of the enum value. Must not be an empty\nstring.",
+          "type": "string"
+        }
+      }
+    },
+    "Empty": {
+      "id": "Empty",
+      "description": "A generic empty message that you can re-use to avoid defining duplicated\nempty messages in your APIs. A typical example is to use it as the request\nor the response type of an API method. For instance:\n\n    service Foo {\n      rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);\n    }\n\nThe JSON representation for `Empty` is empty JSON object `{}`.",
+      "type": "object",
+      "properties": {
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1RenameTagTemplateFieldRequest": {
+      "id": "GoogleCloudDatacatalogV1beta1RenameTagTemplateFieldRequest",
+      "description": "Request message for\nRenameTagTemplateField.",
+      "type": "object",
+      "properties": {
+        "newTagTemplateFieldId": {
+          "description": "Required. The new ID of this tag template field. For example,\n`my_new_field`.",
+          "type": "string"
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1Tag": {
+      "id": "GoogleCloudDatacatalogV1beta1Tag",
+      "description": "Tags are used to attach custom metadata to Data Catalog resources. Tags\nconform to the specifications within their tag template.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Required when used in\nUpdateTagRequest. The\nresource name of the tag in URL format. Example:\n\n* projects\/{project_id}\/locations\/{location}\/entrygroups\/{entry_group_id}\/entries\/{entry_id}\/tags\/{tag_id}\n\nwhere `tag_id` is a system-generated identifier.\nNote that this Tag may not actually be stored in the location in this name.",
+          "type": "string"
+        },
+        "template": {
+          "description": "Required. The resource name of the tag template that this tag uses.\nExample:\n\n* projects\/{project_id}\/locations\/{location}\/tagTemplates\/{tag_template_id}\n\nThis field cannot be modified after creation.",
+          "type": "string"
+        },
+        "templateDisplayName": {
+          "description": "Output only. The display name of the tag template.",
+          "type": "string"
+        },
+        "column": {
+          "description": "Resources like Entry can have schemas associated with them. This scope\nallows users to attach tags to an individual column based on that schema.\n\nFor attaching a tag to a nested column, use `.` to separate the column\nnames. Example:\n\n* `outer_column.inner_column`",
+          "type": "string"
+        },
+        "fields": {
+          "description": "Required. This maps the ID of a tag field to the value of and additional\ninformation about that field. Valid field IDs are defined by the tag's\ntemplate. A tag must have at least 1 field and at most 500 fields.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "GoogleCloudDatacatalogV1beta1TagField"
+          }
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1TagField": {
+      "id": "GoogleCloudDatacatalogV1beta1TagField",
+      "description": "Contains the value and supporting information for a field within\na Tag.",
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "description": "Output only. The display name of this field.",
+          "type": "string"
+        },
+        "doubleValue": {
+          "description": "Holds the value for a tag field with double type.",
+          "type": "number",
+          "format": "double"
+        },
+        "stringValue": {
+          "description": "Holds the value for a tag field with string type.",
+          "type": "string"
+        },
+        "boolValue": {
+          "description": "Holds the value for a tag field with boolean type.",
+          "type": "boolean"
+        },
+        "timestampValue": {
+          "description": "Holds the value for a tag field with timestamp type.",
+          "type": "string",
+          "format": "google-datetime"
+        },
+        "enumValue": {
+          "description": "Holds the value for a tag field with enum type. This value must be\none of the allowed values in the definition of this enum.",
+          "$ref": "GoogleCloudDatacatalogV1beta1TagFieldEnumValue"
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1TagFieldEnumValue": {
+      "id": "GoogleCloudDatacatalogV1beta1TagFieldEnumValue",
+      "description": "Holds an enum value.",
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "description": "The display name of the enum value.",
+          "type": "string"
+        }
+      }
+    },
+    "GoogleCloudDatacatalogV1beta1ListTagsResponse": {
+      "id": "GoogleCloudDatacatalogV1beta1ListTagsResponse",
+      "description": "Response message for\nListTags.",
+      "type": "object",
+      "properties": {
+        "tags": {
+          "description": "Tag details.",
+          "type": "array",
+          "items": {
+            "$ref": "GoogleCloudDatacatalogV1beta1Tag"
+          }
+        },
+        "nextPageToken": {
+          "description": "Token to retrieve the next page of results. It is set to empty if no items\nremain in results.",
+          "type": "string"
+        }
+      }
+    },
+    "SetIamPolicyRequest": {
+      "id": "SetIamPolicyRequest",
+      "description": "Request message for `SetIamPolicy` method.",
+      "type": "object",
+      "properties": {
+        "policy": {
+          "description": "REQUIRED: The complete policy to be applied to the `resource`. The size of\nthe policy is limited to a few 10s of KB. An empty policy is a\nvalid policy but certain Cloud Platform services (such as Projects)\nmight reject them.",
+          "$ref": "Policy"
+        }
+      }
+    },
+    "Policy": {
+      "id": "Policy",
+      "description": "Defines an Identity and Access Management (IAM) policy. It is used to\nspecify access control policies for Cloud Platform resources.\n\n\nA `Policy` consists of a list of `bindings`. A `binding` binds a list of\n`members` to a `role`, where the members can be user accounts, Google groups,\nGoogle domains, and service accounts. A `role` is a named list of permissions\ndefined by IAM.\n\n**JSON Example**\n\n    {\n      \"bindings\": [\n        {\n          \"role\": \"roles\/owner\",\n          \"members\": [\n            \"user:mike@example.com\",\n            \"group:admins@example.com\",\n            \"domain:google.com\",\n            \"serviceAccount:my-other-app@appspot.gserviceaccount.com\"\n          ]\n        },\n        {\n          \"role\": \"roles\/viewer\",\n          \"members\": [\"user:sean@example.com\"]\n        }\n      ]\n    }\n\n**YAML Example**\n\n    bindings:\n    - members:\n      - user:mike@example.com\n      - group:admins@example.com\n      - domain:google.com\n      - serviceAccount:my-other-app@appspot.gserviceaccount.com\n      role: roles\/owner\n    - members:\n      - user:sean@example.com\n      role: roles\/viewer\n\n\nFor a description of IAM and its features, see the\n[IAM developer's guide](https:\/\/cloud.google.com\/iam\/docs).",
+      "type": "object",
+      "properties": {
+        "version": {
+          "description": "Deprecated.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "bindings": {
+          "description": "Associates a list of `members` to a `role`.\n`bindings` with no members will result in an error.",
+          "type": "array",
+          "items": {
+            "$ref": "Binding"
+          }
+        },
+        "etag": {
+          "description": "`etag` is used for optimistic concurrency control as a way to help\nprevent simultaneous updates of a policy from overwriting each other.\nIt is strongly suggested that systems make use of the `etag` in the\nread-modify-write cycle to perform policy updates in order to avoid race\nconditions: An `etag` is returned in the response to `getIamPolicy`, and\nsystems are expected to put that etag in the request to `setIamPolicy` to\nensure that their change will be applied to the same version of the policy.\n\nIf no `etag` is provided in the call to `setIamPolicy`, then the existing\npolicy is overwritten.",
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "Binding": {
+      "id": "Binding",
+      "description": "Associates `members` with a `role`.",
+      "type": "object",
+      "properties": {
+        "role": {
+          "description": "Role that is assigned to `members`.\nFor example, `roles\/viewer`, `roles\/editor`, or `roles\/owner`.",
+          "type": "string"
+        },
+        "members": {
+          "description": "Specifies the identities requesting access for a Cloud Platform resource.\n`members` can have the following values:\n\n* `allUsers`: A special identifier that represents anyone who is\n   on the internet; with or without a Google account.\n\n* `allAuthenticatedUsers`: A special identifier that represents anyone\n   who is authenticated with a Google account or a service account.\n\n* `user:{emailid}`: An email address that represents a specific Google\n   account. For example, `alice@example.com` .\n\n\n* `serviceAccount:{emailid}`: An email address that represents a service\n   account. For example, `my-other-app@appspot.gserviceaccount.com`.\n\n* `group:{emailid}`: An email address that represents a Google group.\n   For example, `admins@example.com`.\n\n\n* `domain:{domain}`: The G Suite domain (primary) that represents all the\n   users of that domain. For example, `google.com` or `example.com`.\n\n",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "condition": {
+          "description": "The condition that is associated with this binding.\nNOTE: An unsatisfied condition will not allow user access via current\nbinding. Different bindings, including their conditions, are examined\nindependently.",
+          "$ref": "Expr"
+        }
+      }
+    },
+    "Expr": {
+      "id": "Expr",
+      "description": "Represents an expression text. Example:\n\n    title: \"User account presence\"\n    description: \"Determines whether the request has a user account\"\n    expression: \"size(request.user) > 0\"",
+      "type": "object",
+      "properties": {
+        "expression": {
+          "description": "Textual representation of an expression in\nCommon Expression Language syntax.\n\nThe application context of the containing message determines which\nwell-known feature set of CEL is supported.",
+          "type": "string"
+        },
+        "title": {
+          "description": "An optional title for the expression, i.e. a short string describing\nits purpose. This can be used e.g. in UIs which allow to enter the\nexpression.",
+          "type": "string"
+        },
+        "description": {
+          "description": "An optional description of the expression. This is a longer text which\ndescribes the expression, e.g. when hovered over it in a UI.",
+          "type": "string"
+        },
+        "location": {
+          "description": "An optional string indicating the location of the expression for error\nreporting, e.g. a file name and a position in the file.",
+          "type": "string"
+        }
+      }
+    },
+    "GetIamPolicyRequest": {
+      "id": "GetIamPolicyRequest",
+      "description": "Request message for `GetIamPolicy` method.",
+      "type": "object",
+      "properties": {
+        "options": {
+          "description": "OPTIONAL: A `GetPolicyOptions` object for specifying options to\n`GetIamPolicy`. This field is only used by Cloud IAM.",
+          "$ref": "GetPolicyOptions"
+        }
+      }
+    },
+    "GetPolicyOptions": {
+      "id": "GetPolicyOptions",
+      "description": "Encapsulates settings provided to GetIamPolicy.",
+      "type": "object",
+      "properties": {
+        "requestedPolicyVersion": {
+          "description": "Optional. The policy format version to be returned.\nAcceptable values are 0 and 1.\nIf the value is 0, or the field is omitted, policy format version 1 will be\nreturned.",
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "TestIamPermissionsRequest": {
+      "id": "TestIamPermissionsRequest",
+      "description": "Request message for `TestIamPermissions` method.",
+      "type": "object",
+      "properties": {
+        "permissions": {
+          "description": "The set of permissions to check for the `resource`. Permissions with\nwildcards (such as '*' or 'storage.*') are not allowed. For more\ninformation see\n[IAM Overview](https:\/\/cloud.google.com\/iam\/docs\/overview#permissions).",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "TestIamPermissionsResponse": {
+      "id": "TestIamPermissionsResponse",
+      "description": "Response message for `TestIamPermissions` method.",
+      "type": "object",
+      "properties": {
+        "permissions": {
+          "description": "A subset of `TestPermissionsRequest.permissions` that the caller is\nallowed.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "resources": {
+    "catalog": {
+      "methods": {
+        "search": {
+          "id": "datacatalog.catalog.search",
+          "path": "v1beta1/catalog:search",
+          "flatPath": "v1beta1/catalog:search",
+          "httpMethod": "POST",
+          "parameters": {
+          },
+          "parameterOrder": [
+          ],
+          "request": {
+            "$ref": "GoogleCloudDatacatalogV1beta1SearchCatalogRequest"
+          },
+          "response": {
+            "$ref": "GoogleCloudDatacatalogV1beta1SearchCatalogResponse"
+          },
+          "scopes": [
+            "https://www.googleapis.com/auth/cloud-platform"
+          ],
+          "description": "Searches Data Catalog for multiple resources like entries, tags that\nmatch a query.\n\nThis is a custom method\n(https:\/\/cloud.google.com\/apis\/design\/custom_methods) and does not return\nthe complete resource, only the resource identifier and high level\nfields. Clients can subsequentally call `Get` methods.\n\nNote that searches do not have full recall. There may be results that match\nyour query but are not returned, even in subsequent pages of results. These\nmissing results may vary across repeated calls to search. Do not rely on\nthis method if you need to guarantee full recall.\n\nSee [Data Catalog Search\nSyntax](\/data-catalog\/docs\/how-to\/search-reference) for more information."
+        }
+      }
+    },
+    "projects": {
+      "resources": {
+        "locations": {
+          "resources": {
+            "entryGroups": {
+              "resources": {
+                "entries": {
+                  "methods": {
+                    "patch": {
+                      "id": "datacatalog.projects.locations.entryGroups.entries.patch",
+                      "path": "v1beta1/{+name}",
+                      "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}",
+                      "httpMethod": "PATCH",
+                      "parameters": {
+                        "name": {
+                          "description": "Required when used in\nUpdateEntryRequest.\nThe Data Catalog resource name of the entry in URL format. Example:\n\n* projects\/{project_id}\/locations\/{location}\/entryGroups\/{entry_group_id}\/entries\/{entry_id}\n\nNote that this Entry and its child resources may not actually be stored in\nthe location in this name.",
+                          "location": "path",
+                          "required": true,
+                          "pattern": "^projects\/[^\/]+\/locations\/[^\/]+\/entryGroups\/[^\/]+\/entries\/[^\/]+$",
+                          "type": "string"
+                        },
+                        "updateMask": {
+                          "description": "Optional. The fields to update on the entry. If absent or empty, all\nmodifiable fields are updated.\n\nCurrently only `schema` field in Cloud Pub\/Sub topic entries is modifiable.",
+                          "location": "query",
+                          "type": "string",
+                          "format": "google-fieldmask"
+                        }
+                      },
+                      "parameterOrder": [
+                        "name"
+                      ],
+                      "request": {
+                        "$ref": "GoogleCloudDatacatalogV1beta1Entry"
+                      },
+                      "response": {
+                        "$ref": "GoogleCloudDatacatalogV1beta1Entry"
+                      },
+                      "scopes": [
+                        "https://www.googleapis.com/auth/cloud-platform"
+                      ],
+                      "description": "Updates an existing entry.\nThe user should enable the Data Catalog API in the project identified by\nthe `entry.name` parameter (see [Data Catalog Resource Project]\n(\/data-catalog\/docs\/concepts\/resource-project) for more information)."
+                    },
+                    "get": {
+                      "id": "datacatalog.projects.locations.entryGroups.entries.get",
+                      "path": "v1beta1/{+name}",
+                      "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}",
+                      "httpMethod": "GET",
+                      "parameters": {
+                        "name": {
+                          "description": "Required. The name of the entry. Example:\n\n* projects\/{project_id}\/locations\/{location}\/entryGroups\/{entry_group_id}\/entries\/{entry_id}\n\nEntry groups are logical groupings of entries. Currently, users cannot\ncreate\/modify entry groups. They are created by Data Catalog; they include\n`@bigquery` for all BigQuery entries, and `@pubsub` for all Cloud Pub\/Sub\nentries.",
+                          "location": "path",
+                          "required": true,
+                          "pattern": "^projects\/[^\/]+\/locations\/[^\/]+\/entryGroups\/[^\/]+\/entries\/[^\/]+$",
+                          "type": "string"
+                        }
+                      },
+                      "parameterOrder": [
+                        "name"
+                      ],
+                      "response": {
+                        "$ref": "GoogleCloudDatacatalogV1beta1Entry"
+                      },
+                      "scopes": [
+                        "https://www.googleapis.com/auth/cloud-platform"
+                      ],
+                      "description": "Gets an entry."
+                    }
+                  }
+                  ,
+                  "resources": {
+                    "tags": {
+                      "methods": {
+                        "create": {
+                          "id": "datacatalog.projects.locations.entryGroups.entries.tags.create",
+                          "path": "v1beta1/{+parent}/tags",
+                          "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags",
+                          "httpMethod": "POST",
+                          "parameters": {
+                            "parent": {
+                              "description": "Required. The name of the resource to attach this tag to. Tags can be attached to\nEntries. Example:\n\n* projects\/{project_id}\/locations\/{location}\/entryGroups\/{entry_group_id}\/entries\/{entry_id}\n\nNote that this Tag and its child resources may not actually be stored in\nthe location in this name.",
+                              "location": "path",
+                              "required": true,
+                              "pattern": "^projects\/[^\/]+\/locations\/[^\/]+\/entryGroups\/[^\/]+\/entries\/[^\/]+$",
+                              "type": "string"
+                            }
+                          },
+                          "parameterOrder": [
+                            "parent"
+                          ],
+                          "request": {
+                            "$ref": "GoogleCloudDatacatalogV1beta1Tag"
+                          },
+                          "response": {
+                            "$ref": "GoogleCloudDatacatalogV1beta1Tag"
+                          },
+                          "scopes": [
+                            "https://www.googleapis.com/auth/cloud-platform"
+                          ],
+                          "description": "Creates a tag on an Entry.\nNote: The project identified by the `parent` parameter for the\n[tag](\/data-catalog\/docs\/reference\/rest\/v1beta1\/projects.locations.entryGroups.entries.tags\/create#path-parameters)\nand the\n[tag\ntemplate](\/data-catalog\/docs\/reference\/rest\/v1beta1\/projects.locations.tagTemplates\/create#path-parameters)\nused to create the tag must be from the same organization."
+                        },
+                        "patch": {
+                          "id": "datacatalog.projects.locations.entryGroups.entries.tags.patch",
+                          "path": "v1beta1/{+name}",
+                          "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}",
+                          "httpMethod": "PATCH",
+                          "parameters": {
+                            "name": {
+                              "description": "Required when used in\nUpdateTagRequest. The\nresource name of the tag in URL format. Example:\n\n* projects\/{project_id}\/locations\/{location}\/entrygroups\/{entry_group_id}\/entries\/{entry_id}\/tags\/{tag_id}\n\nwhere `tag_id` is a system-generated identifier.\nNote that this Tag may not actually be stored in the location in this name.",
+                              "location": "path",
+                              "required": true,
+                              "pattern": "^projects\/[^\/]+\/locations\/[^\/]+\/entryGroups\/[^\/]+\/entries\/[^\/]+\/tags\/[^\/]+$",
+                              "type": "string"
+                            },
+                            "updateMask": {
+                              "description": "Optional. The fields to update on the Tag. If absent or empty, all\nmodifiable fields are updated. Currently the only modifiable field is the\nfield `fields`.",
+                              "location": "query",
+                              "type": "string",
+                              "format": "google-fieldmask"
+                            }
+                          },
+                          "parameterOrder": [
+                            "name"
+                          ],
+                          "request": {
+                            "$ref": "GoogleCloudDatacatalogV1beta1Tag"
+                          },
+                          "response": {
+                            "$ref": "GoogleCloudDatacatalogV1beta1Tag"
+                          },
+                          "scopes": [
+                            "https://www.googleapis.com/auth/cloud-platform"
+                          ],
+                          "description": "Updates an existing tag."
+                        },
+                        "delete": {
+                          "id": "datacatalog.projects.locations.entryGroups.entries.tags.delete",
+                          "path": "v1beta1/{+name}",
+                          "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}",
+                          "httpMethod": "DELETE",
+                          "parameters": {
+                            "name": {
+                              "description": "Required. The name of the tag to delete. Example:\n\n* projects\/{project_id}\/locations\/{location}\/entryGroups\/{entry_group_id}\/entries\/{entry_id}\/tags\/{tag_id}",
+                              "location": "path",
+                              "required": true,
+                              "pattern": "^projects\/[^\/]+\/locations\/[^\/]+\/entryGroups\/[^\/]+\/entries\/[^\/]+\/tags\/[^\/]+$",
+                              "type": "string"
+                            }
+                          },
+                          "parameterOrder": [
+                            "name"
+                          ],
+                          "response": {
+                            "$ref": "Empty"
+                          },
+                          "scopes": [
+                            "https://www.googleapis.com/auth/cloud-platform"
+                          ],
+                          "description": "Deletes a tag."
+                        },
+                        "list": {
+                          "id": "datacatalog.projects.locations.entryGroups.entries.tags.list",
+                          "path": "v1beta1/{+parent}/tags",
+                          "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags",
+                          "httpMethod": "GET",
+                          "parameters": {
+                            "parent": {
+                              "description": "Required. The name of the Data Catalog resource to list the tags of. The\nresource could be an Entry.",
+                              "location": "path",
+                              "required": true,
+                              "pattern": "^projects\/[^\/]+\/locations\/[^\/]+\/entryGroups\/[^\/]+\/entries\/[^\/]+$",
+                              "type": "string"
+                            },
+                            "pageSize": {
+                              "description": "Optional. The maximum number of tags to return. Default is 10. Max limit is\n1000.",
+                              "location": "query",
+                              "type": "integer",
+                              "format": "int32"
+                            },
+                            "pageToken": {
+                              "description": "Optional. Token that specifies which page is requested. If empty, the first\npage is returned.",
+                              "location": "query",
+                              "type": "string"
+                            }
+                          },
+                          "parameterOrder": [
+                            "parent"
+                          ],
+                          "response": {
+                            "$ref": "GoogleCloudDatacatalogV1beta1ListTagsResponse"
+                          },
+                          "scopes": [
+                            "https://www.googleapis.com/auth/cloud-platform"
+                          ],
+                          "description": "Lists the tags on an Entry."
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "tagTemplates": {
+              "methods": {
+                "create": {
+                  "id": "datacatalog.projects.locations.tagTemplates.create",
+                  "path": "v1beta1/{+parent}/tagTemplates",
+                  "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/tagTemplates",
+                  "httpMethod": "POST",
+                  "parameters": {
+                    "parent": {
+                      "description": "Required. The name of the project and the location this template is in.\nExample:\n\n* projects\/{project_id}\/locations\/{location}\n\nTagTemplate and its child resources may not actually be stored in the\nlocation in this name.",
+                      "location": "path",
+                      "required": true,
+                      "pattern": "^projects\/[^\/]+\/locations\/[^\/]+$",
+                      "type": "string"
+                    },
+                    "tagTemplateId": {
+                      "description": "Required. The id of the tag template to create.",
+                      "location": "query",
+                      "type": "string"
+                    }
+                  },
+                  "parameterOrder": [
+                    "parent"
+                  ],
+                  "request": {
+                    "$ref": "GoogleCloudDatacatalogV1beta1TagTemplate"
+                  },
+                  "response": {
+                    "$ref": "GoogleCloudDatacatalogV1beta1TagTemplate"
+                  },
+                  "scopes": [
+                    "https://www.googleapis.com/auth/cloud-platform"
+                  ],
+                  "description": "Creates a tag template. The user should enable the Data Catalog API in\nthe project identified by the `parent` parameter (see [Data Catalog\nResource Project](\/data-catalog\/docs\/concepts\/resource-project) for more\ninformation)."
+                },
+                "get": {
+                  "id": "datacatalog.projects.locations.tagTemplates.get",
+                  "path": "v1beta1/{+name}",
+                  "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}",
+                  "httpMethod": "GET",
+                  "parameters": {
+                    "name": {
+                      "description": "Required. The name of the tag template. Example:\n\n* projects\/{project_id}\/locations\/{location}\/tagTemplates\/{tag_template_id}",
+                      "location": "path",
+                      "required": true,
+                      "pattern": "^projects\/[^\/]+\/locations\/[^\/]+\/tagTemplates\/[^\/]+$",
+                      "type": "string"
+                    }
+                  },
+                  "parameterOrder": [
+                    "name"
+                  ],
+                  "response": {
+                    "$ref": "GoogleCloudDatacatalogV1beta1TagTemplate"
+                  },
+                  "scopes": [
+                    "https://www.googleapis.com/auth/cloud-platform"
+                  ],
+                  "description": "Gets a tag template."
+                },
+                "patch": {
+                  "id": "datacatalog.projects.locations.tagTemplates.patch",
+                  "path": "v1beta1/{+name}",
+                  "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}",
+                  "httpMethod": "PATCH",
+                  "parameters": {
+                    "name": {
+                      "description": "Required when used in\nUpdateTagTemplateRequest.\nThe resource name of the tag template in URL format. Example:\n\n* projects\/{project_id}\/locations\/{location}\/tagTemplates\/{tag_template_id}\n\nNote that this TagTemplate and its child resources may not actually be\nstored in the location in this name.",
+                      "location": "path",
+                      "required": true,
+                      "pattern": "^projects\/[^\/]+\/locations\/[^\/]+\/tagTemplates\/[^\/]+$",
+                      "type": "string"
+                    },
+                    "updateMask": {
+                      "description": "Optional. The field mask specifies the parts of the template to overwrite.\n\nAllowed fields:\n\n  * `display_name`\n\nIf absent or empty, all of the allowed fields above will be updated.",
+                      "location": "query",
+                      "type": "string",
+                      "format": "google-fieldmask"
+                    }
+                  },
+                  "parameterOrder": [
+                    "name"
+                  ],
+                  "request": {
+                    "$ref": "GoogleCloudDatacatalogV1beta1TagTemplate"
+                  },
+                  "response": {
+                    "$ref": "GoogleCloudDatacatalogV1beta1TagTemplate"
+                  },
+                  "scopes": [
+                    "https://www.googleapis.com/auth/cloud-platform"
+                  ],
+                  "description": "Updates a tag template. This method cannot be used to update the fields of\na template. The tag template fields are represented as separate resources\nand should be updated using their own create\/update\/delete methods.\nThe user should enable the Data Catalog API in the project identified by\nthe `tag_template.name` parameter (see [Data Catalog Resource Project]\n(\/data-catalog\/docs\/concepts\/resource-project) for more information)."
+                },
+                "delete": {
+                  "id": "datacatalog.projects.locations.tagTemplates.delete",
+                  "path": "v1beta1/{+name}",
+                  "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}",
+                  "httpMethod": "DELETE",
+                  "parameters": {
+                    "name": {
+                      "description": "Required. The name of the tag template to delete. Example:\n\n* projects\/{project_id}\/locations\/{location}\/tagTemplates\/{tag_template_id}",
+                      "location": "path",
+                      "required": true,
+                      "pattern": "^projects\/[^\/]+\/locations\/[^\/]+\/tagTemplates\/[^\/]+$",
+                      "type": "string"
+                    },
+                    "force": {
+                      "description": "Required. Currently, this field must always be set to `true`.\nThis confirms the deletion of any possible tags using this template.\n`force = false` will be supported in the future.",
+                      "location": "query",
+                      "type": "boolean"
+                    }
+                  },
+                  "parameterOrder": [
+                    "name"
+                  ],
+                  "response": {
+                    "$ref": "Empty"
+                  },
+                  "scopes": [
+                    "https://www.googleapis.com/auth/cloud-platform"
+                  ],
+                  "description": "Deletes a tag template and all tags using the template.\nThe user should enable the Data Catalog API in the project identified by\nthe `name` parameter (see [Data Catalog Resource Project]\n(\/data-catalog\/docs\/concepts\/resource-project) for more information)."
+                },
+                "setIamPolicy": {
+                  "id": "datacatalog.projects.locations.tagTemplates.setIamPolicy",
+                  "path": "v1beta1/{+resource}:setIamPolicy",
+                  "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:setIamPolicy",
+                  "httpMethod": "POST",
+                  "parameters": {
+                    "resource": {
+                      "description": "REQUIRED: The resource for which the policy is being specified.\nSee the operation documentation for the appropriate value for this field.",
+                      "location": "path",
+                      "required": true,
+                      "pattern": "^projects\/[^\/]+\/locations\/[^\/]+\/tagTemplates\/[^\/]+$",
+                      "type": "string"
+                    }
+                  },
+                  "parameterOrder": [
+                    "resource"
+                  ],
+                  "request": {
+                    "$ref": "SetIamPolicyRequest"
+                  },
+                  "response": {
+                    "$ref": "Policy"
+                  },
+                  "scopes": [
+                    "https://www.googleapis.com/auth/cloud-platform"
+                  ],
+                  "description": "Sets the access control policy for a resource. Replaces any existing\npolicy.\nSupported resources are:\n  - Tag templates.\nNote, this method cannot be used to manage policies for BigQuery, Cloud\nPub\/Sub and any external Google Cloud Platform resources synced to Cloud\nData Catalog.\n\nCallers must have following Google IAM permission\n`datacatalog.tagTemplates.setIamPolicy` to set policies on tag templates."
+                },
+                "getIamPolicy": {
+                  "id": "datacatalog.projects.locations.tagTemplates.getIamPolicy",
+                  "path": "v1beta1/{+resource}:getIamPolicy",
+                  "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:getIamPolicy",
+                  "httpMethod": "POST",
+                  "parameters": {
+                    "resource": {
+                      "description": "REQUIRED: The resource for which the policy is being requested.\nSee the operation documentation for the appropriate value for this field.",
+                      "location": "path",
+                      "required": true,
+                      "pattern": "^projects\/[^\/]+\/locations\/[^\/]+\/tagTemplates\/[^\/]+$",
+                      "type": "string"
+                    }
+                  },
+                  "parameterOrder": [
+                    "resource"
+                  ],
+                  "request": {
+                    "$ref": "GetIamPolicyRequest"
+                  },
+                  "response": {
+                    "$ref": "Policy"
+                  },
+                  "scopes": [
+                    "https://www.googleapis.com/auth/cloud-platform"
+                  ],
+                  "description": "Gets the access control policy for a resource. A `NOT_FOUND` error\nis returned if the resource does not exist. An empty policy is returned\nif the resource exists but does not have a policy set on it.\n\nSupported resources are:\n  - Tag templates.\nNote, this method cannot be used to manage policies for BigQuery, Cloud\nPub\/Sub and any external Google Cloud Platform resources synced to Cloud\nData Catalog.\n\nCallers must have following Google IAM permission\n`datacatalog.tagTemplates.getIamPolicy` to get policies on tag templates."
+                },
+                "testIamPermissions": {
+                  "id": "datacatalog.projects.locations.tagTemplates.testIamPermissions",
+                  "path": "v1beta1/{+resource}:testIamPermissions",
+                  "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:testIamPermissions",
+                  "httpMethod": "POST",
+                  "parameters": {
+                    "resource": {
+                      "description": "REQUIRED: The resource for which the policy detail is being requested.\nSee the operation documentation for the appropriate value for this field.",
+                      "location": "path",
+                      "required": true,
+                      "pattern": "^projects\/[^\/]+\/locations\/[^\/]+\/tagTemplates\/[^\/]+$",
+                      "type": "string"
+                    }
+                  },
+                  "parameterOrder": [
+                    "resource"
+                  ],
+                  "request": {
+                    "$ref": "TestIamPermissionsRequest"
+                  },
+                  "response": {
+                    "$ref": "TestIamPermissionsResponse"
+                  },
+                  "scopes": [
+                    "https://www.googleapis.com/auth/cloud-platform"
+                  ],
+                  "description": "Returns the caller's permissions on a resource.\nIf the resource does not exist, an empty set of permissions is returned\n(We don't return a `NOT_FOUND` error).\n\nSupported resource are:\n  - tag templates.\nNote, this method cannot be used to manage policies for BigQuery, Cloud\nPub\/Sub and any external Google Cloud Platform resources synced to Cloud\nData Catalog.\n\nA caller is not required to have Google IAM permission to make this\nrequest."
+                }
+              }
+              ,
+              "resources": {
+                "fields": {
+                  "methods": {
+                    "create": {
+                      "id": "datacatalog.projects.locations.tagTemplates.fields.create",
+                      "path": "v1beta1/{+parent}/fields",
+                      "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields",
+                      "httpMethod": "POST",
+                      "parameters": {
+                        "parent": {
+                          "description": "Required. The name of the project this template is in. Example:\n\n* projects\/{project_id}\/locations\/{location}\/tagTemplates\/{tag_template_id}\n\nNote that this TagTemplateField may not actually be stored in the location\nin this name.",
+                          "location": "path",
+                          "required": true,
+                          "pattern": "^projects\/[^\/]+\/locations\/[^\/]+\/tagTemplates\/[^\/]+$",
+                          "type": "string"
+                        },
+                        "tagTemplateFieldId": {
+                          "description": "Required. The ID of the tag template field to create.\nField ids can contain letters (both uppercase and lowercase), numbers\n(0-9), underscores (_) and dashes (-). Field IDs must be at least 1\ncharacter long and at most 128 characters long. Field IDs must also be\nunique within their template.",
+                          "location": "query",
+                          "type": "string"
+                        }
+                      },
+                      "parameterOrder": [
+                        "parent"
+                      ],
+                      "request": {
+                        "$ref": "GoogleCloudDatacatalogV1beta1TagTemplateField"
+                      },
+                      "response": {
+                        "$ref": "GoogleCloudDatacatalogV1beta1TagTemplateField"
+                      },
+                      "scopes": [
+                        "https://www.googleapis.com/auth/cloud-platform"
+                      ],
+                      "description": "Creates a field in a tag template. The user should enable the Data Catalog\nAPI in the project identified by the `parent` parameter (see\n[Data Catalog Resource\nProject](\/data-catalog\/docs\/concepts\/resource-project) for more\ninformation)."
+                    },
+                    "patch": {
+                      "id": "datacatalog.projects.locations.tagTemplates.fields.patch",
+                      "path": "v1beta1/{+name}",
+                      "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}",
+                      "httpMethod": "PATCH",
+                      "parameters": {
+                        "name": {
+                          "description": "Required. The name of the tag template field. Example:\n\n* projects\/{project_id}\/locations\/{location}\/tagTemplates\/{tag_template_id}\/fields\/{tag_template_field_id}",
+                          "location": "path",
+                          "required": true,
+                          "pattern": "^projects\/[^\/]+\/locations\/[^\/]+\/tagTemplates\/[^\/]+\/fields\/[^\/]+$",
+                          "type": "string"
+                        },
+                        "updateMask": {
+                          "description": "Optional. The field mask specifies the parts of the template to be updated.\nAllowed fields:\n\n  * `display_name`\n  * `type.enum_type`\n\nIf `update_mask` is not set or empty, all of the allowed fields above will\nbe updated.\n\nWhen updating an enum type, the provided values will be merged with the\nexisting values. Therefore, enum values can only be added, existing enum\nvalues cannot be deleted nor renamed.",
+                          "location": "query",
+                          "type": "string",
+                          "format": "google-fieldmask"
+                        }
+                      },
+                      "parameterOrder": [
+                        "name"
+                      ],
+                      "request": {
+                        "$ref": "GoogleCloudDatacatalogV1beta1TagTemplateField"
+                      },
+                      "response": {
+                        "$ref": "GoogleCloudDatacatalogV1beta1TagTemplateField"
+                      },
+                      "scopes": [
+                        "https://www.googleapis.com/auth/cloud-platform"
+                      ],
+                      "description": "Updates a field in a tag template. This method cannot be used to update the\nfield type. The user should enable the Data Catalog API in the project\nidentified by the `name` parameter (see [Data Catalog Resource Project]\n(\/data-catalog\/docs\/concepts\/resource-project) for more information)."
+                    },
+                    "rename": {
+                      "id": "datacatalog.projects.locations.tagTemplates.fields.rename",
+                      "path": "v1beta1/{+name}:rename",
+                      "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}:rename",
+                      "httpMethod": "POST",
+                      "parameters": {
+                        "name": {
+                          "description": "Required. The name of the tag template. Example:\n\n* projects\/{project_id}\/locations\/{location}\/tagTemplates\/{tag_template_id}\/fields\/{tag_template_field_id}",
+                          "location": "path",
+                          "required": true,
+                          "pattern": "^projects\/[^\/]+\/locations\/[^\/]+\/tagTemplates\/[^\/]+\/fields\/[^\/]+$",
+                          "type": "string"
+                        }
+                      },
+                      "parameterOrder": [
+                        "name"
+                      ],
+                      "request": {
+                        "$ref": "GoogleCloudDatacatalogV1beta1RenameTagTemplateFieldRequest"
+                      },
+                      "response": {
+                        "$ref": "GoogleCloudDatacatalogV1beta1TagTemplateField"
+                      },
+                      "scopes": [
+                        "https://www.googleapis.com/auth/cloud-platform"
+                      ],
+                      "description": "Renames a field in a tag template. The user should enable the Data Catalog\nAPI in the project identified by the `name` parameter (see [Data Catalog\nResource Project](\/data-catalog\/docs\/concepts\/resource-project) for more\ninformation)."
+                    },
+                    "delete": {
+                      "id": "datacatalog.projects.locations.tagTemplates.fields.delete",
+                      "path": "v1beta1/{+name}",
+                      "flatPath": "v1beta1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}",
+                      "httpMethod": "DELETE",
+                      "parameters": {
+                        "name": {
+                          "description": "Required. The name of the tag template field to delete. Example:\n\n* projects\/{project_id}\/locations\/{location}\/tagTemplates\/{tag_template_id}\/fields\/{tag_template_field_id}",
+                          "location": "path",
+                          "required": true,
+                          "pattern": "^projects\/[^\/]+\/locations\/[^\/]+\/tagTemplates\/[^\/]+\/fields\/[^\/]+$",
+                          "type": "string"
+                        },
+                        "force": {
+                          "description": "Required. Currently, this field must always be set to `true`.\nThis confirms the deletion of this field from any tags using this field.\n`force = false` will be supported in the future.",
+                          "location": "query",
+                          "type": "boolean"
+                        }
+                      },
+                      "parameterOrder": [
+                        "name"
+                      ],
+                      "response": {
+                        "$ref": "Empty"
+                      },
+                      "scopes": [
+                        "https://www.googleapis.com/auth/cloud-platform"
+                      ],
+                      "description": "Deletes a field in a tag template and all uses of that field.\nThe user should enable the Data Catalog API in the project identified by\nthe `name` parameter (see [Data Catalog Resource Project]\n(\/data-catalog\/docs\/concepts\/resource-project) for more information)."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "entries": {
+      "methods": {
+        "lookup": {
+          "id": "datacatalog.entries.lookup",
+          "path": "v1beta1/entries:lookup",
+          "flatPath": "v1beta1/entries:lookup",
+          "httpMethod": "GET",
+          "parameters": {
+            "linkedResource": {
+              "description": "The full name of the Google Cloud Platform resource the Data Catalog\nentry represents. See:\nhttps:\/\/cloud.google.com\/apis\/design\/resource_names#full_resource_name.\nFull names are case-sensitive.\n\nExamples:\n\n * \/\/bigquery.googleapis.com\/projects\/projectId\/datasets\/datasetId\/tables\/tableId\n * \/\/pubsub.googleapis.com\/projects\/projectId\/topics\/topicId",
+              "location": "query",
+              "type": "string"
+            },
+            "sqlResource": {
+              "description": "The SQL name of the entry. SQL names are case-sensitive.\n\nExamples:\n\n  * `cloud_pubsub.project_id.topic_id`\n  * ``pubsub.project_id.`topic.id.with.dots` ``\n  * `bigquery.project_id.dataset_id.table_id`\n  * `datacatalog.project_id.location_id.entry_group_id.entry_id`\n\n`*_id`s shoud satisfy the standard SQL rules for identifiers.\nhttps:\/\/cloud.google.com\/bigquery\/docs\/reference\/standard-sql\/lexical.",
+              "location": "query",
+              "type": "string"
+            }
+          },
+          "parameterOrder": [
+          ],
+          "response": {
+            "$ref": "GoogleCloudDatacatalogV1beta1Entry"
+          },
+          "scopes": [
+            "https://www.googleapis.com/auth/cloud-platform"
+          ],
+          "description": "Get an entry by target resource name. This method allows clients to use\nthe resource name from the source Google Cloud Platform service to get the\nData Catalog Entry."
+        }
+      }
+    }
+  },
+  "basePath": ""
+}

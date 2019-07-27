@@ -1,0 +1,12 @@
+- release_tracks: [ALPHA]
+  command_type: DELETE
+  help_text:
+    brief: Delete a build trigger.
+    description: Delete a build trigger.
+  request:
+    collection: cloudbuild.projects.triggers
+    api_version: v1
+  arguments:
+    resource:
+      help_text: "Build Trigger."
+      spec: !REF googlecloudsdk.command_lib.cloudbuild.resources:trigger

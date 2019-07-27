@@ -1,0 +1,49 @@
+- release_tracks: [ALPHA]
+
+  help_text:
+    brief: Create an Edge Function.
+    description: Create an Edge Function.
+    examples: |
+      Create an edge function with volume binding
+      $ {command} foo [..options]
+      --volume-binding /dev/video0:/camera:ro,/tmp/function1:/work,/dev/ttyACM0:ro
+      # fully specified, default value :rw is specified, SOURCE==DESTINATION case respectively
+
+  request:
+    collection: edge.projects.locations.registries.devices.functions
+    modify_request_hooks:
+    - googlecloudsdk.command_lib.iot.edge.util:NameAnnotateHook:component=function
+    - googlecloudsdk.command_lib.iot.edge.util:AddDefaultTopicHook:component=function
+    - googlecloudsdk.command_lib.iot.edge.functions.util:BuildEdgeFunctionHook
+
+  arguments:
+    resource:
+      help_text: The Edge Function you want to create.
+      spec: !REF googlecloudsdk.command_lib.iot.edge.resources:function
+
+    params:
+    - _REF_: googlecloudsdk.command_lib.iot.edge.functions.flags:source
+      default: '.'
+    - _REF_: googlecloudsdk.command_lib.iot.edge.functions.flags:description
+    - _REF_: googlecloudsdk.command_lib.iot.edge.functions.flags:timeout
+    - _REF_: googlecloudsdk.command_lib.iot.edge.functions.flags:entry_point
+    - _REF_: googlecloudsdk.command_lib.iot.edge.functions.flags:function_type
+    - _REF_: googlecloudsdk.command_lib.iot.edge.functions.flags:architecture
+    - _REF_: googlecloudsdk.command_lib.iot.edge.functions.flags:gcs_source_staging_dir
+    - _REF_: googlecloudsdk.command_lib.iot.edge.flags:memory
+      api_field: function.availableMemoryMb
+    - _REF_: googlecloudsdk.command_lib.iot.edge.flags:input_topic
+      api_field: function.inputTopics
+    - _REF_: googlecloudsdk.command_lib.iot.edge.flags:output_topic
+      api_field: function.outputTopics
+    - _REF_: googlecloudsdk.command_lib.iot.edge.flags:volume_binding
+      api_field: function.volumeBindings
+    - _REF_: googlecloudsdk.command_lib.iot.edge.flags:device_binding
+      api_field: function.deviceBindings
+    - group:
+        mutex: true
+        params:
+        - _REF_: googlecloudsdk.command_lib.iot.edge.flags:env_vars
+          api_field: function.environmentVariables.additionalProperties
+        - _REF_: googlecloudsdk.command_lib.iot.edge.flags:env_vars_file
+          api_field: function.environmentVariables.additionalProperties

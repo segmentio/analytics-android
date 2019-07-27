@@ -1,0 +1,99 @@
+- release_tracks: [ALPHA]
+  hidden: true
+
+  help_text:
+    brief: Set rollout target for the ongoing Deployment rollout in the specified clusters.
+    description: |
+      Set rollout target for the ongoing Deployment rollout in the specified clusters.
+
+      A Deployment rollout updates game servers with a new image. The new image is specified through
+      the spec field of game server template. It is a string field and follows the format of the
+      spec field in Agones GameServer custom resource. Please see https://agones.dev for more
+      details.
+
+      The new game server template can be specified either through creating a new Deployment
+      resource or through the start-rollout verb on an existing Deployment resource
+      (`gcloud game-services deployments start-rollout`).
+
+      Once the new game server template is specified, you can start the rollout by changing the
+      percentage of game servers that run the new image through the set-rollout-target verb
+      (`gcloud game-services deployments set-rollout-target`). The set-rollout-target verb specifies
+      labels for clusters that should get the new image. It also specifies what percentage of game
+      servers in each of the specified clusters should run the new image.
+
+      Finally, you can finish the rollout using the commit verb
+      (`gcloud game-services deployments commit`). This will set the rollout percentage to 100 in
+      all clusters whose labels were previously specified by calling the set-rollout-target verb.
+
+      If you need to revert a rollout, you can use the revert-rollout verb
+      (`gcloud game-services deployments revert-rollout`) which deletes game servers running the new
+      image.
+    examples: |
+      To set a rollout target with one selector for one cluster label key/value pair:
+
+        $ {command} example-deployment --selector=cluster-labels=label_a=value1,percent=10
+
+      To set a rollout target with multiple selectors, repeat the --selector flag:
+
+        $ {command} example-deployment --selector=cluster-labels=label_a=value1,percent=10 --selector=cluster-labels=label_b=value2,percent=20
+
+      To set a rollout target for with one selector multiple cluster label key/value pairs, you can
+      use this syntax:
+
+        $ {command} example-deployment --selector=cluster-labels=^:^"label_a=value1:label_b=value2",percent=20
+
+      Alternatively, you can specify the labels in a YAML file using the `--flags-file` flag:
+
+        $ {command} example-deployment --flags-file="flags.yaml"
+
+      Contents of flags.yaml:
+
+        ```
+        - --selector:
+            cluster-labels:
+                label_a: value1
+                label_b: value2
+            percent: 10
+        - --selector:
+            cluster-labels:
+                label_c: value3
+                label_d: value4
+            percent: 20
+        ```
+
+  request:
+    collection: gameservices.projects.locations.gameServerDeployments
+    method: setRolloutTarget
+
+  arguments:
+    resource:
+      help_text: Cloud Game Services Deployment to set rollout target for.
+      spec: !REF googlecloudsdk.command_lib.game_services.resources:deployment
+
+    params:
+    - arg_name: selector
+      api_field: setRolloutTargetRequest.clusterPercentageSelector
+      help_text: |
+        Map representing the percentage of game servers running the new game server template in
+        clusters selected by their labels. This flag can be repeated.
+
+        *cluster-labels*::: Key value pairs of labels to use for selecting clusters that should run
+        the new game server template.
+
+        *percent*::: Percentage of game servers running the new game server template in the selected
+        clusters. The percentage is applied to game server clusters which match any of the specified
+        labels. The specified percentage cannot be lower than its current value. Default is 100.
+      required: true
+      type:
+        arg_dict:
+          spec:
+          - arg_name: cluster-labels
+            api_field: clusterSelector.labels.additionalProperties
+            type: 'googlecloudsdk.command_lib.game_services.hooks:FlattenedArgDict'
+            required: false
+          - arg_name: percent
+            api_field: percent
+            required: false
+
+  async:
+    collection: gameservices.projects.locations.operations

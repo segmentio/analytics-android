@@ -1,0 +1,23 @@
+- release_tracks: [ALPHA]
+  hidden: true
+
+  help_text:
+    brief: Update a Deployment.
+    description: Update a Cloud Game Services Deployment.
+
+  request:
+    collection: gameservices.projects.locations.gameServerDeployments
+
+  arguments:
+    resource:
+      help_text: Cloud Game Services Deployment to update.
+      spec: !REF googlecloudsdk.command_lib.game_services.resources:deployment
+
+    labels:
+      api_field: gameServerDeployment.labels
+
+  async:
+    collection: gameservices.projects.locations.operations
+
+  update:
+    read_modify_update: true

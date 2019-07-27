@@ -1,3 +1,5 @@
+.vscode
+
 # Created by http://www.gitignore.io
 
 ### Android ###
@@ -12,7 +14,7 @@
 *.class
 
 # Generated files
-bin/
+# bin/
 gen/
 
 # Gradle files

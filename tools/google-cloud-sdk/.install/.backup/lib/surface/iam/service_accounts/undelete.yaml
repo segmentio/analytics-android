@@ -1,0 +1,20 @@
+- release_tracks: [ALPHA]
+
+  help_text:
+    brief: Undelete a service account for a project.
+    description: Undelete a service account for a project.
+
+  arguments:
+    params:
+    - arg_name: account_id
+      api_field: name
+      required: true
+      is_positional: true
+      help_text: |
+          The deleted service account's unique ID must be provided when using the undelete command.
+          Unique IDs are a 22 digit number, such as 103271949540120710052.
+      processor: googlecloudsdk.command_lib.iam.hooks:CreateFullServiceAccountNameFromId
+  request:
+    collection: iam.projects.serviceAccounts
+    disable_resource_check: true
+    method: undelete

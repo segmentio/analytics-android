@@ -1,0 +1,18 @@
+- release_tracks: [ALPHA, BETA]
+  help_text:
+    brief: |
+      Apply a rule, which will set the specified state on all matching recommendations.
+    description: |
+      Apply a rule, which will set the specified state on all matching recommendations.
+    examples: |
+      $ {command} abcd-1234 --project=concord-api-testing
+
+  request:
+    collection: recommender.projects.rules
+    method: apply
+    api_version: v1alpha1
+
+  arguments:
+    resource:
+      help_text: The rule to apply.
+      spec: !REF googlecloudsdk.command_lib.recommender.resources:rule
