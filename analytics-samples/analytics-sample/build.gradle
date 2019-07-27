@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 apply from: rootProject.file('gradle/android.gradle')
-apply plugin: 'ru.gildor.gradle.firebase.testlab'
+apply plugin: 'firebase.test.lab'
 
 def WEBHOOK_AUTH_USERNAME = ""
 def RUN_E2E_TESTS = false
@@ -48,14 +48,11 @@ dependencies {
 }
 
 firebaseTestLab {
-    gcloudPath = rootProject.file('tools/google-cloud-sdk/bin/')
-    bucketName = 'android_ci'
-    ignoreFailures = false
-    enableVariantLessTasks = false
-    copyArtifact {
-        junit = true
-    }
-    matrices {
+    keyFile = rootProject.file('secret.json')
+
+    googleProjectId = 'analytics-android-e2e-test'
+
+    devices {
         pixel {
             androidApiLevels = [25,26,27,28]
             deviceIds = ["sailfish"]
@@ -67,8 +64,6 @@ firebaseTestLab {
         pixel2Physical {
             androidApiLevels = [26,27,28]
             deviceIds = ["walleye"]
-            locales = ["en"]
-            orientations = ["portrait", "landscape"]
         }
         pixel3 {
             androidApiLevels = [28]
