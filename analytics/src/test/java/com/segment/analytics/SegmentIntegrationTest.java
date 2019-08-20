@@ -73,7 +73,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.verification.VerificationMode;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
@@ -252,10 +251,10 @@ public class SegmentIntegrationTest {
     PayloadQueue payloadQueue = mock(PayloadQueue.class);
     when(payloadQueue.size()).thenReturn(1);
     SegmentIntegration dispatcher =
-            new SegmentBuilder() //
-                    .payloadQueue(payloadQueue)
-                    .networkExecutor(executor)
-                    .build();
+        new SegmentBuilder() //
+            .payloadQueue(payloadQueue)
+            .networkExecutor(executor)
+            .build();
 
     dispatcher.shutdown();
     executor.shutdown();
@@ -459,7 +458,6 @@ public class SegmentIntegrationTest {
     segmentIntegration.shutdown();
     segmentIntegration.submitFlush();
   }
-
 
   @Test
   public void payloadVisitorReadsOnly475KB() throws IOException {
