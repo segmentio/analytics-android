@@ -73,6 +73,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.verification.VerificationMode;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
@@ -243,6 +244,24 @@ public class SegmentIntegrationTest {
     dispatcher.submitFlush();
 
     verify(executor).submit(any(Runnable.class));
+  }
+
+  @Test
+  public void flushChecksIfExecutorIsShutdownFirst() {
+    ExecutorService executor = spy(new SynchronousExecutor());
+    PayloadQueue payloadQueue = mock(PayloadQueue.class);
+    when(payloadQueue.size()).thenReturn(1);
+    SegmentIntegration dispatcher =
+            new SegmentBuilder() //
+                    .payloadQueue(payloadQueue)
+                    .networkExecutor(executor)
+                    .build();
+
+    dispatcher.shutdown();
+    executor.shutdown();
+    dispatcher.submitFlush();
+
+    verify(executor, never()).submit(any(Runnable.class));
   }
 
   @Test
@@ -429,6 +448,18 @@ public class SegmentIntegrationTest {
 
     verify(payloadQueue).close();
   }
+
+  @Test
+  public void shutdownAndRestart() {
+    PayloadQueue payloadQueue = mock(PayloadQueue.class);
+    SegmentIntegration segmentIntegration = new SegmentBuilder().payloadQueue(payloadQueue).build();
+
+    segmentIntegration.performEnqueue(TRACK_PAYLOAD);
+
+    segmentIntegration.shutdown();
+    segmentIntegration.submitFlush();
+  }
+
 
   @Test
   public void payloadVisitorReadsOnly475KB() throws IOException {
