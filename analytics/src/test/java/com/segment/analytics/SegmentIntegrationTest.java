@@ -447,18 +447,7 @@ public class SegmentIntegrationTest {
 
     verify(payloadQueue).close();
   }
-
-  @Test
-  public void shutdownAndRestart() {
-    PayloadQueue payloadQueue = mock(PayloadQueue.class);
-    SegmentIntegration segmentIntegration = new SegmentBuilder().payloadQueue(payloadQueue).build();
-
-    segmentIntegration.performEnqueue(TRACK_PAYLOAD);
-
-    segmentIntegration.shutdown();
-    segmentIntegration.submitFlush();
-  }
-
+  
   @Test
   public void payloadVisitorReadsOnly475KB() throws IOException {
     SegmentIntegration.PayloadWriter payloadWriter =
