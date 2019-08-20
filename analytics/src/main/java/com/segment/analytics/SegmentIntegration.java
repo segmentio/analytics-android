@@ -334,17 +334,21 @@ class SegmentIntegration extends Integration<Void> {
       return;
     }
 
-    if (!networkExecutor.isShutdown()) {
-      networkExecutor.submit(
-          new Runnable() {
-            @Override
-            public void run() {
-              synchronized (flushLock) {
-                performFlush();
-              }
-            }
-          });
+    if (networkExecutor.isShutdown()) {
+      logger.info(
+          "A call to flush() was made after shutdown() has been called.  In-flight events may not be uploaded right away.");
+      return;
     }
+
+    networkExecutor.submit(
+        new Runnable() {
+          @Override
+          public void run() {
+            synchronized (flushLock) {
+              performFlush();
+            }
+          }
+        });
   }
 
   private boolean shouldFlush() {
