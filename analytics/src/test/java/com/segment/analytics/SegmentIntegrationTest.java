@@ -246,6 +246,24 @@ public class SegmentIntegrationTest {
   }
 
   @Test
+  public void flushChecksIfExecutorIsShutdownFirst() {
+    ExecutorService executor = spy(new SynchronousExecutor());
+    PayloadQueue payloadQueue = mock(PayloadQueue.class);
+    when(payloadQueue.size()).thenReturn(1);
+    SegmentIntegration dispatcher =
+        new SegmentBuilder() //
+            .payloadQueue(payloadQueue)
+            .networkExecutor(executor)
+            .build();
+
+    dispatcher.shutdown();
+    executor.shutdown();
+    dispatcher.submitFlush();
+
+    verify(executor, never()).submit(any(Runnable.class));
+  }
+
+  @Test
   public void flushWhenDisconnectedSkipsUpload() throws IOException {
     NetworkInfo networkInfo = mock(NetworkInfo.class);
     when(networkInfo.isConnectedOrConnecting()).thenReturn(false);

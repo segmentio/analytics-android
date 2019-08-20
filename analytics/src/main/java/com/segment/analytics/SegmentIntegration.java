@@ -334,6 +334,12 @@ class SegmentIntegration extends Integration<Void> {
       return;
     }
 
+    if (networkExecutor.isShutdown()) {
+      logger.info(
+          "A call to flush() was made after shutdown() has been called.  In-flight events may not be uploaded right away.");
+      return;
+    }
+
     networkExecutor.submit(
         new Runnable() {
           @Override

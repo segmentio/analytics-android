@@ -948,7 +948,10 @@ public class Analytics {
     }
   }
 
-  /** Stops this instance from accepting further requests. */
+  /**
+   * Stops this instance from accepting further requests. In-flight events may not be uploaded right
+   * away.
+   */
   public void shutdown() {
     if (this == singleton) {
       throw new UnsupportedOperationException("Default singleton instance cannot be shutdown.");
