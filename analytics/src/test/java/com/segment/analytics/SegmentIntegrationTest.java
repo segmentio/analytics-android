@@ -447,7 +447,7 @@ public class SegmentIntegrationTest {
 
     verify(payloadQueue).close();
   }
-  
+
   @Test
   public void payloadVisitorReadsOnly475KB() throws IOException {
     SegmentIntegration.PayloadWriter payloadWriter =
