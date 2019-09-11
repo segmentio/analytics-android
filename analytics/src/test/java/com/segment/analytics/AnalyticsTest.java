@@ -68,6 +68,7 @@ import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -747,8 +748,8 @@ public class AnalyticsTest {
     try {
       connection.openConnection("SOME_BUSTED_URL");
       fail("openConnection did not throw when supplied an invalid URL as expected.");
-    } catch (IOException expected) {
-      assertThat(expected).hasMessageContaining("Attempted to use malformed url");
+    } catch (MalformedURLException expected) {
+      assertThat(expected).isInstanceOf(MalformedURLException.class);
     }
   }
 
