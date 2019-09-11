@@ -25,7 +25,6 @@ package com.segment.analytics;
 
 import android.util.Base64;
 import com.segment.analytics.core.BuildConfig;
-import com.segment.analytics.integrations.Logger;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -85,7 +84,7 @@ public class ConnectionFactory {
 
     requestedURL = new URL(url);
 
-    HttpURLConnection connection = (HttpURLConnection)requestedURL.openConnection();
+    HttpURLConnection connection = (HttpURLConnection) requestedURL.openConnection();
     connection.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS);
     connection.setReadTimeout(DEFAULT_READ_TIMEOUT_MILLIS);
     connection.setRequestProperty("Content-Type", "application/json");
