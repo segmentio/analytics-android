@@ -33,6 +33,7 @@ import static com.segment.analytics.Utils.createContext;
 import static com.segment.analytics.internal.Utils.DEFAULT_FLUSH_INTERVAL;
 import static com.segment.analytics.internal.Utils.DEFAULT_FLUSH_QUEUE_SIZE;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import static java.lang.Thread.sleep;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.*;
@@ -54,6 +55,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.Uri;
 import android.os.Bundle;
 import com.segment.analytics.TestUtils.NoDescriptionMatcher;
 import com.segment.analytics.integrations.AliasPayload;
@@ -65,6 +67,7 @@ import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -735,6 +738,18 @@ public class AnalyticsTest {
   public void getSnapshotInvokesStats() throws Exception {
     analytics.getSnapshot();
     verify(stats).createSnapshot();
+  }
+
+  @Test
+  public void invalidURlsThrowAndNotCrash() throws Exception {
+    ConnectionFactory connection = new ConnectionFactory();
+
+    try {
+      connection.openConnection("SOME_BUSTED_URL");
+      fail("openConnection did not throw when supplied an invalid URL as expected.");
+    } catch (IOException expected) {
+      assertThat(expected).hasMessageContaining("Attempted to use malformed url");
+    }
   }
 
   @Test
