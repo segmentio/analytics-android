@@ -79,10 +79,14 @@ public class ConnectionFactory {
    * Configures defaults for connections opened with {@link #upload(String)}, {@link
    * #attribution(String)} and {@link #projectSettings(String)}.
    */
-  protected HttpURLConnection openConnection(String url) throws IOException, MalformedURLException {
+  protected HttpURLConnection openConnection(String url) throws IOException {
     URL requestedURL;
 
-    requestedURL = new URL(url);
+    try {
+      requestedURL = new URL(url);
+    } catch (MalformedURLException e) {
+      throw new IOException("Attempted to use malformed url: " + url, e);
+    }
 
     HttpURLConnection connection = (HttpURLConnection) requestedURL.openConnection();
     connection.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS);
