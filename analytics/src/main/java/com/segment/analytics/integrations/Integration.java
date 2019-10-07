@@ -26,7 +26,6 @@ package com.segment.analytics.integrations;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-
 import com.segment.analytics.Analytics;
 import com.segment.analytics.ValueMap;
 
@@ -48,7 +47,8 @@ public abstract class Integration<T> {
     Integration<?> create(ValueMap settings, Analytics analytics);
 
     /** The key for which this factory can create an {@link Integration}. */
-    @NonNull String key();
+    @NonNull
+    String key();
   }
 
   /** @see android.app.Application.ActivityLifecycleCallbacks */
