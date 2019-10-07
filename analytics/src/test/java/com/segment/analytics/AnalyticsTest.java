@@ -738,6 +738,19 @@ public class AnalyticsTest {
   }
 
   @Test
+  public void invalidURlsThrowAndNotCrash() throws Exception {
+    ConnectionFactory connection = new ConnectionFactory();
+
+    try {
+      connection.openConnection("SOME_BUSTED_URL");
+      fail("openConnection did not throw when supplied an invalid URL as expected.");
+    } catch (IOException expected) {
+      assertThat(expected).hasMessageContaining("Attempted to use malformed url");
+      assertThat(expected).isInstanceOf(IOException.class);
+    }
+  }
+
+  @Test
   public void trackApplicationLifecycleEventsInstalled() throws NameNotFoundException {
     Analytics.INSTANCES.clear();
 

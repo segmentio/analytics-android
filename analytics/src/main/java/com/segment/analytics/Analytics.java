@@ -1394,12 +1394,19 @@ public class Analytics {
     return downloadedSettings;
   }
 
-  void performInitializeIntegrations(ProjectSettings projectSettings) {
+  void performInitializeIntegrations(ProjectSettings projectSettings) throws AssertionError {
+    if (isNullOrEmpty(projectSettings)) {
+      throw new AssertionError("ProjectSettings is empty!");
+    }
     ValueMap integrationSettings = projectSettings.integrations();
+
     integrations = new LinkedHashMap<>(factories.size());
     for (int i = 0; i < factories.size(); i++) {
       Integration.Factory factory = factories.get(i);
       String key = factory.key();
+      if (isNullOrEmpty(key)) {
+        throw new AssertionError("The factory key is empty!");
+      }
       ValueMap settings = integrationSettings.getValueMap(key);
       if (isNullOrEmpty(settings)) {
         logger.debug("Integration %s is not enabled.", key);
