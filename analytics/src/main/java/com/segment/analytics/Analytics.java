@@ -276,8 +276,8 @@ public class Analytics {
                   public void run() {
                     try {
                       performInitializeIntegrations(projectSettings);
-                    } catch (IOException e) {
-                      throw new RuntimeException(e.getMessage(), e);
+                    } catch (AssertionError e) {
+                      throw new AssertionError(e.getMessage(), e);
                     }
                   }
                 });
@@ -1398,20 +1398,18 @@ public class Analytics {
     return downloadedSettings;
   }
 
-  void performInitializeIntegrations(ProjectSettings projectSettings) throws IOException {
+  void performInitializeIntegrations(ProjectSettings projectSettings) throws AssertionError {
     if (isNullOrEmpty(projectSettings)) {
-      throw new IOException("ProjectSettings is empty!");
+      throw new AssertionError("ProjectSettings is empty!");
     }
     ValueMap integrationSettings = projectSettings.integrations();
-    if (isNullOrEmpty(integrationSettings)) {
-      throw new IOException("There are no integration settings!");
-    }
+
     integrations = new LinkedHashMap<>(factories.size());
     for (int i = 0; i < factories.size(); i++) {
       Integration.Factory factory = factories.get(i);
       String key = factory.key();
       if (isNullOrEmpty(key)) {
-        throw new IOException("The factory key is empty!");
+        throw new AssertionError("The factory key is empty!");
       }
       ValueMap settings = integrationSettings.getValueMap(key);
       if (isNullOrEmpty(settings)) {
