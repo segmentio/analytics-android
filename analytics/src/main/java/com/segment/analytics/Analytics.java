@@ -274,11 +274,7 @@ public class Analytics {
                 new Runnable() {
                   @Override
                   public void run() {
-                    try {
-                      performInitializeIntegrations(projectSettings);
-                    } catch (AssertionError e) {
-                      throw new AssertionError(e.getMessage(), e);
-                    }
+                    performInitializeIntegrations(projectSettings);
                   }
                 });
           }
