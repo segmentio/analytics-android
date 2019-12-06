@@ -36,6 +36,7 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
   private ExecutorService analyticsExecutor;
   private Boolean shouldTrackApplicationLifecycleEvents;
   private Boolean trackAttributionInformation;
+  private Boolean trackDeepLinks;
   private Boolean shouldRecordScreenViews;
   private PackageInfo packageInfo;
 
@@ -49,6 +50,7 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
       ExecutorService analyticsExecutor,
       Boolean shouldTrackApplicationLifecycleEvents,
       Boolean trackAttributionInformation,
+      Boolean trackDeepLinks,
       Boolean shouldRecordScreenViews,
       PackageInfo packageInfo) {
     this.trackedApplicationLifecycleEvents = new AtomicBoolean(false);
@@ -59,6 +61,7 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
     this.analyticsExecutor = analyticsExecutor;
     this.shouldTrackApplicationLifecycleEvents = shouldTrackApplicationLifecycleEvents;
     this.trackAttributionInformation = trackAttributionInformation;
+    this.trackDeepLinks = trackDeepLinks;
     this.shouldRecordScreenViews = shouldRecordScreenViews;
     this.packageInfo = packageInfo;
   }
@@ -144,6 +147,7 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
     private ExecutorService analyticsExecutor;
     private Boolean shouldTrackApplicationLifecycleEvents;
     private Boolean trackAttributionInformation;
+    private Boolean trackDeepLinks;
     private Boolean shouldRecordScreenViews;
     private PackageInfo packageInfo;
 
@@ -169,6 +173,11 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
       return this;
     }
 
+    Builder trackDeepLinks(Boolean trackDeepLinks) {
+      this.trackDeepLinks = trackDeepLinks;
+      return this;
+    }
+
     Builder shouldRecordScreenViews(Boolean shouldRecordScreenViews) {
       this.shouldRecordScreenViews = shouldRecordScreenViews;
       return this;
@@ -185,6 +194,7 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
           analyticsExecutor,
           shouldTrackApplicationLifecycleEvents,
           trackAttributionInformation,
+          trackDeepLinks,
           shouldRecordScreenViews,
           packageInfo);
     }
