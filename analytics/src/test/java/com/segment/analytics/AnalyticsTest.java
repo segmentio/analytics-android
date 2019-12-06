@@ -49,11 +49,13 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
 import android.content.ComponentName;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.Uri;
 import android.os.Bundle;
 import com.segment.analytics.TestUtils.NoDescriptionMatcher;
 import com.segment.analytics.integrations.AliasPayload;
@@ -967,6 +969,205 @@ public class AnalyticsTest {
                     return payload.name().equals("Foo");
                   }
                 }));
+  }
+
+  @Test
+  public void trackDeepLinks() {
+    Analytics.INSTANCES.clear();
+
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+            new AtomicReference<>();
+    doNothing()
+            .when(application)
+            .registerActivityLifecycleCallbacks(
+                    argThat(
+                            new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                              @Override
+                              protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                                callback.set(item);
+                                return true;
+                              }
+                            }));
+
+    analytics =
+            new Analytics(
+                    application,
+                    networkExecutor,
+                    stats,
+                    traitsCache,
+                    analyticsContext,
+                    defaultOptions,
+                    Logger.with(NONE),
+                    "qaz",
+                    Collections.singletonList(factory),
+                    client,
+                    Cartographer.INSTANCE,
+                    projectSettingsCache,
+                    "foo",
+                    DEFAULT_FLUSH_QUEUE_SIZE,
+                    DEFAULT_FLUSH_INTERVAL,
+                    analyticsExecutor,
+                    true,
+                    new CountDownLatch(0),
+                    false,
+                    false,
+                    true,
+                    optOut,
+                    Crypto.none(),
+                    Collections.<Middleware>emptyList());
+
+    final String expectedUrl = "app://track.com/open?utm_id=12345&gclid=abcd&nope=";
+
+    Activity activity = mock(Activity.class);
+    Intent intent = mock(Intent.class);
+    Uri uri = Uri.parse(expectedUrl);
+
+    when(intent.getData()).thenReturn(uri);
+    when(activity.getIntent()).thenReturn(intent);
+
+    callback.get().onActivityCreated(activity, new Bundle());
+
+    verify(integration).track(
+            argThat(
+                    new NoDescriptionMatcher<TrackPayload>() {
+                      @Override
+                      protected boolean matchesSafely(TrackPayload payload) {
+                        return payload.event().equals("Deep Link Opened")
+                                && payload.properties().getString("url").equals(expectedUrl)
+                                && payload.properties().getString("gclid").equals("abcd")
+                                && payload.properties().getString("utm_id").equals("12345");
+                      }
+                    }));
+  }
+
+  @Test
+  public void trackDeepLinks_disabled() {
+    Analytics.INSTANCES.clear();
+
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+            new AtomicReference<>();
+    doNothing()
+            .when(application)
+            .registerActivityLifecycleCallbacks(
+                    argThat(
+                            new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                              @Override
+                              protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                                callback.set(item);
+                                return true;
+                              }
+                            }));
+
+    analytics =
+            new Analytics(
+                    application,
+                    networkExecutor,
+                    stats,
+                    traitsCache,
+                    analyticsContext,
+                    defaultOptions,
+                    Logger.with(NONE),
+                    "qaz",
+                    Collections.singletonList(factory),
+                    client,
+                    Cartographer.INSTANCE,
+                    projectSettingsCache,
+                    "foo",
+                    DEFAULT_FLUSH_QUEUE_SIZE,
+                    DEFAULT_FLUSH_INTERVAL,
+                    analyticsExecutor,
+                    true,
+                    new CountDownLatch(0),
+                    false,
+                    false,
+                    false,
+                    optOut,
+                    Crypto.none(),
+                    Collections.<Middleware>emptyList());
+
+    final String expectedUrl = "app://track.com/open?utm_id=12345&gclid=abcd&nope=";
+
+    Activity activity = mock(Activity.class);
+    Intent intent = mock(Intent.class);
+    Uri uri = Uri.parse(expectedUrl);
+
+    when(intent.getData()).thenReturn(uri);
+    when(activity.getIntent()).thenReturn(intent);
+
+    callback.get().onActivityCreated(activity, new Bundle());
+
+    verify(integration, never()).track(
+            argThat(
+                    new NoDescriptionMatcher<TrackPayload>() {
+                      @Override
+                      protected boolean matchesSafely(TrackPayload payload) {
+                        return payload.event().equals("Deep Link Opened")
+                                && payload.properties().getString("url").equals(expectedUrl)
+                                && payload.properties().getString("gclid").equals("abcd")
+                                && payload.properties().getString("utm_id").equals("12345");
+                      }
+                    }));
+  }
+
+  @Test
+  public void trackDeepLinks_null() {
+    Analytics.INSTANCES.clear();
+
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+            new AtomicReference<>();
+    doNothing()
+            .when(application)
+            .registerActivityLifecycleCallbacks(
+                    argThat(
+                            new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                              @Override
+                              protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                                callback.set(item);
+                                return true;
+                              }
+                            }));
+
+    analytics =
+            new Analytics(
+                    application,
+                    networkExecutor,
+                    stats,
+                    traitsCache,
+                    analyticsContext,
+                    defaultOptions,
+                    Logger.with(NONE),
+                    "qaz",
+                    Collections.singletonList(factory),
+                    client,
+                    Cartographer.INSTANCE,
+                    projectSettingsCache,
+                    "foo",
+                    DEFAULT_FLUSH_QUEUE_SIZE,
+                    DEFAULT_FLUSH_INTERVAL,
+                    analyticsExecutor,
+                    true,
+                    new CountDownLatch(0),
+                    false,
+                    false,
+                    false,
+                    optOut,
+                    Crypto.none(),
+                    Collections.<Middleware>emptyList());
+
+    Activity activity = mock(Activity.class);
+
+    when(activity.getIntent()).thenReturn(null);
+
+    callback.get().onActivityCreated(activity, new Bundle());
+
+    verify(integration, never()).track(
+            argThat(
+                    new NoDescriptionMatcher<TrackPayload>() {
+                      @Override
+                      protected boolean matchesSafely(TrackPayload payload) {
+                        return payload.event().equals("Deep Link Opened");
+                      }
+                    }));
   }
 
   @Test

@@ -25,7 +25,9 @@ package com.segment.analytics;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -85,6 +87,27 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
               }
             });
       }
+
+      if (!trackDeepLinks) {
+        return;
+      }
+
+      Intent intent = activity.getIntent();
+      if (activity.getIntent() == null) {
+        return;
+      }
+
+      Properties properties = new Properties();
+      Uri uri = intent.getData();
+      for (String parameter : uri.getQueryParameterNames()) {
+        String value = uri.getQueryParameter(parameter);
+        if (value != null && !value.trim().isEmpty()) {
+          properties.put(parameter, value);
+        }
+      }
+
+      properties.put("url", uri.toString());
+      analytics.track("Deep Link Opened", properties);
     }
   }
 
