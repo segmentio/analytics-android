@@ -220,6 +220,7 @@ public class Analytics {
       CountDownLatch advertisingIdLatch,
       final boolean shouldRecordScreenViews,
       final boolean trackAttributionInformation,
+      final boolean trackDeepLinks,
       BooleanPreference optOut,
       Crypto crypto,
       @NonNull List<Middleware> middlewares) {
@@ -288,6 +289,7 @@ public class Analytics {
             .analyticsExecutor(analyticsExecutor)
             .shouldTrackApplicationLifecycleEvents(shouldTrackApplicationLifecycleEvents)
             .trackAttributionInformation(trackAttributionInformation)
+            .trackDeepLinks(trackDeepLinks)
             .shouldRecordScreenViews(shouldRecordScreenViews)
             .packageInfo(getPackageInfo(application))
             .build();
@@ -1036,6 +1038,7 @@ public class Analytics {
     private boolean trackApplicationLifecycleEvents = false;
     private boolean recordScreenViews = false;
     private boolean trackAttributionInformation = false;
+    private boolean trackDeepLinks = false;
     private Crypto crypto;
 
     /** Start building a new {@link Analytics} instance. */
@@ -1224,6 +1227,12 @@ public class Analytics {
       return this;
     }
 
+    /** Automatically track deep links as part of the screen call. */
+    public Builder trackDeepLinks() {
+      this.trackDeepLinks = true;
+      return this;
+    }
+
     /** Add a {@link Middleware} for intercepting messages. */
     public Builder middleware(Middleware middleware) {
       assertNotNull(middleware, "middleware");
@@ -1332,6 +1341,7 @@ public class Analytics {
           advertisingIdLatch,
           recordScreenViews,
           trackAttributionInformation,
+          trackDeepLinks,
           optOut,
           crypto,
           middlewares);
