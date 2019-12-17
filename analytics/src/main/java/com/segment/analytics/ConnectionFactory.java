@@ -27,6 +27,7 @@ import android.util.Base64;
 import com.segment.analytics.core.BuildConfig;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
@@ -79,7 +80,15 @@ public class ConnectionFactory {
    * #attribution(String)} and {@link #projectSettings(String)}.
    */
   protected HttpURLConnection openConnection(String url) throws IOException {
-    HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+    URL requestedURL;
+
+    try {
+      requestedURL = new URL(url);
+    } catch (MalformedURLException e) {
+      throw new IOException("Attempted to use malformed url: " + url, e);
+    }
+
+    HttpURLConnection connection = (HttpURLConnection) requestedURL.openConnection();
     connection.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT_MILLIS);
     connection.setReadTimeout(DEFAULT_READ_TIMEOUT_MILLIS);
     connection.setRequestProperty("Content-Type", "application/json");

@@ -25,7 +25,9 @@ package com.segment.analytics;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,6 +38,7 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
   private ExecutorService analyticsExecutor;
   private Boolean shouldTrackApplicationLifecycleEvents;
   private Boolean trackAttributionInformation;
+  private Boolean trackDeepLinks;
   private Boolean shouldRecordScreenViews;
   private PackageInfo packageInfo;
 
@@ -49,6 +52,7 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
       ExecutorService analyticsExecutor,
       Boolean shouldTrackApplicationLifecycleEvents,
       Boolean trackAttributionInformation,
+      Boolean trackDeepLinks,
       Boolean shouldRecordScreenViews,
       PackageInfo packageInfo) {
     this.trackedApplicationLifecycleEvents = new AtomicBoolean(false);
@@ -59,6 +63,7 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
     this.analyticsExecutor = analyticsExecutor;
     this.shouldTrackApplicationLifecycleEvents = shouldTrackApplicationLifecycleEvents;
     this.trackAttributionInformation = trackAttributionInformation;
+    this.trackDeepLinks = trackDeepLinks;
     this.shouldRecordScreenViews = shouldRecordScreenViews;
     this.packageInfo = packageInfo;
   }
@@ -82,6 +87,27 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
               }
             });
       }
+
+      if (!trackDeepLinks) {
+        return;
+      }
+
+      Intent intent = activity.getIntent();
+      if (activity.getIntent() == null) {
+        return;
+      }
+
+      Properties properties = new Properties();
+      Uri uri = intent.getData();
+      for (String parameter : uri.getQueryParameterNames()) {
+        String value = uri.getQueryParameter(parameter);
+        if (value != null && !value.trim().isEmpty()) {
+          properties.put(parameter, value);
+        }
+      }
+
+      properties.put("url", uri.toString());
+      analytics.track("Deep Link Opened", properties);
     }
   }
 
@@ -144,6 +170,7 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
     private ExecutorService analyticsExecutor;
     private Boolean shouldTrackApplicationLifecycleEvents;
     private Boolean trackAttributionInformation;
+    private Boolean trackDeepLinks;
     private Boolean shouldRecordScreenViews;
     private PackageInfo packageInfo;
 
@@ -169,6 +196,11 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
       return this;
     }
 
+    Builder trackDeepLinks(Boolean trackDeepLinks) {
+      this.trackDeepLinks = trackDeepLinks;
+      return this;
+    }
+
     Builder shouldRecordScreenViews(Boolean shouldRecordScreenViews) {
       this.shouldRecordScreenViews = shouldRecordScreenViews;
       return this;
@@ -185,6 +217,7 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
           analyticsExecutor,
           shouldTrackApplicationLifecycleEvents,
           trackAttributionInformation,
+          trackDeepLinks,
           shouldRecordScreenViews,
           packageInfo);
     }
