@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 4.5.0-beta.1 (Dec 16, 2019)
+===================================
+
+ * [New](https://github.com/segmentio/analytics-android/pull/637): Track "Deep Link Opened" on activity creation
+ 
 Version 4.5.0-beta.0 (July 25, 2019)
 ===================================
 
