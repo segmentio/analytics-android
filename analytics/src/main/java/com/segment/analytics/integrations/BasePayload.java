@@ -318,6 +318,11 @@ public abstract class BasePayload extends ValueMap {
       return self();
     }
 
+    @Nullable
+    public String getUserId() {
+      return this.userId;
+    }
+
     abstract P realBuild(
         @NonNull String messageId,
         @NonNull Date timestamp,
