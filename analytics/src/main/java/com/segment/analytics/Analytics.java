@@ -1388,6 +1388,7 @@ public class Analytics {
   @Private
   ProjectSettings getSettings() {
     ProjectSettings cachedSettings = projectSettingsCache.get();
+    cachedSettings=null; // matt's hack
     if (isNullOrEmpty(cachedSettings)) {
       return downloadSettings();
     }

@@ -27,11 +27,14 @@ import android.app.Application;
 import android.util.Log;
 import com.segment.analytics.Analytics;
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
+import com.segment.analytics.android.integrations.amplitude.AmplitudeIntegration;
+import com.segment.analytics.Traits;
+
 
 public class SampleApp extends Application {
 
   // https://segment.com/segment-engineering/sources/android-test/settings/keys
-  private static final String ANALYTICS_WRITE_KEY = "5m6gbdgho6";
+  private static final String ANALYTICS_WRITE_KEY = "ZQFXWBjnUhevvBvPl6PU1CclE25d29cg";
 
   @Override
   public void onCreate() {
@@ -48,7 +51,8 @@ public class SampleApp extends Application {
         new Analytics.Builder(this, ANALYTICS_WRITE_KEY)
             .trackApplicationLifecycleEvents()
             .trackAttributionInformation()
-            .recordScreenViews();
+            .recordScreenViews()
+            .use(AmplitudeIntegration.FACTORY);
 
     // Set the initialized instance as a globally accessible instance.
     Analytics.setSingletonInstance(builder.build());
@@ -66,5 +70,7 @@ public class SampleApp extends Application {
             Log.d("Segment Sample", "Segment integration ready.");
           }
         });
+      Analytics.with(this).identify("dave@gmail.com", new Traits().putName("Dave"), null);
+
   }
 }

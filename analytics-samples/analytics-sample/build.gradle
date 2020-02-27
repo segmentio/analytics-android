@@ -45,4 +45,7 @@ dependencies {
   androidTestImplementation 'com.segment.backo:backo:1.0.0'
 
   androidTestImplementation 'org.assertj:assertj-core:1.7.1'
+
+  implementation 'com.segment.analytics.android.integrations:amplitude:+'
 }
+
