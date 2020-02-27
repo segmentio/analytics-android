@@ -146,6 +146,8 @@ class Client {
     @Override
     public void close() throws IOException {
       connection.disconnect();
+      is.close();
+      os.close();
     }
   }
 }
