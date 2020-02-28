@@ -39,6 +39,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import com.segment.analytics.Analytics;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
+import com.segment.analytics.Traits;
 
 public class MainActivity extends Activity {
   @BindView(R.id.user_id)
@@ -73,7 +74,11 @@ public class MainActivity extends Activity {
     if (isNullOrEmpty(id)) {
       Toast.makeText(this, R.string.id_required, Toast.LENGTH_LONG).show();
     } else {
-      Analytics.with(this).identify(id);
+      Traits traits = new Traits();
+      String[] arr = new String[]{"foo", "bar", "cat"};
+      traits.put("customarray", arr);
+
+      Analytics.with(this).identify(id, traits, null);
     }
   }
 
