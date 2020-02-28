@@ -153,9 +153,10 @@ public class AmplitudeIntegration extends Integration<AmplitudeClient> {
     if (!isNullOrEmpty(traitsToIncrement) || !isNullOrEmpty(traitsToSetOnce)) {
       handleTraits(traits);
     } else {
-      JSONObject userTraits = traits.toJsonObject();
-      amplitude.setUserProperties(userTraits);
-      logger.verbose("AmplitudeClient.getInstance().setUserProperties(%s);", userTraits);
+      handleTraits(traits);
+      //JSONObject userTraits = traits.toJsonObject();
+      //amplitude.setUserProperties(userTraits);
+      //logger.verbose("AmplitudeClient.getInstance().setUserProperties(%s);", userTraits);
     }
 
     JSONObject groups = groups(identify);
@@ -257,6 +258,9 @@ public class AmplitudeIntegration extends Integration<AmplitudeClient> {
     if (value instanceof String) {
       String stringValue = String.valueOf(value);
       identify.set(key, stringValue);
+    }
+    if (value instanceof String[]) {
+      identify.set(key, (String[]) value);
     }
   }
 

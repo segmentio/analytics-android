@@ -75,8 +75,8 @@ public class MainActivity extends Activity {
       Toast.makeText(this, R.string.id_required, Toast.LENGTH_LONG).show();
     } else {
       Traits traits = new Traits();
-      String[] arr = new String[]{"foo", "bar", "cat"};
-      traits.put("customarray", arr);
+      String[] arr = new String[]{"foo", "bar", "cat", id};
+      traits.put(id, arr);
 
       Analytics.with(this).identify(id, traits, null);
     }
