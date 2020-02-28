@@ -1,0 +1,12 @@
+// Attaches a JAR to the archives artifact for a library
+android.libraryVariants.all { variant ->
+  // Only attach a jar for non-debug build types.
+  if (!variant.buildType.isDebuggable()) {
+    def name = variant.buildType.name
+    def task = project.tasks.create "jar${name.capitalize()}", Jar
+    task.dependsOn variant.javaCompile
+    // Include Java classes
+    task.from variant.javaCompile.destinationDir
+    artifacts.add('archives', task);
+  }
+}

@@ -1,0 +1,27 @@
+
+import org.gradle.plugins.signing.Sign
+
+// We inject the signature configuration from env vars
+gradle.taskGraph.whenReady { taskGraph ->
+    if (taskGraph.allTasks.any { it instanceof Sign }) {
+
+        def id = System.getenv("SIGNATURE_KEY_ID")
+        def file = System.getenv("SIGNATURE_SECRET_FILE")
+        def password = System.getenv("SIGNATURE_PASSWORD")
+
+        if (id.isEmpty() || file.isEmpty() || password.isEmpty()) {
+            throw new InvalidUserDataException("Signature is not properly configure. See README.md")
+        }
+
+        allprojects { ext."signing.keyId" = id }
+        allprojects { ext."signing.secretKeyRingFile" = file }
+        allprojects { ext."signing.password" = password }
+
+    }
+}
+
+apply plugin: 'signing'
+
+signing {
+    sign configurations.archives
+}

@@ -1,0 +1,134 @@
+version: 2
+jobs:
+  build:
+    resource_class: small
+    docker:
+      - image: circleci/android:api-28
+        environment:
+          ANDROID_HOME: /home/circleci/android
+          CIRCLE_JDK_VERSION: oraclejdk8
+    steps:
+      - checkout
+      - run:
+          name: Create folders
+          command: mkdir -p /home/circleci/android/licenses
+      - restore_cache:
+          key: dependencies-{{ .Branch }}-{{ checksum "build.gradle" }}
+      - run:
+          name: Accept licenses
+          command: cp /opt/android/sdk/licenses/* $ANDROID_HOME/licenses
+      - run:
+          name: Install dependencies
+          command: ./gradlew dependencies
+      - run:
+          name: Run tests
+          command: ./gradlew check test --profile
+      - save_cache:
+          key: dependencies-{{ .Branch }}-{{ checksum "build.gradle" }}
+          paths:
+            - /home/circleci/.android
+            - /home/circleci/android
+            - /home/circleci/.gradle
+            - /usr/local/android-sdk-linux/platforms/android-25
+            - /usr/local/android-sdk-linux/build-tools/25.0.0
+            - /usr/local/android-sdk-linux/extras/android/m2repository
+      - store_artifacts:
+          path: analytics-core/build/test-report
+          destination: reports
+      - store_artifacts:
+          path: analytics-integrations/*/build/test-report
+          destination: reports
+      - store_artifacts:
+          path: build/reports/profile
+          destination: reports
+      - persist_to_workspace:
+          root: .
+          paths: [.]
+
+  publish_snapshot:
+    resource_class: small
+    docker:
+      - image: circleci/android:api-25-alpha
+        environment:
+          ANDROID_HOME: /home/circleci/android
+          CIRCLE_JDK_VERSION: oraclejdk8
+
+    steps:
+      - attach_workspace: { at: . }
+      - restore_cache:
+                key: dependencies-{{ .Branch }}-{{ checksum "build.gradle" }}
+      - run:
+          name: Set up signature
+          command: |
+              if [ "$SIGNATURE_SECRET" == "" ]; then {
+                  echo "Invalid signature configuration"
+                  exit 1
+              } fi
+              base64 -d - <<< "$SIGNATURE_SECRET" > $SIGNATURE_SECRET_FILE
+              gpg --batch --yes --import $SIGNATURE_SECRET_FILE <<< $SIGNATURE_PASSWORD
+      - run:
+          name: Publish SNAPSHOT
+          command: ./gradlew uploadArchives
+
+  publish:
+      resource_class: small
+      docker:
+        - image: circleci/android:api-25-alpha
+          environment:
+            ANDROID_HOME: /home/circleci/android
+            CIRCLE_JDK_VERSION: oraclejdk8
+
+      steps:
+        - attach_workspace: { at: . }
+        - restore_cache:
+                  key: dependencies-{{ .Branch }}-{{ checksum "build.gradle" }}
+        - run:
+            name: Set up signature
+            command: |
+                if [ "$SIGNATURE_SECRET" == "" ]; then {
+                    echo "Invalid signature configuration"
+                    exit 1
+                } fi
+                base64 -d - <<< "$SIGNATURE_SECRET" > $SIGNATURE_SECRET_FILE
+                gpg --batch --yes --import $SIGNATURE_SECRET_FILE <<< $SIGNATURE_PASSWORD
+        - run:
+            name: Verify tag
+            command: |
+                VERSION=$(grep VERSION gradle.properties | awk -F= '{ print $2 }' | awk -F- '{ print $1 }')
+                if [ "$CIRCLE_TAG" != "$VERSION" ]; then {
+                    echo "Tag $CIRCLE_TAG does not match the package version ($VERSION)"
+                    exit 1
+                } fi
+        - run:
+            name: Publish new version
+            command: ./gradlew uploadArchives -Prelease
+        - run:
+            name: Mark release
+            command: ./gradlew closeAndReleaseRepository
+
+
+workflows:
+  version: 2
+  run:
+    jobs:
+      - build:
+          context: Android
+          filters:  
+            tags: 
+              only: /.*/
+      - publish_snapshot:
+          context: Android
+          requires: [ build ]
+          filters:
+            branches:
+              only: /master/
+            tags:
+              only: /.*/
+      - publish:
+          context: Android
+          requires: [ build ]
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /[0-9]+(\.[0-9]+)*(-.+)?/

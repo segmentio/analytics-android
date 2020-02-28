@@ -1,0 +1,7 @@
+
+apply plugin: 'io.codearte.nexus-staging'
+
+nexusStaging {
+    packageGroup = "com.segment.analytics.android.integrations"
+    stagingProfileId = "73905a9e454559"
+}
