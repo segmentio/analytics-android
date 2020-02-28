@@ -1,4 +1,4 @@
-include 'analytics'
+include 'analytics', ':analytics-android-integration-amplitude'
 include 'analytics-tests'
 include 'analytics-wear'
 include 'analytics-samples:analytics-sample'

@@ -31,6 +31,7 @@ android {
 dependencies {
   implementation project(':analytics')
   implementation project(':analytics-wear')
+  implementation project(':analytics-android-integration-amplitude')
 
   implementation 'uk.co.chrisjenx:calligraphy:2.2.0'
   implementation 'com.jakewharton:butterknife:8.8.1'
