@@ -57,12 +57,16 @@ class Client {
           int responseCode = connection.getResponseCode();
           if (responseCode >= 300) {
             String responseBody;
+            InputStream inputStream = null;
             try {
-              InputStream inputStream = getInputStream(connection);
+              inputStream = getInputStream(connection);
               responseBody = readFully(inputStream);
-              inputStream.close();
             } catch (IOException e) {
               responseBody = "Could not read response body for rejected message: " + e.toString();
+            } finally {
+              if (inputStream != null) {
+                inputStream.close();
+              }
             }
             throw new HTTPException(responseCode, connection.getResponseMessage(), responseBody);
           }
