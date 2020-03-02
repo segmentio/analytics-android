@@ -58,7 +58,9 @@ class Client {
           if (responseCode >= 300) {
             String responseBody;
             try {
-              responseBody = readFully(getInputStream(connection));
+              InputStream inputStream = getInputStream(connection);
+              responseBody = readFully(inputStream);
+              inputStream.close();
             } catch (IOException e) {
               responseBody = "Could not read response body for rejected message: " + e.toString();
             }
@@ -146,8 +148,6 @@ class Client {
     @Override
     public void close() throws IOException {
       connection.disconnect();
-      is.close();
-      os.close();
     }
   }
 }
