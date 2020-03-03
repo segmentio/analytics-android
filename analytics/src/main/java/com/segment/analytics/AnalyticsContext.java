@@ -73,14 +73,13 @@ import java.util.concurrent.CountDownLatch;
  *
  * <p>AnalyticsContext is not persisted to disk, and is filled each time the app starts.
  *
- * On the topic of the thread safety of traits, whilst this class utilises LinkedHashMap, writes to
- * this map only occur from within the handler thread. Meanwhile reads are served immutable copies
- * of traits mitigating the risk of data races with the exception of clients of this library
+ * <p>On the topic of the thread safety of traits, whilst this class utilises LinkedHashMap, writes
+ * to this map only occur from within the handler thread. Meanwhile reads are served immutable
+ * copies of traits mitigating the risk of data races with the exception of clients of this library
  * modifying nested data structures after passing them to this library. This concern could be
  * mitigated by deep rather than shallow copying (e.g. via de-serialiation and re-serialisation),
  * however this would contribute a performance penalty.
  */
-
 public class AnalyticsContext extends ValueMap {
 
   private static final String LOCALE_KEY = "locale";
