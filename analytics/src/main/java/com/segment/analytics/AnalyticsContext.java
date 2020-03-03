@@ -72,7 +72,13 @@ import java.util.concurrent.CountDownLatch;
  * speed need to be manually entered, such as IP Address, speed, etc.
  *
  * <p>AnalyticsContext is not persisted to disk, and is filled each time the app starts.
+ *
+ * On the topic of the thread safety of traits, whilst this class utilises LinkedHashMap, writes to
+ * this map only occur from within the handler thread. Meanwhile reads are served immutable copies
+ * of traits mitigating the risk of data races with the exception of clients of this library
+ * modifying nested data structures after passing them to this library.
  */
+
 public class AnalyticsContext extends ValueMap {
 
   private static final String LOCALE_KEY = "locale";
