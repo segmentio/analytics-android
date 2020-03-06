@@ -187,6 +187,86 @@ public class QueueFileTest {
   }
 
   @Test
+  public void testInvalidFirstPositionThrows() throws IOException {
+    RandomAccessFile emptyFile = new RandomAccessFile(file, "rwd");
+    emptyFile.seek(0);
+    emptyFile.writeInt(4096);
+    emptyFile.setLength(4096);
+    emptyFile.seek(8);
+    emptyFile.writeInt(10000);
+    emptyFile.getChannel().force(true);
+    emptyFile.close();
+
+    try {
+      new QueueFile(file);
+      fail("Should have thrown about bad first position value");
+    } catch (IOException ex) {
+      assertThat(ex) //
+              .hasMessage("File is corrupt; first position stored in header (10000) is invalid.");
+    }
+  }
+
+  @Test
+  public void testNegativeFirstPositionThrows() throws IOException {
+    RandomAccessFile emptyFile = new RandomAccessFile(file, "rwd");
+    emptyFile.seek(0);
+    emptyFile.writeInt(4096);
+    emptyFile.setLength(4096);
+    emptyFile.seek(8);
+    emptyFile.writeInt(-2147483648);
+    emptyFile.getChannel().force(true);
+    emptyFile.close();
+
+    try {
+      new QueueFile(file);
+      fail("Should have thrown about bad first position value");
+    } catch (IOException ex) {
+      assertThat(ex) //
+              .hasMessage("File is corrupt; first position stored in header (-2147483648) is invalid.");
+    }
+  }
+
+  @Test
+  public void testInvalidLastPositionThrows() throws IOException {
+    RandomAccessFile emptyFile = new RandomAccessFile(file, "rwd");
+    emptyFile.seek(0);
+    emptyFile.writeInt(4096);
+    emptyFile.setLength(4096);
+    emptyFile.seek(12);
+    emptyFile.writeInt(10000);
+    emptyFile.getChannel().force(true);
+    emptyFile.close();
+
+    try {
+      new QueueFile(file);
+      fail("Should have thrown about bad last position value");
+    } catch (IOException ex) {
+      assertThat(ex) //
+              .hasMessage("File is corrupt; last position stored in header (10000) is invalid.");
+    }
+  }
+
+  @Test
+  public void testNegativeLastPositionThrows() throws IOException {
+    RandomAccessFile emptyFile = new RandomAccessFile(file, "rwd");
+    emptyFile.seek(0);
+    emptyFile.writeInt(4096);
+    emptyFile.setLength(4096);
+    emptyFile.seek(12);
+    emptyFile.writeInt(-2147483648);
+    emptyFile.getChannel().force(true);
+    emptyFile.close();
+
+    try {
+      new QueueFile(file);
+      fail("Should have thrown about bad last position value");
+    } catch (IOException ex) {
+      assertThat(ex) //
+              .hasMessage("File is corrupt; last position stored in header (-2147483648) is invalid.");
+    }
+  }
+
+  @Test
   public void removeMultipleDoesNotCorrupt() throws IOException {
     QueueFile queue = new QueueFile(file);
     for (int i = 0; i < 10; i++) {

@@ -154,16 +154,23 @@ public class QueueFile implements Closeable {
     raf.seek(0);
     raf.readFully(buffer);
     fileLength = readInt(buffer, 0);
+    elementCount = readInt(buffer, 4);
+    int firstOffset = readInt(buffer, 8);
+    int lastOffset = readInt(buffer, 12);
+
     if (fileLength > raf.length()) {
       throw new IOException(
           "File is truncated. Expected length: " + fileLength + ", Actual length: " + raf.length());
     } else if (fileLength <= 0) {
       throw new IOException(
           "File is corrupt; length stored in header (" + fileLength + ") is invalid.");
+    } else if (firstOffset < 0 || fileLength <= wrapPosition(firstOffset)) {
+      throw new IOException(
+          "File is corrupt; first position stored in header (" + firstOffset + ") is invalid.");
+    } else if (lastOffset < 0 || fileLength <= wrapPosition(lastOffset)) {
+      throw new IOException(
+          "File is corrupt; last position stored in header (" + lastOffset + ") is invalid.");
     }
-    elementCount = readInt(buffer, 4);
-    int firstOffset = readInt(buffer, 8);
-    int lastOffset = readInt(buffer, 12);
     first = readElement(firstOffset);
     last = readElement(lastOffset);
   }
