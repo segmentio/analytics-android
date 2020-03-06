@@ -202,7 +202,7 @@ public class QueueFileTest {
       fail("Should have thrown about bad first position value");
     } catch (IOException ex) {
       assertThat(ex) //
-              .hasMessage("File is corrupt; first position stored in header (10000) is invalid.");
+          .hasMessage("File is corrupt; first position stored in header (10000) is invalid.");
     }
   }
 
@@ -222,7 +222,7 @@ public class QueueFileTest {
       fail("Should have thrown about bad first position value");
     } catch (IOException ex) {
       assertThat(ex) //
-              .hasMessage("File is corrupt; first position stored in header (-2147483648) is invalid.");
+          .hasMessage("File is corrupt; first position stored in header (-2147483648) is invalid.");
     }
   }
 
@@ -242,7 +242,7 @@ public class QueueFileTest {
       fail("Should have thrown about bad last position value");
     } catch (IOException ex) {
       assertThat(ex) //
-              .hasMessage("File is corrupt; last position stored in header (10000) is invalid.");
+          .hasMessage("File is corrupt; last position stored in header (10000) is invalid.");
     }
   }
 
@@ -262,7 +262,7 @@ public class QueueFileTest {
       fail("Should have thrown about bad last position value");
     } catch (IOException ex) {
       assertThat(ex) //
-              .hasMessage("File is corrupt; last position stored in header (-2147483648) is invalid.");
+          .hasMessage("File is corrupt; last position stored in header (-2147483648) is invalid.");
     }
   }
 
