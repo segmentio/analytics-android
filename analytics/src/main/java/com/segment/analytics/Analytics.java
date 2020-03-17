@@ -114,6 +114,7 @@ public class Analytics {
   private static final String VERSION_KEY = "version";
   private static final String BUILD_KEY = "build";
   private static final String TRACKED_ATTRIBUTION_KEY = "tracked_attribution";
+  private static final String TRAITS_KEY = "traits";
 
   private final Application application;
   final ExecutorService networkExecutor;
@@ -849,10 +850,16 @@ public class Analytics {
 
   /**
    * Resets the analytics client by clearing any stored information about the user. Events queued on
-   * disk are not cleared, and will be uploaded at a later time.
+   * disk are not cleared, and will be uploaded at a later time. Preserves BUILD and VERSION values.
    */
   public void reset() {
-    Utils.getSegmentSharedPreferences(application, tag).edit().clear().apply();
+    SharedPreferences sharedPreferences = Utils.getSegmentSharedPreferences(application, tag);
+    // LIB-1578: only remove traits, preserve BUILD and VERSION keys in order to to fix over-sending
+    // of 'Application Installed' events and under-sending of 'Application Updated' events
+    SharedPreferences.Editor editor = sharedPreferences.edit();
+    editor.remove(TRAITS_KEY + "-" + tag);
+    editor.apply();
+
     traitsCache.delete();
     traitsCache.set(Traits.create());
     analyticsContext.setTraits(traitsCache.get());
