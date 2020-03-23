@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 4.5.0-beta.2 (Mar 23, 2020)
+===================================
+
+ * [New](https://github.com/segmentio/analytics-android/pull/632): Make crypto abstract methods public
+ * [Fix](https://github.com/segmentio/analytics-android/pull/648): Preserve BUILD and VERSION keys on reset() calls
+ * [Fix](https://github.com/segmentio/analytics-android/pull/646): Resolves ArrayIndexOutOfBoundsException crash (#586)
+ * [Fix](https://github.com/segmentio/analytics-android/pull/644): Updated documentation on deep copy and threading
+ * [Fix](https://github.com/segmentio/analytics-android/pull/642): Double check that input stream is closed
+
 Version 4.5.0-beta.1 (Dec 16, 2019)
 ===================================
 
