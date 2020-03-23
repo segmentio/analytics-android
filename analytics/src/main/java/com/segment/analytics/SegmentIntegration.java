@@ -447,7 +447,8 @@ class SegmentIntegration extends Integration<Void> {
       byte[] data = new byte[length];
       //noinspection ResultOfMethodCallIgnored
       is.read(data, 0, length);
-      writer.emitPayloadObject(new String(data, UTF_8));
+      // Remove trailing whitespace.
+      writer.emitPayloadObject(new String(data, UTF_8).trim());
       payloadCount++;
       return true;
     }
