@@ -24,12 +24,18 @@
 package com.segment.analytics.sample;
 
 import android.app.Activity;
+import android.arch.lifecycle.Lifecycle;
+import android.arch.lifecycle.LifecycleObserver;
+import android.arch.lifecycle.LifecycleOwner;
+import android.arch.lifecycle.OnLifecycleEvent;
+import android.arch.lifecycle.ProcessLifecycleOwner;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
@@ -57,6 +63,14 @@ public class MainActivity extends Activity {
     ButterKnife.bind(this);
 
     SampleApp.initSegmentLazy(this);
+
+    //This is only a test of ProcessLifecycleOwner, to verify that it properly goes through onCreate>onStart>onResume even after the activity is already created
+    ProcessLifecycleOwner.get().getLifecycle().addObserver(new LifecycleObserver() {
+      @OnLifecycleEvent(Lifecycle.Event.ON_ANY)
+      public void onEvent(LifecycleOwner owner, Lifecycle.Event event) {
+        Log.d("LifecycleObserver", "onEvent: " + event);
+      }
+    });
   }
 
   @OnClick(R.id.action_track_a)

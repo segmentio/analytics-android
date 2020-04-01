@@ -32,6 +32,9 @@ dependencies {
   implementation project(':analytics')
   implementation project(':analytics-wear')
 
+  implementation("android.arch.lifecycle:common:+")
+  implementation "android.arch.lifecycle:extensions:+"
+
   implementation 'uk.co.chrisjenx:calligraphy:2.2.0'
   implementation 'com.jakewharton:butterknife:8.8.1'
   annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
