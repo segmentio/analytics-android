@@ -67,6 +67,7 @@ public class MainActivity extends Activity {
   @OnClick(R.id.action_track_b)
   void onButtonBClicked() {
     Analytics.with(this).track("Button B Clicked");
+    startActivity(new Intent(this, SecondActivity.class));
   }
 
   @OnClick(R.id.action_identify)

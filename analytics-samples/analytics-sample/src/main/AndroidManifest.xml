@@ -45,6 +45,7 @@
       android:theme="@style/AppTheme"
       android:name=".SampleApp">
 
+    <activity android:name=".SecondActivity"></activity>
     <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
