@@ -24,6 +24,7 @@
 package com.segment.analytics.sample;
 
 import android.app.Application;
+import android.content.Context;
 import android.util.Log;
 import com.segment.analytics.Analytics;
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
@@ -42,19 +43,25 @@ public class SampleApp extends Application {
             .setDefaultFontPath("fonts/CircularStd-Book.otf")
             .setFontAttrId(R.attr.fontPath)
             .build());
+  }
+
+  private static boolean isInitAlready = false;
+  public static void initSegmentLazy(Context context) {
+    if(isInitAlready) return;
 
     // Initialize a new instance of the Analytics client.
     Analytics.Builder builder =
-        new Analytics.Builder(this, ANALYTICS_WRITE_KEY)
+        new Analytics.Builder(context, ANALYTICS_WRITE_KEY)
             .trackApplicationLifecycleEvents()
             .trackAttributionInformation()
+            .logLevel(Analytics.LogLevel.VERBOSE)
             .recordScreenViews();
 
     // Set the initialized instance as a globally accessible instance.
     Analytics.setSingletonInstance(builder.build());
 
     // Now anytime you call Analytics.with, the custom instance will be returned.
-    Analytics analytics = Analytics.with(this);
+    Analytics analytics = Analytics.with(context);
 
     // If you need to know when integrations have been initialized, use the onIntegrationReady
     // listener.
@@ -66,5 +73,6 @@ public class SampleApp extends Application {
             Log.d("Segment Sample", "Segment integration ready.");
           }
         });
+    isInitAlready = true;
   }
 }
