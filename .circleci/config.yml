@@ -24,6 +24,12 @@ jobs:
           name: Build
           command: ./gradlew check build assembleAndroidTest
       - run:
+          name: Snyk
+          command: curl -sL https://raw.githubusercontent.com/segmentio/snyk_helpers/master/initialization/snyk.sh | sh
+          environment:
+            SNYK_FAIL_ON: upgradable
+            SNYK_SEVERITY_THRESHOLD: high
+      - run:
           name: Run E2E Test
           command: |
             if [ "${RUN_E2E_TESTS}" == "true" ]; then
@@ -60,7 +66,8 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - build
+      - build:
+          context: snyk
   scheduled_e2e_test:
     triggers:
       - schedule:
