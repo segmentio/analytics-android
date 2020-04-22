@@ -1419,6 +1419,10 @@ public class Analytics {
 
     integrations = new LinkedHashMap<>(factories.size());
     for (int i = 0; i < factories.size(); i++) {
+      if (isNullOrEmpty(integrationSettings)) {
+        logger.debug("Integration settings are empty");
+        continue;
+      }
       Integration.Factory factory = factories.get(i);
       String key = factory.key();
       if (isNullOrEmpty(key)) {

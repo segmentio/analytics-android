@@ -1,6 +1,8 @@
 Changelog
 =========
 
+* [Fix](https://github.com/fubotv/segment-analytics-android/pull/1): Check integration settings for null
+
 Version 4.5.0-beta.2 (Mar 23, 2020)
 ===================================
 
