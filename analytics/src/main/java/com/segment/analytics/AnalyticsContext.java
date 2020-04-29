@@ -239,6 +239,7 @@ public class AnalyticsContext extends ValueMap {
     device.put(Device.DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);
     device.put(Device.DEVICE_MODEL_KEY, Build.MODEL);
     device.put(Device.DEVICE_NAME_KEY, Build.DEVICE);
+    device.put(Device.DEVICE_TYPE_KEY, "android");
     put(DEVICE_KEY, device);
   }
 
@@ -414,6 +415,7 @@ public class AnalyticsContext extends ValueMap {
     @Private static final String DEVICE_MANUFACTURER_KEY = "manufacturer";
     @Private static final String DEVICE_MODEL_KEY = "model";
     @Private static final String DEVICE_NAME_KEY = "name";
+    @Private static final String DEVICE_TYPE_KEY = "type";
     @Private static final String DEVICE_TOKEN_KEY = "token";
     @Private static final String DEVICE_ADVERTISING_ID_KEY = "advertisingId";
     @Private static final String DEVICE_AD_TRACKING_ENABLED_KEY = "adTrackingEnabled";

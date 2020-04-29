@@ -82,7 +82,8 @@ public class AnalyticsContextTest {
         .containsEntry("id", "unknown")
         .containsEntry("manufacturer", "unknown")
         .containsEntry("model", "unknown")
-        .containsEntry("name", "unknown");
+        .containsEntry("name", "unknown")
+        .containsEntry("type", "android");
 
     assertThat(context.getValueMap("library")) //
         .containsEntry("name", "analytics-android")
@@ -109,7 +110,8 @@ public class AnalyticsContextTest {
         .containsEntry("id", traits.anonymousId())
         .containsEntry("manufacturer", "unknown")
         .containsEntry("model", "unknown")
-        .containsEntry("name", "unknown");
+        .containsEntry("name", "unknown")
+        .containsEntry("type", "android");
   }
 
   @Test
