@@ -131,7 +131,7 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
       if (firstLaunch.get()) {
         properties
             .putValue("version", packageInfo.versionName)
-            .putValue("build", packageInfo.versionCode);
+            .putValue("build", String.valueOf(packageInfo.versionCode));
       }
       properties.putValue("from_background", !firstLaunch.getAndSet(false));
       analytics.track("Application Opened", properties);

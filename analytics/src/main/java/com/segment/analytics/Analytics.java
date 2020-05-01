@@ -349,15 +349,15 @@ public class Analytics {
           "Application Installed",
           new Properties() //
               .putValue(VERSION_KEY, currentVersion)
-              .putValue(BUILD_KEY, currentBuild));
+              .putValue(BUILD_KEY, String.valueOf(currentBuild)));
     } else if (currentBuild != previousBuild) {
       track(
           "Application Updated",
           new Properties() //
               .putValue(VERSION_KEY, currentVersion)
-              .putValue(BUILD_KEY, currentBuild)
+              .putValue(BUILD_KEY, String.valueOf(currentBuild))
               .putValue("previous_" + VERSION_KEY, previousVersion)
-              .putValue("previous_" + BUILD_KEY, previousBuild));
+              .putValue("previous_" + BUILD_KEY, String.valueOf(previousBuild)));
     }
 
     // Update the recorded version.

@@ -810,7 +810,7 @@ public class AnalyticsTest {
                         && //
                         payload.properties().getString("version").equals("1.0.0")
                         && //
-                        payload.properties().getInt("build", -1) == 100;
+                        payload.properties().getString("build").equals(String.valueOf(100));
                   }
                 }));
 
@@ -894,11 +894,11 @@ public class AnalyticsTest {
                         && //
                         payload.properties().getString("previous_version").equals("1.0.0")
                         && //
-                        payload.properties().getInt("previous_build", -1) == 100
+                        payload.properties().getString("previous_build").equals(String.valueOf(100))
                         && //
                         payload.properties().getString("version").equals("1.0.1")
                         && //
-                        payload.properties().getInt("build", -1) == 101;
+                        payload.properties().getString("build").equals(String.valueOf(101));
                   }
                 }));
   }
@@ -1301,7 +1301,7 @@ public class AnalyticsTest {
                   protected boolean matchesSafely(TrackPayload payload) {
                     return payload.event().equals("Application Opened")
                         && payload.properties().getString("version").equals("1.0.0")
-                        && payload.properties().getInt("build", -1) == 100
+                        && payload.properties().getString("build").equals(String.valueOf(100))
                         && !payload.properties().getBoolean("from_background", true);
                   }
                 }));
