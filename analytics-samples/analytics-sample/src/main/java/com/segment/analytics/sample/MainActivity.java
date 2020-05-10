@@ -38,7 +38,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import com.segment.analytics.Analytics;
-import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
+import io.github.inflationx.viewpump.ViewPumpContextWrapper;
 
 public class MainActivity extends Activity {
   @BindView(R.id.user_id)
@@ -108,6 +108,6 @@ public class MainActivity extends Activity {
 
   @Override
   protected void attachBaseContext(Context newBase) {
-    super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
+    super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase));
   }
 }
