@@ -26,10 +26,10 @@ package com.segment.analytics;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-import android.support.test.rule.ActivityTestRule;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.rule.ActivityTestRule;
+import androidx.test.runner.AndroidJUnit4;
+import com.segment.analytics.sample.BuildConfig;
 import com.segment.analytics.sample.MainActivity;
-import com.segment.analytics.sample.test.BuildConfig;
 import com.segment.analytics.webhook.WebhookService;
 import com.segment.backo.Backo;
 import java.io.IOException;
