@@ -26,7 +26,9 @@ package com.segment.analytics.sample;
 import android.app.Application;
 import android.util.Log;
 import com.segment.analytics.Analytics;
-import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
+import io.github.inflationx.calligraphy3.CalligraphyConfig;
+import io.github.inflationx.calligraphy3.CalligraphyInterceptor;
+import io.github.inflationx.viewpump.ViewPump;
 
 public class SampleApp extends Application {
 
@@ -37,10 +39,14 @@ public class SampleApp extends Application {
   public void onCreate() {
     super.onCreate();
 
-    CalligraphyConfig.initDefault(
-        new CalligraphyConfig.Builder()
-            .setDefaultFontPath("fonts/CircularStd-Book.otf")
-            .setFontAttrId(R.attr.fontPath)
+    ViewPump.init(
+        ViewPump.builder()
+            .addInterceptor(
+                new CalligraphyInterceptor(
+                    new CalligraphyConfig.Builder()
+                        .setDefaultFontPath("fonts/CircularStd-Book.otf")
+                        .setFontAttrId(R.attr.fontPath)
+                        .build()))
             .build());
 
     // Initialize a new instance of the Analytics client.

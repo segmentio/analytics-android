@@ -25,7 +25,7 @@ package com.segment.analytics.integrations;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import com.segment.analytics.Analytics;
 import com.segment.analytics.ValueMap;
 

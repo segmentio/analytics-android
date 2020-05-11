@@ -9,10 +9,10 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:3.1.2'
-    classpath 'com.vanniktech:gradle-android-junit-jacoco-plugin:0.5.0'
-    classpath 'com.diffplug.spotless:spotless-plugin-gradle:3.13.0'
-    classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.6.2'
+    classpath 'com.android.tools.build:gradle:3.6.3'
+    classpath 'com.vanniktech:gradle-android-junit-jacoco-plugin:0.16.0'
+    classpath 'com.diffplug.spotless:spotless-plugin-gradle:3.29.0'
+    classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:1.0.2'
   }
 }
 
@@ -45,17 +45,16 @@ ext {
   versionName = VERSION_NAME
 
   minSdkVersion = 14
-  minSdkVersionWear = 21
-  targetSdkVersion = 27
-  compileSdkVersion = 27
-  buildToolsVersion = '27.0.3'
+  minSdkVersionWear = 23
+  targetSdkVersion = 29
+  compileSdkVersion = 29
 
-  sourceCompatibilityVersion = JavaVersion.VERSION_1_7
-  targetCompatibilityVersion = JavaVersion.VERSION_1_7
+  sourceCompatibilityVersion = JavaVersion.VERSION_1_8
+  targetCompatibilityVersion = JavaVersion.VERSION_1_8
 
   preDexLibraries = preDexEnabled && !isCI
 }
 
 ext.deps = [
-  supportAnnotations: 'com.android.support:support-annotations:27.1.1'
+  supportAnnotations: 'androidx.annotation:annotation:1.1.0'
 ]

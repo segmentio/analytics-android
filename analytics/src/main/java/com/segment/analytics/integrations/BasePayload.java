@@ -30,9 +30,9 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static com.segment.analytics.internal.Utils.parseISO8601Date;
 import static com.segment.analytics.internal.Utils.toISO8601String;
 
-import android.support.annotation.CheckResult;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.CheckResult;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.ValueMap;
 import java.util.Collections;
