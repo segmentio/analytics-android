@@ -1,5 +1,4 @@
 apply plugin: 'com.diffplug.gradle.spotless'
-apply plugin: 'com.vanniktech.android.junit.jacoco'
 
 android {
   compileSdkVersion rootProject.ext.compileSdkVersion
@@ -22,9 +21,6 @@ android {
   buildTypes {
     release {
       minifyEnabled false
-    }
-    debug {
-      testCoverageEnabled true
     }
   }
 
