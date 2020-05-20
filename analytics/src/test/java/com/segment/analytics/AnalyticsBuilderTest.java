@@ -258,4 +258,14 @@ public class AnalyticsBuilderTest {
     //noinspection ResourceType
     when(resources.getString(1)).thenReturn(writeKey);
   }
+
+  @Test
+  public void invalidDefaultProjectSettingsThrowsException() {
+    try {
+      new Builder(context, "foo").defaultProjectSettings(null);
+      fail("Null defaultProjectSettings should throw exception.");
+    } catch (NullPointerException expected) {
+      assertThat(expected).hasMessage("defaultProjectSettings == null");
+    }
+  }
 }
