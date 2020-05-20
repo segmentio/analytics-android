@@ -1263,9 +1263,9 @@ public class Analytics {
      * href="https://cdn-settings.segment.com/v1/projects/YOUR_WRITE_KEY/settings">
      * https://cdn-settings.segment.com/v1/projects/YOUR_WRITE_KEY/settings </a>
      */
-    public Builder defaultProjectSettings(ValueMap defaultIntegrationSettings) {
-      assertNotNull(defaultIntegrationSettings, "defaultIntegrationSettings");
-      this.defaultProjectSettings = defaultIntegrationSettings;
+    public Builder defaultProjectSettings(ValueMap defaultProjectSettings) {
+      assertNotNull(defaultProjectSettings, "defaultProjectSettings");
+      this.defaultProjectSettings = defaultProjectSettings;
       return this;
     }
 
