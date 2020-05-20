@@ -1256,9 +1256,7 @@ public class Analytics {
       return this;
     }
 
-    /**
-     * Add default integrations, in case of bad network connectivity
-     */
+    /** Add default integrations, in case of bad network connectivity */
     public Builder defaultIntegrationSettings(ValueMap defaultIntegrationSettings) {
       assertNotNull(defaultIntegrationSettings, "defaultIntegrationSettings");
       this.defaultIntegrationSettings = defaultIntegrationSettings;

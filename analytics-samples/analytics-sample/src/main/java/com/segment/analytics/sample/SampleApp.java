@@ -65,8 +65,7 @@ public class SampleApp extends Application {
                                 "Adjust",
                                 new ValueMap()
                                     .putValue("appToken", "<>")
-                                    .putValue("trackAttributionData", true)))
-            )
+                                    .putValue("trackAttributionData", true))))
             .recordScreenViews();
 
     // Set the initialized instance as a globally accessible instance.
