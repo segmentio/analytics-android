@@ -56,7 +56,7 @@ public class SampleApp extends Application {
         new Analytics.Builder(this, ANALYTICS_WRITE_KEY)
             .trackApplicationLifecycleEvents()
             .trackAttributionInformation()
-            .defaultIntegrationSettings(
+            .defaultProjectSettings(
                 new ValueMap()
                     .putValue(
                         "integrations",

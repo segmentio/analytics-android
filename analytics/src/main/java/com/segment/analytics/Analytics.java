@@ -1,18 +1,18 @@
 /**
  * The MIT License (MIT)
- *
+ * <p>
  * Copyright (c) 2014 Segment.io, Inc.
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -225,7 +225,7 @@ public class Analytics {
       BooleanPreference optOut,
       Crypto crypto,
       @NonNull List<Middleware> middlewares,
-      @NonNull final ValueMap defaultIntegrationSettings) {
+      @NonNull final ValueMap defaultProjectSettings) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -255,24 +255,25 @@ public class Analytics {
           public void run() {
             projectSettings = getSettings();
             if (isNullOrEmpty(projectSettings)) {
-              // Backup mode - Enable just the Segment integration.
+              // Backup mode - Enable the Segment integration and load the provided defaultProjectSettings
               // {
+              //   ...defaultProjectSettings
               //   integrations: {
-              //     ...defaultIntegrationSettings
+              //     ...defaultProjectSettings.integrations
               //     Segment.io: {
               //       apiKey: "{writeKey}"
               //     }
               //   }
               // }
-              projectSettings =
-                  ProjectSettings.create(
-                      new ValueMap() //
-                          .putValue(
-                              "integrations",
-                              new ValueMap(defaultIntegrationSettings)
-                                  .putValue(
-                                      "Segment.io",
-                                      new ValueMap().putValue("apiKey", Analytics.this.writeKey))));
+              projectSettings = ProjectSettings.create(defaultProjectSettings);
+              if (!projectSettings.containsKey("integrations")) {
+                projectSettings.put("integrations", new ValueMap());
+              }
+              projectSettings
+                  .getValueMap("integrations")
+                  .putValue(
+                      "Segment.io",
+                      new ValueMap().putValue("apiKey", Analytics.this.writeKey));
             }
             HANDLER.post(
                 new Runnable() {
@@ -1049,7 +1050,7 @@ public class Analytics {
     private boolean trackAttributionInformation = false;
     private boolean trackDeepLinks = false;
     private Crypto crypto;
-    private ValueMap defaultIntegrationSettings = new ValueMap();
+    private ValueMap defaultProjectSettings = new ValueMap();
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -1256,10 +1257,12 @@ public class Analytics {
       return this;
     }
 
-    /** Add default integrations, in case of bad network connectivity */
-    public Builder defaultIntegrationSettings(ValueMap defaultIntegrationSettings) {
+    /**
+     * Add default integrations, in case of app can't communicate to Segment.com
+     */
+    public Builder defaultProjectSettings(ValueMap defaultIntegrationSettings) {
       assertNotNull(defaultIntegrationSettings, "defaultIntegrationSettings");
-      this.defaultIntegrationSettings = defaultIntegrationSettings;
+      this.defaultProjectSettings = defaultIntegrationSettings;
       return this;
     }
 
@@ -1362,7 +1365,7 @@ public class Analytics {
           optOut,
           crypto,
           middlewares,
-          defaultIntegrationSettings);
+          defaultProjectSettings);
     }
   }
 
