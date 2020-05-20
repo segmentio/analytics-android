@@ -224,7 +224,8 @@ public class Analytics {
       final boolean trackDeepLinks,
       BooleanPreference optOut,
       Crypto crypto,
-      @NonNull List<Middleware> middlewares) {
+      @NonNull List<Middleware> middlewares,
+      @NonNull final ValueMap defaultIntegrationSettings) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -257,6 +258,7 @@ public class Analytics {
               // Backup mode - Enable just the Segment integration.
               // {
               //   integrations: {
+              //     ...defaultIntegrationSettings
               //     Segment.io: {
               //       apiKey: "{writeKey}"
               //     }
@@ -267,7 +269,7 @@ public class Analytics {
                       new ValueMap() //
                           .putValue(
                               "integrations",
-                              new ValueMap()
+                              new ValueMap(defaultIntegrationSettings)
                                   .putValue(
                                       "Segment.io",
                                       new ValueMap().putValue("apiKey", Analytics.this.writeKey))));
@@ -1047,6 +1049,7 @@ public class Analytics {
     private boolean trackAttributionInformation = false;
     private boolean trackDeepLinks = false;
     private Crypto crypto;
+    private ValueMap defaultIntegrationSettings = new ValueMap();
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -1254,6 +1257,15 @@ public class Analytics {
     }
 
     /**
+     * Add default integrations, in case of bad network connectivity
+     */
+    public Builder defaultIntegrationSettings(ValueMap defaultIntegrationSettings) {
+      assertNotNull(defaultIntegrationSettings, "defaultIntegrationSettings");
+      this.defaultIntegrationSettings = defaultIntegrationSettings;
+      return this;
+    }
+
+    /**
      * The executor on which payloads are dispatched asynchronously. This is not exposed publicly.
      */
     Builder executor(ExecutorService executor) {
@@ -1351,7 +1363,8 @@ public class Analytics {
           trackDeepLinks,
           optOut,
           crypto,
-          middlewares);
+          middlewares,
+          defaultIntegrationSettings);
     }
   }
 

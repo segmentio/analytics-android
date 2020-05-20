@@ -1,18 +1,18 @@
 /**
  * The MIT License (MIT)
- *
+ * <p>
  * Copyright (c) 2014 Segment.io, Inc.
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,6 +29,8 @@ import com.segment.analytics.Analytics;
 import io.github.inflationx.calligraphy3.CalligraphyConfig;
 import io.github.inflationx.calligraphy3.CalligraphyInterceptor;
 import io.github.inflationx.viewpump.ViewPump;
+import com.segment.analytics.ValueMap;
+import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 
 public class SampleApp extends Application {
 
@@ -54,6 +56,17 @@ public class SampleApp extends Application {
         new Analytics.Builder(this, ANALYTICS_WRITE_KEY)
             .trackApplicationLifecycleEvents()
             .trackAttributionInformation()
+            .defaultIntegrationSettings(
+                new ValueMap()
+                    .putValue(
+                        "integrations",
+                        new ValueMap()
+                            .putValue(
+                                "Adjust",
+                                new ValueMap()
+                                    .putValue("appToken", "<>")
+                                    .putValue("trackAttributionData", true)))
+            )
             .recordScreenViews();
 
     // Set the initialized instance as a globally accessible instance.
