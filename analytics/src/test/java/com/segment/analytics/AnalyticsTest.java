@@ -66,16 +66,12 @@ import com.segment.analytics.integrations.Logger;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.data.MapEntry;
 import org.hamcrest.Description;
@@ -1564,25 +1560,27 @@ public class AnalyticsTest {
     // Make project download empty map and thus use default settings
     when(projectSettingsCache.get()) //
         .thenReturn(null);
-    Client.Connection mockConnection = new Client.Connection(mock(HttpURLConnection.class), new ByteArrayInputStream("{}".getBytes()), null) {
-      @Override
-      public void close() throws IOException {
-        super.close();
-        is.close();
-      }
-    };
-    when(client.fetchSettings())
-        .thenReturn(mockConnection);
+    Client.Connection mockConnection =
+        new Client.Connection(
+            mock(HttpURLConnection.class), new ByteArrayInputStream("{}".getBytes()), null) {
+          @Override
+          public void close() throws IOException {
+            super.close();
+            is.close();
+          }
+        };
+    when(client.fetchSettings()).thenReturn(mockConnection);
 
-    ValueMap defaultProjectSettings = new ValueMap()
-        .putValue(
-            "integrations",
-            new ValueMap()
-                .putValue(
-                    "Adjust",
-                    new ValueMap()
-                        .putValue("appToken", "<>")
-                        .putValue("trackAttributionData", true)));
+    ValueMap defaultProjectSettings =
+        new ValueMap()
+            .putValue(
+                "integrations",
+                new ValueMap()
+                    .putValue(
+                        "Adjust",
+                        new ValueMap()
+                            .putValue("appToken", "<>")
+                            .putValue("trackAttributionData", true)));
     analytics =
         new Analytics(
             application,
@@ -1612,7 +1610,10 @@ public class AnalyticsTest {
             defaultProjectSettings);
 
     assertThat(analytics.projectSettings).hasSize(2).containsKey("integrations");
-    assertThat(analytics.projectSettings.integrations()).hasSize(2).containsKey("Segment.io").containsKey("Adjust");
+    assertThat(analytics.projectSettings.integrations())
+        .hasSize(2)
+        .containsKey("Segment.io")
+        .containsKey("Adjust");
   }
 
   @Test
@@ -1621,15 +1622,16 @@ public class AnalyticsTest {
     // Make project download empty map and thus use default settings
     when(projectSettingsCache.get()) //
         .thenReturn(null);
-    Client.Connection mockConnection = new Client.Connection(mock(HttpURLConnection.class), new ByteArrayInputStream("{}".getBytes()), null) {
-      @Override
-      public void close() throws IOException {
-        super.close();
-        is.close();
-      }
-    };
-    when(client.fetchSettings())
-        .thenReturn(mockConnection);
+    Client.Connection mockConnection =
+        new Client.Connection(
+            mock(HttpURLConnection.class), new ByteArrayInputStream("{}".getBytes()), null) {
+          @Override
+          public void close() throws IOException {
+            super.close();
+            is.close();
+          }
+        };
+    when(client.fetchSettings()).thenReturn(mockConnection);
 
     ValueMap defaultProjectSettings = new ValueMap();
     analytics =

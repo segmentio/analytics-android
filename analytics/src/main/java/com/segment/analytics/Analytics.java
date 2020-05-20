@@ -255,7 +255,8 @@ public class Analytics {
           public void run() {
             projectSettings = getSettings();
             if (isNullOrEmpty(projectSettings)) {
-              // Backup mode - Enable the Segment integration and load the provided defaultProjectSettings
+              // Backup mode - Enable the Segment integration and load the provided
+              // defaultProjectSettings
               // {
               //   ...defaultProjectSettings
               //   integrations: {
@@ -272,8 +273,7 @@ public class Analytics {
               projectSettings
                   .getValueMap("integrations")
                   .putValue(
-                      "Segment.io",
-                      new ValueMap().putValue("apiKey", Analytics.this.writeKey));
+                      "Segment.io", new ValueMap().putValue("apiKey", Analytics.this.writeKey));
             }
             HANDLER.post(
                 new Runnable() {
@@ -1257,9 +1257,7 @@ public class Analytics {
       return this;
     }
 
-    /**
-     * Add default integrations, in case of app can't communicate to Segment.com
-     */
+    /** Add default integrations, in case of app can't communicate to Segment.com */
     public Builder defaultProjectSettings(ValueMap defaultIntegrationSettings) {
       assertNotNull(defaultIntegrationSettings, "defaultIntegrationSettings");
       this.defaultProjectSettings = defaultIntegrationSettings;
