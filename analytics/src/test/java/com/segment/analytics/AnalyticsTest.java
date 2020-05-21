@@ -1,18 +1,18 @@
 /**
  * The MIT License (MIT)
- * <p>
+ *
  * Copyright (c) 2014 Segment.io, Inc.
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -57,7 +57,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.os.Bundle;
-
 import com.segment.analytics.TestUtils.NoDescriptionMatcher;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.GroupPayload;
@@ -67,13 +66,11 @@ import com.segment.analytics.integrations.Logger;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
-
 import org.assertj.core.data.MapEntry;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -104,22 +101,14 @@ public class AnalyticsTest {
           + "  }\n"
           + "}";
 
-  @Mock
-  Traits.Cache traitsCache;
-  @Mock
-  Options defaultOptions;
-  @Spy
-  AnalyticsNetworkExecutorService networkExecutor;
-  @Spy
-  ExecutorService analyticsExecutor = new SynchronousExecutor();
-  @Mock
-  Client client;
-  @Mock
-  Stats stats;
-  @Mock
-  ProjectSettings.Cache projectSettingsCache;
-  @Mock
-  Integration integration;
+  @Mock Traits.Cache traitsCache;
+  @Mock Options defaultOptions;
+  @Spy AnalyticsNetworkExecutorService networkExecutor;
+  @Spy ExecutorService analyticsExecutor = new SynchronousExecutor();
+  @Mock Client client;
+  @Mock Stats stats;
+  @Mock ProjectSettings.Cache projectSettingsCache;
+  @Mock Integration integration;
   private Integration.Factory factory;
   private BooleanPreference optOut;
   private Application application;
@@ -622,8 +611,7 @@ public class AnalyticsTest {
                   }
 
                   @Override
-                  public void describeTo(Description description) {
-                  }
+                  public void describeTo(Description description) {}
                 }));
     assertThat(analyticsContext.traits()).hasSize(1).containsKey("anonymousId");
   }

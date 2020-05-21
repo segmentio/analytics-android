@@ -268,14 +268,17 @@ public class Analytics {
               //   }
               // }
               if (!defaultProjectSettings.containsKey("integrations")) {
-                defaultProjectSettings
-                    .put("integrations", new ValueMap());
+                defaultProjectSettings.put("integrations", new ValueMap());
               }
               if (!defaultProjectSettings.getValueMap("integrations").containsKey("Segment.io")) {
                 defaultProjectSettings
-                    .getValueMap("integrations").put("Segment.io", new ValueMap());
+                    .getValueMap("integrations")
+                    .put("Segment.io", new ValueMap());
               }
-              if (!defaultProjectSettings.getValueMap("integrations").getValueMap("Segment.io").containsKey("apiKey")) {
+              if (!defaultProjectSettings
+                  .getValueMap("integrations")
+                  .getValueMap("Segment.io")
+                  .containsKey("apiKey")) {
                 defaultProjectSettings
                     .getValueMap("integrations")
                     .getValueMap("Segment.io")
