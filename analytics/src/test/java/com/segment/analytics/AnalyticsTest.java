@@ -1555,21 +1555,12 @@ public class AnalyticsTest {
   }
 
   @Test
-  public void loadNonEmptyDefaultProjectSettings() throws IOException {
+  public void loadNonEmptyDefaultProjectSettingsOnNetworkError() throws IOException {
     Analytics.INSTANCES.clear();
     // Make project download empty map and thus use default settings
     when(projectSettingsCache.get()) //
         .thenReturn(null);
-    Client.Connection mockConnection =
-        new Client.Connection(
-            mock(HttpURLConnection.class), new ByteArrayInputStream("{}".getBytes()), null) {
-          @Override
-          public void close() throws IOException {
-            super.close();
-            is.close();
-          }
-        };
-    when(client.fetchSettings()).thenReturn(mockConnection);
+    when(client.fetchSettings()).thenThrow(IOException.class); // Simulate network error
 
     ValueMap defaultProjectSettings =
         new ValueMap()
@@ -1617,21 +1608,12 @@ public class AnalyticsTest {
   }
 
   @Test
-  public void loadEmptyDefaultProjectSettings() throws IOException {
+  public void loadEmptyDefaultProjectSettingsOnNetworkError() throws IOException {
     Analytics.INSTANCES.clear();
     // Make project download empty map and thus use default settings
     when(projectSettingsCache.get()) //
         .thenReturn(null);
-    Client.Connection mockConnection =
-        new Client.Connection(
-            mock(HttpURLConnection.class), new ByteArrayInputStream("{}".getBytes()), null) {
-          @Override
-          public void close() throws IOException {
-            super.close();
-            is.close();
-          }
-        };
-    when(client.fetchSettings()).thenReturn(mockConnection);
+    when(client.fetchSettings()).thenThrow(IOException.class); // Simulate network error
 
     ValueMap defaultProjectSettings = new ValueMap();
     analytics =

@@ -266,14 +266,14 @@ public class Analytics {
               //     }
               //   }
               // }
-              projectSettings = ProjectSettings.create(defaultProjectSettings);
-              if (!projectSettings.containsKey("integrations")) {
-                projectSettings.put("integrations", new ValueMap());
+              if (!defaultProjectSettings.containsKey("integrations")) {
+                defaultProjectSettings.put("integrations", new ValueMap());
               }
-              projectSettings
+              defaultProjectSettings
                   .getValueMap("integrations")
                   .putValue(
                       "Segment.io", new ValueMap().putValue("apiKey", Analytics.this.writeKey));
+              projectSettings = ProjectSettings.create(defaultProjectSettings);
             }
             HANDLER.post(
                 new Runnable() {
