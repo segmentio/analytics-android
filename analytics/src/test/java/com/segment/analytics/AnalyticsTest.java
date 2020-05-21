@@ -179,7 +179,8 @@ public class AnalyticsTest {
             false,
             optOut,
             Crypto.none(),
-            Collections.<Middleware>emptyList());
+            Collections.<Middleware>emptyList(),
+            new ValueMap());
 
     // Used by singleton tests.
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
@@ -796,7 +797,8 @@ public class AnalyticsTest {
             false,
             optOut,
             Crypto.none(),
-            Collections.<Middleware>emptyList());
+            Collections.<Middleware>emptyList(),
+            new ValueMap());
 
     callback.get().onActivityCreated(null, null);
 
@@ -880,7 +882,8 @@ public class AnalyticsTest {
             false,
             optOut,
             Crypto.none(),
-            Collections.<Middleware>emptyList());
+            Collections.<Middleware>emptyList(),
+            new ValueMap());
 
     callback.get().onActivityCreated(null, null);
 
@@ -946,7 +949,8 @@ public class AnalyticsTest {
             false,
             optOut,
             Crypto.none(),
-            Collections.<Middleware>emptyList());
+            Collections.<Middleware>emptyList(),
+            new ValueMap());
 
     Activity activity = mock(Activity.class);
     PackageManager packageManager = mock(PackageManager.class);
@@ -1014,7 +1018,8 @@ public class AnalyticsTest {
             true,
             optOut,
             Crypto.none(),
-            Collections.<Middleware>emptyList());
+            Collections.<Middleware>emptyList(),
+            new ValueMap());
 
     final String expectedUrl = "app://track.com/open?utm_id=12345&gclid=abcd&nope=";
 
@@ -1084,7 +1089,8 @@ public class AnalyticsTest {
             false,
             optOut,
             Crypto.none(),
-            Collections.<Middleware>emptyList());
+            Collections.<Middleware>emptyList(),
+            new ValueMap());
 
     final String expectedUrl = "app://track.com/open?utm_id=12345&gclid=abcd&nope=";
 
@@ -1154,7 +1160,8 @@ public class AnalyticsTest {
             false,
             optOut,
             Crypto.none(),
-            Collections.<Middleware>emptyList());
+            Collections.<Middleware>emptyList(),
+            new ValueMap());
 
     Activity activity = mock(Activity.class);
 
@@ -1216,7 +1223,8 @@ public class AnalyticsTest {
             false,
             optOut,
             Crypto.none(),
-            Collections.<Middleware>emptyList());
+            Collections.<Middleware>emptyList(),
+            new ValueMap());
 
     Activity activity = mock(Activity.class);
     Bundle bundle = new Bundle();
@@ -1288,7 +1296,8 @@ public class AnalyticsTest {
             false,
             optOut,
             Crypto.none(),
-            Collections.<Middleware>emptyList());
+            Collections.<Middleware>emptyList(),
+            new ValueMap());
 
     callback.get().onActivityCreated(null, null);
     callback.get().onActivityResumed(null);
@@ -1351,7 +1360,8 @@ public class AnalyticsTest {
             false,
             optOut,
             Crypto.none(),
-            Collections.<Middleware>emptyList());
+            Collections.<Middleware>emptyList(),
+            new ValueMap());
 
     Activity backgroundedActivity = mock(Activity.class);
     when(backgroundedActivity.isChangingConfigurations()).thenReturn(false);
@@ -1415,7 +1425,8 @@ public class AnalyticsTest {
             false,
             optOut,
             Crypto.none(),
-            Collections.<Middleware>emptyList());
+            Collections.<Middleware>emptyList(),
+            new ValueMap());
 
     Activity backgroundedActivity = mock(Activity.class);
     when(backgroundedActivity.isChangingConfigurations()).thenReturn(false);
@@ -1503,7 +1514,8 @@ public class AnalyticsTest {
             false,
             optOut,
             Crypto.none(),
-            Collections.<Middleware>emptyList());
+            Collections.<Middleware>emptyList(),
+            new ValueMap());
 
     assertThat(analytics.shutdown).isFalse();
     analytics.shutdown();
@@ -1538,5 +1550,154 @@ public class AnalyticsTest {
     verify(integration, never()).onActivityDestroyed(activity);
 
     verifyNoMoreInteractions(integration);
+  }
+
+  @Test
+  public void loadNonEmptyDefaultProjectSettingsOnNetworkError() throws IOException {
+    Analytics.INSTANCES.clear();
+    // Make project download empty map and thus use default settings
+    when(projectSettingsCache.get()) //
+        .thenReturn(null);
+    when(client.fetchSettings()).thenThrow(IOException.class); // Simulate network error
+
+    ValueMap defaultProjectSettings =
+        new ValueMap()
+            .putValue(
+                "integrations",
+                new ValueMap()
+                    .putValue(
+                        "Adjust",
+                        new ValueMap()
+                            .putValue("appToken", "<>")
+                            .putValue("trackAttributionData", true)));
+    analytics =
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            true,
+            new CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList(),
+            defaultProjectSettings);
+
+    assertThat(analytics.projectSettings).hasSize(2).containsKey("integrations");
+    assertThat(analytics.projectSettings.integrations())
+        .hasSize(2)
+        .containsKey("Segment.io")
+        .containsKey("Adjust");
+  }
+
+  @Test
+  public void loadEmptyDefaultProjectSettingsOnNetworkError() throws IOException {
+    Analytics.INSTANCES.clear();
+    // Make project download empty map and thus use default settings
+    when(projectSettingsCache.get()) //
+        .thenReturn(null);
+    when(client.fetchSettings()).thenThrow(IOException.class); // Simulate network error
+
+    ValueMap defaultProjectSettings = new ValueMap();
+    analytics =
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            true,
+            new CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList(),
+            defaultProjectSettings);
+
+    assertThat(analytics.projectSettings).hasSize(2).containsKey("integrations");
+    assertThat(analytics.projectSettings.integrations()).hasSize(1).containsKey("Segment.io");
+  }
+
+  @Test
+  public void overwriteSegmentIoIntegration() throws IOException {
+    Analytics.INSTANCES.clear();
+    // Make project download empty map and thus use default settings
+    when(projectSettingsCache.get()) //
+        .thenReturn(null);
+    when(client.fetchSettings()).thenThrow(IOException.class); // Simulate network error
+
+    ValueMap defaultProjectSettings =
+        new ValueMap()
+            .putValue(
+                "integrations",
+                new ValueMap()
+                    .putValue(
+                        "Segment.io",
+                        new ValueMap()
+                            .putValue("appToken", "<>")
+                            .putValue("trackAttributionData", true)));
+    analytics =
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            true,
+            new CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList(),
+            defaultProjectSettings);
+
+    assertThat(analytics.projectSettings).hasSize(2).containsKey("integrations");
+    assertThat(analytics.projectSettings.integrations()).hasSize(1).containsKey("Segment.io");
+    assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
+        .hasSize(3)
+        .containsKey("apiKey")
+        .containsKey("appToken")
+        .containsKey("trackAttributionData");
   }
 }

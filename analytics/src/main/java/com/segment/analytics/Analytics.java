@@ -224,7 +224,8 @@ public class Analytics {
       final boolean trackDeepLinks,
       BooleanPreference optOut,
       Crypto crypto,
-      @NonNull List<Middleware> middlewares) {
+      @NonNull List<Middleware> middlewares,
+      @NonNull final ValueMap defaultProjectSettings) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -254,23 +255,36 @@ public class Analytics {
           public void run() {
             projectSettings = getSettings();
             if (isNullOrEmpty(projectSettings)) {
-              // Backup mode - Enable just the Segment integration.
+              // Backup mode - Enable the Segment integration and load the provided
+              // defaultProjectSettings
               // {
+              //   ...defaultProjectSettings
               //   integrations: {
+              //     ...defaultProjectSettings.integrations
               //     Segment.io: {
+              //       ...defaultProjectSettings.integrations.Segment.io
               //       apiKey: "{writeKey}"
               //     }
               //   }
               // }
-              projectSettings =
-                  ProjectSettings.create(
-                      new ValueMap() //
-                          .putValue(
-                              "integrations",
-                              new ValueMap()
-                                  .putValue(
-                                      "Segment.io",
-                                      new ValueMap().putValue("apiKey", Analytics.this.writeKey))));
+              if (!defaultProjectSettings.containsKey("integrations")) {
+                defaultProjectSettings.put("integrations", new ValueMap());
+              }
+              if (!defaultProjectSettings.getValueMap("integrations").containsKey("Segment.io")) {
+                defaultProjectSettings
+                    .getValueMap("integrations")
+                    .put("Segment.io", new ValueMap());
+              }
+              if (!defaultProjectSettings
+                  .getValueMap("integrations")
+                  .getValueMap("Segment.io")
+                  .containsKey("apiKey")) {
+                defaultProjectSettings
+                    .getValueMap("integrations")
+                    .getValueMap("Segment.io")
+                    .putValue("apiKey", Analytics.this.writeKey);
+              }
+              projectSettings = ProjectSettings.create(defaultProjectSettings);
             }
             HANDLER.post(
                 new Runnable() {
@@ -1047,6 +1061,7 @@ public class Analytics {
     private boolean trackAttributionInformation = false;
     private boolean trackDeepLinks = false;
     private Crypto crypto;
+    private ValueMap defaultProjectSettings = new ValueMap();
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -1254,6 +1269,18 @@ public class Analytics {
     }
 
     /**
+     * Set the default project settings to use, if Segment.com cannot be reached. An example
+     * configuration can be found here, using your write key: <a
+     * href="https://cdn-settings.segment.com/v1/projects/YOUR_WRITE_KEY/settings">
+     * https://cdn-settings.segment.com/v1/projects/YOUR_WRITE_KEY/settings </a>
+     */
+    public Builder defaultProjectSettings(ValueMap defaultProjectSettings) {
+      assertNotNull(defaultProjectSettings, "defaultProjectSettings");
+      this.defaultProjectSettings = defaultProjectSettings;
+      return this;
+    }
+
+    /**
      * The executor on which payloads are dispatched asynchronously. This is not exposed publicly.
      */
     Builder executor(ExecutorService executor) {
@@ -1351,7 +1378,8 @@ public class Analytics {
           trackDeepLinks,
           optOut,
           crypto,
-          middlewares);
+          middlewares,
+          defaultProjectSettings);
     }
   }
 

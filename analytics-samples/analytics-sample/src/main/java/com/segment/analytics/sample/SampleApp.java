@@ -26,6 +26,7 @@ package com.segment.analytics.sample;
 import android.app.Application;
 import android.util.Log;
 import com.segment.analytics.Analytics;
+import com.segment.analytics.ValueMap;
 import io.github.inflationx.calligraphy3.CalligraphyConfig;
 import io.github.inflationx.calligraphy3.CalligraphyInterceptor;
 import io.github.inflationx.viewpump.ViewPump;
@@ -54,6 +55,16 @@ public class SampleApp extends Application {
         new Analytics.Builder(this, ANALYTICS_WRITE_KEY)
             .trackApplicationLifecycleEvents()
             .trackAttributionInformation()
+            .defaultProjectSettings(
+                new ValueMap()
+                    .putValue(
+                        "integrations",
+                        new ValueMap()
+                            .putValue(
+                                "Adjust",
+                                new ValueMap()
+                                    .putValue("appToken", "<>")
+                                    .putValue("trackAttributionData", true))))
             .recordScreenViews();
 
     // Set the initialized instance as a globally accessible instance.
