@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 4.6.0 (May 21, 2020)
+============================
+
+* [New](https://github.com/segmentio/analytics-android/pull/662): Add DefaultProjectSettings in Analytics.Builder
+* [Fix](https://github.com/segmentio/analytics-android/pull/659): Test coverage fix after previous merge to master
+* [New](https://github.com/segmentio/analytics-android/pull/658): Update project to AndroidX
+* [Fix](https://github.com/segmentio/analytics-android/pull/656): Set build property to String
+
 Version 4.5.0 (Apr 22, 2020)
 ============================
 
