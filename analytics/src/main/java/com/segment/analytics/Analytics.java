@@ -262,17 +262,25 @@ public class Analytics {
               //   integrations: {
               //     ...defaultProjectSettings.integrations
               //     Segment.io: {
+              //       ...defaultProjectSettings.integrations.Segment.io
               //       apiKey: "{writeKey}"
               //     }
               //   }
               // }
               if (!defaultProjectSettings.containsKey("integrations")) {
-                defaultProjectSettings.put("integrations", new ValueMap());
+                defaultProjectSettings
+                    .put("integrations", new ValueMap());
               }
-              defaultProjectSettings
-                  .getValueMap("integrations")
-                  .putValue(
-                      "Segment.io", new ValueMap().putValue("apiKey", Analytics.this.writeKey));
+              if (!defaultProjectSettings.getValueMap("integrations").containsKey("Segment.io")) {
+                defaultProjectSettings
+                    .getValueMap("integrations").put("Segment.io", new ValueMap());
+              }
+              if (!defaultProjectSettings.getValueMap("integrations").getValueMap("Segment.io").containsKey("apiKey")) {
+                defaultProjectSettings
+                    .getValueMap("integrations")
+                    .getValueMap("Segment.io")
+                    .putValue("apiKey", Analytics.this.writeKey);
+              }
               projectSettings = ProjectSettings.create(defaultProjectSettings);
             }
             HANDLER.post(
