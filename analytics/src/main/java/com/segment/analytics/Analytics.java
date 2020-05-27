@@ -119,7 +119,7 @@ public class Analytics {
   private final Application application;
   final ExecutorService networkExecutor;
   final Stats stats;
-  private final @NonNull List<Middleware> middlewares;
+  private final @NonNull List<Middleware> sourceMiddleware;
   @Private final Options defaultOptions;
   @Private final Traits.Cache traitsCache;
   @Private final AnalyticsContext analyticsContext;
@@ -224,7 +224,7 @@ public class Analytics {
       final boolean trackDeepLinks,
       BooleanPreference optOut,
       Crypto crypto,
-      @NonNull List<Middleware> middlewares,
+      @NonNull List<Middleware> sourceMiddleware,
       @NonNull final ValueMap defaultProjectSettings) {
     this.application = application;
     this.networkExecutor = networkExecutor;
@@ -245,7 +245,7 @@ public class Analytics {
     this.factories = factories;
     this.analyticsExecutor = analyticsExecutor;
     this.crypto = crypto;
-    this.middlewares = middlewares;
+    this.sourceMiddleware = sourceMiddleware;
 
     namespaceSharedPreferences();
 
@@ -766,7 +766,7 @@ public class Analytics {
       return;
     }
     logger.verbose("Created payload %s.", payload);
-    Middleware.Chain chain = new RealMiddlewareChain(0, payload, middlewares, this);
+    Middleware.Chain chain = new RealMiddlewareChain(0, payload, sourceMiddleware, this);
     chain.proceed(payload);
   }
 
@@ -1055,7 +1055,7 @@ public class Analytics {
     private ExecutorService executor;
     private ConnectionFactory connectionFactory;
     private final List<Integration.Factory> factories = new ArrayList<>();
-    private List<Middleware> middlewares;
+    private List<Middleware> sourceMiddleware;
     private boolean trackApplicationLifecycleEvents = false;
     private boolean recordScreenViews = false;
     private boolean trackAttributionInformation = false;
@@ -1255,16 +1255,27 @@ public class Analytics {
       return this;
     }
 
-    /** Add a {@link Middleware} for intercepting messages. */
+    /**
+     * @see #useSourceMiddleware(Middleware)
+     * @deprecated Use {@link #useSourceMiddleware(Middleware)} instead.
+     */
     public Builder middleware(Middleware middleware) {
+      return useSourceMiddleware(middleware);
+    }
+
+    /**
+     * Add a {@link Middleware} custom source middleware. This will be run before sending to all
+     * integrations
+     */
+    public Builder useSourceMiddleware(Middleware middleware) {
       assertNotNull(middleware, "middleware");
-      if (middlewares == null) {
-        middlewares = new ArrayList<>();
+      if (sourceMiddleware == null) {
+        sourceMiddleware = new ArrayList<>();
       }
-      if (middlewares.contains(middleware)) {
-        throw new IllegalStateException("Middleware is already registered.");
+      if (sourceMiddleware.contains(middleware)) {
+        throw new IllegalStateException("Source Middleware is already registered.");
       }
-      middlewares.add(middleware);
+      sourceMiddleware.add(middleware);
       return this;
     }
 
@@ -1347,7 +1358,7 @@ public class Analytics {
       factories.add(SegmentIntegration.FACTORY);
       factories.addAll(this.factories);
 
-      List<Middleware> middlewares = Utils.immutableCopyOf(this.middlewares);
+      List<Middleware> middlewares = Utils.immutableCopyOf(this.sourceMiddleware);
 
       ExecutorService executor = this.executor;
       if (executor == null) {
