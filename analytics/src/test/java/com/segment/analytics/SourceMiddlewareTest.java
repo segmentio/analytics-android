@@ -43,7 +43,7 @@ import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
-public class MiddlewareTest {
+public class SourceMiddlewareTest {
 
   Analytics.Builder builder;
 
@@ -62,14 +62,14 @@ public class MiddlewareTest {
     final AtomicReference<TrackPayload> payloadRef = new AtomicReference<>();
     Analytics analytics =
         builder
-            .middleware(
+            .useSourceMiddleware(
                 new Middleware() {
                   @Override
                   public void intercept(Chain chain) {
                     payloadRef.set((TrackPayload) chain.payload());
                   }
                 })
-            .middleware(
+            .useSourceMiddleware(
                 new Middleware() {
                   @Override
                   public void intercept(Chain chain) {
@@ -87,14 +87,14 @@ public class MiddlewareTest {
     final AtomicReference<ScreenPayload> payloadRef = new AtomicReference<>();
     Analytics analytics =
         builder
-            .middleware(
+            .useSourceMiddleware(
                 new Middleware() {
                   @Override
                   public void intercept(Chain chain) {
                     chain.proceed(chain.payload());
                   }
                 })
-            .middleware(
+            .useSourceMiddleware(
                 new Middleware() {
                   @Override
                   public void intercept(Chain chain) {
@@ -114,14 +114,14 @@ public class MiddlewareTest {
     final AtomicReference<BasePayload> payloadRef = new AtomicReference<>();
     Analytics analytics =
         builder
-            .middleware(
+            .useSourceMiddleware(
                 new Middleware() {
                   @Override
                   public void intercept(Chain chain) {
                     chain.proceed(chain.payload().toBuilder().messageId("override").build());
                   }
                 })
-            .middleware(
+            .useSourceMiddleware(
                 new Middleware() {
                   @Override
                   public void intercept(Chain chain) {

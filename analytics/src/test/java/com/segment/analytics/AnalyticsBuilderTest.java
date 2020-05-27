@@ -91,7 +91,7 @@ public class AnalyticsBuilderTest {
   @Test
   public void invalidMiddlewareThrowsException() throws Exception {
     try {
-      new Builder(context, "foo").middleware(null);
+      new Builder(context, "foo").useSourceMiddleware(null);
       fail("Null middleware should throw exception.");
     } catch (NullPointerException expected) {
       assertThat(expected).hasMessage("middleware == null");
@@ -105,7 +105,7 @@ public class AnalyticsBuilderTest {
               throw new AssertionError("should not be invoked");
             }
           };
-      new Builder(context, "foo").middleware(middleware).middleware(middleware);
+      new Builder(context, "foo").useSourceMiddleware(middleware).useSourceMiddleware(middleware);
       fail("Registering middleware twice throw exception.");
     } catch (IllegalStateException expected) {
       assertThat(expected).hasMessage("Middleware is already registered.");
