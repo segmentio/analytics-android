@@ -64,6 +64,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -1056,6 +1057,7 @@ public class Analytics {
     private ConnectionFactory connectionFactory;
     private final List<Integration.Factory> factories = new ArrayList<>();
     private List<Middleware> sourceMiddleware;
+    private HashMap<String, List<Middleware>> destinationMiddleware;
     private boolean trackApplicationLifecycleEvents = false;
     private boolean recordScreenViews = false;
     private boolean trackAttributionInformation = false;
@@ -1276,6 +1278,30 @@ public class Analytics {
         throw new IllegalStateException("Source Middleware is already registered.");
       }
       sourceMiddleware.add(middleware);
+      return this;
+    }
+
+    /**
+     * Add a {@link Middleware} custom destination middleware, for a particular destination. This
+     * will be run before sending to the associated destination
+     */
+    public Builder useDestinationMiddleware(String key, Middleware middleware) {
+      if (isNullOrEmpty(key)) {
+        throw new IllegalArgumentException("key must not be null or empty.");
+      }
+      assertNotNull(middleware, "middleware");
+      if (destinationMiddleware == null) {
+        destinationMiddleware = new HashMap<>();
+      }
+      List<Middleware> middlewareList = destinationMiddleware.get(key);
+      if (middlewareList == null) {
+        middlewareList = new ArrayList<>();
+        destinationMiddleware.put(key, middlewareList);
+      }
+      if (middlewareList.contains(middleware)) {
+        throw new IllegalStateException("Destination Middleware is already registered.");
+      }
+      middlewareList.add(middleware);
       return this;
     }
 

@@ -89,7 +89,7 @@ public class AnalyticsBuilderTest {
   }
 
   @Test
-  public void invalidMiddlewareThrowsException() throws Exception {
+  public void invalidSourceMiddlewareThrowsException() throws Exception {
     try {
       new Builder(context, "foo").useSourceMiddleware(null);
       fail("Null middleware should throw exception.");
@@ -109,6 +109,46 @@ public class AnalyticsBuilderTest {
       fail("Registering middleware twice throw exception.");
     } catch (IllegalStateException expected) {
       assertThat(expected).hasMessage("Source Middleware is already registered.");
+    }
+  }
+
+  @Test
+  public void invalidDestinationMiddlewareThrowsException() throws Exception {
+    try {
+      new Builder(context, "foo").useDestinationMiddleware(null, null);
+      fail("Null key should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("key must not be null or empty.");
+    }
+
+    try {
+      new Builder(context, "foo").useDestinationMiddleware("", null);
+      fail("Empty key should throw exception.");
+    } catch (IllegalArgumentException expected) {
+      assertThat(expected).hasMessage("key must not be null or empty.");
+    }
+
+    try {
+      new Builder(context, "foo").useDestinationMiddleware("foo", null);
+      fail("Null middleware should throw exception.");
+    } catch (NullPointerException expected) {
+      assertThat(expected).hasMessage("middleware == null");
+    }
+
+    try {
+      Middleware middleware =
+          new Middleware() {
+            @Override
+            public void intercept(Chain chain) {
+              throw new AssertionError("should not be invoked");
+            }
+          };
+      new Builder(context, "foo")
+          .useDestinationMiddleware("bar", middleware)
+          .useDestinationMiddleware("bar", middleware);
+      fail("Registering middleware twice throw exception.");
+    } catch (IllegalStateException expected) {
+      assertThat(expected).hasMessage("Destination Middleware is already registered.");
     }
   }
 
