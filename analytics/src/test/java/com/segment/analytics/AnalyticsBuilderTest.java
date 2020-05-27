@@ -108,7 +108,7 @@ public class AnalyticsBuilderTest {
       new Builder(context, "foo").useSourceMiddleware(middleware).useSourceMiddleware(middleware);
       fail("Registering middleware twice throw exception.");
     } catch (IllegalStateException expected) {
-      assertThat(expected).hasMessage("Middleware is already registered.");
+      assertThat(expected).hasMessage("Source Middleware is already registered.");
     }
   }
 
