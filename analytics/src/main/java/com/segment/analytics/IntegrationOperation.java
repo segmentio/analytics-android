@@ -173,7 +173,7 @@ abstract class IntegrationOperation {
   @Private
   static void runMiddlewareChain(
       BasePayload payload, List<Middleware> middleware, Middleware.Callback callback) {
-    Middleware.Chain chain = new MiddlewareChain(0, payload, middleware, callback);
+    Middleware.Chain chain = new MiddlewareChainRunner(0, payload, middleware, callback);
     chain.proceed(payload);
   }
 

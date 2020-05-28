@@ -771,7 +771,12 @@ public class Analytics {
       return;
     }
     logger.verbose("Created payload %s.", payload);
-    Middleware.Chain chain = new RealMiddlewareChain(0, payload, sourceMiddleware, this);
+    Middleware.Chain chain = new MiddlewareChainRunner(0, payload, sourceMiddleware, new Middleware.Callback() {
+      @Override
+      public void invoke(BasePayload payload) {
+        run(payload);
+      }
+    });
     chain.proceed(payload);
   }
 
