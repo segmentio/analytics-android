@@ -1,25 +1,27 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Segment.io, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.segment.analytics;
-
-import android.Manifest;
-
-import androidx.annotation.NonNull;
-
-import com.google.common.util.concurrent.MoreExecutors;
-import com.segment.analytics.integrations.BasePayload;
-import com.segment.analytics.integrations.IdentifyPayload;
-import com.segment.analytics.integrations.Integration;
-import com.segment.analytics.integrations.TrackPayload;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
-
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.segment.analytics.TestUtils.grantPermission;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,16 +30,31 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import android.Manifest;
+import androidx.annotation.NonNull;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.segment.analytics.integrations.BasePayload;
+import com.segment.analytics.integrations.IdentifyPayload;
+import com.segment.analytics.integrations.Integration;
+import com.segment.analytics.integrations.TrackPayload;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
+
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
 public class DestinationMiddlewareTest {
 
   Analytics.Builder builder;
 
-  @Mock
-  Integration<Void> integrationFoo;
-  @Mock
-  Integration<Void> integrationBar;
+  @Mock Integration<Void> integrationFoo;
+  @Mock Integration<Void> integrationBar;
 
   @Before
   public void setUp() {
@@ -49,10 +66,7 @@ public class DestinationMiddlewareTest {
             .putValue(
                 "integrations",
                 new ValueMap()
-                    .putValue(
-                        "foo",
-                        new ValueMap()
-                            .putValue("appToken", "foo_token"))
+                    .putValue("foo", new ValueMap().putValue("appToken", "foo_token"))
                     .putValue(
                         "bar",
                         new ValueMap()
@@ -61,30 +75,32 @@ public class DestinationMiddlewareTest {
     builder =
         new Analytics.Builder(RuntimeEnvironment.application, "write_key")
             .defaultProjectSettings(projectSettings)
-            .use(new Integration.Factory() {
-              @Override
-              public Integration<?> create(ValueMap settings, Analytics analytics) {
-                return integrationFoo;
-              }
+            .use(
+                new Integration.Factory() {
+                  @Override
+                  public Integration<?> create(ValueMap settings, Analytics analytics) {
+                    return integrationFoo;
+                  }
 
-              @NonNull
-              @Override
-              public String key() {
-                return "foo";
-              }
-            })
-            .use(new Integration.Factory() {
-              @Override
-              public Integration<?> create(ValueMap settings, Analytics analytics) {
-                return integrationBar;
-              }
+                  @NonNull
+                  @Override
+                  public String key() {
+                    return "foo";
+                  }
+                })
+            .use(
+                new Integration.Factory() {
+                  @Override
+                  public Integration<?> create(ValueMap settings, Analytics analytics) {
+                    return integrationBar;
+                  }
 
-              @NonNull
-              @Override
-              public String key() {
-                return "bar";
-              }
-            })
+                  @NonNull
+                  @Override
+                  public String key() {
+                    return "bar";
+                  }
+                })
             .executor(MoreExecutors.newDirectExecutorService());
   }
 
@@ -115,13 +131,14 @@ public class DestinationMiddlewareTest {
     final AtomicReference<TrackPayload> payloadRefDestMiddleware = new AtomicReference<>();
     Analytics analytics =
         builder
-            .useSourceMiddleware(new Middleware() {
-              @Override
-              public void intercept(Chain chain) {
-                payloadRefOriginal.set((TrackPayload) chain.payload());
-                chain.proceed(chain.payload());
-              }
-            })
+            .useSourceMiddleware(
+                new Middleware() {
+                  @Override
+                  public void intercept(Chain chain) {
+                    payloadRefOriginal.set((TrackPayload) chain.payload());
+                    chain.proceed(chain.payload());
+                  }
+                })
             .useDestinationMiddleware(
                 "foo",
                 new Middleware() {
@@ -132,9 +149,11 @@ public class DestinationMiddlewareTest {
                     ValueMap properties = new ValueMap();
                     properties.putAll(payload.properties());
 
-                    TrackPayload newPayload = payload.toBuilder()
-                        .properties(properties.putValue("middleware_key", "middleware_value"))
-                        .build();
+                    TrackPayload newPayload =
+                        payload
+                            .toBuilder()
+                            .properties(properties.putValue("middleware_key", "middleware_value"))
+                            .build();
                     payloadRefDestMiddleware.set(newPayload);
                     chain.proceed(newPayload);
                   }
@@ -148,7 +167,8 @@ public class DestinationMiddlewareTest {
 
     assertThat(payloadRefDestMiddleware.get().event()).isEqualTo("foo");
     assertThat(payloadRefDestMiddleware.get().properties()).containsKey("middleware_key");
-    assertThat(payloadRefDestMiddleware.get().properties().get("middleware_key")).isEqualTo("middleware_value");
+    assertThat(payloadRefDestMiddleware.get().properties().get("middleware_key"))
+        .isEqualTo("middleware_value");
     verify(integrationFoo).track(payloadRefDestMiddleware.get());
   }
 
@@ -157,24 +177,26 @@ public class DestinationMiddlewareTest {
     final AtomicReference<TrackPayload> payloadRefOriginal = new AtomicReference<>();
     final AtomicReference<TrackPayload> payloadRefDestMiddleware = new AtomicReference<>();
     final AtomicInteger destCounter = new AtomicInteger(0);
-    Middleware middleware = new Middleware() {
-      @Override
-      public void intercept(Chain chain) {
-        TrackPayload newPayload = (TrackPayload) chain.payload().toBuilder().build();
-        payloadRefDestMiddleware.set(newPayload);
-        destCounter.incrementAndGet();
-        chain.proceed(newPayload);
-      }
-    };
+    Middleware middleware =
+        new Middleware() {
+          @Override
+          public void intercept(Chain chain) {
+            TrackPayload newPayload = (TrackPayload) chain.payload().toBuilder().build();
+            payloadRefDestMiddleware.set(newPayload);
+            destCounter.incrementAndGet();
+            chain.proceed(newPayload);
+          }
+        };
     Analytics analytics =
         builder
-            .useSourceMiddleware(new Middleware() {
-              @Override
-              public void intercept(Chain chain) {
-                payloadRefOriginal.set((TrackPayload) chain.payload());
-                chain.proceed(chain.payload());
-              }
-            })
+            .useSourceMiddleware(
+                new Middleware() {
+                  @Override
+                  public void intercept(Chain chain) {
+                    payloadRefOriginal.set((TrackPayload) chain.payload());
+                    chain.proceed(chain.payload());
+                  }
+                })
             .useDestinationMiddleware("foo", middleware)
             .useDestinationMiddleware("Segment.io", middleware)
             .build();
@@ -230,9 +252,8 @@ public class DestinationMiddlewareTest {
                     ValueMap properties = new ValueMap();
                     properties.putAll(payload.properties());
 
-                    TrackPayload newPayload = payload.toBuilder()
-                        .properties(properties.putValue("key1", "val1"))
-                        .build();
+                    TrackPayload newPayload =
+                        payload.toBuilder().properties(properties.putValue("key1", "val1")).build();
                     chain.proceed(newPayload);
                   }
                 })
@@ -245,9 +266,8 @@ public class DestinationMiddlewareTest {
                     ValueMap properties = new ValueMap();
                     properties.putAll(payload.properties());
 
-                    TrackPayload newPayload = payload.toBuilder()
-                        .properties(properties.putValue("key2", "val2"))
-                        .build();
+                    TrackPayload newPayload =
+                        payload.toBuilder().properties(properties.putValue("key2", "val2")).build();
                     payloadRef.set(newPayload);
                     chain.proceed(newPayload);
                   }

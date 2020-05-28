@@ -777,7 +777,8 @@ public class Analytics {
 
   void run(BasePayload payload) {
     logger.verbose("Running payload %s.", payload);
-    final IntegrationOperation operation = IntegrationOperation.segmentEvent(payload, destinationMiddleware);
+    final IntegrationOperation operation =
+        IntegrationOperation.segmentEvent(payload, destinationMiddleware);
     HANDLER.post(
         new Runnable() {
           @Override

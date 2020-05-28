@@ -57,7 +57,8 @@ public class IntegrationOperationTest {
   }
 
   private void track(TrackPayload payload, String name, Map<String, Object> settings) {
-    IntegrationOperation.segmentEvent(payload, Collections.emptyMap()).run(name, integration, new ProjectSettings(settings));
+    IntegrationOperation.segmentEvent(payload, Collections.emptyMap())
+        .run(name, integration, new ProjectSettings(settings));
   }
 
   @Test
@@ -368,55 +369,41 @@ public class IntegrationOperationTest {
 
   @Test
   public void identify() {
-    IdentifyPayload payload =
-        new IdentifyPayload.Builder()
-            .userId("userId")
-            .build();
-    IntegrationOperation.segmentEvent(payload, Collections.emptyMap()).run("Mixpanel", integration, new ProjectSettings(Collections.<String, Object>emptyMap()));
+    IdentifyPayload payload = new IdentifyPayload.Builder().userId("userId").build();
+    IntegrationOperation.segmentEvent(payload, Collections.emptyMap())
+        .run("Mixpanel", integration, new ProjectSettings(Collections.<String, Object>emptyMap()));
     verify(integration).identify(payload);
   }
 
   @Test
   public void alias() {
-    AliasPayload payload =
-        new AliasPayload.Builder()
-            .previousId("foo")
-            .userId("userId")
-            .build();
-    IntegrationOperation.segmentEvent(payload, Collections.emptyMap()).run("Mixpanel", integration, new ProjectSettings(Collections.<String, Object>emptyMap()));
+    AliasPayload payload = new AliasPayload.Builder().previousId("foo").userId("userId").build();
+    IntegrationOperation.segmentEvent(payload, Collections.emptyMap())
+        .run("Mixpanel", integration, new ProjectSettings(Collections.<String, Object>emptyMap()));
     verify(integration).alias(payload);
   }
 
   @Test
   public void group() {
-    GroupPayload payload =
-        new GroupPayload.Builder()
-            .userId("userId")
-            .groupId("bar")
-            .build();
-    IntegrationOperation.segmentEvent(payload, Collections.emptyMap()).run("Mixpanel", integration, new ProjectSettings(Collections.<String, Object>emptyMap()));
+    GroupPayload payload = new GroupPayload.Builder().userId("userId").groupId("bar").build();
+    IntegrationOperation.segmentEvent(payload, Collections.emptyMap())
+        .run("Mixpanel", integration, new ProjectSettings(Collections.<String, Object>emptyMap()));
     verify(integration).group(payload);
   }
 
   @Test
   public void track() {
-    TrackPayload payload =
-        new TrackPayload.Builder()
-            .userId("userId")
-            .event("foo")
-            .build();
-    IntegrationOperation.segmentEvent(payload, Collections.emptyMap()).run("Mixpanel", integration, new ProjectSettings(Collections.<String, Object>emptyMap()));
+    TrackPayload payload = new TrackPayload.Builder().userId("userId").event("foo").build();
+    IntegrationOperation.segmentEvent(payload, Collections.emptyMap())
+        .run("Mixpanel", integration, new ProjectSettings(Collections.<String, Object>emptyMap()));
     verify(integration).track(payload);
   }
 
   @Test
   public void screen() {
-    ScreenPayload payload =
-        new ScreenPayload.Builder()
-            .userId("userId")
-            .name("foobar")
-            .build();
-    IntegrationOperation.segmentEvent(payload, Collections.emptyMap()).run("Mixpanel", integration, new ProjectSettings(Collections.<String, Object>emptyMap()));
+    ScreenPayload payload = new ScreenPayload.Builder().userId("userId").name("foobar").build();
+    IntegrationOperation.segmentEvent(payload, Collections.emptyMap())
+        .run("Mixpanel", integration, new ProjectSettings(Collections.<String, Object>emptyMap()));
     verify(integration).screen(payload);
   }
 }

@@ -1,18 +1,18 @@
 /**
  * The MIT License (MIT)
- * <p>
+ *
  * Copyright (c) 2014 Segment.io, Inc.
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,7 +28,6 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 import android.app.Activity;
 import android.os.Bundle;
-
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
@@ -37,14 +36,11 @@ import com.segment.analytics.integrations.Integration;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Private;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Abstraction for a task that a {@link Integration <?>} can execute.
- */
+/** Abstraction for a task that a {@link Integration <?>} can execute. */
 abstract class IntegrationOperation {
 
   @Private
@@ -182,10 +178,11 @@ abstract class IntegrationOperation {
   }
 
   /**
-   * Integration Operation for a Segment Event (track | identify | alias | group | screen)
-   * Operation runs destination middleware for given integration before sending to the desired integration
+   * Integration Operation for a Segment Event (track | identify | alias | group | screen) Operation
+   * runs destination middleware for given integration before sending to the desired integration
    */
-  static IntegrationOperation segmentEvent(final BasePayload payload, Map<String, List<Middleware>> destinationMiddleware) {
+  static IntegrationOperation segmentEvent(
+      final BasePayload payload, Map<String, List<Middleware>> destinationMiddleware) {
     return new IntegrationOperation() {
       @Override
       void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
@@ -238,7 +235,11 @@ abstract class IntegrationOperation {
     }
   }
 
-  static void track(TrackPayload trackPayload, String key, Integration<?> integration, ProjectSettings projectSettings) {
+  static void track(
+      TrackPayload trackPayload,
+      String key,
+      Integration<?> integration,
+      ProjectSettings projectSettings) {
     ValueMap integrationOptions = trackPayload.integrations();
 
     ValueMap trackingPlan = projectSettings.trackingPlan();
@@ -339,11 +340,8 @@ abstract class IntegrationOperation {
         }
       };
 
-  private IntegrationOperation() {
-  }
+  private IntegrationOperation() {}
 
-  /**
-   * Run this operation on the given integration.
-   */
+  /** Run this operation on the given integration. */
   abstract void run(String key, Integration<?> integration, ProjectSettings projectSettings);
 }
