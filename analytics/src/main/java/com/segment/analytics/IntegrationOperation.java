@@ -163,7 +163,6 @@ abstract class IntegrationOperation {
     };
   }
 
-
   @Private
   static List<Middleware> getMiddlewareList(
       Map<String, List<Middleware>> destinationMiddleware, String key) {
