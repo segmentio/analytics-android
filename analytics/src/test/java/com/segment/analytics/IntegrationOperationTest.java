@@ -29,7 +29,11 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import static org.robolectric.annotation.Config.NONE;
 
 import com.google.common.collect.ImmutableMap;
+import com.segment.analytics.integrations.AliasPayload;
+import com.segment.analytics.integrations.GroupPayload;
+import com.segment.analytics.integrations.IdentifyPayload;
 import com.segment.analytics.integrations.Integration;
+import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
 import java.io.IOException;
 import java.util.Collections;
@@ -360,5 +364,59 @@ public class IntegrationOperationTest {
                 + "  }\n"
                 + "}"));
     verify(integration, never()).track(payload);
+  }
+
+  @Test
+  public void identify() {
+    IdentifyPayload payload =
+        new IdentifyPayload.Builder()
+            .userId("userId")
+            .build();
+    IntegrationOperation.segmentEvent(payload, Collections.emptyMap()).run("Mixpanel", integration, new ProjectSettings(Collections.<String, Object>emptyMap()));
+    verify(integration).identify(payload);
+  }
+
+  @Test
+  public void alias() {
+    AliasPayload payload =
+        new AliasPayload.Builder()
+            .previousId("foo")
+            .userId("userId")
+            .build();
+    IntegrationOperation.segmentEvent(payload, Collections.emptyMap()).run("Mixpanel", integration, new ProjectSettings(Collections.<String, Object>emptyMap()));
+    verify(integration).alias(payload);
+  }
+
+  @Test
+  public void group() {
+    GroupPayload payload =
+        new GroupPayload.Builder()
+            .userId("userId")
+            .groupId("bar")
+            .build();
+    IntegrationOperation.segmentEvent(payload, Collections.emptyMap()).run("Mixpanel", integration, new ProjectSettings(Collections.<String, Object>emptyMap()));
+    verify(integration).group(payload);
+  }
+
+  @Test
+  public void track() {
+    TrackPayload payload =
+        new TrackPayload.Builder()
+            .userId("userId")
+            .event("foo")
+            .build();
+    IntegrationOperation.segmentEvent(payload, Collections.emptyMap()).run("Mixpanel", integration, new ProjectSettings(Collections.<String, Object>emptyMap()));
+    verify(integration).track(payload);
+  }
+
+  @Test
+  public void screen() {
+    ScreenPayload payload =
+        new ScreenPayload.Builder()
+            .userId("userId")
+            .name("foobar")
+            .build();
+    IntegrationOperation.segmentEvent(payload, Collections.emptyMap()).run("Mixpanel", integration, new ProjectSettings(Collections.<String, Object>emptyMap()));
+    verify(integration).screen(payload);
   }
 }
