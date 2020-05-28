@@ -93,7 +93,7 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
       }
 
       Intent intent = activity.getIntent();
-      if (activity.getIntent() == null) {
+      if (intent == null || intent.getData() == null) {
         return;
       }
 

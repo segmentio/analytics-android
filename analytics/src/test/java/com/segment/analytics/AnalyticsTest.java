@@ -1181,6 +1181,72 @@ public class AnalyticsTest {
   }
 
   @Test
+  public void trackDeepLinks_nullData() {
+    Analytics.INSTANCES.clear();
+
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+            new AtomicReference<>();
+    doNothing()
+            .when(application)
+            .registerActivityLifecycleCallbacks(
+                    argThat(
+                            new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                              @Override
+                              protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                                callback.set(item);
+                                return true;
+                              }
+                            }));
+
+    analytics =
+            new Analytics(
+                    application,
+                    networkExecutor,
+                    stats,
+                    traitsCache,
+                    analyticsContext,
+                    defaultOptions,
+                    Logger.with(NONE),
+                    "qaz",
+                    Collections.singletonList(factory),
+                    client,
+                    Cartographer.INSTANCE,
+                    projectSettingsCache,
+                    "foo",
+                    DEFAULT_FLUSH_QUEUE_SIZE,
+                    DEFAULT_FLUSH_INTERVAL,
+                    analyticsExecutor,
+                    true,
+                    new CountDownLatch(0),
+                    false,
+                    false,
+                    false,
+                    optOut,
+                    Crypto.none(),
+                    Collections.<Middleware>emptyList(),
+                    new ValueMap());
+
+    Activity activity = mock(Activity.class);
+
+    Intent intent = mock(Intent.class);
+
+    when(activity.getIntent()).thenReturn(intent);
+    when(intent.getData()).thenReturn(null);
+
+    callback.get().onActivityCreated(activity, new Bundle());
+
+    verify(integration, never())
+            .track(
+                    argThat(
+                            new NoDescriptionMatcher<TrackPayload>() {
+                              @Override
+                              protected boolean matchesSafely(TrackPayload payload) {
+                                return payload.event().equals("Deep Link Opened");
+                              }
+                            }));
+  }
+
+  @Test
   public void registerActivityLifecycleCallbacks() throws NameNotFoundException {
     Analytics.INSTANCES.clear();
 
