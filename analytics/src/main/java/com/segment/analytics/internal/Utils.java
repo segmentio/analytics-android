@@ -235,6 +235,7 @@ public final class Utils {
   /** Returns an immutable copy of the provided map. */
   @NonNull
   public static <K, V> Map<K, V> immutableCopyOf(@NonNull Map<K, V> map) {
+    // TODO (major version change) change this out to allow @Nullable input and guard against it
     return Collections.unmodifiableMap(new LinkedHashMap<>(map));
   }
 

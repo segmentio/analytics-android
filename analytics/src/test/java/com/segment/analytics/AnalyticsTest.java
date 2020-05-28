@@ -68,6 +68,7 @@ import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
@@ -180,6 +181,7 @@ public class AnalyticsTest {
             optOut,
             Crypto.none(),
             Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap());
 
     // Used by singleton tests.
@@ -798,6 +800,7 @@ public class AnalyticsTest {
             optOut,
             Crypto.none(),
             Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap());
 
     callback.get().onActivityCreated(null, null);
@@ -883,6 +886,7 @@ public class AnalyticsTest {
             optOut,
             Crypto.none(),
             Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap());
 
     callback.get().onActivityCreated(null, null);
@@ -950,6 +954,7 @@ public class AnalyticsTest {
             optOut,
             Crypto.none(),
             Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap());
 
     Activity activity = mock(Activity.class);
@@ -1019,6 +1024,7 @@ public class AnalyticsTest {
             optOut,
             Crypto.none(),
             Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap());
 
     final String expectedUrl = "app://track.com/open?utm_id=12345&gclid=abcd&nope=";
@@ -1090,6 +1096,7 @@ public class AnalyticsTest {
             optOut,
             Crypto.none(),
             Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap());
 
     final String expectedUrl = "app://track.com/open?utm_id=12345&gclid=abcd&nope=";
@@ -1161,6 +1168,7 @@ public class AnalyticsTest {
             optOut,
             Crypto.none(),
             Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap());
 
     Activity activity = mock(Activity.class);
@@ -1224,6 +1232,7 @@ public class AnalyticsTest {
             optOut,
             Crypto.none(),
             Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap());
 
     Activity activity = mock(Activity.class);
@@ -1297,6 +1306,7 @@ public class AnalyticsTest {
             optOut,
             Crypto.none(),
             Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap());
 
     callback.get().onActivityCreated(null, null);
@@ -1361,6 +1371,7 @@ public class AnalyticsTest {
             optOut,
             Crypto.none(),
             Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap());
 
     Activity backgroundedActivity = mock(Activity.class);
@@ -1426,6 +1437,7 @@ public class AnalyticsTest {
             optOut,
             Crypto.none(),
             Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap());
 
     Activity backgroundedActivity = mock(Activity.class);
@@ -1515,6 +1527,7 @@ public class AnalyticsTest {
             optOut,
             Crypto.none(),
             Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap());
 
     assertThat(analytics.shutdown).isFalse();
@@ -1596,6 +1609,7 @@ public class AnalyticsTest {
             optOut,
             Crypto.none(),
             Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
             defaultProjectSettings);
 
     assertThat(analytics.projectSettings).hasSize(2).containsKey("integrations");
@@ -1640,6 +1654,7 @@ public class AnalyticsTest {
             optOut,
             Crypto.none(),
             Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
             defaultProjectSettings);
 
     assertThat(analytics.projectSettings).hasSize(2).containsKey("integrations");
@@ -1690,6 +1705,7 @@ public class AnalyticsTest {
             optOut,
             Crypto.none(),
             Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
             defaultProjectSettings);
 
     assertThat(analytics.projectSettings).hasSize(2).containsKey("integrations");

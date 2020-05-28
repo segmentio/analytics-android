@@ -23,22 +23,43 @@
  */
 package com.segment.analytics;
 
+import androidx.annotation.NonNull;
 import com.segment.analytics.integrations.BasePayload;
+import java.util.List;
 
-/** Middlewares run for every message after it is built to process it further. */
-public interface Middleware {
+class MiddlewareChain implements Middleware.Chain {
 
-  /** Called for every message. This will be called on the same thread the request was made. */
-  void intercept(Chain chain);
+  private int index;
+  private final @NonNull BasePayload payload;
+  private final @NonNull List<Middleware> middleware;
+  private final @NonNull Middleware.Callback callback;
 
-  interface Chain {
-
-    BasePayload payload();
-
-    void proceed(BasePayload payload);
+  MiddlewareChain(
+      int index,
+      @NonNull BasePayload payload,
+      @NonNull List<Middleware> middlewares,
+      @NonNull Middleware.Callback callback) {
+    this.index = index;
+    this.payload = payload;
+    this.middleware = middlewares;
+    this.callback = callback;
   }
 
-  interface Callback {
-    void invoke(BasePayload payload);
+  @Override
+  public BasePayload payload() {
+    return payload;
+  }
+
+  @Override
+  public void proceed(BasePayload payload) {
+    // If there's another middleware in the chain, call that.
+    if (index < middleware.size()) {
+      Middleware.Chain chain = new MiddlewareChain(index + 1, payload, middleware, callback);
+      middleware.get(index).intercept(chain);
+      return;
+    }
+
+    // No more interceptors.
+    callback.invoke(payload);
   }
 }

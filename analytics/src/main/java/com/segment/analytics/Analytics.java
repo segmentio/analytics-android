@@ -30,6 +30,7 @@ import static com.segment.analytics.internal.Utils.getInputStream;
 import static com.segment.analytics.internal.Utils.getResourceString;
 import static com.segment.analytics.internal.Utils.getSegmentSharedPreferences;
 import static com.segment.analytics.internal.Utils.hasPermission;
+import static com.segment.analytics.internal.Utils.immutableCopyOf;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 import android.Manifest;
@@ -121,6 +122,7 @@ public class Analytics {
   final ExecutorService networkExecutor;
   final Stats stats;
   private final @NonNull List<Middleware> sourceMiddleware;
+  private final @NonNull Map<String, List<Middleware>> destinationMiddleware;
   @Private final Options defaultOptions;
   @Private final Traits.Cache traitsCache;
   @Private final AnalyticsContext analyticsContext;
@@ -226,6 +228,7 @@ public class Analytics {
       BooleanPreference optOut,
       Crypto crypto,
       @NonNull List<Middleware> sourceMiddleware,
+      @NonNull Map<String, List<Middleware>> destinationMiddleware,
       @NonNull final ValueMap defaultProjectSettings) {
     this.application = application;
     this.networkExecutor = networkExecutor;
@@ -247,6 +250,7 @@ public class Analytics {
     this.analyticsExecutor = analyticsExecutor;
     this.crypto = crypto;
     this.sourceMiddleware = sourceMiddleware;
+    this.destinationMiddleware = destinationMiddleware;
 
     namespaceSharedPreferences();
 
@@ -773,26 +777,7 @@ public class Analytics {
 
   void run(BasePayload payload) {
     logger.verbose("Running payload %s.", payload);
-    final IntegrationOperation operation;
-    switch (payload.type()) {
-      case identify:
-        operation = IntegrationOperation.identify((IdentifyPayload) payload);
-        break;
-      case alias:
-        operation = IntegrationOperation.alias((AliasPayload) payload);
-        break;
-      case group:
-        operation = IntegrationOperation.group((GroupPayload) payload);
-        break;
-      case track:
-        operation = IntegrationOperation.track((TrackPayload) payload);
-        break;
-      case screen:
-        operation = IntegrationOperation.screen((ScreenPayload) payload);
-        break;
-      default:
-        throw new AssertionError("unknown type " + payload.type());
-    }
+    final IntegrationOperation operation = IntegrationOperation.segmentEvent(payload, destinationMiddleware);
     HANDLER.post(
         new Runnable() {
           @Override
@@ -1057,7 +1042,7 @@ public class Analytics {
     private ConnectionFactory connectionFactory;
     private final List<Integration.Factory> factories = new ArrayList<>();
     private List<Middleware> sourceMiddleware;
-    private HashMap<String, List<Middleware>> destinationMiddleware;
+    private Map<String, List<Middleware>> destinationMiddleware;
     private boolean trackApplicationLifecycleEvents = false;
     private boolean recordScreenViews = false;
     private boolean trackAttributionInformation = false;
@@ -1384,7 +1369,11 @@ public class Analytics {
       factories.add(SegmentIntegration.FACTORY);
       factories.addAll(this.factories);
 
-      List<Middleware> middlewares = Utils.immutableCopyOf(this.sourceMiddleware);
+      List<Middleware> srcMiddleware = Utils.immutableCopyOf(this.sourceMiddleware);
+      Map<String, List<Middleware>> destMiddleware =
+          isNullOrEmpty(this.destinationMiddleware)
+              ? Collections.<String, List<Middleware>>emptyMap()
+              : immutableCopyOf(this.destinationMiddleware);
 
       ExecutorService executor = this.executor;
       if (executor == null) {
@@ -1415,7 +1404,8 @@ public class Analytics {
           trackDeepLinks,
           optOut,
           crypto,
-          middlewares,
+          srcMiddleware,
+          destMiddleware,
           defaultProjectSettings);
     }
   }

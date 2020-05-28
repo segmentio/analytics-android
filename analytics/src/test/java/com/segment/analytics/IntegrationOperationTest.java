@@ -53,7 +53,7 @@ public class IntegrationOperationTest {
   }
 
   private void track(TrackPayload payload, String name, Map<String, Object> settings) {
-    IntegrationOperation.track(payload).run(name, integration, new ProjectSettings(settings));
+    IntegrationOperation.segmentEvent(payload, Collections.emptyMap()).run(name, integration, new ProjectSettings(settings));
   }
 
   @Test
