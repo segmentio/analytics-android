@@ -29,15 +29,20 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import android.app.Activity;
 import android.os.Bundle;
 import com.segment.analytics.integrations.AliasPayload;
+import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
 import com.segment.analytics.integrations.IdentifyPayload;
 import com.segment.analytics.integrations.Integration;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
 import com.segment.analytics.internal.Private;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /** Abstraction for a task that a {@link Integration <?>} can execute. */
 abstract class IntegrationOperation {
+
   @Private
   static boolean isIntegrationEnabled(ValueMap integrations, String key) {
     if (isNullOrEmpty(integrations)) {
@@ -154,141 +159,159 @@ abstract class IntegrationOperation {
     };
   }
 
-  static IntegrationOperation identify(final IdentifyPayload identifyPayload) {
+  @Private
+  static List<Middleware> getMiddlewareList(
+      Map<String, List<Middleware>> destinationMiddleware, String key) {
+    List<Middleware> middleware = destinationMiddleware.get(key);
+    if (middleware == null) {
+      // No middleware registered, return empty list
+      return Collections.emptyList();
+    }
+    return middleware;
+  }
+
+  @Private
+  static void runMiddlewareChain(
+      BasePayload payload, List<Middleware> middleware, Middleware.Callback callback) {
+    Middleware.Chain chain = new MiddlewareChainRunner(0, payload, middleware, callback);
+    chain.proceed(payload);
+  }
+
+  /**
+   * Integration Operation for a Segment Event (track | identify | alias | group | screen) Operation
+   * runs destination middleware for given integration before sending to the desired integration
+   */
+  static IntegrationOperation segmentEvent(
+      final BasePayload payload, Map<String, List<Middleware>> destinationMiddleware) {
     return new IntegrationOperation() {
       @Override
-      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
-        if (isIntegrationEnabled(identifyPayload.integrations(), key)) {
-          integration.identify(identifyPayload);
-        }
+      void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
+        List<Middleware> applicableMiddleware = getMiddlewareList(destinationMiddleware, key);
+        runMiddlewareChain(
+            payload,
+            applicableMiddleware,
+            new Middleware.Callback() {
+              @Override
+              public void invoke(BasePayload payload) {
+                switch (payload.type()) {
+                  case identify:
+                    identify((IdentifyPayload) payload, key, integration);
+                    break;
+                  case alias:
+                    alias((AliasPayload) payload, key, integration);
+                    break;
+                  case group:
+                    group((GroupPayload) payload, key, integration);
+                    break;
+                  case track:
+                    track((TrackPayload) payload, key, integration, projectSettings);
+                    break;
+                  case screen:
+                    screen((ScreenPayload) payload, key, integration);
+                    break;
+                  default:
+                    throw new AssertionError("unknown type " + payload.type());
+                }
+              }
+            });
       }
 
       @Override
       public String toString() {
-        return identifyPayload.toString();
+        return payload.toString();
       }
     };
   }
 
-  static IntegrationOperation group(final GroupPayload groupPayload) {
-    return new IntegrationOperation() {
-      @Override
-      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
-        if (isIntegrationEnabled(groupPayload.integrations(), key)) {
-          integration.group(groupPayload);
-        }
-      }
-
-      @Override
-      public String toString() {
-        return groupPayload.toString();
-      }
-    };
+  static void identify(IdentifyPayload identifyPayload, String key, Integration<?> integration) {
+    if (isIntegrationEnabled(identifyPayload.integrations(), key)) {
+      integration.identify(identifyPayload);
+    }
   }
 
-  static IntegrationOperation track(final TrackPayload trackPayload) {
-    return new IntegrationOperation() {
-      @Override
-      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
-        ValueMap integrationOptions = trackPayload.integrations();
+  static void group(GroupPayload groupPayload, String key, Integration<?> integration) {
+    if (isIntegrationEnabled(groupPayload.integrations(), key)) {
+      integration.group(groupPayload);
+    }
+  }
 
-        ValueMap trackingPlan = projectSettings.trackingPlan();
-        if (isNullOrEmpty(trackingPlan)) {
-          // No tracking plan, use options provided.
-          if (isIntegrationEnabled(integrationOptions, key)) {
-            integration.track(trackPayload);
-          }
-          return;
-        }
+  static void track(
+      TrackPayload trackPayload,
+      String key,
+      Integration<?> integration,
+      ProjectSettings projectSettings) {
+    ValueMap integrationOptions = trackPayload.integrations();
 
-        String event = trackPayload.event();
+    ValueMap trackingPlan = projectSettings.trackingPlan();
+    if (isNullOrEmpty(trackingPlan)) {
+      // No tracking plan, use options provided.
+      if (isIntegrationEnabled(integrationOptions, key)) {
+        integration.track(trackPayload);
+      }
+      return;
+    }
 
-        ValueMap eventPlan = trackingPlan.getValueMap(event);
-        if (isNullOrEmpty(eventPlan)) {
-          if (!isNullOrEmpty(integrationOptions)) {
-            // No event plan, use options provided.
-            if (isIntegrationEnabled(integrationOptions, key)) {
-              integration.track(trackPayload);
-            }
-            return;
-          }
+    String event = trackPayload.event();
 
-          // Use schema defaults if no options are provided.
-          ValueMap defaultPlan = trackingPlan.getValueMap("__default");
-
-          // No defaults, send the event.
-          if (isNullOrEmpty(defaultPlan)) {
-            integration.track(trackPayload);
-            return;
-          }
-
-          // Send the event if new events are enabled or if this is the Segment integration.
-          boolean defaultEventsEnabled = defaultPlan.getBoolean("enabled", true);
-          if (defaultEventsEnabled || SegmentIntegration.SEGMENT_KEY.equals(key)) {
-            integration.track(trackPayload);
-          }
-
-          return;
-        }
-
-        // We have a tracking plan for the event.
-        boolean isEnabled = eventPlan.getBoolean("enabled", true);
-        if (!isEnabled) {
-          // If event is disabled in the tracking plan, send it only Segment.
-          if (SegmentIntegration.SEGMENT_KEY.equals(key)) {
-            integration.track(trackPayload);
-          }
-          return;
-        }
-
-        ValueMap integrations = new ValueMap();
-        ValueMap eventIntegrations = eventPlan.getValueMap("integrations");
-        if (!isNullOrEmpty(eventIntegrations)) {
-          integrations.putAll(eventIntegrations);
-        }
-        integrations.putAll(integrationOptions);
-        if (isIntegrationEnabled(integrations, key)) {
+    ValueMap eventPlan = trackingPlan.getValueMap(event);
+    if (isNullOrEmpty(eventPlan)) {
+      if (!isNullOrEmpty(integrationOptions)) {
+        // No event plan, use options provided.
+        if (isIntegrationEnabled(integrationOptions, key)) {
           integration.track(trackPayload);
         }
+        return;
       }
 
-      @Override
-      public String toString() {
-        return trackPayload.toString();
+      // Use schema defaults if no options are provided.
+      ValueMap defaultPlan = trackingPlan.getValueMap("__default");
+
+      // No defaults, send the event.
+      if (isNullOrEmpty(defaultPlan)) {
+        integration.track(trackPayload);
+        return;
       }
-    };
+
+      // Send the event if new events are enabled or if this is the Segment integration.
+      boolean defaultEventsEnabled = defaultPlan.getBoolean("enabled", true);
+      if (defaultEventsEnabled || SegmentIntegration.SEGMENT_KEY.equals(key)) {
+        integration.track(trackPayload);
+      }
+
+      return;
+    }
+
+    // We have a tracking plan for the event.
+    boolean isEnabled = eventPlan.getBoolean("enabled", true);
+    if (!isEnabled) {
+      // If event is disabled in the tracking plan, send it only Segment.
+      if (SegmentIntegration.SEGMENT_KEY.equals(key)) {
+        integration.track(trackPayload);
+      }
+      return;
+    }
+
+    ValueMap integrations = new ValueMap();
+    ValueMap eventIntegrations = eventPlan.getValueMap("integrations");
+    if (!isNullOrEmpty(eventIntegrations)) {
+      integrations.putAll(eventIntegrations);
+    }
+    integrations.putAll(integrationOptions);
+    if (isIntegrationEnabled(integrations, key)) {
+      integration.track(trackPayload);
+    }
   }
 
-  static IntegrationOperation screen(final ScreenPayload screenPayload) {
-    return new IntegrationOperation() {
-      @Override
-      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
-        if (isIntegrationEnabled(screenPayload.integrations(), key)) {
-          integration.screen(screenPayload);
-        }
-      }
-
-      @Override
-      public String toString() {
-        return screenPayload.toString();
-      }
-    };
+  static void screen(ScreenPayload screenPayload, String key, Integration<?> integration) {
+    if (isIntegrationEnabled(screenPayload.integrations(), key)) {
+      integration.screen(screenPayload);
+    }
   }
 
-  static IntegrationOperation alias(final AliasPayload aliasPayload) {
-    return new IntegrationOperation() {
-      @Override
-      public void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
-        if (isIntegrationEnabled(aliasPayload.integrations(), key)) {
-          integration.alias(aliasPayload);
-        }
-      }
-
-      @Override
-      public String toString() {
-        return aliasPayload.toString();
-      }
-    };
+  static void alias(AliasPayload aliasPayload, String key, Integration<?> integration) {
+    if (isIntegrationEnabled(aliasPayload.integrations(), key)) {
+      integration.alias(aliasPayload);
+    }
   }
 
   static final IntegrationOperation FLUSH =

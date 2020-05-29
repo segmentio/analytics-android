@@ -27,22 +27,22 @@ import androidx.annotation.NonNull;
 import com.segment.analytics.integrations.BasePayload;
 import java.util.List;
 
-class RealMiddlewareChain implements Middleware.Chain {
+class MiddlewareChainRunner implements Middleware.Chain {
 
   private int index;
   private final @NonNull BasePayload payload;
-  private final @NonNull List<Middleware> middlewares;
-  private final @NonNull Analytics analytics;
+  private final @NonNull List<Middleware> middleware;
+  private final @NonNull Middleware.Callback callback;
 
-  RealMiddlewareChain(
+  MiddlewareChainRunner(
       int index,
       @NonNull BasePayload payload,
       @NonNull List<Middleware> middlewares,
-      @NonNull Analytics analytics) {
+      @NonNull Middleware.Callback callback) {
     this.index = index;
     this.payload = payload;
-    this.middlewares = middlewares;
-    this.analytics = analytics;
+    this.middleware = middlewares;
+    this.callback = callback;
   }
 
   @Override
@@ -53,13 +53,13 @@ class RealMiddlewareChain implements Middleware.Chain {
   @Override
   public void proceed(BasePayload payload) {
     // If there's another middleware in the chain, call that.
-    if (index < middlewares.size()) {
-      Middleware.Chain chain = new RealMiddlewareChain(index + 1, payload, middlewares, analytics);
-      middlewares.get(index).intercept(chain);
+    if (index < middleware.size()) {
+      Middleware.Chain chain = new MiddlewareChainRunner(index + 1, payload, middleware, callback);
+      middleware.get(index).intercept(chain);
       return;
     }
 
     // No more interceptors.
-    analytics.run(payload);
+    callback.invoke(payload);
   }
 }

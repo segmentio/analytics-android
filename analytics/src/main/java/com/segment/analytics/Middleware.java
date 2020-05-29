@@ -37,4 +37,8 @@ public interface Middleware {
 
     void proceed(BasePayload payload);
   }
+
+  interface Callback {
+    void invoke(BasePayload payload);
+  }
 }
