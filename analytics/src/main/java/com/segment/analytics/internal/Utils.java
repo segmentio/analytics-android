@@ -236,6 +236,13 @@ public final class Utils {
   @NonNull
   public static <K, V> Map<K, V> immutableCopyOf(@NonNull Map<K, V> map) {
     // TODO (major version change) change this out to allow @Nullable input and guard against it
+    //  @NonNull
+    //  public static <K, V> Map<K, V> immutableCopyOf(@Nullable Map<K, V> map) {
+    //    if (isNullOrEmpty(map)) {
+    //      return Collections.emptyMap();
+    //    }
+    //    return Collections.unmodifiableMap(new LinkedHashMap<>(map));
+    //  }
     return Collections.unmodifiableMap(new LinkedHashMap<>(map));
   }
 
