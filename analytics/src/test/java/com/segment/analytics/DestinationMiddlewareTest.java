@@ -25,8 +25,10 @@ package com.segment.analytics;
 
 import static com.segment.analytics.TestUtils.grantPermission;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -37,11 +39,14 @@ import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.IdentifyPayload;
 import com.segment.analytics.integrations.Integration;
 import com.segment.analytics.integrations.TrackPayload;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
@@ -319,5 +324,167 @@ public class DestinationMiddlewareTest {
     assertThat(payloadRefDestMiddleware.get().messageId()).isEqualTo("override");
     verify(integrationFoo).identify(payloadRefDestMiddleware.get());
     verify(integrationBar).identify(payloadRefOriginal.get());
+  }
+
+  /** Sample Middleware Tests * */
+  @Test
+  public void middlewareAddProp() {
+    // Add a simple key-value to the properties
+    Analytics analytics =
+        builder
+            .useDestinationMiddleware(
+                "foo",
+                new Middleware() {
+                  @Override
+                  public void intercept(Chain chain) {
+                    // Add step:1 to properties
+                    BasePayload payload = chain.payload();
+                    if (payload.type() == BasePayload.Type.track) {
+                      TrackPayload track = (TrackPayload) payload;
+                      if (track.event().equals("checkout started")) {
+                        ValueMap newProps = new ValueMap();
+                        newProps.putAll(track.properties());
+                        newProps.put("step", 1);
+                        payload = track.toBuilder().properties(newProps).build();
+                      }
+                    }
+                    chain.proceed(payload);
+                  }
+                })
+            .build();
+    analytics.track("checkout started");
+    ArgumentCaptor<TrackPayload> fooTrack = ArgumentCaptor.forClass(TrackPayload.class);
+    verify(integrationFoo).track(fooTrack.capture());
+    assertThat(fooTrack.getValue().properties()).containsKey("step");
+    assertThat(fooTrack.getValue().properties().get("step")).isEqualTo(1);
+  }
+
+  @Test
+  public void middlewareCanFlattenList() {
+    // Flatten a list into key-value pairs
+    String keyToFlatten = "flatten";
+    Analytics analytics =
+        builder
+            .useDestinationMiddleware(
+                "foo",
+                new Middleware() {
+                  @Override
+                  public void intercept(Chain chain) {
+                    // flatten list to key/value pair
+                    BasePayload payload = chain.payload();
+                    if (payload.type() == BasePayload.Type.track) {
+                      TrackPayload track = (TrackPayload) payload;
+                      ValueMap newProps = new ValueMap();
+                      newProps.putAll(track.properties());
+                      if (newProps.containsKey(keyToFlatten)) {
+                        List<String> flattenList = (List<String>) newProps.get(keyToFlatten);
+                        for (int i = 0; i < flattenList.size(); i++) {
+                          newProps.put(keyToFlatten + "_" + i, flattenList.get(i));
+                        }
+                        newProps.remove(keyToFlatten);
+                        payload = track.toBuilder().properties(newProps).build();
+                      }
+                    }
+                    chain.proceed(payload);
+                  }
+                })
+            .build();
+    List<String> list = new ArrayList<>();
+    list.add("val0");
+    list.add("val1");
+    list.add("val2");
+    analytics.track("checkout started", new Properties().putValue(keyToFlatten, list));
+
+    ArgumentCaptor<TrackPayload> fooTrack = ArgumentCaptor.forClass(TrackPayload.class);
+    verify(integrationFoo).track(fooTrack.capture());
+    assertThat(fooTrack.getValue().properties()).containsKey("flatten_0");
+    assertThat(fooTrack.getValue().properties().get("flatten_0")).isEqualTo("val0");
+    assertThat(fooTrack.getValue().properties()).containsKey("flatten_1");
+    assertThat(fooTrack.getValue().properties().get("flatten_1")).isEqualTo("val1");
+    assertThat(fooTrack.getValue().properties()).containsKey("flatten_2");
+    assertThat(fooTrack.getValue().properties().get("flatten_2")).isEqualTo("val2");
+    assertThat(fooTrack.getValue().properties()).doesNotContainKey("flatten");
+  }
+
+  @Test
+  public void middlewareCanDedupeIdentifyEvents() {
+    // Dedupe identify events
+    AtomicInteger dropCount = new AtomicInteger(0);
+    Analytics analytics =
+        builder
+            .useDestinationMiddleware(
+                "foo",
+                new Middleware() {
+                  IdentifyPayload previousIdentifyPayload = null;
+
+                  @Override
+                  public void intercept(Chain chain) {
+                    BasePayload payload = chain.payload();
+                    if (payload.type() == BasePayload.Type.identify) {
+                      IdentifyPayload identifyPayload = (IdentifyPayload) payload;
+
+                      if (isDeepEqual(identifyPayload, previousIdentifyPayload)) {
+                        previousIdentifyPayload = identifyPayload;
+                        chain.proceed(payload);
+                      } else {
+                        dropCount.incrementAndGet();
+                      }
+                    }
+                  }
+
+                  private Boolean isDeepEqual(
+                      IdentifyPayload payload, IdentifyPayload previousPayload) {
+                    if ((payload == null && previousPayload != null)
+                        || (payload != null && previousPayload == null)) {
+                      return true;
+                    }
+
+                    if (payload != null && previousPayload != null) {
+                      String anonymousId = (String) payload.get("anonymousId");
+                      String prevAnonymousId = (String) previousPayload.get("anonymousId");
+
+                      // anonymous ID has changed
+                      if (!anonymousId.equals(prevAnonymousId)) {
+                        return true;
+                      }
+
+                      String userId = (String) payload.get("userId");
+                      String prevUserId = (String) previousPayload.get("userId");
+
+                      // user ID has changed
+                      if (!userId.equals(prevUserId)) {
+                        return true;
+                      }
+
+                      // traits haven't changed
+                      if (payload.get("traits").equals(previousPayload.get("traits"))) {
+                        return false;
+                      }
+                    }
+
+                    return true;
+                  }
+                })
+            .build();
+
+    analytics.identify("tom");
+    verify(integrationFoo, times(1)).identify(any());
+
+    analytics.identify("tom");
+    verify(integrationFoo, times(1)).identify(any());
+
+    analytics.identify("jerry");
+    verify(integrationFoo, times(2)).identify(any());
+
+    analytics.identify(new Traits().putAge(10));
+    verify(integrationFoo, times(3)).identify(any());
+
+    analytics.identify("jerry");
+    verify(integrationFoo, times(3)).identify(any());
+
+    analytics.identify("tom");
+    verify(integrationFoo, times(4)).identify(any());
+
+    assertThat(dropCount.get()).isEqualTo(2);
   }
 }
