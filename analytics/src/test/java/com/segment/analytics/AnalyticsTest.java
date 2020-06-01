@@ -103,13 +103,13 @@ public class AnalyticsTest {
           + "}";
 
   @Mock Traits.Cache traitsCache;
-  @Mock Options defaultOptions;
   @Spy AnalyticsNetworkExecutorService networkExecutor;
   @Spy ExecutorService analyticsExecutor = new SynchronousExecutor();
   @Mock Client client;
   @Mock Stats stats;
   @Mock ProjectSettings.Cache projectSettingsCache;
   @Mock Integration integration;
+  private Options defaultOptions;
   private Integration.Factory factory;
   private BooleanPreference optOut;
   private Application application;
@@ -122,6 +122,7 @@ public class AnalyticsTest {
     Analytics.INSTANCES.clear();
 
     initMocks(this);
+    defaultOptions = new Options();
     application = mockApplication();
     traits = Traits.create();
     when(traitsCache.get()).thenReturn(traits);
@@ -1715,5 +1716,25 @@ public class AnalyticsTest {
         .containsKey("apiKey")
         .containsKey("appToken")
         .containsKey("trackAttributionData");
+  }
+
+  @Test
+  public void overridingOptionsDoesNotModifyGlobalAnalytics() {
+    analytics.track("event", null, new Options().putContext("testProp", true));
+    ArgumentCaptor<TrackPayload> payload = ArgumentCaptor.forClass(TrackPayload.class);
+    verify(integration).track(payload.capture());
+    assertThat(payload.getValue().context()).containsKey("testProp");
+    assertThat(payload.getValue().context().get("testProp")).isEqualTo(true);
+    assertThat(analytics.analyticsContext).doesNotContainKey("testProp");
+  }
+
+  @Test
+  public void overridingOptionsWithDefaultOptionsPlusAdditional() {
+    analytics.track("event", null, analytics.getDefaultOptions().putContext("testProp", true));
+    ArgumentCaptor<TrackPayload> payload = ArgumentCaptor.forClass(TrackPayload.class);
+    verify(integration).track(payload.capture());
+    assertThat(payload.getValue().context()).containsKey("testProp");
+    assertThat(payload.getValue().context().get("testProp")).isEqualTo(true);
+    assertThat(analytics.analyticsContext).doesNotContainKey("testProp");
   }
 }

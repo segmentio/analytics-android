@@ -452,7 +452,8 @@ public class Analytics {
    * @param userId Unique identifier which you recognize a user by in your own database. If this is
    *     null or empty, any previous id we have (could be the anonymous id) will be used.
    * @param newTraits Traits about the user.
-   * @param options To configure the call.
+   * @param options To configure the call, these override the defaultOptions, to extend use
+   *     #getDefaultOptions()
    * @throws IllegalArgumentException if both {@code userId} and {@code newTraits} are not provided
    * @see <a href="https://segment.com/docs/spec/identify/">Identify Documentation</a>
    */
@@ -480,16 +481,9 @@ public class Analytics {
             traitsCache.set(traits); // Save the new traits
             analyticsContext.setTraits(traits); // Update the references
 
-            final Options finalOptions;
-            if (options == null) {
-              finalOptions = defaultOptions;
-            } else {
-              finalOptions = options;
-            }
-
             IdentifyPayload.Builder builder =
                 new IdentifyPayload.Builder().traits(traitsCache.get());
-            fillAndEnqueue(builder, finalOptions);
+            fillAndEnqueue(builder, options);
           }
         });
   }
@@ -513,7 +507,8 @@ public class Analytics {
    *
    * @param groupId Unique identifier which you recognize a group by in your own database. Must not
    *     be null or empty.
-   * @param options To configure the call.
+   * @param options To configure the call, these override the defaultOptions, to extend use
+   *     #getDefaultOptions()
    * @throws IllegalArgumentException if groupId is null or an empty string.
    * @see <a href="https://segment.com/docs/spec/group/">Group Documentation</a>
    */
@@ -537,16 +532,9 @@ public class Analytics {
               finalGroupTraits = groupTraits;
             }
 
-            final Options finalOptions;
-            if (options == null) {
-              finalOptions = defaultOptions;
-            } else {
-              finalOptions = options;
-            }
-
             GroupPayload.Builder builder =
                 new GroupPayload.Builder().groupId(groupId).traits(finalGroupTraits);
-            fillAndEnqueue(builder, finalOptions);
+            fillAndEnqueue(builder, options);
           }
         });
   }
@@ -568,7 +556,8 @@ public class Analytics {
    *
    * @param event Name of the event. Must not be null or empty.
    * @param properties {@link Properties} to add extra information to this call.
-   * @param options To configure the call.
+   * @param options To configure the call, these override the defaultOptions, to extend use
+   *     #getDefaultOptions()
    * @throws IllegalArgumentException if event name is null or an empty string.
    * @see <a href="https://segment.com/docs/spec/track/">Track Documentation</a>
    */
@@ -585,13 +574,6 @@ public class Analytics {
         new Runnable() {
           @Override
           public void run() {
-            final Options finalOptions;
-            if (options == null) {
-              finalOptions = defaultOptions;
-            } else {
-              finalOptions = options;
-            }
-
             final Properties finalProperties;
             if (properties == null) {
               finalProperties = EMPTY_PROPERTIES;
@@ -601,7 +583,7 @@ public class Analytics {
 
             TrackPayload.Builder builder =
                 new TrackPayload.Builder().event(event).properties(finalProperties);
-            fillAndEnqueue(builder, finalOptions);
+            fillAndEnqueue(builder, options);
           }
         });
   }
@@ -640,7 +622,8 @@ public class Analytics {
    * @param category A category to describe the screen. Deprecated.
    * @param name A name for the screen.
    * @param properties {@link Properties} to add extra information to this call.
-   * @param options To configure the call.
+   * @param options To configure the call, these override the defaultOptions, to extend use
+   *     #getDefaultOptions()
    * @see <a href="https://segment.com/docs/spec/screen/">Screen Documentation</a>
    */
   public void screen(
@@ -657,13 +640,6 @@ public class Analytics {
         new Runnable() {
           @Override
           public void run() {
-            final Options finalOptions;
-            if (options == null) {
-              finalOptions = defaultOptions;
-            } else {
-              finalOptions = options;
-            }
-
             final Properties finalProperties;
             if (properties == null) {
               finalProperties = EMPTY_PROPERTIES;
@@ -677,7 +653,7 @@ public class Analytics {
                     .name(name)
                     .category(category)
                     .properties(finalProperties);
-            fillAndEnqueue(builder, finalOptions);
+            fillAndEnqueue(builder, options);
           }
         });
   }
@@ -702,7 +678,8 @@ public class Analytics {
    *
    * @param newId The new ID you want to alias the existing ID to. The existing ID will be either
    *     the previousId if you have called identify, or the anonymous ID.
-   * @param options To configure the call
+   * @param options To configure the call, these override the defaultOptions, to extend use
+   *     #getDefaultOptions()
    * @throws IllegalArgumentException if newId is null or empty
    * @see <a href="https://segment.com/docs/tracking-api/alias/">Alias Documentation</a>
    */
@@ -716,18 +693,11 @@ public class Analytics {
         new Runnable() {
           @Override
           public void run() {
-            final Options finalOptions;
-            if (options == null) {
-              finalOptions = defaultOptions;
-            } else {
-              finalOptions = options;
-            }
-
             AliasPayload.Builder builder =
                 new AliasPayload.Builder()
                     .userId(newId)
                     .previousId(analyticsContext.traits().currentId());
-            fillAndEnqueue(builder, finalOptions);
+            fillAndEnqueue(builder, options);
           }
         });
   }
@@ -748,17 +718,24 @@ public class Analytics {
   void fillAndEnqueue(BasePayload.Builder<?, ?> builder, Options options) {
     waitForAdvertisingId();
 
-    AnalyticsContext contextCopy = new AnalyticsContext(analyticsContext);
-
-    for (Map.Entry<String, Object> pair : options.context().entrySet()) {
-      contextCopy.put(pair.getKey(), pair.getValue());
+    // TODO (major version change) -> do not override, merge it with defaultOptions
+    final Options finalOptions;
+    if (options == null) {
+      finalOptions = defaultOptions;
+    } else {
+      finalOptions = options;
     }
 
+    // Create a new working copy
+    AnalyticsContext contextCopy =
+        new AnalyticsContext(new LinkedHashMap<>(analyticsContext.size()));
+    contextCopy.putAll(analyticsContext);
+    contextCopy.putAll(finalOptions.context());
     contextCopy = contextCopy.unmodifiableCopy();
 
     builder.context(contextCopy);
     builder.anonymousId(contextCopy.traits().anonymousId());
-    builder.integrations(options.integrations());
+    builder.integrations(finalOptions.integrations());
     String userId = contextCopy.traits().userId();
     if (!isNullOrEmpty(userId)) {
       builder.userId(userId);
@@ -812,7 +789,14 @@ public class Analytics {
   /** Get the {@link AnalyticsContext} used by this instance. */
   @SuppressWarnings("UnusedDeclaration")
   public AnalyticsContext getAnalyticsContext() {
+    // TODO (major version change) hide internals (don't give out working copy), expose a better API
+    //  for modifying the global context
     return analyticsContext;
+  }
+
+  /** Get a copy of the default {@link Options} used by this instance */
+  public Options getDefaultOptions() {
+    return new Options(defaultOptions.integrations(), defaultOptions.context());
   }
 
   /** Creates a {@link StatsSnapshot} of the current stats for this instance. */
