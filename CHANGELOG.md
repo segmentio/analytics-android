@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Version 4.7.0 (Jun 1, 2020)
+============================
+
+* [New](https://github.com/segmentio/analytics-android/pull/655): Add type to device context
+* [Fix](https://github.com/segmentio/analytics-android/pull/665): Prevent Global Context modification for one-time op
+* [New](https://github.com/segmentio/analytics-android/pull/664): Add support for Destination Middleware
+
 Version 4.6.0 (May 21, 2020)
 ============================
 
