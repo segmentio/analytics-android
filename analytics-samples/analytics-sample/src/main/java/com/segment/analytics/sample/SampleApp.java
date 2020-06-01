@@ -26,7 +26,14 @@ package com.segment.analytics.sample;
 import android.app.Application;
 import android.util.Log;
 import com.segment.analytics.Analytics;
+import com.segment.analytics.Middleware;
 import com.segment.analytics.ValueMap;
+import com.segment.analytics.integrations.BasePayload;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import io.github.inflationx.calligraphy3.CalligraphyConfig;
 import io.github.inflationx.calligraphy3.CalligraphyInterceptor;
 import io.github.inflationx.viewpump.ViewPump;
@@ -34,7 +41,7 @@ import io.github.inflationx.viewpump.ViewPump;
 public class SampleApp extends Application {
 
   // https://segment.com/segment-engineering/sources/android-test/settings/keys
-  private static final String ANALYTICS_WRITE_KEY = "5m6gbdgho6";
+  private static final String ANALYTICS_WRITE_KEY = "1GvRwtc0EqYji2AqxRVkO3ld7gpOkL8T";
 
   @Override
   public void onCreate() {
@@ -67,6 +74,38 @@ public class SampleApp extends Application {
                                     .putValue("trackAttributionData", true))))
             .recordScreenViews();
 
+    HashMap<String, Object> appendToContextMiddleware = new HashMap<>();
+    appendToContextMiddleware.put("device", new ValueMap().putValue("key", "value"));
+    builder.middleware(
+        new Middleware() {
+          @Override
+          public void intercept(Chain chain) {
+            try {
+              if (appendToContextMiddleware == null) {
+                chain.proceed(chain.payload());
+                return;
+              }
+
+              BasePayload payload = chain.payload();
+              Map<String, Object> originalContext = new LinkedHashMap<>(payload.context());
+              Map<String, Object> mergedContext = deepMerge(
+                  originalContext,
+                  appendToContextMiddleware
+              );
+
+              BasePayload newPayload = payload.toBuilder()
+                  .context(mergedContext)
+                  .build();
+
+              chain.proceed(newPayload);
+            } catch (Exception e) {
+              Log.e("FlutterSegment", e.getMessage());
+              chain.proceed(chain.payload());
+            }
+          }
+        }
+    );
+
     // Set the initialized instance as a globally accessible instance.
     Analytics.setSingletonInstance(builder.build());
 
@@ -83,5 +122,20 @@ public class SampleApp extends Application {
             Log.d("Segment Sample", "Segment integration ready.");
           }
         });
+  }
+
+  // Merges [newMap] into [original], *not* preserving [original]
+  // keys (deep) in case of conflicts.
+  private static Map deepMerge(Map original, Map newMap) {
+    for (Object key : newMap.keySet()) {
+      if (newMap.get(key) instanceof Map && original.get(key) instanceof Map) {
+        Map originalChild = (Map) original.get(key);
+        Map newChild = (Map) newMap.get(key);
+        original.put(key, deepMerge(originalChild, newChild));
+      } else {
+        original.put(key, newMap.get(key));
+      }
+    }
+    return original;
   }
 }
