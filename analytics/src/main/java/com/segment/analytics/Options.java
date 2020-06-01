@@ -48,6 +48,11 @@ public class Options {
     context = new ConcurrentHashMap<>();
   }
 
+  public Options(Map<String, Object> integrations, Map<String, Object> context) {
+    this.integrations = integrations;
+    this.context = context;
+  }
+
   /**
    * Sets whether an action will be sent to the target integration.
    *
