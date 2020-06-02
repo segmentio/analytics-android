@@ -318,9 +318,7 @@ public abstract class BasePayload extends ValueMap {
       return self();
     }
 
-    /**
-     * Returns true if userId is not-null or non-empty, false otherwise
-     */
+    /** Returns true if userId is not-null or non-empty, false otherwise */
     public boolean isUserIdSet() {
       return !isNullOrEmpty(userId);
     }
