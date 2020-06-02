@@ -736,9 +736,10 @@ public class Analytics {
     builder.context(contextCopy);
     builder.anonymousId(contextCopy.traits().anonymousId());
     builder.integrations(finalOptions.integrations());
-    String userId = contextCopy.traits().userId();
-    if (!isNullOrEmpty(userId)) {
-      builder.userId(userId);
+    String cachedUserId = contextCopy.traits().userId();
+    if (!builder.isUserIdSet() && !isNullOrEmpty(cachedUserId)) {
+      // userId is not set, retrieve from cached traits and set for payload
+      builder.userId(cachedUserId);
     }
     enqueue(builder.build());
   }
