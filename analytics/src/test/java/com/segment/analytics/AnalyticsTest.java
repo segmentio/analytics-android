@@ -1185,46 +1185,46 @@ public class AnalyticsTest {
     Analytics.INSTANCES.clear();
 
     final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
-            new AtomicReference<>();
+        new AtomicReference<>();
     doNothing()
-            .when(application)
-            .registerActivityLifecycleCallbacks(
-                    argThat(
-                            new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
-                              @Override
-                              protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
-                                callback.set(item);
-                                return true;
-                              }
-                            }));
+        .when(application)
+        .registerActivityLifecycleCallbacks(
+            argThat(
+                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                  @Override
+                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                    callback.set(item);
+                    return true;
+                  }
+                }));
 
     analytics =
-            new Analytics(
-                    application,
-                    networkExecutor,
-                    stats,
-                    traitsCache,
-                    analyticsContext,
-                    defaultOptions,
-                    Logger.with(NONE),
-                    "qaz",
-                    Collections.singletonList(factory),
-                    client,
-                    Cartographer.INSTANCE,
-                    projectSettingsCache,
-                    "foo",
-                    DEFAULT_FLUSH_QUEUE_SIZE,
-                    DEFAULT_FLUSH_INTERVAL,
-                    analyticsExecutor,
-                    true,
-                    new CountDownLatch(0),
-                    false,
-                    false,
-                    false,
-                    optOut,
-                    Crypto.none(),
-                    Collections.<Middleware>emptyList(),
-                    new ValueMap());
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            true,
+            new CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList(),
+            new ValueMap());
 
     Activity activity = mock(Activity.class);
 
@@ -1236,14 +1236,14 @@ public class AnalyticsTest {
     callback.get().onActivityCreated(activity, new Bundle());
 
     verify(integration, never())
-            .track(
-                    argThat(
-                            new NoDescriptionMatcher<TrackPayload>() {
-                              @Override
-                              protected boolean matchesSafely(TrackPayload payload) {
-                                return payload.event().equals("Deep Link Opened");
-                              }
-                            }));
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.event().equals("Deep Link Opened");
+                  }
+                }));
   }
 
   @Test
