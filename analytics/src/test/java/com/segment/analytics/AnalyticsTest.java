@@ -577,6 +577,18 @@ public class AnalyticsTest {
   }
 
   @Test
+  public void aliasWithCachedUserID() {
+    analytics.identify("prayansh", new Traits().putValue("bar", "qaz"), null); // refer identifyUpdatesCache
+    analytics.alias("foo");
+    ArgumentCaptor<AliasPayload> payloadArgumentCaptor =
+        ArgumentCaptor.forClass(AliasPayload.class);
+    verify(integration).alias(payloadArgumentCaptor.capture());
+    assertThat(payloadArgumentCaptor.getValue())
+        .containsEntry("previousId", "prayansh")
+        .containsEntry("userId", "foo");
+  }
+
+  @Test
   public void flush() {
     analytics.flush();
 
