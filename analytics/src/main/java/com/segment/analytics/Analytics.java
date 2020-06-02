@@ -738,6 +738,7 @@ public class Analytics {
     builder.integrations(finalOptions.integrations());
     String cachedUserId = contextCopy.traits().userId();
     if (!builder.isUserIdSet() && !isNullOrEmpty(cachedUserId)) {
+      // userId is not set, retrieve from cached traits and set for payload
       builder.userId(cachedUserId);
     }
     enqueue(builder.build());
