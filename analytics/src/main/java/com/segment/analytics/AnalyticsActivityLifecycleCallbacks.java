@@ -47,7 +47,6 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
 
   private AtomicBoolean trackedApplicationLifecycleEvents;
   private AtomicInteger numberOfActivities;
-  private AtomicBoolean isChangingActivityConfigurations;
   private AtomicBoolean firstLaunch;
 
   private AnalyticsActivityLifecycleCallbacks(
@@ -60,7 +59,6 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
       PackageInfo packageInfo) {
     this.trackedApplicationLifecycleEvents = new AtomicBoolean(false);
     this.numberOfActivities = new AtomicInteger(1);
-    this.isChangingActivityConfigurations = new AtomicBoolean(false);
     this.firstLaunch = new AtomicBoolean(false);
     this.analytics = analytics;
     this.analyticsExecutor = analyticsExecutor;

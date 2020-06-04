@@ -844,8 +844,7 @@ public class AnalyticsTest {
                 }));
 
     callback.get().onCreate(mockLifecycleOwner);
-    verify(integration, times(2)).onActivityCreated(null, null);
-    verifyNoMoreInteractions(integration);
+    verifyNoMoreInteractions(integration); // Application Installed is not duplicated
   }
 
   @Test
@@ -1409,7 +1408,7 @@ public class AnalyticsTest {
             lifecycle);
 
     callback.get().onCreate(mockLifecycleOwner);
-    callback.get().onResume(mockLifecycleOwner);
+    callback.get().onStart(mockLifecycleOwner);
 
     verify(integration)
         .track(
@@ -1543,9 +1542,9 @@ public class AnalyticsTest {
             lifecycle);
 
     callback.get().onCreate(mockLifecycleOwner);
-    callback.get().onResume(mockLifecycleOwner);
+    callback.get().onStart(mockLifecycleOwner);
     callback.get().onStop(mockLifecycleOwner);
-    callback.get().onResume(mockLifecycleOwner);
+    callback.get().onStart(mockLifecycleOwner);
 
     verify(integration)
         .track(
