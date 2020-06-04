@@ -48,6 +48,11 @@ import android.os.Looper;
 import android.os.Message;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.ProcessLifecycleOwner;
+
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
@@ -132,7 +137,8 @@ public class Analytics {
   final Cartographer cartographer;
   private final ProjectSettings.Cache projectSettingsCache;
   final Crypto crypto;
-  @Private final Application.ActivityLifecycleCallbacks activityLifecycleCallback;
+  @Private final AnalyticsActivityLifecycleCallbacks activityLifecycleCallback;
+  @Private final Lifecycle lifecycle;
   ProjectSettings projectSettings; // todo: make final (non-final for testing).
   @Private final String writeKey;
   final int flushQueueSize;
@@ -229,7 +235,8 @@ public class Analytics {
       Crypto crypto,
       @NonNull List<Middleware> sourceMiddleware,
       @NonNull Map<String, List<Middleware>> destinationMiddleware,
-      @NonNull final ValueMap defaultProjectSettings) {
+      @NonNull final ValueMap defaultProjectSettings,
+      @NonNull Lifecycle lifecycle) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -251,6 +258,7 @@ public class Analytics {
     this.crypto = crypto;
     this.sourceMiddleware = sourceMiddleware;
     this.destinationMiddleware = destinationMiddleware;
+    this.lifecycle = lifecycle;
 
     namespaceSharedPreferences();
 
@@ -315,6 +323,7 @@ public class Analytics {
             .build();
 
     application.registerActivityLifecycleCallbacks(activityLifecycleCallback);
+    lifecycle.addObserver(activityLifecycleCallback);
   }
 
   @Private
@@ -965,6 +974,7 @@ public class Analytics {
       return;
     }
     application.unregisterActivityLifecycleCallbacks(activityLifecycleCallback);
+    lifecycle.removeObserver(activityLifecycleCallback);
     // Only supplied by us for testing, so it's ok to shut it down. If we were to make this public,
     // we'll have to add a check similar to that of AnalyticsNetworkExecutorService below.
     analyticsExecutor.shutdown();
@@ -1375,7 +1385,7 @@ public class Analytics {
       if (executor == null) {
         executor = Executors.newSingleThreadExecutor();
       }
-
+      Lifecycle lifecycle = ProcessLifecycleOwner.get().getLifecycle();
       return new Analytics(
           application,
           networkExecutor,
@@ -1402,7 +1412,8 @@ public class Analytics {
           crypto,
           srcMiddleware,
           destMiddleware,
-          defaultProjectSettings);
+          defaultProjectSettings,
+          lifecycle);
     }
   }
 

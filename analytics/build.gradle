@@ -6,6 +6,10 @@ apply from: rootProject.file('gradle/android.gradle')
 dependencies {
   api rootProject.ext.deps.supportAnnotations
 
+//  implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+  implementation 'androidx.lifecycle:lifecycle-process:2.2.0'
+  implementation 'androidx.lifecycle:lifecycle-common-java8:2.2.0'
+
   testImplementation 'junit:junit:4.12'
   testImplementation('org.robolectric:robolectric:3.5') {
     exclude group: 'commons-logging', module: 'commons-logging'

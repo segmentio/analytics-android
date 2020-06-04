@@ -57,6 +57,13 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.os.Bundle;
+
+import androidx.lifecycle.DefaultLifecycleObserver;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.ProcessLifecycleOwner;
+
 import com.segment.analytics.TestUtils.NoDescriptionMatcher;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.GroupPayload;
@@ -109,6 +116,7 @@ public class AnalyticsTest {
   @Mock Stats stats;
   @Mock ProjectSettings.Cache projectSettingsCache;
   @Mock Integration integration;
+  @Mock Lifecycle lifecycle;
   private Options defaultOptions;
   private Integration.Factory factory;
   private BooleanPreference optOut;
@@ -183,7 +191,8 @@ public class AnalyticsTest {
             Crypto.none(),
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
-            new ValueMap());
+            new ValueMap(),
+            lifecycle);
 
     // Used by singleton tests.
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
@@ -774,19 +783,19 @@ public class AnalyticsTest {
   public void trackApplicationLifecycleEventsInstalled() throws NameNotFoundException {
     Analytics.INSTANCES.clear();
 
-    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
-        new AtomicReference<>();
+    final AtomicReference<DefaultLifecycleObserver> callback = new AtomicReference<>();
     doNothing()
-        .when(application)
-        .registerActivityLifecycleCallbacks(
+        .when(lifecycle)
+        .addObserver(
             argThat(
-                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                new NoDescriptionMatcher<LifecycleObserver>() {
                   @Override
-                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
-                    callback.set(item);
+                  protected boolean matchesSafely(LifecycleObserver item) {
+                    callback.set((DefaultLifecycleObserver) item);
                     return true;
                   }
                 }));
+    LifecycleOwner mockLifecycleOwner = mock(LifecycleOwner.class);
 
     analytics =
         new Analytics(
@@ -815,9 +824,10 @@ public class AnalyticsTest {
             Crypto.none(),
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
-            new ValueMap());
+            new ValueMap(),
+            lifecycle);
 
-    callback.get().onActivityCreated(null, null);
+    callback.get().onCreate(mockLifecycleOwner);
 
     verify(integration)
         .track(
@@ -833,7 +843,7 @@ public class AnalyticsTest {
                   }
                 }));
 
-    callback.get().onActivityCreated(null, null);
+    callback.get().onCreate(mockLifecycleOwner);
     verify(integration, times(2)).onActivityCreated(null, null);
     verifyNoMoreInteractions(integration);
   }
@@ -860,19 +870,19 @@ public class AnalyticsTest {
     when(application.getPackageName()).thenReturn("com.foo");
     when(application.getPackageManager()).thenReturn(packageManager);
 
-    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
-        new AtomicReference<>();
+    final AtomicReference<DefaultLifecycleObserver> callback = new AtomicReference<>();
     doNothing()
-        .when(application)
-        .registerActivityLifecycleCallbacks(
+        .when(lifecycle)
+        .addObserver(
             argThat(
-                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                new NoDescriptionMatcher<LifecycleObserver>() {
                   @Override
-                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
-                    callback.set(item);
+                  protected boolean matchesSafely(LifecycleObserver item) {
+                    callback.set((DefaultLifecycleObserver) item);
                     return true;
                   }
                 }));
+    LifecycleOwner mockLifecycleOwner = mock(LifecycleOwner.class);
 
     analytics =
         new Analytics(
@@ -901,9 +911,10 @@ public class AnalyticsTest {
             Crypto.none(),
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
-            new ValueMap());
+            new ValueMap(),
+            lifecycle);
 
-    callback.get().onActivityCreated(null, null);
+    callback.get().onCreate(mockLifecycleOwner);
 
     verify(integration)
         .track(
@@ -969,7 +980,8 @@ public class AnalyticsTest {
             Crypto.none(),
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
-            new ValueMap());
+            new ValueMap(),
+            lifecycle);
 
     Activity activity = mock(Activity.class);
     PackageManager packageManager = mock(PackageManager.class);
@@ -1039,7 +1051,8 @@ public class AnalyticsTest {
             Crypto.none(),
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
-            new ValueMap());
+            new ValueMap(),
+            lifecycle);
 
     final String expectedUrl = "app://track.com/open?utm_id=12345&gclid=abcd&nope=";
 
@@ -1111,7 +1124,8 @@ public class AnalyticsTest {
             Crypto.none(),
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
-            new ValueMap());
+            new ValueMap(),
+            lifecycle);
 
     final String expectedUrl = "app://track.com/open?utm_id=12345&gclid=abcd&nope=";
 
@@ -1183,7 +1197,8 @@ public class AnalyticsTest {
             Crypto.none(),
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
-            new ValueMap());
+            new ValueMap(),
+            lifecycle);
 
     Activity activity = mock(Activity.class);
 
@@ -1246,7 +1261,9 @@ public class AnalyticsTest {
             optOut,
             Crypto.none(),
             Collections.<Middleware>emptyList(),
-            new ValueMap());
+            Collections.<String, List<Middleware>>emptyMap(),
+            new ValueMap(),
+            lifecycle);
 
     Activity activity = mock(Activity.class);
 
@@ -1313,7 +1330,8 @@ public class AnalyticsTest {
             Crypto.none(),
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
-            new ValueMap());
+            new ValueMap(),
+            lifecycle);
 
     Activity activity = mock(Activity.class);
     Bundle bundle = new Bundle();
@@ -1346,19 +1364,19 @@ public class AnalyticsTest {
   public void trackApplicationLifecycleEventsApplicationOpened() throws NameNotFoundException {
     Analytics.INSTANCES.clear();
 
-    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
-        new AtomicReference<>();
+    final AtomicReference<DefaultLifecycleObserver> callback = new AtomicReference<>();
     doNothing()
-        .when(application)
-        .registerActivityLifecycleCallbacks(
+        .when(lifecycle)
+        .addObserver(
             argThat(
-                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                new NoDescriptionMatcher<LifecycleObserver>() {
                   @Override
-                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
-                    callback.set(item);
+                  protected boolean matchesSafely(LifecycleObserver item) {
+                    callback.set((DefaultLifecycleObserver) item);
                     return true;
                   }
                 }));
+    LifecycleOwner mockLifecycleOwner = mock(LifecycleOwner.class);
 
     analytics =
         new Analytics(
@@ -1387,10 +1405,11 @@ public class AnalyticsTest {
             Crypto.none(),
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
-            new ValueMap());
+            new ValueMap(),
+            lifecycle);
 
-    callback.get().onActivityCreated(null, null);
-    callback.get().onActivityResumed(null);
+    callback.get().onCreate(mockLifecycleOwner);
+    callback.get().onResume(mockLifecycleOwner);
 
     verify(integration)
         .track(
@@ -1411,19 +1430,20 @@ public class AnalyticsTest {
       throws NameNotFoundException {
     Analytics.INSTANCES.clear();
 
-    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
-        new AtomicReference<>();
+    final AtomicReference<DefaultLifecycleObserver> callback = new AtomicReference<>();
     doNothing()
-        .when(application)
-        .registerActivityLifecycleCallbacks(
+        .when(lifecycle)
+        .addObserver(
             argThat(
-                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                new NoDescriptionMatcher<LifecycleObserver>() {
                   @Override
-                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
-                    callback.set(item);
+                  protected boolean matchesSafely(LifecycleObserver item) {
+                    callback.set((DefaultLifecycleObserver) item);
                     return true;
                   }
                 }));
+
+    LifecycleOwner mockLifecycleOwner = mock(LifecycleOwner.class);
 
     analytics =
         new Analytics(
@@ -1452,14 +1472,15 @@ public class AnalyticsTest {
             Crypto.none(),
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
-            new ValueMap());
+            new ValueMap(),
+            lifecycle);
 
     Activity backgroundedActivity = mock(Activity.class);
     when(backgroundedActivity.isChangingConfigurations()).thenReturn(false);
 
-    callback.get().onActivityCreated(null, null);
-    callback.get().onActivityResumed(null);
-    callback.get().onActivityStopped(backgroundedActivity);
+    callback.get().onCreate(mockLifecycleOwner);
+    callback.get().onResume(mockLifecycleOwner);
+    callback.get().onStop(mockLifecycleOwner);
 
     verify(integration)
         .track(
@@ -1477,19 +1498,19 @@ public class AnalyticsTest {
       throws NameNotFoundException {
     Analytics.INSTANCES.clear();
 
-    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
-        new AtomicReference<>();
+    final AtomicReference<DefaultLifecycleObserver> callback = new AtomicReference<>();
     doNothing()
-        .when(application)
-        .registerActivityLifecycleCallbacks(
+        .when(lifecycle)
+        .addObserver(
             argThat(
-                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                new NoDescriptionMatcher<LifecycleObserver>() {
                   @Override
-                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
-                    callback.set(item);
+                  protected boolean matchesSafely(LifecycleObserver item) {
+                    callback.set((DefaultLifecycleObserver) item);
                     return true;
                   }
                 }));
+    LifecycleOwner mockLifecycleOwner = mock(LifecycleOwner.class);
 
     analytics =
         new Analytics(
@@ -1518,15 +1539,13 @@ public class AnalyticsTest {
             Crypto.none(),
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
-            new ValueMap());
+            new ValueMap(),
+            lifecycle);
 
-    Activity backgroundedActivity = mock(Activity.class);
-    when(backgroundedActivity.isChangingConfigurations()).thenReturn(false);
-
-    callback.get().onActivityCreated(null, null);
-    callback.get().onActivityResumed(null);
-    callback.get().onActivityStopped(backgroundedActivity);
-    callback.get().onActivityResumed(null);
+    callback.get().onCreate(mockLifecycleOwner);
+    callback.get().onResume(mockLifecycleOwner);
+    callback.get().onStop(mockLifecycleOwner);
+    callback.get().onResume(mockLifecycleOwner);
 
     verify(integration)
         .track(
@@ -1608,7 +1627,8 @@ public class AnalyticsTest {
             Crypto.none(),
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
-            new ValueMap());
+            new ValueMap(),
+            lifecycle);
 
     assertThat(analytics.shutdown).isFalse();
     analytics.shutdown();
@@ -1690,7 +1710,8 @@ public class AnalyticsTest {
             Crypto.none(),
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
-            defaultProjectSettings);
+            defaultProjectSettings,
+            lifecycle);
 
     assertThat(analytics.projectSettings).hasSize(2).containsKey("integrations");
     assertThat(analytics.projectSettings.integrations())
@@ -1735,7 +1756,8 @@ public class AnalyticsTest {
             Crypto.none(),
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
-            defaultProjectSettings);
+            defaultProjectSettings,
+            lifecycle);
 
     assertThat(analytics.projectSettings).hasSize(2).containsKey("integrations");
     assertThat(analytics.projectSettings.integrations()).hasSize(1).containsKey("Segment.io");
@@ -1786,7 +1808,8 @@ public class AnalyticsTest {
             Crypto.none(),
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
-            defaultProjectSettings);
+            defaultProjectSettings,
+            lifecycle);
 
     assertThat(analytics.projectSettings).hasSize(2).containsKey("integrations");
     assertThat(analytics.projectSettings.integrations()).hasSize(1).containsKey("Segment.io");
