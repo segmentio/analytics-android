@@ -39,6 +39,7 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -1658,6 +1659,88 @@ public class AnalyticsTest {
     verify(integration, never()).onActivityDestroyed(activity);
 
     verifyNoMoreInteractions(integration);
+  }
+
+  @Test
+  public void removeLifecycleObserver() throws NameNotFoundException {
+    Analytics.INSTANCES.clear();
+
+    final AtomicReference<DefaultLifecycleObserver> registeredCallback = new AtomicReference<>();
+    final AtomicReference<DefaultLifecycleObserver> unregisteredCallback = new AtomicReference<>();
+    doNothing()
+        .when(lifecycle)
+        .addObserver(
+            argThat(
+                new NoDescriptionMatcher<LifecycleObserver>() {
+                  @Override
+                  protected boolean matchesSafely(LifecycleObserver item) {
+                    registeredCallback.set((DefaultLifecycleObserver) item);
+                    return true;
+                  }
+                }));
+    doNothing()
+        .when(lifecycle)
+        .removeObserver(
+            argThat(
+                new NoDescriptionMatcher<LifecycleObserver>() {
+                  @Override
+                  protected boolean matchesSafely(LifecycleObserver item) {
+                    unregisteredCallback.set((DefaultLifecycleObserver) item);
+                    return true;
+                  }
+                }));
+    LifecycleOwner mockLifecycleOwner = mock(LifecycleOwner.class);
+
+    analytics =
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            false,
+            new CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
+            new ValueMap(),
+            lifecycle);
+
+    assertThat(analytics.shutdown).isFalse();
+    analytics.shutdown();
+    AnalyticsActivityLifecycleCallbacks lifecycleObserverSpy =
+        spy(analytics.activityLifecycleCallback);
+
+    // Same callback was registered and unregistered
+    assertThat(analytics.activityLifecycleCallback).isSameAs(registeredCallback.get());
+    assertThat(analytics.activityLifecycleCallback).isSameAs(unregisteredCallback.get());
+
+    // Verify callbacks do not call through after shutdown
+    registeredCallback.get().onCreate(mockLifecycleOwner);
+    verify(lifecycleObserverSpy, never()).onCreate(mockLifecycleOwner);
+
+    registeredCallback.get().onStop(mockLifecycleOwner);
+    verify(lifecycleObserverSpy, never()).onStop(mockLifecycleOwner);
+
+    registeredCallback.get().onStart(mockLifecycleOwner);
+    verify(lifecycleObserverSpy, never()).onStart(mockLifecycleOwner);
+
+    verifyNoMoreInteractions(lifecycleObserverSpy);
   }
 
   @Test
