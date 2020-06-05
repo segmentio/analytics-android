@@ -6,7 +6,6 @@ apply from: rootProject.file('gradle/android.gradle')
 dependencies {
   api rootProject.ext.deps.supportAnnotations
 
-//  implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
   implementation 'androidx.lifecycle:lifecycle-process:2.2.0'
   implementation 'androidx.lifecycle:lifecycle-common-java8:2.2.0'
 
