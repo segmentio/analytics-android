@@ -29,11 +29,15 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import androidx.annotation.NonNull;
+import androidx.lifecycle.DefaultLifecycleObserver;
+import androidx.lifecycle.LifecycleOwner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
+class AnalyticsActivityLifecycleCallbacks
+    implements Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
   private Analytics analytics;
   private ExecutorService analyticsExecutor;
   private Boolean shouldTrackApplicationLifecycleEvents;
@@ -44,7 +48,6 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
 
   private AtomicBoolean trackedApplicationLifecycleEvents;
   private AtomicInteger numberOfActivities;
-  private AtomicBoolean isChangingActivityConfigurations;
   private AtomicBoolean firstLaunch;
 
   private AnalyticsActivityLifecycleCallbacks(
@@ -57,7 +60,6 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
       PackageInfo packageInfo) {
     this.trackedApplicationLifecycleEvents = new AtomicBoolean(false);
     this.numberOfActivities = new AtomicInteger(1);
-    this.isChangingActivityConfigurations = new AtomicBoolean(false);
     this.firstLaunch = new AtomicBoolean(false);
     this.analytics = analytics;
     this.analyticsExecutor = analyticsExecutor;
@@ -68,10 +70,29 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
     this.packageInfo = packageInfo;
   }
 
-  @Override
-  public void onActivityCreated(Activity activity, Bundle bundle) {
-    analytics.runOnMainThread(IntegrationOperation.onActivityCreated(activity, bundle));
+  public void onStop(@NonNull LifecycleOwner owner) {
+    // App in background
+    if (shouldTrackApplicationLifecycleEvents) {
+      analytics.track("Application Backgrounded");
+    }
+  }
 
+  public void onStart(@NonNull LifecycleOwner owner) {
+    // App in foreground
+    if (shouldTrackApplicationLifecycleEvents) {
+      Properties properties = new Properties();
+      if (firstLaunch.get()) {
+        properties
+            .putValue("version", packageInfo.versionName)
+            .putValue("build", String.valueOf(packageInfo.versionCode));
+      }
+      properties.putValue("from_background", !firstLaunch.getAndSet(false));
+      analytics.track("Application Opened", properties);
+    }
+  }
+
+  public void onCreate(@NonNull LifecycleOwner owner) {
+    // App created
     if (!trackedApplicationLifecycleEvents.getAndSet(true)
         && shouldTrackApplicationLifecycleEvents) {
       numberOfActivities.set(0);
@@ -87,28 +108,35 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
               }
             });
       }
-
-      if (!trackDeepLinks) {
-        return;
-      }
-
-      Intent intent = activity.getIntent();
-      if (intent == null || intent.getData() == null) {
-        return;
-      }
-
-      Properties properties = new Properties();
-      Uri uri = intent.getData();
-      for (String parameter : uri.getQueryParameterNames()) {
-        String value = uri.getQueryParameter(parameter);
-        if (value != null && !value.trim().isEmpty()) {
-          properties.put(parameter, value);
-        }
-      }
-
-      properties.put("url", uri.toString());
-      analytics.track("Deep Link Opened", properties);
     }
+  }
+
+  @Override
+  public void onActivityCreated(Activity activity, Bundle bundle) {
+    analytics.runOnMainThread(IntegrationOperation.onActivityCreated(activity, bundle));
+
+    if (trackDeepLinks) {
+      trackDeepLink(activity);
+    }
+  }
+
+  private void trackDeepLink(Activity activity) {
+    Intent intent = activity.getIntent();
+    if (intent == null || intent.getData() == null) {
+      return;
+    }
+
+    Properties properties = new Properties();
+    Uri uri = intent.getData();
+    for (String parameter : uri.getQueryParameterNames()) {
+      String value = uri.getQueryParameter(parameter);
+      if (value != null && !value.trim().isEmpty()) {
+        properties.put(parameter, value);
+      }
+    }
+
+    properties.put("url", uri.toString());
+    analytics.track("Deep Link Opened", properties);
   }
 
   @Override
@@ -122,20 +150,6 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
   @Override
   public void onActivityResumed(Activity activity) {
     analytics.runOnMainThread(IntegrationOperation.onActivityResumed(activity));
-
-    if (shouldTrackApplicationLifecycleEvents
-        && numberOfActivities.incrementAndGet() == 1
-        && !isChangingActivityConfigurations.get()) {
-
-      Properties properties = new Properties();
-      if (firstLaunch.get()) {
-        properties
-            .putValue("version", packageInfo.versionName)
-            .putValue("build", String.valueOf(packageInfo.versionCode));
-      }
-      properties.putValue("from_background", !firstLaunch.getAndSet(false));
-      analytics.track("Application Opened", properties);
-    }
   }
 
   @Override
@@ -146,13 +160,6 @@ class AnalyticsActivityLifecycleCallbacks implements Application.ActivityLifecyc
   @Override
   public void onActivityStopped(Activity activity) {
     analytics.runOnMainThread(IntegrationOperation.onActivityStopped(activity));
-
-    isChangingActivityConfigurations.set(activity.isChangingConfigurations());
-    if (shouldTrackApplicationLifecycleEvents
-        && numberOfActivities.decrementAndGet() == 0
-        && !isChangingActivityConfigurations.get()) {
-      analytics.track("Application Backgrounded");
-    }
   }
 
   @Override
