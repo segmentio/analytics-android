@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Version 4.7.1 (Jun 8, 2020)
+============================
+
+* [Fix](https://github.com/segmentio/analytics-android/pull/667): Use AndroidX lifecycle functions for App Fore/Backgrounded
+* [Fix](https://github.com/segmentio/analytics-android/pull/666): Fix alias not overridden by cached value
+* [Fix](https://github.com/segmentio/analytics-android/pull/663): Catch null intent data
+
 Version 4.7.0 (Jun 1, 2020)
 ============================
 
