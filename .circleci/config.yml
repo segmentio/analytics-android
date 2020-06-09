@@ -78,4 +78,5 @@ workflows:
                 - master
                 - scheduled_e2e_testing
     jobs:
-      - build
+      - build:
+          context: snyk
