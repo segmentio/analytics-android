@@ -408,10 +408,11 @@ public class Analytics {
       ActivityInfo info =
           packageManager.getActivityInfo(activity.getComponentName(), PackageManager.GET_META_DATA);
       CharSequence activityLabel = info.loadLabel(packageManager);
-      //noinspection deprecation
-      screen(null, activityLabel.toString());
+      screen(activityLabel.toString());
     } catch (PackageManager.NameNotFoundException e) {
       throw new AssertionError("Activity Not Found: " + e.toString());
+    } catch (Exception e) {
+      logger.error(e, "Unable to track screen view for %s", activity.toString());
     }
   }
 
