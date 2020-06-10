@@ -3,6 +3,12 @@ apply plugin: 'com.getkeepsafe.dexcount'
 
 apply from: rootProject.file('gradle/android.gradle')
 
+android {
+  defaultConfig {
+    consumerProguardFiles 'proguard-rules-lib.txt'
+  }
+}
+
 dependencies {
   api rootProject.ext.deps.supportAnnotations
 
