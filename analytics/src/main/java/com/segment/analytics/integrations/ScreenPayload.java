@@ -51,8 +51,17 @@ public class ScreenPayload extends BasePayload {
       @NonNull String anonymousId,
       @Nullable String name,
       @Nullable String category,
-      @NonNull Map<String, Object> properties) {
-    super(Type.screen, messageId, timestamp, context, integrations, userId, anonymousId);
+      @NonNull Map<String, Object> properties,
+      boolean nanosecondTimestamps) {
+    super(
+        Type.screen,
+        messageId,
+        timestamp,
+        context,
+        integrations,
+        userId,
+        anonymousId,
+        nanosecondTimestamps);
     if (!isNullOrEmpty(name)) {
       put(NAME_KEY, name);
     }
@@ -147,7 +156,8 @@ public class ScreenPayload extends BasePayload {
         @NonNull Map<String, Object> context,
         @NonNull Map<String, Object> integrations,
         @Nullable String userId,
-        @NonNull String anonymousId) {
+        @NonNull String anonymousId,
+        boolean nanosecondTimestamps) {
       if (isNullOrEmpty(name) && isNullOrEmpty(category)) {
         throw new NullPointerException("either name or category is required");
       }
@@ -166,7 +176,8 @@ public class ScreenPayload extends BasePayload {
           anonymousId,
           name,
           category,
-          properties);
+          properties,
+          nanosecondTimestamps);
     }
 
     @Override

@@ -152,6 +152,8 @@ public class Analytics {
   private Map<String, Integration<?>> integrations;
   volatile boolean shutdown;
 
+  @Private final boolean nanosecondTimestamps;
+
   /**
    * Return a reference to the global default {@link Analytics} instance.
    *
@@ -233,7 +235,8 @@ public class Analytics {
       @NonNull List<Middleware> sourceMiddleware,
       @NonNull Map<String, List<Middleware>> destinationMiddleware,
       @NonNull final ValueMap defaultProjectSettings,
-      @NonNull Lifecycle lifecycle) {
+      @NonNull Lifecycle lifecycle,
+      boolean nanosecondTimestamps) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -256,6 +259,7 @@ public class Analytics {
     this.sourceMiddleware = sourceMiddleware;
     this.destinationMiddleware = destinationMiddleware;
     this.lifecycle = lifecycle;
+    this.nanosecondTimestamps = nanosecondTimestamps;
 
     namespaceSharedPreferences();
 
@@ -743,6 +747,7 @@ public class Analytics {
     builder.context(contextCopy);
     builder.anonymousId(contextCopy.traits().anonymousId());
     builder.integrations(finalOptions.integrations());
+    builder.nanosecondTimestamps(nanosecondTimestamps);
     String cachedUserId = contextCopy.traits().userId();
     if (!builder.isUserIdSet() && !isNullOrEmpty(cachedUserId)) {
       // userId is not set, retrieve from cached traits and set for payload
@@ -1051,6 +1056,7 @@ public class Analytics {
     private boolean recordScreenViews = false;
     private boolean trackAttributionInformation = false;
     private boolean trackDeepLinks = false;
+    private boolean nanosecondTimestamps = false;
     private Crypto crypto;
     private ValueMap defaultProjectSettings = new ValueMap();
 
@@ -1295,6 +1301,15 @@ public class Analytics {
     }
 
     /**
+     * Enable the use of nanoseconds timestamps for all payloads. Timestamps will be formatted as
+     * yyyy-MM-ddThh:mm:ss.nnnnnnnnnZ Note: This is an experimental feature (and strictly opt-in)
+     */
+    public Builder experimentalNanosecondTimestamps() {
+      this.nanosecondTimestamps = true;
+      return this;
+    }
+
+    /**
      * Set the default project settings to use, if Segment.com cannot be reached. An example
      * configuration can be found here, using your write key: <a
      * href="https://cdn-settings.segment.com/v1/projects/YOUR_WRITE_KEY/settings">
@@ -1411,7 +1426,8 @@ public class Analytics {
           srcMiddleware,
           destMiddleware,
           defaultProjectSettings,
-          lifecycle);
+          lifecycle,
+          nanosecondTimestamps);
     }
   }
 

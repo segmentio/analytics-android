@@ -50,8 +50,17 @@ public class GroupPayload extends BasePayload {
       @Nullable String userId,
       @NonNull String anonymousId,
       @NonNull String groupId,
-      @NonNull Map<String, Object> traits) {
-    super(Type.group, messageId, timestamp, context, integrations, userId, anonymousId);
+      @NonNull Map<String, Object> traits,
+      boolean nanosecondTimestamps) {
+    super(
+        Type.group,
+        messageId,
+        timestamp,
+        context,
+        integrations,
+        userId,
+        anonymousId,
+        nanosecondTimestamps);
     put(GROUP_ID_KEY, groupId);
     put(TRAITS_KEY, traits);
   }
@@ -120,7 +129,8 @@ public class GroupPayload extends BasePayload {
         @NonNull Map<String, Object> context,
         @NonNull Map<String, Object> integrations,
         @Nullable String userId,
-        @NonNull String anonymousId) {
+        @NonNull String anonymousId,
+        boolean nanosecondTimestamps) {
       assertNotNullOrEmpty(groupId, "groupId");
 
       Map<String, Object> traits = this.traits;
@@ -129,7 +139,15 @@ public class GroupPayload extends BasePayload {
       }
 
       return new GroupPayload(
-          messageId, timestamp, context, integrations, userId, anonymousId, groupId, traits);
+          messageId,
+          timestamp,
+          context,
+          integrations,
+          userId,
+          anonymousId,
+          groupId,
+          traits,
+          nanosecondTimestamps);
     }
 
     @Override

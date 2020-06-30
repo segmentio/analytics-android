@@ -43,8 +43,17 @@ public class AliasPayload extends BasePayload {
       @NonNull Map<String, Object> integrations,
       @Nullable String userId,
       @NonNull String anonymousId,
-      @NonNull String previousId) {
-    super(Type.alias, messageId, timestamp, context, integrations, userId, anonymousId);
+      @NonNull String previousId,
+      boolean nanosecondTimestamps) {
+    super(
+        Type.alias,
+        messageId,
+        timestamp,
+        context,
+        integrations,
+        userId,
+        anonymousId,
+        nanosecondTimestamps);
     put(PREVIOUS_ID_KEY, previousId);
   }
 
@@ -95,12 +104,20 @@ public class AliasPayload extends BasePayload {
         @NonNull Map<String, Object> context,
         @NonNull Map<String, Object> integrations,
         @Nullable String userId,
-        @NonNull String anonymousId) {
+        @NonNull String anonymousId,
+        boolean nanosecondTimestamps) {
       assertNotNullOrEmpty(userId, "userId");
       assertNotNullOrEmpty(previousId, "previousId");
 
       return new AliasPayload(
-          messageId, timestamp, context, integrations, userId, anonymousId, previousId);
+          messageId,
+          timestamp,
+          context,
+          integrations,
+          userId,
+          anonymousId,
+          previousId,
+          nanosecondTimestamps);
     }
 
     @Override

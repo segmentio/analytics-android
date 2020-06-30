@@ -50,8 +50,17 @@ public class TrackPayload extends BasePayload {
       @Nullable String userId,
       @NonNull String anonymousId,
       @NonNull String event,
-      @NonNull Map<String, Object> properties) {
-    super(Type.track, messageId, timestamp, context, integrations, userId, anonymousId);
+      @NonNull Map<String, Object> properties,
+      boolean nanosecondTimestamps) {
+    super(
+        Type.track,
+        messageId,
+        timestamp,
+        context,
+        integrations,
+        userId,
+        anonymousId,
+        nanosecondTimestamps);
     put(EVENT_KEY, event);
     put(PROPERTIES_KEY, properties);
   }
@@ -123,7 +132,8 @@ public class TrackPayload extends BasePayload {
         @NonNull Map<String, Object> context,
         @NonNull Map<String, Object> integrations,
         String userId,
-        @NonNull String anonymousId) {
+        @NonNull String anonymousId,
+        boolean nanosecondTimestamps) {
       assertNotNullOrEmpty(event, "event");
 
       Map<String, Object> properties = this.properties;
@@ -132,7 +142,15 @@ public class TrackPayload extends BasePayload {
       }
 
       return new TrackPayload(
-          messageId, timestamp, context, integrations, userId, anonymousId, event, properties);
+          messageId,
+          timestamp,
+          context,
+          integrations,
+          userId,
+          anonymousId,
+          event,
+          properties,
+          nanosecondTimestamps);
     }
 
     @Override

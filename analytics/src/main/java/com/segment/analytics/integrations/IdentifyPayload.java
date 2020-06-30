@@ -46,8 +46,17 @@ public class IdentifyPayload extends BasePayload {
       @NonNull Map<String, Object> integrations,
       @Nullable String userId,
       @NonNull String anonymousId,
-      @NonNull Map<String, Object> traits) {
-    super(Type.identify, messageId, timestamp, context, integrations, userId, anonymousId);
+      @NonNull Map<String, Object> traits,
+      boolean nanosecondTimestamps) {
+    super(
+        Type.identify,
+        messageId,
+        timestamp,
+        context,
+        integrations,
+        userId,
+        anonymousId,
+        nanosecondTimestamps);
     put(TRAITS_KEY, traits);
   }
 
@@ -102,13 +111,21 @@ public class IdentifyPayload extends BasePayload {
         @NonNull Map<String, Object> context,
         @NonNull Map<String, Object> integrations,
         String userId,
-        @NonNull String anonymousId) {
+        @NonNull String anonymousId,
+        boolean nanosecondTimestamps) {
       if (isNullOrEmpty(userId) && isNullOrEmpty(traits)) {
         throw new NullPointerException("either userId or traits are required");
       }
 
       return new IdentifyPayload(
-          messageId, timestamp, context, integrations, userId, anonymousId, traits);
+          messageId,
+          timestamp,
+          context,
+          integrations,
+          userId,
+          anonymousId,
+          traits,
+          nanosecondTimestamps);
     }
 
     @Override

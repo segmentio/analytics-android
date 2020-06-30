@@ -34,7 +34,7 @@ import io.github.inflationx.viewpump.ViewPump;
 public class SampleApp extends Application {
 
   // https://segment.com/segment-engineering/sources/android-test/settings/keys
-  private static final String ANALYTICS_WRITE_KEY = "5m6gbdgho6";
+  private static final String ANALYTICS_WRITE_KEY = "8lScBxzFnESRxYxeNZyniANYovjrHBtP";
 
   @Override
   public void onCreate() {
@@ -53,6 +53,8 @@ public class SampleApp extends Application {
     // Initialize a new instance of the Analytics client.
     Analytics.Builder builder =
         new Analytics.Builder(this, ANALYTICS_WRITE_KEY)
+            .flushQueueSize(1)
+            //            .experimentalNanosecondTimestamps()
             .trackApplicationLifecycleEvents()
             .trackAttributionInformation()
             .defaultProjectSettings(

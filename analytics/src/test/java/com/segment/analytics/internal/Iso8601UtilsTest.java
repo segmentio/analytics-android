@@ -40,6 +40,7 @@ public class Iso8601UtilsTest {
   private Date dateWithoutTime;
   private Date dateZeroMillis;
   private Date dateZeroSecondAndMillis;
+  private Date dateWithNano;
 
   @Before
   public void setUp() {
@@ -56,6 +57,7 @@ public class Iso8601UtilsTest {
     cal.set(Calendar.MILLISECOND, 0);
     cal.setTimeZone(TimeZone.getTimeZone("GMT"));
     dateWithoutTime = cal.getTime();
+    dateWithNano = new NanoDate(1187207505345554387L);
   }
 
   @Test
@@ -64,6 +66,19 @@ public class Iso8601UtilsTest {
     assertThat(Iso8601Utils.format(dateWithoutTime)).isEqualTo("2007-08-13T00:00:00.000Z");
     assertThat(Iso8601Utils.format(dateZeroMillis)).isEqualTo("2007-08-13T19:51:23.000Z");
     assertThat(Iso8601Utils.format(dateZeroSecondAndMillis)).isEqualTo("2007-08-13T19:51:00.000Z");
+    assertThat(Iso8601Utils.format(dateWithNano)).isEqualTo("2007-08-15T19:51:45.345Z");
+  }
+
+  @Test
+  public void formatNanos() {
+    assertThat(Iso8601Utils.formatNanos(date)).isEqualTo("2007-08-13T19:51:23.789000000Z");
+    assertThat(Iso8601Utils.formatNanos(dateWithoutTime))
+        .isEqualTo("2007-08-13T00:00:00.000000000Z");
+    assertThat(Iso8601Utils.formatNanos(dateZeroMillis))
+        .isEqualTo("2007-08-13T19:51:23.000000000Z");
+    assertThat(Iso8601Utils.formatNanos(dateZeroSecondAndMillis))
+        .isEqualTo("2007-08-13T19:51:00.000000000Z");
+    assertThat(Iso8601Utils.formatNanos(dateWithNano)).isEqualTo("2007-08-15T19:51:45.345554387Z");
   }
 
   @Test
@@ -71,6 +86,24 @@ public class Iso8601UtilsTest {
     assertThat(Iso8601Utils.parse("2007-08-13T19:51:23.789Z")).isEqualTo(date);
     assertThat(Iso8601Utils.parse("2007-08-13T19:51:23Z")).isEqualTo(dateZeroMillis);
     assertThat(Iso8601Utils.parse("2007-08-13T21:51:23.789+02:00")).isEqualTo(date);
+  }
+
+  @Test
+  public void parseWithNanos() {
+    assertThat(Iso8601Utils.parseWithNanos("2007-08-13T19:51:23.789Z")).isEqualTo(date);
+    assertThat(Iso8601Utils.parseWithNanos("2007-08-13T19:51:23.789000000Z")).isEqualTo(date);
+    assertThat(Iso8601Utils.parseWithNanos("2007-08-13T19:51:23Z")).isEqualTo(dateZeroMillis);
+    assertThat(Iso8601Utils.parseWithNanos("2007-08-13T19:51:23.000000000Z"))
+        .isEqualTo(dateZeroMillis);
+    assertThat(Iso8601Utils.parseWithNanos("2007-08-13T21:51:23.789+02:00")).isEqualTo(date);
+    assertThat(Iso8601Utils.parseWithNanos("2007-08-13T21:51:23.789000000+02:00")).isEqualTo(date);
+    assertThat(Iso8601Utils.parseWithNanos("2007-08-15T19:51:45.345554387Z"))
+        .isEqualTo(dateWithNano);
+    assertThat(Iso8601Utils.parseWithNanos("20070815T19:51:45.345554387Z")).isEqualTo(dateWithNano);
+    assertThat(Iso8601Utils.parseWithNanos("2007-08-15T195145.345554387Z")).isEqualTo(dateWithNano);
+    assertThat(Iso8601Utils.parseWithNanos("20070815T195145.345554387Z")).isEqualTo(dateWithNano);
+    assertThat(Iso8601Utils.parseWithNanos("2007-08-15T21:51:45.345554387+02:00"))
+        .isEqualTo(dateWithNano);
   }
 
   @Test

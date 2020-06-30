@@ -189,7 +189,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
-            lifecycle);
+            lifecycle,
+            false);
 
     // Used by singleton tests.
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
@@ -822,7 +823,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
-            lifecycle);
+            lifecycle,
+            false);
 
     callback.get().onCreate(mockLifecycleOwner);
 
@@ -908,7 +910,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
-            lifecycle);
+            lifecycle,
+            false);
 
     callback.get().onCreate(mockLifecycleOwner);
 
@@ -977,7 +980,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
-            lifecycle);
+            lifecycle,
+            false);
 
     Activity activity = mock(Activity.class);
     PackageManager packageManager = mock(PackageManager.class);
@@ -1048,7 +1052,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
-            lifecycle);
+            lifecycle,
+            false);
 
     final String expectedUrl = "app://track.com/open?utm_id=12345&gclid=abcd&nope=";
 
@@ -1121,7 +1126,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
-            lifecycle);
+            lifecycle,
+            false);
 
     final String expectedUrl = "app://track.com/open?utm_id=12345&gclid=abcd&nope=";
 
@@ -1194,7 +1200,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
-            lifecycle);
+            lifecycle,
+            false);
 
     Activity activity = mock(Activity.class);
 
@@ -1259,7 +1266,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
-            lifecycle);
+            lifecycle,
+            false);
 
     Activity activity = mock(Activity.class);
 
@@ -1327,7 +1335,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
-            lifecycle);
+            lifecycle,
+            false);
 
     Activity activity = mock(Activity.class);
     Bundle bundle = new Bundle();
@@ -1402,7 +1411,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
-            lifecycle);
+            lifecycle,
+            false);
 
     callback.get().onCreate(mockLifecycleOwner);
     callback.get().onStart(mockLifecycleOwner);
@@ -1469,7 +1479,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
-            lifecycle);
+            lifecycle,
+            false);
 
     Activity backgroundedActivity = mock(Activity.class);
     when(backgroundedActivity.isChangingConfigurations()).thenReturn(false);
@@ -1536,7 +1547,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
-            lifecycle);
+            lifecycle,
+            false);
 
     callback.get().onCreate(mockLifecycleOwner);
     callback.get().onStart(mockLifecycleOwner);
@@ -1624,7 +1636,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
-            lifecycle);
+            lifecycle,
+            false);
 
     assertThat(analytics.shutdown).isFalse();
     analytics.shutdown();
@@ -1719,7 +1732,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
-            lifecycle);
+            lifecycle,
+            false);
 
     assertThat(analytics.shutdown).isFalse();
     analytics.shutdown();
@@ -1789,7 +1803,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             defaultProjectSettings,
-            lifecycle);
+            lifecycle,
+            false);
 
     assertThat(analytics.projectSettings).hasSize(2).containsKey("integrations");
     assertThat(analytics.projectSettings.integrations())
@@ -1835,7 +1850,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             defaultProjectSettings,
-            lifecycle);
+            lifecycle,
+            false);
 
     assertThat(analytics.projectSettings).hasSize(2).containsKey("integrations");
     assertThat(analytics.projectSettings.integrations()).hasSize(1).containsKey("Segment.io");
@@ -1887,7 +1903,8 @@ public class AnalyticsTest {
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
             defaultProjectSettings,
-            lifecycle);
+            lifecycle,
+            false);
 
     assertThat(analytics.projectSettings).hasSize(2).containsKey("integrations");
     assertThat(analytics.projectSettings.integrations()).hasSize(1).containsKey("Segment.io");
@@ -1916,5 +1933,87 @@ public class AnalyticsTest {
     assertThat(payload.getValue().context()).containsKey("testProp");
     assertThat(payload.getValue().context().get("testProp")).isEqualTo(true);
     assertThat(analytics.analyticsContext).doesNotContainKey("testProp");
+  }
+
+  @Test
+  public void enableExperimentalNanosecondResolutionTimestamps() {
+    Analytics.INSTANCES.clear();
+    analytics =
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            true,
+            new CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
+            new ValueMap(),
+            lifecycle,
+            true);
+
+    analytics.track("event");
+    ArgumentCaptor<TrackPayload> payload = ArgumentCaptor.forClass(TrackPayload.class);
+    verify(integration).track(payload.capture());
+    String timestamp = (String) payload.getValue().get("timestamp");
+    assertThat(timestamp).matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{9}Z");
+  }
+
+  @Test
+  public void disableExperimentalNanosecondResolutionTimestamps() {
+    Analytics.INSTANCES.clear();
+    analytics =
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            true,
+            new CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
+            new ValueMap(),
+            lifecycle,
+            false);
+
+    analytics.track("event");
+    ArgumentCaptor<TrackPayload> payload = ArgumentCaptor.forClass(TrackPayload.class);
+    verify(integration).track(payload.capture());
+    String timestamp = (String) payload.getValue().get("timestamp");
+    assertThat(timestamp).matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z");
   }
 }
