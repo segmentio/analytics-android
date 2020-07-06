@@ -197,6 +197,10 @@ public abstract class BasePayload extends ValueMap {
     }
 
     Builder(BasePayload payload) {
+      String tsStr = payload.getString(TIMESTAMP_KEY);
+      if (tsStr != null && tsStr.length() > 24) { // [yyyy-MM-ddThh:mm:ss.sssZ] format without nanos
+        nanosecondTimestamps = true;
+      }
       messageId = payload.messageId();
       timestamp = payload.timestamp();
       context = payload.context();
