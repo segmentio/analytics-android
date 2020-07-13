@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Version 4.8.0 (Jul 13, 2020)
+============================
+
+* [Fix](https://github.com/segmentio/analytics-android/pull/668): Fix: Proguard/R8 configuration for createValueMap
+* [Fix](https://github.com/segmentio/analytics-android/pull/670): handle RuntimeException when calling `getActivityInfo`
+* [New](https://github.com/segmentio/analytics-android/pull/671): Experimental Nanosecond timestamps
+
 Version 4.7.1 (Jun 8, 2020)
 ============================
 
