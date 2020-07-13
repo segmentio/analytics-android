@@ -54,7 +54,8 @@ import java.util.TimeZone;
  * objects.
  *
  * <p>Supported parse format:
- * [yyyy-MM-dd|yyyyMMdd][T(hh:mm[:ss[.sss]]|hhmm[ss[.sss]])]?[Z|[+-]hh[:]mm]]
+ * [yyyy-MM-dd|yyyyMMdd][T(hh:mm[:ss[.sss]]|hhmm[ss[.sss]])]?[Z|[+-]hh[:]mm]] and
+ * [yyyy-MM-dd|yyyyMMdd][T(hh:mm[:ss[.fffffffff]]|hhmm[ss[.fffffffff]])]?[Z|[+-]hh[:]mm]]
  *
  * @see <a href="http://www.w3.org/TR/NOTE-datetime">this specification</a>
  */
@@ -87,6 +88,36 @@ final class Iso8601Utils {
     padInt(formatted, calendar.get(Calendar.SECOND), "ss".length());
     formatted.append('.');
     padInt(formatted, calendar.get(Calendar.MILLISECOND), "sss".length());
+    formatted.append('Z');
+    return formatted.toString();
+  }
+
+  /** Returns {@code date} formatted as yyyy-MM-ddThh:mm:ss.fffffffffZ */
+  public static String formatNanos(Date date) {
+    Calendar calendar = new GregorianCalendar(TIMEZONE_Z, Locale.US);
+    calendar.setTime(date);
+
+    // estimate capacity of buffer as close as we can (yeah, that's pedantic ;)
+    int capacity = "yyyy-MM-ddThh:mm:ss.fffffffffZ".length();
+    StringBuilder formatted = new StringBuilder(capacity);
+    padInt(formatted, calendar.get(Calendar.YEAR), "yyyy".length());
+    formatted.append('-');
+    padInt(formatted, calendar.get(Calendar.MONTH) + 1, "MM".length());
+    formatted.append('-');
+    padInt(formatted, calendar.get(Calendar.DAY_OF_MONTH), "dd".length());
+    formatted.append('T');
+    padInt(formatted, calendar.get(Calendar.HOUR_OF_DAY), "hh".length());
+    formatted.append(':');
+    padInt(formatted, calendar.get(Calendar.MINUTE), "mm".length());
+    formatted.append(':');
+    padInt(formatted, calendar.get(Calendar.SECOND), "ss".length());
+    formatted.append('.');
+    if (date instanceof NanoDate) {
+      long nanos = ((NanoDate) date).nanos();
+      padLong(formatted, nanos % 1_000_000_000, "fffffffff".length());
+    } else {
+      padLong(formatted, calendar.get(Calendar.MILLISECOND), "fffffffff".length());
+    }
     formatted.append('Z');
     return formatted.toString();
   }
@@ -226,6 +257,141 @@ final class Iso8601Utils {
   }
 
   /**
+   * Parse a date from ISO-8601 formatted string. It expects a format
+   * [yyyy-MM-dd|yyyyMMdd][T(hh:mm[:ss[.fffffffff]]|hhmm[ss[.fffffffff]])]?[Z|[+-]hh:mm]]
+   *
+   * @param date ISO string to parse in the appropriate format.
+   * @return the parsed date
+   */
+  public static NanoDate parseWithNanos(String date) {
+    try {
+      int offset = 0;
+
+      // extract year
+      int year = parseInt(date, offset, offset += 4);
+      if (checkOffset(date, offset, '-')) {
+        offset += 1;
+      }
+
+      // extract month
+      int month = parseInt(date, offset, offset += 2);
+      if (checkOffset(date, offset, '-')) {
+        offset += 1;
+      }
+
+      // extract day
+      int day = parseInt(date, offset, offset += 2);
+      // default time value
+      int hour = 0;
+      int minutes = 0;
+      int seconds = 0;
+      int nanoseconds =
+          0; // always use 0 otherwise returned date will include nanoseconds of current time
+
+      // if the value has no time component (and no time zone), we are done
+      boolean hasT = checkOffset(date, offset, 'T');
+
+      if (!hasT && (date.length() <= offset)) {
+        Calendar calendar = new GregorianCalendar(year, month - 1, day);
+
+        return new NanoDate(calendar.getTime());
+      }
+
+      if (hasT) {
+
+        // extract hours, minutes, seconds and milliseconds
+        hour = parseInt(date, offset += 1, offset += 2);
+        if (checkOffset(date, offset, ':')) {
+          offset += 1;
+        }
+
+        minutes = parseInt(date, offset, offset += 2);
+        if (checkOffset(date, offset, ':')) {
+          offset += 1;
+        }
+        // second and milliseconds can be optional
+        if (date.length() > offset) {
+          char c = date.charAt(offset);
+          if (c != 'Z' && c != '+' && c != '-') {
+            seconds = parseInt(date, offset, offset += 2);
+            if (seconds > 59 && seconds < 63) {
+              seconds = 59; // truncate up to 3 leap seconds
+            }
+            // nanoseconds can be optional in the format
+            if (checkOffset(date, offset, '.')) {
+              offset += 1;
+              int endOffset = indexOfNonDigit(date, offset + 1); // assume at least one digit
+              int parseEndOffset = Math.min(endOffset, offset + 9); // parse up to 9 digits
+              int fraction = parseInt(date, offset, parseEndOffset);
+              nanoseconds = (int) (Math.pow(10, 9 - (parseEndOffset - offset)) * fraction);
+              offset = endOffset;
+            }
+          }
+        }
+      }
+
+      // extract timezone
+      if (date.length() <= offset) {
+        throw new IllegalArgumentException("No time zone indicator");
+      }
+
+      TimeZone timezone;
+      char timezoneIndicator = date.charAt(offset);
+
+      if (timezoneIndicator == 'Z') {
+        timezone = TIMEZONE_Z;
+      } else if (timezoneIndicator == '+' || timezoneIndicator == '-') {
+        String timezoneOffset = date.substring(offset);
+        // 18-Jun-2015, tatu: Minor simplification, skip offset of "+0000"/"+00:00"
+        if ("+0000".equals(timezoneOffset) || "+00:00".equals(timezoneOffset)) {
+          timezone = TIMEZONE_Z;
+        } else {
+          // 18-Jun-2015, tatu: Looks like offsets only work from GMT, not UTC...
+          //    not sure why, but it is what it is.
+          String timezoneId = GMT_ID + timezoneOffset;
+          timezone = TimeZone.getTimeZone(timezoneId);
+          String act = timezone.getID();
+          if (!act.equals(timezoneId)) {
+            /* 22-Jan-2015, tatu: Looks like canonical version has colons, but we may be given
+             *    one without. If so, don't sweat.
+             *   Yes, very inefficient. Hopefully not hit often.
+             *   If it becomes a perf problem, add 'loose' comparison instead.
+             */
+            String cleaned = act.replace(":", "");
+            if (!cleaned.equals(timezoneId)) {
+              throw new IndexOutOfBoundsException(
+                  "Mismatching time zone indicator: "
+                      + timezoneId
+                      + " given, resolves to "
+                      + timezone.getID());
+            }
+          }
+        }
+      } else {
+        throw new IndexOutOfBoundsException(
+            "Invalid time zone indicator '" + timezoneIndicator + "'");
+      }
+
+      Calendar calendar = new GregorianCalendar(timezone);
+      calendar.setLenient(false);
+      calendar.set(Calendar.YEAR, year);
+      calendar.set(Calendar.MONTH, month - 1);
+      calendar.set(Calendar.DAY_OF_MONTH, day);
+      calendar.set(Calendar.HOUR_OF_DAY, hour);
+      calendar.set(Calendar.MINUTE, minutes);
+      calendar.set(Calendar.SECOND, seconds);
+      calendar.set(Calendar.MILLISECOND, 0);
+      long time = calendar.getTime().getTime() * 1_000_000 + nanoseconds;
+
+      return new NanoDate(time);
+      // If we get a ParseException it'll already have the right message/offset.
+      // Other exception types can convert here.
+    } catch (IndexOutOfBoundsException | IllegalArgumentException e) {
+      throw new RuntimeException("Not an RFC 3339 date: " + date, e);
+    }
+  }
+
+  /**
    * Check if the expected character exist at the given offset in the value.
    *
    * @param value the string to check at the specified offset
@@ -286,6 +452,21 @@ final class Iso8601Utils {
       buffer.append('0');
     }
     buffer.append(strValue);
+  }
+
+  /**
+   * Zero right pad a number to a specified length
+   *
+   * @param buffer buffer to use for padding
+   * @param value the integer value to pad if necessary.
+   * @param length the length of the string we should zero pad
+   */
+  private static void padLong(StringBuilder buffer, long value, int length) {
+    String strValue = Long.toString(value);
+    buffer.append(strValue);
+    for (int i = length - strValue.length(); i > 0; i--) {
+      buffer.append('0');
+    }
   }
 
   /**

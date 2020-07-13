@@ -98,6 +98,11 @@ public final class Utils {
     return Iso8601Utils.format(date);
   }
 
+  /** Returns {@code date} formatted as yyyy-MM-ddThh:mm:ss.fffffffffZ */
+  public static String toISO8601NanoFormattedString(Date date) {
+    return Iso8601Utils.formatNanos(date);
+  }
+
   /**
    * Parse a date from ISO-8601 formatted string. It expects a format
    * [yyyy-MM-dd|yyyyMMdd][T(hh:mm[:ss[.sss]]|hhmm[ss[.sss]])]?[Z|[+-]hh:mm]]
@@ -112,6 +117,17 @@ public final class Utils {
   /** @deprecated Use {@link #parseISO8601Date(String)}. */
   public static Date toISO8601Date(String date) throws ParseException {
     return parseISO8601Date(date);
+  }
+
+  /**
+   * Parse a date from ISO-8601 formatted string. It expects a format
+   * [yyyy-MM-dd|yyyyMMdd][T(hh:mm[:ss[.fffffffff]]|hhmm[ss[.fffffffff]])]?[Z|[+-]hh:mm]]
+   *
+   * @param date ISO string to parse in the appropriate format.
+   * @return the parsed date
+   */
+  public static NanoDate parseISO8601DateWithNanos(String date) {
+    return Iso8601Utils.parseWithNanos(date);
   }
 
   // TODO: Migrate other coercion methods.

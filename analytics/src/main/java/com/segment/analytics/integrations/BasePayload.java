@@ -27,7 +27,8 @@ import static com.segment.analytics.internal.Utils.assertNotNull;
 import static com.segment.analytics.internal.Utils.assertNotNullOrEmpty;
 import static com.segment.analytics.internal.Utils.immutableCopyOf;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
-import static com.segment.analytics.internal.Utils.parseISO8601Date;
+import static com.segment.analytics.internal.Utils.parseISO8601DateWithNanos;
+import static com.segment.analytics.internal.Utils.toISO8601NanoFormattedString;
 import static com.segment.analytics.internal.Utils.toISO8601String;
 
 import androidx.annotation.CheckResult;
@@ -35,6 +36,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.segment.analytics.AnalyticsContext;
 import com.segment.analytics.ValueMap;
+import com.segment.analytics.internal.NanoDate;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -65,11 +67,16 @@ public abstract class BasePayload extends ValueMap {
       @NonNull Map<String, Object> context,
       @NonNull Map<String, Object> integrations,
       @Nullable String userId,
-      @NonNull String anonymousId) {
+      @NonNull String anonymousId,
+      boolean nanosecondTimestamps) {
     put(CHANNEL_KEY, Channel.mobile);
     put(TYPE_KEY, type);
     put(MESSAGE_ID, messageId);
-    put(TIMESTAMP_KEY, toISO8601String(timestamp));
+    if (nanosecondTimestamps) {
+      put(TIMESTAMP_KEY, toISO8601NanoFormattedString(timestamp));
+    } else {
+      put(TIMESTAMP_KEY, toISO8601String(timestamp));
+    }
     put(CONTEXT_KEY, context);
     put(INTEGRATIONS_KEY, integrations);
     if (!isNullOrEmpty(userId)) {
@@ -124,7 +131,7 @@ public abstract class BasePayload extends ValueMap {
     if (isNullOrEmpty(timestamp)) {
       return null;
     }
-    return parseISO8601Date(timestamp);
+    return parseISO8601DateWithNanos(timestamp);
   }
 
   /**
@@ -183,12 +190,17 @@ public abstract class BasePayload extends ValueMap {
     private Map<String, Object> integrationsBuilder;
     private String userId;
     private String anonymousId;
+    private boolean nanosecondTimestamps = false;
 
     Builder() {
       // Empty constructor.
     }
 
     Builder(BasePayload payload) {
+      String tsStr = payload.getString(TIMESTAMP_KEY);
+      if (tsStr != null && tsStr.length() > 24) { // [yyyy-MM-ddThh:mm:ss.sssZ] format without nanos
+        nanosecondTimestamps = true;
+      }
       messageId = payload.messageId();
       timestamp = payload.timestamp();
       context = payload.context();
@@ -323,13 +335,19 @@ public abstract class BasePayload extends ValueMap {
       return !isNullOrEmpty(userId);
     }
 
+    public B nanosecondTimestamps(boolean enabled) {
+      this.nanosecondTimestamps = enabled;
+      return self();
+    }
+
     abstract P realBuild(
         @NonNull String messageId,
         @NonNull Date timestamp,
         @NonNull Map<String, Object> context,
         @NonNull Map<String, Object> integrations,
         @Nullable String userId,
-        @NonNull String anonymousId);
+        @NonNull String anonymousId,
+        boolean nanosecondTimestamps);
 
     abstract B self();
 
@@ -351,14 +369,15 @@ public abstract class BasePayload extends ValueMap {
       }
 
       if (timestamp == null) {
-        timestamp = new Date();
+        timestamp = new NanoDate(); // captures higher resolution timestamps
       }
 
       if (isNullOrEmpty(context)) {
         context = Collections.emptyMap();
       }
 
-      return realBuild(messageId, timestamp, context, integrations, userId, anonymousId);
+      return realBuild(
+          messageId, timestamp, context, integrations, userId, anonymousId, nanosecondTimestamps);
     }
   }
 }
