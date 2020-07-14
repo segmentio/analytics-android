@@ -1,18 +1,18 @@
 /**
  * The MIT License (MIT)
- * <p>
+ *
  * Copyright (c) 2014 Segment.io, Inc.
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,13 +25,8 @@ package com.segment.analytics.sample;
 
 import android.app.Application;
 import android.util.Log;
-
 import com.segment.analytics.Analytics;
-import com.segment.analytics.Middleware;
 import com.segment.analytics.ValueMap;
-import com.segment.analytics.integrations.BasePayload;
-import com.segment.analytics.integrations.TrackPayload;
-
 import io.github.inflationx.calligraphy3.CalligraphyConfig;
 import io.github.inflationx.calligraphy3.CalligraphyInterceptor;
 import io.github.inflationx.viewpump.ViewPump;
@@ -39,7 +34,7 @@ import io.github.inflationx.viewpump.ViewPump;
 public class SampleApp extends Application {
 
   // https://segment.com/segment-engineering/sources/android-test/settings/keys
-  private static final String ANALYTICS_WRITE_KEY = "HO63Z36e0Ufa8AAgbjDomDuKxFuUICqI";
+  private static final String ANALYTICS_WRITE_KEY = "5m6gbdgho6";
 
   @Override
   public void onCreate() {
@@ -58,7 +53,6 @@ public class SampleApp extends Application {
     // Initialize a new instance of the Analytics client.
     Analytics.Builder builder =
         new Analytics.Builder(this, ANALYTICS_WRITE_KEY)
-            .experimentalNanosecondTimestamps()
             .trackApplicationLifecycleEvents()
             .trackAttributionInformation()
             .defaultProjectSettings(
@@ -71,20 +65,6 @@ public class SampleApp extends Application {
                                 new ValueMap()
                                     .putValue("appToken", "<>")
                                     .putValue("trackAttributionData", true))))
-            .useSourceMiddleware(new Middleware() {
-              @Override
-              public void intercept(Chain chain) {
-                if (chain.payload().type() == BasePayload.Type.track) {
-                  TrackPayload payload = (TrackPayload) chain.payload();
-                  if (payload.event().equalsIgnoreCase("Button B Clicked")) {
-                    chain.proceed(payload.toBuilder().build());
-                    return;
-                  }
-                }
-                chain.proceed(chain.payload());
-              }
-            })
-            .flushQueueSize(1)
             .recordScreenViews();
 
     // Set the initialized instance as a globally accessible instance.
