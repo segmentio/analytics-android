@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 apply plugin: 'com.getkeepsafe.dexcount'
 
 apply from: rootProject.file('gradle/android.gradle')
@@ -30,7 +31,12 @@ dependencies {
   // with Android.
   //noinspection GradleDependency
   testImplementation 'org.assertj:assertj-core:1.7.1'
+  implementation "androidx.core:core-ktx:+"
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
 apply from: rootProject.file('gradle/attach-jar.gradle')
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
+repositories {
+  mavenCentral()
+}
