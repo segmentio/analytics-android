@@ -37,7 +37,7 @@ class LoggerTest {
     }
 
     @Test
-    fun debugMessagesShowInLog(){
+    fun debugMessagesShowInLog() {
         val logger = Logger.with(Analytics.LogLevel.DEBUG)
 
         logger.debug("some message with an %s", "argument")
@@ -51,7 +51,7 @@ class LoggerTest {
     }
 
     @Test
-    fun infoMessagesShowInLog(){
+    fun infoMessagesShowInLog() {
         val logger = Logger.with(Analytics.LogLevel.INFO)
 
         logger.info("some message with an %s", "argument")
@@ -66,7 +66,7 @@ class LoggerTest {
 
     @Test
     @Throws
-    fun errorMessagesShowInLog(){
+    fun errorMessagesShowInLog() {
         val logger = Logger.with(Analytics.LogLevel.DEBUG)
 
         val throwable = AssertionError("testing")
@@ -82,7 +82,7 @@ class LoggerTest {
 
     @Test
     @Throws
-    fun subLog(){
+    fun subLog() {
         val logger = Logger.with(Analytics.LogLevel.DEBUG).subLog("foo")
 
         logger.debug("some message with an %s", "argument")
@@ -95,7 +95,7 @@ class LoggerTest {
                         .build())
     }
 
-    class LogItemBuilder{
+    class LogItemBuilder {
         private var type: Int = 0
         private var tag: String = "Analytics"
         private var msg: String = ""
