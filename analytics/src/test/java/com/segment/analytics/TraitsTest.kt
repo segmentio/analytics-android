@@ -12,7 +12,7 @@ import java.util.*
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
 class TraitsTest {
-    var traits: Traits? = null
+    lateinit var traits: Traits
 
     @Before
     fun setUp() {
@@ -28,7 +28,7 @@ class TraitsTest {
     @Test
     @Throws
     fun newInvocationHasNoUserId() {
-        Assertions.assertThat(traits?.userId()).isNull()
+        Assertions.assertThat(traits.userId()).isNull()
     }
 
     @Test
@@ -75,18 +75,18 @@ class TraitsTest {
 
     @Test
     fun copyReturnsSameMappings() {
-        val copy = traits?.unmodifiableCopy()
+        val copy = traits.unmodifiableCopy()
         Assertions.assertThat(copy).hasSameSizeAs(traits).isNotSameAs(traits).isEqualTo(traits)
-        for ((key, value) in traits!!) {
+        for ((key, value) in traits) {
             Assertions.assertThat(copy).contains(MapEntry.entry(key, value))
         }
     }
 
     @Test
     fun copyIsImmutable() {
-        val copy = traits?.unmodifiableCopy()
+        val copy = traits.unmodifiableCopy()
         try{
-            copy?.put("foo", "bar")
+            copy["foo"] = "bar"
             Assertions.fail("Inserting into copy should throw UnsupportedOperationException")
         } catch (ignored: UnsupportedOperationException) {
         }
@@ -111,123 +111,123 @@ class TraitsTest {
         address.putStreet("128 W Hastings")
         Assertions.assertThat(address.street()).isEqualTo("128 W Hastings")
 
-        traits?.putAddress(address)
-        Assertions.assertThat(traits?.address()).isEqualTo(address)
+        traits.putAddress(address)
+        Assertions.assertThat(traits.address()).isEqualTo(address)
     }
 
     @Test
     fun age() {
-        traits?.putAge(25)
-        Assertions.assertThat(traits?.age()).isEqualTo(25)
+        traits.putAge(25)
+        Assertions.assertThat(traits.age()).isEqualTo(25)
     }
 
     @Test
     fun avatar() {
-        traits?.putAvatar("https://github.com/identicons/segmentio.png")
-        Assertions.assertThat(traits?.avatar()).isEqualTo("https://github.com/identicons/segmentio.png")
+        traits.putAvatar("https://github.com/identicons/segmentio.png")
+        Assertions.assertThat(traits.avatar()).isEqualTo("https://github.com/identicons/segmentio.png")
     }
 
     @Test
     fun emptyBirthdayDoesNotCrash() {
-        Assertions.assertThat(traits?.birthday()).isNull()
+        Assertions.assertThat(traits.birthday()).isNull()
     }
 
     @Test
     fun birthday() {
         val date = GregorianCalendar(1992, 2, 10).time
-        traits?.putBirthday(date)
-        Assertions.assertThat(traits?.birthday()).isEqualTo(date)
+        traits.putBirthday(date)
+        Assertions.assertThat(traits.birthday()).isEqualTo(date)
     }
 
     @Test
     fun createdAt() {
-        traits?.putCreatedAt("16-02-217")
-        Assertions.assertThat(traits?.createdAt()).isEqualTo("16-02-217")
+        traits.putCreatedAt("16-02-217")
+        Assertions.assertThat(traits.createdAt()).isEqualTo("16-02-217")
     }
 
     @Test
     fun description() {
-        traits?.putDescription("a really amazing library")
-        Assertions.assertThat(traits?.description()).isEqualTo("a really amazing library")
+        traits.putDescription("a really amazing library")
+        Assertions.assertThat(traits.description()).isEqualTo("a really amazing library")
     }
 
     @Test
     fun email() {
-        traits?.putEmail("prateek@gmail.com")
-        Assertions.assertThat(traits?.email()).isEqualTo("prateek@gmail.com")
+        traits.putEmail("prateek@gmail.com")
+        Assertions.assertThat(traits.email()).isEqualTo("prateek@gmail.com")
     }
 
     @Test
     fun employees() {
-        traits?.putEmployees(1000)
-        Assertions.assertThat(traits?.employees()).isEqualTo(1000)
+        traits.putEmployees(1000)
+        Assertions.assertThat(traits.employees()).isEqualTo(1000)
     }
 
     @Test
     fun fax() {
-        traits?.putFax("123-456-7890")
-        Assertions.assertThat(traits?.fax()).isEqualTo("123-456-7890")
+        traits.putFax("123-456-7890")
+        Assertions.assertThat(traits.fax()).isEqualTo("123-456-7890")
     }
 
     @Test
     fun gender() {
-        traits?.putGender("male")
-        Assertions.assertThat(traits?.gender()).isEqualTo("male")
+        traits.putGender("male")
+        Assertions.assertThat(traits.gender()).isEqualTo("male")
     }
 
     @Test
     fun industry() {
-        traits?.putIndustry("SAAS")
-        Assertions.assertThat(traits?.industry()).isEqualTo("SAAS")
+        traits.putIndustry("SAAS")
+        Assertions.assertThat(traits.industry()).isEqualTo("SAAS")
     }
 
     @Test
     fun name() {
-        Assertions.assertThat(traits?.name()).isNull()
+        Assertions.assertThat(traits.name()).isNull()
 
-        traits?.putFirstName("prateek")
-        traits?.putLastName("srivastava")
-        Assertions.assertThat(traits?.name()).isEqualTo("prateek srivastava")
+        traits.putFirstName("prateek")
+        traits.putLastName("srivastava")
+        Assertions.assertThat(traits.name()).isEqualTo("prateek srivastava")
 
-        traits?.putName("mr. prateek srivastava")
-        Assertions.assertThat(traits?.name()).isEqualTo("mr. prateek srivastava")
+        traits.putName("mr. prateek srivastava")
+        Assertions.assertThat(traits.name()).isEqualTo("mr. prateek srivastava")
     }
 
     @Test
     fun firstName() {
-        traits?.putFirstName("prateek")
-        Assertions.assertThat(traits?.name()).isEqualTo("prateek")
-        Assertions.assertThat(traits?.firstName()).isEqualTo("prateek")
+        traits.putFirstName("prateek")
+        Assertions.assertThat(traits.name()).isEqualTo("prateek")
+        Assertions.assertThat(traits.firstName()).isEqualTo("prateek")
     }
 
     @Test
     fun lastName() {
-        traits?.putLastName("srivastava")
-        Assertions.assertThat(traits?.name()).isEqualTo("srivastava")
-        Assertions.assertThat(traits?.lastName()).isEqualTo("srivastava")
+        traits.putLastName("srivastava")
+        Assertions.assertThat(traits.name()).isEqualTo("srivastava")
+        Assertions.assertThat(traits.lastName()).isEqualTo("srivastava")
     }
 
     @Test
     fun phone() {
-        traits?.putPhone("123-456-7890")
-        Assertions.assertThat(traits?.phone()).isEqualTo("123-456-7890")
+        traits.putPhone("123-456-7890")
+        Assertions.assertThat(traits.phone()).isEqualTo("123-456-7890")
     }
 
     @Test
     fun title() {
-        traits?.putTitle("Software Engineer")
-        Assertions.assertThat(traits?.title()).isEqualTo("Software Engineer")
+        traits.putTitle("Software Engineer")
+        Assertions.assertThat(traits.title()).isEqualTo("Software Engineer")
     }
 
     @Test
     fun username() {
-        traits?.putUsername("f2prateek")
-        Assertions.assertThat(traits?.username()).isEqualTo("f2prateek")
+        traits.putUsername("f2prateek")
+        Assertions.assertThat(traits.username()).isEqualTo("f2prateek")
     }
 
     @Test
     fun website() {
-        traits?.putWebsite("https://segment.com/")
-        Assertions.assertThat(traits?.website()).isEqualTo("https://segment.com/")
+        traits.putWebsite("https://segment.com/")
+        Assertions.assertThat(traits.website()).isEqualTo("https://segment.com/")
     }
 }
