@@ -29,17 +29,17 @@ jobs:
           environment:
             SNYK_FAIL_ON: upgradable
             SNYK_SEVERITY_THRESHOLD: high
-      - run:
-          name: Run E2E Test
-          command: |
-            if [ "${RUN_E2E_TESTS}" == "true" ]; then
-              echo "${FIREBASE_TOKEN}" >> "secret.json"
-              curl -O https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.zip
-              unzip -qq google-cloud-sdk.zip
-              ./google-cloud-sdk/bin/gcloud config set project analytics-android-e2e-test
-              ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file secret.json
-              ./google-cloud-sdk/bin/gcloud firebase test android run --app analytics-samples/analytics-sample/build/outputs/apk/debug/analytics-sample-debug.apk --test analytics-samples/analytics-sample/build/outputs/apk/androidTest/debug/analytics-sample-debug-androidTest.apk --device-ids Nexus6,hammerhead,sailfish --os-version-ids 19,21,22,23,24,25,26,27
-            fi
+#      - run:
+#          name: Run E2E Test
+#          command: |
+#            if [ "${RUN_E2E_TESTS}" == "true" ]; then
+#              echo "${FIREBASE_TOKEN}" >> "secret.json"
+#              curl -O https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.zip
+#              unzip -qq google-cloud-sdk.zip
+#              ./google-cloud-sdk/bin/gcloud config set project analytics-android-e2e-test
+#              ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file secret.json
+#              ./google-cloud-sdk/bin/gcloud firebase test android run --app analytics-samples/analytics-sample/build/outputs/apk/debug/analytics-sample-debug.apk --test analytics-samples/analytics-sample/build/outputs/apk/androidTest/debug/analytics-sample-debug-androidTest.apk --device-ids Nexus6,hammerhead,sailfish --os-version-ids 19,21,22,23,24,25,26,27
+#            fi
       - run:
           name: Build Failed
           when: on_fail
