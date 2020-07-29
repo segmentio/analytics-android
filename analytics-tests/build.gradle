@@ -4,7 +4,11 @@ apply from: rootProject.file('gradle/android.gradle')
 
 dependencies {
   api project(':analytics')
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
 apply from: rootProject.file('gradle/attach-jar.gradle')
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
+repositories {
+  mavenCentral()
+}

@@ -18,3 +18,6 @@ dependencies {
   implementation project(':analytics-wear')
   implementation 'androidx.wear:wear:1.0.0'
 }
+repositories {
+    mavenCentral()
+}
