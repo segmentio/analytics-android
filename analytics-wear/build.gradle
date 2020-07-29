@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
 
 apply from: rootProject.file('gradle/android.gradle')
 
@@ -9,12 +8,9 @@ dependencies {
   // TODO: we should update this dependency.
   //noinspection GradleDependency
   api 'com.google.android.gms:play-services-wearable:10.2.6'
-  implementation "androidx.core:core-ktx:+"
-  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
 repositories {
-  maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
   mavenCentral()
 }

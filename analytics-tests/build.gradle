@@ -1,17 +1,14 @@
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
 
 apply from: rootProject.file('gradle/android.gradle')
 
 dependencies {
   api project(':analytics')
-  implementation "androidx.core:core-ktx:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
 apply from: rootProject.file('gradle/attach-jar.gradle')
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
 repositories {
-  maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
   mavenCentral()
 }
