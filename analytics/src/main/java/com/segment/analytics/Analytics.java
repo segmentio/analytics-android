@@ -1321,7 +1321,10 @@ public class Analytics {
       return this;
     }
 
-    public Builder useNewLifecycleMethods(boolean useNewLifecycleMethods) {
+    /**
+     * Enable/Disable the use of the new Lifecycle Observer methods. Enabled by default.
+     */
+    public Builder experimentalUseNewLifecycleMethods(boolean useNewLifecycleMethods) {
       this.useNewLifecycleMethods = useNewLifecycleMethods;
       return this;
     }
