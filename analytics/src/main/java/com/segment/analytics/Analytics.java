@@ -494,9 +494,7 @@ public class Analytics {
             analyticsContext.setTraits(traits); // Update the references
 
             IdentifyPayload.Builder builder =
-                new IdentifyPayload.Builder()
-                    .timestamp(timestamp)
-                    .traits(traitsCache.get());
+                new IdentifyPayload.Builder().timestamp(timestamp).traits(traitsCache.get());
             fillAndEnqueue(builder, options);
           }
         });
