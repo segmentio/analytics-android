@@ -85,6 +85,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
@@ -190,7 +191,8 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
             lifecycle,
-            false);
+            false,
+            true);
 
     // Used by singleton tests.
     grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
@@ -824,7 +826,8 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
             lifecycle,
-            false);
+            false,
+            true);
 
     callback.get().onCreate(mockLifecycleOwner);
 
@@ -911,7 +914,8 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
             lifecycle,
-            false);
+            false,
+            true);
 
     callback.get().onCreate(mockLifecycleOwner);
 
@@ -981,7 +985,8 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
             lifecycle,
-            false);
+            false,
+            true);
 
     Activity activity = mock(Activity.class);
     PackageManager packageManager = mock(PackageManager.class);
@@ -1053,7 +1058,8 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
             lifecycle,
-            false);
+            false,
+            true);
 
     final String expectedUrl = "app://track.com/open?utm_id=12345&gclid=abcd&nope=";
 
@@ -1127,7 +1133,8 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
             lifecycle,
-            false);
+            false,
+            true);
 
     final String expectedUrl = "app://track.com/open?utm_id=12345&gclid=abcd&nope=";
 
@@ -1201,7 +1208,8 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
             lifecycle,
-            false);
+            false,
+            true);
 
     Activity activity = mock(Activity.class);
 
@@ -1267,7 +1275,8 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
             lifecycle,
-            false);
+            false,
+            true);
 
     Activity activity = mock(Activity.class);
 
@@ -1336,7 +1345,8 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
             lifecycle,
-            false);
+            false,
+            true);
 
     Activity activity = mock(Activity.class);
     Bundle bundle = new Bundle();
@@ -1412,7 +1422,8 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
             lifecycle,
-            false);
+            false,
+            true);
 
     callback.get().onCreate(mockLifecycleOwner);
     callback.get().onStart(mockLifecycleOwner);
@@ -1480,12 +1491,14 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
             lifecycle,
-            false);
+            false,
+            true);
 
     Activity backgroundedActivity = mock(Activity.class);
     when(backgroundedActivity.isChangingConfigurations()).thenReturn(false);
 
     callback.get().onCreate(mockLifecycleOwner);
+    callback.get().onStart(mockLifecycleOwner);
     callback.get().onResume(mockLifecycleOwner);
     callback.get().onStop(mockLifecycleOwner);
 
@@ -1548,12 +1561,249 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
             lifecycle,
-            false);
+            false,
+            true);
 
     callback.get().onCreate(mockLifecycleOwner);
     callback.get().onStart(mockLifecycleOwner);
     callback.get().onStop(mockLifecycleOwner);
     callback.get().onStart(mockLifecycleOwner);
+
+    verify(integration)
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.event().equals("Application Backgrounded");
+                  }
+                }));
+
+    verify(integration)
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.event().equals("Application Opened")
+                        && payload.properties().getBoolean("from_background", false);
+                  }
+                }));
+  }
+
+  @Test
+  public void trackApplicationLifecycleEventsApplicationOpenedOldFlow()
+      throws NameNotFoundException {
+    Analytics.INSTANCES.clear();
+    // need to reset bcos we interact with mock in our setUp function (implicitly via analytics
+    // constructor)
+    Mockito.reset(lifecycle);
+
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+        new AtomicReference<>();
+    doNothing()
+        .when(application)
+        .registerActivityLifecycleCallbacks(
+            argThat(
+                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                  @Override
+                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                    callback.set((Application.ActivityLifecycleCallbacks) item);
+                    return true;
+                  }
+                }));
+
+    analytics =
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            true,
+            new CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
+            new ValueMap(),
+            lifecycle,
+            false,
+            false);
+
+    // Verify that new methods were not registered
+    verify(lifecycle, never()).addObserver(any(LifecycleObserver.class));
+
+    callback.get().onActivityCreated(null, null);
+    callback.get().onActivityResumed(null);
+
+    verify(integration)
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.event().equals("Application Opened")
+                        && payload.properties().getString("version").equals("1.0.0")
+                        && payload.properties().getString("build").equals(String.valueOf(100))
+                        && !payload.properties().getBoolean("from_background", true);
+                  }
+                }));
+  }
+
+  @Test
+  public void trackApplicationLifecycleEventsApplicationBackgroundedOldFlow()
+      throws NameNotFoundException {
+    Analytics.INSTANCES.clear();
+    // need to reset bcos we interact with mock in our setUp function (implicitly via analytics
+    // constructor)
+    Mockito.reset(lifecycle);
+
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+        new AtomicReference<>();
+    doNothing()
+        .when(application)
+        .registerActivityLifecycleCallbacks(
+            argThat(
+                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                  @Override
+                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                    callback.set((Application.ActivityLifecycleCallbacks) item);
+                    return true;
+                  }
+                }));
+
+    analytics =
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            true,
+            new CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
+            new ValueMap(),
+            lifecycle,
+            false,
+            false);
+
+    // Verify that new methods were not registered
+    verify(lifecycle, never()).addObserver(any(LifecycleObserver.class));
+
+    Activity backgroundedActivity = mock(Activity.class);
+    when(backgroundedActivity.isChangingConfigurations()).thenReturn(false);
+
+    callback.get().onActivityCreated(null, null);
+    callback.get().onActivityResumed(null);
+    callback.get().onActivityStopped(backgroundedActivity);
+
+    verify(integration)
+        .track(
+            argThat(
+                new NoDescriptionMatcher<TrackPayload>() {
+                  @Override
+                  protected boolean matchesSafely(TrackPayload payload) {
+                    return payload.event().equals("Application Backgrounded");
+                  }
+                }));
+  }
+
+  @Test
+  public void trackApplicationLifecycleEventsApplicationForegroundedOldFlow()
+      throws NameNotFoundException {
+    Analytics.INSTANCES.clear();
+    // need to reset bcos we interact with mock in our setUp function (implicitly via analytics
+    // constructor)
+    Mockito.reset(lifecycle);
+
+    final AtomicReference<Application.ActivityLifecycleCallbacks> callback =
+        new AtomicReference<>();
+    doNothing()
+        .when(application)
+        .registerActivityLifecycleCallbacks(
+            argThat(
+                new NoDescriptionMatcher<Application.ActivityLifecycleCallbacks>() {
+                  @Override
+                  protected boolean matchesSafely(Application.ActivityLifecycleCallbacks item) {
+                    callback.set(item);
+                    return true;
+                  }
+                }));
+
+    analytics =
+        new Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(NONE),
+            "qaz",
+            Collections.singletonList(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL,
+            analyticsExecutor,
+            true,
+            new CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            Collections.<Middleware>emptyList(),
+            Collections.<String, List<Middleware>>emptyMap(),
+            new ValueMap(),
+            lifecycle,
+            false,
+            false);
+
+    // Verify that new methods were not registered
+    verify(lifecycle, never()).addObserver(any(LifecycleObserver.class));
+
+    Activity backgroundedActivity = mock(Activity.class);
+    when(backgroundedActivity.isChangingConfigurations()).thenReturn(false);
+
+    callback.get().onActivityCreated(null, null);
+    callback.get().onActivityResumed(null);
+    callback.get().onActivityStopped(backgroundedActivity);
+    callback.get().onActivityResumed(null);
 
     verify(integration)
         .track(
@@ -1637,7 +1887,8 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
             lifecycle,
-            false);
+            false,
+            true);
 
     assertThat(analytics.shutdown).isFalse();
     analytics.shutdown();
@@ -1733,7 +1984,8 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
             lifecycle,
-            false);
+            false,
+            true);
 
     assertThat(analytics.shutdown).isFalse();
     analytics.shutdown();
@@ -1804,7 +2056,8 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             defaultProjectSettings,
             lifecycle,
-            false);
+            false,
+            true);
 
     assertThat(analytics.projectSettings).hasSize(2).containsKey("integrations");
     assertThat(analytics.projectSettings.integrations())
@@ -1851,7 +2104,8 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             defaultProjectSettings,
             lifecycle,
-            false);
+            false,
+            true);
 
     assertThat(analytics.projectSettings).hasSize(2).containsKey("integrations");
     assertThat(analytics.projectSettings.integrations()).hasSize(1).containsKey("Segment.io");
@@ -1904,7 +2158,8 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             defaultProjectSettings,
             lifecycle,
-            false);
+            false,
+            true);
 
     assertThat(analytics.projectSettings).hasSize(2).containsKey("integrations");
     assertThat(analytics.projectSettings.integrations()).hasSize(1).containsKey("Segment.io");
@@ -1967,6 +2222,7 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
             lifecycle,
+            true,
             true);
 
     analytics.track("event");
@@ -2008,7 +2264,8 @@ public class AnalyticsTest {
             Collections.<String, List<Middleware>>emptyMap(),
             new ValueMap(),
             lifecycle,
-            false);
+            false,
+            true);
 
     analytics.track("event");
     ArgumentCaptor<TrackPayload> payload = ArgumentCaptor.forClass(TrackPayload.class);
