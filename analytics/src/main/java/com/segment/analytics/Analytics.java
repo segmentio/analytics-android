@@ -1321,9 +1321,7 @@ public class Analytics {
       return this;
     }
 
-    /**
-     * Enable/Disable the use of the new Lifecycle Observer methods. Enabled by default.
-     */
+    /** Enable/Disable the use of the new Lifecycle Observer methods. Enabled by default. */
     public Builder experimentalUseNewLifecycleMethods(boolean useNewLifecycleMethods) {
       this.useNewLifecycleMethods = useNewLifecycleMethods;
       return this;
