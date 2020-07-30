@@ -82,18 +82,20 @@ class IntegrationOperationTest {
   @Test
   fun trackPlanForEvent() {
     val payload = TrackPayload.Builder()
-        .event("Intall Attributed").userId("userId").build()
+        .event("Install Attributed").userId("userId").build()
     track(
         payload,
         "Mixpanel",
         Cartographer.INSTANCE.fromJson(
-            """{
-                        "plan": {
-                        "track": {
+            """
+                  {
+                    "plan": {
+                      "track": { 
                         "Completed Order": {}
-                            }
-                          }
-                        }"""))
+                      }
+                    }
+                  }
+                  """))
     Mockito.verify(integration).track(payload)
   }
 
@@ -101,7 +103,7 @@ class IntegrationOperationTest {
   @Test
   fun trackWithOptionsAndWithoutEventPlan() {
     val payload = TrackPayload.Builder()
-        .event("Intall Attributed")
+        .event("Install Attributed")
         .userId("userId")
         .integrations(ImmutableMap.of("Mixpanel", false))
         .build()
@@ -109,13 +111,15 @@ class IntegrationOperationTest {
         payload,
         "Mixpanel",
         Cartographer.INSTANCE.fromJson(
-            """{
-                        "plan": {
-                        "track": {
+            """
+                  {
+                    "plan": {
+                      "track": { 
                         "Completed Order": {}
-                            }
-                          }
-                        }"""))
+                      }
+                    }
+                  }
+                  """))
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
@@ -131,13 +135,15 @@ class IntegrationOperationTest {
         payload,
         "Mixpanel",
         Cartographer.INSTANCE.fromJson(
-            """{
-                        "plan": {
-                        "track": {
+            """
+                  {
+                    "plan": {
+                      "track": {
                         "Completed Order": {}
-                            }
-                          }
-                        }"""))
+                      }
+                    }
+                  }
+                  """))
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
@@ -150,15 +156,17 @@ class IntegrationOperationTest {
         payload,
         "Amplitude",
         Cartographer.INSTANCE.fromJson(
-            """{
-                        "plan": {
-                        "track": {
+            """
+                  {
+                    "plan": {
+                      "track": {
                         "Install Attributed": {
-                        "enabled": false
-                              }
-                            }
-                          }
-                        }"""))
+                          "enabled": false
+                        }
+                      }
+                    }
+                  }
+                  """))
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
@@ -171,15 +179,17 @@ class IntegrationOperationTest {
         payload,
         "Segment.io",
         Cartographer.INSTANCE.fromJson(
-            """{
-                        "plan": {
-                        "track": {
+            """
+                  {
+                    "plan": {
+                      "track": {
                         "Install Attributed": {
-                        "enabled": false
-                              }
-                            }
-                          }
-                        }"""))
+                          "enabled": false
+                        }
+                      }
+                    }
+                  }
+                  """))
     Mockito.verify(integration).track(payload)
   }
 
@@ -192,17 +202,19 @@ class IntegrationOperationTest {
         payload,
         "Amplitude",
         Cartographer.INSTANCE.fromJson(
-            """{
-                        "plan": {
-                        "track": {
+            """
+                  {
+                    "plan": {
+                      "track": {
                         "Install Attributed": {
-                        "integrations": {
-                        "Amplitude": false
-                                }
-                              }
-                            }
+                          "integrations": {
+                            "Amplitude": false
                           }
-                        }"""))
+                        }
+                      }
+                    }
+                  }
+                  """))
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
@@ -215,17 +227,17 @@ class IntegrationOperationTest {
         payload,
         "Mixpanel",
         Cartographer.INSTANCE.fromJson(
-            """{
-                        "plan": {
-                        "track": {
+            """
+                  {
+                    "plan": {
+                      "track": {
                         "Install Attributed": {
-                        "integrations": {
-                        "Mixpanel": true
-                                }
-                              }
-                            }
-                          }
-                        }"""))
+                          "Mixpanel": true
+                        }
+                      }
+                    }
+                  }
+                  """))
 
     Mockito.verify(integration).track(payload)
   }
@@ -239,17 +251,19 @@ class IntegrationOperationTest {
         payload,
         "Segment.io",
         Cartographer.INSTANCE.fromJson(
-            """{
-                        "plan": {
-                        "track": {
+            """
+                  {
+                    "plan": {
+                      "track": {
                         "Install Attributed": {
-                        "integrations": {
-                        "Segment.io": false
-                                }
-                              }
-                            }
+                          "integrations": {
+                            "Segment.io": false
                           }
-                        }"""))
+                        }
+                      }
+                    }
+                  }
+                  """))
     Mockito.verify(integration).track(payload)
   }
 
@@ -262,15 +276,17 @@ class IntegrationOperationTest {
         payload,
         "Segment.io",
         Cartographer.INSTANCE.fromJson(
-            """{
-                        "plan": {
-                        "track": {
+            """
+                  {
+                    "plan": {
+                      "track": {
                         "__default": {
-                        "enabled": true
-                              }
-                            }
-                          }
-                        }"""))
+                          "enabled": true
+                        }
+                      }
+                    }
+                  }
+                  """))
 
     Mockito.verify(integration).track(payload)
   }
@@ -284,15 +300,17 @@ class IntegrationOperationTest {
         payload,
         "Mixpanel",
         Cartographer.INSTANCE.fromJson(
-            """{
-                        "plan": {
-                        "track": {
+            """
+                  {
+                    "plan": {
+                      "track": {
                         "__default": {
-                        "enabled": false
-                              }
-                            }
-                          }
-                        }"""))
+                          "enabled": false
+                        }
+                      }
+                    }
+                  }
+                  """))
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
@@ -305,15 +323,17 @@ class IntegrationOperationTest {
         payload,
         "Segment.io",
         Cartographer.INSTANCE.fromJson(
-            """{
-                        "plan": {
-                        "track": {
+            """
+                  {
+                    "plan": {
+                      "track": {
                         "__default": {
-                        "enabled": false
-                              }
-                            }
-                          }
-                        }"""))
+                          "enabled": false
+                        }
+                      }
+                    }
+                  }
+                  """))
     Mockito.verify(integration).track(payload)
   }
 
@@ -326,18 +346,20 @@ class IntegrationOperationTest {
         payload,
         "Mixpanel",
         Cartographer.INSTANCE.fromJson(
-            """{
-                        "plan": {
-                        "track": {
+            """
+                  {
+                    "plan": {
+                      "track": {
                         "__default": {
                           "enabled": true
                         },
-                        "Install Attributed": {
-                          "enabled": false
-                              }
+                            "Install Attributed": {
+                              "enabled": false
                             }
-                          }
-                        }"""))
+                      }
+                    }
+                  }
+                  """))
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
