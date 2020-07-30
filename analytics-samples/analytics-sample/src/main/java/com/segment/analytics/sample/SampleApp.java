@@ -37,7 +37,7 @@ import io.github.inflationx.viewpump.ViewPump;
 public class SampleApp extends Application {
 
   // https://segment.com/segment-engineering/sources/android-test/settings/keys
-  private static final String ANALYTICS_WRITE_KEY = "HO63Z36e0Ufa8AAgbjDomDuKxFuUICqI";
+  private static final String ANALYTICS_WRITE_KEY = "5m6gbdgho6";
 
   @Override
   public void onCreate() {

@@ -153,6 +153,7 @@ public class Analytics {
   volatile boolean shutdown;
 
   @Private final boolean nanosecondTimestamps;
+  @Private final boolean useNewLifecycleMethods;
 
   /**
    * Return a reference to the global default {@link Analytics} instance.
@@ -236,7 +237,8 @@ public class Analytics {
       @NonNull Map<String, List<Middleware>> destinationMiddleware,
       @NonNull final ValueMap defaultProjectSettings,
       @NonNull Lifecycle lifecycle,
-      boolean nanosecondTimestamps) {
+      boolean nanosecondTimestamps,
+      boolean useNewLifecycleMethods) {
     this.application = application;
     this.networkExecutor = networkExecutor;
     this.stats = stats;
@@ -260,6 +262,7 @@ public class Analytics {
     this.destinationMiddleware = destinationMiddleware;
     this.lifecycle = lifecycle;
     this.nanosecondTimestamps = nanosecondTimestamps;
+    this.useNewLifecycleMethods = useNewLifecycleMethods;
 
     namespaceSharedPreferences();
 
@@ -321,10 +324,14 @@ public class Analytics {
             .trackDeepLinks(trackDeepLinks)
             .shouldRecordScreenViews(shouldRecordScreenViews)
             .packageInfo(getPackageInfo(application))
+            .useNewLifecycleMethods(useNewLifecycleMethods)
             .build();
 
     application.registerActivityLifecycleCallbacks(activityLifecycleCallback);
-    lifecycle.addObserver(activityLifecycleCallback);
+    if (useNewLifecycleMethods) {
+      // only register if feature is enabled
+      lifecycle.addObserver(activityLifecycleCallback);
+    }
   }
 
   @Private
@@ -422,6 +429,7 @@ public class Analytics {
 
   @Private
   void runOnMainThread(final IntegrationOperation operation) {
+    logger.debug("Running IntegrationOperation on main thread: %s", operation.toString());
     if (shutdown) {
       return;
     }
@@ -977,7 +985,10 @@ public class Analytics {
       return;
     }
     application.unregisterActivityLifecycleCallbacks(activityLifecycleCallback);
-    lifecycle.removeObserver(activityLifecycleCallback);
+    if (useNewLifecycleMethods) {
+      // only unregister if feature is enabled
+      lifecycle.removeObserver(activityLifecycleCallback);
+    }
     // Only supplied by us for testing, so it's ok to shut it down. If we were to make this public,
     // we'll have to add a check similar to that of AnalyticsNetworkExecutorService below.
     analyticsExecutor.shutdown();
@@ -1059,6 +1070,7 @@ public class Analytics {
     private boolean nanosecondTimestamps = false;
     private Crypto crypto;
     private ValueMap defaultProjectSettings = new ValueMap();
+    private boolean useNewLifecycleMethods = true; // opt-out feature
 
     /** Start building a new {@link Analytics} instance. */
     public Builder(Context context, String writeKey) {
@@ -1309,6 +1321,11 @@ public class Analytics {
       return this;
     }
 
+    public Builder useNewLifecycleMethods(boolean useNewLifecycleMethods) {
+      this.useNewLifecycleMethods = useNewLifecycleMethods;
+      return this;
+    }
+
     /**
      * Set the default project settings to use, if Segment.com cannot be reached. An example
      * configuration can be found here, using your write key: <a
@@ -1427,7 +1444,8 @@ public class Analytics {
           destMiddleware,
           defaultProjectSettings,
           lifecycle,
-          nanosecondTimestamps);
+          nanosecondTimestamps,
+          useNewLifecycleMethods);
     }
   }
 
