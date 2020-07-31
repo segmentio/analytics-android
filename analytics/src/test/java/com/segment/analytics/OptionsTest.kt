@@ -11,14 +11,13 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
 class OptionsTest {
-
   private lateinit var options: Options
 
   @Before
   fun setUp() { options = Options() }
 
-  @Throws(Exception::class)
   @Test
+  @Throws(Exception::class)
   fun disallowsDisablingSegmentIntegration() {
     try{
       options.setIntegration("Segment.io", true)
@@ -29,8 +28,8 @@ class OptionsTest {
     }
   }
 
-  @Throws(Exception::class)
   @Test
+  @Throws(Exception::class)
   fun setIntegration() {
     options.setIntegration("Mixpanel", true)
     options.setIntegration("All", false)

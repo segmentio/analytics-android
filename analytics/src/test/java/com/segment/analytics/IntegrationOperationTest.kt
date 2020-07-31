@@ -78,8 +78,8 @@ class IntegrationOperationTest {
     Mockito.verify(integration).track(payload)
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun trackPlanForEvent() {
     val payload = TrackPayload.Builder()
         .event("Install Attributed").userId("userId").build()
@@ -99,8 +99,8 @@ class IntegrationOperationTest {
     Mockito.verify(integration).track(payload)
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun trackWithOptionsAndWithoutEventPlan() {
     val payload = TrackPayload.Builder()
         .event("Install Attributed")
@@ -123,8 +123,8 @@ class IntegrationOperationTest {
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun trackPlanForEventWithOptions() {
     val payload = TrackPayload.Builder()
         .event("Install Attributed")
@@ -147,8 +147,8 @@ class IntegrationOperationTest {
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun trackPlanDisabledEvent() {
     val payload = TrackPayload.Builder()
         .event("Install Attributed").userId("userId").build()
@@ -170,8 +170,8 @@ class IntegrationOperationTest {
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun trackPlanDisabledEventSendsToSegment() {
     val payload = TrackPayload.Builder()
         .event("Install Attributed").userId("userId").build()
@@ -193,8 +193,8 @@ class IntegrationOperationTest {
     Mockito.verify(integration).track(payload)
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun trackPlanDisabledIntegration() {
     val payload = TrackPayload.Builder()
         .event("Install Attributed").userId("userId").build()
@@ -218,8 +218,8 @@ class IntegrationOperationTest {
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun trackPlanEnabledIntegration() {
     val payload = TrackPayload.Builder()
         .event("Install Attributed").userId("userId").build()
@@ -242,8 +242,8 @@ class IntegrationOperationTest {
     Mockito.verify(integration).track(payload)
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun ignoresSegment() {
     val payload = TrackPayload.Builder()
         .event("Install Attributed").userId("userId").build()
@@ -267,8 +267,8 @@ class IntegrationOperationTest {
     Mockito.verify(integration).track(payload)
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun defaultNewEventsEnabled() {
     val payload = TrackPayload.Builder()
         .event("Install Attributed").userId("userId").build()
@@ -291,8 +291,8 @@ class IntegrationOperationTest {
     Mockito.verify(integration).track(payload)
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun defaultNewEventsDisabled() {
     val payload = TrackPayload.Builder()
         .event("Install Attributed").userId("userId").build()
@@ -314,8 +314,8 @@ class IntegrationOperationTest {
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun defaultNewEventsDisabledSendToSegment() {
     val payload = TrackPayload.Builder()
         .event("Install Attributed").userId("userId").build()
@@ -337,8 +337,8 @@ class IntegrationOperationTest {
     Mockito.verify(integration).track(payload)
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun eventPlanOverridesSchemaDefualt() {
     val payload = TrackPayload.Builder()
         .event("Install Attributed").userId("userId").build()

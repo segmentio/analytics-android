@@ -14,8 +14,8 @@ import java.io.IOException
 @Config(manifest = Config.NONE)
 class CryptoTest {
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun noneCryptoWrite() {
     val crypto: Crypto = Crypto.none()
     val foo: ByteString = ByteString.encodeUtf8("foo")
