@@ -14,6 +14,7 @@
   @RunWith(RobolectricTestRunner::class)
   @Config(manifest = Config.NONE)
   class LoggerTest {
+
     @Test
     fun verboseLevelLogsEverything() {
       val logger = Logger.with(Analytics.LogLevel.VERBOSE)

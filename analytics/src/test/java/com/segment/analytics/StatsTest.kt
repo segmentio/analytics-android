@@ -13,7 +13,6 @@ import java.io.IOException
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
 class StatsTest {
-
   private lateinit var stats: Stats
 
   @Before
@@ -21,8 +20,8 @@ class StatsTest {
     stats = Stats()
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun performFlush() {
     stats.performFlush(4)
     Assertions.assertThat(stats.flushCount).isEqualTo(1)
@@ -33,8 +32,8 @@ class StatsTest {
     Assertions.assertThat(stats.flushEventCount).isEqualTo(14)
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun performIntegrationOperation() {
     stats.performIntegrationOperation(Pair("foo", 43L))
     Assertions.assertThat(stats.integrationOperationCount).isEqualTo(1)
@@ -57,8 +56,8 @@ class StatsTest {
         .contains(MapEntry.entry("bar", 21L))
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun createSnapshot() {
     stats.performFlush(1)
     stats.performFlush(1)
@@ -99,8 +98,8 @@ class StatsTest {
     }
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun createEmptySnapshot() {
     val snapshot: StatsSnapshot = stats.createSnapshot()
 

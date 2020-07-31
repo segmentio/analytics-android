@@ -13,6 +13,7 @@ import java.io.IOException
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
 class BatchPayloadWriterTest {
+
   @Test
   @Throws(IOException::class)
   fun batchPayloadWriter() {
@@ -33,8 +34,8 @@ class BatchPayloadWriterTest {
         .contains("{\"batch\":[foobarbazqux,{},2],\"sentAt\":\"")
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun batchPayloadWriterSingleItem() {
     val byteArrayOutputStream = ByteArrayOutputStream()
     val batchPayloadWriter = BatchPayloadWriter(byteArrayOutputStream)
@@ -51,8 +52,8 @@ class BatchPayloadWriterTest {
         .contains("{\"batch\":[qaz],\"sentAt\":\"")
   }
 
-  @Throws(IOException::class)
   @Test
+  @Throws(IOException::class)
   fun batchPayloadWriterFailsForNoItem() {
     val byteArrayOutputStream = ByteArrayOutputStream()
     val batchPayloadWriter = BatchPayloadWriter(byteArrayOutputStream)
