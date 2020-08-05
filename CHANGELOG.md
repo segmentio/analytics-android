@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Version 4.8.2 (Jul 30, 2020)
+============================
+* [Fix](https://github.com/segmentio/analytics-android/pull/686): Generate timestamps at call site rather than asynchronously
+
 Version 4.8.0 (Jul 13, 2020)
 ============================
 

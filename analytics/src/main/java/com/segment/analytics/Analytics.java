@@ -58,6 +58,7 @@ import com.segment.analytics.integrations.Integration;
 import com.segment.analytics.integrations.Logger;
 import com.segment.analytics.integrations.ScreenPayload;
 import com.segment.analytics.integrations.TrackPayload;
+import com.segment.analytics.internal.NanoDate;
 import com.segment.analytics.internal.Private;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
@@ -476,7 +477,7 @@ public class Analytics {
     if (isNullOrEmpty(userId) && isNullOrEmpty(newTraits)) {
       throw new IllegalArgumentException("Either userId or some traits must be provided.");
     }
-
+    NanoDate timestamp = new NanoDate();
     analyticsExecutor.submit(
         new Runnable() {
           @Override
@@ -493,7 +494,7 @@ public class Analytics {
             analyticsContext.setTraits(traits); // Update the references
 
             IdentifyPayload.Builder builder =
-                new IdentifyPayload.Builder().traits(traitsCache.get());
+                new IdentifyPayload.Builder().timestamp(timestamp).traits(traitsCache.get());
             fillAndEnqueue(builder, options);
           }
         });
@@ -531,7 +532,7 @@ public class Analytics {
     if (isNullOrEmpty(groupId)) {
       throw new IllegalArgumentException("groupId must not be null or empty.");
     }
-
+    NanoDate timestamp = new NanoDate();
     analyticsExecutor.submit(
         new Runnable() {
           @Override
@@ -544,7 +545,10 @@ public class Analytics {
             }
 
             GroupPayload.Builder builder =
-                new GroupPayload.Builder().groupId(groupId).traits(finalGroupTraits);
+                new GroupPayload.Builder()
+                    .timestamp(timestamp)
+                    .groupId(groupId)
+                    .traits(finalGroupTraits);
             fillAndEnqueue(builder, options);
           }
         });
@@ -580,7 +584,7 @@ public class Analytics {
     if (isNullOrEmpty(event)) {
       throw new IllegalArgumentException("event must not be null or empty.");
     }
-
+    NanoDate timestamp = new NanoDate();
     analyticsExecutor.submit(
         new Runnable() {
           @Override
@@ -593,7 +597,10 @@ public class Analytics {
             }
 
             TrackPayload.Builder builder =
-                new TrackPayload.Builder().event(event).properties(finalProperties);
+                new TrackPayload.Builder()
+                    .timestamp(timestamp)
+                    .event(event)
+                    .properties(finalProperties);
             fillAndEnqueue(builder, options);
           }
         });
@@ -646,7 +653,7 @@ public class Analytics {
     if (isNullOrEmpty(category) && isNullOrEmpty(name)) {
       throw new IllegalArgumentException("either category or name must be provided.");
     }
-
+    NanoDate timestamp = new NanoDate();
     analyticsExecutor.submit(
         new Runnable() {
           @Override
@@ -661,6 +668,7 @@ public class Analytics {
             //noinspection deprecation
             ScreenPayload.Builder builder =
                 new ScreenPayload.Builder()
+                    .timestamp(timestamp)
                     .name(name)
                     .category(category)
                     .properties(finalProperties);
@@ -700,12 +708,14 @@ public class Analytics {
       throw new IllegalArgumentException("newId must not be null or empty.");
     }
 
+    NanoDate timestamp = new NanoDate();
     analyticsExecutor.submit(
         new Runnable() {
           @Override
           public void run() {
             AliasPayload.Builder builder =
                 new AliasPayload.Builder()
+                    .timestamp(timestamp)
                     .userId(newId)
                     .previousId(analyticsContext.traits().currentId());
             fillAndEnqueue(builder, options);
