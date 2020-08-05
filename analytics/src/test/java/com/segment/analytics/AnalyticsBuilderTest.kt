@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager.PERMISSION_DENIED
 import android.content.res.Resources
+import com.nhaarman.mockitokotlin2.whenever
 import com.segment.analytics.Analytics.Builder
 import com.segment.analytics.Analytics.WRITE_KEY_RESOURCE_IDENTIFIER
 import com.segment.analytics.core.BuildConfig
@@ -30,7 +31,7 @@ class AnalyticsBuilderTest {
         MockitoAnnotations.initMocks(this)
         context = TestUtils.mockApplication()
         Analytics.INSTANCES.clear()
-        Mockito.`when`(context.applicationContext).thenReturn(context)
+        whenever(context.applicationContext).thenReturn(context)
     }
 
     @Test
