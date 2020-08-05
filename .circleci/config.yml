@@ -68,15 +68,15 @@ workflows:
     jobs:
       - build:
           context: snyk
-  scheduled_e2e_test:
-    triggers:
-      - schedule:
-          cron: "20 * * * *"
-          filters:
-            branches:
-              only:
-                - master
-                - scheduled_e2e_testing
+#  scheduled_e2e_test:
+#    triggers:
+#      - schedule:
+#          cron: "20 * * * *"
+#          filters:
+#            branches:
+#              only:
+#                - master
+#                - scheduled_e2e_testing
     jobs:
       - build:
           context: snyk
