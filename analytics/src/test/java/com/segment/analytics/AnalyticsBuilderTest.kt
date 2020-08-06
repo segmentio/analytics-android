@@ -13,7 +13,7 @@ import org.assertj.core.api.Assertions
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Matchers.eq
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import org.robolectric.RobolectricTestRunner
@@ -44,7 +44,7 @@ class AnalyticsBuilderTest {
             Assertions.assertThat(expected).hasMessage("Context must not be null.")
         }
 
-        Mockito.`when`(context.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_DENIED)
+        whenever(context.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_DENIED)
         try {
             Builder(context, "foo")
             Assertions.fail("Missing internet permission should throw exception.")
@@ -263,10 +263,10 @@ class AnalyticsBuilderTest {
 
     private fun mockWriteKeyInResources(context: Context, writeKey: String?) {
         val resources = Mockito.mock(Resources::class.java)
-        Mockito.`when`(context.resources).thenReturn(resources)
-        Mockito.`when`(resources.getIdentifier(eq(WRITE_KEY_RESOURCE_IDENTIFIER), eq("string"), eq("string")))
+        whenever(context.resources).thenReturn(resources)
+        whenever(resources.getIdentifier(eq(WRITE_KEY_RESOURCE_IDENTIFIER), eq("string"), eq("string")))
                 .thenReturn(1)
-        Mockito.`when`(resources.getString(1)).thenReturn(writeKey)
+        whenever(resources.getString(1)).thenReturn(writeKey)
     }
 
     @Test

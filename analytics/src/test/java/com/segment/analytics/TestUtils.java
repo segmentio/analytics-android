@@ -27,7 +27,6 @@ import static android.Manifest.permission.INTERNET;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -50,6 +49,7 @@ import org.mockito.stubbing.Answer;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.shadows.ShadowApplication;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 public final class TestUtils {
 
