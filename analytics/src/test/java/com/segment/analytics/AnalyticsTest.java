@@ -35,7 +35,7 @@ import static com.segment.analytics.internal.Utils.DEFAULT_FLUSH_QUEUE_SIZE;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -44,6 +44,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 import android.Manifest;
 import android.app.Activity;
@@ -995,6 +996,7 @@ public class AnalyticsTest {
 
     callback.get().onActivityStarted(activity);
 
+    analytics.screen("Foo");
     verify(integration)
         .screen(
             argThat(

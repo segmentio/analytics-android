@@ -27,10 +27,10 @@ import static android.Manifest.permission.INTERNET;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 import android.app.Application;
 import com.segment.analytics.integrations.TrackPayload;
