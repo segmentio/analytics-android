@@ -224,13 +224,13 @@ class ClientTest {
         Mockito.verify(`is`).close()
     }
 
-    internal class RecordedRequestAssert constructor(actual: RecordedRequest?):
-            AbstractAssert<RecordedRequestAssert?,
-                    RecordedRequest?>(actual, RecordedRequestAssert::class.java) {
+    internal class RecordedRequestAssert constructor(actual: RecordedRequest):
+            AbstractAssert<RecordedRequestAssert,
+                    RecordedRequest>(actual, RecordedRequestAssert::class.java) {
 
-        fun containsHeader(name: String?, expectedHeader: String?): RecordedRequestAssert {
+        fun containsHeader(name: String, expectedHeader: String): RecordedRequestAssert {
             isNotNull
-            val actualHeader = actual!!.getHeader(name)
+            val actualHeader = actual.getHeader(name)
             Assertions.assertThat(actualHeader)
                     .overridingErrorMessage(
                             "Expected header <%s> to be <%s> but was <%s>.", name, expectedHeader, actualHeader)
@@ -240,7 +240,7 @@ class ClientTest {
 
         fun containsHeader(name: String): RecordedRequestAssert {
             isNotNull
-            val actualHeader = actual!!.getHeader(name)
+            val actualHeader = actual.getHeader(name)
             Assertions.assertThat(actualHeader)
                     .overridingErrorMessage(
                             "Expected header <%s> to not be empty but was.", name, actualHeader)
@@ -251,7 +251,7 @@ class ClientTest {
 
         fun hasRequestLine(requestLine: String): RecordedRequestAssert {
             isNotNull
-            val actualRequestLine = actual!!.requestLine
+            val actualRequestLine = actual.requestLine
             Assertions.assertThat(actualRequestLine)
                     .overridingErrorMessage(
                             "Expected requestLine <%s> to be <%s> but was not.", actualRequestLine, requestLine)
