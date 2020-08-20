@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
 
         //substitute with your own write key
         val analytics: Analytics =
-                Analytics.Builder(this, "insert write key here").build()
+                Analytics.Builder(this, "ek2TEqayWNAYGWRj4JQnuJLkG6lQgthL").build()
 
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -127,8 +127,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun onAliasClick() {
         val aliasCopy = alias_text.text.toString()
-        Analytics.with(this).alias(aliasCopy)
-        Analytics.with(this).identify(aliasCopy)
+
+        if(isNullOrEmpty(aliasCopy)) {
+            Toast.makeText(this, "Alias cannot be empty", Toast.LENGTH_SHORT).show()
+        } else {
+            Analytics.with(this).alias(aliasCopy)
+            Analytics.with(this).identify(aliasCopy)
+        }
+
         Toast.makeText(this, "Alias acknowledged", Toast.LENGTH_SHORT).show()
     }
 
