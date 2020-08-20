@@ -12,40 +12,24 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.kotlin_sample.databinding.ActivityMainBinding
 import com.segment.analytics.Analytics
-import com.segment.analytics.Properties
 import com.segment.analytics.Traits
 import kotlinx.android.synthetic.main.activity_main.*
 
-
 class MainActivity : AppCompatActivity() {
 
-    /** Returns true if the string is null, or empty (when trimmed).  */
-    private fun isNullOrEmpty(text: String): Boolean {
-        return TextUtils.isEmpty(text) || text.trim { it <= ' ' }.isEmpty()
-    }
-
-    private lateinit var binding: ActivityMainBinding
-
     override fun onCreate(savedInstanceState: Bundle?) {
-
-        //substitute with your own write key
-        val analytics: Analytics =
-                Analytics.Builder(this, "ek2TEqayWNAYGWRj4JQnuJLkG6lQgthL").build()
-
         super.onCreate(savedInstanceState)
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
 
+        //substitute with your own write key
+        val analytics: Analytics =
+                Analytics.Builder(this, "ek2TEqayWNAYGWRj4JQnuJLkG6lQgthL").build()
         Analytics.setSingletonInstance(analytics)
 
-        binding.actionTrackA.setOnClickListener { onAButtonClick() }
-        binding.actionTrackB.setOnClickListener { onBButtonClick() }
-        binding.identifyButton.setOnClickListener { onIdentifyClick() }
-        binding.groupButton.setOnClickListener { onGroupClick() }
-        binding.aliasButton.setOnClickListener { onAliasClick() }
-        binding.screenButton.setOnClickListener { onScreenClick() }
-        binding.flush.setOnClickListener { onFlushClick() }
+        initialSetup()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -103,9 +87,9 @@ class MainActivity : AppCompatActivity() {
             if (!isNullOrEmpty(age)) {
                 Analytics.with(this).identify(Traits().putAge(age.toInt()))
             }
-        }
 
-        Toast.makeText(this, "Identification acknowledged", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Identification acknowledged", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun onGroupClick() {
@@ -128,18 +112,35 @@ class MainActivity : AppCompatActivity() {
     private fun onAliasClick() {
         val aliasCopy = alias_text.text.toString()
 
-        if(isNullOrEmpty(aliasCopy)) {
-            Toast.makeText(this, "Alias cannot be empty", Toast.LENGTH_SHORT).show()
+        if (isNullOrEmpty(aliasCopy)) {
+            Toast.makeText(this, "Cannot have an empty alias", Toast.LENGTH_SHORT).show()
         } else {
             Analytics.with(this).alias(aliasCopy)
             Analytics.with(this).identify(aliasCopy)
+            Toast.makeText(this, "Alias acknowledged", Toast.LENGTH_SHORT).show()
         }
-
-        Toast.makeText(this, "Alias acknowledged", Toast.LENGTH_SHORT).show()
     }
 
     private fun onFlushClick() {
         Analytics.with(this).flush()
         Toast.makeText(this, "Events flushed", Toast.LENGTH_SHORT).show()
+    }
+
+    private lateinit var binding: ActivityMainBinding
+
+    private fun initialSetup() {
+
+        binding.actionTrackA.setOnClickListener { onAButtonClick() }
+        binding.actionTrackB.setOnClickListener { onBButtonClick() }
+        binding.identifyButton.setOnClickListener { onIdentifyClick() }
+        binding.groupButton.setOnClickListener { onGroupClick() }
+        binding.aliasButton.setOnClickListener { onAliasClick() }
+        binding.screenButton.setOnClickListener { onScreenClick() }
+        binding.flush.setOnClickListener { onFlushClick() }
+    }
+
+    /** Returns true if the string is null, or empty (when trimmed).  */
+    private fun isNullOrEmpty(text: String): Boolean {
+        return TextUtils.isEmpty(text) || text.trim { it <= ' ' }.isEmpty()
     }
 }
