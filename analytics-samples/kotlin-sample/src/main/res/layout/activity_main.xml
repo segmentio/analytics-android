@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#edf0ed"
+    tools:context=".MainActivity">
+
+    <Button
+        android:id="@+id/action_track_A"
+        style="@style/buttonStyle"
+        android:layout_width="wrap_content"
+        android:layout_marginTop="20dp"
+        android:fontFamily="@font/sgmt_postgrotesk_medium"
+        android:text="@string/track_button_a"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/action_track_B"
+        style="@style/buttonStyle"
+        android:layout_marginTop="10dp"
+        android:text="@string/track_button_b"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/action_track_A" />
+
+    <EditText
+        android:id="@+id/identify_name"
+        style="@style/textEditStyle"
+        android:layout_marginTop="10dp"
+        android:fontFamily="@font/sgmt_postgrotesk_medium"
+        android:hint="@string/name"
+        android:importantForAutofill="no"
+        android:inputType="textPersonName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/action_track_B" />
+
+    <EditText
+        android:id="@+id/identify_email"
+        style="@style/textEditStyle"
+        android:hint="@string/email"
+        android:importantForAutofill="no"
+        android:inputType="textEmailAddress"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/identify_name" />
+
+    <EditText
+        android:id="@+id/identify_age"
+        style="@style/textEditStyle"
+        android:autofillHints="@string/age"
+        android:hint="@string/age"
+        android:inputType="number"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/identify_email" />
+
+    <Button
+        android:id="@+id/identify_button"
+        style="@style/buttonStyle"
+        android:layout_marginTop="10dp"
+        android:text="@string/identify"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/identify_age" />
+
+    <EditText
+        android:id="@+id/group_id"
+        style="@style/textEditStyle"
+        android:layout_marginTop="10dp"
+        android:autofillHints="@string/group_id"
+        android:hint="@string/group_id"
+        android:inputType="text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/identify_button" />
+
+    <Button
+        android:id="@+id/group_button"
+        style="@style/buttonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/group_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/group_id" />
+
+    <EditText
+        android:id="@+id/alias_text"
+        style="@style/textEditStyle"
+        android:layout_marginTop="10dp"
+        android:autofillHints="@string/alias_id"
+        android:hint="@string/alias_id"
+        android:inputType="textPersonName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/group_button" />
+
+    <Button
+        android:id="@+id/alias_button"
+        style="@style/buttonStyle"
+        android:layout_marginTop="10dp"
+        android:text="@string/alias"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/alias_text" />
+
+    <Button
+        android:id="@+id/screen_button"
+        style="@style/buttonStyle"
+        android:layout_marginBottom="10dp"
+        android:text="@string/screen"
+        app:layout_constraintBottom_toTopOf="@+id/flush"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/flush"
+        style="@style/buttonStyle"
+        android:layout_marginBottom="20dp"
+        android:text="@string/flush"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

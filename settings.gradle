@@ -1,3 +1,4 @@
+include ':analytics-samples:kotlin-sample'
 include 'analytics'
 include 'analytics-tests'
 include 'analytics-wear'

@@ -1,0 +1,84 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+
+apply from: rootProject.file('gradle/android.gradle')
+
+def WEBHOOK_AUTH_USERNAME = ""
+def RUN_E2E_TESTS = false
+
+// e2e_test.properties is a file with a single line: WEBHOOK_AUTH_USERNAME=<token>
+def e2eTestPropertiesFile = file('e2e_test.properties')
+if (e2eTestPropertiesFile.exists()) {
+    def props = new Properties()
+    file(e2eTestPropertiesFile).withInputStream { stream -> props.load(stream) }
+    WEBHOOK_AUTH_USERNAME = props.getProperty("WEBHOOK_AUTH_USERNAME")
+    RUN_E2E_TESTS = true
+}
+
+android {
+    buildFeatures {
+        viewBinding = true
+    }
+    compileSdkVersion 29
+    buildToolsVersion "29.0.3"
+
+    defaultConfig {
+        applicationId "com.example.kotlin_sample"
+        minSdkVersion 29
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    lintOptions {
+        // Since this is just a sample app, it's ok to ignore these warnings.
+        disable 'IconMissingDensityFolder', 'GoogleAppIndexingWarning', 'AllowBackup'
+    }
+
+    defaultConfig {
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField 'String', 'WEBHOOK_AUTH_USERNAME', "\"$WEBHOOK_AUTH_USERNAME\""
+        buildConfigField 'boolean', 'RUN_E2E_TESTS', "$RUN_E2E_TESTS"
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'androidx.core:core-ktx:1.3.1'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'com.google.android.material:material:1.2.0'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+    implementation project(':analytics')
+    implementation project(':analytics-wear')
+
+    implementation 'io.github.inflationx:calligraphy3:3.1.1'
+    implementation 'io.github.inflationx:viewpump:2.0.3'
+
+    androidTestImplementation 'com.squareup.retrofit2:retrofit:2.8.1'
+    androidTestImplementation 'com.squareup.retrofit2:converter-moshi:2.8.1'
+
+    androidTestImplementation rootProject.ext.deps.supportAnnotations
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test:rules:1.2.0'
+    androidTestImplementation 'com.segment.backo:backo:1.0.0'
+
+    androidTestImplementation 'org.assertj:assertj-core:3.16.1'
+
+}
