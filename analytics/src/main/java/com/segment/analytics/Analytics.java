@@ -679,6 +679,9 @@ public class Analytics {
 
   /** @see #alias(String, Options) */
   public void alias(@NonNull String newId) {
+    if (newId.isEmpty() || newId == null) {
+      throw new IllegalArgumentException("not allowed to pass null or empty alias");
+    }
     alias(newId, null);
   }
 
