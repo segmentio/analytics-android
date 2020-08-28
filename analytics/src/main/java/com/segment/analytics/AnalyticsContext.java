@@ -49,7 +49,7 @@ import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
-import com.segment.analytics.core.BuildConfig;
+import com.segment.analytics.core.*;
 import com.segment.analytics.integrations.Logger;
 import com.segment.analytics.internal.Private;
 import java.util.LinkedHashMap;

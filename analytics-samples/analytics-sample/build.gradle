@@ -46,4 +46,5 @@ dependencies {
   androidTestImplementation 'com.segment.backo:backo:1.0.0'
 
   androidTestImplementation 'org.assertj:assertj-core:3.16.1'
+  implementation project(':jsmiddleware')
 }

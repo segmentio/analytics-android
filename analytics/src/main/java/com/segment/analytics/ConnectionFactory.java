@@ -24,7 +24,7 @@
 package com.segment.analytics;
 
 import android.util.Base64;
-import com.segment.analytics.core.BuildConfig;
+import com.segment.analytics.core.*;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;

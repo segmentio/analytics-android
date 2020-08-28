@@ -1,0 +1,29 @@
+{
+  "integrations": {
+    "Segment.io": {
+      "apiKey": "EEe2Yv2c4HC2da9FpFeJnBoSxgmkrNVD"
+    }
+  },
+  "plan": {
+    "track": {
+      "__default": {
+        "enabled": true,
+        "integrations": {}
+      }
+    },
+    "identify": {
+      "__default": {
+        "enabled": true
+      }
+    },
+    "group": {
+      "__default": {
+        "enabled": true
+      }
+    }
+  },
+  "edgeFunction": {
+    "version": 4,
+    "downloadURL": "https://cdn.edgefn.segment.com/umKBEuXJAcxzEEWtB92eCQ/01ff1ec3-74f6-4998-819e-3958e4d9b38a.js"
+  }
+}

@@ -62,6 +62,7 @@ import com.segment.analytics.internal.NanoDate;
 import com.segment.analytics.internal.Private;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -126,6 +127,7 @@ public class Analytics {
   final Stats stats;
   private final @NonNull List<Middleware> sourceMiddleware;
   private final @NonNull Map<String, List<Middleware>> destinationMiddleware;
+  private final JSMiddleware edgeFunctionMiddleware;
   @Private final Options defaultOptions;
   @Private final Traits.Cache traitsCache;
   @Private final AnalyticsContext analyticsContext;
@@ -235,6 +237,7 @@ public class Analytics {
       Crypto crypto,
       @NonNull List<Middleware> sourceMiddleware,
       @NonNull Map<String, List<Middleware>> destinationMiddleware,
+      JSMiddleware edgeFunctionMiddleware,
       @NonNull final ValueMap defaultProjectSettings,
       @NonNull Lifecycle lifecycle,
       boolean nanosecondTimestamps) {
@@ -259,6 +262,7 @@ public class Analytics {
     this.crypto = crypto;
     this.sourceMiddleware = sourceMiddleware;
     this.destinationMiddleware = destinationMiddleware;
+    this.edgeFunctionMiddleware = edgeFunctionMiddleware;
     this.lifecycle = lifecycle;
     this.nanosecondTimestamps = nanosecondTimestamps;
 
@@ -1062,6 +1066,7 @@ public class Analytics {
     private final List<Integration.Factory> factories = new ArrayList<>();
     private List<Middleware> sourceMiddleware;
     private Map<String, List<Middleware>> destinationMiddleware;
+    private JSMiddleware edgeFunctionMiddleware;
     private boolean trackApplicationLifecycleEvents = false;
     private boolean recordScreenViews = false;
     private boolean trackAttributionInformation = false;
@@ -1310,6 +1315,16 @@ public class Analytics {
       return this;
     }
 
+    public Builder useEdgeFunctionMiddleware(JSMiddleware middleware) {
+
+      assertNotNull(middleware, "middleware");
+
+      // Set the current middleware
+      this.edgeFunctionMiddleware = middleware;
+
+      return this;
+    }
+
     /**
      * Enable the use of nanoseconds timestamps for all payloads. Timestamps will be formatted as
      * yyyy-MM-ddThh:mm:ss.nnnnnnnnnZ Note: This is an experimental feature (and strictly opt-in)
@@ -1398,11 +1413,16 @@ public class Analytics {
       factories.add(SegmentIntegration.FACTORY);
       factories.addAll(this.factories);
 
+      // Check for edge functions, disable the destination and source middleware if found
       List<Middleware> srcMiddleware = Utils.immutableCopyOf(this.sourceMiddleware);
       Map<String, List<Middleware>> destMiddleware =
-          isNullOrEmpty(this.destinationMiddleware)
-              ? Collections.<String, List<Middleware>>emptyMap()
-              : immutableCopyOf(this.destinationMiddleware);
+              isNullOrEmpty(this.destinationMiddleware)
+                      ? Collections.<String, List<Middleware>>emptyMap()
+                      : immutableCopyOf(this.destinationMiddleware);
+      if (this.edgeFunctionMiddleware != null) {
+        srcMiddleware = this.edgeFunctionMiddleware.sourceMiddleware;
+        destMiddleware = this.edgeFunctionMiddleware.destinationMiddleware;
+      }
 
       ExecutorService executor = this.executor;
       if (executor == null) {
@@ -1435,6 +1455,7 @@ public class Analytics {
           crypto,
           srcMiddleware,
           destMiddleware,
+          edgeFunctionMiddleware,
           defaultProjectSettings,
           lifecycle,
           nanosecondTimestamps);
