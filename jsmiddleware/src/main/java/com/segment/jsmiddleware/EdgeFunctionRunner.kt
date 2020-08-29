@@ -18,6 +18,7 @@ import java.io.InputStream
 import java.util.concurrent.Callable
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
+import kotlinx.coroutines.*
 
 class EdgeFunctionRunner(bundleStream: InputStream, edgeMiddleware: V8Array, executor: ExecutorService): Middleware {
 
@@ -69,14 +70,14 @@ class EdgeFunctionRunner(bundleStream: InputStream, edgeMiddleware: V8Array, exe
         return null
     }
 
-    override fun intercept(chain: Middleware.Chain) {
+    override fun intercept(chain: Middleware.Chain) = runBlocking<Unit> {
 
         // Make sure to initialize the middleware on the same thread it is used on since V8 is
         // single threaded and will blow up. Also verify there is a bundleStream, otherwise bail.
 //        val callable = Callable {
 
-//        GlobalScope.async(Dispatchers.Main) {
-        GlobalScope.launch(Dispatchers.Main.immediate) {
+
+//        GlobalScope.launch(Dispatchers.Main.immediate) {
             val currentThreadID = Thread.currentThread().id
             Log.d("Thread", currentThreadID.toString())
 
@@ -133,17 +134,20 @@ class EdgeFunctionRunner(bundleStream: InputStream, edgeMiddleware: V8Array, exe
             Log.d("BEFORE Edge Functions", eventData.toString())
             var parsedEventData: HashMap<String, Any?>? = eventData
 
-            try {
-                edgeMiddleware?.let { edge ->
-                    parsedEventData?.let { data ->
+            val interceptJob = GlobalScope.launch(Dispatchers.IO) {
+                try {
+                    edgeMiddleware?.let { edge ->
+                        parsedEventData?.let { data ->
 
 
-                        parsedEventData = manualRun(data, edge)
+                            parsedEventData = manualRun(data, edge)
+                        }
                     }
+                } catch (e: Exception) {
+                    Log.d("EXCEPTION", e.toString())
                 }
-            } catch (e: Exception) {
-                Log.d("EXCEPTION", e.toString())
             }
+            interceptJob.join()
 
             Log.d("AFTER Edge Functions", parsedEventData.toString())
             if (parsedEventData == null || emptyMap<Any, Any>() == parsedEventData) {
@@ -156,8 +160,12 @@ class EdgeFunctionRunner(bundleStream: InputStream, edgeMiddleware: V8Array, exe
                 integrations = ValueMap(parsedEventData)
             }
             payload.putValue(INTEGRATIONS_KEY, integrations)
-            chain.proceed(payload)
-        }
+
+            MainScope().launch {
+                chain.proceed(payload)
+            }
+
+
 //        }
 //        val future = executor.submit(callable)
 //        future.get()

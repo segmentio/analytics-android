@@ -57,7 +57,7 @@ class EdgeFunctionMiddleware(context: Context, localFile: String?) : JSMiddlewar
     }
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
-    override fun jsRetrieved(data: String?) {
+    override fun jsRetrieved(data: String?) = runBlocking<Unit> {
 
         try {
             bundleStream = ByteArrayInputStream(data!!.toByteArray(StandardCharsets.UTF_8))
@@ -67,10 +67,11 @@ class EdgeFunctionMiddleware(context: Context, localFile: String?) : JSMiddlewar
 //            val callable = Callable { configureRunners() }
 //            val future = executor.submit(callable)
 //            future.get()
-//            GlobalScope.async(Dispatchers.Main) {
+//            async(Dispatchers.IO) {
+            val runnerJob = GlobalScope.launch(Dispatchers.IO) {
                 configureRunners()
-//            }
-
+            }
+            runnerJob.join()
         } catch (e: Exception) {
             Log.e("JSMiddleware", "Could not parse edge functions")
         }
