@@ -5,21 +5,17 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.eclipsesource.v8.V8Array
-import com.eclipsesource.v8.V8Function
-import com.eclipsesource.v8.V8Object
-import com.eclipsesource.v8.V8Value
-import com.eclipsesource.v8.utils.V8ObjectUtils
 import com.segment.analytics.JSMiddleware
-import com.segment.analytics.Middleware
-import com.segment.analytics.ValueMap
-import com.segment.analytics.integrations.*
 import com.segment.jsruntime.JSRuntime
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
-import java.util.*
-import java.util.concurrent.*
-import kotlinx.coroutines.*
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class EdgeFunctionMiddleware(context: Context, localFile: String?) : JSMiddleware(context), EdgeFunctionMiddlewareProcessorListener {
 
@@ -64,10 +60,6 @@ class EdgeFunctionMiddleware(context: Context, localFile: String?) : JSMiddlewar
             Log.i("JSMiddleware", "Loaded bundleStream")
 
             // Set up the runners that may be configured now that we have the data from local or web
-//            val callable = Callable { configureRunners() }
-//            val future = executor.submit(callable)
-//            future.get()
-//            async(Dispatchers.IO) {
             val runnerJob = GlobalScope.launch(Dispatchers.IO) {
                 configureRunners()
             }
@@ -92,11 +84,11 @@ class EdgeFunctionMiddleware(context: Context, localFile: String?) : JSMiddlewar
                 jsSourceMiddleware = source
 
                 // Now replace sourceMiddleware
-                bundleStream?.let {
-                    val copiedBundleStream = it
+                runtime?.let {
+                    val copiedRuntime = it
                     jsSourceMiddleware?.let {
                         val copiedJSSourceMiddleware = it
-                        val sourceRunner = EdgeFunctionRunner(copiedBundleStream, copiedJSSourceMiddleware, executor)
+                        val sourceRunner = EdgeFunctionRunner(copiedRuntime, copiedJSSourceMiddleware)
                         val sourceRunnerList = listOf(sourceRunner)
                         val currentThreadID = Thread.currentThread().id
                         Log.d("Thread", currentThreadID.toString())

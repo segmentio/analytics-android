@@ -1421,7 +1421,7 @@ public class Analytics {
                       : immutableCopyOf(this.destinationMiddleware);
       if (this.edgeFunctionMiddleware != null) {
         srcMiddleware = this.edgeFunctionMiddleware.sourceMiddleware;
-        destMiddleware = this.edgeFunctionMiddleware.destinationMiddleware;
+//        destMiddleware = this.edgeFunctionMiddleware.destinationMiddleware;
       }
 
       ExecutorService executor = this.executor;

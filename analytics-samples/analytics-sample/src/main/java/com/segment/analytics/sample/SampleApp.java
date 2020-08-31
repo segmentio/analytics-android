@@ -40,7 +40,7 @@ import io.github.inflationx.viewpump.ViewPump;
 public class SampleApp extends Application {
 
     // https://segment.com/segment-engineering/sources/android-test/settings/keys
-    private static final String ANALYTICS_WRITE_KEY = "nwfgKZBfc0gTbvvG0DDKqVu1HuzBtLPt";
+    private static final String ANALYTICS_WRITE_KEY = "1vCwH2CEddxqO0nsk7rKezv0gzFNlJGH";
 
     @Override
     public void onCreate() {
@@ -86,7 +86,7 @@ public class SampleApp extends Application {
                                         chain.proceed(chain.payload());
                                     }
                                 })
-                        .useEdgeFunctionMiddleware(new EdgeFunctionMiddleware(this, "edgefunctionsample.js"))
+//                        .useEdgeFunctionMiddleware(new EdgeFunctionMiddleware(this, "edgefunctionsample.js"))
                         .useDestinationMiddleware("Segment.io", new Middleware() {
                             @Override
                             public void intercept(Chain chain) {
@@ -100,6 +100,7 @@ public class SampleApp extends Application {
                             }
                         })
                         .flushQueueSize(1)
+                        .logLevel(Analytics.LogLevel.VERBOSE)
                         .recordScreenViews();
 
         // Set the initialized instance as a globally accessible instance.

@@ -12,15 +12,10 @@ import com.segment.analytics.integrations.*
 import com.segment.jsruntime.JSRuntime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import java.io.InputStream
-import java.util.concurrent.Callable
-import java.util.concurrent.Executor
-import java.util.concurrent.ExecutorService
 import kotlinx.coroutines.*
 
-class EdgeFunctionRunner(bundleStream: InputStream, edgeMiddleware: V8Array, executor: ExecutorService): Middleware {
+class EdgeFunctionRunner(runtime: JSRuntime, edgeMiddleware: V8Array): Middleware {
 
     companion object {
         private const val INTEGRATIONS_KEY = "integrations"
@@ -30,13 +25,10 @@ class EdgeFunctionRunner(bundleStream: InputStream, edgeMiddleware: V8Array, exe
 
     @Volatile
     var edgeMiddleware: V8Array? = null
-    var bundleStream: InputStream? = null
-    private val executor: ExecutorService
 
     init {
-        this.bundleStream = bundleStream
+        this.runtime = runtime
         this.edgeMiddleware = edgeMiddleware
-        this.executor = executor
     }
 
     /**
@@ -44,11 +36,11 @@ class EdgeFunctionRunner(bundleStream: InputStream, edgeMiddleware: V8Array, exe
      */
     fun manualRun(event: HashMap<String, Any?>, middleware: V8Array): HashMap<String, Any?>? {
 
-        if (event != null) {
+        if (runtime != null && middleware.length() > 0) {
             val result = HashMap(event)
-            Log.d("LENGTH", middleware?.length().toString())
-            for (n in 0 until middleware!!.length()) {
-                val fnObject = middleware!!.getObject(n)
+            Log.d("LENGTH", middleware.length().toString())
+            for (n in 0 until middleware.length()) {
+                val fnObject = middleware.getObject(n)
                 // make sure we have an actual function like it's supposed to be...
                 if (fnObject.v8Type == V8Value.V8_FUNCTION) {
                     val fn = fnObject as V8Function
@@ -74,101 +66,89 @@ class EdgeFunctionRunner(bundleStream: InputStream, edgeMiddleware: V8Array, exe
 
         // Make sure to initialize the middleware on the same thread it is used on since V8 is
         // single threaded and will blow up. Also verify there is a bundleStream, otherwise bail.
-//        val callable = Callable {
 
+        val currentThreadID = Thread.currentThread().id
+        Log.d("Thread", currentThreadID.toString())
 
-//        GlobalScope.launch(Dispatchers.Main.immediate) {
-            val currentThreadID = Thread.currentThread().id
-            Log.d("Thread", currentThreadID.toString())
+        var payload = chain.payload()
+        var integrations = payload.integrations()
+        val eventData: HashMap<String, Any?> = HashMap(integrations)
 
-            val payload = chain.payload()
-            var integrations = payload.integrations()
-            val eventData: HashMap<String, Any?> = HashMap(integrations)
+        // Build up the data ()
+        val userId = payload.userId()
+        if (userId != null) {
+            eventData["userId"] = userId
+        }
+        eventData["anonymousId"] = payload.anonymousId()
+        eventData["messageId"] = payload.messageId()
 
-            // Build up the data ()
-            val userId = payload.userId()
-            if (userId != null) {
-                eventData["userId"] = userId
+        eventData["integrations"] = payload.integrations()
+        eventData["context"] = payload.context()
+        when (payload.type()) {
+            BasePayload.Type.identify -> {
+                val identifyPayload = payload as IdentifyPayload
+                eventData["traits"] = identifyPayload.traits()
             }
-            eventData["anonymousId"] = payload.anonymousId()
-
-            val messageId = payload.messageId()
-            if (messageId != null) {
-                eventData["messageId"] = messageId
+            BasePayload.Type.track -> {
+                val trackPayload = payload as TrackPayload
+                eventData["name"] = trackPayload.event()
+                eventData["properties"] = trackPayload.properties()
             }
+            BasePayload.Type.screen -> {
+                val screenPayload = payload as ScreenPayload
+                eventData["properties"] = screenPayload.properties()
 
-            eventData["integrations"] = payload.integrations()
-            eventData["context"] = payload.context()
-            when (payload.type()) {
-                BasePayload.Type.identify -> {
-                    val identifyPayload = payload as IdentifyPayload
-                    eventData["traits"] = identifyPayload.traits()
+                val name = screenPayload.name()
+                if (name != null) {
+                    eventData["name"] = name
                 }
-                BasePayload.Type.track -> {
-                    val trackPayload = payload as TrackPayload
-                    eventData["name"] = trackPayload.event()
-                    eventData["properties"] = trackPayload.properties()
+            }
+            BasePayload.Type.alias -> {
+                val aliasPayload = payload as AliasPayload
+                val aliasUserId = aliasPayload.userId()
+                if (aliasUserId != null) {
+                    eventData["newId"] = aliasUserId // userId is newId and previousId is previous??
                 }
-                BasePayload.Type.screen -> {
-                    val screenPayload = payload as ScreenPayload
-                    eventData["properties"] = screenPayload.properties()
+            }
+            BasePayload.Type.group -> {
+                val groupPayload = payload as GroupPayload
+                eventData["groupId"] = groupPayload.groupId()
+                eventData["traits"] = groupPayload.traits()
+            }
+        }
+        Log.d("BEFORE Edge Functions", eventData.toString())
+        var parsedEventData: HashMap<String, Any?>? = eventData
 
-                    val name = screenPayload.name()
-                    if (name != null) {
-                        eventData["name"] = name
+        val interceptJob = GlobalScope.launch(Dispatchers.IO) {
+            try {
+                edgeMiddleware?.let { edge ->
+                    parsedEventData?.let { data ->
+                        parsedEventData = manualRun(data, edge)
                     }
                 }
-                BasePayload.Type.alias -> {
-                    val aliasPayload = payload as AliasPayload
-                    val userId = aliasPayload.userId()
-                    if (userId != null) {
-                        eventData["newId"] = userId // userId is newId and previousId is previous??
-                    }
-                }
-                BasePayload.Type.group -> {
-                    val groupPayload = payload as GroupPayload
-                    eventData["groupId"] = groupPayload.groupId()
-                    eventData["traits"] = groupPayload.traits()
-                }
+            } catch (e: Exception) {
+                Log.d("EXCEPTION", e.toString())
             }
-            Log.d("BEFORE Edge Functions", eventData.toString())
-            var parsedEventData: HashMap<String, Any?>? = eventData
+        }
+        interceptJob.join()
 
-            val interceptJob = GlobalScope.launch(Dispatchers.IO) {
-                try {
-                    edgeMiddleware?.let { edge ->
-                        parsedEventData?.let { data ->
-
-
-                            parsedEventData = manualRun(data, edge)
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.d("EXCEPTION", e.toString())
-                }
-            }
-            interceptJob.join()
-
-            Log.d("AFTER Edge Functions", parsedEventData.toString())
-            if (parsedEventData == null || emptyMap<Any, Any>() == parsedEventData) {
-                // Empty map does not allow to put values.
-                integrations = ValueMap()
-            } else {
-                // Sometimes integrations is a unmodifiable map if the event is constructed with a Builder.
-                // Sadly, we don't know exactly when that is, so this Middleware need to copy the integrations
-                // map for each event.
-                integrations = ValueMap(parsedEventData)
-            }
-            payload.putValue(INTEGRATIONS_KEY, integrations)
-
-            MainScope().launch {
-                chain.proceed(payload)
-            }
+        Log.d("AFTER Edge Functions", parsedEventData.toString())
+        if (parsedEventData == null || emptyMap<Any, Any>() == parsedEventData) {
+            // Empty map does not allow to put values.
+            integrations = ValueMap()
+        } else {
+            // Sometimes integrations is a unmodifiable map if the event is constructed with a Builder.
+            // Sadly, we don't know exactly when that is, so this Middleware need to copy the integrations
+            // map for each event.
+            integrations = ValueMap(parsedEventData)
+        }
+//        payload.putValue(INTEGRATIONS_KEY, integrations)
+        payload = chain.payload().toBuilder().context(integrations).build()
 
 
-//        }
-//        val future = executor.submit(callable)
-//        future.get()
+        MainScope().launch {
+            chain.proceed(payload)
+        }
     }
 
 }
