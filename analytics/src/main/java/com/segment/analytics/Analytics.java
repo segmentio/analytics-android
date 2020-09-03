@@ -1419,9 +1419,11 @@ public class Analytics {
               isNullOrEmpty(this.destinationMiddleware)
                       ? Collections.<String, List<Middleware>>emptyMap()
                       : immutableCopyOf(this.destinationMiddleware);
-      if (this.edgeFunctionMiddleware != null) {
+      if (this.edgeFunctionMiddleware != null && this.edgeFunctionMiddleware.sourceMiddleware != null) {
         srcMiddleware = this.edgeFunctionMiddleware.sourceMiddleware;
-//        destMiddleware = this.edgeFunctionMiddleware.destinationMiddleware;
+      }
+      if (this.edgeFunctionMiddleware != null && this.edgeFunctionMiddleware.destinationMiddleware != null) {
+        destMiddleware = this.edgeFunctionMiddleware.destinationMiddleware;
       }
 
       ExecutorService executor = this.executor;

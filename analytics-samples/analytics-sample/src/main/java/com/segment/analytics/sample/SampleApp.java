@@ -86,7 +86,7 @@ public class SampleApp extends Application {
                                         chain.proceed(chain.payload());
                                     }
                                 })
-//                        .useEdgeFunctionMiddleware(new EdgeFunctionMiddleware(this, "edgefunctionsample.js"))
+                        .useEdgeFunctionMiddleware(new EdgeFunctionMiddleware(this, "edgefunctionsample.js"))
                         .useDestinationMiddleware("Segment.io", new Middleware() {
                             @Override
                             public void intercept(Chain chain) {
