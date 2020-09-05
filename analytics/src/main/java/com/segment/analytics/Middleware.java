@@ -42,4 +42,3 @@ public interface Middleware {
     void invoke(BasePayload payload);
   }
 }
-

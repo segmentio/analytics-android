@@ -35,6 +35,7 @@ class ProjectSettings extends ValueMap {
   private static final String PLAN_KEY = "plan";
   private static final String INTEGRATIONS_KEY = "integrations";
   private static final String TRACKING_PLAN_KEY = "track";
+  private static final String EDGE_FUNCTIONS_KEY = "edgeFunction";
 
   static ProjectSettings create(Map<String, Object> map) {
     map.put(TIMESTAMP_KEY, System.currentTimeMillis());
@@ -64,6 +65,10 @@ class ProjectSettings extends ValueMap {
 
   ValueMap integrations() {
     return getValueMap(INTEGRATIONS_KEY);
+  }
+
+  ValueMap edgeFunctions() {
+    return getValueMap(EDGE_FUNCTIONS_KEY);
   }
 
   static class Cache extends ValueMap.Cache<ProjectSettings> {

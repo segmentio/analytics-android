@@ -2,80 +2,52 @@ package com.segment.jsmiddleware
 
 import android.content.Context
 import android.util.Log
-import okhttp3.*
+import com.segment.analytics.internal.Utils
 import org.apache.commons.io.IOUtils
-import org.json.JSONObject
 import java.io.*
-import java.nio.charset.StandardCharsets
-import kotlin.jvm.Throws
+import java.nio.charset.Charset
 
-class EdgeFunctionMiddlewareProcessor(private val writeKey: String, private val listener: EdgeFunctionMiddlewareProcessorListener) {
-    private val client = OkHttpClient()
+class EdgeFunctionMiddlewareProcessor(private val listener: EdgeFunctionMiddlewareProcessorListener) {
 
-    ////
-    // Public Methods
     @Throws(Exception::class)
-    fun configureLocalFile(mobContext: Context, localFile: String) {
+    fun configureLocalFile(mobContext: Context) {
+        listener.jsRetrieved(getLocalFile(mobContext))
+    }
+
+    @Throws(Exception::class)
+    fun configureFallbackFile(mobContext: Context, localFile: String) {
         val localJSMiddlewareInputStream = mobContext.assets.open(localFile)
-        val result = IOUtils.toString(localJSMiddlewareInputStream, StandardCharsets.UTF_8)
+        val result = IOUtils.toString(localJSMiddlewareInputStream, Charset.forName("UTF-8"))
         listener.jsRetrieved(result)
     }
 
     @Throws(Exception::class)
-    fun downloadFileAsync(mobContext: Context, downloadUrl: String?) {
+    fun downloadFile(mobContext: Context, downloadUrl: String) {
+        var connection: ConnectionFactory.Connection? = null
+        try {
+            connection = ConnectionFactory().downloadEdgeFunctionBundle(downloadUrl)
+            if (connection.inputStream != null) {
+                val inputStream = connection.inputStream!!
+                val function = IOUtils.toString(inputStream, Charset.forName("UTF-8"))
+                Log.d("PRAY", function)
 
-        // Grab settings first
-//        try {
-//            val settings = fetchSettings()
-//        } catch (e: Exception) {
-//            Log.e("JSMiddleware", "Could not parse settings")
-//        }
-        val request = Request.Builder().url(downloadUrl!!).build()
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
+                Log.d("JSMiddleware", "New Edge Function downloaded, will be used on next app restart")
+
+                val fos = FileOutputStream(jsDownloadFullPath(mobContext, "blah.js"))
+                fos.write(function.toByteArray())
+                fos.close()
+                // Let the executor know the file has been saved
+                //  listener.jsRetrieved(getLocalFile(mobContext)) // no need to notify since we dont hot-swap
             }
-
-            @Throws(IOException::class)
-            override fun onResponse(call: Call, response: Response) {
-                if (!response.isSuccessful) {
-                    throw IOException("Failed to download file: $response")
-                }
-                try {
-                    response.body.use { responseBody ->
-
-                        // Write the file out
-                        if (responseBody != null) {
-                            val fos = FileOutputStream(jsDownloadFullPath(mobContext, "blah.js"))
-                            fos.write(responseBody.bytes())
-                            fos.close()
-                        }
-
-                        // Let the executor know the file has been saved
-                        listener.jsRetrieved(getLocalFile(mobContext))
-                    }
-                } catch (e: Exception) {
-                    Log.e("JSMiddleware", "Could not parse file body")
-                }
-            }
-        })
+        } catch (e: Exception) {
+            Log.e("JSMiddleware", "Could not parse file body")
+        } finally {
+            Utils.closeQuietly(connection)
+        }
     }
 
-    ////
-    // Private Methods
-    @Throws(Exception::class)
-    private fun fetchSettings(): EdgeFunctionMiddlewareSettings {
-        val client = OkHttpClient()
-        val request = Request.Builder()
-                .url("https://cdn-settings.segment.com/v1/projects/EEe2Yv2c4HC2da9FpFeJnBoSxgmkrNVD/settings")
-                .build()
-        val response = client.newCall(request).execute()
-        val settingsJSON = response.body!!.string()
-        val jsonObject = JSONObject(settingsJSON)
-        val edgeFunctionObject = jsonObject.getJSONObject("edgeFunction")
-        val downloadURLString = edgeFunctionObject.getString("downloadURL")
-        val version = edgeFunctionObject.getInt("version")
-        return EdgeFunctionMiddlewareSettings(version, downloadURLString)
+    fun localFileExists(mobContext: Context): Boolean {
+        return jsDownloadFullPath(mobContext, "").exists()
     }
 
     // Grab the local directory to save the js file
@@ -109,5 +81,3 @@ class EdgeFunctionMiddlewareProcessor(private val writeKey: String, private val 
         return text.toString()
     }
 }
-
-class EdgeFunctionMiddlewareSettings(var version: Int, var downloadURL: String)

@@ -62,7 +62,6 @@ import com.segment.analytics.internal.NanoDate;
 import com.segment.analytics.internal.Private;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -305,6 +304,7 @@ public class Analytics {
               }
               projectSettings = ProjectSettings.create(defaultProjectSettings);
             }
+            edgeFunctionMiddleware.setEdgeFunctionData(projectSettings.edgeFunctions());
             HANDLER.post(
                 new Runnable() {
                   @Override
@@ -1416,13 +1416,15 @@ public class Analytics {
       // Check for edge functions, disable the destination and source middleware if found
       List<Middleware> srcMiddleware = Utils.immutableCopyOf(this.sourceMiddleware);
       Map<String, List<Middleware>> destMiddleware =
-              isNullOrEmpty(this.destinationMiddleware)
-                      ? Collections.<String, List<Middleware>>emptyMap()
-                      : immutableCopyOf(this.destinationMiddleware);
-      if (this.edgeFunctionMiddleware != null && this.edgeFunctionMiddleware.sourceMiddleware != null) {
+          isNullOrEmpty(this.destinationMiddleware)
+              ? Collections.<String, List<Middleware>>emptyMap()
+              : immutableCopyOf(this.destinationMiddleware);
+      if (this.edgeFunctionMiddleware != null
+          && this.edgeFunctionMiddleware.sourceMiddleware != null) {
         srcMiddleware = this.edgeFunctionMiddleware.sourceMiddleware;
       }
-      if (this.edgeFunctionMiddleware != null && this.edgeFunctionMiddleware.destinationMiddleware != null) {
+      if (this.edgeFunctionMiddleware != null
+          && this.edgeFunctionMiddleware.destinationMiddleware != null) {
         destMiddleware = this.edgeFunctionMiddleware.destinationMiddleware;
       }
 
