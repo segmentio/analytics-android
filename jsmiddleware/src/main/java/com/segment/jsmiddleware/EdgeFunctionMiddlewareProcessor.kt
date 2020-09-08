@@ -2,52 +2,48 @@ package com.segment.jsmiddleware
 
 import android.content.Context
 import android.util.Log
-import com.segment.analytics.internal.Utils
-import org.apache.commons.io.IOUtils
+import com.segment.analytics.internal.Utils as SegmentUtils
 import java.io.*
-import java.nio.charset.Charset
 
 class EdgeFunctionMiddlewareProcessor(private val listener: EdgeFunctionMiddlewareProcessorListener) {
 
     @Throws(Exception::class)
-    fun configureLocalFile(mobContext: Context) {
-        listener.jsRetrieved(getLocalFile(mobContext))
+    fun configureCachedFile(mobContext: Context) {
+        listener.jsRetrieved(getCachedFileContents(mobContext))
     }
 
     @Throws(Exception::class)
     fun configureFallbackFile(mobContext: Context, localFile: String) {
         val localJSMiddlewareInputStream = mobContext.assets.open(localFile)
-        val result = IOUtils.toString(localJSMiddlewareInputStream, Charset.forName("UTF-8"))
+        val result = readInputStream(localJSMiddlewareInputStream)
         listener.jsRetrieved(result)
     }
 
     @Throws(Exception::class)
     fun downloadFile(mobContext: Context, downloadUrl: String) {
-        var connection: ConnectionFactory.Connection? = null
+        var connection: ConnectionUtils.Connection? = null
         try {
-            connection = ConnectionFactory().downloadEdgeFunctionBundle(downloadUrl)
+            connection = downloadEdgeFunctionBundle(downloadUrl)
             if (connection.inputStream != null) {
                 val inputStream = connection.inputStream!!
-                val function = IOUtils.toString(inputStream, Charset.forName("UTF-8"))
-                Log.d("PRAY", function)
+                val function = readInputStream(inputStream)
 
                 Log.d("JSMiddleware", "New Edge Function downloaded, will be used on next app restart")
 
                 val fos = FileOutputStream(jsDownloadFullPath(mobContext, "blah.js"))
                 fos.write(function.toByteArray())
                 fos.close()
-                // Let the executor know the file has been saved
-                //  listener.jsRetrieved(getLocalFile(mobContext)) // no need to notify since we dont hot-swap
             }
         } catch (e: Exception) {
             Log.e("JSMiddleware", "Could not parse file body")
         } finally {
-            Utils.closeQuietly(connection)
+            SegmentUtils.closeQuietly(connection)
         }
     }
 
-    fun localFileExists(mobContext: Context): Boolean {
-        return jsDownloadFullPath(mobContext, "").exists()
+    // Check if local cached file exists
+    fun cachedFileExists(mobContext: Context): Boolean {
+        return jsDownloadFullPath(mobContext, null).exists()
     }
 
     // Grab the local directory to save the js file
@@ -63,21 +59,9 @@ class EdgeFunctionMiddlewareProcessor(private val listener: EdgeFunctionMiddlewa
         return File(jsDownloadDirectory(mobContext).toString(), "jsMiddleware.js")
     }
 
-    // Get the local file that was saved off from a previous download
-    private fun getLocalFile(mobContext: Context): String {
+    // Get the local cached file contents that was saved off from a previous download
+    private fun getCachedFileContents(mobContext: Context): String {
         val fullPath = jsDownloadFullPath(mobContext, null)
-        val text = StringBuilder()
-        try {
-            val reader = BufferedReader(FileReader(fullPath))
-            var line: String?
-            while (reader.readLine().also { line = it } != null) {
-                text.append(line)
-                text.append("\n")
-            }
-            reader.close()
-        } catch (exception: IOException) {
-            Log.e("JSMiddleware", "Could not find file")
-        }
-        return text.toString()
+        return readInputStream(FileInputStream(fullPath))
     }
 }

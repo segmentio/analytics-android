@@ -46,21 +46,22 @@ class EdgeFunctionMiddleware(context: Context, localFile: String?) : JSMiddlewar
     init {
         this.fallbackFile = localFile
         this.executor = Executors.newSingleThreadExecutor()
-        this.configuration = Cache(context, Cartographer.Builder().build(), "123")
+        val cartographer = Cartographer.Builder().lenient(true).prettyPrint(false).build()
+        this.configuration = Cache(context, cartographer, "123")
 
         // Start download of url
         middlewareProcessor = EdgeFunctionMiddlewareProcessor(this)
 
         try {
-            if (middlewareProcessor.localFileExists(context)) {
-                middlewareProcessor.configureLocalFile(context)
+            if (middlewareProcessor.cachedFileExists(context)) {
+                middlewareProcessor.configureCachedFile(context)
             } else {
                 fallbackFile?.let {
                     middlewareProcessor.configureFallbackFile(context, it);
                 }
             }
         } catch (e: Exception) {
-            Log.d("JSMiddleware", "Could not download edge functions")
+            Log.w("JSMiddleware", "Could not load edge functions ${e.message}")
         }
     }
 
@@ -103,6 +104,11 @@ class EdgeFunctionMiddleware(context: Context, localFile: String?) : JSMiddlewar
 
             runtime = JSRuntime(bundleStream)
             Log.d("JSMiddleware", bundleStream.toString())
+
+            if (runtime?.getObject("edge_function") == null) {
+                Log.e("JSMiddleware", "JS bundle does not have `edge_function` as root-level object")
+                return // should we silently fail or throw exception?
+            }
 
             // Check for Source Middleware
             val source = runtime?.getArray("edge_function.sourceMiddleware")
