@@ -24,9 +24,8 @@ class EdgeFunctionMiddlewareProcessor(private val listener: EdgeFunctionMiddlewa
         var connection: ConnectionUtils.Connection? = null
         try {
             connection = downloadEdgeFunctionBundle(downloadUrl)
-            if (connection.inputStream != null) {
-                val inputStream = connection.inputStream!!
-                val function = readInputStream(inputStream)
+            connection.inputStream?.let {
+                val function = readInputStream(it)
 
                 Log.d("JSMiddleware", "New Edge Function downloaded, will be used on next app restart")
 
