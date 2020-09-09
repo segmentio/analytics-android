@@ -75,7 +75,11 @@ public class JSRuntime {
     }
 
     public V8Object getObject(String key) {
-        return runtime.getObject(key);
+        V8Object result = runtime.getObject(key);
+        if (result.isUndefined()) {
+            result = runtime.executeObjectScript(key);
+        }
+        return result;
     }
 
     public V8Array getArray(String key) {

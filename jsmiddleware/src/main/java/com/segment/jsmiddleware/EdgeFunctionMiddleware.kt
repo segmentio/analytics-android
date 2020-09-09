@@ -7,7 +7,9 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import com.eclipsesource.v8.V8Array
 import com.segment.analytics.Cartographer
+import com.eclipsesource.v8.V8Object
 import com.segment.analytics.JSMiddleware
+import com.segment.analytics.Middleware
 import com.segment.analytics.ValueMap
 import com.segment.analytics.internal.Utils
 import com.segment.jsruntime.JSRuntime
@@ -28,7 +30,7 @@ class EdgeFunctionMiddleware(context: Context, localFile: String?) : JSMiddlewar
     private var jsSourceMiddleware: V8Array? = null
 
     @Volatile
-    private var jsDestinationMiddleware: V8Array? = null
+    private var jsDestinationMiddleware: V8Object? = null
     private var runtime: JSRuntime? = null
     private var bundleStream: InputStream? = null
     private var fallbackFile: String? = null
@@ -111,30 +113,32 @@ class EdgeFunctionMiddleware(context: Context, localFile: String?) : JSMiddlewar
             }
 
             // Check for Source Middleware
-            val source = runtime?.getArray("edge_function.sourceMiddleware")
-            val destination = runtime?.getObject("edge_function.destinationMiddleware") // This needs to be a map, not array
-            if (source != null) {
-                jsSourceMiddleware = source
+            val jsSourceMiddleware = runtime?.getArray("edge_function.sourceMiddleware")
+            if (jsSourceMiddleware != null) {
 
                 // Now replace sourceMiddleware
-                runtime?.let {
-                    val copiedRuntime = it
-                    jsSourceMiddleware?.let {
-                        val copiedJSSourceMiddleware = it
-                        val sourceRunner = EdgeFunctionRunner(copiedRuntime, copiedJSSourceMiddleware)
-                        val sourceRunnerList = listOf(sourceRunner)
-                        val currentThreadID = Thread.currentThread().id
-                        Log.d("Thread", currentThreadID.toString())
-                        sourceMiddleware = sourceRunnerList // Create runner that adheres to Middleware jsSourceMiddleware
-                    }
+                runtime?.let { runtime ->
+                    val copiedRuntime = runtime
+                    this.sourceMiddleware = listOf(EdgeFunctionRunner(copiedRuntime, jsSourceMiddleware)) // Create runner that adheres to Middleware jsSourceMiddleware
                 }
             }
 
-
             // Now for destination, which is a map instead of a list
-//            if (destination != null) {
-//                jsDestinationMiddleware = destination
-//            }
+            val jsDestinationMiddleware = runtime?.getObject("edge_function.destinationMiddleware") // This needs to be a map, not array
+            if (jsDestinationMiddleware != null && !jsDestinationMiddleware.isReleased) {
+                // Now replace sourceMiddleware
+                runtime?.let { runtime ->
+                    val copiedRuntime = runtime
+                    var finalMap = emptyMap<String, List<Middleware>>().toMutableMap()
+                    for (entry in jsDestinationMiddleware.keys) {
+                        val destination = jsDestinationMiddleware.getObject(entry)
+                        if (destination is V8Array) {
+                            finalMap.put(entry, listOf(EdgeFunctionRunner(copiedRuntime, destination))) // This needs to account for possibility of multiple middleware in same name?
+                        }
+                    }
+                    destinationMiddleware = finalMap // Create runner that adheres to Middleware jsSourceMiddleware
+                }
+            }
         } else if (bundleStream == null) {
             return
         }
