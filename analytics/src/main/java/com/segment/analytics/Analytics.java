@@ -1280,6 +1280,11 @@ public class Analytics {
      * integrations
      */
     public Builder useSourceMiddleware(Middleware middleware) {
+
+      if (this.edgeFunctionMiddleware != null) {
+        throw new IllegalStateException("Can not use native middleware and edge function middleware");
+      }
+
       assertNotNull(middleware, "middleware");
       if (sourceMiddleware == null) {
         sourceMiddleware = new ArrayList<>();
@@ -1296,6 +1301,11 @@ public class Analytics {
      * will be run before sending to the associated destination
      */
     public Builder useDestinationMiddleware(String key, Middleware middleware) {
+
+      if (this.edgeFunctionMiddleware != null) {
+        throw new IllegalStateException("Can not use native middleware and edge function middleware");
+      }
+
       if (isNullOrEmpty(key)) {
         throw new IllegalArgumentException("key must not be null or empty.");
       }
@@ -1318,6 +1328,10 @@ public class Analytics {
     public Builder useEdgeFunctionMiddleware(JSMiddleware middleware) {
 
       assertNotNull(middleware, "middleware");
+
+      if (this.sourceMiddleware != null || this.destinationMiddleware != null) {
+        throw new IllegalStateException("Can not use native middleware and edge function middleware");
+      }
 
       // Set the current middleware
       this.edgeFunctionMiddleware = middleware;
@@ -1414,19 +1428,22 @@ public class Analytics {
       factories.addAll(this.factories);
 
       // Check for edge functions, disable the destination and source middleware if found
+      if (this.edgeFunctionMiddleware != null) {
+
+        if (this.edgeFunctionMiddleware.sourceMiddleware != null) {
+          this.sourceMiddleware = this.edgeFunctionMiddleware.sourceMiddleware;
+        }
+
+        if (this.edgeFunctionMiddleware.destinationMiddleware != null) {
+          this.destinationMiddleware = this.edgeFunctionMiddleware.destinationMiddleware;
+        }
+      }
+
       List<Middleware> srcMiddleware = Utils.immutableCopyOf(this.sourceMiddleware);
       Map<String, List<Middleware>> destMiddleware =
-          isNullOrEmpty(this.destinationMiddleware)
-              ? Collections.<String, List<Middleware>>emptyMap()
-              : immutableCopyOf(this.destinationMiddleware);
-      if (this.edgeFunctionMiddleware != null
-          && this.edgeFunctionMiddleware.sourceMiddleware != null) {
-        srcMiddleware = this.edgeFunctionMiddleware.sourceMiddleware;
-      }
-      if (this.edgeFunctionMiddleware != null
-          && this.edgeFunctionMiddleware.destinationMiddleware != null) {
-        destMiddleware = this.edgeFunctionMiddleware.destinationMiddleware;
-      }
+              isNullOrEmpty(this.destinationMiddleware)
+                      ? Collections.<String, List<Middleware>>emptyMap()
+                      : immutableCopyOf(this.destinationMiddleware);
 
       ExecutorService executor = this.executor;
       if (executor == null) {

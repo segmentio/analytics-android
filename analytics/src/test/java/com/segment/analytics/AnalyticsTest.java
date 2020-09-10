@@ -189,6 +189,7 @@ public class AnalyticsTest {
             Crypto.none(),
             Collections.<Middleware>emptyList(),
             Collections.<String, List<Middleware>>emptyMap(),
+            new JSMiddleware(),
             new ValueMap(),
             lifecycle,
             false);

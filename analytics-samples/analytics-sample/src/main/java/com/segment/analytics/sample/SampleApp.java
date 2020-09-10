@@ -31,7 +31,6 @@ import com.segment.analytics.Middleware;
 import com.segment.analytics.ValueMap;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.TrackPayload;
-import com.segment.jsmiddleware.EdgeFunctionMiddleware;
 
 import io.github.inflationx.calligraphy3.CalligraphyConfig;
 import io.github.inflationx.calligraphy3.CalligraphyInterceptor;
@@ -86,7 +85,6 @@ public class SampleApp extends Application {
                                         chain.proceed(chain.payload());
                                     }
                                 })
-                        .useEdgeFunctionMiddleware(new EdgeFunctionMiddleware(this, "edgefunctionsample.js"))
                         .useDestinationMiddleware("Segment.io", new Middleware() {
                             @Override
                             public void intercept(Chain chain) {
