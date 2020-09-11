@@ -1,3 +1,26 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Segment.io, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.segment.analytics
 
 import android.util.Pair
@@ -39,21 +62,21 @@ class StatsTest {
     Assertions.assertThat(stats.integrationOperationCount).isEqualTo(1)
     Assertions.assertThat(stats.integrationOperationDuration).isEqualTo(43L)
     Assertions.assertThat(stats.integrationOperationDurationByIntegration)
-        .containsExactly(MapEntry.entry("foo", 43L))
+      .containsExactly(MapEntry.entry("foo", 43L))
 
     stats.performIntegrationOperation(Pair("bar", 2L))
     Assertions.assertThat(stats.integrationOperationCount).isEqualTo(2)
     Assertions.assertThat(stats.integrationOperationDuration).isEqualTo(45L)
     Assertions.assertThat(stats.integrationOperationDurationByIntegration)
-        .hasSize(2)
-        .contains(MapEntry.entry("bar", 2L))
+      .hasSize(2)
+      .contains(MapEntry.entry("bar", 2L))
 
     stats.performIntegrationOperation(Pair("bar", 19L))
     Assertions.assertThat(stats.integrationOperationCount).isEqualTo(3)
     Assertions.assertThat(stats.integrationOperationDuration).isEqualTo(64L)
     Assertions.assertThat(stats.integrationOperationDurationByIntegration)
-        .hasSize(2)
-        .contains(MapEntry.entry("bar", 21L))
+      .hasSize(2)
+      .contains(MapEntry.entry("bar", 21L))
   }
 
   @Test
@@ -87,9 +110,9 @@ class StatsTest {
     Assertions.assertThat(snapshot.integrationOperationDuration).isEqualTo(14L)
     Assertions.assertThat(snapshot.integrationOperationAverageDuration).isEqualTo(1.4f)
     Assertions.assertThat(snapshot.integrationOperationDurationByIntegration)
-        .hasSize(2)
-        .contains(MapEntry.entry("foo", 6L))
-        .contains(MapEntry.entry("bar", 8L))
+      .hasSize(2)
+      .contains(MapEntry.entry("foo", 6L))
+      .contains(MapEntry.entry("bar", 8L))
 
     try {
       snapshot.integrationOperationDurationByIntegration["qaz"] = 10L

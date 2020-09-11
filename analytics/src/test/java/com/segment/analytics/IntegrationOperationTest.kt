@@ -1,7 +1,35 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Segment.io, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.segment.analytics
 
 import com.google.common.collect.ImmutableMap
-import com.segment.analytics.integrations.*
+import com.segment.analytics.integrations.AliasPayload
+import com.segment.analytics.integrations.GroupPayload
+import com.segment.analytics.integrations.IdentifyPayload
+import com.segment.analytics.integrations.Integration
+import com.segment.analytics.integrations.ScreenPayload
+import com.segment.analytics.integrations.TrackPayload
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -11,7 +39,7 @@ import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.IOException
-import java.util.*
+import java.util.Collections
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
@@ -24,7 +52,7 @@ class IntegrationOperationTest {
 
   private fun track(payload: TrackPayload, name: String, settings: Map<String, Any>) {
     IntegrationOperation.segmentEvent(payload, emptyMap())
-        .run(name, integration, ProjectSettings(settings))
+      .run(name, integration, ProjectSettings(settings))
   }
 
   @Test
@@ -37,10 +65,10 @@ class IntegrationOperationTest {
   @Test
   fun trackDisabledInOptions() {
     val payload = TrackPayload.Builder()
-        .event("event")
-        .userId("userId")
-        .integrations(Collections.singletonMap("Mixpanel", false))
-        .build()
+      .event("event")
+      .userId("userId")
+      .integrations(Collections.singletonMap("Mixpanel", false))
+      .build()
     track(payload, "Mixpanel", emptyMap())
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
@@ -48,10 +76,10 @@ class IntegrationOperationTest {
   @Test
   fun trackAllDisabledInOptions() {
     val payload = TrackPayload.Builder()
-        .event("event")
-        .userId("userId")
-        .integrations(Collections.singletonMap("All", false))
-        .build()
+      .event("event")
+      .userId("userId")
+      .integrations(Collections.singletonMap("All", false))
+      .build()
     track(payload, "Mixpanel", emptyMap())
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
@@ -59,10 +87,10 @@ class IntegrationOperationTest {
   @Test
   fun trackAllDisabledInOptionsButIntegrationEnabled() {
     val payload = TrackPayload.Builder()
-        .event("event")
-        .userId("userId")
-        .integrations(ImmutableMap.of("All", false, "Mixpanel", true))
-        .build()
+      .event("event")
+      .userId("userId")
+      .integrations(ImmutableMap.of("All", false, "Mixpanel", true))
+      .build()
     track(payload, "Mixpanel", emptyMap())
     Mockito.verify(integration).track(payload)
   }
@@ -70,10 +98,10 @@ class IntegrationOperationTest {
   @Test
   fun trackAllDisabledInOptionsButIntegrationEnabledWithOptions() {
     val payload = TrackPayload.Builder()
-        .event("event")
-        .userId("userId")
-        .integrations(ImmutableMap.of<String, Any?>("All", false, "Mixpanel", emptyMap<Any, Any>()))
-        .build()
+      .event("event")
+      .userId("userId")
+      .integrations(ImmutableMap.of<String, Any?>("All", false, "Mixpanel", emptyMap<Any, Any>()))
+      .build()
     track(payload, "Mixpanel", emptyMap())
     Mockito.verify(integration).track(payload)
   }
@@ -82,12 +110,12 @@ class IntegrationOperationTest {
   @Throws(IOException::class)
   fun trackPlanForEvent() {
     val payload = TrackPayload.Builder()
-        .event("Install Attributed").userId("userId").build()
+      .event("Install Attributed").userId("userId").build()
     track(
-        payload,
-        "Mixpanel",
-        Cartographer.INSTANCE.fromJson(
-            """
+      payload,
+      "Mixpanel",
+      Cartographer.INSTANCE.fromJson(
+        """
                   {
                     "plan": {
                       "track": { 
@@ -95,7 +123,9 @@ class IntegrationOperationTest {
                       }
                     }
                   }
-                  """))
+                  """
+      )
+    )
     Mockito.verify(integration).track(payload)
   }
 
@@ -103,15 +133,15 @@ class IntegrationOperationTest {
   @Throws(IOException::class)
   fun trackWithOptionsAndWithoutEventPlan() {
     val payload = TrackPayload.Builder()
-        .event("Install Attributed")
-        .userId("userId")
-        .integrations(ImmutableMap.of("Mixpanel", false))
-        .build()
+      .event("Install Attributed")
+      .userId("userId")
+      .integrations(ImmutableMap.of("Mixpanel", false))
+      .build()
     track(
-        payload,
-        "Mixpanel",
-        Cartographer.INSTANCE.fromJson(
-            """
+      payload,
+      "Mixpanel",
+      Cartographer.INSTANCE.fromJson(
+        """
                   {
                     "plan": {
                       "track": { 
@@ -119,7 +149,9 @@ class IntegrationOperationTest {
                       }
                     }
                   }
-                  """))
+                  """
+      )
+    )
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
@@ -127,15 +159,15 @@ class IntegrationOperationTest {
   @Throws(IOException::class)
   fun trackPlanForEventWithOptions() {
     val payload = TrackPayload.Builder()
-        .event("Install Attributed")
-        .userId("userId")
-        .integrations(Collections.singletonMap("All", false))
-        .build()
+      .event("Install Attributed")
+      .userId("userId")
+      .integrations(Collections.singletonMap("All", false))
+      .build()
     track(
-        payload,
-        "Mixpanel",
-        Cartographer.INSTANCE.fromJson(
-            """
+      payload,
+      "Mixpanel",
+      Cartographer.INSTANCE.fromJson(
+        """
                   {
                     "plan": {
                       "track": {
@@ -143,7 +175,9 @@ class IntegrationOperationTest {
                       }
                     }
                   }
-                  """))
+                  """
+      )
+    )
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
@@ -151,12 +185,12 @@ class IntegrationOperationTest {
   @Throws(IOException::class)
   fun trackPlanDisabledEvent() {
     val payload = TrackPayload.Builder()
-        .event("Install Attributed").userId("userId").build()
+      .event("Install Attributed").userId("userId").build()
     track(
-        payload,
-        "Amplitude",
-        Cartographer.INSTANCE.fromJson(
-            """
+      payload,
+      "Amplitude",
+      Cartographer.INSTANCE.fromJson(
+        """
                   {
                     "plan": {
                       "track": {
@@ -166,7 +200,9 @@ class IntegrationOperationTest {
                       }
                     }
                   }
-                  """))
+                  """
+      )
+    )
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
@@ -174,12 +210,12 @@ class IntegrationOperationTest {
   @Throws(IOException::class)
   fun trackPlanDisabledEventSendsToSegment() {
     val payload = TrackPayload.Builder()
-        .event("Install Attributed").userId("userId").build()
+      .event("Install Attributed").userId("userId").build()
     track(
-        payload,
-        "Segment.io",
-        Cartographer.INSTANCE.fromJson(
-            """
+      payload,
+      "Segment.io",
+      Cartographer.INSTANCE.fromJson(
+        """
                   {
                     "plan": {
                       "track": {
@@ -189,7 +225,9 @@ class IntegrationOperationTest {
                       }
                     }
                   }
-                  """))
+                  """
+      )
+    )
     Mockito.verify(integration).track(payload)
   }
 
@@ -197,12 +235,12 @@ class IntegrationOperationTest {
   @Throws(IOException::class)
   fun trackPlanDisabledIntegration() {
     val payload = TrackPayload.Builder()
-        .event("Install Attributed").userId("userId").build()
+      .event("Install Attributed").userId("userId").build()
     track(
-        payload,
-        "Amplitude",
-        Cartographer.INSTANCE.fromJson(
-            """
+      payload,
+      "Amplitude",
+      Cartographer.INSTANCE.fromJson(
+        """
                   {
                     "plan": {
                       "track": {
@@ -214,7 +252,9 @@ class IntegrationOperationTest {
                       }
                     }
                   }
-                  """))
+                  """
+      )
+    )
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
@@ -222,12 +262,12 @@ class IntegrationOperationTest {
   @Throws(IOException::class)
   fun trackPlanEnabledIntegration() {
     val payload = TrackPayload.Builder()
-        .event("Install Attributed").userId("userId").build()
+      .event("Install Attributed").userId("userId").build()
     track(
-        payload,
-        "Mixpanel",
-        Cartographer.INSTANCE.fromJson(
-            """
+      payload,
+      "Mixpanel",
+      Cartographer.INSTANCE.fromJson(
+        """
                   {
                     "plan": {
                       "track": {
@@ -237,7 +277,9 @@ class IntegrationOperationTest {
                       }
                     }
                   }
-                  """))
+                  """
+      )
+    )
 
     Mockito.verify(integration).track(payload)
   }
@@ -246,12 +288,12 @@ class IntegrationOperationTest {
   @Throws(IOException::class)
   fun ignoresSegment() {
     val payload = TrackPayload.Builder()
-        .event("Install Attributed").userId("userId").build()
+      .event("Install Attributed").userId("userId").build()
     track(
-        payload,
-        "Segment.io",
-        Cartographer.INSTANCE.fromJson(
-            """
+      payload,
+      "Segment.io",
+      Cartographer.INSTANCE.fromJson(
+        """
                   {
                     "plan": {
                       "track": {
@@ -263,7 +305,9 @@ class IntegrationOperationTest {
                       }
                     }
                   }
-                  """))
+                  """
+      )
+    )
     Mockito.verify(integration).track(payload)
   }
 
@@ -271,12 +315,12 @@ class IntegrationOperationTest {
   @Throws(IOException::class)
   fun defaultNewEventsEnabled() {
     val payload = TrackPayload.Builder()
-        .event("Install Attributed").userId("userId").build()
+      .event("Install Attributed").userId("userId").build()
     track(
-        payload,
-        "Segment.io",
-        Cartographer.INSTANCE.fromJson(
-            """
+      payload,
+      "Segment.io",
+      Cartographer.INSTANCE.fromJson(
+        """
                   {
                     "plan": {
                       "track": {
@@ -286,7 +330,9 @@ class IntegrationOperationTest {
                       }
                     }
                   }
-                  """))
+                  """
+      )
+    )
 
     Mockito.verify(integration).track(payload)
   }
@@ -295,12 +341,12 @@ class IntegrationOperationTest {
   @Throws(IOException::class)
   fun defaultNewEventsDisabled() {
     val payload = TrackPayload.Builder()
-        .event("Install Attributed").userId("userId").build()
+      .event("Install Attributed").userId("userId").build()
     track(
-        payload,
-        "Mixpanel",
-        Cartographer.INSTANCE.fromJson(
-            """
+      payload,
+      "Mixpanel",
+      Cartographer.INSTANCE.fromJson(
+        """
                   {
                     "plan": {
                       "track": {
@@ -310,7 +356,9 @@ class IntegrationOperationTest {
                       }
                     }
                   }
-                  """))
+                  """
+      )
+    )
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
@@ -318,12 +366,12 @@ class IntegrationOperationTest {
   @Throws(IOException::class)
   fun defaultNewEventsDisabledSendToSegment() {
     val payload = TrackPayload.Builder()
-        .event("Install Attributed").userId("userId").build()
+      .event("Install Attributed").userId("userId").build()
     track(
-        payload,
-        "Segment.io",
-        Cartographer.INSTANCE.fromJson(
-            """
+      payload,
+      "Segment.io",
+      Cartographer.INSTANCE.fromJson(
+        """
                   {
                     "plan": {
                       "track": {
@@ -333,7 +381,9 @@ class IntegrationOperationTest {
                       }
                     }
                   }
-                  """))
+                  """
+      )
+    )
     Mockito.verify(integration).track(payload)
   }
 
@@ -341,12 +391,12 @@ class IntegrationOperationTest {
   @Throws(IOException::class)
   fun eventPlanOverridesSchemaDefualt() {
     val payload = TrackPayload.Builder()
-        .event("Install Attributed").userId("userId").build()
+      .event("Install Attributed").userId("userId").build()
     track(
-        payload,
-        "Mixpanel",
-        Cartographer.INSTANCE.fromJson(
-            """
+      payload,
+      "Mixpanel",
+      Cartographer.INSTANCE.fromJson(
+        """
                   {
                     "plan": {
                       "track": {
@@ -359,7 +409,9 @@ class IntegrationOperationTest {
                       }
                     }
                   }
-                  """))
+                  """
+      )
+    )
     Mockito.verify(integration, Mockito.never()).track(payload)
   }
 
@@ -367,44 +419,43 @@ class IntegrationOperationTest {
   fun identify() {
     val payload = IdentifyPayload.Builder().userId("userId").build()
     IntegrationOperation.segmentEvent(payload, emptyMap())
-        .run("Mixpanel", integration, ProjectSettings(emptyMap()))
+      .run("Mixpanel", integration, ProjectSettings(emptyMap()))
     Mockito.verify(integration).identify(payload)
   }
 
   @Test
   fun alias() {
     val payload = AliasPayload.Builder()
-        .previousId("foo").userId("userId").build()
+      .previousId("foo").userId("userId").build()
     IntegrationOperation.segmentEvent(payload, emptyMap())
-        .run("Mixpanel", integration, ProjectSettings(emptyMap()))
+      .run("Mixpanel", integration, ProjectSettings(emptyMap()))
     Mockito.verify(integration).alias(payload)
   }
 
   @Test
   fun group() {
     val payload = GroupPayload.Builder()
-        .userId("userId").groupId("bar").build()
+      .userId("userId").groupId("bar").build()
     IntegrationOperation.segmentEvent(payload, emptyMap())
-        .run("Mixpanel", integration, ProjectSettings(emptyMap()))
+      .run("Mixpanel", integration, ProjectSettings(emptyMap()))
     Mockito.verify(integration).group(payload)
   }
 
   @Test
   fun track() {
     val payload = TrackPayload.Builder()
-        .userId("userId").event("foo").build()
+      .userId("userId").event("foo").build()
     IntegrationOperation.segmentEvent(payload, emptyMap())
-        .run("Mixpanel", integration, ProjectSettings(emptyMap()))
+      .run("Mixpanel", integration, ProjectSettings(emptyMap()))
     Mockito.verify(integration).track(payload)
   }
 
   @Test
   fun screen() {
     val payload = ScreenPayload.Builder()
-        .userId("userId").name("foobar").build()
+      .userId("userId").name("foobar").build()
     IntegrationOperation.segmentEvent(payload, emptyMap())
-        .run("Mixpanel", integration, ProjectSettings(emptyMap()))
+      .run("Mixpanel", integration, ProjectSettings(emptyMap()))
     Mockito.verify(integration).screen(payload)
   }
-
 }

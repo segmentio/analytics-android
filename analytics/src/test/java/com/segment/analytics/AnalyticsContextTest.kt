@@ -1,3 +1,26 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Segment.io, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.segment.analytics
 
 import android.content.Context
@@ -33,48 +56,48 @@ class AnalyticsContextTest {
   fun create() {
     context = AnalyticsContext.create(RuntimeEnvironment.application, traits, true)
     Assertions.assertThat(context)
-        .containsKeys("app", "device", "library", "locale", "network", "os", "screen", "timezone", "traits")
+      .containsKeys("app", "device", "library", "locale", "network", "os", "screen", "timezone", "traits")
     Assertions.assertThat(context).containsEntry("userAgent", "undefined")
 
     Assertions.assertThat(context.getValueMap("app"))
-        .containsEntry("name", "org.robolectric.default")
+      .containsEntry("name", "org.robolectric.default")
     Assertions.assertThat(context.getValueMap("app"))
-        .containsEntry("version", "undefined")
+      .containsEntry("version", "undefined")
     Assertions.assertThat(context.getValueMap("app"))
-        .containsEntry("namespace", "org.robolectric.default")
+      .containsEntry("namespace", "org.robolectric.default")
     Assertions.assertThat(context.getValueMap("app"))
-        .containsEntry("build", "0")
+      .containsEntry("build", "0")
 
     Assertions.assertThat(context.getValueMap("device"))
-        .containsEntry("id", "unknown")
+      .containsEntry("id", "unknown")
     Assertions.assertThat(context.getValueMap("device"))
-        .containsEntry("manufacturer", "unknown")
+      .containsEntry("manufacturer", "unknown")
     Assertions.assertThat(context.getValueMap("device"))
-        .containsEntry("model", "unknown")
+      .containsEntry("model", "unknown")
     Assertions.assertThat(context.getValueMap("device"))
-        .containsEntry("name", "unknown")
+      .containsEntry("name", "unknown")
     Assertions.assertThat(context.getValueMap("device"))
-        .containsEntry("type", "android")
+      .containsEntry("type", "android")
 
     Assertions.assertThat(context.getValueMap("library"))
-        .containsEntry("name", "analytics-android")
+      .containsEntry("name", "analytics-android")
     Assertions.assertThat(context.getValueMap("library"))
-        .containsEntry("version", BuildConfig.VERSION_NAME)
+      .containsEntry("version", BuildConfig.VERSION_NAME)
 
-    //todo: mock network state?
+    // todo: mock network state?
     Assertions.assertThat(context.getValueMap("network")).isEmpty()
 
     Assertions.assertThat(context.getValueMap("os"))
-        .containsEntry("name", "Android")
+      .containsEntry("name", "Android")
     Assertions.assertThat(context.getValueMap("os"))
-        .containsEntry("version", "4.1.2_r1")
+      .containsEntry("version", "4.1.2_r1")
 
     Assertions.assertThat(context.getValueMap("screen"))
-        .containsEntry("density", 1.5f)
+      .containsEntry("density", 1.5f)
     Assertions.assertThat(context.getValueMap("screen"))
-        .containsEntry("width", 480)
+      .containsEntry("width", 480)
     Assertions.assertThat(context.getValueMap("screen"))
-        .containsEntry("height", 800)
+      .containsEntry("height", 800)
   }
 
   @Test
@@ -82,15 +105,15 @@ class AnalyticsContextTest {
     context = AnalyticsContext.create(RuntimeEnvironment.application, traits, false)
 
     Assertions.assertThat(context.getValueMap("device"))
-        .containsEntry("id", traits.anonymousId())
+      .containsEntry("id", traits.anonymousId())
     Assertions.assertThat(context.getValueMap("device"))
-        .containsEntry("manufacturer", "unknown")
+      .containsEntry("manufacturer", "unknown")
     Assertions.assertThat(context.getValueMap("device"))
-        .containsEntry("model", "unknown")
+      .containsEntry("model", "unknown")
     Assertions.assertThat(context.getValueMap("device"))
-        .containsEntry("name", "unknown")
+      .containsEntry("name", "unknown")
     Assertions.assertThat(context.getValueMap("device"))
-        .containsEntry("type", "android")
+      .containsEntry("type", "android")
   }
 
   @Test
@@ -109,7 +132,7 @@ class AnalyticsContextTest {
     try {
       copy["foo"] = "bar"
       Assertions.fail("Inserting into copy should throw UnsupportedOperationException")
-    } catch(expected: UnsupportedOperationException) {
+    } catch (expected: UnsupportedOperationException) {
     }
   }
 
@@ -206,13 +229,14 @@ class AnalyticsContextTest {
     context.putNetwork(application)
 
     Assertions.assertThat(context)
-        .containsEntry(
-            "network",
-            ImmutableMap.Builder<Any, Any>()
-                .put("wifi", false)
-                .put("carrier", "unknown")
-                .put("bluetooth", false)
-                .put("cellular", false)
-                .build())
+      .containsEntry(
+        "network",
+        ImmutableMap.Builder<Any, Any>()
+          .put("wifi", false)
+          .put("carrier", "unknown")
+          .put("bluetooth", false)
+          .put("cellular", false)
+          .build()
+      )
   }
 }

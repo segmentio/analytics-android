@@ -1,3 +1,26 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Segment.io, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.segment.analytics
 
 import org.assertj.core.api.Assertions
@@ -8,7 +31,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.lang.Exception
-import java.util.*
+import java.util.GregorianCalendar
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
@@ -19,7 +42,7 @@ class TraitsTest {
   fun setUp() {
     traits = Traits.create()
   }
-  
+
   @Test
   @Throws(Exception::class)
   fun newInvocationHasUniqueId() {
@@ -42,7 +65,7 @@ class TraitsTest {
   @Throws(Exception::class)
   fun userIdOrAnonymousId() {
     Assertions.assertThat(Traits().putUserId("foo").putAnonymousId("bar").currentId())
-        .isEqualTo("foo")
+      .isEqualTo("foo")
     Assertions.assertThat(Traits().putUserId("foo").currentId()).isEqualTo("foo")
     Assertions.assertThat(Traits().putAnonymousId("bar").currentId()).isEqualTo("bar")
     Assertions.assertThat(Traits().currentId()).isNull()
@@ -52,26 +75,26 @@ class TraitsTest {
   @Throws(Exception::class)
   fun traitsAreMergedCorrectly() {
     val traits1 = Traits()
-        .putAge(20)
-        .putAvatar("f2prateek")
-        .putDescription("the first one")
-        .putLastName("Srivastava")
-        .putEmail("f2prateek@gmail.com")
-        .putEmployees(50)
+      .putAge(20)
+      .putAvatar("f2prateek")
+      .putDescription("the first one")
+      .putLastName("Srivastava")
+      .putEmail("f2prateek@gmail.com")
+      .putEmployees(50)
     Assertions.assertThat(traits1).hasSize(6)
 
     val traits2 = Traits()
-        .putAvatar("f2prateek")
-        .putFirstName("Prateek")
-        .putDescription("the second one")
+      .putAvatar("f2prateek")
+      .putFirstName("Prateek")
+      .putDescription("the second one")
     Assertions.assertThat(traits2).hasSize(3)
 
     traits1.putAll(traits2)
     Assertions.assertThat(traits1)
-        .hasSize(7)
-        .contains(MapEntry.entry("avatar", "f2prateek"))
-        .contains(MapEntry.entry("description", "the second one"))
-        .contains(MapEntry.entry("email", "f2prateek@gmail.com"))
+      .hasSize(7)
+      .contains(MapEntry.entry("avatar", "f2prateek"))
+      .contains(MapEntry.entry("description", "the second one"))
+      .contains(MapEntry.entry("email", "f2prateek@gmail.com"))
     Assertions.assertThat(traits1.name()).isEqualTo("Prateek Srivastava")
   }
 
@@ -87,7 +110,7 @@ class TraitsTest {
   @Test
   fun copyIsImmutable() {
     val copy = traits.unmodifiableCopy()
-    try{
+    try {
       copy["foo"] = "bar"
       Assertions.fail("Inserting into copy should throw UnsupportedOperationException")
     } catch (ignored: UnsupportedOperationException) {
