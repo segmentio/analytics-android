@@ -34,50 +34,50 @@ import com.segment.analytics.integrations.AliasPayload;
 @Deprecated
 public class AliasPayloadBuilder {
 
-  private AnalyticsContext context;
-  private Traits traits;
-  private String newId;
-  private Options options;
+    private AnalyticsContext context;
+    private Traits traits;
+    private String newId;
+    private Options options;
 
-  public AliasPayloadBuilder traits(Traits traits) {
-    this.traits = traits;
-    return this;
-  }
-
-  public AliasPayloadBuilder context(AnalyticsContext context) {
-    this.context = context;
-    return this;
-  }
-
-  public AliasPayloadBuilder newId(String newId) {
-    this.newId = newId;
-    return this;
-  }
-
-  public AliasPayloadBuilder options(Options options) {
-    this.options = options;
-    return this;
-  }
-
-  public AliasPayload build() {
-    if (traits == null) {
-      traits = createTraits();
+    public AliasPayloadBuilder traits(Traits traits) {
+        this.traits = traits;
+        return this;
     }
-    if (context == null) {
-      context = createContext(traits);
+
+    public AliasPayloadBuilder context(AnalyticsContext context) {
+        this.context = context;
+        return this;
     }
-    if (options == null) {
-      options = new Options();
+
+    public AliasPayloadBuilder newId(String newId) {
+        this.newId = newId;
+        return this;
     }
-    if (newId == null) {
-      newId = "foo";
+
+    public AliasPayloadBuilder options(Options options) {
+        this.options = options;
+        return this;
     }
-    return new AliasPayload.Builder()
-        .userId(newId)
-        .previousId(traits.currentId())
-        .anonymousId(traits.anonymousId())
-        .context(context)
-        .integrations(options.integrations())
-        .build();
-  }
+
+    public AliasPayload build() {
+        if (traits == null) {
+            traits = createTraits();
+        }
+        if (context == null) {
+            context = createContext(traits);
+        }
+        if (options == null) {
+            options = new Options();
+        }
+        if (newId == null) {
+            newId = "foo";
+        }
+        return new AliasPayload.Builder()
+                .userId(newId)
+                .previousId(traits.currentId())
+                .anonymousId(traits.anonymousId())
+                .context(context)
+                .integrations(options.integrations())
+                .build();
+    }
 }

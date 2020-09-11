@@ -34,42 +34,42 @@ import com.segment.analytics.integrations.IdentifyPayload;
 @Deprecated
 public class IdentifyPayloadBuilder {
 
-  private AnalyticsContext context;
-  private Traits traits;
-  private Options options;
+    private AnalyticsContext context;
+    private Traits traits;
+    private Options options;
 
-  public IdentifyPayloadBuilder traits(Traits traits) {
-    this.traits = traits;
-    return this;
-  }
-
-  public IdentifyPayloadBuilder options(Options options) {
-    this.options = options;
-    return this;
-  }
-
-  public IdentifyPayloadBuilder context(AnalyticsContext context) {
-    this.context = context;
-    return this;
-  }
-
-  public IdentifyPayload build() {
-    if (traits == null) {
-      traits = createTraits();
-    }
-    if (context == null) {
-      context = createContext(traits);
-    }
-    if (options == null) {
-      options = new Options();
+    public IdentifyPayloadBuilder traits(Traits traits) {
+        this.traits = traits;
+        return this;
     }
 
-    return new IdentifyPayload.Builder()
-        .userId(traits.userId())
-        .traits(traits)
-        .anonymousId(traits.anonymousId())
-        .context(context)
-        .integrations(options.integrations())
-        .build();
-  }
+    public IdentifyPayloadBuilder options(Options options) {
+        this.options = options;
+        return this;
+    }
+
+    public IdentifyPayloadBuilder context(AnalyticsContext context) {
+        this.context = context;
+        return this;
+    }
+
+    public IdentifyPayload build() {
+        if (traits == null) {
+            traits = createTraits();
+        }
+        if (context == null) {
+            context = createContext(traits);
+        }
+        if (options == null) {
+            options = new Options();
+        }
+
+        return new IdentifyPayload.Builder()
+                .userId(traits.userId())
+                .traits(traits)
+                .anonymousId(traits.anonymousId())
+                .context(context)
+                .integrations(options.integrations())
+                .build();
+    }
 }

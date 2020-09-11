@@ -3,21 +3,21 @@ apply plugin: 'com.android.application'
 apply from: rootProject.file('gradle/android.gradle')
 
 android {
-  defaultConfig {
-    minSdkVersion rootProject.ext.minSdkVersionWear
-  }
+	defaultConfig {
+		minSdkVersion rootProject.ext.minSdkVersionWear
+	}
 
-  lintOptions {
-    // Since this is just a sample app, it's ok to ignore these warnings.
-    disable 'IconMissingDensityFolder', 'GoogleAppIndexingWarning', 'AllowBackup'
-  }
+	lintOptions {
+		// Since this is just a sample app, it's ok to ignore these warnings.
+		disable 'IconMissingDensityFolder', 'GoogleAppIndexingWarning', 'AllowBackup'
+	}
 }
 
 dependencies {
-  implementation project(':analytics')
-  implementation project(':analytics-wear')
-  implementation 'androidx.wear:wear:1.0.0'
+	implementation project(':analytics')
+	implementation project(':analytics-wear')
+	implementation 'androidx.wear:wear:1.0.0'
 }
 repositories {
-    mavenCentral()
+	mavenCentral()
 }

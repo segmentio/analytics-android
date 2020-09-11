@@ -38,42 +38,52 @@ import java.io.IOException;
 @SuppressLint("Registered")
 public class PhoneAnalyticsListenerService extends WearableListenerService {
 
-  final Cartographer cartographer = Cartographer.INSTANCE;
+    final Cartographer cartographer = Cartographer.INSTANCE;
 
-  @Override
-  public void onMessageReceived(MessageEvent messageEvent) {
-    super.onMessageReceived(messageEvent);
+    @Override
+    public void onMessageReceived(MessageEvent messageEvent) {
+        super.onMessageReceived(messageEvent);
 
-    if (WearAnalytics.ANALYTICS_PATH.equals(messageEvent.getPath())) {
-      WearPayload wearPayload;
-      try {
-        wearPayload = new WearPayload(cartographer.fromJson(new String(messageEvent.getData())));
-      } catch (IOException e) {
-        getAnalytics()
-            .getLogger()
-            .error(e, "Could not deserialize event %s", new String(messageEvent.getData()));
-        return;
-      }
-      switch (wearPayload.type()) {
-        case track:
-          WearTrackPayload wearTrackPayload = wearPayload.payload(WearTrackPayload.class);
-          getAnalytics().track(wearTrackPayload.getEvent(), wearTrackPayload.getProperties(), null);
-          break;
-        case screen:
-          WearScreenPayload wearScreenPayload = wearPayload.payload(WearScreenPayload.class);
-          getAnalytics()
-              .screen(
-                  wearScreenPayload.getName(),
-                  wearScreenPayload.getCategory(),
-                  wearScreenPayload.getProperties());
-          break;
-        default:
-          throw new UnsupportedOperationException("Only track/screen calls may be sent from Wear.");
-      }
+        if (WearAnalytics.ANALYTICS_PATH.equals(messageEvent.getPath())) {
+            WearPayload wearPayload;
+            try {
+                wearPayload =
+                        new WearPayload(cartographer.fromJson(new String(messageEvent.getData())));
+            } catch (IOException e) {
+                getAnalytics()
+                        .getLogger()
+                        .error(
+                                e,
+                                "Could not deserialize event %s",
+                                new String(messageEvent.getData()));
+                return;
+            }
+            switch (wearPayload.type()) {
+                case track:
+                    WearTrackPayload wearTrackPayload = wearPayload.payload(WearTrackPayload.class);
+                    getAnalytics()
+                            .track(
+                                    wearTrackPayload.getEvent(),
+                                    wearTrackPayload.getProperties(),
+                                    null);
+                    break;
+                case screen:
+                    WearScreenPayload wearScreenPayload =
+                            wearPayload.payload(WearScreenPayload.class);
+                    getAnalytics()
+                            .screen(
+                                    wearScreenPayload.getName(),
+                                    wearScreenPayload.getCategory(),
+                                    wearScreenPayload.getProperties());
+                    break;
+                default:
+                    throw new UnsupportedOperationException(
+                            "Only track/screen calls may be sent from Wear.");
+            }
+        }
     }
-  }
 
-  public Analytics getAnalytics() {
-    return Analytics.with(this);
-  }
+    public Analytics getAnalytics() {
+        return Analytics.with(this);
+    }
 }

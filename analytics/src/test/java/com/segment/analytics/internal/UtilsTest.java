@@ -64,207 +64,208 @@ import org.robolectric.annotation.Config;
 @Config(manifest = NONE)
 public class UtilsTest {
 
-  @Mock Context context;
+    @Mock Context context;
 
-  @Before
-  public void setUp() {
-    initMocks(this);
-  }
-
-  @Test
-  public void emptyString() {
-    assertThat(isNullOrEmpty((String) null)).isTrue();
-    assertThat(isNullOrEmpty("")).isTrue();
-    assertThat(isNullOrEmpty("    ")).isTrue();
-    assertThat(isNullOrEmpty("  a  ")).isFalse();
-    assertThat(isNullOrEmpty("a")).isFalse();
-  }
-
-  @Test
-  public void emptyMap() {
-    assertThat(isNullOrEmpty((Map) null)).isTrue();
-    Map<String, Object> map = new LinkedHashMap<>(20);
-    assertThat(isNullOrEmpty(map)).isTrue();
-    map.put("foo", "bar");
-    assertThat(isNullOrEmpty(map)).isFalse();
-    map.clear();
-    assertThat(isNullOrEmpty(map)).isTrue();
-  }
-
-  @Test
-  public void emptyCollections() {
-    assertThat(isNullOrEmpty((Collection) null)).isTrue();
-    Collection<String> collection = new ArrayList<>();
-    assertThat(isNullOrEmpty(collection)).isTrue();
-    collection.add("foo");
-    assertThat(isNullOrEmpty(collection)).isFalse();
-    collection.clear();
-    assertThat(isNullOrEmpty(collection)).isTrue();
-  }
-
-  @Test
-  public void testTransform() {
-    Map<String, Integer> in = new LinkedHashMap<>();
-    in.put("a", 1);
-    in.put("b", 2);
-    in.put("c", 3);
-    in.put("d", 4);
-
-    Map<String, String> mapper = new LinkedHashMap<>();
-    mapper.put("a", "$a");
-    mapper.put("c", "");
-    mapper.put("d", null);
-
-    assertThat(transform(in, mapper))
-        .containsExactly(MapEntry.entry("$a", 1), MapEntry.entry("b", 2));
-  }
-
-  @Test
-  public void returnsConnectedIfMissingPermission() throws Exception {
-    when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE)).thenReturn(PERMISSION_DENIED);
-    assertThat(isConnected(context)).isTrue();
-  }
-
-  @Test
-  public void nullableConcurrentHashMapPutIgnoresNulls() throws Exception {
-    Map<String, String> map = new Utils.NullableConcurrentHashMap<>();
-    map.put(null, null);
-    map.put("foo", null);
-    map.put(null, "bar");
-
-    assertThat(map).isEmpty();
-  }
-
-  @Test
-  public void nullableConcurrentHashMapPutAllIgnoresNulls() throws Exception {
-    Map<String, String> values = new LinkedHashMap<>();
-    values.put(null, null);
-    values.put("foo", null);
-    values.put(null, "bar");
-
-    Map<String, String> map = new Utils.NullableConcurrentHashMap<>();
-    map.putAll(values);
-    assertThat(map).isEmpty();
-  }
-
-  @Test
-  public void copySharedPreferences() {
-    SharedPreferences src =
-        RuntimeEnvironment.application.getSharedPreferences("src", Context.MODE_PRIVATE);
-    src.edit().clear().apply();
-    src.edit()
-        .putBoolean("aBool", true)
-        .putString("aString", "foo")
-        .putInt("anInt", 2)
-        .putFloat("aFloat", 3.14f)
-        .putLong("aLong", 12345678910L)
-        .putStringSet("aStringSet", new HashSet<>(Arrays.asList("foo", "bar")))
-        .apply();
-
-    SharedPreferences target =
-        RuntimeEnvironment.application.getSharedPreferences("target", Context.MODE_PRIVATE);
-    target.edit().clear().apply();
-
-    Utils.copySharedPreferences(src, target);
-    assertThat(target)
-        .contains("aBool", true)
-        .contains("aString", "foo")
-        .contains("anInt", 2)
-        .contains("aFloat", 3.14f)
-        .contains("aLong", 12345678910L)
-        .contains("aStringSet", new HashSet<>(Arrays.asList("foo", "bar")));
-  }
-
-  @Test
-  public void newSet() {
-    assertThat(Utils.newSet("foo", "bar")).containsOnly("foo", "bar");
-  }
-
-  @Test
-  public void coerceToFloat() {
-    assertThat(Utils.coerceToFloat("not a number", 1)).isEqualTo(1);
-    assertThat(Utils.coerceToFloat(3.14f, 0)).isEqualTo(3.14f);
-    assertThat(Utils.coerceToFloat(1, 0)).isEqualTo(1);
-  }
-
-  @Test
-  public void hasPermission() {
-    when(context.checkCallingOrSelfPermission(Manifest.permission.INTERNET))
-        .thenReturn(PERMISSION_DENIED);
-    assertThat(Utils.hasPermission(context, Manifest.permission.INTERNET)).isFalse();
-
-    when(context.checkCallingOrSelfPermission(Manifest.permission.INTERNET))
-        .thenReturn(PERMISSION_GRANTED);
-    assertThat(Utils.hasPermission(context, Manifest.permission.INTERNET)).isTrue();
-  }
-
-  @Test
-  public void hasFeature() {
-    PackageManager packageManager = mock(PackageManager.class);
-    when(context.getPackageManager()).thenReturn(packageManager);
-
-    when(packageManager.hasSystemFeature(FEATURE_TELEPHONY)).thenReturn(false);
-    assertThat(Utils.hasFeature(context, FEATURE_TELEPHONY)).isFalse();
-
-    when(packageManager.hasSystemFeature(FEATURE_TELEPHONY)).thenReturn(true);
-    assertThat(Utils.hasFeature(context, FEATURE_TELEPHONY)).isTrue();
-  }
-
-  @Test
-  public void assertNotNullOrEmptyMap() {
-    try {
-      Utils.assertNotNullOrEmpty((Map) null, "foo");
-      fail();
-    } catch (NullPointerException e) {
-      assertThat(e).hasMessage("foo cannot be null or empty");
+    @Before
+    public void setUp() {
+        initMocks(this);
     }
 
-    try {
-      Utils.assertNotNullOrEmpty(ImmutableMap.of(), "bar");
-      fail();
-    } catch (NullPointerException e) {
-      assertThat(e).hasMessage("bar cannot be null or empty");
+    @Test
+    public void emptyString() {
+        assertThat(isNullOrEmpty((String) null)).isTrue();
+        assertThat(isNullOrEmpty("")).isTrue();
+        assertThat(isNullOrEmpty("    ")).isTrue();
+        assertThat(isNullOrEmpty("  a  ")).isFalse();
+        assertThat(isNullOrEmpty("a")).isFalse();
     }
 
-    assertThat(Utils.assertNotNullOrEmpty(ImmutableMap.of("key", "val"), "foo"))
-        .isEqualTo(ImmutableMap.of("key", "val"));
-  }
-
-  @Test
-  public void assertNotNullOrEmptyText() {
-    try {
-      Utils.assertNotNullOrEmpty((String) null, "foo");
-      fail();
-    } catch (NullPointerException e) {
-      assertThat(e).hasMessage("foo cannot be null or empty");
+    @Test
+    public void emptyMap() {
+        assertThat(isNullOrEmpty((Map) null)).isTrue();
+        Map<String, Object> map = new LinkedHashMap<>(20);
+        assertThat(isNullOrEmpty(map)).isTrue();
+        map.put("foo", "bar");
+        assertThat(isNullOrEmpty(map)).isFalse();
+        map.clear();
+        assertThat(isNullOrEmpty(map)).isTrue();
     }
 
-    try {
-      Utils.assertNotNullOrEmpty("", "bar");
-      fail();
-    } catch (NullPointerException e) {
-      assertThat(e).hasMessage("bar cannot be null or empty");
+    @Test
+    public void emptyCollections() {
+        assertThat(isNullOrEmpty((Collection) null)).isTrue();
+        Collection<String> collection = new ArrayList<>();
+        assertThat(isNullOrEmpty(collection)).isTrue();
+        collection.add("foo");
+        assertThat(isNullOrEmpty(collection)).isFalse();
+        collection.clear();
+        assertThat(isNullOrEmpty(collection)).isTrue();
     }
 
-    assertThat(Utils.assertNotNullOrEmpty("foo", "bar")).isEqualTo("foo");
-  }
+    @Test
+    public void testTransform() {
+        Map<String, Integer> in = new LinkedHashMap<>();
+        in.put("a", 1);
+        in.put("b", 2);
+        in.put("c", 3);
+        in.put("d", 4);
 
-  @Test
-  public void assertNotNull() {
-    try {
-      Utils.assertNotNull(null, "foo");
-      fail();
-    } catch (NullPointerException e) {
-      assertThat(e).hasMessage("foo == null");
+        Map<String, String> mapper = new LinkedHashMap<>();
+        mapper.put("a", "$a");
+        mapper.put("c", "");
+        mapper.put("d", null);
+
+        assertThat(transform(in, mapper))
+                .containsExactly(MapEntry.entry("$a", 1), MapEntry.entry("b", 2));
     }
 
-    Object something = new Object();
-    assertThat(Utils.assertNotNull(something, "foo")).isEqualTo(something);
-  }
+    @Test
+    public void returnsConnectedIfMissingPermission() throws Exception {
+        when(context.checkCallingOrSelfPermission(ACCESS_NETWORK_STATE))
+                .thenReturn(PERMISSION_DENIED);
+        assertThat(isConnected(context)).isTrue();
+    }
 
-  @Test
-  public void readFully() throws IOException {
-    assertThat(Utils.readFully(Utils.buffer(new Buffer().writeUtf8("foo\nbar").inputStream())))
-        .isEqualTo("foobar");
-  }
+    @Test
+    public void nullableConcurrentHashMapPutIgnoresNulls() throws Exception {
+        Map<String, String> map = new Utils.NullableConcurrentHashMap<>();
+        map.put(null, null);
+        map.put("foo", null);
+        map.put(null, "bar");
+
+        assertThat(map).isEmpty();
+    }
+
+    @Test
+    public void nullableConcurrentHashMapPutAllIgnoresNulls() throws Exception {
+        Map<String, String> values = new LinkedHashMap<>();
+        values.put(null, null);
+        values.put("foo", null);
+        values.put(null, "bar");
+
+        Map<String, String> map = new Utils.NullableConcurrentHashMap<>();
+        map.putAll(values);
+        assertThat(map).isEmpty();
+    }
+
+    @Test
+    public void copySharedPreferences() {
+        SharedPreferences src =
+                RuntimeEnvironment.application.getSharedPreferences("src", Context.MODE_PRIVATE);
+        src.edit().clear().apply();
+        src.edit()
+                .putBoolean("aBool", true)
+                .putString("aString", "foo")
+                .putInt("anInt", 2)
+                .putFloat("aFloat", 3.14f)
+                .putLong("aLong", 12345678910L)
+                .putStringSet("aStringSet", new HashSet<>(Arrays.asList("foo", "bar")))
+                .apply();
+
+        SharedPreferences target =
+                RuntimeEnvironment.application.getSharedPreferences("target", Context.MODE_PRIVATE);
+        target.edit().clear().apply();
+
+        Utils.copySharedPreferences(src, target);
+        assertThat(target)
+                .contains("aBool", true)
+                .contains("aString", "foo")
+                .contains("anInt", 2)
+                .contains("aFloat", 3.14f)
+                .contains("aLong", 12345678910L)
+                .contains("aStringSet", new HashSet<>(Arrays.asList("foo", "bar")));
+    }
+
+    @Test
+    public void newSet() {
+        assertThat(Utils.newSet("foo", "bar")).containsOnly("foo", "bar");
+    }
+
+    @Test
+    public void coerceToFloat() {
+        assertThat(Utils.coerceToFloat("not a number", 1)).isEqualTo(1);
+        assertThat(Utils.coerceToFloat(3.14f, 0)).isEqualTo(3.14f);
+        assertThat(Utils.coerceToFloat(1, 0)).isEqualTo(1);
+    }
+
+    @Test
+    public void hasPermission() {
+        when(context.checkCallingOrSelfPermission(Manifest.permission.INTERNET))
+                .thenReturn(PERMISSION_DENIED);
+        assertThat(Utils.hasPermission(context, Manifest.permission.INTERNET)).isFalse();
+
+        when(context.checkCallingOrSelfPermission(Manifest.permission.INTERNET))
+                .thenReturn(PERMISSION_GRANTED);
+        assertThat(Utils.hasPermission(context, Manifest.permission.INTERNET)).isTrue();
+    }
+
+    @Test
+    public void hasFeature() {
+        PackageManager packageManager = mock(PackageManager.class);
+        when(context.getPackageManager()).thenReturn(packageManager);
+
+        when(packageManager.hasSystemFeature(FEATURE_TELEPHONY)).thenReturn(false);
+        assertThat(Utils.hasFeature(context, FEATURE_TELEPHONY)).isFalse();
+
+        when(packageManager.hasSystemFeature(FEATURE_TELEPHONY)).thenReturn(true);
+        assertThat(Utils.hasFeature(context, FEATURE_TELEPHONY)).isTrue();
+    }
+
+    @Test
+    public void assertNotNullOrEmptyMap() {
+        try {
+            Utils.assertNotNullOrEmpty((Map) null, "foo");
+            fail();
+        } catch (NullPointerException e) {
+            assertThat(e).hasMessage("foo cannot be null or empty");
+        }
+
+        try {
+            Utils.assertNotNullOrEmpty(ImmutableMap.of(), "bar");
+            fail();
+        } catch (NullPointerException e) {
+            assertThat(e).hasMessage("bar cannot be null or empty");
+        }
+
+        assertThat(Utils.assertNotNullOrEmpty(ImmutableMap.of("key", "val"), "foo"))
+                .isEqualTo(ImmutableMap.of("key", "val"));
+    }
+
+    @Test
+    public void assertNotNullOrEmptyText() {
+        try {
+            Utils.assertNotNullOrEmpty((String) null, "foo");
+            fail();
+        } catch (NullPointerException e) {
+            assertThat(e).hasMessage("foo cannot be null or empty");
+        }
+
+        try {
+            Utils.assertNotNullOrEmpty("", "bar");
+            fail();
+        } catch (NullPointerException e) {
+            assertThat(e).hasMessage("bar cannot be null or empty");
+        }
+
+        assertThat(Utils.assertNotNullOrEmpty("foo", "bar")).isEqualTo("foo");
+    }
+
+    @Test
+    public void assertNotNull() {
+        try {
+            Utils.assertNotNull(null, "foo");
+            fail();
+        } catch (NullPointerException e) {
+            assertThat(e).hasMessage("foo == null");
+        }
+
+        Object something = new Object();
+        assertThat(Utils.assertNotNull(something, "foo")).isEqualTo(something);
+    }
+
+    @Test
+    public void readFully() throws IOException {
+        assertThat(Utils.readFully(Utils.buffer(new Buffer().writeUtf8("foo\nbar").inputStream())))
+                .isEqualTo("foobar");
+    }
 }

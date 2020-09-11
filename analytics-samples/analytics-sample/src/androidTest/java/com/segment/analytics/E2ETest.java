@@ -62,148 +62,151 @@ import retrofit2.converter.moshi.MoshiConverterFactory;
 @RunWith(AndroidJUnit4.class)
 public class E2ETest {
 
-  @Rule
-  public final ActivityTestRule<MainActivity> activityActivityTestRule =
-      new ActivityTestRule<>(MainActivity.class);
+    @Rule
+    public final ActivityTestRule<MainActivity> activityActivityTestRule =
+            new ActivityTestRule<>(MainActivity.class);
 
-  @Rule
-  public EndToEndTestsDisabledRule endToEndTestsDisabledRule = new EndToEndTestsDisabledRule();
+    @Rule
+    public EndToEndTestsDisabledRule endToEndTestsDisabledRule = new EndToEndTestsDisabledRule();
 
-  /**
-   * Write key for the Segment project to send data to.
-   * https://app.segment.com/segment-libraries/sources/analytics_android_e2e_test/overview
-   */
-  private static final String SEGMENT_WRITE_KEY = "OAtgAHjkAD5MP31srDe9wiBjpvcXC8De";
-  /** Webhook bucket that is connected to the Segment project. */
-  private static final String WEBHOOK_BUCKET = "android";
-  /** Credentials to retrieve data from the webhook. */
-  private static final String WEBHOOK_AUTH_USERNAME = BuildConfig.WEBHOOK_AUTH_USERNAME;
+    /**
+     * Write key for the Segment project to send data to.
+     * https://app.segment.com/segment-libraries/sources/analytics_android_e2e_test/overview
+     */
+    private static final String SEGMENT_WRITE_KEY = "OAtgAHjkAD5MP31srDe9wiBjpvcXC8De";
+    /** Webhook bucket that is connected to the Segment project. */
+    private static final String WEBHOOK_BUCKET = "android";
+    /** Credentials to retrieve data from the webhook. */
+    private static final String WEBHOOK_AUTH_USERNAME = BuildConfig.WEBHOOK_AUTH_USERNAME;
 
-  private static final Backo BACKO =
-      Backo.builder().base(TimeUnit.SECONDS, 1).cap(TimeUnit.MINUTES, 5).build();
+    private static final Backo BACKO =
+            Backo.builder().base(TimeUnit.SECONDS, 1).cap(TimeUnit.MINUTES, 5).build();
 
-  private Analytics analytics;
-  private WebhookService webhookService;
+    private Analytics analytics;
+    private WebhookService webhookService;
 
-  @Before
-  public void setup() {
-    analytics =
-        new Analytics.Builder(activityActivityTestRule.getActivity(), SEGMENT_WRITE_KEY).build();
+    @Before
+    public void setup() {
+        analytics =
+                new Analytics.Builder(activityActivityTestRule.getActivity(), SEGMENT_WRITE_KEY)
+                        .build();
 
-    webhookService =
-        new Retrofit.Builder()
-            .baseUrl("https://webhook-e2e.segment.com")
-            .addConverterFactory(MoshiConverterFactory.create())
-            .client(
-                new OkHttpClient.Builder()
-                    .addNetworkInterceptor(
-                        new Interceptor() {
-                          @Override
-                          public okhttp3.Response intercept(Chain chain) throws IOException {
-                            return chain.proceed(
-                                chain
-                                    .request()
-                                    .newBuilder()
-                                    .addHeader(
-                                        "Authorization",
-                                        Credentials.basic(WEBHOOK_AUTH_USERNAME, ""))
-                                    .build());
-                          }
-                        })
-                    .build())
-            .build()
-            .create(WebhookService.class);
-  }
+        webhookService =
+                new Retrofit.Builder()
+                        .baseUrl("https://webhook-e2e.segment.com")
+                        .addConverterFactory(MoshiConverterFactory.create())
+                        .client(
+                                new OkHttpClient.Builder()
+                                        .addNetworkInterceptor(
+                                                new Interceptor() {
+                                                    @Override
+                                                    public okhttp3.Response intercept(Chain chain)
+                                                            throws IOException {
+                                                        return chain.proceed(
+                                                                chain.request()
+                                                                        .newBuilder()
+                                                                        .addHeader(
+                                                                                "Authorization",
+                                                                                Credentials.basic(
+                                                                                        WEBHOOK_AUTH_USERNAME,
+                                                                                        ""))
+                                                                        .build());
+                                                    }
+                                                })
+                                        .build())
+                        .build()
+                        .create(WebhookService.class);
+    }
 
-  @After
-  public void tearDown() {
-    analytics.shutdown();
-  }
+    @After
+    public void tearDown() {
+        analytics.shutdown();
+    }
 
-  @Test
-  public void track() {
-    final String uuid = UUID.randomUUID().toString();
-    analytics.track("Simple Track", new Properties().putValue("id", uuid));
-    analytics.flush();
+    @Test
+    public void track() {
+        final String uuid = UUID.randomUUID().toString();
+        analytics.track("Simple Track", new Properties().putValue("id", uuid));
+        analytics.flush();
 
-    assertMessageReceivedByWebhook(uuid);
-  }
+        assertMessageReceivedByWebhook(uuid);
+    }
 
-  @Test
-  public void screen() {
-    final String uuid = UUID.randomUUID().toString();
-    analytics.screen("Home", new Properties().putValue("id", uuid));
-    analytics.flush();
+    @Test
+    public void screen() {
+        final String uuid = UUID.randomUUID().toString();
+        analytics.screen("Home", new Properties().putValue("id", uuid));
+        analytics.flush();
 
-    assertMessageReceivedByWebhook(uuid);
-  }
+        assertMessageReceivedByWebhook(uuid);
+    }
 
-  @Test
-  public void group() {
-    final String uuid = UUID.randomUUID().toString();
-    analytics.group("segment", new Traits().putValue("id", uuid));
-    analytics.flush();
+    @Test
+    public void group() {
+        final String uuid = UUID.randomUUID().toString();
+        analytics.group("segment", new Traits().putValue("id", uuid));
+        analytics.flush();
 
-    assertMessageReceivedByWebhook(uuid);
-  }
+        assertMessageReceivedByWebhook(uuid);
+    }
 
-  @Test
-  public void identify() throws Exception {
-    final String uuid = UUID.randomUUID().toString();
-    analytics.group("prateek", new Traits().putValue("id", uuid));
-    analytics.flush();
+    @Test
+    public void identify() throws Exception {
+        final String uuid = UUID.randomUUID().toString();
+        analytics.group("prateek", new Traits().putValue("id", uuid));
+        analytics.flush();
 
-    assertMessageReceivedByWebhook(uuid);
-  }
+        assertMessageReceivedByWebhook(uuid);
+    }
 
-  private void assertMessageReceivedByWebhook(String id) {
-    for (int i = 0; i < 10; i++) {
-      try {
-        BACKO.sleep(i);
-        if (hasMatchingRequest(id)) {
-          return;
+    private void assertMessageReceivedByWebhook(String id) {
+        for (int i = 0; i < 10; i++) {
+            try {
+                BACKO.sleep(i);
+                if (hasMatchingRequest(id)) {
+                    return;
+                }
+            } catch (Exception ignored) {
+                // Catch and ignore so that we can retry.
+            }
         }
-      } catch (Exception ignored) {
-        // Catch and ignore so that we can retry.
-      }
+
+        fail("did not find message with id: " + id);
     }
 
-    fail("did not find message with id: " + id);
-  }
+    /** Returns {@code true} if a message with the provided ID is found in the webhook. */
+    @SuppressWarnings("ConstantConditions")
+    private boolean hasMatchingRequest(String id) throws IOException {
+        Response<List<String>> messagesResponse =
+                webhookService.messages(WEBHOOK_BUCKET, 500).execute();
 
-  /** Returns {@code true} if a message with the provided ID is found in the webhook. */
-  @SuppressWarnings("ConstantConditions")
-  private boolean hasMatchingRequest(String id) throws IOException {
-    Response<List<String>> messagesResponse =
-        webhookService.messages(WEBHOOK_BUCKET, 500).execute();
+        assertThat(messagesResponse.code()).isEqualTo(200);
 
-    assertThat(messagesResponse.code()).isEqualTo(200);
+        for (String message : messagesResponse.body()) {
+            // TODO: Deserialize into Segment message and check against properties.
+            if (message.contains(id)) {
+                return true;
+            }
+        }
 
-    for (String message : messagesResponse.body()) {
-      // TODO: Deserialize into Segment message and check against properties.
-      if (message.contains(id)) {
-        return true;
-      }
+        return false;
     }
 
-    return false;
-  }
+    /** Skips tests if they were supposed to be ignored. */
+    static class EndToEndTestsDisabledRule implements MethodRule {
 
-  /** Skips tests if they were supposed to be ignored. */
-  static class EndToEndTestsDisabledRule implements MethodRule {
-
-    @Override
-    public Statement apply(final Statement base, FrameworkMethod method, Object target) {
-      return new Statement() {
         @Override
-        public void evaluate() throws Throwable {
-          // Skip the test if End to End tests are disabled (e.g. contributor PRs).
-          if (!BuildConfig.RUN_E2E_TESTS) {
-            return;
-          }
-          base.evaluate();
+        public Statement apply(final Statement base, FrameworkMethod method, Object target) {
+            return new Statement() {
+                @Override
+                public void evaluate() throws Throwable {
+                    // Skip the test if End to End tests are disabled (e.g. contributor PRs).
+                    if (!BuildConfig.RUN_E2E_TESTS) {
+                        return;
+                    }
+                    base.evaluate();
+                }
+            };
         }
-      };
     }
-  }
 }
