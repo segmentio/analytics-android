@@ -204,6 +204,7 @@ class DestinationMiddlewareTest {
                 }
                 .build()
 
+        println("Payload: $payloadRef")
         analytics.track("foo")
         Assertions.assertThat(payloadRef.get().properties()).containsKey("key1")
         Assertions.assertThat(payloadRef.get().properties()["key1"]).isEqualTo("val1")
