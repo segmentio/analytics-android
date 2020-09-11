@@ -45,94 +45,95 @@ import org.robolectric.annotation.Config;
 @Config(manifest = Config.NONE)
 public class SourceMiddlewareTest {
 
-  Analytics.Builder builder;
+    Analytics.Builder builder;
 
-  @Before
-  public void setUp() {
-    initMocks(this);
-    Analytics.INSTANCES.clear();
-    grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
-    builder =
-        new Builder(RuntimeEnvironment.application, "write_key")
-            .executor(MoreExecutors.newDirectExecutorService());
-  }
+    @Before
+    public void setUp() {
+        initMocks(this);
+        Analytics.INSTANCES.clear();
+        grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET);
+        builder =
+                new Builder(RuntimeEnvironment.application, "write_key")
+                        .executor(MoreExecutors.newDirectExecutorService());
+    }
 
-  @Test
-  public void middlewareCanShortCircuit() throws Exception {
-    final AtomicReference<TrackPayload> payloadRef = new AtomicReference<>();
-    Analytics analytics =
-        builder
-            .useSourceMiddleware(
-                new Middleware() {
-                  @Override
-                  public void intercept(Chain chain) {
-                    payloadRef.set((TrackPayload) chain.payload());
-                  }
-                })
-            .useSourceMiddleware(
-                new Middleware() {
-                  @Override
-                  public void intercept(Chain chain) {
-                    throw new AssertionError("should not be invoked");
-                  }
-                })
-            .build();
+    @Test
+    public void middlewareCanShortCircuit() throws Exception {
+        final AtomicReference<TrackPayload> payloadRef = new AtomicReference<>();
+        Analytics analytics =
+                builder.useSourceMiddleware(
+                                new Middleware() {
+                                    @Override
+                                    public void intercept(Chain chain) {
+                                        payloadRef.set((TrackPayload) chain.payload());
+                                    }
+                                })
+                        .useSourceMiddleware(
+                                new Middleware() {
+                                    @Override
+                                    public void intercept(Chain chain) {
+                                        throw new AssertionError("should not be invoked");
+                                    }
+                                })
+                        .build();
 
-    analytics.track("foo");
-    assertThat(payloadRef.get().event()).isEqualTo("foo");
-  }
+        analytics.track("foo");
+        assertThat(payloadRef.get().event()).isEqualTo("foo");
+    }
 
-  @Test
-  public void middlewareCanProceed() throws Exception {
-    final AtomicReference<ScreenPayload> payloadRef = new AtomicReference<>();
-    Analytics analytics =
-        builder
-            .useSourceMiddleware(
-                new Middleware() {
-                  @Override
-                  public void intercept(Chain chain) {
-                    chain.proceed(chain.payload());
-                  }
-                })
-            .useSourceMiddleware(
-                new Middleware() {
-                  @Override
-                  public void intercept(Chain chain) {
-                    BasePayload payload = chain.payload();
-                    payloadRef.set((ScreenPayload) payload);
-                    chain.proceed(payload);
-                  }
-                })
-            .build();
+    @Test
+    public void middlewareCanProceed() throws Exception {
+        final AtomicReference<ScreenPayload> payloadRef = new AtomicReference<>();
+        Analytics analytics =
+                builder.useSourceMiddleware(
+                                new Middleware() {
+                                    @Override
+                                    public void intercept(Chain chain) {
+                                        chain.proceed(chain.payload());
+                                    }
+                                })
+                        .useSourceMiddleware(
+                                new Middleware() {
+                                    @Override
+                                    public void intercept(Chain chain) {
+                                        BasePayload payload = chain.payload();
+                                        payloadRef.set((ScreenPayload) payload);
+                                        chain.proceed(payload);
+                                    }
+                                })
+                        .build();
 
-    analytics.screen("foo");
-    assertThat(payloadRef.get().name()).isEqualTo("foo");
-  }
+        analytics.screen("foo");
+        assertThat(payloadRef.get().name()).isEqualTo("foo");
+    }
 
-  @Test
-  public void middlewareCanTransform() throws Exception {
-    final AtomicReference<BasePayload> payloadRef = new AtomicReference<>();
-    Analytics analytics =
-        builder
-            .useSourceMiddleware(
-                new Middleware() {
-                  @Override
-                  public void intercept(Chain chain) {
-                    chain.proceed(chain.payload().toBuilder().messageId("override").build());
-                  }
-                })
-            .useSourceMiddleware(
-                new Middleware() {
-                  @Override
-                  public void intercept(Chain chain) {
-                    BasePayload payload = chain.payload();
-                    payloadRef.set(payload);
-                    chain.proceed(payload);
-                  }
-                })
-            .build();
+    @Test
+    public void middlewareCanTransform() throws Exception {
+        final AtomicReference<BasePayload> payloadRef = new AtomicReference<>();
+        Analytics analytics =
+                builder.useSourceMiddleware(
+                                new Middleware() {
+                                    @Override
+                                    public void intercept(Chain chain) {
+                                        chain.proceed(
+                                                chain.payload()
+                                                        .toBuilder()
+                                                        .messageId("override")
+                                                        .build());
+                                    }
+                                })
+                        .useSourceMiddleware(
+                                new Middleware() {
+                                    @Override
+                                    public void intercept(Chain chain) {
+                                        BasePayload payload = chain.payload();
+                                        payloadRef.set(payload);
+                                        chain.proceed(payload);
+                                    }
+                                })
+                        .build();
 
-    analytics.identify("prateek");
-    assertThat(payloadRef.get().messageId()).isEqualTo("override");
-  }
+        analytics.identify("prateek");
+        assertThat(payloadRef.get().messageId()).isEqualTo("override");
+    }
 }

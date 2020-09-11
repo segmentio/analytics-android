@@ -1,7 +1,34 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Segment.io, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.segment.analytics
 
 import com.squareup.burst.BurstJUnit4
 import com.squareup.burst.annotation.Burst
+import java.io.File
+import java.io.IOException
+import java.io.InputStream
+import java.util.ArrayList
 import okio.ByteString
 import org.assertj.core.api.Assertions
 import org.junit.Before
@@ -9,10 +36,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
-import java.io.File
-import java.io.IOException
-import java.io.InputStream
-import java.util.ArrayList
 
 @RunWith(BurstJUnit4::class)
 class PayloadQueueTest {
@@ -64,7 +87,7 @@ class PayloadQueueTest {
     fun forEach() {
         val seen = readQueue(queue.size() + 1)
         Assertions.assertThat(seen)
-                .containsExactly(bytes("one"), bytes("two"), bytes("three"))
+            .containsExactly(bytes("one"), bytes("two"), bytes("three"))
     }
 
     @Test
@@ -92,17 +115,17 @@ class PayloadQueueTest {
     private fun readQueue(maxCount: Int): List<ByteArray> {
         val seen: MutableList<ByteArray> = ArrayList()
         queue.forEach(
-                object : PayloadQueue.ElementVisitor {
-                    var count = 1
+            object : PayloadQueue.ElementVisitor {
+                var count = 1
 
-                    @Throws(IOException::class)
-                    override fun read(`in`: InputStream, length: Int): Boolean {
-                        val data = ByteArray(length)
-                        Assertions.assertThat(`in`.read(data)).isEqualTo(length)
-                        seen.add(data)
-                        return count++ < maxCount
-                    }
-                })
+                @Throws(IOException::class)
+                override fun read(`in`: InputStream, length: Int): Boolean {
+                    val data = ByteArray(length)
+                    Assertions.assertThat(`in`.read(data)).isEqualTo(length)
+                    seen.add(data)
+                    return count++ < maxCount
+                }
+            })
         return seen
     }
 }

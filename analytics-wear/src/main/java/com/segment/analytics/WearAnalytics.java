@@ -38,75 +38,76 @@ import com.segment.analytics.integrations.BasePayload;
  */
 public class WearAnalytics {
 
-  static final String ANALYTICS_PATH = "/analytics";
-  static WearAnalytics singleton;
-  final WearDispatcher dispatcher;
+    static final String ANALYTICS_PATH = "/analytics";
+    static WearAnalytics singleton;
+    final WearDispatcher dispatcher;
 
-  public static WearAnalytics with(Context context) {
-    if (singleton == null) {
-      if (context == null) {
-        throw new IllegalArgumentException("Context must not be null.");
-      }
-      synchronized (WearAnalytics.class) {
+    public static WearAnalytics with(Context context) {
         if (singleton == null) {
-          singleton = new WearAnalytics(context);
+            if (context == null) {
+                throw new IllegalArgumentException("Context must not be null.");
+            }
+            synchronized (WearAnalytics.class) {
+                if (singleton == null) {
+                    singleton = new WearAnalytics(context);
+                }
+            }
         }
-      }
-    }
-    return singleton;
-  }
-
-  WearAnalytics(Context context) {
-    this.dispatcher = new WearDispatcher(context);
-  }
-
-  /**
-   * The track method is how you record any actions your users perform. Each action is known by a
-   * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions. For
-   * example a 'Purchased a Shirt' event might have properties like revenue or size.
-   *
-   * @param event Name of the event. Must not be null or empty.
-   * @param properties {@link Properties} to add extra information to this call
-   * @throws IllegalArgumentException if event name is null or an empty string
-   * @see <a href="https://segment.com/docs/tracking-api/track/">Track Documentation</a>
-   * @see com.segment.analytics.Analytics#track(String, Properties)
-   */
-  public void track(String event, Properties properties) {
-    if (isNullOrEmpty(event)) {
-      throw new IllegalArgumentException("event must not be null or empty.");
+        return singleton;
     }
 
-    if (properties == null) {
-      properties = new Properties();
+    WearAnalytics(Context context) {
+        this.dispatcher = new WearDispatcher(context);
     }
 
-    dispatcher.dispatchPayload(
-        new WearPayload(BasePayload.Type.track, new WearTrackPayload(event, properties)));
-  }
+    /**
+     * The track method is how you record any actions your users perform. Each action is known by a
+     * name, like 'Purchased a T-Shirt'. You can also record properties specific to those actions.
+     * For example a 'Purchased a Shirt' event might have properties like revenue or size.
+     *
+     * @param event Name of the event. Must not be null or empty.
+     * @param properties {@link Properties} to add extra information to this call
+     * @throws IllegalArgumentException if event name is null or an empty string
+     * @see <a href="https://segment.com/docs/tracking-api/track/">Track Documentation</a>
+     * @see com.segment.analytics.Analytics#track(String, Properties)
+     */
+    public void track(String event, Properties properties) {
+        if (isNullOrEmpty(event)) {
+            throw new IllegalArgumentException("event must not be null or empty.");
+        }
 
-  /**
-   * The screen methods let your record whenever a user sees a screen of your mobile app, and attach
-   * a name, category or properties to the screen.
-   *
-   * <p>Either category or name must be provided.
-   *
-   * @param category A category to describe the screen
-   * @param name A name for the screen
-   * @param properties {@link Properties} to add extra information to this call
-   * @see <a href="http://segment.com/docs/tracking-api/page-and-screen/">Screen Documentation</a>
-   * @see com.segment.analytics.Analytics#screen(String, String, Properties)
-   */
-  public void screen(String category, String name, Properties properties) {
-    if (isNullOrEmpty(category) && isNullOrEmpty(name)) {
-      throw new IllegalArgumentException("either category or name must be provided.");
+        if (properties == null) {
+            properties = new Properties();
+        }
+
+        dispatcher.dispatchPayload(
+                new WearPayload(BasePayload.Type.track, new WearTrackPayload(event, properties)));
     }
 
-    if (properties == null) {
-      properties = new Properties();
-    }
+    /**
+     * The screen methods let your record whenever a user sees a screen of your mobile app, and
+     * attach a name, category or properties to the screen.
+     *
+     * <p>Either category or name must be provided.
+     *
+     * @param category A category to describe the screen
+     * @param name A name for the screen
+     * @param properties {@link Properties} to add extra information to this call
+     * @see <a href="http://segment.com/docs/tracking-api/page-and-screen/">Screen Documentation</a>
+     * @see com.segment.analytics.Analytics#screen(String, String, Properties)
+     */
+    public void screen(String category, String name, Properties properties) {
+        if (isNullOrEmpty(category) && isNullOrEmpty(name)) {
+            throw new IllegalArgumentException("either category or name must be provided.");
+        }
 
-    dispatcher.dispatchPayload(
-        new WearPayload(
-            BasePayload.Type.screen, new WearScreenPayload(category, name, properties)));
-  }
+        if (properties == null) {
+            properties = new Properties();
+        }
+
+        dispatcher.dispatchPayload(
+                new WearPayload(
+                        BasePayload.Type.screen,
+                        new WearScreenPayload(category, name, properties)));
+    }
 }

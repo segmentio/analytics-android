@@ -8,42 +8,42 @@ def RUN_E2E_TESTS = false
 // e2e_test.properties is a file with a single line: WEBHOOK_AUTH_USERNAME=<token>
 def e2eTestPropertiesFile = file('e2e_test.properties')
 if (e2eTestPropertiesFile.exists()) {
-  def props = new Properties()
-  file(e2eTestPropertiesFile).withInputStream { stream -> props.load(stream) }
-  WEBHOOK_AUTH_USERNAME = props.getProperty("WEBHOOK_AUTH_USERNAME")
-  RUN_E2E_TESTS = true
+	def props = new Properties()
+	file(e2eTestPropertiesFile).withInputStream { stream -> props.load(stream) }
+	WEBHOOK_AUTH_USERNAME = props.getProperty("WEBHOOK_AUTH_USERNAME")
+	RUN_E2E_TESTS = true
 }
 
 android {
-  lintOptions {
-    // Since this is just a sample app, it's ok to ignore these warnings.
-    disable 'IconMissingDensityFolder', 'GoogleAppIndexingWarning', 'AllowBackup'
-  }
+	lintOptions {
+		// Since this is just a sample app, it's ok to ignore these warnings.
+		disable 'IconMissingDensityFolder', 'GoogleAppIndexingWarning', 'AllowBackup'
+	}
 
-  defaultConfig {
-    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+	defaultConfig {
+		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-    buildConfigField 'String', 'WEBHOOK_AUTH_USERNAME', "\"$WEBHOOK_AUTH_USERNAME\""
-    buildConfigField 'boolean', 'RUN_E2E_TESTS', "$RUN_E2E_TESTS"
-  }
+		buildConfigField 'String', 'WEBHOOK_AUTH_USERNAME', "\"$WEBHOOK_AUTH_USERNAME\""
+		buildConfigField 'boolean', 'RUN_E2E_TESTS', "$RUN_E2E_TESTS"
+	}
 }
 
 dependencies {
-  implementation project(':analytics')
-  implementation project(':analytics-wear')
+	implementation project(':analytics')
+	implementation project(':analytics-wear')
 
-  implementation 'io.github.inflationx:calligraphy3:3.1.1'
-  implementation 'io.github.inflationx:viewpump:2.0.3'
-  implementation 'com.jakewharton:butterknife:10.2.1'
-  annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.1'
+	implementation 'io.github.inflationx:calligraphy3:3.1.1'
+	implementation 'io.github.inflationx:viewpump:2.0.3'
+	implementation 'com.jakewharton:butterknife:10.2.1'
+	annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.1'
 
-  androidTestImplementation 'com.squareup.retrofit2:retrofit:2.8.1'
-  androidTestImplementation 'com.squareup.retrofit2:converter-moshi:2.8.1'
+	androidTestImplementation 'com.squareup.retrofit2:retrofit:2.8.1'
+	androidTestImplementation 'com.squareup.retrofit2:converter-moshi:2.8.1'
 
-  androidTestImplementation rootProject.ext.deps.supportAnnotations
-  androidTestImplementation 'androidx.test:runner:1.2.0'
-  androidTestImplementation 'androidx.test:rules:1.2.0'
-  androidTestImplementation 'com.segment.backo:backo:1.0.0'
+	androidTestImplementation rootProject.ext.deps.supportAnnotations
+	androidTestImplementation 'androidx.test:runner:1.2.0'
+	androidTestImplementation 'androidx.test:rules:1.2.0'
+	androidTestImplementation 'com.segment.backo:backo:1.0.0'
 
-  androidTestImplementation 'org.assertj:assertj-core:3.16.1'
+	androidTestImplementation 'org.assertj:assertj-core:3.16.1'
 }

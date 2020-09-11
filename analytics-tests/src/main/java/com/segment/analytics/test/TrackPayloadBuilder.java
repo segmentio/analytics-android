@@ -35,59 +35,59 @@ import com.segment.analytics.integrations.TrackPayload;
 @Deprecated
 public class TrackPayloadBuilder {
 
-  private AnalyticsContext context;
-  private Traits traits;
-  private String event;
-  private Properties properties;
-  private Options options;
+    private AnalyticsContext context;
+    private Traits traits;
+    private String event;
+    private Properties properties;
+    private Options options;
 
-  public TrackPayloadBuilder context(AnalyticsContext context) {
-    this.context = context;
-    return this;
-  }
-
-  public TrackPayloadBuilder traits(Traits traits) {
-    this.traits = traits;
-    return this;
-  }
-
-  public TrackPayloadBuilder event(String event) {
-    this.event = event;
-    return this;
-  }
-
-  public TrackPayloadBuilder properties(Properties properties) {
-    this.properties = properties;
-    return this;
-  }
-
-  public TrackPayloadBuilder options(Options options) {
-    this.options = options;
-    return this;
-  }
-
-  public TrackPayload build() {
-    if (traits == null) {
-      traits = createTraits();
+    public TrackPayloadBuilder context(AnalyticsContext context) {
+        this.context = context;
+        return this;
     }
-    if (event == null) {
-      event = "bar";
+
+    public TrackPayloadBuilder traits(Traits traits) {
+        this.traits = traits;
+        return this;
     }
-    if (context == null) {
-      context = createContext(traits);
+
+    public TrackPayloadBuilder event(String event) {
+        this.event = event;
+        return this;
     }
-    if (properties == null) {
-      properties = new Properties();
+
+    public TrackPayloadBuilder properties(Properties properties) {
+        this.properties = properties;
+        return this;
     }
-    if (options == null) {
-      options = new Options();
+
+    public TrackPayloadBuilder options(Options options) {
+        this.options = options;
+        return this;
     }
-    return new TrackPayload.Builder()
-        .event(event)
-        .properties(properties)
-        .anonymousId(traits.anonymousId())
-        .context(context)
-        .integrations(options.integrations())
-        .build();
-  }
+
+    public TrackPayload build() {
+        if (traits == null) {
+            traits = createTraits();
+        }
+        if (event == null) {
+            event = "bar";
+        }
+        if (context == null) {
+            context = createContext(traits);
+        }
+        if (properties == null) {
+            properties = new Properties();
+        }
+        if (options == null) {
+            options = new Options();
+        }
+        return new TrackPayload.Builder()
+                .event(event)
+                .properties(properties)
+                .anonymousId(traits.anonymousId())
+                .context(context)
+                .integrations(options.integrations())
+                .build();
+    }
 }

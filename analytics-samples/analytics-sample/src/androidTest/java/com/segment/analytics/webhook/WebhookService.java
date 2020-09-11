@@ -30,6 +30,6 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface WebhookService {
-  @GET("buckets/{bucket}")
-  Call<List<String>> messages(@Path("bucket") String bucket, @Query("limit") int limit);
+    @GET("buckets/{bucket}")
+    Call<List<String>> messages(@Path("bucket") String bucket, @Query("limit") int limit);
 }

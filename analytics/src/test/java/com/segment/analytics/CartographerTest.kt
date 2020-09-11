@@ -1,6 +1,34 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Segment.io, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.segment.analytics
 
 import com.google.common.collect.ImmutableMap
+import java.io.IOException
+import java.io.Reader
+import java.io.StringWriter
+import java.util.UUID
+import kotlin.collections.LinkedHashMap
 import org.assertj.core.api.Assertions
 import org.assertj.core.data.MapEntry
 import org.junit.Before
@@ -8,11 +36,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.io.IOException
-import java.io.Reader
-import java.io.StringWriter
-import java.util.*
-import kotlin.collections.LinkedHashMap
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
@@ -28,20 +51,20 @@ class CartographerTest {
     @Throws(IOException::class)
     fun encodePrimitives() {
         val map = ImmutableMap.builder<String, Any>()
-                .put("byte", 32.toByte())
-                .put("boolean", true)
-                .put("short", 100.toShort())
-                .put("int", 1)
-                .put("long", 43L)
-                .put("float", 23f)
-                .put("double", Math.PI)
-                .put("char", 'a')
-                .put("String", "string")
-                .build()
+            .put("byte", 32.toByte())
+            .put("boolean", true)
+            .put("short", 100.toShort())
+            .put("int", 1)
+            .put("long", 43L)
+            .put("float", 23f)
+            .put("double", Math.PI)
+            .put("char", 'a')
+            .put("String", "string")
+            .build()
 
         Assertions.assertThat(cartographer.toJson(map))
-                .isEqualTo(
-                        """
+            .isEqualTo(
+                """
                         |{
                         |  "byte": 32,
                         |  "boolean": true,
@@ -54,14 +77,14 @@ class CartographerTest {
                         |  "String": "string"
                         |}
                         """.trimMargin()
-                )
+            )
     }
 
     @Test
     @Throws(IOException::class)
     fun decodesPrimitives() {
         val json =
-                """
+            """
                 |{
                 |  "byte": 32,
                 |  "boolean": true,
@@ -77,16 +100,16 @@ class CartographerTest {
         val map = cartographer.fromJson(json)
 
         Assertions.assertThat(map)
-                .hasSize(9)
-                .contains(MapEntry.entry("byte", 32.0))
-                .contains(MapEntry.entry("boolean", true))
-                .contains(MapEntry.entry("short", 100.0))
-                .contains(MapEntry.entry("int", 1.0))
-                .contains(MapEntry.entry("long", 43.0))
-                .contains(MapEntry.entry("float", 23.0))
-                .contains(MapEntry.entry("double", Math.PI))
-                .contains(MapEntry.entry("char", "a"))
-                .contains(MapEntry.entry("String", "string"))
+            .hasSize(9)
+            .contains(MapEntry.entry("byte", 32.0))
+            .contains(MapEntry.entry("boolean", true))
+            .contains(MapEntry.entry("short", 100.0))
+            .contains(MapEntry.entry("int", 1.0))
+            .contains(MapEntry.entry("long", 43.0))
+            .contains(MapEntry.entry("float", 23.0))
+            .contains(MapEntry.entry("double", Math.PI))
+            .contains(MapEntry.entry("char", "a"))
+            .contains(MapEntry.entry("String", "string"))
     }
 
     @Test
@@ -94,57 +117,65 @@ class CartographerTest {
     fun prettyPrintDisabled() {
         val cartographer = Cartographer.Builder().prettyPrint(false).build()
         val map =
-                ImmutableMap.builder<String, Any>()
+            ImmutableMap.builder<String, Any>()
+                .put(
+                    "a",
+                    ImmutableMap.builder<String, Any>()
                         .put(
-                                "a",
-                                ImmutableMap.builder<String, Any>()
+                            "b",
+                            ImmutableMap.builder<String, Any>()
+                                .put(
+                                    "c",
+                                    ImmutableMap.builder<String, Any>()
                                         .put(
-                                                "b",
-                                                ImmutableMap.builder<String, Any>()
-                                                        .put(
-                                                                "c",
-                                                                ImmutableMap.builder<String, Any>()
-                                                                        .put(
-                                                                                "d",
-                                                                                ImmutableMap.builder<String, Any>()
-                                                                                        .put("e", "f")
-                                                                                        .build())
-                                                                        .build())
-                                                        .build())
-                                        .build())
+                                            "d",
+                                            ImmutableMap.builder<String, Any>()
+                                                .put("e", "f")
+                                                .build()
+                                        )
+                                        .build()
+                                )
+                                .build()
+                        )
                         .build()
+                )
+                .build()
 
         Assertions.assertThat(cartographer.toJson(map))
-                .isEqualTo("{\"a\":{\"b\":{\"c\":{\"d\":{\"e\":\"f\"}}}}}")
+            .isEqualTo("{\"a\":{\"b\":{\"c\":{\"d\":{\"e\":\"f\"}}}}}")
     }
 
     @Test
     @Throws(IOException::class)
     fun encodesNestedMaps() {
         val map =
-                ImmutableMap.builder<String, Any>()
+            ImmutableMap.builder<String, Any>()
+                .put(
+                    "a",
+                    ImmutableMap.builder<String, Any>()
                         .put(
-                                "a",
-                                ImmutableMap.builder<String, Any>()
+                            "b",
+                            ImmutableMap.builder<String, Any>()
+                                .put(
+                                    "c",
+                                    ImmutableMap.builder<String, Any>()
                                         .put(
-                                                "b",
-                                                ImmutableMap.builder<String, Any>()
-                                                        .put(
-                                                                "c",
-                                                                ImmutableMap.builder<String, Any>()
-                                                                        .put(
-                                                                                "d",
-                                                                                ImmutableMap.builder<String, Any>()
-                                                                                        .put("e", "f")
-                                                                                        .build())
-                                                                        .build())
-                                                        .build())
-                                        .build())
+                                            "d",
+                                            ImmutableMap.builder<String, Any>()
+                                                .put("e", "f")
+                                                .build()
+                                        )
+                                        .build()
+                                )
+                                .build()
+                        )
                         .build()
+                )
+                .build()
 
         Assertions.assertThat(cartographer.toJson(map))
-                .isEqualTo(
-                        """
+            .isEqualTo(
+                """
                         |{
                         |  "a": {
                         |    "b": {
@@ -156,14 +187,15 @@ class CartographerTest {
                         |    }
                         |  }
                         |}
-                        """.trimMargin())
+                        """.trimMargin()
+            )
     }
 
     @Test
     @Throws(IOException::class)
     fun decodesNestedMaps() {
         val json =
-                """
+            """
                 |{
                 |  "a": {
                 |    "b": {
@@ -179,24 +211,28 @@ class CartographerTest {
 
         val map = cartographer.fromJson(json)
         val expected = ImmutableMap.builder<String, Any>()
-                .put(
-                        "a",
+            .put(
+                "a",
+                ImmutableMap.builder<String, Any>()
+                    .put(
+                        "b",
                         ImmutableMap.builder<String, Any>()
-                                .put(
-                                        "b",
+                            .put(
+                                "c",
+                                ImmutableMap.builder<String, Any>()
+                                    .put(
+                                        "d",
                                         ImmutableMap.builder<String, Any>()
-                                                .put(
-                                                        "c",
-                                                        ImmutableMap.builder<String, Any>()
-                                                                .put(
-                                                                        "d",
-                                                                        ImmutableMap.builder<String, Any>()
-                                                                                .put("e", "f")
-                                                                                .build())
-                                                                .build())
-                                                .build())
-                                .build())
-                .build()
+                                            .put("e", "f")
+                                            .build()
+                                    )
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .build()
+            )
+            .build()
 
         Assertions.assertThat(map).isEqualTo(expected)
     }
@@ -207,8 +243,8 @@ class CartographerTest {
         val map = ImmutableMap.builder<String, Any>().put("a", listOf("b", "c", "d")).build()
 
         Assertions.assertThat(cartographer.toJson(map))
-                .isEqualTo(
-                        """
+            .isEqualTo(
+                """
                         |{
                         |  "a": [
                         |    "b",
@@ -216,14 +252,15 @@ class CartographerTest {
                         |    "d"
                         |  ]
                         |}
-                        """.trimMargin())
+                        """.trimMargin()
+            )
     }
 
     @Test
     @Throws(IOException::class)
     fun decodesArraysWithList() {
         val json =
-                """
+            """
                 |{
                 |  "a": [
                 |    "b",
@@ -234,7 +271,7 @@ class CartographerTest {
                 """.trimMargin()
 
         val expected =
-                ImmutableMap.builder<String, Any>().put("a", listOf("b", "c", "d")).build()
+            ImmutableMap.builder<String, Any>().put("a", listOf("b", "c", "d")).build()
 
         Assertions.assertThat(cartographer.fromJson(json)).isEqualTo(expected)
     }
@@ -243,11 +280,11 @@ class CartographerTest {
     @Throws(IOException::class)
     fun encodesArraysWithArrays() {
         val map =
-                ImmutableMap.builder<String, Any>().put("a", arrayOf("b", "c", "d")).build()
+            ImmutableMap.builder<String, Any>().put("a", arrayOf("b", "c", "d")).build()
 
         Assertions.assertThat(cartographer.toJson(map))
-                .isEqualTo(
-                        """
+            .isEqualTo(
+                """
                         |{
                         |  "a": [
                         |    "b",
@@ -255,7 +292,8 @@ class CartographerTest {
                         |    "d"
                         |  ]
                         |}
-                        """.trimMargin())
+                        """.trimMargin()
+            )
     }
 
     @Test
@@ -266,22 +304,23 @@ class CartographerTest {
         val map: Map<String?, Any?> = ImmutableMap.builder<String?, Any?>().put("a", intArrayOf(1, 2)).build()
 
         Assertions.assertThat(cartographer.toJson(map))
-                .isEqualTo(
-                        """
+            .isEqualTo(
+                """
                         |{
                         |  "a": [
                         |    1,
                         |    2
                         |  ]
                         |}
-                        """.trimMargin())
+                        """.trimMargin()
+            )
     }
 
     @Test
     @Throws(IOException::class)
     fun decodesArraysAsArraysAsList() {
         val json =
-                """
+            """
                 |{
                 |  "a": [
                 |    "b",
@@ -291,8 +330,8 @@ class CartographerTest {
                 |}
                 """.trimMargin()
         val expected: Map<String, Any> = ImmutableMap.builder<String, Any>()
-                .put("a", listOf("b", "c", "d"))
-                .build()
+            .put("a", listOf("b", "c", "d"))
+            .build()
 
         Assertions.assertThat(cartographer.fromJson(json)).isEqualTo(expected)
     }
@@ -301,17 +340,19 @@ class CartographerTest {
     @Throws(IOException::class)
     fun encodesArrayOfMap() {
         val map: Map<String, Any> = ImmutableMap.builder<String, Any>()
-                .put(
-                        "a",
-                        listOf<ImmutableMap<*, *>>(
-                                ImmutableMap.builder<String, Any>().put("b", "c").build(),
-                                ImmutableMap.builder<String, Any>().put("b", "d").build(),
-                                ImmutableMap.builder<String, Any>().put("b", "e").build()))
-                .build()
+            .put(
+                "a",
+                listOf<ImmutableMap<*, *>>(
+                    ImmutableMap.builder<String, Any>().put("b", "c").build(),
+                    ImmutableMap.builder<String, Any>().put("b", "d").build(),
+                    ImmutableMap.builder<String, Any>().put("b", "e").build()
+                )
+            )
+            .build()
 
         Assertions.assertThat(cartographer.toJson(map))
-                .isEqualTo(
-                        """
+            .isEqualTo(
+                """
                         |{
                         |  "a": [
                         |    {
@@ -325,14 +366,15 @@ class CartographerTest {
                         |    }
                         |  ]
                         |}
-                        """.trimMargin())
+                        """.trimMargin()
+            )
     }
 
     @Test
     @Throws(IOException::class)
     fun decodesArrayOfMap() {
         val json =
-                """
+            """
                 |{
                 |  "a": [
                 |    {
@@ -349,13 +391,15 @@ class CartographerTest {
                 """.trimMargin()
 
         val expected: Map<String, Any> = ImmutableMap.builder<String, Any>()
-                .put(
-                        "a",
-                        listOf<ImmutableMap<*, *>>(
-                                ImmutableMap.builder<String, Any>().put("b", "c").build(),
-                                ImmutableMap.builder<String, Any>().put("b", "d").build(),
-                                ImmutableMap.builder<String, Any>().put("b", "e").build()))
-                .build()
+            .put(
+                "a",
+                listOf<ImmutableMap<*, *>>(
+                    ImmutableMap.builder<String, Any>().put("b", "c").build(),
+                    ImmutableMap.builder<String, Any>().put("b", "d").build(),
+                    ImmutableMap.builder<String, Any>().put("b", "e").build()
+                )
+            )
+            .build()
 
         Assertions.assertThat(cartographer.fromJson(json)).isEqualTo(expected)
     }
@@ -431,8 +475,8 @@ class CartographerTest {
         cartographer.toJson(map, writer)
 
         Assertions.assertThat(writer.toString())
-                .isEqualTo(
-                        """
+            .isEqualTo(
+                """
                         |{
                         |  "byte": 127,
                         |  "short": 32767,
@@ -441,7 +485,8 @@ class CartographerTest {
                         |  "float": 3.4028235E38,
                         |  "double": 1.7976931348623157E308,
                         |  "char": "￿"
-                        |}""".trimMargin())
+                        |}""".trimMargin()
+            )
     }
 
     @Test
@@ -458,8 +503,8 @@ class CartographerTest {
         map["char"] = Character.MIN_VALUE
         cartographer.toJson(map, writer)
         Assertions.assertThat(writer.toString())
-                .isEqualTo(
-                        """
+            .isEqualTo(
+                """
                         |{
                         |  "byte": -128,
                         |  "short": -32768,
@@ -469,7 +514,8 @@ class CartographerTest {
                         |  "double": 4.9E-324,
                         |  "char": "\u0000"
                         |}
-                        """.trimMargin())
+                        """.trimMargin()
+            )
     }
 
     @Test
