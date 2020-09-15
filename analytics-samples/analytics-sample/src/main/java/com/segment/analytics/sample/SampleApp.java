@@ -39,7 +39,7 @@ import io.github.inflationx.viewpump.ViewPump;
 public class SampleApp extends Application {
 
     // https://segment.com/segment-engineering/sources/android-test/settings/keys
-    private static final String ANALYTICS_WRITE_KEY = "1vCwH2CEddxqO0nsk7rKezv0gzFNlJGH";
+    private static final String ANALYTICS_WRITE_KEY = "HO63Z36e0Ufa8AAgbjDomDuKxFuUICqI";
 
     @Override
     public void onCreate() {
@@ -70,14 +70,17 @@ public class SampleApp extends Application {
                                                                 "Adjust",
                                                                 new ValueMap()
                                                                         .putValue("appToken", "<>")
-                                                                        .putValue("trackAttributionData", true))))
+                                                                        .putValue(
+                                                                                "trackAttributionData",
+                                                                                true))))
                         .useSourceMiddleware(
                                 new Middleware() {
                                     @Override
                                     public void intercept(Chain chain) {
                                         if (chain.payload().type() == BasePayload.Type.track) {
                                             TrackPayload payload = (TrackPayload) chain.payload();
-                                            if (payload.event().equalsIgnoreCase("Button B Clicked")) {
+                                            if (payload.event()
+                                                    .equalsIgnoreCase("Button B Clicked")) {
                                                 chain.proceed(payload.toBuilder().build());
                                                 return;
                                             }
@@ -98,7 +101,6 @@ public class SampleApp extends Application {
                             }
                         })
                         .flushQueueSize(1)
-                        .logLevel(Analytics.LogLevel.VERBOSE)
                         .recordScreenViews();
 
         // Set the initialized instance as a globally accessible instance.

@@ -21,6 +21,10 @@ buildscript {
 
 apply plugin: 'com.vanniktech.android.junit.jacoco'
 
+junitJacoco {
+  includeNoLocationClasses = true // Used to generate coverage for robolectric tests
+}
+
 allprojects {
   buildscript {
     repositories {

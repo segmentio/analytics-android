@@ -1,3 +1,26 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Segment.io, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.segment.analytics
 
 import android.Manifest.permission.INTERNET
@@ -8,7 +31,8 @@ import android.content.res.Resources
 import com.nhaarman.mockitokotlin2.whenever
 import com.segment.analytics.Analytics.Builder
 import com.segment.analytics.Analytics.WRITE_KEY_RESOURCE_IDENTIFIER
-import com.segment.analytics.core.*
+import com.segment.analytics.core.BuildConfig
+import java.util.concurrent.TimeUnit
 import org.assertj.core.api.Assertions
 import org.junit.Before
 import org.junit.Test
@@ -18,7 +42,6 @@ import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)
 @Config(constants = BuildConfig::class, sdk = [18], manifest = Config.NONE)
@@ -110,8 +133,8 @@ class AnalyticsBuilderTest {
         try {
             val middleware = Middleware { throw AssertionError("should not be invoked") }
             Builder(context, "foo")
-                    .useDestinationMiddleware("bar", middleware)
-                    .useDestinationMiddleware("bar", middleware)
+                .useDestinationMiddleware("bar", middleware)
+                .useDestinationMiddleware("bar", middleware)
             Assertions.fail("Registering middleware twice throw exception.")
         } catch (expected: IllegalStateException) {
             Assertions.assertThat(expected).hasMessage("Destination Middleware is already registered.")
@@ -265,7 +288,7 @@ class AnalyticsBuilderTest {
         val resources = Mockito.mock(Resources::class.java)
         whenever(context.resources).thenReturn(resources)
         whenever(resources.getIdentifier(eq(WRITE_KEY_RESOURCE_IDENTIFIER), eq("string"), eq("string")))
-                .thenReturn(1)
+            .thenReturn(1)
         whenever(resources.getString(1)).thenReturn(writeKey)
     }
 

@@ -29,37 +29,38 @@ import java.util.List;
 
 class MiddlewareChainRunner implements Middleware.Chain {
 
-  private int index;
-  private final @NonNull BasePayload payload;
-  private final @NonNull List<Middleware> middleware;
-  private final @NonNull Middleware.Callback callback;
+    private int index;
+    private final @NonNull BasePayload payload;
+    private final @NonNull List<Middleware> middleware;
+    private final @NonNull Middleware.Callback callback;
 
-  MiddlewareChainRunner(
-      int index,
-      @NonNull BasePayload payload,
-      @NonNull List<Middleware> middlewares,
-      @NonNull Middleware.Callback callback) {
-    this.index = index;
-    this.payload = payload;
-    this.middleware = middlewares;
-    this.callback = callback;
-  }
-
-  @Override
-  public BasePayload payload() {
-    return payload;
-  }
-
-  @Override
-  public void proceed(BasePayload payload) {
-    // If there's another middleware in the chain, call that.
-    if (index < middleware.size()) {
-      Middleware.Chain chain = new MiddlewareChainRunner(index + 1, payload, middleware, callback);
-      middleware.get(index).intercept(chain);
-      return;
+    MiddlewareChainRunner(
+            int index,
+            @NonNull BasePayload payload,
+            @NonNull List<Middleware> middlewares,
+            @NonNull Middleware.Callback callback) {
+        this.index = index;
+        this.payload = payload;
+        this.middleware = middlewares;
+        this.callback = callback;
     }
 
-    // No more interceptors.
-    callback.invoke(payload);
-  }
+    @Override
+    public BasePayload payload() {
+        return payload;
+    }
+
+    @Override
+    public void proceed(BasePayload payload) {
+        // If there's another middleware in the chain, call that.
+        if (index < middleware.size()) {
+            Middleware.Chain chain =
+                    new MiddlewareChainRunner(index + 1, payload, middleware, callback);
+            middleware.get(index).intercept(chain);
+            return;
+        }
+
+        // No more interceptors.
+        callback.invoke(payload);
+    }
 }

@@ -3,6 +3,8 @@ analytics-android
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.segment.analytics.android/analytics/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.segment.analytics.android/analytics)
 [![Javadocs](http://javadoc-badge.appspot.com/com.segment.analytics.android/analytics.svg?label=javadoc)](http://javadoc-badge.appspot.com/com.segment.analytics.android/analytics)
+[![CircleCI](https://circleci.com/gh/segmentio/analytics-android.svg?style=svg)](https://circleci.com/gh/segmentio/analytics-android)
+[![codecov](https://codecov.io/gh/segmentio/analytics-android/branch/master/graph/badge.svg)](https://codecov.io/gh/segmentio/analytics-android)
 
 analytics-android is an Android client for [Segment](https://segment.com)
 

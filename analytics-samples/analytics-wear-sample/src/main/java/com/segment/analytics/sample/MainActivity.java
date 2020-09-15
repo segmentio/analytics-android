@@ -30,22 +30,22 @@ import com.segment.analytics.WearAnalytics;
 
 public class MainActivity extends Activity {
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-    WearAnalytics.with(this).screen("Viewed Main Activity (Wear)", null, null);
+        WearAnalytics.with(this).screen("Viewed Main Activity (Wear)", null, null);
 
-    setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main);
 
-    View view = findViewById(R.id.logo);
-    view.setOnClickListener(
-        new View.OnClickListener() {
-          @Override
-          public void onClick(View view) {
-            view.animate().rotationBy(360);
-            WearAnalytics.with(MainActivity.this).track("Clicked Logo", null);
-          }
-        });
-  }
+        View view = findViewById(R.id.logo);
+        view.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        view.animate().rotationBy(360);
+                        WearAnalytics.with(MainActivity.this).track("Clicked Logo", null);
+                    }
+                });
+    }
 }

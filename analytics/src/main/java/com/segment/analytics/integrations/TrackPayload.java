@@ -38,124 +38,124 @@ import java.util.Map;
 
 public class TrackPayload extends BasePayload {
 
-  static final String EVENT_KEY = "event";
-  static final String PROPERTIES_KEY = "properties";
-
-  @Private
-  TrackPayload(
-      @NonNull String messageId,
-      @NonNull Date timestamp,
-      @NonNull Map<String, Object> context,
-      @NonNull Map<String, Object> integrations,
-      @Nullable String userId,
-      @NonNull String anonymousId,
-      @NonNull String event,
-      @NonNull Map<String, Object> properties,
-      boolean nanosecondTimestamps) {
-    super(
-        Type.track,
-        messageId,
-        timestamp,
-        context,
-        integrations,
-        userId,
-        anonymousId,
-        nanosecondTimestamps);
-    put(EVENT_KEY, event);
-    put(PROPERTIES_KEY, properties);
-  }
-
-  /**
-   * The name of the event. We recommend using title case and past tense for event names, like
-   * "Signed Up".
-   */
-  @NonNull
-  public String event() {
-    return getString(EVENT_KEY);
-  }
-
-  /**
-   * A dictionary of properties that give more information about the event. We have a collection of
-   * special properties that we recognize with semantic meaning. You can also add your own custom
-   * properties.
-   */
-  @NonNull
-  public Properties properties() {
-    return getValueMap(PROPERTIES_KEY, Properties.class);
-  }
-
-  @Override
-  public String toString() {
-    return "TrackPayload{event=\"" + event() + "\"}";
-  }
-
-  @NonNull
-  @Override
-  public TrackPayload.Builder toBuilder() {
-    return new Builder(this);
-  }
-
-  /** Fluent API for creating {@link TrackPayload} instances. */
-  public static class Builder extends BasePayload.Builder<TrackPayload, Builder> {
-
-    private String event;
-    private Map<String, Object> properties;
-
-    public Builder() {
-      // Empty constructor.
-    }
+    static final String EVENT_KEY = "event";
+    static final String PROPERTIES_KEY = "properties";
 
     @Private
-    Builder(TrackPayload track) {
-      super(track);
-      event = track.event();
-      properties = track.properties();
+    TrackPayload(
+            @NonNull String messageId,
+            @NonNull Date timestamp,
+            @NonNull Map<String, Object> context,
+            @NonNull Map<String, Object> integrations,
+            @Nullable String userId,
+            @NonNull String anonymousId,
+            @NonNull String event,
+            @NonNull Map<String, Object> properties,
+            boolean nanosecondTimestamps) {
+        super(
+                Type.track,
+                messageId,
+                timestamp,
+                context,
+                integrations,
+                userId,
+                anonymousId,
+                nanosecondTimestamps);
+        put(EVENT_KEY, event);
+        put(PROPERTIES_KEY, properties);
     }
 
+    /**
+     * The name of the event. We recommend using title case and past tense for event names, like
+     * "Signed Up".
+     */
     @NonNull
-    public Builder event(@NonNull String event) {
-      this.event = assertNotNullOrEmpty(event, "event");
-      return this;
+    public String event() {
+        return getString(EVENT_KEY);
     }
 
+    /**
+     * A dictionary of properties that give more information about the event. We have a collection
+     * of special properties that we recognize with semantic meaning. You can also add your own
+     * custom properties.
+     */
     @NonNull
-    public Builder properties(@NonNull Map<String, ?> properties) {
-      assertNotNull(properties, "properties");
-      this.properties = Collections.unmodifiableMap(new LinkedHashMap<>(properties));
-      return this;
+    public Properties properties() {
+        return getValueMap(PROPERTIES_KEY, Properties.class);
     }
 
     @Override
-    protected TrackPayload realBuild(
-        @NonNull String messageId,
-        @NonNull Date timestamp,
-        @NonNull Map<String, Object> context,
-        @NonNull Map<String, Object> integrations,
-        String userId,
-        @NonNull String anonymousId,
-        boolean nanosecondTimestamps) {
-      assertNotNullOrEmpty(event, "event");
-
-      Map<String, Object> properties = this.properties;
-      if (isNullOrEmpty(properties)) {
-        properties = Collections.emptyMap();
-      }
-
-      return new TrackPayload(
-          messageId,
-          timestamp,
-          context,
-          integrations,
-          userId,
-          anonymousId,
-          event,
-          properties,
-          nanosecondTimestamps);
+    public String toString() {
+        return "TrackPayload{event=\"" + event() + "\"}";
     }
 
+    @NonNull
     @Override
-    Builder self() {
-      return this;
+    public TrackPayload.Builder toBuilder() {
+        return new Builder(this);
     }
-  }
+
+    /** Fluent API for creating {@link TrackPayload} instances. */
+    public static class Builder extends BasePayload.Builder<TrackPayload, Builder> {
+
+        private String event;
+        private Map<String, Object> properties;
+
+        public Builder() {
+            // Empty constructor.
+        }
+
+        @Private
+        Builder(TrackPayload track) {
+            super(track);
+            event = track.event();
+            properties = track.properties();
+        }
+
+        @NonNull
+        public Builder event(@NonNull String event) {
+            this.event = assertNotNullOrEmpty(event, "event");
+            return this;
+        }
+
+        @NonNull
+        public Builder properties(@NonNull Map<String, ?> properties) {
+            assertNotNull(properties, "properties");
+            this.properties = Collections.unmodifiableMap(new LinkedHashMap<>(properties));
+            return this;
+        }
+
+        @Override
+        protected TrackPayload realBuild(
+                @NonNull String messageId,
+                @NonNull Date timestamp,
+                @NonNull Map<String, Object> context,
+                @NonNull Map<String, Object> integrations,
+                String userId,
+                @NonNull String anonymousId,
+                boolean nanosecondTimestamps) {
+            assertNotNullOrEmpty(event, "event");
+
+            Map<String, Object> properties = this.properties;
+            if (isNullOrEmpty(properties)) {
+                properties = Collections.emptyMap();
+            }
+
+            return new TrackPayload(
+                    messageId,
+                    timestamp,
+                    context,
+                    integrations,
+                    userId,
+                    anonymousId,
+                    event,
+                    properties,
+                    nanosecondTimestamps);
+        }
+
+        @Override
+        Builder self() {
+            return this;
+        }
+    }
 }
