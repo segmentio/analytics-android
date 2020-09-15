@@ -310,7 +310,8 @@ public class Analytics {
                             projectSettings = ProjectSettings.create(defaultProjectSettings);
                         }
                         if (edgeFunctionMiddleware != null) {
-                            edgeFunctionMiddleware.setEdgeFunctionData(projectSettings.edgeFunctions());
+                            edgeFunctionMiddleware.setEdgeFunctionData(
+                                    projectSettings.edgeFunctions());
                         }
                         HANDLER.post(
                                 new Runnable() {
@@ -1309,7 +1310,8 @@ public class Analytics {
         public Builder useSourceMiddleware(Middleware middleware) {
 
             if (this.edgeFunctionMiddleware != null) {
-                throw new IllegalStateException("Can not use native middleware and edge function middleware");
+                throw new IllegalStateException(
+                        "Can not use native middleware and edge function middleware");
             }
 
             assertNotNull(middleware, "middleware");
@@ -1330,7 +1332,8 @@ public class Analytics {
         public Builder useDestinationMiddleware(String key, Middleware middleware) {
 
             if (this.edgeFunctionMiddleware != null) {
-                throw new IllegalStateException("Can not use native middleware and edge function middleware");
+                throw new IllegalStateException(
+                        "Can not use native middleware and edge function middleware");
             }
 
             if (isNullOrEmpty(key)) {
@@ -1357,7 +1360,8 @@ public class Analytics {
             assertNotNull(middleware, "middleware");
 
             if (this.sourceMiddleware != null || this.destinationMiddleware != null) {
-                throw new IllegalStateException("Can not use native middleware and edge function middleware");
+                throw new IllegalStateException(
+                        "Can not use native middleware and edge function middleware");
             }
 
             // Set the current middleware

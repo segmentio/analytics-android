@@ -28,14 +28,14 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class JSMiddleware {
-  protected List<Middleware> sourceMiddleware;
-  protected Map<String, List<Middleware>> destinationMiddleware;
-  protected Context context;
-  protected ValueMap settings;
+    protected List<Middleware> sourceMiddleware;
+    protected Map<String, List<Middleware>> destinationMiddleware;
+    protected Context context;
+    protected ValueMap settings;
 
-  public JSMiddleware(Context context) {
-    this.context = context;
-  }
+    public JSMiddleware(Context context) {
+        this.context = context;
+    }
 
-  public abstract void setEdgeFunctionData(ValueMap data);
+    public abstract void setEdgeFunctionData(ValueMap data);
 }

@@ -28,7 +28,7 @@ import android.content.Context.CONNECTIVITY_SERVICE
 import android.net.ConnectivityManager
 import com.google.common.collect.ImmutableMap
 import com.segment.analytics.Utils.createContext
-import com.segment.analytics.core.*
+import com.segment.analytics.core.BuildConfig
 import org.assertj.core.api.Assertions
 import org.assertj.core.data.MapEntry
 import org.junit.Before
