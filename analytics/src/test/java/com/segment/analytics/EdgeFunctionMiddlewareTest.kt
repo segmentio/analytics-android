@@ -154,19 +154,42 @@ class EdgeFunctionMiddlewareTest {
 
         try {
             val analytics = builder
-                .useEdgeFunctionMiddleware(Mockito.mock(JSMiddleware::class.java))
-                .useDestinationMiddleware(
-                    "test",
-                    Middleware { throw AssertionError("should not be invoked") }
-                )
-                .useSourceMiddleware(
-                    Middleware { throw AssertionError("should not be invoked") }
-                )
-                .build()
+                    .useEdgeFunctionMiddleware(Mockito.mock(JSMiddleware::class.java))
+                    .useDestinationMiddleware(
+                            "test",
+                            Middleware { throw AssertionError("should not be invoked") }
+                    )
+                    .useSourceMiddleware(
+                            Middleware { throw AssertionError("should not be invoked") }
+                    )
+                    .build()
 
             Assertions.fail("Should not reach this state")
         } catch (exception: java.lang.Exception) {
             Assertions.assertThat(exception).isInstanceOf(IllegalStateException::class.java)
         }
     }
+
+    @Test
+    @Throws(Exception::class)
+    fun edgeFunctionNativeFirstMiddlewareException() {
+
+        try {
+            val analytics = builder
+                    .useDestinationMiddleware(
+                            "test",
+                            Middleware { throw AssertionError("should not be invoked") }
+                    )
+                    .useSourceMiddleware(
+                            Middleware { throw AssertionError("should not be invoked") }
+                    )
+                    .useEdgeFunctionMiddleware(Mockito.mock(JSMiddleware::class.java))
+                    .build()
+
+            Assertions.fail("Should not reach this state")
+        } catch (exception: java.lang.Exception) {
+            Assertions.assertThat(exception).isInstanceOf(IllegalStateException::class.java)
+        }
+    }
+
 }
