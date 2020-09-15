@@ -86,6 +86,21 @@ public class SampleApp extends Application {
                                         chain.proceed(chain.payload());
                                     }
                                 })
+                        .useDestinationMiddleware(
+                                "Segment.io",
+                                new Middleware() {
+                                    @Override
+                                    public void intercept(Chain chain) {
+                                        if (chain.payload().type() == BasePayload.Type.track) {
+                                            TrackPayload payload = (TrackPayload) chain.payload();
+                                            if (payload.event()
+                                                    .equalsIgnoreCase("Button B Clicked")) {
+                                                chain.proceed(payload.toBuilder().build());
+                                                return;
+                                            }
+                                        }
+                                    }
+                                })
                         .flushQueueSize(1)
                         .recordScreenViews();
 

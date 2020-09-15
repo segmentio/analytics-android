@@ -126,6 +126,7 @@ public class Analytics {
     final Stats stats;
     private final @NonNull List<Middleware> sourceMiddleware;
     private final @NonNull Map<String, List<Middleware>> destinationMiddleware;
+    private JSMiddleware edgeFunctionMiddleware;
     @Private final Options defaultOptions;
     @Private final Traits.Cache traitsCache;
     @Private final AnalyticsContext analyticsContext;
@@ -238,6 +239,7 @@ public class Analytics {
             Crypto crypto,
             @NonNull List<Middleware> sourceMiddleware,
             @NonNull Map<String, List<Middleware>> destinationMiddleware,
+            JSMiddleware edgeFunctionMiddleware,
             @NonNull final ValueMap defaultProjectSettings,
             @NonNull Lifecycle lifecycle,
             boolean nanosecondTimestamps) {
@@ -262,6 +264,7 @@ public class Analytics {
         this.crypto = crypto;
         this.sourceMiddleware = sourceMiddleware;
         this.destinationMiddleware = destinationMiddleware;
+        this.edgeFunctionMiddleware = edgeFunctionMiddleware;
         this.lifecycle = lifecycle;
         this.nanosecondTimestamps = nanosecondTimestamps;
 
@@ -305,6 +308,10 @@ public class Analytics {
                                         .putValue("apiKey", Analytics.this.writeKey);
                             }
                             projectSettings = ProjectSettings.create(defaultProjectSettings);
+                        }
+                        if (edgeFunctionMiddleware != null) {
+                            edgeFunctionMiddleware.setEdgeFunctionData(
+                                    projectSettings.edgeFunctions());
                         }
                         HANDLER.post(
                                 new Runnable() {
@@ -962,6 +969,7 @@ public class Analytics {
         if (integration == null) {
             throw new IllegalArgumentException("integration cannot be null");
         }
+
         onIntegrationReady(integration.key, callback);
     }
 
@@ -1081,6 +1089,7 @@ public class Analytics {
         private final List<Integration.Factory> factories = new ArrayList<>();
         private List<Middleware> sourceMiddleware;
         private Map<String, List<Middleware>> destinationMiddleware;
+        private JSMiddleware edgeFunctionMiddleware;
         private boolean trackApplicationLifecycleEvents = false;
         private boolean recordScreenViews = false;
         private boolean trackAttributionInformation = false;
@@ -1299,6 +1308,12 @@ public class Analytics {
          * integrations
          */
         public Builder useSourceMiddleware(Middleware middleware) {
+
+            if (this.edgeFunctionMiddleware != null) {
+                throw new IllegalStateException(
+                        "Can not use native middleware and edge function middleware");
+            }
+
             assertNotNull(middleware, "middleware");
             if (sourceMiddleware == null) {
                 sourceMiddleware = new ArrayList<>();
@@ -1315,6 +1330,12 @@ public class Analytics {
          * This will be run before sending to the associated destination
          */
         public Builder useDestinationMiddleware(String key, Middleware middleware) {
+
+            if (this.edgeFunctionMiddleware != null) {
+                throw new IllegalStateException(
+                        "Can not use native middleware and edge function middleware");
+            }
+
             if (isNullOrEmpty(key)) {
                 throw new IllegalArgumentException("key must not be null or empty.");
             }
@@ -1331,6 +1352,21 @@ public class Analytics {
                 throw new IllegalStateException("Destination Middleware is already registered.");
             }
             middlewareList.add(middleware);
+            return this;
+        }
+
+        public Builder useEdgeFunctionMiddleware(JSMiddleware middleware) {
+
+            assertNotNull(middleware, "middleware");
+
+            if (this.sourceMiddleware != null || this.destinationMiddleware != null) {
+                throw new IllegalStateException(
+                        "Can not use native middleware and edge function middleware");
+            }
+
+            // Set the current middleware
+            this.edgeFunctionMiddleware = middleware;
+
             return this;
         }
 
@@ -1426,6 +1462,18 @@ public class Analytics {
             factories.add(SegmentIntegration.FACTORY);
             factories.addAll(this.factories);
 
+            // Check for edge functions, disable the destination and source middleware if found
+            if (this.edgeFunctionMiddleware != null) {
+
+                if (this.edgeFunctionMiddleware.sourceMiddleware != null) {
+                    this.sourceMiddleware = this.edgeFunctionMiddleware.sourceMiddleware;
+                }
+
+                if (this.edgeFunctionMiddleware.destinationMiddleware != null) {
+                    this.destinationMiddleware = this.edgeFunctionMiddleware.destinationMiddleware;
+                }
+            }
+
             List<Middleware> srcMiddleware = Utils.immutableCopyOf(this.sourceMiddleware);
             Map<String, List<Middleware>> destMiddleware =
                     isNullOrEmpty(this.destinationMiddleware)
@@ -1463,6 +1511,7 @@ public class Analytics {
                     crypto,
                     srcMiddleware,
                     destMiddleware,
+                    edgeFunctionMiddleware,
                     defaultProjectSettings,
                     lifecycle,
                     nanosecondTimestamps);

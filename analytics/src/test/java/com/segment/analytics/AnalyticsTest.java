@@ -86,6 +86,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
@@ -190,6 +191,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         new ValueMap(),
                         lifecycle,
                         false);
@@ -835,6 +837,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         new ValueMap(),
                         lifecycle,
                         false);
@@ -927,6 +930,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         new ValueMap(),
                         lifecycle,
                         false);
@@ -1006,6 +1010,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         new ValueMap(),
                         lifecycle,
                         false);
@@ -1081,6 +1086,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         new ValueMap(),
                         lifecycle,
                         false);
@@ -1162,6 +1168,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         new ValueMap(),
                         lifecycle,
                         false);
@@ -1243,6 +1250,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         new ValueMap(),
                         lifecycle,
                         false);
@@ -1310,6 +1318,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         new ValueMap(),
                         lifecycle,
                         false);
@@ -1380,6 +1389,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         new ValueMap(),
                         lifecycle,
                         false);
@@ -1456,6 +1466,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         new ValueMap(),
                         lifecycle,
                         false);
@@ -1529,6 +1540,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         new ValueMap(),
                         lifecycle,
                         false);
@@ -1597,6 +1609,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         new ValueMap(),
                         lifecycle,
                         false);
@@ -1689,6 +1702,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         new ValueMap(),
                         lifecycle,
                         false);
@@ -1787,6 +1801,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         new ValueMap(),
                         lifecycle,
                         false);
@@ -1858,6 +1873,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         defaultProjectSettings,
                         lifecycle,
                         false);
@@ -1905,6 +1921,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         defaultProjectSettings,
                         lifecycle,
                         false);
@@ -1958,6 +1975,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         defaultProjectSettings,
                         lifecycle,
                         false);
@@ -2021,6 +2039,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         new ValueMap(),
                         lifecycle,
                         true);
@@ -2062,6 +2081,7 @@ public class AnalyticsTest {
                         Crypto.none(),
                         Collections.<Middleware>emptyList(),
                         Collections.<String, List<Middleware>>emptyMap(),
+                        Mockito.mock(JSMiddleware.class),
                         new ValueMap(),
                         lifecycle,
                         false);
