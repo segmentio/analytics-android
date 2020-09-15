@@ -304,7 +304,9 @@ public class Analytics {
               }
               projectSettings = ProjectSettings.create(defaultProjectSettings);
             }
-            edgeFunctionMiddleware.setEdgeFunctionData(projectSettings.edgeFunctions());
+            if (edgeFunctionMiddleware != null) {
+              edgeFunctionMiddleware.setEdgeFunctionData(projectSettings.edgeFunctions());
+            }
             HANDLER.post(
                 new Runnable() {
                   @Override
