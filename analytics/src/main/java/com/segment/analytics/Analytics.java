@@ -1314,6 +1314,11 @@ public class Analytics {
             return this;
         }
 
+        /**
+         * Enable the use of {@link JSMiddleware} as Edge function Middleware, that can configure
+         * both source and destination middleware using JS. This option cannot be used
+         * simultaneously with native source/destination middleware
+         */
         public Builder useEdgeFunctionMiddleware(JSMiddleware middleware) {
 
             assertNotNull(middleware, "middleware");
