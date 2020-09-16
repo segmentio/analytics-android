@@ -26,7 +26,6 @@ package com.segment.analytics;
 import static com.segment.analytics.internal.Utils.assertNotNull;
 import static com.segment.analytics.internal.Utils.buffer;
 import static com.segment.analytics.internal.Utils.closeQuietly;
-import static com.segment.analytics.internal.Utils.getInputStream;
 import static com.segment.analytics.internal.Utils.getResourceString;
 import static com.segment.analytics.internal.Utils.getSegmentSharedPreferences;
 import static com.segment.analytics.internal.Utils.hasPermission;
@@ -62,10 +61,6 @@ import com.segment.analytics.internal.NanoDate;
 import com.segment.analytics.internal.Private;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -118,7 +113,6 @@ public class Analytics {
     @Private static final Properties EMPTY_PROPERTIES = new Properties();
     private static final String VERSION_KEY = "version";
     private static final String BUILD_KEY = "build";
-    private static final String TRACKED_ATTRIBUTION_KEY = "tracked_attribution";
     private static final String TRAITS_KEY = "traits";
 
     private final Application application;
@@ -233,7 +227,6 @@ public class Analytics {
             final boolean shouldTrackApplicationLifecycleEvents,
             CountDownLatch advertisingIdLatch,
             final boolean shouldRecordScreenViews,
-            final boolean trackAttributionInformation,
             final boolean trackDeepLinks,
             BooleanPreference optOut,
             Crypto crypto,
@@ -331,7 +324,6 @@ public class Analytics {
                         .analyticsExecutor(analyticsExecutor)
                         .shouldTrackApplicationLifecycleEvents(
                                 shouldTrackApplicationLifecycleEvents)
-                        .trackAttributionInformation(trackAttributionInformation)
                         .trackDeepLinks(trackDeepLinks)
                         .shouldRecordScreenViews(shouldRecordScreenViews)
                         .packageInfo(getPackageInfo(application))
@@ -339,41 +331,6 @@ public class Analytics {
 
         application.registerActivityLifecycleCallbacks(activityLifecycleCallback);
         lifecycle.addObserver(activityLifecycleCallback);
-    }
-
-    @Private
-    void trackAttributionInformation() {
-        BooleanPreference trackedAttribution =
-                new BooleanPreference(
-                        getSegmentSharedPreferences(application, tag),
-                        TRACKED_ATTRIBUTION_KEY,
-                        false);
-        if (trackedAttribution.get()) {
-            return;
-        }
-
-        waitForAdvertisingId();
-
-        Client.Connection connection = null;
-        try {
-            connection = client.attribution();
-
-            // Write the request body.
-            Writer writer = new BufferedWriter(new OutputStreamWriter(connection.os));
-            cartographer.toJson(analyticsContext, writer);
-
-            // Read the response body.
-            Map<String, Object> map =
-                    cartographer.fromJson(buffer(getInputStream(connection.connection)));
-            Properties properties = new Properties(map);
-
-            track("Install Attributed", properties);
-            trackedAttribution.set(true);
-        } catch (IOException e) {
-            logger.error(e, "Unable to track attribution information. Retrying on next launch.");
-        } finally {
-            closeQuietly(connection);
-        }
     }
 
     @Private
@@ -1092,7 +1049,6 @@ public class Analytics {
         private JSMiddleware edgeFunctionMiddleware;
         private boolean trackApplicationLifecycleEvents = false;
         private boolean recordScreenViews = false;
-        private boolean trackAttributionInformation = false;
         private boolean trackDeepLinks = false;
         private boolean nanosecondTimestamps = false;
         private Crypto crypto;
@@ -1283,9 +1239,12 @@ public class Analytics {
             return this;
         }
 
-        /** Automatically track attribution information from enabled providers. */
+        /**
+         * Automatically track attribution information from enabled providers. This build option has
+         * been removed.
+         */
+        @Deprecated
         public Builder trackAttributionInformation() {
-            this.trackAttributionInformation = true;
             return this;
         }
 
@@ -1505,7 +1464,6 @@ public class Analytics {
                     trackApplicationLifecycleEvents,
                     advertisingIdLatch,
                     recordScreenViews,
-                    trackAttributionInformation,
                     trackDeepLinks,
                     optOut,
                     crypto,

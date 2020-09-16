@@ -101,22 +101,6 @@ class ClientTest {
 
     @Test
     @Throws(Exception::class)
-    fun attribution() {
-        server.enqueue(MockResponse())
-
-        val connection = client.attribution()
-        Assertions.assertThat(connection.os).isNotNull()
-        Assertions.assertThat(connection.`is`).isNull()
-        Assertions.assertThat(connection.connection.responseCode).isEqualTo(200) // consume the response
-        RecordedRequestAssert.assertThat(server.takeRequest())
-            .hasRequestLine("POST /v1/attribution HTTP/1.1")
-            .containsHeader("User-Agent", ConnectionFactory.USER_AGENT)
-            .containsHeader("Content-Type", "application/json")
-            .containsHeader("Authorization", "Basic Zm9vOg==")
-    }
-
-    @Test
-    @Throws(Exception::class)
     fun closingUploadConnectionClosesStreams() {
         val os = mock(OutputStream::class.java)
         whenever(mockConnection.outputStream).thenReturn(os)

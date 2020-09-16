@@ -41,7 +41,6 @@ class AnalyticsActivityLifecycleCallbacks
     private Analytics analytics;
     private ExecutorService analyticsExecutor;
     private Boolean shouldTrackApplicationLifecycleEvents;
-    private Boolean trackAttributionInformation;
     private Boolean trackDeepLinks;
     private Boolean shouldRecordScreenViews;
     private PackageInfo packageInfo;
@@ -54,7 +53,6 @@ class AnalyticsActivityLifecycleCallbacks
             Analytics analytics,
             ExecutorService analyticsExecutor,
             Boolean shouldTrackApplicationLifecycleEvents,
-            Boolean trackAttributionInformation,
             Boolean trackDeepLinks,
             Boolean shouldRecordScreenViews,
             PackageInfo packageInfo) {
@@ -64,7 +62,6 @@ class AnalyticsActivityLifecycleCallbacks
         this.analytics = analytics;
         this.analyticsExecutor = analyticsExecutor;
         this.shouldTrackApplicationLifecycleEvents = shouldTrackApplicationLifecycleEvents;
-        this.trackAttributionInformation = trackAttributionInformation;
         this.trackDeepLinks = trackDeepLinks;
         this.shouldRecordScreenViews = shouldRecordScreenViews;
         this.packageInfo = packageInfo;
@@ -98,16 +95,6 @@ class AnalyticsActivityLifecycleCallbacks
             numberOfActivities.set(0);
             firstLaunch.set(true);
             analytics.trackApplicationLifecycleEvents();
-
-            if (trackAttributionInformation) {
-                analyticsExecutor.submit(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                analytics.trackAttributionInformation();
-                            }
-                        });
-            }
         }
     }
 
@@ -177,7 +164,6 @@ class AnalyticsActivityLifecycleCallbacks
         private Analytics analytics;
         private ExecutorService analyticsExecutor;
         private Boolean shouldTrackApplicationLifecycleEvents;
-        private Boolean trackAttributionInformation;
         private Boolean trackDeepLinks;
         private Boolean shouldRecordScreenViews;
         private PackageInfo packageInfo;
@@ -197,11 +183,6 @@ class AnalyticsActivityLifecycleCallbacks
         Builder shouldTrackApplicationLifecycleEvents(
                 Boolean shouldTrackApplicationLifecycleEvents) {
             this.shouldTrackApplicationLifecycleEvents = shouldTrackApplicationLifecycleEvents;
-            return this;
-        }
-
-        Builder trackAttributionInformation(Boolean trackAttributionInformation) {
-            this.trackAttributionInformation = trackAttributionInformation;
             return this;
         }
 
@@ -225,7 +206,6 @@ class AnalyticsActivityLifecycleCallbacks
                     analytics,
                     analyticsExecutor,
                     shouldTrackApplicationLifecycleEvents,
-                    trackAttributionInformation,
                     trackDeepLinks,
                     shouldRecordScreenViews,
                     packageInfo);
