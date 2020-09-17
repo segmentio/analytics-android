@@ -44,7 +44,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
-open class AnalyticsTestKt {
+open class AnalyticsTest {
     private val SETTINGS =
             """
             |{
