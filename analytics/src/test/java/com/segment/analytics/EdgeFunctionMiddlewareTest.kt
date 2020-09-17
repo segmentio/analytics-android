@@ -108,7 +108,7 @@ class EdgeFunctionMiddlewareTest {
         analytics.track("foo")
 
         val privateEdgeFunctions: Field = Analytics::class.java.getDeclaredField("edgeFunctionMiddleware")
-        Assertions.assertThat(privateEdgeFunctions).isNotNull
+        Assertions.assertThat(privateEdgeFunctions).isNotNull()
     }
 
     @Test
