@@ -1,3 +1,26 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Segment.io, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.segment.analytics
 
 import android.app.Activity
@@ -17,11 +40,33 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import com.nhaarman.mockitokotlin2.*
+import com.nhaarman.mockitokotlin2.doNothing
+import com.nhaarman.mockitokotlin2.never
+import com.nhaarman.mockitokotlin2.spy
+import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
+import com.nhaarman.mockitokotlin2.whenever
 import com.segment.analytics.ProjectSettings.create
-import com.segment.analytics.TestUtils.*
-import com.segment.analytics.integrations.*
-import com.segment.analytics.internal.Utils.*
+import com.segment.analytics.TestUtils.NoDescriptionMatcher
+import com.segment.analytics.TestUtils.grantPermission
+import com.segment.analytics.TestUtils.mockApplication
+import com.segment.analytics.integrations.AliasPayload
+import com.segment.analytics.integrations.GroupPayload
+import com.segment.analytics.integrations.IdentifyPayload
+import com.segment.analytics.integrations.Integration
+import com.segment.analytics.integrations.Logger
+import com.segment.analytics.integrations.ScreenPayload
+import com.segment.analytics.integrations.TrackPayload
+import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService
+import com.segment.analytics.internal.Utils.DEFAULT_FLUSH_INTERVAL
+import com.segment.analytics.internal.Utils.DEFAULT_FLUSH_QUEUE_SIZE
+import com.segment.analytics.internal.Utils.isNullOrEmpty
+import java.io.IOException
+import java.lang.Boolean.TRUE
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.jvm.Throws
 import org.assertj.core.api.Assertions
 import org.assertj.core.data.MapEntry
 import org.hamcrest.Description
@@ -30,23 +75,23 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.*
-import org.mockito.ArgumentMatchers.*
+import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.eq
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.MockitoAnnotations
+import org.mockito.Spy
 import org.mockito.hamcrest.MockitoHamcrest.argThat
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
-import java.io.IOException
-import java.lang.Boolean.TRUE
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.atomic.AtomicReference
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
 open class AnalyticsTest {
     private val SETTINGS =
-            """
+        """
             |{
             |  "integrations": {
             |    "test": { 
@@ -65,7 +110,7 @@ open class AnalyticsTest {
     private lateinit var networkExecutor: AnalyticsNetworkExecutorService
 
     @Spy
-    private var analyticsExecutor: ExecutorService = SynchronousExecutor()
+    private var analyticsExecutor: ExecutorService = TestUtils.SynchronousExecutor()
 
     @Mock
     private lateinit var client: Client
@@ -122,39 +167,41 @@ open class AnalyticsTest {
             }
         }
         whenever(projectSettingsCache.get())
-                .thenReturn(create(Cartographer.INSTANCE.fromJson(SETTINGS)))
+            .thenReturn(create(Cartographer.INSTANCE.fromJson(SETTINGS)))
 
         val sharedPreferences =
-                RuntimeEnvironment.application.getSharedPreferences("analytics-test-qaz", MODE_PRIVATE)
+            RuntimeEnvironment.application
+                .getSharedPreferences("analytics-test-qaz", MODE_PRIVATE)
         optOut = BooleanPreference(sharedPreferences, "opt-out-test", false)
 
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.VERBOSE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                false,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.VERBOSE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            false,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false
+        )
 
         // Used by singleton tests.
         grantPermission(RuntimeEnvironment.application, android.Manifest.permission.INTERNET)
@@ -163,10 +210,10 @@ open class AnalyticsTest {
     @After
     fun tearDown() {
         RuntimeEnvironment.application
-                .getSharedPreferences("analytics-android-qaz", MODE_PRIVATE)
-                .edit()
-                .clear()
-                .commit()
+            .getSharedPreferences("analytics-android-qaz", MODE_PRIVATE)
+            .edit()
+            .clear()
+            .commit()
     }
 
     @Test
@@ -174,7 +221,8 @@ open class AnalyticsTest {
         try {
             analytics.identify(null, null, null)
         } catch (e: IllegalArgumentException) {
-            Assertions.assertThat(e).hasMessage("Either userId or some traits must be provided.")
+            Assertions.assertThat(e)
+                .hasMessage("Either userId or some traits must be provided.")
         }
     }
 
@@ -182,14 +230,16 @@ open class AnalyticsTest {
     fun identify() {
         analytics.identify("prateek", Traits().putUsername("f2prateek"), null)
 
-        Mockito.verify(integration)
-                .identify(
-                        argThat<IdentifyPayload>(
-                                object : NoDescriptionMatcher<IdentifyPayload>() {
-                                    override fun matchesSafely(item: IdentifyPayload): Boolean {
-                                        return item.userId() == "prateek" && item.traits().username() == "f2prateek"
-                                    }
-                                }))
+        verify(integration)
+            .identify(
+                argThat<IdentifyPayload>(
+                    object : TestUtils.NoDescriptionMatcher<IdentifyPayload>() {
+                        override fun matchesSafely(item: IdentifyPayload): Boolean {
+                            return item.userId() == "prateek" &&
+                                item.traits().username() == "f2prateek"
+                        }
+                    })
+            )
     }
 
     @Test
@@ -200,17 +250,18 @@ open class AnalyticsTest {
         Assertions.assertThat(traits).contains(MapEntry.entry("bar", "qaz"))
         Assertions.assertThat(analyticsContext.traits()).contains(MapEntry.entry("userId", "foo"))
         Assertions.assertThat(analyticsContext.traits()).contains(MapEntry.entry("bar", "qaz"))
-        Mockito.verify(traitsCache).set(traits)
-        Mockito.verify(integration)
-                .identify(
-                        argThat<IdentifyPayload>(
-                                object : NoDescriptionMatcher<IdentifyPayload>() {
-                                    override fun matchesSafely(item: IdentifyPayload): Boolean {
-                                        // Exercises a bug where payloads didn't pick up userId in identify correctly.
-                                        // https://github.com/segmentio/analytics-android/issues/169
-                                        return item.userId() == "foo"
-                                    }
-                                }))
+        verify(traitsCache).set(traits)
+        verify(integration)
+            .identify(
+                argThat<IdentifyPayload>(
+                    object : NoDescriptionMatcher<IdentifyPayload>() {
+                        override fun matchesSafely(item: IdentifyPayload): Boolean {
+                            // Exercises a bug where payloads didn't pick up userId in identify correctly.
+                            // https://github.com/segmentio/analytics-android/issues/169
+                            return item.userId() == "foo"
+                        }
+                    })
+            )
     }
 
     @Test
@@ -228,14 +279,16 @@ open class AnalyticsTest {
     fun group() {
         analytics.group("segment", Traits().putEmployees(42), null)
 
-        Mockito.verify(integration)
-                .group(
-                        argThat<GroupPayload>(
-                                object : NoDescriptionMatcher<GroupPayload>() {
-                                    override fun matchesSafely(item: GroupPayload): Boolean {
-                                        return item.groupId() == "segment" && item.traits().employees() == 42L
-                                    }
-                                }))
+        verify(integration)
+            .group(
+                argThat<GroupPayload>(
+                    object : NoDescriptionMatcher<GroupPayload>() {
+                        override fun matchesSafely(item: GroupPayload): Boolean {
+                            return item.groupId() == "segment" &&
+                                item.traits().employees() == 42L
+                        }
+                    })
+            )
     }
 
     @Test
@@ -255,14 +308,16 @@ open class AnalyticsTest {
     @Test
     fun track() {
         analytics.track("wrote tests", Properties().putUrl("github.com"))
-        Mockito.verify(integration)
-                .track(
-                        argThat<TrackPayload>(
-                                object : NoDescriptionMatcher<TrackPayload>() {
-                                    override fun matchesSafely(payload: TrackPayload): Boolean {
-                                        return payload.event() == "wrote tests" && payload.properties().url() == "github.com"
-                                    }
-                                }))
+        verify(integration)
+            .track(
+                argThat<TrackPayload>(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "wrote tests" &&
+                                payload.properties().url() == "github.com"
+                        }
+                    })
+            )
     }
 
     @Test
@@ -279,21 +334,24 @@ open class AnalyticsTest {
             analytics.screen("", "")
             Assertions.fail("empty category and name should throw exception")
         } catch (expected: IllegalArgumentException) {
-            Assertions.assertThat(expected).hasMessage("either category or name must be provided.")
+            Assertions.assertThat(expected).hasMessage("category or name must be provided.")
         }
     }
 
     @Test
     fun screen() {
         analytics.screen("android", "saw tests", Properties().putUrl("github.com"))
-        Mockito.verify(integration)
-                .screen(
-                        argThat<ScreenPayload>(
-                                object : NoDescriptionMatcher<ScreenPayload>() {
-                                    override fun matchesSafely(payload: ScreenPayload): Boolean {
-                                        return payload.name() == "saw tests" && payload.category() == "android" && payload.properties().url() == "github.com"
-                                    }
-                                }))
+        verify(integration)
+            .screen(
+                argThat<ScreenPayload>(
+                    object : NoDescriptionMatcher<ScreenPayload>() {
+                        override fun matchesSafely(payload: ScreenPayload): Boolean {
+                            return payload.name() == "saw tests" &&
+                                payload.category() == "android" &&
+                                payload.properties().url() == "github.com"
+                        }
+                    })
+            )
     }
 
     @Test
@@ -305,28 +363,31 @@ open class AnalyticsTest {
         analytics.alias("foo", Options().setIntegration("test", false))
 
         analytics.screen(
-                "foo", "bar", null, Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false))
+            "foo", "bar", null, Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false)
+        )
         analytics.track("foo", null, Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false))
         analytics.group("foo", null, Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false))
         analytics.identify(
-                "foo", null, Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false))
+            "foo", null, Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false)
+        )
         analytics.alias("foo", Options().setIntegration(Options.ALL_INTEGRATIONS_KEY, false))
 
-        Mockito.verifyNoMoreInteractions(integration)
+        verifyNoMoreInteractions(integration)
     }
 
     @Test
     fun optionsCustomContext() {
         analytics.track("foo", null, Options().putContext("from_tests", true))
 
-        Mockito.verify(integration)
-                .track(
-                        argThat<TrackPayload>(
-                                object : NoDescriptionMatcher<TrackPayload>() {
-                                    override fun matchesSafely(payload: TrackPayload): Boolean {
-                                        return payload.context()["from_tests"] == TRUE
-                                    }
-                                }))
+        verify(integration)
+            .track(
+                argThat<TrackPayload>(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.context()["from_tests"] == TRUE
+                        }
+                    })
+            )
     }
 
     @Test
@@ -334,15 +395,15 @@ open class AnalyticsTest {
     fun optOutDisablesEvents() {
         analytics.optOut(true)
         analytics.track("foo")
-        Mockito.verifyNoMoreInteractions(integration)
+        verifyNoMoreInteractions(integration)
     }
 
     @Test
     @Throws(IOException::class)
     fun emptyTrackingPlan() {
         analytics.projectSettings = create(
-                Cartographer.INSTANCE.fromJson(
-                        """
+            Cartographer.INSTANCE.fromJson(
+                """
                                       |{
                                       |  "integrations": {
                                       |    "test": {
@@ -352,26 +413,29 @@ open class AnalyticsTest {
                                       |  "plan": {
                                       |  }
                                       |}
-                                      """.trimMargin()))
+                                      """.trimMargin()
+            )
+        )
 
         analytics.track("foo")
-        Mockito.verify(integration)
-                .track(
-                        argThat<TrackPayload>(
-                                object : NoDescriptionMatcher<TrackPayload>() {
-                                    override fun matchesSafely(payload: TrackPayload): Boolean {
-                                        return payload.event() == "foo"
-                                    }
-                                }))
-        Mockito.verifyNoMoreInteractions(integration)
+        verify(integration)
+            .track(
+                argThat<TrackPayload>(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "foo"
+                        }
+                    })
+            )
+        verifyNoMoreInteractions(integration)
     }
 
     @Test
     @Throws(IOException::class)
     fun emptyEventPlan() {
         analytics.projectSettings = create(
-                Cartographer.INSTANCE.fromJson(
-                        """
+            Cartographer.INSTANCE.fromJson(
+                """
                               |{
                               |  "integrations": {
                               |    "test": {
@@ -383,25 +447,28 @@ open class AnalyticsTest {
                               |    }
                               |  }
                               |}
-                              """.trimMargin()))
+                              """.trimMargin()
+            )
+        )
         analytics.track("foo")
-        Mockito.verify(integration)
-                .track(
-                        argThat<TrackPayload>(
-                                object : NoDescriptionMatcher<TrackPayload>() {
-                                    override fun matchesSafely(payload: TrackPayload): Boolean {
-                                        return payload.event() == "foo"
-                                    }
-                                }))
-        Mockito.verifyNoMoreInteractions(integration)
+        verify(integration)
+            .track(
+                argThat<TrackPayload>(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "foo"
+                        }
+                    })
+            )
+        verifyNoMoreInteractions(integration)
     }
 
     @Test
     @Throws(IOException::class)
     fun trackingPlanDisablesEvent() {
         analytics.projectSettings = create(
-                Cartographer.INSTANCE.fromJson(
-                        """
+            Cartographer.INSTANCE.fromJson(
+                """
                               |{
                               |  "integrations": {
                               |    "test": {
@@ -416,17 +483,19 @@ open class AnalyticsTest {
                               |    }
                               |  }
                               |}
-                              """.trimMargin()))
+                              """.trimMargin()
+            )
+        )
         analytics.track("foo")
-        Mockito.verifyNoMoreInteractions(integration)
+        verifyNoMoreInteractions(integration)
     }
 
     @Test
     @Throws(IOException::class)
     fun trackingPlanDisablesEventForSingleIntegration() {
         analytics.projectSettings = create(
-                Cartographer.INSTANCE.fromJson(
-                        """
+            Cartographer.INSTANCE.fromJson(
+                """
                               |{
                               |  "integrations": {
                               |    "test": {
@@ -444,17 +513,19 @@ open class AnalyticsTest {
                               |    }
                               |  }
                               |}
-                              """.trimMargin()))
+                              """.trimMargin()
+            )
+        )
         analytics.track("foo")
-        Mockito.verifyNoMoreInteractions(integration)
+        verifyNoMoreInteractions(integration)
     }
 
     @Test
     @Throws(IOException::class)
     fun trackingPlanDisabledEventCannotBeOverriddenByOptions() {
         analytics.projectSettings = create(
-                Cartographer.INSTANCE.fromJson(
-                        """
+            Cartographer.INSTANCE.fromJson(
+                """
                               |{
                               |  "integrations": {
                               |    "test": {
@@ -469,17 +540,19 @@ open class AnalyticsTest {
                               |    }
                               |  }
                               |}
-                              """.trimMargin()))
+                              """.trimMargin()
+            )
+        )
         analytics.track("foo", null, Options().setIntegration("test", true))
-        Mockito.verifyNoMoreInteractions(integration)
+        verifyNoMoreInteractions(integration)
     }
 
     @Test
     @Throws(IOException::class)
     fun trackingPlanDisabledEventForIntegrationOverriddenByOptions() {
         analytics.projectSettings = create(
-                Cartographer.INSTANCE.fromJson(
-                        """
+            Cartographer.INSTANCE.fromJson(
+                """
                               |{
                               |  "integrations": {
                               |    "test": {
@@ -497,17 +570,20 @@ open class AnalyticsTest {
                               |    }
                               |  }
                               |}
-                              """.trimMargin()))
+                              """.trimMargin()
+            )
+        )
         analytics.track("foo", null, Options().setIntegration("test", true))
-        Mockito.verify(integration)
-                .track(
-                        argThat<TrackPayload>(
-                                object : NoDescriptionMatcher<TrackPayload>() {
-                                    override fun matchesSafely(payload: TrackPayload): Boolean {
-                                        return payload.event() == "foo"
-                                    }
-                                }))
-        Mockito.verifyNoMoreInteractions(integration)
+        verify(integration)
+            .track(
+                argThat<TrackPayload>(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "foo"
+                        }
+                    })
+            )
+        verifyNoMoreInteractions(integration)
     }
 
     @Test
@@ -526,8 +602,8 @@ open class AnalyticsTest {
         val anonymousId = traits.anonymousId()
         analytics.alias("foo")
         val payloadArgumentCaptor =
-                ArgumentCaptor.forClass(AliasPayload::class.java)
-        Mockito.verify(integration).alias(payloadArgumentCaptor.capture())
+            ArgumentCaptor.forClass(AliasPayload::class.java)
+        verify(integration).alias(payloadArgumentCaptor.capture())
         Assertions.assertThat(payloadArgumentCaptor.value).containsEntry("previousId", anonymousId)
         Assertions.assertThat(payloadArgumentCaptor.value).containsEntry("userId", "foo")
     }
@@ -535,11 +611,12 @@ open class AnalyticsTest {
     @Test
     fun aliasWithCachedUserID() {
         analytics.identify(
-                "prayansh", Traits().putValue("bar", "qaz"), null) // refer identifyUpdatesCache
+            "prayansh", Traits().putValue("bar", "qaz"), null
+        ) // refer identifyUpdatesCache
         analytics.alias("foo")
         val payloadArgumentCaptor =
-                ArgumentCaptor.forClass(AliasPayload::class.java)
-        Mockito.verify(integration).alias(payloadArgumentCaptor.capture())
+            ArgumentCaptor.forClass(AliasPayload::class.java)
+        verify(integration).alias(payloadArgumentCaptor.capture())
         Assertions.assertThat(payloadArgumentCaptor.value).containsEntry("previousId", "prayansh")
         Assertions.assertThat(payloadArgumentCaptor.value).containsEntry("userId", "foo")
     }
@@ -548,14 +625,14 @@ open class AnalyticsTest {
     fun flush() {
         analytics.flush()
 
-        Mockito.verify(integration).flush()
+        verify(integration).flush()
     }
 
     @Test
     fun reset() {
         analytics.reset()
 
-        Mockito.verify(integration).reset()
+        verify(integration).reset()
     }
 
     @Test
@@ -563,7 +640,7 @@ open class AnalyticsTest {
     fun getSnapshot() {
         analytics.snapshot
 
-        Mockito.verify(stats).createSnapshot()
+        verify(stats).createSnapshot()
     }
 
     @Test
@@ -572,17 +649,18 @@ open class AnalyticsTest {
 
         analytics.logout()
 
-        Mockito.verify(traitsCache).delete()
-        Mockito.verify(traitsCache)
-                .set(
-                        argThat(
-                                object : TypeSafeMatcher<Traits>() {
-                                    override fun matchesSafely(traits: Traits): Boolean {
-                                        return !isNullOrEmpty(traits.anonymousId())
-                                    }
+        verify(traitsCache).delete()
+        verify(traitsCache)
+            .set(
+                argThat(
+                    object : TypeSafeMatcher<Traits>() {
+                        override fun matchesSafely(traits: Traits): Boolean {
+                            return !isNullOrEmpty(traits.anonymousId())
+                        }
 
-                                    override fun describeTo(description: Description) {}
-                                }))
+                        override fun describeTo(description: Description) {}
+                    })
+            )
         Assertions.assertThat(analyticsContext.traits()).hasSize(1)
         Assertions.assertThat(analyticsContext.traits()).containsKey("anonymousId")
     }
@@ -601,16 +679,16 @@ open class AnalyticsTest {
     fun onIntegrationReady() {
         val callback: Analytics.Callback<*> = Mockito.mock(Analytics.Callback::class.java)
         analytics.onIntegrationReady("test", callback)
-        Mockito.verify(callback).onReady(null)
+        verify(callback).onReady(null)
     }
 
     @Test
     fun shutdown() {
         Assertions.assertThat(analytics.shutdown).isFalse()
         analytics.shutdown()
-        Mockito.verify(application).unregisterActivityLifecycleCallbacks(analytics.activityLifecycleCallback)
-        Mockito.verify(stats).shutdown()
-        Mockito.verify(networkExecutor).shutdown()
+        verify(application).unregisterActivityLifecycleCallbacks(analytics.activityLifecycleCallback)
+        verify(stats).shutdown()
+        verify(networkExecutor).shutdown()
         Assertions.assertThat(analytics.shutdown).isTrue()
         try {
             analytics.track("foo")
@@ -632,7 +710,7 @@ open class AnalyticsTest {
         Assertions.assertThat(analytics.shutdown).isFalse()
         analytics.shutdown()
         analytics.shutdown()
-        Mockito.verify(stats).shutdown()
+        verify(stats).shutdown()
         Assertions.assertThat(analytics.shutdown).isTrue()
     }
 
@@ -688,14 +766,14 @@ open class AnalyticsTest {
 
     @Test
     @Throws(Exception::class)
-    fun  multipleInstancesWithSameTagThrows() {
+    fun multipleInstancesWithSameTagThrows() {
         Analytics.Builder(RuntimeEnvironment.application, "foo").build()
         try {
             Analytics.Builder(RuntimeEnvironment.application, "bar").tag("foo").build()
             Assertions.fail("Creating client with duplicate should throw.")
         } catch (expected: IllegalStateException) {
             Assertions.assertThat(expected)
-                    .hasMessageContaining("Duplicate analytics client created with tag: foo.")
+                .hasMessageContaining("Duplicate analytics client created with tag: foo.")
         }
     }
 
@@ -710,7 +788,7 @@ open class AnalyticsTest {
     @Throws(Exception::class)
     fun getSnapshotInvokesStats() {
         analytics.snapshot
-        Mockito.verify(stats).createSnapshot()
+        verify(stats).createSnapshot()
     }
 
     @Test
@@ -733,64 +811,67 @@ open class AnalyticsTest {
         Analytics.INSTANCES.clear()
         val callback = AtomicReference<DefaultLifecycleObserver>()
         doNothing()
-                .whenever(lifecycle)
-                .addObserver(
-                        argThat<LifecycleObserver>(
-                                object : NoDescriptionMatcher<LifecycleObserver>() {
-                                    override fun matchesSafely(item: LifecycleObserver): Boolean {
-                                        callback.set(item as DefaultLifecycleObserver)
-                                        return true
-                                    }
-                                }))
+            .whenever(lifecycle)
+            .addObserver(
+                argThat<LifecycleObserver>(
+                    object : NoDescriptionMatcher<LifecycleObserver>() {
+                        override fun matchesSafely(item: LifecycleObserver): Boolean {
+                            callback.set(item as DefaultLifecycleObserver)
+                            return true
+                        }
+                    })
+            )
 
         val mockLifecycleOwner = Mockito.mock(LifecycleOwner::class.java)
 
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false
+        )
 
         callback.get().onCreate(mockLifecycleOwner)
 
-        Mockito.verify(integration)
-                .track(
-                        argThat<TrackPayload>(
-                                object : NoDescriptionMatcher<TrackPayload>() {
-                                    override fun matchesSafely(payload: TrackPayload): Boolean {
-                                        return payload.event() ==
-                                                "Application Installed" &&
-                                                payload.properties()
-                                                        .getString("version") == "1.0.0" &&
-                                                payload.properties()
-                                                        .getString("build") == 100.toString()
-                                    }
-                                }))
+        verify(integration)
+            .track(
+                argThat<TrackPayload>(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() ==
+                                "Application Installed" &&
+                                payload.properties()
+                                .getString("version") == "1.0.0" &&
+                                payload.properties()
+                                .getString("build") == 100.toString()
+                        }
+                    })
+            )
 
         callback.get().onCreate(mockLifecycleOwner)
-        Mockito.verifyNoMoreInteractions(integration) // Application Installed is not duplicated
+        verifyNoMoreInteractions(integration) // Application Installed is not duplicated
     }
 
     @Test
@@ -803,13 +884,13 @@ open class AnalyticsTest {
         packageInfo.versionName = "1.0.1"
 
         val sharedPreferences =
-                RuntimeEnvironment.application.getSharedPreferences("analytics-android-qaz", MODE_PRIVATE)
+            RuntimeEnvironment.application.getSharedPreferences("analytics-android-qaz", MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.putInt("build", 100)
         editor.putString("version", "1.0.0")
         editor.apply()
         whenever(application.getSharedPreferences("analytics-android-qaz", MODE_PRIVATE))
-                .thenReturn(sharedPreferences)
+            .thenReturn(sharedPreferences)
 
         val packageManager = Mockito.mock(PackageManager::class.java)
         whenever(packageManager.getPackageInfo("com.foo", 0)).thenReturn(packageInfo)
@@ -818,65 +899,68 @@ open class AnalyticsTest {
 
         val callback = AtomicReference<DefaultLifecycleObserver>()
         doNothing()
-                .whenever(lifecycle)
-                .addObserver(
-                        argThat<LifecycleObserver>(
-                                object : NoDescriptionMatcher<LifecycleObserver>() {
-                                    override fun matchesSafely(item: LifecycleObserver): Boolean {
-                                        callback.set(item as DefaultLifecycleObserver)
-                                        return true
-                                    }
-                                }))
+            .whenever(lifecycle)
+            .addObserver(
+                argThat<LifecycleObserver>(
+                    object : NoDescriptionMatcher<LifecycleObserver>() {
+                        override fun matchesSafely(item: LifecycleObserver): Boolean {
+                            callback.set(item as DefaultLifecycleObserver)
+                            return true
+                        }
+                    })
+            )
 
         val mockLifecycleOwner = Mockito.mock(LifecycleOwner::class.java)
 
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false
+        )
 
         callback.get().onCreate(mockLifecycleOwner)
 
-        Mockito.verify(integration)
-                .track(
-                        argThat<TrackPayload>(
-                                object : NoDescriptionMatcher<TrackPayload>() {
-                                    override fun matchesSafely(payload: TrackPayload): Boolean {
-                                        return payload.event() ==
-                                                "Application Updated" &&
-                                                payload.properties()
-                                                        .getString("previous_version") == "1.0.0" &&
-                                                payload.properties()
-                                                        .getString("previous_build") == 100.toString() &&
-                                                payload.properties()
-                                                        .getString("version") == "1.0.1" &&
-                                                payload.properties()
-                                                        .getString("build") == 101.toString()
-                                    }
-                                }))
+        verify(integration)
+            .track(
+                argThat<TrackPayload>(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() ==
+                                "Application Updated" &&
+                                payload.properties()
+                                .getString("previous_version") == "1.0.0" &&
+                                payload.properties()
+                                .getString("previous_build") == 100.toString() &&
+                                payload.properties()
+                                .getString("version") == "1.0.1" &&
+                                payload.properties()
+                                .getString("build") == 101.toString()
+                        }
+                    })
+            )
     }
 
     @Test
@@ -885,44 +969,46 @@ open class AnalyticsTest {
         Analytics.INSTANCES.clear()
 
         val callback = AtomicReference<ActivityLifecycleCallbacks>()
-        Mockito.doNothing()
-                .`when`(application)
-                .registerActivityLifecycleCallbacks(
-                        argThat<ActivityLifecycleCallbacks>(
-                                object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
-                                    override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
-                                        callback.set(item)
-                                        return true
-                                    }
-                                }))
+        doNothing()
+            .whenever(application)
+            .registerActivityLifecycleCallbacks(
+                argThat<ActivityLifecycleCallbacks>(
+                    object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
+                        override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
+                            callback.set(item)
+                            return true
+                        }
+                    })
+            )
 
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                false,
-                CountDownLatch(0),
-                true,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            false,
+            CountDownLatch(0),
+            true,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false
+        )
 
         val activity = Mockito.mock(Activity::class.java)
         val packageManager = Mockito.mock(PackageManager::class.java)
@@ -931,20 +1017,21 @@ open class AnalyticsTest {
         whenever(activity.packageManager).thenReturn(packageManager)
         //noinspection WrongConstant
         whenever(packageManager.getActivityInfo(any(ComponentName::class.java), eq(PackageManager.GET_META_DATA)))
-                .thenReturn(info)
+            .thenReturn(info)
         whenever(info.loadLabel(packageManager)).thenReturn("Foo")
 
         callback.get().onActivityStarted(activity)
 
         analytics.screen("Foo")
-        Mockito.verify(integration)
-                .screen(
-                        argThat<ScreenPayload>(
-                                object : NoDescriptionMatcher<ScreenPayload>() {
-                                    override fun matchesSafely(payload: ScreenPayload): Boolean {
-                                        return payload.name() == "Foo"
-                                    }
-                                }))
+        verify(integration)
+            .screen(
+                argThat<ScreenPayload>(
+                    object : NoDescriptionMatcher<ScreenPayload>() {
+                        override fun matchesSafely(payload: ScreenPayload): Boolean {
+                            return payload.name() == "Foo"
+                        }
+                    })
+            )
     }
 
     @Test
@@ -952,45 +1039,47 @@ open class AnalyticsTest {
         Analytics.INSTANCES.clear()
 
         val callback =
-                AtomicReference<ActivityLifecycleCallbacks>()
-        Mockito.doNothing()
-                .whenever(application)
-                .registerActivityLifecycleCallbacks(
-                        argThat<ActivityLifecycleCallbacks>(
-                                object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
-                                    override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
-                                        callback.set(item)
-                                        return true
-                                    }
-                                }))
+            AtomicReference<ActivityLifecycleCallbacks>()
+        doNothing()
+            .whenever(application)
+            .registerActivityLifecycleCallbacks(
+                argThat<ActivityLifecycleCallbacks>(
+                    object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
+                        override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
+                            callback.set(item)
+                            return true
+                        }
+                    })
+            )
 
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                false,
-                true,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            true,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false
+        )
 
         val expectedURL = "app://track.com/open?utm_id=12345&gclid=abcd&nope="
 
@@ -1003,20 +1092,21 @@ open class AnalyticsTest {
 
         callback.get().onActivityCreated(activity, Bundle())
 
-        Mockito.verify(integration)
-                .track(
-                        argThat<TrackPayload>(
-                                object : NoDescriptionMatcher<TrackPayload>() {
-                                    override fun matchesSafely(payload: TrackPayload): Boolean {
-                                        return payload.event() == "Deep Link Opened" &&
-                                                payload.properties()
-                                                        .getString("url") == expectedURL &&
-                                                payload.properties()
-                                                        .getString("gclid") == "abcd" &&
-                                                payload.properties()
-                                                        .getString("utm_id") == "12345"
-                                    }
-                                }))
+        verify(integration)
+            .track(
+                argThat<TrackPayload>(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "Deep Link Opened" &&
+                                payload.properties()
+                                .getString("url") == expectedURL &&
+                                payload.properties()
+                                .getString("gclid") == "abcd" &&
+                                payload.properties()
+                                .getString("utm_id") == "12345"
+                        }
+                    })
+            )
     }
 
     @Test
@@ -1024,46 +1114,48 @@ open class AnalyticsTest {
         Analytics.INSTANCES.clear()
 
         val callback =
-                AtomicReference<ActivityLifecycleCallbacks>()
+            AtomicReference<ActivityLifecycleCallbacks>()
 
-        Mockito.doNothing()
-                .whenever(application)
-                .registerActivityLifecycleCallbacks(
-                        argThat<ActivityLifecycleCallbacks>(
-                                object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
-                                    override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
-                                        callback.set(item)
-                                        return true
-                                    }
-                                }))
+        doNothing()
+            .whenever(application)
+            .registerActivityLifecycleCallbacks(
+                argThat<ActivityLifecycleCallbacks>(
+                    object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
+                        override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
+                            callback.set(item)
+                            return true
+                        }
+                    })
+            )
 
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false
+        )
 
         val expectedURL = "app://track.com/open?utm_id=12345&gclid=abcd&nope="
 
@@ -1074,20 +1166,21 @@ open class AnalyticsTest {
         whenever(intent.data).thenReturn(uri)
         whenever(activity.intent).thenReturn(intent)
 
-        Mockito.verify(integration, Mockito.never())
-                .track(
-                        argThat<TrackPayload>(
-                                object : NoDescriptionMatcher<TrackPayload>() {
-                                    override fun matchesSafely(payload: TrackPayload): Boolean {
-                                        return payload.event() == "Deep Link Opened" &&
-                                                payload.properties()
-                                                        .getString("url") == expectedURL &&
-                                                payload.properties()
-                                                        .getString("gclid") == "abcd" &&
-                                                payload.properties()
-                                                        .getString("utm_id") == "12345"
-                                    }
-                                }))
+        verify(integration, Mockito.never())
+            .track(
+                argThat<TrackPayload>(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "Deep Link Opened" &&
+                                payload.properties()
+                                .getString("url") == expectedURL &&
+                                payload.properties()
+                                .getString("gclid") == "abcd" &&
+                                payload.properties()
+                                .getString("utm_id") == "12345"
+                        }
+                    })
+            )
     }
 
     @Test
@@ -1095,46 +1188,48 @@ open class AnalyticsTest {
         Analytics.INSTANCES.clear()
 
         val callback =
-                AtomicReference<ActivityLifecycleCallbacks>()
+            AtomicReference<ActivityLifecycleCallbacks>()
 
-        Mockito.doNothing()
-                .whenever(application)
-                .registerActivityLifecycleCallbacks(
-                        argThat<ActivityLifecycleCallbacks>(
-                                object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
-                                    override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
-                                        callback.set(item)
-                                        return true
-                                    }
-                                }))
+        doNothing()
+            .whenever(application)
+            .registerActivityLifecycleCallbacks(
+                argThat<ActivityLifecycleCallbacks>(
+                    object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
+                        override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
+                            callback.set(item)
+                            return true
+                        }
+                    })
+            )
 
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false
+        )
 
         val activity = Mockito.mock(Activity::class.java)
 
@@ -1142,14 +1237,15 @@ open class AnalyticsTest {
 
         callback.get().onActivityCreated(activity, Bundle())
 
-        Mockito.verify(integration, Mockito.never())
-                .track(
-                        argThat<TrackPayload>(
-                                object : NoDescriptionMatcher<TrackPayload>() {
-                                    override fun matchesSafely(payload: TrackPayload): Boolean {
-                                        return payload.event() == "Deep Link Opened"
-                                    }
-                                }))
+        verify(integration, Mockito.never())
+            .track(
+                argThat<TrackPayload>(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "Deep Link Opened"
+                        }
+                    })
+            )
     }
 
     @Test
@@ -1157,46 +1253,48 @@ open class AnalyticsTest {
         Analytics.INSTANCES.clear()
 
         val callback =
-                AtomicReference<ActivityLifecycleCallbacks>()
+            AtomicReference<ActivityLifecycleCallbacks>()
 
-        Mockito.doNothing()
-                .whenever(application)
-                .registerActivityLifecycleCallbacks(
-                        argThat<ActivityLifecycleCallbacks>(
-                                object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
-                                    override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
-                                        callback.set(item)
-                                        return true
-                                    }
-                                }))
+        doNothing()
+            .whenever(application)
+            .registerActivityLifecycleCallbacks(
+                argThat<ActivityLifecycleCallbacks>(
+                    object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
+                        override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
+                            callback.set(item)
+                            return true
+                        }
+                    })
+            )
 
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false
+        )
 
         val activity = Mockito.mock(Activity::class.java)
 
@@ -1207,14 +1305,15 @@ open class AnalyticsTest {
 
         callback.get().onActivityCreated(activity, Bundle())
 
-        Mockito.verify(integration, Mockito.never())
-                .track(
-                        argThat<TrackPayload>(
-                                object : NoDescriptionMatcher<TrackPayload>() {
-                                    override fun matchesSafely(payload: TrackPayload): Boolean {
-                                        return payload.event() == "Deep Link Opened"
-                                    }
-                                }))
+        verify(integration, Mockito.never())
+            .track(
+                argThat<TrackPayload>(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "Deep Link Opened"
+                        }
+                    })
+            )
     }
 
     @Test
@@ -1223,72 +1322,74 @@ open class AnalyticsTest {
         Analytics.INSTANCES.clear()
 
         val callback =
-                AtomicReference<ActivityLifecycleCallbacks>()
+            AtomicReference<ActivityLifecycleCallbacks>()
 
-        Mockito.doNothing()
-                .whenever(application)
-                .registerActivityLifecycleCallbacks(
-                        argThat<ActivityLifecycleCallbacks>(
-                                object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
-                                    override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
-                                        callback.set(item)
-                                        return true
-                                    }
-                                }))
+        doNothing()
+            .whenever(application)
+            .registerActivityLifecycleCallbacks(
+                argThat<ActivityLifecycleCallbacks>(
+                    object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
+                        override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
+                            callback.set(item)
+                            return true
+                        }
+                    })
+            )
 
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false
+        )
 
         val activity = Mockito.mock(Activity::class.java)
         val bundle = Bundle()
 
         callback.get().onActivityCreated(activity, bundle)
-        Mockito.verify(integration).onActivityCreated(activity, bundle)
+        verify(integration).onActivityCreated(activity, bundle)
 
         callback.get().onActivityStarted(activity)
-        Mockito.verify(integration).onActivityStarted(activity)
+        verify(integration).onActivityStarted(activity)
 
         callback.get().onActivityResumed(activity)
-        Mockito.verify(integration).onActivityResumed(activity)
+        verify(integration).onActivityResumed(activity)
 
         callback.get().onActivityPaused(activity)
-        Mockito.verify(integration).onActivityPaused(activity)
+        verify(integration).onActivityPaused(activity)
 
         callback.get().onActivityStopped(activity)
-        Mockito.verify(integration).onActivityStopped(activity)
+        verify(integration).onActivityStopped(activity)
 
         callback.get().onActivitySaveInstanceState(activity, bundle)
-        Mockito.verify(integration).onActivitySaveInstanceState(activity, bundle)
+        verify(integration).onActivitySaveInstanceState(activity, bundle)
 
         callback.get().onActivityDestroyed(activity)
-        Mockito.verify(integration).onActivityDestroyed(activity)
+        verify(integration).onActivityDestroyed(activity)
 
-        Mockito.verifyNoMoreInteractions(integration)
+        verifyNoMoreInteractions(integration)
     }
 
     @Test
@@ -1297,60 +1398,66 @@ open class AnalyticsTest {
         Analytics.INSTANCES.clear()
 
         val callback =
-                AtomicReference<DefaultLifecycleObserver>()
+            AtomicReference<DefaultLifecycleObserver>()
 
-        Mockito.doNothing()
-                .whenever(lifecycle)
-                .addObserver(
-                        argThat<LifecycleObserver>(
-                                object : NoDescriptionMatcher<LifecycleObserver>() {
-                                    override fun matchesSafely(item: LifecycleObserver): Boolean {
-                                        callback.set(item as DefaultLifecycleObserver)
-                                        return true
-                                    }
-                                }))
+        doNothing()
+            .whenever(lifecycle)
+            .addObserver(
+                argThat<LifecycleObserver>(
+                    object : NoDescriptionMatcher<LifecycleObserver>() {
+                        override fun matchesSafely(item: LifecycleObserver): Boolean {
+                            callback.set(item as DefaultLifecycleObserver)
+                            return true
+                        }
+                    })
+            )
 
         val mockLifecycleOwner = Mockito.mock(LifecycleOwner::class.java)
 
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false
+        )
 
         callback.get().onCreate(mockLifecycleOwner)
         callback.get().onStart(mockLifecycleOwner)
 
-        Mockito.verify(integration)
-                .track(
-                        argThat<TrackPayload>(
-                                object : NoDescriptionMatcher<TrackPayload>() {
-                                    override fun matchesSafely(payload: TrackPayload): Boolean {
-                                        return payload.event() == "Application Opened" && payload.properties().getString("version") == "1.0.0" && payload.properties().getString("build") == 100.toString() && !payload.properties().getBoolean("from_background", true)
-                                    }
-                                }))
+        verify(integration)
+            .track(
+                argThat<TrackPayload>(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "Application Opened" &&
+                                payload.properties().getString("version") == "1.0.0" &&
+                                payload.properties().getString("build") == 100.toString() &&
+                                !payload.properties().getBoolean("from_background", true)
+                        }
+                    })
+            )
     }
 
     @Test
@@ -1359,48 +1466,50 @@ open class AnalyticsTest {
         Analytics.INSTANCES.clear()
 
         val callback =
-                AtomicReference<DefaultLifecycleObserver>()
+            AtomicReference<DefaultLifecycleObserver>()
 
-        Mockito.doNothing()
-                .whenever(lifecycle)
-                .addObserver(
-                        argThat<LifecycleObserver>(
-                                object : NoDescriptionMatcher<LifecycleObserver>() {
-                                    override fun matchesSafely(item: LifecycleObserver): Boolean {
-                                        callback.set(item as DefaultLifecycleObserver)
-                                        return true
-                                    }
-                                }))
+        doNothing()
+            .whenever(lifecycle)
+            .addObserver(
+                argThat<LifecycleObserver>(
+                    object : NoDescriptionMatcher<LifecycleObserver>() {
+                        override fun matchesSafely(item: LifecycleObserver): Boolean {
+                            callback.set(item as DefaultLifecycleObserver)
+                            return true
+                        }
+                    })
+            )
 
         val mockLifecycleOwner = Mockito.mock(LifecycleOwner::class.java)
 
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false
+        )
 
         val backgroundedActivity = Mockito.mock(Activity::class.java)
         whenever(backgroundedActivity.isChangingConfigurations).thenReturn(false)
@@ -1409,14 +1518,15 @@ open class AnalyticsTest {
         callback.get().onResume(mockLifecycleOwner)
         callback.get().onStop(mockLifecycleOwner)
 
-        Mockito.verify(integration)
-                .track(
-                        argThat<TrackPayload>(
-                                object : NoDescriptionMatcher<TrackPayload>() {
-                                    override fun matchesSafely(payload: TrackPayload): Boolean {
-                                        return payload.event() == "Application Backgrounded"
-                                    }
-                                }))
+        verify(integration)
+            .track(
+                argThat<TrackPayload>(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "Application Backgrounded"
+                        }
+                    })
+            )
     }
 
     @Test
@@ -1425,71 +1535,77 @@ open class AnalyticsTest {
         Analytics.INSTANCES.clear()
 
         val callback =
-                AtomicReference<DefaultLifecycleObserver>()
+            AtomicReference<DefaultLifecycleObserver>()
 
-        Mockito.doNothing()
-                .whenever(lifecycle)
-                .addObserver(
-                        argThat<LifecycleObserver>(
-                                object : NoDescriptionMatcher<LifecycleObserver>() {
-                                    override fun matchesSafely(item: LifecycleObserver): Boolean {
-                                        callback.set(item as DefaultLifecycleObserver)
-                                        return true
-                                    }
-                                }))
+        doNothing()
+            .whenever(lifecycle)
+            .addObserver(
+                argThat<LifecycleObserver>(
+                    object : NoDescriptionMatcher<LifecycleObserver>() {
+                        override fun matchesSafely(item: LifecycleObserver): Boolean {
+                            callback.set(item as DefaultLifecycleObserver)
+                            return true
+                        }
+                    })
+            )
 
         val mockLifecycleOwner = Mockito.mock(LifecycleOwner::class.java)
 
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false
+        )
 
         callback.get().onCreate(mockLifecycleOwner)
         callback.get().onStart(mockLifecycleOwner)
         callback.get().onStop(mockLifecycleOwner)
         callback.get().onStart(mockLifecycleOwner)
 
-        Mockito.verify(integration)
-                .track(
-                        argThat<TrackPayload>(
-                                object : NoDescriptionMatcher<TrackPayload>() {
-                                    override fun matchesSafely(payload: TrackPayload): Boolean {
-                                        return payload.event() == "Application Backgrounded"
-                                    }
-                                }))
+        verify(integration)
+            .track(
+                argThat<TrackPayload>(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "Application Backgrounded"
+                        }
+                    })
+            )
 
-        Mockito.verify(integration)
-                .track(
-                        argThat<TrackPayload>(
-                                object : NoDescriptionMatcher<TrackPayload>() {
-                                    override fun matchesSafely(payload: TrackPayload): Boolean {
-                                        return payload.event() == "Application Opened" && payload.properties().getBoolean("from_background", false)
-                                    }
-                                }))
+        verify(integration)
+            .track(
+                argThat<TrackPayload>(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "Application Opened" &&
+                                payload.properties()
+                                    .getBoolean("from_background", false)
+                        }
+                    })
+            )
     }
 
     @Test
@@ -1500,54 +1616,57 @@ open class AnalyticsTest {
         val registeredCallback = AtomicReference<ActivityLifecycleCallbacks>()
         val unregisteredCallback = AtomicReference<ActivityLifecycleCallbacks>()
 
-        Mockito.doNothing()
-                .whenever(application)
-                .registerActivityLifecycleCallbacks(
-                        argThat<ActivityLifecycleCallbacks>(
-                                object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
-                                    override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
-                                        registeredCallback.set(item)
-                                        return true
-                                    }
-                                }))
-        Mockito.doNothing()
-                .whenever(application)
-                .unregisterActivityLifecycleCallbacks(
-                        argThat<ActivityLifecycleCallbacks>(
-                                object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
-                                    override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
-                                        unregisteredCallback.set(item)
-                                        return true
-                                    }
-                                }))
+        doNothing()
+            .whenever(application)
+            .registerActivityLifecycleCallbacks(
+                argThat<ActivityLifecycleCallbacks>(
+                    object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
+                        override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
+                            registeredCallback.set(item)
+                            return true
+                        }
+                    })
+            )
+        doNothing()
+            .whenever(application)
+            .unregisterActivityLifecycleCallbacks(
+                argThat<ActivityLifecycleCallbacks>(
+                    object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
+                        override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
+                            unregisteredCallback.set(item)
+                            return true
+                        }
+                    })
+            )
 
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false
+        )
 
         Assertions.assertThat(analytics.shutdown).isFalse()
         analytics.shutdown()
@@ -1561,27 +1680,27 @@ open class AnalyticsTest {
 
         // Verify callbacks do not call through after shutdown
         registeredCallback.get().onActivityCreated(activity, bundle)
-        Mockito.verify(integration, never()).onActivityCreated(activity, bundle)
+        verify(integration, never()).onActivityCreated(activity, bundle)
 
         registeredCallback.get().onActivityStarted(activity)
-        Mockito.verify(integration, Mockito.never()).onActivityStarted(activity)
+        verify(integration, never()).onActivityStarted(activity)
 
         registeredCallback.get().onActivityResumed(activity)
-        Mockito.verify(integration, Mockito.never()).onActivityResumed(activity)
+        verify(integration, never()).onActivityResumed(activity)
 
         registeredCallback.get().onActivityPaused(activity)
-        Mockito.verify(integration, Mockito.never()).onActivityPaused(activity)
+        verify(integration, never()).onActivityPaused(activity)
 
         registeredCallback.get().onActivityStopped(activity)
-        Mockito.verify(integration, Mockito.never()).onActivityStopped(activity)
+        verify(integration, never()).onActivityStopped(activity)
 
         registeredCallback.get().onActivitySaveInstanceState(activity, bundle)
-        Mockito.verify(integration, Mockito.never()).onActivitySaveInstanceState(activity, bundle)
+        verify(integration, never()).onActivitySaveInstanceState(activity, bundle)
 
         registeredCallback.get().onActivityDestroyed(activity)
-        Mockito.verify(integration, Mockito.never()).onActivityDestroyed(activity)
+        verify(integration, never()).onActivityDestroyed(activity)
 
-        Mockito.verifyNoMoreInteractions(integration)
+        verifyNoMoreInteractions(integration)
     }
 
     @Test
@@ -1592,74 +1711,77 @@ open class AnalyticsTest {
         val registeredCallback = AtomicReference<DefaultLifecycleObserver>()
         val unregisteredCallback = AtomicReference<DefaultLifecycleObserver>()
 
-        Mockito.doNothing()
-                .whenever(lifecycle)
-                .addObserver(
-                        argThat<LifecycleObserver>(
-                                object : NoDescriptionMatcher<LifecycleObserver>() {
-                                    override fun matchesSafely(item: LifecycleObserver): Boolean {
-                                        registeredCallback.set(item as DefaultLifecycleObserver)
-                                        return true
-                                    }
-                                }))
-        Mockito.doNothing()
-                .whenever(lifecycle)
-                .removeObserver(
-                        argThat<LifecycleObserver>(
-                                object : NoDescriptionMatcher<LifecycleObserver>() {
-                                    override fun matchesSafely(item: LifecycleObserver): Boolean {
-                                        unregisteredCallback.set(item as DefaultLifecycleObserver)
-                                        return true
-                                    }
-                                }))
+        doNothing()
+            .whenever(lifecycle)
+            .addObserver(
+                argThat<LifecycleObserver>(
+                    object : NoDescriptionMatcher<LifecycleObserver>() {
+                        override fun matchesSafely(item: LifecycleObserver): Boolean {
+                            registeredCallback.set(item as DefaultLifecycleObserver)
+                            return true
+                        }
+                    })
+            )
+        doNothing()
+            .whenever(lifecycle)
+            .removeObserver(
+                argThat<LifecycleObserver>(
+                    object : NoDescriptionMatcher<LifecycleObserver>() {
+                        override fun matchesSafely(item: LifecycleObserver): Boolean {
+                            unregisteredCallback.set(item as DefaultLifecycleObserver)
+                            return true
+                        }
+                    })
+            )
         val mockLifecycleOwner = Mockito.mock(LifecycleOwner::class.java)
 
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                false,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            false,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false
+        )
 
         Assertions.assertThat(analytics.shutdown).isFalse()
         analytics.shutdown()
-        val lifecycleObserverSpy = Mockito.spy(analytics.activityLifecycleCallback)
+        val lifecycleObserverSpy = spy(analytics.activityLifecycleCallback)
         // Same callback was registered and unregistered
         Assertions.assertThat(analytics.activityLifecycleCallback).isSameAs(registeredCallback.get())
         Assertions.assertThat(analytics.activityLifecycleCallback).isSameAs(unregisteredCallback.get())
 
         // Verify callbacks do not call through after shutdown
         registeredCallback.get().onCreate(mockLifecycleOwner)
-        Mockito.verify(lifecycleObserverSpy, Mockito.never()).onCreate(mockLifecycleOwner)
+        verify(lifecycleObserverSpy, never()).onCreate(mockLifecycleOwner)
 
         registeredCallback.get().onStop(mockLifecycleOwner)
-        Mockito.verify(lifecycleObserverSpy, Mockito.never()).onStop(mockLifecycleOwner)
+        verify(lifecycleObserverSpy, never()).onStop(mockLifecycleOwner)
 
         registeredCallback.get().onStart(mockLifecycleOwner)
-        Mockito.verify(lifecycleObserverSpy, Mockito.never()).onStart(mockLifecycleOwner)
+        verify(lifecycleObserverSpy, never()).onStart(mockLifecycleOwner)
 
-        Mockito.verifyNoMoreInteractions(lifecycleObserverSpy)
+        verifyNoMoreInteractions(lifecycleObserverSpy)
     }
 
     @Test
@@ -1671,43 +1793,46 @@ open class AnalyticsTest {
         whenever(client.fetchSettings()).thenThrow(IOException::class.java) // Simulate network error
 
         val defaultProjectSettings =
-                ValueMap()
+            ValueMap()
+                .putValue(
+                    "integrations",
+                    ValueMap()
                         .putValue(
-                                "integrations",
-                                ValueMap()
-                                        .putValue(
-                                                "Adjust",
-                                                ValueMap()
-                                                        .putValue("appToken", "<>")
-                                                        .putValue("trackAttributionData", true)))
+                            "Adjust",
+                            ValueMap()
+                                .putValue("appToken", "<>")
+                                .putValue("trackAttributionData", true)
+                        )
+                )
 
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                defaultProjectSettings,
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            defaultProjectSettings,
+            lifecycle,
+            false
+        )
 
         Assertions.assertThat(analytics.projectSettings).hasSize(2)
         Assertions.assertThat(analytics.projectSettings).containsKey("integrations")
@@ -1726,32 +1851,33 @@ open class AnalyticsTest {
 
         val defaultProjectSettings = ValueMap()
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                defaultProjectSettings,
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            defaultProjectSettings,
+            lifecycle,
+            false
+        )
 
         Assertions.assertThat(analytics.projectSettings).hasSize(2)
         Assertions.assertThat(analytics.projectSettings).containsKey("integrations")
@@ -1768,61 +1894,64 @@ open class AnalyticsTest {
         whenever(client.fetchSettings()).thenThrow(IOException::class.java) // Simulate network error
 
         val defaultProjectSettings = ValueMap()
-                .putValue(
-                        "integrations",
+            .putValue(
+                "integrations",
+                ValueMap()
+                    .putValue(
+                        "Segment.io",
                         ValueMap()
-                                .putValue(
-                                        "Segment.io",
-                                        ValueMap()
-                                                .putValue("appToken", "<>")
-                                                .putValue("trackAttributionData", true)))
+                            .putValue("appToken", "<>")
+                            .putValue("trackAttributionData", true)
+                    )
+            )
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                defaultProjectSettings,
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            defaultProjectSettings,
+            lifecycle,
+            false
+        )
 
         Assertions.assertThat(analytics.projectSettings).hasSize(2)
         Assertions.assertThat(analytics.projectSettings).containsKey("integrations")
         Assertions.assertThat(analytics.projectSettings.integrations()).containsKey("Segment.io")
         Assertions.assertThat(analytics.projectSettings.integrations()).hasSize(1)
         Assertions.assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
-                .hasSize(3)
+            .hasSize(3)
         Assertions.assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
-                .containsKey("apiKey")
+            .containsKey("apiKey")
         Assertions.assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
-                .containsKey("appToken")
+            .containsKey("appToken")
         Assertions.assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
-                .containsKey("trackAttributionData")
+            .containsKey("trackAttributionData")
     }
 
     @Test
     fun overridingOptionsDoesNotModifyGlobalAnalytics() {
         analytics.track("event", null, Options().putContext("testProp", true))
         val payload = ArgumentCaptor.forClass(TrackPayload::class.java)
-        Mockito.verify(integration).track(payload.capture())
+        verify(integration).track(payload.capture())
         Assertions.assertThat(payload.value.context()).containsKey("testProp")
         Assertions.assertThat(payload.value.context()["testProp"]).isEqualTo(true)
         Assertions.assertThat(analytics.analyticsContext).doesNotContainKey("testProp")
@@ -1832,7 +1961,7 @@ open class AnalyticsTest {
     fun overridingOptionsWithDefaultOptionsPlusAdditional() {
         analytics.track("event", null, analytics.getDefaultOptions().putContext("testProp", true))
         val payload = ArgumentCaptor.forClass(TrackPayload::class.java)
-        Mockito.verify(integration).track(payload.capture())
+        verify(integration).track(payload.capture())
         Assertions.assertThat(payload.value.context()).containsKey("testProp")
         Assertions.assertThat(payload.value.context()["testProp"]).isEqualTo(true)
         Assertions.assertThat(analytics.analyticsContext).doesNotContainKey("testProp")
@@ -1842,36 +1971,37 @@ open class AnalyticsTest {
     fun enableExperimentalNanosecondResolutionTimestamps() {
         Analytics.INSTANCES.clear()
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                true)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            true
+        )
 
         analytics.track("event")
         val payload = ArgumentCaptor.forClass(TrackPayload::class.java)
-        Mockito.verify(integration).track(payload.capture())
+        verify(integration).track(payload.capture())
         val timestamp = payload.value["timestamp"] as String
         Assertions.assertThat(timestamp).matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{9}Z")
     }
@@ -1880,36 +2010,37 @@ open class AnalyticsTest {
     fun disableExperimentalNanosecondResolutionTimestamps() {
         Analytics.INSTANCES.clear()
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                false,
-                false,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                false)
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false
+        )
 
         analytics.track("event")
         val payload = ArgumentCaptor.forClass(TrackPayload::class.java)
-        Mockito.verify(integration).track(payload.capture())
+        verify(integration).track(payload.capture())
         val timestamp = payload.value["timestamp"] as String
         Assertions.assertThat(timestamp).matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z")
     }
