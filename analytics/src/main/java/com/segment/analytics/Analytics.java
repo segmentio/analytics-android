@@ -1241,8 +1241,7 @@ public class Analytics {
 
         /**
          * Automatically track attribution information from enabled providers. This build option has
-         * been removed.
-         * TODO (major version change)
+         * been removed. TODO (major version change)
          */
         @Deprecated
         public Builder trackAttributionInformation() {
