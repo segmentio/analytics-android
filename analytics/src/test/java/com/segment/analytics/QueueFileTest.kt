@@ -365,8 +365,8 @@ class QueueFileTest {
         for (i in 0 until 7000 step 100) {
             values[100]!!.let {
                 values[100]!!.size.let {
-                    it1 ->
-                    System.arraycopy(it, 0, bigBoy, i, it1)
+                    length ->
+                    System.arraycopy(values[100]!!, 0, bigBoy, i, length)
                 }
             }
         }
@@ -563,16 +563,16 @@ class QueueFileTest {
         queueFile.add(b)
 
         val iteration = intArrayOf(0)
-        val elementVisitor = PayloadQueue.ElementVisitor { `in`, length ->
+        val elementVisitor = PayloadQueue.ElementVisitor { input, length ->
             if (iteration[0] == 0) {
                 Assertions.assertThat(length).isEqualTo(2)
                 val actual = ByteArray(length)
-                `in`.read(actual)
+                input.read(actual)
                 Assertions.assertThat(actual).isEqualTo(a)
             } else if (iteration[0] == 1) {
                 Assertions.assertThat(length).isEqualTo(3)
                 val actual = ByteArray(length)
-                `in`.read(actual)
+                input.read(actual)
                 Assertions.assertThat(actual).isEqualTo(b)
             } else {
                 Assert.fail()
@@ -598,8 +598,8 @@ class QueueFileTest {
         val actual = ByteArray(5)
         val offset = intArrayOf(0)
 
-        val elementVisitor = PayloadQueue.ElementVisitor { `in`, length ->
-            `in`.read(actual, offset[0], length)
+        val elementVisitor = PayloadQueue.ElementVisitor { input, length ->
+            input.read(actual, offset[0], length)
             offset[0] += length
             true
         }
@@ -619,10 +619,10 @@ class QueueFileTest {
         val baos = ByteArrayOutputStream()
         val buffer = ByteArray(8)
 
-        val elementVisitor = PayloadQueue.ElementVisitor { `in`, length -> // A common idiom for copying data between two streams, but it depends on the
+        val elementVisitor = PayloadQueue.ElementVisitor { input, length -> // A common idiom for copying data between two streams, but it depends on the
             // InputStream correctly returning -1 when no more data is available
             var count: Int
-            while (`in`.read(buffer).also { count = it } != -1) {
+            while (input.read(buffer).also { count = it } != -1) {
                 if (count == 0) {
                     // In the past, the ElementInputStream.read(byte[], int, int) method would return 0
                     // when no more bytes were available for reading. This test detects that error.
@@ -655,11 +655,11 @@ class QueueFileTest {
         val b = byteArrayOf(3, 4, 5)
         queueFile.add(b)
         val iteration = AtomicInteger()
-        val elementVisitor = PayloadQueue.ElementVisitor { `in`, length ->
+        val elementVisitor = PayloadQueue.ElementVisitor { input, length ->
             if (iteration.get() == 0) {
                 Assertions.assertThat(length).isEqualTo(2)
                 val actual = ByteArray(length)
-                `in`.read(actual)
+                input.read(actual)
                 Assertions.assertThat(actual).isEqualTo(a)
             } else {
                 Assert.fail()
@@ -715,8 +715,7 @@ class QueueFileTest {
 
             for (i in value.indices) {
                 Assertions.assertThat(value[i])
-                    .isEqualTo((blockNum + 1).toByte())
-                    .`as`("Block " + (blockNum + 1) + " corrupted at byte index " + i)
+                        .isEqualTo((blockNum + 1).toByte()) to "Block " + (blockNum + 1) + " corrupted at byte index " + i
             }
         }
 
@@ -783,8 +782,7 @@ class QueueFileTest {
 
             for (i in value.indices) {
                 Assertions.assertThat(value[i])
-                    .isEqualTo(expectedBlockNumber)
-                    .`as`("Block $expectedBlockNumber corrupted at byte index $i")
+                        .isEqualTo(expectedBlockNumber) to "Block $expectedBlockNumber corrupted at byte index $i"
             }
         }
 
