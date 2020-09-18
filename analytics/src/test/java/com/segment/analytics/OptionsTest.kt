@@ -24,6 +24,7 @@
 package com.segment.analytics
 
 import com.google.common.collect.ImmutableMap
+import kotlin.jvm.Throws
 import org.assertj.core.api.Assertions
 import org.junit.Before
 import org.junit.Test

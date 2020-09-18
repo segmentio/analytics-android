@@ -35,7 +35,7 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
-class ProjectSettingsTestKotlin {
+class ProjectSettingsTest {
 
     @Test
     @Throws(IOException::class)
