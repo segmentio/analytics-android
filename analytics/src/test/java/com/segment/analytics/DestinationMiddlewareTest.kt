@@ -32,6 +32,7 @@ import com.segment.analytics.integrations.Integration
 import com.segment.analytics.integrations.TrackPayload
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.jvm.Throws
 import org.assertj.core.api.Assertions
 import org.junit.Before
 import org.junit.Test

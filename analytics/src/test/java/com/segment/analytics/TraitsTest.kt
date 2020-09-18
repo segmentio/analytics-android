@@ -25,6 +25,7 @@ package com.segment.analytics
 
 import java.lang.Exception
 import java.util.GregorianCalendar
+import kotlin.jvm.Throws
 import org.assertj.core.api.Assertions
 import org.assertj.core.data.MapEntry
 import org.junit.Before

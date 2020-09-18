@@ -28,6 +28,7 @@ import android.content.Context
 import android.provider.Settings.Secure
 import com.segment.analytics.integrations.Logger
 import java.util.concurrent.CountDownLatch
+import kotlin.jvm.Throws
 import org.assertj.core.api.Assertions
 import org.junit.Test
 import org.junit.runner.RunWith

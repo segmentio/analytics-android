@@ -29,6 +29,7 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.util.ArrayList
+import kotlin.jvm.Throws
 import okio.ByteString
 import org.assertj.core.api.Assertions
 import org.junit.Before

@@ -33,6 +33,7 @@ import com.segment.analytics.Analytics.Builder
 import com.segment.analytics.Analytics.WRITE_KEY_RESOURCE_IDENTIFIER
 import com.segment.analytics.core.BuildConfig
 import java.util.concurrent.TimeUnit
+import kotlin.jvm.Throws
 import org.assertj.core.api.Assertions
 import org.junit.Before
 import org.junit.Test

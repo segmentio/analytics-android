@@ -24,6 +24,7 @@
 package com.segment.analytics
 
 import java.io.IOException
+import kotlin.jvm.Throws
 import okio.Buffer
 import okio.ByteString
 import okio.Okio

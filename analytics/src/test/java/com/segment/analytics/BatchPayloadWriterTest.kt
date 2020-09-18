@@ -26,6 +26,7 @@ package com.segment.analytics
 import com.segment.analytics.SegmentIntegration.BatchPayloadWriter
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import kotlin.jvm.Throws
 import org.assertj.core.api.Assertions
 import org.junit.Test
 import org.junit.runner.RunWith

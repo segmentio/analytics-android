@@ -29,6 +29,7 @@ import com.segment.analytics.integrations.Integration
 import java.lang.AssertionError
 import java.lang.IllegalStateException
 import java.lang.reflect.Field
+import kotlin.jvm.Throws
 import org.assertj.core.api.Assertions
 import org.junit.Before
 import org.junit.Test

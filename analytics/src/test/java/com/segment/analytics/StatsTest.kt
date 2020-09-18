@@ -25,6 +25,7 @@ package com.segment.analytics
 
 import android.util.Pair
 import java.io.IOException
+import kotlin.jvm.Throws
 import org.assertj.core.api.Assertions
 import org.assertj.core.data.MapEntry
 import org.junit.Before

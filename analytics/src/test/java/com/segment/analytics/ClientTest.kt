@@ -34,6 +34,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.HttpURLConnection
+import kotlin.jvm.Throws
 import org.assertj.core.api.AbstractAssert
 import org.assertj.core.api.Assertions
 import org.junit.Before

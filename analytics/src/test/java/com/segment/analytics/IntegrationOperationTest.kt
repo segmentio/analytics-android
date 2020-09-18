@@ -32,6 +32,7 @@ import com.segment.analytics.integrations.ScreenPayload
 import com.segment.analytics.integrations.TrackPayload
 import java.io.IOException
 import java.util.Collections
+import kotlin.jvm.Throws
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
