@@ -58,7 +58,6 @@ public class SampleApp extends Application {
                 new Analytics.Builder(this, ANALYTICS_WRITE_KEY)
                         .experimentalNanosecondTimestamps()
                         .trackApplicationLifecycleEvents()
-                        .trackAttributionInformation()
                         .defaultProjectSettings(
                                 new ValueMap()
                                         .putValue(
