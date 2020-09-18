@@ -715,7 +715,7 @@ class QueueFileTest {
 
             for (i in value.indices) {
                 Assertions.assertThat(value[i])
-                        .isEqualTo((blockNum + 1).toByte()) to "Block " + (blockNum + 1) + " corrupted at byte index " + i
+                    .isEqualTo((blockNum + 1).toByte()) to "Block " + (blockNum + 1) + " corrupted at byte index " + i
             }
         }
 
@@ -782,7 +782,7 @@ class QueueFileTest {
 
             for (i in value.indices) {
                 Assertions.assertThat(value[i])
-                        .isEqualTo(expectedBlockNumber) to "Block $expectedBlockNumber corrupted at byte index $i"
+                    .isEqualTo(expectedBlockNumber) to "Block $expectedBlockNumber corrupted at byte index $i"
             }
         }
 
