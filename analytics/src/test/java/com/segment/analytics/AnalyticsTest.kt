@@ -334,7 +334,7 @@ open class AnalyticsTest {
             analytics.screen("", "")
             Assertions.fail("empty category and name should throw exception")
         } catch (expected: IllegalArgumentException) {
-            Assertions.assertThat(expected).hasMessage("category or name must be provided.")
+            Assertions.assertThat(expected).hasMessage("either category or name must be provided.")
         }
     }
 
