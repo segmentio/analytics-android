@@ -42,8 +42,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
-class QueueFileTestKotlin {
-    private val logger = Logger.getLogger(QueueFileTestKotlin::class.java.name)
+class QueueFileTest {
+    private val logger = Logger.getLogger(QueueFileTest::class.java.name)
 
     /**
      * Takes up 33401 bytes in the queue (N*(N+1)/2+4*N). Picked 254 instead of 255 so that the number
