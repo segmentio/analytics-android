@@ -23,7 +23,7 @@
  */
 package com.segment.analytics
 
-import android.Manifest
+import android.Manifest.permission.INTERNET
 import com.google.common.util.concurrent.MoreExecutors
 import com.segment.analytics.integrations.BasePayload
 import com.segment.analytics.integrations.ScreenPayload
@@ -34,7 +34,7 @@ import org.assertj.core.api.Assertions
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.MockitoAnnotations
+import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
@@ -47,9 +47,9 @@ class SourceMiddlewareTest {
 
     @Before
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
+        initMocks(this)
         Analytics.INSTANCES.clear()
-        TestUtils.grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET)
+        TestUtils.grantPermission(RuntimeEnvironment.application, INTERNET)
         builder =
             Analytics.Builder(RuntimeEnvironment.application, "write_key")
                 .executor(MoreExecutors.newDirectExecutorService())
@@ -94,7 +94,7 @@ class SourceMiddlewareTest {
     }
 
     @Test
-    @Throws(java.lang.Exception::class)
+    @Throws(Exception::class)
     fun middlewareCanTransform() {
         val payloadRef = AtomicReference<BasePayload>()
         val analytics = builder
