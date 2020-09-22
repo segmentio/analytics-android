@@ -144,18 +144,23 @@ class SegmentIntegrationTest {
         segmentIntegration.performEnqueue(trackPayload)
         val expected =
             (
-                "{" +
-                    "\"channel\":\"mobile\"," +
-                    "\"type\":\"track\"," +
-                    "\"messageId\":\"a161304c-498c-4830-9291-fcfb8498877b\"," +
-                    "\"timestamp\":\"2014-12-15T20:32:44.000Z\"," +
-                    "\"context\":{}," +
-                    "\"integrations\":{\"All\":false,\"foo\":true}," +
-                    "\"userId\":\"userId\"," +
-                    "\"anonymousId\":null," +
-                    "\"event\":\"foo\"," +
-                    "\"properties\":{}" +
-                    "}"
+                """
+                      {
+                        "channel": "mobile",
+                        "type": "track",
+                        "messageId": "a161304c-498c-4830-9291-fcfb8498877b",
+                        "timestamp": "2014-12-15T20:32:44.000Z",
+                        "context": {},
+                        "integrations": {
+                            "All": false,
+                            "foo": true
+                        },
+                        "userId": "userId",                                                                                                            
+                        "anonymousId": null,
+                        "event": "foo",
+                        "properties": {}
+                      }  
+                """.trimIndent().replace("\n", "").replace(" ", "")
                 )
         val captor = forClass(ByteArray::class.java)
         verify(payloadQueue).add(captor.capture())
@@ -527,8 +532,7 @@ class SegmentIntegrationTest {
           "ip": "80.186.195.102",
           "inferredIp": true
         }
-      }"""
-                .trimMargin().toByteArray() // length 1432
+      }""".toByteArray() // length 1432
         // Fill the payload with (1432 * 500) = ~716kb of data
 
         for (i in 0 until 500) {
