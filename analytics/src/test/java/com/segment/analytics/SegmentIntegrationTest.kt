@@ -470,8 +470,7 @@ class SegmentIntegrationTest {
     @Throws(IOException::class)
     fun payloadVisitorReadsOnly475KB() {
         val payloadWriter = PayloadWriter(
-            mock(BatchPayloadWriter::class.java), Crypto.none()
-        )
+            mock(BatchPayloadWriter::class.java), Crypto.none())
         val bytes =
             """{
         "context": {
