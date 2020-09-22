@@ -355,7 +355,7 @@ class SegmentIntegrationTest {
                 .client(client)
                 .payloadQueue(payloadQueue)
                 .build()
-        for (i in 0 until 4) {
+        for (i in 0..3) {
             payloadQueue.add(TRACK_PAYLOAD_JSON.toByteArray())
         }
 
@@ -387,7 +387,7 @@ class SegmentIntegrationTest {
             .client(client)
             .payloadQueue(payloadQueue)
             .build()
-        for (i in 0 until 4) {
+        for (i in 0..3) {
             payloadQueue.add(TRACK_PAYLOAD_JSON.toByteArray())
         }
         segmentIntegration.submitFlush()
@@ -419,7 +419,7 @@ class SegmentIntegrationTest {
             .client(client)
             .payloadQueue(payloadQueue)
             .build()
-        for (i in 0 until 4) {
+        for (i in 0..3) {
             payloadQueue.add(TRACK_PAYLOAD_JSON.toByteArray())
         }
         segmentIntegration.submitFlush()
@@ -452,7 +452,7 @@ class SegmentIntegrationTest {
 
         // Serialized json is too large (> MAX_PAYLOAD_SIZE).
         val stringBuilder = StringBuilder()
-        for (i in 0 until MAX_PAYLOAD_SIZE + 1) {
+        for (i in 0..MAX_PAYLOAD_SIZE) {
             stringBuilder.append("a")
         }
         whenever(cartographer.toJson(any(Map::class.java))).thenReturn(stringBuilder.toString())
@@ -535,7 +535,7 @@ class SegmentIntegrationTest {
       }""".toByteArray() // length 1432
         // Fill the payload with (1432 * 500) = ~716kb of data
 
-        for (i in 0 until 500) {
+        for (i in 0..499) {
             queueFile.add(bytes)
         }
 
