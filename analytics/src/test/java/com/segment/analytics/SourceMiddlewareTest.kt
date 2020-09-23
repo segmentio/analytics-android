@@ -28,6 +28,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.segment.analytics.integrations.BasePayload
 import com.segment.analytics.integrations.ScreenPayload
 import com.segment.analytics.integrations.TrackPayload
+import java.lang.AssertionError
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.jvm.Throws
 import org.assertj.core.api.Assertions
@@ -61,15 +62,14 @@ class SourceMiddlewareTest {
         val payloadRef = AtomicReference<TrackPayload>()
         val analytics: Analytics =
             builder
-                .useSourceMiddleware(
-                    fun(chain: Middleware.Chain) {
-                        payloadRef.set(chain.payload() as TrackPayload)
-                    }
-                )
                 .useSourceMiddleware {
-                    fun intercept(chain: Middleware.Chain) {
-                        throw AssertionError("should not be invoked")
-                    }
+                    chain ->
+                    val payload = chain.payload()
+                    payloadRef.set(payload as TrackPayload)
+                    chain.proceed(payload)
+                }
+                .useSourceMiddleware {
+                    throw AssertionError("should not be invoked")
                 }
                 .build()
 
