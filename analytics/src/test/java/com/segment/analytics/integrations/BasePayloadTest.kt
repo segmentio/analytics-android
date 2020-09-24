@@ -107,7 +107,7 @@ class BasePayloadTest {
             val builder = builders[i]
 
             try {
-                builder.userId(" ") // null
+                builder.userId(any())
                 Assert.fail()
             } catch (e: NullPointerException) {
                 Assertions.assertThat(e).hasMessage("userId cannot be null or empty")
@@ -151,7 +151,7 @@ class BasePayloadTest {
             val builder = builders[i]
 
             try {
-                builder.messageId(" ") // null
+                builder.messageId(any())
                 Assert.fail()
             } catch (e: NullPointerException) {
                 Assertions.assertThat(e).hasMessage("messageId cannot be null or empty")
@@ -241,7 +241,7 @@ class BasePayloadTest {
             try {
                 //noinspection CheckResult,ConstantConditions
                 builder.integration(any(), ImmutableMap.of("foo", "bar") as Map<String, Any>)
-                Assert.fail() // null
+                Assert.fail()
             } catch (e: NullPointerException) {
                 Assertions.assertThat(e).hasMessage("key cannot be null or empty")
             }
