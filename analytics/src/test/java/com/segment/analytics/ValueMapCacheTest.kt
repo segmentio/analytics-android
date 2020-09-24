@@ -34,7 +34,7 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
-class ValueMapCacheTestKt {
+class ValueMapCacheTest {
     private lateinit var traitsCache: ValueMap.Cache<Traits>
     private lateinit var cartographer: Cartographer
 
