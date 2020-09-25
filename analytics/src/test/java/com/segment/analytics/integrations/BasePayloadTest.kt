@@ -25,12 +25,11 @@ package com.segment.analytics.integrations
 
 import androidx.annotation.Nullable
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
 import com.nhaarman.mockitokotlin2.any
 import com.segment.analytics.integrations.BasePayload.Type
 import java.util.Date
 import org.assertj.core.api.Assertions
-import org.assertj.core.data.MapEntry
+import org.assertj.core.data.MapEntry.entry
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -47,7 +46,7 @@ class BasePayloadTest {
                 TrackPayload.Builder().event("event"),
                 ScreenPayload.Builder().name("name"),
                 GroupPayload.Builder().groupId("groupId"),
-                IdentifyPayload.Builder().traits(ImmutableMap.of<String, Any>("foo", "bar"))
+                IdentifyPayload.Builder().traits(mapOf("foo" to "bar"))
             )
     }
 
@@ -61,10 +60,9 @@ class BasePayloadTest {
 
     @Test
     fun nullTimestampThrows() {
-        for (i in 1 until builders.size) {
-            val builder = builders[i]
+        for (element in builders) {
             try {
-                builder.timestamp(any())
+                element.timestamp(any())
                 Assert.fail()
             } catch (e: NullPointerException) {
                 Assertions.assertThat(e).hasMessage("timestamp == null")
@@ -202,10 +200,10 @@ class BasePayloadTest {
     fun context() {
         for (builder in builders) {
             val payload =
-                builder.userId("user_id").context(ImmutableMap.of("foo", "bar")).build()
-            Assertions.assertThat(payload.context()).containsExactly(MapEntry.entry("foo", "bar"))
+                builder.userId("user_id").context(mapOf("foo" to "bar")).build()
+            Assertions.assertThat(payload.context()).containsExactly(entry("foo", "bar"))
             Assertions.assertThat(payload)
-                .containsEntry(BasePayload.CONTEXT_KEY, ImmutableMap.of("foo", "bar"))
+                .containsEntry(BasePayload.CONTEXT_KEY, mapOf("foo" to "bar"))
         }
     }
 
@@ -240,7 +238,7 @@ class BasePayloadTest {
 
             try {
                 //noinspection CheckResult,ConstantConditions
-                builder.integration(any(), ImmutableMap.of("foo", "bar") as Map<String, Any>)
+                builder.integration(any(), mapOf("foo" to "bar") as Map<String, Any>)
                 Assert.fail()
             } catch (e: NullPointerException) {
                 Assertions.assertThat(e).hasMessage("key cannot be null or empty")
@@ -248,7 +246,7 @@ class BasePayloadTest {
 
             try {
                 //noinspection CheckResult,ConstantConditions
-                builder.integration("", ImmutableMap.of("foo", "bar") as Map<String, Any>)
+                builder.integration("", mapOf("foo" to "bar") as Map<String, Any>)
                 Assert.fail()
             } catch (e: NullPointerException) {
                 Assertions.assertThat(e).hasMessage("key cannot be null or empty")
@@ -262,7 +260,7 @@ class BasePayloadTest {
             }
 
             try {
-                builder.integration("bar", ImmutableMap.of())
+                builder.integration("bar", mapOf())
                 Assert.fail()
             } catch (e: NullPointerException) {
                 Assertions.assertThat(e).hasMessage("options cannot be null or empty")
@@ -274,10 +272,10 @@ class BasePayloadTest {
     fun integrations() {
         for (builder in builders) {
             val payload =
-                builder.userId("user_id").integrations(ImmutableMap.of("foo", "bar")).build()
-            Assertions.assertThat(payload.integrations()).containsExactly(MapEntry.entry("foo", "bar"))
+                builder.userId("user_id").integrations(mapOf("foo" to "bar")).build()
+            Assertions.assertThat(payload.integrations()).containsExactly(entry("foo", "bar"))
             Assertions.assertThat(payload)
-                .containsEntry(BasePayload.INTEGRATIONS_KEY, ImmutableMap.of("foo", "bar"))
+                .containsEntry(BasePayload.INTEGRATIONS_KEY, mapOf("foo" to "bar"))
         }
     }
 
@@ -285,7 +283,7 @@ class BasePayloadTest {
     fun integration() {
         for (builder in builders) {
             val payload = builder.userId("user_id").integration("foo", false).build()
-            Assertions.assertThat(payload.integrations()).containsExactly(MapEntry.entry("foo", false))
+            Assertions.assertThat(payload.integrations()).containsExactly(entry("foo", false))
         }
     }
 
@@ -295,9 +293,9 @@ class BasePayloadTest {
             val payload =
                 builder
                     .userId("user_id")
-                    .integration("foo", ImmutableMap.of("bar", true) as Map<String, Any>).build()
+                    .integration("foo", mapOf("bar" to true)).build()
             Assertions.assertThat(payload.integrations())
-                .containsExactly(MapEntry.entry("foo", ImmutableMap.of("bar", true)))
+                .containsExactly(entry("foo", mapOf("bar" to true)))
         }
     }
 
