@@ -24,7 +24,6 @@
 package com.segment.analytics.integrations
 
 import androidx.annotation.Nullable
-import com.google.common.collect.ImmutableList
 import com.nhaarman.mockitokotlin2.any
 import com.segment.analytics.integrations.BasePayload.Type
 import java.util.Date
@@ -41,7 +40,7 @@ class BasePayloadTest {
     @Before
     fun setUp() {
         builders =
-            ImmutableList.of(
+            listOf(
                 AliasPayload.Builder().previousId("previousId").userId("userId"),
                 TrackPayload.Builder().event("event"),
                 ScreenPayload.Builder().name("name"),
