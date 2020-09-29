@@ -21,46 +21,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.segment.analytics.integrations;
+package com.segment.analytics.integrations
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import com.nhaarman.mockitokotlin2.any
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.Assert.fail
+import org.junit.Before
+import org.junit.Test
 
-import org.junit.Before;
-import org.junit.Test;
+class AliasPayloadTest {
 
-public class AliasPayloadTest {
-
-    private AliasPayload.Builder builder;
+    lateinit var builder: AliasPayload.Builder
 
     @Before
-    public void setUp() {
-        builder = new AliasPayload.Builder().previousId("previousId").userId("userId");
+    fun setUp() {
+        builder = AliasPayload.Builder().previousId("previousId").userId("userId")
     }
 
     @Test
-    public void previousId() {
-        AliasPayload payload = builder.previousId("previous_id").build();
-        assertThat(payload.previousId()).isEqualTo("previous_id");
-        assertThat(payload).containsEntry(AliasPayload.PREVIOUS_ID_KEY, "previous_id");
+    fun previousId() {
+        val payload = builder.previousId("previous_id").build()
+        assertThat(payload.previousId()).isEqualTo("previous_id")
+        assertThat(payload).containsEntry(AliasPayload.PREVIOUS_ID_KEY, "previous_id")
     }
 
     @Test
-    public void invalidPreviousIdThrows() {
+    fun invalidPreviousIdThrows() {
         try {
-            //noinspection CheckResult,ConstantConditions
-            builder.previousId(null);
-            fail();
-        } catch (NullPointerException e) {
-            assertThat(e).hasMessage("previousId cannot be null or empty");
+            builder.previousId(any())
+            fail()
+        } catch (e: NullPointerException) {
+            assertThat(e).hasMessage("previousId cannot be null or empty")
         }
-
         try {
-            //noinspection CheckResult
-            builder.previousId("");
-            fail();
-        } catch (NullPointerException e) {
-            assertThat(e).hasMessage("previousId cannot be null or empty");
+            builder.previousId("")
+            fail()
+        } catch (e: NullPointerException) {
+            assertThat(e).hasMessage("previousId cannot be null or empty")
         }
     }
 }
