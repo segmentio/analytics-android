@@ -24,8 +24,8 @@
 package com.segment.analytics.integrations
 
 import com.nhaarman.mockitokotlin2.any
-import org.assertj.core.api.Assertions
-import org.junit.Assert
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 
@@ -41,23 +41,23 @@ class AliasPayloadTest {
     @Test
     fun previousId() {
         val payload = builder.previousId("previous_id").build()
-        Assertions.assertThat(payload.previousId()).isEqualTo("previous_id")
-        Assertions.assertThat(payload).containsEntry(AliasPayload.PREVIOUS_ID_KEY, "previous_id")
+        assertThat(payload.previousId()).isEqualTo("previous_id")
+        assertThat(payload).containsEntry(AliasPayload.PREVIOUS_ID_KEY, "previous_id")
     }
 
     @Test
     fun invalidPreviousIdThrows() {
         try {
             builder.previousId(any())
-            Assert.fail()
+            fail()
         } catch (e: NullPointerException) {
-            Assertions.assertThat(e).hasMessage("previousId cannot be null or empty")
+            assertThat(e).hasMessage("previousId cannot be null or empty")
         }
         try {
             builder.previousId("")
-            Assert.fail()
+            fail()
         } catch (e: NullPointerException) {
-            Assertions.assertThat(e).hasMessage("previousId cannot be null or empty")
+            assertThat(e).hasMessage("previousId cannot be null or empty")
         }
     }
 }
