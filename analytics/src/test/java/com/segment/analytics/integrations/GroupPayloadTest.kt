@@ -24,7 +24,6 @@
 package com.segment.analytics.integrations
 
 import androidx.annotation.Nullable
-import com.google.common.collect.ImmutableMap
 import com.nhaarman.mockitokotlin2.any
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Assert.fail
@@ -90,11 +89,11 @@ class GroupPayloadTest {
     fun traits() {
         val payload = builder
             .groupId("group_id")
-            .traits(ImmutableMap.of<String, String>("foo", "bar"))
+            .traits(mapOf("foo" to "bar"))
             .build()
         assertThat(payload.traits())
-            .isEqualTo(ImmutableMap.of("foo", "bar"))
+            .isEqualTo(mapOf("foo" to "bar"))
         assertThat(payload)
-            .containsEntry(GroupPayload.TRAITS_KEY, ImmutableMap.of("foo", "bar"))
+            .containsEntry(GroupPayload.TRAITS_KEY, mapOf("foo" to "bar"))
     }
 }
