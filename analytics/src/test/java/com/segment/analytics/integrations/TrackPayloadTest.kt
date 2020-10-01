@@ -41,7 +41,6 @@ class TrackPayloadTest {
 
     @Test
     fun invalidEventThrows() {
-        //noinspection CheckResult,ConstantConditions
         try {
             builder.event(any())
             fail()
@@ -66,7 +65,6 @@ class TrackPayloadTest {
 
     @Test
     fun eventIsRequired() {
-        //noinspection CheckResult,ConstantConditions
         try {
             builder.build()
             fail()
@@ -78,7 +76,6 @@ class TrackPayloadTest {
     @Test
     fun invalidPropertiesThrow() {
         try {
-            //noinspection CheckResult,ConstantConditions
             builder.properties(any())
             fail()
         } catch (e: NullPointerException) {
