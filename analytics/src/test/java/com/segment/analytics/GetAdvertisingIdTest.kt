@@ -29,7 +29,7 @@ import android.provider.Settings.Secure
 import com.segment.analytics.integrations.Logger
 import java.util.concurrent.CountDownLatch
 import kotlin.jvm.Throws
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -51,7 +51,7 @@ class GetAdvertisingIdTest {
             GetAdvertisingIdTask(context, latch, Logger.with(Analytics.LogLevel.VERBOSE))
         task.execute(RuntimeEnvironment.application)
         latch.await()
-        Assertions.assertThat(context.device()).doesNotContainKey("advertisingId")
+        assertThat(context.device()).doesNotContainKey("advertisingId")
     }
 
     @Test
@@ -71,8 +71,8 @@ class GetAdvertisingIdTest {
         task.execute(context)
         latch.await()
 
-        Assertions.assertThat(analyticsContext.device()).doesNotContainKey("advertisingId")
-        Assertions.assertThat(analyticsContext.device()).containsEntry("adTrackingEnabled", false)
+        assertThat(analyticsContext.device()).doesNotContainKey("advertisingId")
+        assertThat(analyticsContext.device()).containsEntry("adTrackingEnabled", false)
     }
 
     @Test
@@ -93,8 +93,8 @@ class GetAdvertisingIdTest {
         task.execute(context)
         latch.await()
 
-        Assertions.assertThat(analyticsContext.device())
+        assertThat(analyticsContext.device())
             .containsEntry("advertisingId", "df07c7dc-cea7-4a89-b328-810ff5acb15d")
-        Assertions.assertThat(analyticsContext.device()).containsEntry("adTrackingEnabled", true)
+        assertThat(analyticsContext.device()).containsEntry("adTrackingEnabled", true)
     }
 }

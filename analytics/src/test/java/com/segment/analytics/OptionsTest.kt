@@ -25,7 +25,8 @@ package com.segment.analytics
 
 import com.google.common.collect.ImmutableMap
 import kotlin.jvm.Throws
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,9 +46,9 @@ class OptionsTest {
     fun disallowsDisablingSegmentIntegration() {
         try {
             options.setIntegration("Segment.io", true)
-            Assertions.fail("shouldn't be able to set option for Segment integration.")
+            fail("shouldn't be able to set option for Segment integration.")
         } catch (expected: IllegalArgumentException) {
-            Assertions.assertThat(expected)
+            assertThat(expected)
                 .hasMessage("Segment integration cannot be enabled or disabled.")
         }
     }
@@ -68,7 +69,7 @@ class OptionsTest {
             ImmutableMap.Builder<String, Any>().put("appId", "bar").build()
         )
 
-        Assertions.assertThat(options.integrations()).isEqualTo(
+        assertThat(options.integrations()).isEqualTo(
             ImmutableMap.Builder<String, Any>()
                 .put("Mixpanel", true)
                 .put("All", false)
@@ -93,7 +94,7 @@ class OptionsTest {
             ImmutableMap.Builder<String, Any>().put("name", "analytics-test").build()
         )
 
-        Assertions.assertThat(options.context()).isEqualTo(
+        assertThat(options.context()).isEqualTo(
             ImmutableMap.Builder<String, Any>()
                 .put("foo", "bar")
                 .put(

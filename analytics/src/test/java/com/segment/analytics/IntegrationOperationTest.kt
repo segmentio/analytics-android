@@ -37,7 +37,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.Mockito
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -60,7 +61,7 @@ class IntegrationOperationTest {
     fun trackNoOptions() {
         val payload = TrackPayload.Builder().event("event").userId("userId").build()
         track(payload, "Mixpanel", emptyMap())
-        Mockito.verify(integration).track(payload)
+        verify(integration).track(payload)
     }
 
     @Test
@@ -71,7 +72,7 @@ class IntegrationOperationTest {
             .integrations(Collections.singletonMap("Mixpanel", false))
             .build()
         track(payload, "Mixpanel", emptyMap())
-        Mockito.verify(integration, Mockito.never()).track(payload)
+        verify(integration, never()).track(payload)
     }
 
     @Test
@@ -82,7 +83,7 @@ class IntegrationOperationTest {
             .integrations(Collections.singletonMap("All", false))
             .build()
         track(payload, "Mixpanel", emptyMap())
-        Mockito.verify(integration, Mockito.never()).track(payload)
+        verify(integration, never()).track(payload)
     }
 
     @Test
@@ -93,7 +94,7 @@ class IntegrationOperationTest {
             .integrations(ImmutableMap.of("All", false, "Mixpanel", true))
             .build()
         track(payload, "Mixpanel", emptyMap())
-        Mockito.verify(integration).track(payload)
+        verify(integration).track(payload)
     }
 
     @Test
@@ -104,7 +105,7 @@ class IntegrationOperationTest {
             .integrations(ImmutableMap.of<String, Any?>("All", false, "Mixpanel", emptyMap<Any, Any>()))
             .build()
         track(payload, "Mixpanel", emptyMap())
-        Mockito.verify(integration).track(payload)
+        verify(integration).track(payload)
     }
 
     @Test
@@ -127,7 +128,7 @@ class IntegrationOperationTest {
                   """
             )
         )
-        Mockito.verify(integration).track(payload)
+        verify(integration).track(payload)
     }
 
     @Test
@@ -153,7 +154,7 @@ class IntegrationOperationTest {
                   """
             )
         )
-        Mockito.verify(integration, Mockito.never()).track(payload)
+        verify(integration, never()).track(payload)
     }
 
     @Test
@@ -179,7 +180,7 @@ class IntegrationOperationTest {
                   """
             )
         )
-        Mockito.verify(integration, Mockito.never()).track(payload)
+        verify(integration, never()).track(payload)
     }
 
     @Test
@@ -204,7 +205,7 @@ class IntegrationOperationTest {
                   """
             )
         )
-        Mockito.verify(integration, Mockito.never()).track(payload)
+        verify(integration, never()).track(payload)
     }
 
     @Test
@@ -229,7 +230,7 @@ class IntegrationOperationTest {
                   """
             )
         )
-        Mockito.verify(integration).track(payload)
+        verify(integration).track(payload)
     }
 
     @Test
@@ -256,7 +257,7 @@ class IntegrationOperationTest {
                   """
             )
         )
-        Mockito.verify(integration, Mockito.never()).track(payload)
+        verify(integration, never()).track(payload)
     }
 
     @Test
@@ -282,7 +283,7 @@ class IntegrationOperationTest {
             )
         )
 
-        Mockito.verify(integration).track(payload)
+        verify(integration).track(payload)
     }
 
     @Test
@@ -309,7 +310,7 @@ class IntegrationOperationTest {
                   """
             )
         )
-        Mockito.verify(integration).track(payload)
+        verify(integration).track(payload)
     }
 
     @Test
@@ -335,7 +336,7 @@ class IntegrationOperationTest {
             )
         )
 
-        Mockito.verify(integration).track(payload)
+        verify(integration).track(payload)
     }
 
     @Test
@@ -360,7 +361,7 @@ class IntegrationOperationTest {
                   """
             )
         )
-        Mockito.verify(integration, Mockito.never()).track(payload)
+        verify(integration, never()).track(payload)
     }
 
     @Test
@@ -385,7 +386,7 @@ class IntegrationOperationTest {
                   """
             )
         )
-        Mockito.verify(integration).track(payload)
+        verify(integration).track(payload)
     }
 
     @Test
@@ -413,7 +414,7 @@ class IntegrationOperationTest {
                   """
             )
         )
-        Mockito.verify(integration, Mockito.never()).track(payload)
+        verify(integration, never()).track(payload)
     }
 
     @Test
@@ -421,7 +422,7 @@ class IntegrationOperationTest {
         val payload = IdentifyPayload.Builder().userId("userId").build()
         IntegrationOperation.segmentEvent(payload, emptyMap())
             .run("Mixpanel", integration, ProjectSettings(emptyMap()))
-        Mockito.verify(integration).identify(payload)
+        verify(integration).identify(payload)
     }
 
     @Test
@@ -430,7 +431,7 @@ class IntegrationOperationTest {
             .previousId("foo").userId("userId").build()
         IntegrationOperation.segmentEvent(payload, emptyMap())
             .run("Mixpanel", integration, ProjectSettings(emptyMap()))
-        Mockito.verify(integration).alias(payload)
+        verify(integration).alias(payload)
     }
 
     @Test
@@ -439,7 +440,7 @@ class IntegrationOperationTest {
             .userId("userId").groupId("bar").build()
         IntegrationOperation.segmentEvent(payload, emptyMap())
             .run("Mixpanel", integration, ProjectSettings(emptyMap()))
-        Mockito.verify(integration).group(payload)
+        verify(integration).group(payload)
     }
 
     @Test
@@ -448,7 +449,7 @@ class IntegrationOperationTest {
             .userId("userId").event("foo").build()
         IntegrationOperation.segmentEvent(payload, emptyMap())
             .run("Mixpanel", integration, ProjectSettings(emptyMap()))
-        Mockito.verify(integration).track(payload)
+        verify(integration).track(payload)
     }
 
     @Test
@@ -457,6 +458,6 @@ class IntegrationOperationTest {
             .userId("userId").name("foobar").build()
         IntegrationOperation.segmentEvent(payload, emptyMap())
             .run("Mixpanel", integration, ProjectSettings(emptyMap()))
-        Mockito.verify(integration).screen(payload)
+        verify(integration).screen(payload)
     }
 }

@@ -28,7 +28,7 @@ import kotlin.jvm.Throws
 import okio.Buffer
 import okio.ByteString
 import okio.Okio
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -47,7 +47,7 @@ class CryptoTest {
 
         foo.write(crypto.encrypt(buffer.outputStream()))
 
-        Assertions.assertThat(buffer.readByteString()).isEqualTo(foo)
+        assertThat(buffer.readByteString()).isEqualTo(foo)
     }
 
     @Test
@@ -58,7 +58,7 @@ class CryptoTest {
 
         buffer.write(foo)
 
-        Assertions.assertThat(Okio.buffer(Okio.source(crypto.decrypt(buffer.inputStream()))).readByteString())
+        assertThat(Okio.buffer(Okio.source(crypto.decrypt(buffer.inputStream()))).readByteString())
             .isEqualTo(foo)
     }
 }

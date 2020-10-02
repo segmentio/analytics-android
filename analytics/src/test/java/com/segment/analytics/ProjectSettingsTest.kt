@@ -26,8 +26,8 @@ package com.segment.analytics
 import java.io.IOException
 import java.lang.UnsupportedOperationException
 import kotlin.jvm.Throws
-import org.assertj.core.api.Assertions
-import org.junit.Assert
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -74,13 +74,13 @@ class ProjectSettingsTest {
                     """.trimMargin()
         val projectSettings = ProjectSettings.create(cartographer.fromJson(projectSettingsJson))
 
-        Assertions.assertThat(projectSettings).hasSize(5)
-        Assertions.assertThat(projectSettings).containsKey("timestamp")
-        Assertions.assertThat(projectSettings).containsKey("Segment.io")
+        assertThat(projectSettings).hasSize(5)
+        assertThat(projectSettings).containsKey("timestamp")
+        assertThat(projectSettings).containsKey("Segment.io")
 
         try {
             projectSettings["foo"] = "bar"
-            Assert.fail("projectSettings should be immutable")
+            fail("projectSettings should be immutable")
         } catch (ignored: UnsupportedOperationException) {
         }
     }

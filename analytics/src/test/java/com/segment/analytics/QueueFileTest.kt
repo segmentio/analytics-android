@@ -35,7 +35,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Logger
 import kotlin.NoSuchElementException
 import kotlin.jvm.Throws
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -81,10 +82,10 @@ class QueueFileTest {
         var queue = QueueFile(file)
         val expected = values[253]
         queue.add(expected)
-        Assertions.assertThat(queue.peek()).isEqualTo(expected)
+        assertThat(queue.peek()).isEqualTo(expected)
         queue.close()
         queue = QueueFile(file)
-        Assertions.assertThat(queue.peek()).isEqualTo(expected)
+        assertThat(queue.peek()).isEqualTo(expected)
     }
 
     @Test
@@ -98,14 +99,14 @@ class QueueFileTest {
         val data = ByteArray(expected!!.size)
         queue.raf.seek((HEADER_LENGTH + Element.HEADER_LENGTH).toLong())
         queue.raf.readFully(data, 0, expected.size)
-        Assertions.assertThat(data).isEqualTo(expected)
+        assertThat(data).isEqualTo(expected)
 
         queue.clear()
 
         // Should have been erased.
         queue.raf.seek((HEADER_LENGTH + Element.HEADER_LENGTH).toLong())
         queue.raf.readFully(data, 0, expected.size)
-        Assertions.assertThat(data).isEqualTo(ByteArray(expected.size))
+        assertThat(data).isEqualTo(ByteArray(expected.size))
     }
 
     @Test
@@ -117,11 +118,11 @@ class QueueFileTest {
         queue.clear()
 
         queue = QueueFile(file)
-        Assertions.assertThat(queue.isEmpty).isTrue()
-        Assertions.assertThat(queue.peek()).isNull()
+        assertThat(queue.isEmpty).isTrue()
+        assertThat(queue.peek()).isNull()
 
         queue.add(values[25])
-        Assertions.assertThat(queue.peek()).isEqualTo(values[25])
+        assertThat(queue.peek()).isEqualTo(values[25])
     }
 
     @Test
@@ -139,17 +140,17 @@ class QueueFileTest {
         val data = ByteArray(firstStuff!!.size)
         queue.raf.seek((HEADER_LENGTH + Element.HEADER_LENGTH).toLong())
         queue.raf.readFully(data, 0, firstStuff.size)
-        Assertions.assertThat(data).isEqualTo(firstStuff)
+        assertThat(data).isEqualTo(firstStuff)
 
         queue.remove()
 
         // Next record is intact
-        Assertions.assertThat(queue.peek()).isEqualTo(secondStuff)
+        assertThat(queue.peek()).isEqualTo(secondStuff)
 
         // First should have been erased.
         queue.raf.seek((HEADER_LENGTH + Element.HEADER_LENGTH).toLong())
         queue.raf.readFully(data, 0, firstStuff.size)
-        Assertions.assertThat(data).isEqualTo(ByteArray(firstStuff.size))
+        assertThat(data).isEqualTo(ByteArray(firstStuff.size))
     }
 
     @Test
@@ -162,9 +163,9 @@ class QueueFileTest {
 
         try {
             QueueFile(file)
-            Assertions.fail("Should have thrown about bad header length")
+            fail("Should have thrown about bad header length")
         } catch (e: IOException) {
-            Assertions.assertThat(e).hasMessage("File is corrupt; length stored in header (0) is invalid.")
+            assertThat(e).hasMessage("File is corrupt; length stored in header (0) is invalid.")
         }
     }
 
@@ -180,9 +181,9 @@ class QueueFileTest {
 
         try {
             QueueFile(file)
-            Assertions.fail("Should have thrown about bad header length")
+            fail("Should have thrown about bad header length")
         } catch (ex: IOException) {
-            Assertions.assertThat(ex)
+            assertThat(ex)
                 .hasMessage("File is corrupt; length stored in header (-2147483648) is invalid.")
         }
     }
@@ -201,9 +202,9 @@ class QueueFileTest {
 
         try {
             QueueFile(file)
-            Assertions.fail("Should have thrown about bad first position value")
+            fail("Should have thrown about bad first position value")
         } catch (ex: IOException) {
-            Assertions.assertThat(ex)
+            assertThat(ex)
                 .hasMessage("File is corrupt; first position stored in header (10000) is invalid.")
         }
     }
@@ -222,9 +223,9 @@ class QueueFileTest {
 
         try {
             QueueFile(file)
-            Assertions.fail("Should have thrown about first position value")
+            fail("Should have thrown about first position value")
         } catch (ex: IOException) {
-            Assertions.assertThat(ex)
+            assertThat(ex)
                 .hasMessage("File is corrupt; first position stored in header (-2147483648) is invalid.")
         }
     }
@@ -243,9 +244,9 @@ class QueueFileTest {
 
         try {
             QueueFile(file)
-            Assertions.fail("Should have thrown about bad last position value")
+            fail("Should have thrown about bad last position value")
         } catch (ex: IOException) {
-            Assertions.assertThat(ex)
+            assertThat(ex)
                 .hasMessage("File is corrupt; last position stored in header (10000) is invalid.")
         }
     }
@@ -266,7 +267,7 @@ class QueueFileTest {
             QueueFile(file)
             Assert.fail("Should have thrown about bad last position value")
         } catch (ex: IOException) {
-            Assertions.assertThat(ex)
+            assertThat(ex)
                 .hasMessage("File is corrupt; last position stored in header (-2147483648) is invalid.")
         }
     }
@@ -280,17 +281,17 @@ class QueueFileTest {
         }
 
         queue.remove(1)
-        Assertions.assertThat(queue.size()).isEqualTo(9)
-        Assertions.assertThat(queue.peek()).isEqualTo(values[1])
+        assertThat(queue.size()).isEqualTo(9)
+        assertThat(queue.peek()).isEqualTo(values[1])
 
         queue.remove(3)
         queue = QueueFile(file)
-        Assertions.assertThat(queue.size()).isEqualTo(6)
-        Assertions.assertThat(queue.peek()).isEqualTo(values[4])
+        assertThat(queue.size()).isEqualTo(6)
+        assertThat(queue.peek()).isEqualTo(values[4])
 
         queue.remove(6)
-        Assertions.assertThat(queue.isEmpty).isTrue()
-        Assertions.assertThat(queue.peek()).isNull()
+        assertThat(queue.isEmpty).isTrue()
+        assertThat(queue.peek()).isNull()
     }
 
     @Test
@@ -303,7 +304,7 @@ class QueueFileTest {
         queue.remove()
 
         queue = QueueFile(file)
-        Assertions.assertThat(queue.peek()).isEqualTo(secondStuff)
+        assertThat(queue.peek()).isEqualTo(secondStuff)
     }
 
     @Test
@@ -313,7 +314,7 @@ class QueueFileTest {
 
         try {
             queue.remove()
-            Assertions.fail("Should have thrown about removing from empty file.")
+            fail("Should have thrown about removing from empty file.")
         } catch (ignored: NoSuchElementException) {
         }
     }
@@ -328,7 +329,7 @@ class QueueFileTest {
             queue.remove(-1)
             Assert.fail("Should have thrown about removing negative number of elements.")
         } catch (ex: IllegalArgumentException) {
-            Assertions.assertThat(ex)
+            assertThat(ex)
                 .hasMessage("Cannot remove negative (-1) number of elements.")
         }
     }
@@ -340,7 +341,7 @@ class QueueFileTest {
         queue.add(values[127])
 
         queue.remove(0)
-        Assertions.assertThat(queue.size()).isEqualTo(1)
+        assertThat(queue.size()).isEqualTo(1)
     }
 
     @Test
@@ -351,9 +352,9 @@ class QueueFileTest {
 
         try {
             queue.remove(10)
-            Assertions.fail("Should have thrown about removing too many elements.")
+            fail("Should have thrown about removing too many elements.")
         } catch (ex: java.lang.IllegalArgumentException) {
-            Assertions.assertThat(ex)
+            assertThat(ex)
                 .hasMessage("Cannot remove more elements (10) than present in queue (1).")
         }
     }
@@ -380,17 +381,17 @@ class QueueFileTest {
         val data = ByteArray(bigBoy.size)
         queue.raf.seek((HEADER_LENGTH + Element.HEADER_LENGTH).toLong())
         queue.raf.readFully(data, 0, bigBoy.size)
-        Assertions.assertThat(data).isEqualTo(bigBoy)
+        assertThat(data).isEqualTo(bigBoy)
 
         queue.remove()
 
         // Next record is intact
-        Assertions.assertThat(queue.peek()).isEqualTo(secondStuff)
+        assertThat(queue.peek()).isEqualTo(secondStuff)
 
         // First should have been erased.
         queue.raf.seek((HEADER_LENGTH + Element.HEADER_LENGTH).toLong())
         queue.raf.readFully(data, 0, bigBoy.size)
-        Assertions.assertThat(data).isEqualTo(ByteArray(bigBoy.size))
+        assertThat(data).isEqualTo(ByteArray(bigBoy.size))
     }
 
     @Test
@@ -408,7 +409,7 @@ class QueueFileTest {
             // Leave N elements in round N, 15 total for 5 rounds. Removing all the
             // elements would be like starting with an empty queue.
             for (i in 0 until N - round - 1) {
-                Assertions.assertThat(queue.peek()).isEqualTo(expected.remove())
+                assertThat(queue.peek()).isEqualTo(expected.remove())
                 queue.remove()
             }
             queue.close()
@@ -416,10 +417,10 @@ class QueueFileTest {
 
         // Remove and validate remaining 15 elements.
         val queue = QueueFile(file)
-        Assertions.assertThat(queue.size()).isEqualTo(15)
-        Assertions.assertThat(queue.size()).isEqualTo(expected.size)
+        assertThat(queue.size()).isEqualTo(15)
+        assertThat(queue.size()).isEqualTo(expected.size)
         while (!expected.isEmpty()) {
-            Assertions.assertThat(queue.peek()).isEqualTo(expected.remove())
+            assertThat(queue.peek()).isEqualTo(expected.remove())
             queue.remove()
         }
         queue.close()
@@ -445,7 +446,7 @@ class QueueFileTest {
 
         // Remove all but 1.
         for (i in 1 until max) {
-            Assertions.assertThat(queue.peek()).isEqualTo(expected.remove())
+            assertThat(queue.peek()).isEqualTo(expected.remove())
             queue.remove()
         }
 
@@ -456,7 +457,7 @@ class QueueFileTest {
         }
 
         while (!expected.isEmpty()) {
-            Assertions.assertThat(queue.peek()).isEqualTo(expected.remove())
+            assertThat(queue.peek()).isEqualTo(expected.remove())
             queue.remove()
         }
         queue.close()
@@ -487,10 +488,10 @@ class QueueFileTest {
         queueFile.close()
 
         queueFile = QueueFile(file)
-        Assertions.assertThat(queueFile.size()).isEqualTo(2)
-        Assertions.assertThat(queueFile.peek()).isEqualTo(values[253])
+        assertThat(queueFile.size()).isEqualTo(2)
+        assertThat(queueFile.peek()).isEqualTo(values[253])
         queueFile.remove()
-        Assertions.assertThat(queueFile.peek()).isEqualTo(values[251])
+        assertThat(queueFile.peek()).isEqualTo(values[251])
     }
 
     @Test
@@ -513,12 +514,12 @@ class QueueFileTest {
         queueFile.close()
 
         queueFile = QueueFile(file)
-        Assertions.assertThat(queueFile.size()).isEqualTo(1)
-        Assertions.assertThat(queueFile.peek()).isEqualTo(values[253])
+        assertThat(queueFile.size()).isEqualTo(1)
+        assertThat(queueFile.peek()).isEqualTo(values[253])
 
         queueFile.add(values[99])
         queueFile.remove()
-        Assertions.assertThat(queueFile.peek()).isEqualTo(values[99])
+        assertThat(queueFile.peek()).isEqualTo(values[99])
     }
 
     @Test
@@ -543,13 +544,13 @@ class QueueFileTest {
 
         queueFile = QueueFile(file)
 
-        Assertions.assertThat(queueFile.size()).isEqualTo(1)
-        Assertions.assertThat(queueFile.peek()).isEqualTo(values[253])
-        Assertions.assertThat(queueFile.fileLength).isEqualTo(4096)
+        assertThat(queueFile.size()).isEqualTo(1)
+        assertThat(queueFile.peek()).isEqualTo(values[253])
+        assertThat(queueFile.fileLength).isEqualTo(4096)
 
         queueFile.add(values[99])
         queueFile.remove()
-        Assertions.assertThat(queueFile.peek()).isEqualTo(values[99])
+        assertThat(queueFile.peek()).isEqualTo(values[99])
     }
 
     @Test
@@ -565,15 +566,15 @@ class QueueFileTest {
         val iteration = intArrayOf(0)
         val elementVisitor = PayloadQueue.ElementVisitor { input, length ->
             if (iteration[0] == 0) {
-                Assertions.assertThat(length).isEqualTo(2)
+                assertThat(length).isEqualTo(2)
                 val actual = ByteArray(length)
                 input.read(actual)
-                Assertions.assertThat(actual).isEqualTo(a)
+                assertThat(actual).isEqualTo(a)
             } else if (iteration[0] == 1) {
-                Assertions.assertThat(length).isEqualTo(3)
+                assertThat(length).isEqualTo(3)
                 val actual = ByteArray(length)
                 input.read(actual)
-                Assertions.assertThat(actual).isEqualTo(b)
+                assertThat(actual).isEqualTo(b)
             } else {
                 Assert.fail()
             }
@@ -582,9 +583,9 @@ class QueueFileTest {
         }
 
         val saw = queueFile.forEach(elementVisitor)
-        Assertions.assertThat(saw).isEqualTo(2)
-        Assertions.assertThat(queueFile.peek()).isEqualTo(a)
-        Assertions.assertThat(iteration[0]).isEqualTo(2)
+        assertThat(saw).isEqualTo(2)
+        assertThat(queueFile.peek()).isEqualTo(a)
+        assertThat(iteration[0]).isEqualTo(2)
     }
 
     @Test
@@ -605,8 +606,8 @@ class QueueFileTest {
         }
 
         val saw = queueFile.forEach(elementVisitor)
-        Assertions.assertThat(saw).isEqualTo(2)
-        Assertions.assertThat(actual).isEqualTo(byteArrayOf(1, 2, 3, 4, 5))
+        assertThat(saw).isEqualTo(2)
+        assertThat(actual).isEqualTo(byteArrayOf(1, 2, 3, 4, 5))
     }
 
     @Test
@@ -642,8 +643,8 @@ class QueueFileTest {
         }
 
         val saw = queueFile.forEach(elementVisitor)
-        Assertions.assertThat(saw).isEqualTo(2)
-        Assertions.assertThat(baos.toByteArray()).isEqualTo(byteArrayOf(1, 2, 3, 4, 5))
+        assertThat(saw).isEqualTo(2)
+        assertThat(baos.toByteArray()).isEqualTo(byteArrayOf(1, 2, 3, 4, 5))
     }
 
     @Test
@@ -657,10 +658,10 @@ class QueueFileTest {
         val iteration = AtomicInteger()
         val elementVisitor = PayloadQueue.ElementVisitor { input, length ->
             if (iteration.get() == 0) {
-                Assertions.assertThat(length).isEqualTo(2)
+                assertThat(length).isEqualTo(2)
                 val actual = ByteArray(length)
                 input.read(actual)
-                Assertions.assertThat(actual).isEqualTo(a)
+                assertThat(actual).isEqualTo(a)
             } else {
                 Assert.fail()
             }
@@ -668,9 +669,9 @@ class QueueFileTest {
             false
         }
         val saw = queueFile.forEach(elementVisitor)
-        Assertions.assertThat(saw).isEqualTo(1)
-        Assertions.assertThat(queueFile.peek()).isEqualTo(a)
-        Assertions.assertThat(iteration.get()).isEqualTo(1)
+        assertThat(saw).isEqualTo(1)
+        assertThat(queueFile.peek()).isEqualTo(a)
+        assertThat(iteration.get()).isEqualTo(1)
     }
 
     /**
@@ -714,7 +715,7 @@ class QueueFileTest {
             queue.remove()
 
             for (i in value.indices) {
-                Assertions.assertThat(value[i])
+                assertThat(value[i])
                     .isEqualTo((blockNum + 1).toByte()) to "Block " + (blockNum + 1) + " corrupted at byte index " + i
             }
         }
@@ -781,7 +782,7 @@ class QueueFileTest {
             queue.remove()
 
             for (i in value.indices) {
-                Assertions.assertThat(value[i])
+                assertThat(value[i])
                     .isEqualTo(expectedBlockNumber) to "Block $expectedBlockNumber corrupted at byte index $i"
             }
         }
@@ -831,7 +832,7 @@ class QueueFileTest {
         var data = ByteArray(firstElementPadding)
         queue.raf.seek(HEADER_LENGTH.toLong())
         queue.raf.readFully(data, 0, firstElementPadding)
-        Assertions.assertThat(data).containsOnly(0x00.toByte())
+        assertThat(data).containsOnly(0x00.toByte())
 
         // Read from the last element to the end and make sure it's zeroed.
         val endOfLastElement = HEADER_LENGTH + firstElementPadding + 4 * (Element.HEADER_LENGTH + 1024)
@@ -839,7 +840,7 @@ class QueueFileTest {
         data = ByteArray(readLength)
         queue.raf.seek(endOfLastElement.toLong())
         queue.raf.readFully(data, 0, readLength)
-        Assertions.assertThat(data).containsOnly(0x00.toByte())
+        assertThat(data).containsOnly(0x00.toByte())
     }
 
     /**
@@ -880,7 +881,7 @@ class QueueFileTest {
 
         // Make sure values are not corrupted
         for (i in 1..5) {
-            Assertions.assertThat(queue.peek()).isEqualTo(values[i])
+            assertThat(queue.peek()).isEqualTo(values[i])
             queue.remove()
         }
 
@@ -912,7 +913,7 @@ class QueueFileTest {
 
         // File should not be corrupted.
         val queueFile2 = QueueFile(file)
-        Assertions.assertThat(queueFile2.size()).isEqualTo(queueFile.size())
+        assertThat(queueFile2.size()).isEqualTo(queueFile.size())
     }
 
     /*

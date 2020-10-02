@@ -67,7 +67,8 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.jvm.Throws
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.assertj.core.data.MapEntry
 import org.hamcrest.Description
 import org.hamcrest.TypeSafeMatcher
@@ -80,7 +81,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.MockitoAnnotations
+import org.mockito.MockitoAnnotations.initMocks
 import org.mockito.Spy
 import org.mockito.hamcrest.MockitoHamcrest.argThat
 import org.robolectric.RobolectricTestRunner
@@ -141,7 +142,7 @@ open class AnalyticsTest {
     fun setUp() {
         Analytics.INSTANCES.clear()
 
-        MockitoAnnotations.initMocks(this)
+        initMocks(this)
         defaultOptions = Options()
         application = mockApplication()
         traits = Traits.create()
@@ -220,7 +221,7 @@ open class AnalyticsTest {
         try {
             analytics.identify(null, null, null)
         } catch (e: IllegalArgumentException) {
-            Assertions.assertThat(e)
+            assertThat(e)
                 .hasMessage("Either userId or some traits must be provided.")
         }
     }
@@ -245,10 +246,10 @@ open class AnalyticsTest {
     fun identifyUpdatesCache() {
         analytics.identify("foo", Traits().putValue("bar", "qaz"), null)
 
-        Assertions.assertThat(traits).contains(MapEntry.entry("userId", "foo"))
-        Assertions.assertThat(traits).contains(MapEntry.entry("bar", "qaz"))
-        Assertions.assertThat(analyticsContext.traits()).contains(MapEntry.entry("userId", "foo"))
-        Assertions.assertThat(analyticsContext.traits()).contains(MapEntry.entry("bar", "qaz"))
+        assertThat(traits).contains(MapEntry.entry("userId", "foo"))
+        assertThat(traits).contains(MapEntry.entry("bar", "qaz"))
+        assertThat(analyticsContext.traits()).contains(MapEntry.entry("userId", "foo"))
+        assertThat(analyticsContext.traits()).contains(MapEntry.entry("bar", "qaz"))
         verify(traitsCache).set(traits)
         verify(integration)
             .identify(
@@ -268,9 +269,9 @@ open class AnalyticsTest {
     fun invalidGroup() {
         try {
             analytics.group("")
-            Assertions.fail("empty groupId and name should throw exception")
+            fail("empty groupId and name should throw exception")
         } catch (expected: IllegalArgumentException) {
-            Assertions.assertThat(expected).hasMessage("groupId must not be null or empty.")
+            assertThat(expected).hasMessage("groupId must not be null or empty.")
         }
     }
 
@@ -295,12 +296,12 @@ open class AnalyticsTest {
         try {
             analytics.track(null.toString())
         } catch (e: IllegalArgumentException) {
-            Assertions.assertThat(e).hasMessage("event must not be null or empty.")
+            assertThat(e).hasMessage("event must not be null or empty.")
         }
         try {
             analytics.track("   ")
         } catch (e: IllegalArgumentException) {
-            Assertions.assertThat(e).hasMessage("event must not be null or empty.")
+            assertThat(e).hasMessage("event must not be null or empty.")
         }
     }
 
@@ -324,16 +325,16 @@ open class AnalyticsTest {
     fun invalidScreen() {
         try {
             analytics.screen(null, null as String?)
-            Assertions.fail("null category and name should throw exception")
+            fail("null category and name should throw exception")
         } catch (expected: IllegalArgumentException) {
-            Assertions.assertThat(expected).hasMessage("either category or name must be provided.")
+            assertThat(expected).hasMessage("either category or name must be provided.")
         }
 
         try {
             analytics.screen("", "")
-            Assertions.fail("empty category and name should throw exception")
+            fail("empty category and name should throw exception")
         } catch (expected: IllegalArgumentException) {
-            Assertions.assertThat(expected).hasMessage("either category or name must be provided.")
+            assertThat(expected).hasMessage("either category or name must be provided.")
         }
     }
 
@@ -590,9 +591,9 @@ open class AnalyticsTest {
     fun invalidAlias() {
         try {
             analytics.alias("")
-            Assertions.fail("empty new id should throw error")
+            fail("empty new id should throw error")
         } catch (expected: IllegalArgumentException) {
-            Assertions.assertThat(expected).hasMessage("newId must not be null or empty.")
+            assertThat(expected).hasMessage("newId must not be null or empty.")
         }
     }
 
@@ -603,8 +604,8 @@ open class AnalyticsTest {
         val payloadArgumentCaptor =
             ArgumentCaptor.forClass(AliasPayload::class.java)
         verify(integration).alias(payloadArgumentCaptor.capture())
-        Assertions.assertThat(payloadArgumentCaptor.value).containsEntry("previousId", anonymousId)
-        Assertions.assertThat(payloadArgumentCaptor.value).containsEntry("userId", "foo")
+        assertThat(payloadArgumentCaptor.value).containsEntry("previousId", anonymousId)
+        assertThat(payloadArgumentCaptor.value).containsEntry("userId", "foo")
     }
 
     @Test
@@ -616,8 +617,8 @@ open class AnalyticsTest {
         val payloadArgumentCaptor =
             ArgumentCaptor.forClass(AliasPayload::class.java)
         verify(integration).alias(payloadArgumentCaptor.capture())
-        Assertions.assertThat(payloadArgumentCaptor.value).containsEntry("previousId", "prayansh")
-        Assertions.assertThat(payloadArgumentCaptor.value).containsEntry("userId", "foo")
+        assertThat(payloadArgumentCaptor.value).containsEntry("previousId", "prayansh")
+        assertThat(payloadArgumentCaptor.value).containsEntry("userId", "foo")
     }
 
     @Test
@@ -660,17 +661,17 @@ open class AnalyticsTest {
                         override fun describeTo(description: Description) {}
                     })
             )
-        Assertions.assertThat(analyticsContext.traits()).hasSize(1)
-        Assertions.assertThat(analyticsContext.traits()).containsKey("anonymousId")
+        assertThat(analyticsContext.traits()).hasSize(1)
+        assertThat(analyticsContext.traits()).containsKey("anonymousId")
     }
 
     @Test
     fun onIntegrationReadyShouldFailForNullKey() {
         try {
             analytics.onIntegrationReady(null as String?, Mockito.mock(Analytics.Callback::class.java))
-            Assertions.fail("registering for null integration should fail")
+            fail("registering for null integration should fail")
         } catch (e: java.lang.IllegalArgumentException) {
-            Assertions.assertThat(e).hasMessage("key cannot be null or empty.")
+            assertThat(e).hasMessage("key cannot be null or empty.")
         }
     }
 
@@ -683,34 +684,34 @@ open class AnalyticsTest {
 
     @Test
     fun shutdown() {
-        Assertions.assertThat(analytics.shutdown).isFalse()
+        assertThat(analytics.shutdown).isFalse()
         analytics.shutdown()
         verify(application).unregisterActivityLifecycleCallbacks(analytics.activityLifecycleCallback)
         verify(stats).shutdown()
         verify(networkExecutor).shutdown()
-        Assertions.assertThat(analytics.shutdown).isTrue()
+        assertThat(analytics.shutdown).isTrue()
         try {
             analytics.track("foo")
-            Assertions.fail("Enqueuing a message after shutdown should throw.")
+            fail("Enqueuing a message after shutdown should throw.")
         } catch (e: IllegalStateException) {
-            Assertions.assertThat(e).hasMessage("Cannot enqueue messages after client is shutdown.")
+            assertThat(e).hasMessage("Cannot enqueue messages after client is shutdown.")
         }
 
         try {
             analytics.flush()
-            Assertions.fail("Enqueuing a message after shutdown should throw.")
+            fail("Enqueuing a message after shutdown should throw.")
         } catch (e: IllegalStateException) {
-            Assertions.assertThat(e).hasMessage("Cannot enqueue messages after client is shutdown.")
+            assertThat(e).hasMessage("Cannot enqueue messages after client is shutdown.")
         }
     }
 
     @Test
     fun shutdownTwice() {
-        Assertions.assertThat(analytics.shutdown).isFalse()
+        assertThat(analytics.shutdown).isFalse()
         analytics.shutdown()
         analytics.shutdown()
         verify(stats).shutdown()
-        Assertions.assertThat(analytics.shutdown).isTrue()
+        assertThat(analytics.shutdown).isTrue()
     }
 
     @Test
@@ -721,7 +722,7 @@ open class AnalyticsTest {
             val analytics = Analytics.Builder(RuntimeEnvironment.application, "foo").build()
             Analytics.setSingletonInstance(analytics)
             analytics.shutdown()
-            Assertions.fail("Calling shutdown() on static singleton instance should throw")
+            fail("Calling shutdown() on static singleton instance should throw")
         } catch (ignored: UnsupportedOperationException) {
         }
     }
@@ -735,9 +736,9 @@ open class AnalyticsTest {
 
         try {
             Analytics.setSingletonInstance(analytics)
-            Assertions.fail("Can't set singleton instance twice.")
+            fail("Can't set singleton instance twice.")
         } catch (e: IllegalStateException) {
-            Assertions.assertThat(e).hasMessage("Singleton instance already exists.")
+            assertThat(e).hasMessage("Singleton instance already exists.")
         }
     }
 
@@ -749,9 +750,9 @@ open class AnalyticsTest {
         val analytics = Analytics.Builder(RuntimeEnvironment.application, "bar").build()
         try {
             Analytics.setSingletonInstance(analytics)
-            Assertions.fail("Can't set singleton instance after with().")
+            fail("Can't set singleton instance after with().")
         } catch (e: IllegalStateException) {
-            Assertions.assertThat(e).hasMessage("Singleton instance already exists.")
+            assertThat(e).hasMessage("Singleton instance already exists.")
         }
     }
 
@@ -760,7 +761,7 @@ open class AnalyticsTest {
         Analytics.singleton = null
         val analytics = Analytics.Builder(RuntimeEnvironment.application, "foo").build()
         Analytics.setSingletonInstance(analytics)
-        Assertions.assertThat(Analytics.with(RuntimeEnvironment.application)).isSameAs(analytics)
+        assertThat(Analytics.with(RuntimeEnvironment.application)).isSameAs(analytics)
     }
 
     @Test
@@ -769,9 +770,9 @@ open class AnalyticsTest {
         Analytics.Builder(RuntimeEnvironment.application, "foo").build()
         try {
             Analytics.Builder(RuntimeEnvironment.application, "bar").tag("foo").build()
-            Assertions.fail("Creating client with duplicate should throw.")
+            fail("Creating client with duplicate should throw.")
         } catch (expected: IllegalStateException) {
-            Assertions.assertThat(expected)
+            assertThat(expected)
                 .hasMessageContaining("Duplicate analytics client created with tag: foo.")
         }
     }
@@ -797,10 +798,10 @@ open class AnalyticsTest {
 
         try {
             connection.openConnection("SOME_BUSTED_URL")
-            Assertions.fail("openConnection did not throw when supplied an invalid URL as expected.")
+            fail("openConnection did not throw when supplied an invalid URL as expected.")
         } catch (expected: IOException) {
-            Assertions.assertThat(expected).hasMessageContaining("Attempted to use malformed url")
-            Assertions.assertThat(expected).isInstanceOf(IOException::class.java)
+            assertThat(expected).hasMessageContaining("Attempted to use malformed url")
+            assertThat(expected).isInstanceOf(IOException::class.java)
         }
     }
 
@@ -1655,12 +1656,12 @@ open class AnalyticsTest {
             false
         )
 
-        Assertions.assertThat(analytics.shutdown).isFalse()
+        assertThat(analytics.shutdown).isFalse()
         analytics.shutdown()
 
         // Same callback was registered and unregistered
-        Assertions.assertThat(analytics.activityLifecycleCallback).isSameAs(registeredCallback.get())
-        Assertions.assertThat(analytics.activityLifecycleCallback).isSameAs(unregisteredCallback.get())
+        assertThat(analytics.activityLifecycleCallback).isSameAs(registeredCallback.get())
+        assertThat(analytics.activityLifecycleCallback).isSameAs(unregisteredCallback.get())
 
         val activity = Mockito.mock(Activity::class.java)
         val bundle = Bundle()
@@ -1750,12 +1751,12 @@ open class AnalyticsTest {
             false
         )
 
-        Assertions.assertThat(analytics.shutdown).isFalse()
+        assertThat(analytics.shutdown).isFalse()
         analytics.shutdown()
         val lifecycleObserverSpy = spy(analytics.activityLifecycleCallback)
         // Same callback was registered and unregistered
-        Assertions.assertThat(analytics.activityLifecycleCallback).isSameAs(registeredCallback.get())
-        Assertions.assertThat(analytics.activityLifecycleCallback).isSameAs(unregisteredCallback.get())
+        assertThat(analytics.activityLifecycleCallback).isSameAs(registeredCallback.get())
+        assertThat(analytics.activityLifecycleCallback).isSameAs(unregisteredCallback.get())
 
         // Verify callbacks do not call through after shutdown
         registeredCallback.get().onCreate(mockLifecycleOwner)
@@ -1819,11 +1820,11 @@ open class AnalyticsTest {
             false
         )
 
-        Assertions.assertThat(analytics.projectSettings).hasSize(2)
-        Assertions.assertThat(analytics.projectSettings).containsKey("integrations")
-        Assertions.assertThat(analytics.projectSettings.integrations()).hasSize(2)
-        Assertions.assertThat(analytics.projectSettings.integrations()).containsKey("Segment.io")
-        Assertions.assertThat(analytics.projectSettings.integrations()).containsKey("Adjust")
+        assertThat(analytics.projectSettings).hasSize(2)
+        assertThat(analytics.projectSettings).containsKey("integrations")
+        assertThat(analytics.projectSettings.integrations()).hasSize(2)
+        assertThat(analytics.projectSettings.integrations()).containsKey("Segment.io")
+        assertThat(analytics.projectSettings.integrations()).containsKey("Adjust")
     }
 
     @Test
@@ -1863,10 +1864,10 @@ open class AnalyticsTest {
             false
         )
 
-        Assertions.assertThat(analytics.projectSettings).hasSize(2)
-        Assertions.assertThat(analytics.projectSettings).containsKey("integrations")
-        Assertions.assertThat(analytics.projectSettings.integrations()).hasSize(1)
-        Assertions.assertThat(analytics.projectSettings.integrations()).containsKey("Segment.io")
+        assertThat(analytics.projectSettings).hasSize(2)
+        assertThat(analytics.projectSettings).containsKey("integrations")
+        assertThat(analytics.projectSettings.integrations()).hasSize(1)
+        assertThat(analytics.projectSettings.integrations()).containsKey("Segment.io")
     }
 
     @Test
@@ -1916,17 +1917,17 @@ open class AnalyticsTest {
             false
         )
 
-        Assertions.assertThat(analytics.projectSettings).hasSize(2)
-        Assertions.assertThat(analytics.projectSettings).containsKey("integrations")
-        Assertions.assertThat(analytics.projectSettings.integrations()).containsKey("Segment.io")
-        Assertions.assertThat(analytics.projectSettings.integrations()).hasSize(1)
-        Assertions.assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
+        assertThat(analytics.projectSettings).hasSize(2)
+        assertThat(analytics.projectSettings).containsKey("integrations")
+        assertThat(analytics.projectSettings.integrations()).containsKey("Segment.io")
+        assertThat(analytics.projectSettings.integrations()).hasSize(1)
+        assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
             .hasSize(3)
-        Assertions.assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
+        assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
             .containsKey("apiKey")
-        Assertions.assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
+        assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
             .containsKey("appToken")
-        Assertions.assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
+        assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
             .containsKey("trackAttributionData")
     }
 
@@ -1935,9 +1936,9 @@ open class AnalyticsTest {
         analytics.track("event", null, Options().putContext("testProp", true))
         val payload = ArgumentCaptor.forClass(TrackPayload::class.java)
         verify(integration).track(payload.capture())
-        Assertions.assertThat(payload.value.context()).containsKey("testProp")
-        Assertions.assertThat(payload.value.context()["testProp"]).isEqualTo(true)
-        Assertions.assertThat(analytics.analyticsContext).doesNotContainKey("testProp")
+        assertThat(payload.value.context()).containsKey("testProp")
+        assertThat(payload.value.context()["testProp"]).isEqualTo(true)
+        assertThat(analytics.analyticsContext).doesNotContainKey("testProp")
     }
 
     @Test
@@ -1945,9 +1946,9 @@ open class AnalyticsTest {
         analytics.track("event", null, analytics.getDefaultOptions().putContext("testProp", true))
         val payload = ArgumentCaptor.forClass(TrackPayload::class.java)
         verify(integration).track(payload.capture())
-        Assertions.assertThat(payload.value.context()).containsKey("testProp")
-        Assertions.assertThat(payload.value.context()["testProp"]).isEqualTo(true)
-        Assertions.assertThat(analytics.analyticsContext).doesNotContainKey("testProp")
+        assertThat(payload.value.context()).containsKey("testProp")
+        assertThat(payload.value.context()["testProp"]).isEqualTo(true)
+        assertThat(analytics.analyticsContext).doesNotContainKey("testProp")
     }
 
     @Test
@@ -1985,7 +1986,7 @@ open class AnalyticsTest {
         val payload = ArgumentCaptor.forClass(TrackPayload::class.java)
         verify(integration).track(payload.capture())
         val timestamp = payload.value["timestamp"] as String
-        Assertions.assertThat(timestamp).matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{9}Z")
+        assertThat(timestamp).matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{9}Z")
     }
 
     @Test
@@ -2023,6 +2024,6 @@ open class AnalyticsTest {
         val payload = ArgumentCaptor.forClass(TrackPayload::class.java)
         verify(integration).track(payload.capture())
         val timestamp = payload.value["timestamp"] as String
-        Assertions.assertThat(timestamp).matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z")
+        assertThat(timestamp).matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z")
     }
 }

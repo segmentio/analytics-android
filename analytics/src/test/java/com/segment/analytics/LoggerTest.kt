@@ -27,7 +27,7 @@ import android.util.Log
 import com.segment.analytics.integrations.Logger
 import java.lang.Exception
 import kotlin.jvm.Throws
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -47,14 +47,14 @@ class LoggerTest {
         logger.verbose("qaz")
         logger.error(null, "qux")
 
-        Assertions.assertThat(ShadowLog.getLogs()).hasSize(4)
+        assertThat(ShadowLog.getLogs()).hasSize(4)
     }
 
     @Test
     fun verboseMessagesShowInLog() {
         val logger = Logger.with(Analytics.LogLevel.VERBOSE)
         logger.verbose("some message with an %s", "argument")
-        Assertions.assertThat(ShadowLog.getLogs())
+        assertThat(ShadowLog.getLogs())
             .containsExactly(
                 LogItemBuilder()
                     .type(Log.VERBOSE)
@@ -69,7 +69,7 @@ class LoggerTest {
 
         logger.debug("some message with an %s", "argument")
 
-        Assertions.assertThat(ShadowLog.getLogs())
+        assertThat(ShadowLog.getLogs())
             .containsExactly(
                 LogItemBuilder()
                     .type(Log.DEBUG)
@@ -84,7 +84,7 @@ class LoggerTest {
 
         logger.info("some message with an %s", "argument")
 
-        Assertions.assertThat(ShadowLog.getLogs())
+        assertThat(ShadowLog.getLogs())
             .containsExactly(
                 LogItemBuilder()
                     .type(Log.INFO)
@@ -101,7 +101,7 @@ class LoggerTest {
         val throwable = AssertionError("testing")
         logger.error(throwable, "some message with an %s", "argument")
 
-        Assertions.assertThat(ShadowLog.getLogs()).containsExactly(
+        assertThat(ShadowLog.getLogs()).containsExactly(
             LogItemBuilder()
                 .type(Log.ERROR)
                 .throwable(throwable)
@@ -117,7 +117,7 @@ class LoggerTest {
 
         logger.debug("some message with an %s", "argument")
 
-        Assertions.assertThat(ShadowLog.getLogs()).containsExactly(
+        assertThat(ShadowLog.getLogs()).containsExactly(
             LogItemBuilder()
                 .tag("Analytics-foo")
                 .type(Log.DEBUG)

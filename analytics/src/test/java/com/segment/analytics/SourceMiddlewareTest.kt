@@ -31,7 +31,7 @@ import com.segment.analytics.integrations.TrackPayload
 import java.lang.AssertionError
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.jvm.Throws
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -74,7 +74,7 @@ class SourceMiddlewareTest {
                 .build()
 
         analytics.track("foo")
-        Assertions.assertThat(payloadRef.get().event()).isEqualTo("foo")
+        assertThat(payloadRef.get().event()).isEqualTo("foo")
     }
 
     @Throws(Exception::class)
@@ -90,7 +90,7 @@ class SourceMiddlewareTest {
             }
             .build()
         analytics.screen("foo")
-        Assertions.assertThat(payloadRef.get().name()).isEqualTo("foo")
+        assertThat(payloadRef.get().name()).isEqualTo("foo")
     }
 
     @Test
@@ -106,6 +106,6 @@ class SourceMiddlewareTest {
             }
             .build()
         analytics.identify("prateek")
-        Assertions.assertThat(payloadRef.get().messageId()).isEqualTo("override")
+        assertThat(payloadRef.get().messageId()).isEqualTo("override")
     }
 }
