@@ -36,13 +36,14 @@ import java.io.OutputStream
 import java.net.HttpURLConnection
 import kotlin.jvm.Throws
 import org.assertj.core.api.AbstractAssert
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
-import org.mockito.Mockito
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -89,9 +90,9 @@ class ClientTest {
         server.enqueue(MockResponse())
 
         val connection = client.upload()
-        Assertions.assertThat(connection.os).isNotNull()
-        Assertions.assertThat(connection.`is`).isNull()
-        Assertions.assertThat(connection.connection.responseCode).isEqualTo(200) // consume the response
+        assertThat(connection.os).isNotNull()
+        assertThat(connection.`is`).isNull()
+        assertThat(connection.connection.responseCode).isEqualTo(200) // consume the response
         RecordedRequestAssert.assertThat(server.takeRequest())
             .hasRequestLine("POST /v1/import HTTP/1.1")
             .containsHeader("User-Agent", ConnectionFactory.USER_AGENT)
@@ -108,12 +109,12 @@ class ClientTest {
         whenever(mockConnection.responseCode).thenReturn(200)
 
         val connection = mockClient.upload()
-        Mockito.verify(mockConnection).doOutput = true
-        Mockito.verify(mockConnection).setChunkedStreamingMode(0)
+        verify(mockConnection).doOutput = true
+        verify(mockConnection).setChunkedStreamingMode(0)
 
         connection.close()
-        Mockito.verify(mockConnection).disconnect()
-        Mockito.verify(os).close()
+        verify(mockConnection).disconnect()
+        verify(os).close()
     }
 
     @Test
@@ -124,71 +125,71 @@ class ClientTest {
         whenever(mockConnection.responseCode).thenReturn(202)
 
         val connection = mockClient.upload()
-        Mockito.verify(mockConnection).doOutput = true
-        Mockito.verify(mockConnection).setChunkedStreamingMode(0)
+        verify(mockConnection).doOutput = true
+        verify(mockConnection).setChunkedStreamingMode(0)
 
         connection.close()
-        Mockito.verify(mockConnection).disconnect()
-        Mockito.verify(os).close()
+        verify(mockConnection).disconnect()
+        verify(os).close()
     }
 
     @Test
     @Throws(Exception::class)
     fun uploadFailureClosesStreamsAndThrowsException() {
         val os = mock(OutputStream::class.java)
-        val `is` = mock(InputStream::class.java)
+        val input = mock(InputStream::class.java)
         whenever(mockConnection.outputStream).thenReturn(os)
         whenever(mockConnection.responseCode).thenReturn(300)
         whenever(mockConnection.responseMessage).thenReturn("bar")
-        whenever(mockConnection.inputStream).thenReturn(`is`)
+        whenever(mockConnection.inputStream).thenReturn(input)
 
         val connection = mockClient.upload()
-        Mockito.verify(mockConnection).doOutput = true
-        Mockito.verify(mockConnection).setChunkedStreamingMode(0)
+        verify(mockConnection).doOutput = true
+        verify(mockConnection).setChunkedStreamingMode(0)
 
         try {
             connection.close()
-            Assertions.fail(">= 300 return code should throw an exception")
+            assertThat(">= 300 return code should throw an exception")
         } catch (e: Client.HTTPException) {
-            Assertions.assertThat(e)
+            assertThat(e)
                 .hasMessage(
                     "HTTP 300: bar. " +
                         "Response: Could not read response body for rejected message: " +
                         "java.io.IOException: Underlying input stream returned zero bytes"
                 )
         }
-        Mockito.verify(mockConnection).disconnect()
-        Mockito.verify(os).close()
+        verify(mockConnection).disconnect()
+        verify(os).close()
     }
 
     @Test
     @Throws(Exception::class)
     fun uploadFailureWithErrorStreamClosesStreamsAndThrowsException() {
         val os = mock(OutputStream::class.java)
-        val `is` = mock(InputStream::class.java)
+        val input = mock(InputStream::class.java)
         whenever(mockConnection.outputStream).thenReturn(os)
         whenever(mockConnection.responseCode).thenReturn(404)
         whenever(mockConnection.responseMessage).thenReturn("bar")
         whenever(mockConnection.inputStream).thenThrow(FileNotFoundException())
-        whenever(mockConnection.errorStream).thenReturn(`is`)
+        whenever(mockConnection.errorStream).thenReturn(input)
 
         val connection = mockClient.upload()
-        Mockito.verify(mockConnection).doOutput = true
-        Mockito.verify(mockConnection).setChunkedStreamingMode(0)
+        verify(mockConnection).doOutput = true
+        verify(mockConnection).setChunkedStreamingMode(0)
 
         try {
             connection.close()
-            Assertions.fail(">= 300 return code should throw an exception")
+            fail(">= 300 return code should throw an exception")
         } catch (e: Client.HTTPException) {
-            Assertions.assertThat(e)
+            assertThat(e)
                 .hasMessage(
                     "HTTP 404: bar. " +
                         "Response: Could not read response body for rejected message: " +
                         "java.io.IOException: Underlying input stream returned zero bytes"
                 )
         }
-        Mockito.verify(mockConnection).disconnect()
-        Mockito.verify(os).close()
+        verify(mockConnection).disconnect()
+        verify(os).close()
     }
 
     @Test
@@ -197,9 +198,9 @@ class ClientTest {
         server.enqueue(MockResponse())
 
         val connection = client.fetchSettings()
-        Assertions.assertThat(connection.os).isNull()
-        Assertions.assertThat(connection.`is`).isNotNull()
-        Assertions.assertThat(connection.connection.responseCode).isEqualTo(200)
+        assertThat(connection.os).isNull()
+        assertThat(connection.`is`).isNotNull()
+        assertThat(connection.connection.responseCode).isEqualTo(200)
         RecordedRequestAssert.assertThat(server.takeRequest())
             .hasRequestLine("GET /v1/projects/foo/settings HTTP/1.1")
             .containsHeader("User-Agent", ConnectionFactory.USER_AGENT)
@@ -215,25 +216,25 @@ class ClientTest {
 
         try {
             mockClient.fetchSettings()
-            Assertions.fail("Non 200 return code should throw an exception")
+            fail("Non 200 return code should throw an exception")
         } catch (e: IOException) {
-            Assertions.assertThat(e).hasMessage("HTTP " + 204 + ": no cookies for you http://bit.ly/1EMHBNb")
+            assertThat(e).hasMessage("HTTP " + 204 + ": no cookies for you http://bit.ly/1EMHBNb")
         }
-        Mockito.verify(mockConnection).disconnect()
+        verify(mockConnection).disconnect()
     }
 
     @Test
     @Throws(Exception::class)
     fun closingFetchSettingsClosesStreams() {
-        val `is` = mock(InputStream::class.java)
-        whenever(mockConnection.inputStream).thenReturn(`is`)
+        val input = mock(InputStream::class.java)
+        whenever(mockConnection.inputStream).thenReturn(input)
         whenever(mockConnection.responseCode).thenReturn(200)
 
         val connection = mockClient.fetchSettings()
 
         connection.close()
-        Mockito.verify(mockConnection).disconnect()
-        Mockito.verify(`is`).close()
+        verify(mockConnection).disconnect()
+        verify(input).close()
     }
 
     internal class RecordedRequestAssert constructor(actual: RecordedRequest) :
@@ -243,7 +244,7 @@ class ClientTest {
         fun containsHeader(name: String, expectedHeader: String): RecordedRequestAssert {
             isNotNull
             val actualHeader = actual.getHeader(name)
-            Assertions.assertThat(actualHeader)
+            assertThat(actualHeader)
                 .overridingErrorMessage(
                     "Expected header <%s> to be <%s> but was <%s>.", name, expectedHeader, actualHeader
                 )
@@ -254,7 +255,7 @@ class ClientTest {
         fun containsHeader(name: String): RecordedRequestAssert {
             isNotNull
             val actualHeader = actual.getHeader(name)
-            Assertions.assertThat(actualHeader)
+            assertThat(actualHeader)
                 .overridingErrorMessage(
                     "Expected header <%s> to not be empty but was.", name, actualHeader
                 )
@@ -266,7 +267,7 @@ class ClientTest {
         fun hasRequestLine(requestLine: String): RecordedRequestAssert {
             isNotNull
             val actualRequestLine = actual.requestLine
-            Assertions.assertThat(actualRequestLine)
+            assertThat(actualRequestLine)
                 .overridingErrorMessage(
                     "Expected requestLine <%s> to be <%s> but was not.", actualRequestLine, requestLine
                 )

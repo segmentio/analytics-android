@@ -30,7 +30,8 @@ import java.io.StringWriter
 import java.util.UUID
 import kotlin.collections.LinkedHashMap
 import kotlin.jvm.Throws
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.assertj.core.data.MapEntry
 import org.junit.Before
 import org.junit.Test
@@ -63,7 +64,7 @@ class CartographerTest {
             .put("String", "string")
             .build()
 
-        Assertions.assertThat(cartographer.toJson(map))
+        assertThat(cartographer.toJson(map))
             .isEqualTo(
                 """
                         |{
@@ -100,7 +101,7 @@ class CartographerTest {
                 |""".trimMargin()
         val map = cartographer.fromJson(json)
 
-        Assertions.assertThat(map)
+        assertThat(map)
             .hasSize(9)
             .contains(MapEntry.entry("byte", 32.0))
             .contains(MapEntry.entry("boolean", true))
@@ -142,7 +143,7 @@ class CartographerTest {
                 )
                 .build()
 
-        Assertions.assertThat(cartographer.toJson(map))
+        assertThat(cartographer.toJson(map))
             .isEqualTo("{\"a\":{\"b\":{\"c\":{\"d\":{\"e\":\"f\"}}}}}")
     }
 
@@ -174,7 +175,7 @@ class CartographerTest {
                 )
                 .build()
 
-        Assertions.assertThat(cartographer.toJson(map))
+        assertThat(cartographer.toJson(map))
             .isEqualTo(
                 """
                         |{
@@ -235,7 +236,7 @@ class CartographerTest {
             )
             .build()
 
-        Assertions.assertThat(map).isEqualTo(expected)
+        assertThat(map).isEqualTo(expected)
     }
 
     @Test
@@ -243,7 +244,7 @@ class CartographerTest {
     fun encodesArraysWithList() {
         val map = ImmutableMap.builder<String, Any>().put("a", listOf("b", "c", "d")).build()
 
-        Assertions.assertThat(cartographer.toJson(map))
+        assertThat(cartographer.toJson(map))
             .isEqualTo(
                 """
                         |{
@@ -274,7 +275,7 @@ class CartographerTest {
         val expected =
             ImmutableMap.builder<String, Any>().put("a", listOf("b", "c", "d")).build()
 
-        Assertions.assertThat(cartographer.fromJson(json)).isEqualTo(expected)
+        assertThat(cartographer.fromJson(json)).isEqualTo(expected)
     }
 
     @Test
@@ -283,7 +284,7 @@ class CartographerTest {
         val map =
             ImmutableMap.builder<String, Any>().put("a", arrayOf("b", "c", "d")).build()
 
-        Assertions.assertThat(cartographer.toJson(map))
+        assertThat(cartographer.toJson(map))
             .isEqualTo(
                 """
                         |{
@@ -304,7 +305,7 @@ class CartographerTest {
         // https://github.com/segmentio/analytics-android/issues/507
         val map: Map<String?, Any?> = ImmutableMap.builder<String?, Any?>().put("a", intArrayOf(1, 2)).build()
 
-        Assertions.assertThat(cartographer.toJson(map))
+        assertThat(cartographer.toJson(map))
             .isEqualTo(
                 """
                         |{
@@ -334,7 +335,7 @@ class CartographerTest {
             .put("a", listOf("b", "c", "d"))
             .build()
 
-        Assertions.assertThat(cartographer.fromJson(json)).isEqualTo(expected)
+        assertThat(cartographer.fromJson(json)).isEqualTo(expected)
     }
 
     @Test
@@ -351,7 +352,7 @@ class CartographerTest {
             )
             .build()
 
-        Assertions.assertThat(cartographer.toJson(map))
+        assertThat(cartographer.toJson(map))
             .isEqualTo(
                 """
                         |{
@@ -402,7 +403,7 @@ class CartographerTest {
             )
             .build()
 
-        Assertions.assertThat(cartographer.fromJson(json)).isEqualTo(expected)
+        assertThat(cartographer.fromJson(json)).isEqualTo(expected)
     }
 
     @Test
@@ -410,9 +411,9 @@ class CartographerTest {
     fun disallowsEncodingNullMap() {
         try {
             cartographer.toJson(null, StringWriter())
-            Assertions.fail("null map should throw Exception")
+            fail("null map should throw Exception")
         } catch (e: IllegalArgumentException) {
-            Assertions.assertThat(e).hasMessage("map == null")
+            assertThat(e).hasMessage("map == null")
         }
     }
 
@@ -421,9 +422,9 @@ class CartographerTest {
     fun disallowsEncodingToNullWriter() {
         try {
             cartographer.toJson(LinkedHashMap<Any, Any>(), null)
-            Assertions.fail("null writer should throw Exception")
+            fail("null writer should throw Exception")
         } catch (e: IllegalArgumentException) {
-            Assertions.assertThat(e).hasMessage("writer == null")
+            assertThat(e).hasMessage("writer == null")
         }
     }
 
@@ -432,9 +433,9 @@ class CartographerTest {
     fun disallowsDecodingNullReader() {
         try {
             cartographer.fromJson(null as Reader?)
-            Assertions.fail("null map should throw Exception")
+            fail("null map should throw Exception")
         } catch (e: java.lang.IllegalArgumentException) {
-            Assertions.assertThat(e).hasMessage("reader == null")
+            assertThat(e).hasMessage("reader == null")
         }
     }
 
@@ -443,9 +444,9 @@ class CartographerTest {
     fun disallowsDecodingNullString() {
         try {
             cartographer.fromJson(null as String?)
-            Assertions.fail("null map should throw Exception")
+            fail("null map should throw Exception")
         } catch (e: java.lang.IllegalArgumentException) {
-            Assertions.assertThat(e).hasMessage("json == null")
+            assertThat(e).hasMessage("json == null")
         }
     }
 
@@ -454,9 +455,9 @@ class CartographerTest {
     fun disallowsDecodingEmptyString() {
         try {
             cartographer.fromJson("")
-            Assertions.fail("null map should throw Exception")
+            fail("null map should throw Exception")
         } catch (e: java.lang.IllegalArgumentException) {
-            Assertions.assertThat(e).hasMessage("json empty")
+            assertThat(e).hasMessage("json empty")
         }
     }
 
@@ -475,7 +476,7 @@ class CartographerTest {
 
         cartographer.toJson(map, writer)
 
-        Assertions.assertThat(writer.toString())
+        assertThat(writer.toString())
             .isEqualTo(
                 """
                         |{
@@ -503,7 +504,7 @@ class CartographerTest {
         map["double"] = Double.MIN_VALUE
         map["char"] = Character.MIN_VALUE
         cartographer.toJson(map, writer)
-        Assertions.assertThat(writer.toString())
+        assertThat(writer.toString())
             .isEqualTo(
                 """
                         |{

@@ -31,7 +31,7 @@ import java.io.InputStream
 import java.util.ArrayList
 import kotlin.jvm.Throws
 import okio.ByteString
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -80,14 +80,14 @@ class PayloadQueueTest {
     @Test
     @Throws(IOException::class)
     fun size() {
-        Assertions.assertThat(queue.size()).isEqualTo(3)
+        assertThat(queue.size()).isEqualTo(3)
     }
 
     @Test
     @Throws(IOException::class)
     fun forEach() {
         val seen = readQueue(queue.size() + 1)
-        Assertions.assertThat(seen)
+        assertThat(seen)
             .containsExactly(bytes("one"), bytes("two"), bytes("three"))
     }
 
@@ -95,17 +95,17 @@ class PayloadQueueTest {
     @Throws(IOException::class)
     fun forEachEarlyReturn() {
         val seen = readQueue(2)
-        Assertions.assertThat(seen).containsExactly(bytes("one"), bytes("two"))
+        assertThat(seen).containsExactly(bytes("one"), bytes("two"))
     }
 
     @Test
     @Throws(IOException::class)
     fun remove() {
         queue.remove(2)
-        Assertions.assertThat(queue.size()).isEqualTo(1)
+        assertThat(queue.size()).isEqualTo(1)
 
         val seen = readQueue(1)
-        Assertions.assertThat(seen).containsExactly(bytes("three"))
+        assertThat(seen).containsExactly(bytes("three"))
     }
 
     private fun bytes(s: String): ByteArray {
@@ -120,9 +120,9 @@ class PayloadQueueTest {
                 var count = 1
 
                 @Throws(IOException::class)
-                override fun read(`in`: InputStream, length: Int): Boolean {
+                override fun read(input: InputStream, length: Int): Boolean {
                     val data = ByteArray(length)
-                    Assertions.assertThat(`in`.read(data)).isEqualTo(length)
+                    assertThat(input.read(data)).isEqualTo(length)
                     seen.add(data)
                     return count++ < maxCount
                 }

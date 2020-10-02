@@ -30,13 +30,14 @@ import java.lang.AssertionError
 import java.lang.IllegalStateException
 import java.lang.reflect.Field
 import kotlin.jvm.Throws
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.MockitoAnnotations
+import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
@@ -55,7 +56,7 @@ class EdgeFunctionMiddlewareTest {
 
     @Before
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
+        initMocks(this)
         Analytics.INSTANCES.clear()
         TestUtils.grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET)
         val projectSettings =
@@ -109,7 +110,7 @@ class EdgeFunctionMiddlewareTest {
         analytics.track("foo")
 
         val privateEdgeFunctions: Field = Analytics::class.java.getDeclaredField("edgeFunctionMiddleware")
-        Assertions.assertThat(privateEdgeFunctions).isNotNull()
+        assertThat(privateEdgeFunctions).isNotNull()
     }
 
     @Test
@@ -124,9 +125,9 @@ class EdgeFunctionMiddlewareTest {
                 )
                 .build()
 
-            Assertions.fail("Should not reach this state")
+            fail("Should not reach this state")
         } catch (exception: java.lang.Exception) {
-            Assertions.assertThat(exception).isInstanceOf(IllegalStateException::class.java)
+            assertThat(exception).isInstanceOf(IllegalStateException::class.java)
         }
     }
 
@@ -143,9 +144,9 @@ class EdgeFunctionMiddlewareTest {
                 )
                 .build()
 
-            Assertions.fail("Should not reach this state")
+            fail("Should not reach this state")
         } catch (exception: java.lang.Exception) {
-            Assertions.assertThat(exception).isInstanceOf(IllegalStateException::class.java)
+            assertThat(exception).isInstanceOf(IllegalStateException::class.java)
         }
     }
 
@@ -165,9 +166,9 @@ class EdgeFunctionMiddlewareTest {
                 )
                 .build()
 
-            Assertions.fail("Should not reach this state")
+            fail("Should not reach this state")
         } catch (exception: java.lang.Exception) {
-            Assertions.assertThat(exception).isInstanceOf(IllegalStateException::class.java)
+            assertThat(exception).isInstanceOf(IllegalStateException::class.java)
         }
     }
 
@@ -187,9 +188,9 @@ class EdgeFunctionMiddlewareTest {
                 .useEdgeFunctionMiddleware(Mockito.mock(JSMiddleware::class.java))
                 .build()
 
-            Assertions.fail("Should not reach this state")
+            fail("Should not reach this state")
         } catch (exception: java.lang.Exception) {
-            Assertions.assertThat(exception).isInstanceOf(IllegalStateException::class.java)
+            assertThat(exception).isInstanceOf(IllegalStateException::class.java)
         }
     }
 }

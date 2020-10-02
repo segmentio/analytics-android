@@ -27,7 +27,7 @@ import com.segment.analytics.SegmentIntegration.BatchPayloadWriter
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import kotlin.jvm.Throws
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -53,7 +53,7 @@ class BatchPayloadWriterTest {
             .close()
 
         // todo: inject a fake clock. for now we'll compare a lower precision.
-        Assertions.assertThat(byteArrayOutputStream.toString())
+        assertThat(byteArrayOutputStream.toString())
             .contains("{\"batch\":[foobarbazqux,{},2],\"sentAt\":\"")
     }
 
@@ -71,7 +71,7 @@ class BatchPayloadWriterTest {
             .close()
 
         // todo: inject a fake clock. for now we'll compare a lower precision.
-        Assertions.assertThat(byteArrayOutputStream.toString())
+        assertThat(byteArrayOutputStream.toString())
             .contains("{\"batch\":[qaz],\"sentAt\":\"")
     }
 
@@ -84,7 +84,7 @@ class BatchPayloadWriterTest {
         try {
             batchPayloadWriter.beginObject().beginBatchArray().endBatchArray().endObject().close()
         } catch (exception: IOException) {
-            Assertions.assertThat(exception).hasMessage("At least one payload must be provided.")
+            assertThat(exception).hasMessage("At least one payload must be provided.")
         }
     }
 }

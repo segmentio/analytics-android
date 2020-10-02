@@ -26,6 +26,9 @@ package com.segment.analytics
 import android.Manifest
 import com.google.common.util.concurrent.MoreExecutors
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.never
+import com.nhaarman.mockitokotlin2.times
+import com.nhaarman.mockitokotlin2.verify
 import com.segment.analytics.integrations.BasePayload
 import com.segment.analytics.integrations.IdentifyPayload
 import com.segment.analytics.integrations.Integration
@@ -33,15 +36,14 @@ import com.segment.analytics.integrations.TrackPayload
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.jvm.Throws
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.anyObject
 import org.mockito.Mock
-import org.mockito.Mockito
-import org.mockito.MockitoAnnotations
+import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
@@ -60,7 +62,7 @@ class DestinationMiddlewareTest {
 
     @Before
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
+        initMocks(this)
         Analytics.INSTANCES.clear()
         TestUtils.grantPermission(RuntimeEnvironment.application, Manifest.permission.INTERNET)
         val projectSettings =
@@ -115,8 +117,8 @@ class DestinationMiddlewareTest {
             }
             .build()
         analytics.track("foo")
-        Assertions.assertThat(payloadRef.get().event()).isEqualTo("foo")
-        Mockito.verify(integrationFoo).track(payloadRef.get())
+        assertThat(payloadRef.get().event()).isEqualTo("foo")
+        verify(integrationFoo).track(payloadRef.get())
     }
 
     @Test
@@ -146,14 +148,14 @@ class DestinationMiddlewareTest {
 
         analytics.track("foo")
 
-        Assertions.assertThat(payloadRefOriginal.get().event()).isEqualTo("foo")
-        Mockito.verify(integrationBar).track(payloadRefOriginal.get())
+        assertThat(payloadRefOriginal.get().event()).isEqualTo("foo")
+        verify(integrationBar).track(payloadRefOriginal.get())
 
-        Assertions.assertThat(payloadRefDestMiddleware.get().event()).isEqualTo("foo")
-        Assertions.assertThat(payloadRefDestMiddleware.get().properties()).containsKey("middleware_key")
-        Assertions.assertThat(payloadRefDestMiddleware.get().properties()["middleware_key"])
+        assertThat(payloadRefDestMiddleware.get().event()).isEqualTo("foo")
+        assertThat(payloadRefDestMiddleware.get().properties()).containsKey("middleware_key")
+        assertThat(payloadRefDestMiddleware.get().properties()["middleware_key"])
             .isEqualTo("middleware_value")
-        Mockito.verify(integrationFoo).track(payloadRefDestMiddleware.get())
+        verify(integrationFoo).track(payloadRefDestMiddleware.get())
     }
 
     @Test
@@ -179,9 +181,9 @@ class DestinationMiddlewareTest {
 
         analytics.track("foo")
 
-        Assertions.assertThat(destCounter.get()).isEqualTo(2) // should only be called for 2 integrations
-        Mockito.verify(integrationBar).track(payloadRefOriginal.get())
-        Mockito.verify(integrationFoo).track(payloadRefDestMiddleware.get())
+        assertThat(destCounter.get()).isEqualTo(2) // should only be called for 2 integrations
+        verify(integrationBar).track(payloadRefOriginal.get())
+        verify(integrationFoo).track(payloadRefDestMiddleware.get())
     }
 
     @Test
@@ -202,9 +204,9 @@ class DestinationMiddlewareTest {
 
         analytics.track("foo")
 
-        Assertions.assertThat(payloadRef.get().event()).isEqualTo("foo")
-        Mockito.verify(integrationFoo, Mockito.never()).track(anyObject()) // validate event does not go through
-        Mockito.verify(integrationBar).track(payloadRef.get()) // validate event goes through
+        assertThat(payloadRef.get().event()).isEqualTo("foo")
+        verify(integrationFoo, never()).track(anyObject()) // validate event does not go through
+        verify(integrationBar).track(payloadRef.get()) // validate event goes through
     }
 
     @Test
@@ -234,10 +236,10 @@ class DestinationMiddlewareTest {
             .build()
 
         analytics.track("foo")
-        Assertions.assertThat(payloadRef.get().properties()).containsKey("key1")
-        Assertions.assertThat(payloadRef.get().properties()["key1"]).isEqualTo("val1")
-        Assertions.assertThat(payloadRef.get().properties()).containsKey("key2")
-        Assertions.assertThat(payloadRef.get().properties()["key2"]).isEqualTo("val2")
+        assertThat(payloadRef.get().properties()).containsKey("key1")
+        assertThat(payloadRef.get().properties()["key1"]).isEqualTo("val1")
+        assertThat(payloadRef.get().properties()).containsKey("key2")
+        assertThat(payloadRef.get().properties()["key2"]).isEqualTo("val2")
     }
 
     @Test
@@ -263,9 +265,9 @@ class DestinationMiddlewareTest {
             .build()
 
         analytics.identify("prateek")
-        Assertions.assertThat(payloadRefDestMiddleware.get().messageId()).isEqualTo("override")
-        Mockito.verify(integrationFoo).identify(payloadRefDestMiddleware.get())
-        Mockito.verify(integrationBar).identify(payloadRefOriginal.get())
+        assertThat(payloadRefDestMiddleware.get().messageId()).isEqualTo("override")
+        verify(integrationFoo).identify(payloadRefDestMiddleware.get())
+        verify(integrationBar).identify(payloadRefOriginal.get())
     }
 
     /** Sample Middleware Tests * */
@@ -292,9 +294,9 @@ class DestinationMiddlewareTest {
             .build()
         analytics.track("checkout started")
         val fooTrack = ArgumentCaptor.forClass(TrackPayload::class.java)
-        Mockito.verify(integrationFoo).track(fooTrack.capture())
-        Assertions.assertThat(fooTrack.value.properties()).containsKey("step")
-        Assertions.assertThat(fooTrack.value.properties()["step"]).isEqualTo(1)
+        verify(integrationFoo).track(fooTrack.capture())
+        assertThat(fooTrack.value.properties()).containsKey("step")
+        assertThat(fooTrack.value.properties()["step"]).isEqualTo(1)
     }
 
     @Test
@@ -330,14 +332,14 @@ class DestinationMiddlewareTest {
         analytics.track("checkout started", Properties().putValue(keyToFlatten, list))
 
         val fooTrack = ArgumentCaptor.forClass(TrackPayload::class.java)
-        Mockito.verify(integrationFoo).track(fooTrack.capture())
-        Assertions.assertThat(fooTrack.value.properties()).containsKey("flatten_0")
-        Assertions.assertThat(fooTrack.value.properties()["flatten_0"]).isEqualTo("val0")
-        Assertions.assertThat(fooTrack.value.properties()).containsKey("flatten_1")
-        Assertions.assertThat(fooTrack.value.properties()["flatten_1"]).isEqualTo("val1")
-        Assertions.assertThat(fooTrack.value.properties()).containsKey("flatten_2")
-        Assertions.assertThat(fooTrack.value.properties()["flatten_2"]).isEqualTo("val2")
-        Assertions.assertThat(fooTrack.value.properties()).doesNotContainKey("flatten")
+        verify(integrationFoo).track(fooTrack.capture())
+        assertThat(fooTrack.value.properties()).containsKey("flatten_0")
+        assertThat(fooTrack.value.properties()["flatten_0"]).isEqualTo("val0")
+        assertThat(fooTrack.value.properties()).containsKey("flatten_1")
+        assertThat(fooTrack.value.properties()["flatten_1"]).isEqualTo("val1")
+        assertThat(fooTrack.value.properties()).containsKey("flatten_2")
+        assertThat(fooTrack.value.properties()["flatten_2"]).isEqualTo("val2")
+        assertThat(fooTrack.value.properties()).doesNotContainKey("flatten")
     }
 
     @Test
@@ -399,23 +401,23 @@ class DestinationMiddlewareTest {
             .build()
 
         analytics.identify("tom")
-        Mockito.verify(integrationFoo, Mockito.times(1)).identify(any())
+        verify(integrationFoo, times(1)).identify(any())
 
         analytics.identify("tom")
-        Mockito.verify(integrationFoo, Mockito.times(1)).identify(any())
+        verify(integrationFoo, times(1)).identify(any())
 
         analytics.identify("jerry")
-        Mockito.verify(integrationFoo, Mockito.times(2)).identify(any())
+        verify(integrationFoo, times(2)).identify(any())
 
         analytics.identify(Traits().putAge(10))
-        Mockito.verify(integrationFoo, Mockito.times(3)).identify(any())
+        verify(integrationFoo, times(3)).identify(any())
 
         analytics.identify("jerry")
-        Mockito.verify(integrationFoo, Mockito.times(3)).identify(any())
+        verify(integrationFoo, times(3)).identify(any())
 
         analytics.identify("tom")
-        Mockito.verify(integrationFoo, Mockito.times(4)).identify(any())
+        verify(integrationFoo, times(4)).identify(any())
 
-        Assertions.assertThat(dropCount.get()).isEqualTo(2)
+        assertThat(dropCount.get()).isEqualTo(2)
     }
 }

@@ -24,7 +24,7 @@
 package com.segment.analytics
 
 import kotlin.jvm.Throws
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -46,7 +46,7 @@ class ValueMapCacheTest {
                 RuntimeEnvironment.application, cartographer, "traits-cache-test", "tag", Traits::class.java
             )
         traitsCache.delete()
-        Assertions.assertThat(traitsCache.get()).isNullOrEmpty()
+        assertThat(traitsCache.get()).isNullOrEmpty()
     }
 
     @Test
@@ -54,13 +54,13 @@ class ValueMapCacheTest {
     fun save() {
         val traits = Traits().putValue("foo", "bar")
         traitsCache.set(traits)
-        Assertions.assertThat(traitsCache.get()).isEqualTo(traits)
+        assertThat(traitsCache.get()).isEqualTo(traits)
     }
 
     @Test
     @Throws(Exception::class)
     fun cacheWithSameKeyHasSameValue() {
-        Assertions.assertThat(traitsCache.isSet).isFalse()
+        assertThat(traitsCache.isSet).isFalse()
         val traits = Traits().putValue("foo", "bar")
         traitsCache.set(traits)
 
@@ -68,6 +68,6 @@ class ValueMapCacheTest {
             ValueMap.Cache<Traits>(
                 RuntimeEnvironment.application, cartographer, "traits-cache-test", "tag", Traits::class.java
             )
-        Assertions.assertThat(traitsCacheDuplicate.isSet).isTrue()
+        assertThat(traitsCacheDuplicate.isSet).isTrue()
     }
 }

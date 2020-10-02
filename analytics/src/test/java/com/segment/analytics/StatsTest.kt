@@ -26,7 +26,8 @@ package com.segment.analytics
 import android.util.Pair
 import java.io.IOException
 import kotlin.jvm.Throws
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.assertj.core.data.MapEntry
 import org.junit.Before
 import org.junit.Test
@@ -48,34 +49,34 @@ class StatsTest {
     @Throws(IOException::class)
     fun performFlush() {
         stats.performFlush(4)
-        Assertions.assertThat(stats.flushCount).isEqualTo(1)
-        Assertions.assertThat(stats.flushEventCount).isEqualTo(4)
+        assertThat(stats.flushCount).isEqualTo(1)
+        assertThat(stats.flushEventCount).isEqualTo(4)
 
         stats.performFlush(10)
-        Assertions.assertThat(stats.flushCount).isEqualTo(2)
-        Assertions.assertThat(stats.flushEventCount).isEqualTo(14)
+        assertThat(stats.flushCount).isEqualTo(2)
+        assertThat(stats.flushEventCount).isEqualTo(14)
     }
 
     @Test
     @Throws(IOException::class)
     fun performIntegrationOperation() {
         stats.performIntegrationOperation(Pair("foo", 43L))
-        Assertions.assertThat(stats.integrationOperationCount).isEqualTo(1)
-        Assertions.assertThat(stats.integrationOperationDuration).isEqualTo(43L)
-        Assertions.assertThat(stats.integrationOperationDurationByIntegration)
+        assertThat(stats.integrationOperationCount).isEqualTo(1)
+        assertThat(stats.integrationOperationDuration).isEqualTo(43L)
+        assertThat(stats.integrationOperationDurationByIntegration)
             .containsExactly(MapEntry.entry("foo", 43L))
 
         stats.performIntegrationOperation(Pair("bar", 2L))
-        Assertions.assertThat(stats.integrationOperationCount).isEqualTo(2)
-        Assertions.assertThat(stats.integrationOperationDuration).isEqualTo(45L)
-        Assertions.assertThat(stats.integrationOperationDurationByIntegration)
+        assertThat(stats.integrationOperationCount).isEqualTo(2)
+        assertThat(stats.integrationOperationDuration).isEqualTo(45L)
+        assertThat(stats.integrationOperationDurationByIntegration)
             .hasSize(2)
             .contains(MapEntry.entry("bar", 2L))
 
         stats.performIntegrationOperation(Pair("bar", 19L))
-        Assertions.assertThat(stats.integrationOperationCount).isEqualTo(3)
-        Assertions.assertThat(stats.integrationOperationDuration).isEqualTo(64L)
-        Assertions.assertThat(stats.integrationOperationDurationByIntegration)
+        assertThat(stats.integrationOperationCount).isEqualTo(3)
+        assertThat(stats.integrationOperationDuration).isEqualTo(64L)
+        assertThat(stats.integrationOperationDurationByIntegration)
             .hasSize(2)
             .contains(MapEntry.entry("bar", 21L))
     }
@@ -105,19 +106,19 @@ class StatsTest {
         stats.performIntegrationOperation(Pair("bar", 2L))
 
         val snapshot = stats.createSnapshot()
-        Assertions.assertThat(snapshot.flushCount).isEqualTo(8)
-        Assertions.assertThat(snapshot.flushEventCount).isEqualTo(54)
-        Assertions.assertThat(snapshot.integrationOperationCount).isEqualTo(10)
-        Assertions.assertThat(snapshot.integrationOperationDuration).isEqualTo(14L)
-        Assertions.assertThat(snapshot.integrationOperationAverageDuration).isEqualTo(1.4f)
-        Assertions.assertThat(snapshot.integrationOperationDurationByIntegration)
+        assertThat(snapshot.flushCount).isEqualTo(8)
+        assertThat(snapshot.flushEventCount).isEqualTo(54)
+        assertThat(snapshot.integrationOperationCount).isEqualTo(10)
+        assertThat(snapshot.integrationOperationDuration).isEqualTo(14L)
+        assertThat(snapshot.integrationOperationAverageDuration).isEqualTo(1.4f)
+        assertThat(snapshot.integrationOperationDurationByIntegration)
             .hasSize(2)
             .contains(MapEntry.entry("foo", 6L))
             .contains(MapEntry.entry("bar", 8L))
 
         try {
             snapshot.integrationOperationDurationByIntegration["qaz"] = 10L
-            Assertions.fail("Map instance should be immutable.")
+            fail("Map instance should be immutable.")
         } catch (ignored: UnsupportedOperationException) {
         }
     }
@@ -127,12 +128,12 @@ class StatsTest {
     fun createEmptySnapshot() {
         val snapshot: StatsSnapshot = stats.createSnapshot()
 
-        Assertions.assertThat(snapshot.timestamp).isNotZero()
-        Assertions.assertThat(snapshot.flushCount).isZero()
-        Assertions.assertThat(snapshot.flushEventCount).isZero()
-        Assertions.assertThat(snapshot.integrationOperationCount).isZero()
-        Assertions.assertThat(snapshot.integrationOperationDuration).isZero()
-        Assertions.assertThat(snapshot.integrationOperationAverageDuration).isZero()
-        Assertions.assertThat(snapshot.integrationOperationDurationByIntegration).isEmpty()
+        assertThat(snapshot.timestamp).isNotZero()
+        assertThat(snapshot.flushCount).isZero()
+        assertThat(snapshot.flushEventCount).isZero()
+        assertThat(snapshot.integrationOperationCount).isZero()
+        assertThat(snapshot.integrationOperationDuration).isZero()
+        assertThat(snapshot.integrationOperationAverageDuration).isZero()
+        assertThat(snapshot.integrationOperationDurationByIntegration).isEmpty()
     }
 }
