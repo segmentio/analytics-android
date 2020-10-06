@@ -1559,7 +1559,7 @@ public class Analytics {
                 throw new AssertionError("The factory key is empty!");
             }
             ValueMap settings = integrationSettings.getValueMap(key);
-            if (!(factory instanceof WebhookIntegrationFactory) && isNullOrEmpty(settings)) {
+            if (!(factory instanceof WebhookIntegration.WebhookIntegrationFactory) && isNullOrEmpty(settings)) {
                 logger.debug("Integration %s is not enabled.", key);
                 continue;
             }
