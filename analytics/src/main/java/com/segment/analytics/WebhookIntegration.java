@@ -56,49 +56,52 @@ public class WebhookIntegration extends Integration<Void> {
    * header set
    */
   private void sendPayloadToWebhook(ValueMap payload) {
-    networkExecutor.submit((Runnable) () -> {
-      try {
-        Log.d(tag, String.format("Running %s payload through %s", payload.getString("type"), key));
-        URL requestedURL = null;
+    networkExecutor.submit(new Runnable() {
+      @Override
+      public void run() {
         try {
-          requestedURL = new URL(webhookUrl);
-        } catch (MalformedURLException e) {
-          throw new IOException("Attempted to use malformed url: $webhookUrl", e);
-        }
-
-        HttpURLConnection connection = (HttpURLConnection) requestedURL.openConnection();
-        connection.setDoOutput(true);
-        connection.setChunkedStreamingMode(0);
-        connection.setRequestProperty("Content-Type", "application/json");
-
-        DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());
-        String payloadJson = payload.toJsonObject().toString();
-        outputStream.writeBytes(payloadJson);
-
-        try {
-          int responseCode = connection.getResponseCode();
-          if (responseCode >= 300) {
-            String responseBody;
-            InputStream inputStream = null;
-            try {
-              inputStream = getInputStream(connection);
-              responseBody = readFully(inputStream);
-            } catch (IOException e) {
-              responseBody =
-                  "Could not read response body for rejected message: "
-                      + e.toString();
-            } finally {
-              if (inputStream != null) {
-                inputStream.close();
-              }
-            }
-            Log.w(tag, String.format("Failed to send payload, statusCode=%d, body=%s", responseCode, responseBody));
+          Log.d(tag, String.format("Running %s payload through %s", payload.getString("type"), key));
+          URL requestedURL = null;
+          try {
+            requestedURL = new URL(webhookUrl);
+          } catch (MalformedURLException e) {
+            throw new IOException("Attempted to use malformed url: $webhookUrl", e);
           }
-        } finally {
-          outputStream.close();
+
+          HttpURLConnection connection = (HttpURLConnection) requestedURL.openConnection();
+          connection.setDoOutput(true);
+          connection.setChunkedStreamingMode(0);
+          connection.setRequestProperty("Content-Type", "application/json");
+
+          DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());
+          String payloadJson = payload.toJsonObject().toString();
+          outputStream.writeBytes(payloadJson);
+
+          try {
+            int responseCode = connection.getResponseCode();
+            if (responseCode >= 300) {
+              String responseBody;
+              InputStream inputStream = null;
+              try {
+                inputStream = getInputStream(connection);
+                responseBody = readFully(inputStream);
+              } catch (IOException e) {
+                responseBody =
+                    "Could not read response body for rejected message: "
+                        + e.toString();
+              } finally {
+                if (inputStream != null) {
+                  inputStream.close();
+                }
+              }
+              Log.w(tag, String.format("Failed to send payload, statusCode=%d, body=%s", responseCode, responseBody));
+            }
+          } finally {
+            outputStream.close();
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
         }
-      } catch (Exception e) {
-        e.printStackTrace();
       }
     });
   }
