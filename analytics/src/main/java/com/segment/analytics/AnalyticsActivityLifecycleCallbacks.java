@@ -99,6 +99,21 @@ class AnalyticsActivityLifecycleCallbacks
     }
 
     @Override
+    public void onResume(@NonNull LifecycleOwner owner) {
+
+    }
+
+    @Override
+    public void onPause(@NonNull LifecycleOwner owner) {
+
+    }
+
+    @Override
+    public void onDestroy(@NonNull LifecycleOwner owner) {
+
+    }
+
+    @Override
     public void onActivityCreated(Activity activity, Bundle bundle) {
         analytics.runOnMainThread(IntegrationOperation.onActivityCreated(activity, bundle));
 
