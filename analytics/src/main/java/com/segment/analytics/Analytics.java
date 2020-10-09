@@ -787,6 +787,11 @@ public class Analytics {
         runOnMainThread(IntegrationOperation.FLUSH);
     }
 
+    /** Get the underlying {@link JSMiddleware} associated with this analytics object */
+    public JSMiddleware getEdgeFunctionMiddleware() {
+        return edgeFunctionMiddleware;
+    }
+
     /** Get the {@link AnalyticsContext} used by this instance. */
     @SuppressWarnings("UnusedDeclaration")
     public AnalyticsContext getAnalyticsContext() {
