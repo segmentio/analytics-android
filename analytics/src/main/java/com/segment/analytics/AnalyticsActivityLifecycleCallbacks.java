@@ -67,6 +67,7 @@ class AnalyticsActivityLifecycleCallbacks
         this.packageInfo = packageInfo;
     }
 
+    @Override
     public void onStop(@NonNull LifecycleOwner owner) {
         // App in background
         if (shouldTrackApplicationLifecycleEvents) {
@@ -74,6 +75,7 @@ class AnalyticsActivityLifecycleCallbacks
         }
     }
 
+    @Override
     public void onStart(@NonNull LifecycleOwner owner) {
         // App in foreground
         if (shouldTrackApplicationLifecycleEvents) {
@@ -88,6 +90,7 @@ class AnalyticsActivityLifecycleCallbacks
         }
     }
 
+    @Override
     public void onCreate(@NonNull LifecycleOwner owner) {
         // App created
         if (!trackedApplicationLifecycleEvents.getAndSet(true)
@@ -97,6 +100,15 @@ class AnalyticsActivityLifecycleCallbacks
             analytics.trackApplicationLifecycleEvents();
         }
     }
+
+    @Override
+    public void onResume(@NonNull LifecycleOwner owner) {}
+
+    @Override
+    public void onPause(@NonNull LifecycleOwner owner) {}
+
+    @Override
+    public void onDestroy(@NonNull LifecycleOwner owner) {}
 
     @Override
     public void onActivityCreated(Activity activity, Bundle bundle) {

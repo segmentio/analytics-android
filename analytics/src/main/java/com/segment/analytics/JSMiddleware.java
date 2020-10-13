@@ -38,4 +38,10 @@ public abstract class JSMiddleware {
     }
 
     public abstract void setEdgeFunctionData(ValueMap data);
+
+    public abstract void addToDataBridge(String key, Object value);
+
+    public abstract void removeFromDataBridge(String key);
+
+    public abstract Map<String, Object> getDataBridgeSnapshot();
 }

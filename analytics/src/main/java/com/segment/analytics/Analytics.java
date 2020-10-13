@@ -787,6 +787,11 @@ public class Analytics {
         runOnMainThread(IntegrationOperation.FLUSH);
     }
 
+    /** Get the underlying {@link JSMiddleware} associated with this analytics object */
+    public JSMiddleware getEdgeFunctionMiddleware() {
+        return edgeFunctionMiddleware;
+    }
+
     /** Get the {@link AnalyticsContext} used by this instance. */
     @SuppressWarnings("UnusedDeclaration")
     public AnalyticsContext getAnalyticsContext() {
@@ -1559,7 +1564,8 @@ public class Analytics {
                 throw new AssertionError("The factory key is empty!");
             }
             ValueMap settings = integrationSettings.getValueMap(key);
-            if (!(factory instanceof WebhookIntegrationFactory) && isNullOrEmpty(settings)) {
+            if (!(factory instanceof WebhookIntegration.WebhookIntegrationFactory)
+                    && isNullOrEmpty(settings)) {
                 logger.debug("Integration %s is not enabled.", key);
                 continue;
             }
