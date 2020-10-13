@@ -49,6 +49,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ProcessLifecycleOwner;
+import com.segment.analytics.core.BuildConfig;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
@@ -1534,7 +1535,7 @@ public class Analytics {
             return downloadSettings();
         }
 
-        long expirationTime = cachedSettings.timestamp() + SETTINGS_REFRESH_INTERVAL;
+        long expirationTime = cachedSettings.timestamp() + getSettingsRefreshInterval();
         if (expirationTime > System.currentTimeMillis()) {
             return cachedSettings;
         }
@@ -1544,6 +1545,13 @@ public class Analytics {
             return cachedSettings;
         }
         return downloadedSettings;
+    }
+
+    private long getSettingsRefreshInterval() {
+        if (BuildConfig.DEBUG) {
+            return 60 * 1000; // 1 minute
+        }
+        return SETTINGS_REFRESH_INTERVAL;
     }
 
     void performInitializeIntegrations(ProjectSettings projectSettings) throws AssertionError {
