@@ -1547,10 +1547,11 @@ public class Analytics {
     }
 
     private long getSettingsRefreshInterval() {
+        long returnInterval = SETTINGS_REFRESH_INTERVAL;
         if (logger.logLevel == LogLevel.DEBUG) {
-            return 60 * 1000; // 1 minute
+            returnInterval = 60 * 1000; // 1 minute
         }
-        return SETTINGS_REFRESH_INTERVAL;
+        return returnInterval;
     }
 
     void performInitializeIntegrations(ProjectSettings projectSettings) throws AssertionError {
