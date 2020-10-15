@@ -49,7 +49,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ProcessLifecycleOwner;
-import com.segment.analytics.core.BuildConfig;
+
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
@@ -1548,7 +1548,7 @@ public class Analytics {
     }
 
     private long getSettingsRefreshInterval() {
-        if (BuildConfig.DEBUG) {
+        if (logger.logLevel == LogLevel.DEBUG) {
             return 60 * 1000; // 1 minute
         }
         return SETTINGS_REFRESH_INTERVAL;
