@@ -1534,7 +1534,7 @@ public class Analytics {
             return downloadSettings();
         }
 
-        long expirationTime = cachedSettings.timestamp() + SETTINGS_REFRESH_INTERVAL;
+        long expirationTime = cachedSettings.timestamp() + getSettingsRefreshInterval();
         if (expirationTime > System.currentTimeMillis()) {
             return cachedSettings;
         }
@@ -1544,6 +1544,14 @@ public class Analytics {
             return cachedSettings;
         }
         return downloadedSettings;
+    }
+
+    private long getSettingsRefreshInterval() {
+        long returnInterval = SETTINGS_REFRESH_INTERVAL;
+        if (logger.logLevel == LogLevel.DEBUG) {
+            returnInterval = 60 * 1000; // 1 minute
+        }
+        return returnInterval;
     }
 
     void performInitializeIntegrations(ProjectSettings projectSettings) throws AssertionError {
