@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Version 4.9.0 (Oct 15, 2020)
+============================
+* [New](https://github.com/segmentio/analytics-android/pull/707): Remove the ability to natively report attribution information via Segment integrations
+* [New](https://github.com/segmentio/analytics-android/pull/727): Edge Function Support
+* [New](https://github.com/segmentio/analytics-android/pull/715): Add a Webhook Integration for viewing payloads
+* [New](https://github.com/segmentio/analytics-android/pull/728): Enable faster project settings refresh when debugging enabled
+
 Version 4.8.2 (Jul 30, 2020)
 ============================
 * [Fix](https://github.com/segmentio/analytics-android/pull/686): Generate timestamps at call site rather than asynchronously
