@@ -265,6 +265,23 @@ open class AnalyticsTest {
     }
 
     @Test
+    fun identifyNullTraits() {
+        analytics.identify("userId", null, null)
+
+        assertThat(traits.userId()).isEqualTo("userId")
+        assertThat(traits.username()).isNull()
+    }
+
+    @Test
+    fun identifySavesPreviousTraits() {
+        analytics.identify("userId", Traits().putUsername("username"), null)
+        analytics.identify("userId")
+
+        assertThat(traits.userId()).isEqualTo("userId")
+        assertThat(traits.username()).isEqualTo("username")
+    }
+
+    @Test
     @Nullable
     fun invalidGroup() {
         try {
