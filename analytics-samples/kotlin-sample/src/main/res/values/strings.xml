@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Segment Sample</string>
+    <string name="docs">Docs</string>
+    <string name="primary_dark">#12424a</string>
+    <string name="track_button_a">Track Button A</string>
+    <string name="track_button_b">Track Button B</string>
+    <string name="flush">Flush</string>
+    <string name="name">Name</string>
+    <string name="email">Email</string>
+    <string name="age">Age</string>
+    <string name="identify">Identify</string>
+    <string name="screen">Screen</string>
+    <string name="group_id">Group ID</string>
+    <string name="group_text">Group</string>
+    <string name="empty_username">No username</string>
+    <string name="alias">Alias</string>
+    <string name="alias_id">New ID</string>
+    <string name="menu_reset_id">Reset ID</string>
+</resources>
