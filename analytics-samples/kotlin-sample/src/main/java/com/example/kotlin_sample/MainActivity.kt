@@ -36,7 +36,11 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.kotlin_sample.databinding.ActivityMainBinding
 import com.segment.analytics.Analytics
 import com.segment.analytics.Traits
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_main.alias_text
+import kotlinx.android.synthetic.main.activity_main.group_id
+import kotlinx.android.synthetic.main.activity_main.identify_age
+import kotlinx.android.synthetic.main.activity_main.identify_email
+import kotlinx.android.synthetic.main.activity_main.identify_name
 
 class MainActivity : AppCompatActivity() {
 
