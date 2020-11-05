@@ -225,10 +225,10 @@ public abstract class BasePayload extends ValueMap {
         }
 
         /**
-         * Set a timestamp for the event. By default, the current timestamp is used, but you may
-         * override it for historical import.
+         * Attach a library-created timestamp to historically import data to the Segment API.
          *
-         * <p>This library will automatically create and attach a timestamp to all events.
+         * <p>This library will automatically create and attach a timestamp to all events. This
+         * timestamp cannot be manually set when using the Segment Source in device mode.
          *
          * @see <a href="https://segment.com/docs/spec/common/#timestamps">Timestamp</a>
          */
