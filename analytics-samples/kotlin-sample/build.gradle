@@ -2,20 +2,6 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-apply from: rootProject.file('gradle/android.gradle')
-
-def WEBHOOK_AUTH_USERNAME = ""
-def RUN_E2E_TESTS = false
-
-// e2e_test.properties is a file with a single line: WEBHOOK_AUTH_USERNAME=<token>
-def e2eTestPropertiesFile = file('e2e_test.properties')
-if (e2eTestPropertiesFile.exists()) {
-	def props = new Properties()
-	file(e2eTestPropertiesFile).withInputStream { stream -> props.load(stream) }
-	WEBHOOK_AUTH_USERNAME = props.getProperty("WEBHOOK_AUTH_USERNAME")
-	RUN_E2E_TESTS = true
-}
-
 android {
 	compileSdkVersion 30
 	buildToolsVersion "30.0.2"
@@ -44,9 +30,6 @@ android {
 
 	defaultConfig {
 		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-		buildConfigField 'String', 'WEBHOOK_AUTH_USERNAME', "\"$WEBHOOK_AUTH_USERNAME\""
-		buildConfigField 'boolean', 'RUN_E2E_TESTS', "$RUN_E2E_TESTS"
 	}
 
 	buildFeatures {
