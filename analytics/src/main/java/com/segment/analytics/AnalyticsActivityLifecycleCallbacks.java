@@ -31,6 +31,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.DefaultLifecycleObserver;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -49,13 +51,47 @@ class AnalyticsActivityLifecycleCallbacks
     private AtomicInteger numberOfActivities;
     private AtomicBoolean firstLaunch;
 
+    private AtomicBoolean isChangingActivityConfigurations;
+    private Boolean useNewLifecycleMethods;
+
+    // This is just a stub LifecycleOwner which is used when we need to call some lifecycle
+    // methods without going through the actual lifecycle callbacks
+    private static LifecycleOwner stubOwner =
+            new LifecycleOwner() {
+                Lifecycle stubLifecycle =
+                        new Lifecycle() {
+                            @Override
+                            public void addObserver(@NonNull LifecycleObserver observer) {
+                                // NO-OP
+                            }
+
+                            @Override
+                            public void removeObserver(@NonNull LifecycleObserver observer) {
+                                // NO-OP
+                            }
+
+                            @NonNull
+                            @Override
+                            public Lifecycle.State getCurrentState() {
+                                return State.DESTROYED;
+                            }
+                        };
+
+                @NonNull
+                @Override
+                public Lifecycle getLifecycle() {
+                    return stubLifecycle;
+                }
+            };
+
     private AnalyticsActivityLifecycleCallbacks(
             Analytics analytics,
             ExecutorService analyticsExecutor,
             Boolean shouldTrackApplicationLifecycleEvents,
             Boolean trackDeepLinks,
             Boolean shouldRecordScreenViews,
-            PackageInfo packageInfo) {
+            PackageInfo packageInfo,
+            Boolean useNewLifecycleMethods) {
         this.trackedApplicationLifecycleEvents = new AtomicBoolean(false);
         this.numberOfActivities = new AtomicInteger(1);
         this.firstLaunch = new AtomicBoolean(false);
@@ -65,12 +101,16 @@ class AnalyticsActivityLifecycleCallbacks
         this.trackDeepLinks = trackDeepLinks;
         this.shouldRecordScreenViews = shouldRecordScreenViews;
         this.packageInfo = packageInfo;
+        this.useNewLifecycleMethods = useNewLifecycleMethods;
+        this.isChangingActivityConfigurations = new AtomicBoolean(false);
     }
 
     @Override
     public void onStop(@NonNull LifecycleOwner owner) {
         // App in background
-        if (shouldTrackApplicationLifecycleEvents) {
+        if (shouldTrackApplicationLifecycleEvents
+                && numberOfActivities.decrementAndGet() == 0
+                && !isChangingActivityConfigurations.get()) {
             analytics.track("Application Backgrounded");
         }
     }
@@ -78,7 +118,9 @@ class AnalyticsActivityLifecycleCallbacks
     @Override
     public void onStart(@NonNull LifecycleOwner owner) {
         // App in foreground
-        if (shouldTrackApplicationLifecycleEvents) {
+        if (shouldTrackApplicationLifecycleEvents
+                && numberOfActivities.incrementAndGet() == 1
+                && !isChangingActivityConfigurations.get()) {
             Properties properties = new Properties();
             if (firstLaunch.get()) {
                 properties
@@ -113,6 +155,10 @@ class AnalyticsActivityLifecycleCallbacks
     @Override
     public void onActivityCreated(Activity activity, Bundle bundle) {
         analytics.runOnMainThread(IntegrationOperation.onActivityCreated(activity, bundle));
+
+        if (!useNewLifecycleMethods) {
+            onCreate(stubOwner);
+        }
 
         if (trackDeepLinks) {
             trackDeepLink(activity);
@@ -149,16 +195,25 @@ class AnalyticsActivityLifecycleCallbacks
     @Override
     public void onActivityResumed(Activity activity) {
         analytics.runOnMainThread(IntegrationOperation.onActivityResumed(activity));
+        if (!useNewLifecycleMethods) {
+            onStart(stubOwner);
+        }
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
         analytics.runOnMainThread(IntegrationOperation.onActivityPaused(activity));
+        if (!useNewLifecycleMethods) {
+            onPause(stubOwner);
+        }
     }
 
     @Override
     public void onActivityStopped(Activity activity) {
         analytics.runOnMainThread(IntegrationOperation.onActivityStopped(activity));
+        if (!useNewLifecycleMethods) {
+            onStop(stubOwner);
+        }
     }
 
     @Override
@@ -170,6 +225,9 @@ class AnalyticsActivityLifecycleCallbacks
     @Override
     public void onActivityDestroyed(Activity activity) {
         analytics.runOnMainThread(IntegrationOperation.onActivityDestroyed(activity));
+        if (!useNewLifecycleMethods) {
+            onDestroy(stubOwner);
+        }
     }
 
     public static class Builder {
@@ -179,6 +237,7 @@ class AnalyticsActivityLifecycleCallbacks
         private Boolean trackDeepLinks;
         private Boolean shouldRecordScreenViews;
         private PackageInfo packageInfo;
+        private Boolean useNewLifecycleMethods;
 
         public Builder() {}
 
@@ -213,6 +272,11 @@ class AnalyticsActivityLifecycleCallbacks
             return this;
         }
 
+        Builder useNewLifecycleMethods(boolean useNewLifecycleMethods) {
+            this.useNewLifecycleMethods = useNewLifecycleMethods;
+            return this;
+        }
+
         public AnalyticsActivityLifecycleCallbacks build() {
             return new AnalyticsActivityLifecycleCallbacks(
                     analytics,
@@ -220,7 +284,8 @@ class AnalyticsActivityLifecycleCallbacks
                     shouldTrackApplicationLifecycleEvents,
                     trackDeepLinks,
                     shouldRecordScreenViews,
-                    packageInfo);
+                    packageInfo,
+                    useNewLifecycleMethods);
         }
     }
 }

@@ -98,6 +98,7 @@ public class SampleApp extends Application {
                                                 return;
                                             }
                                         }
+                                        chain.proceed(chain.payload());
                                     }
                                 })
                         .flushQueueSize(1)
