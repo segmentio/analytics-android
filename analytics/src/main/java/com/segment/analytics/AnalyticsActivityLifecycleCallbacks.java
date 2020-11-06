@@ -189,9 +189,6 @@ class AnalyticsActivityLifecycleCallbacks
         if (shouldRecordScreenViews) {
             analytics.recordScreenViews(activity);
         }
-        if (!useNewLifecycleMethods) {
-            onStart(stubOwner);
-        }
         analytics.runOnMainThread(IntegrationOperation.onActivityStarted(activity));
     }
 
