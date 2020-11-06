@@ -1533,6 +1533,7 @@ open class AnalyticsTest {
         whenever(backgroundedActivity.isChangingConfigurations).thenReturn(false)
 
         callback.get().onCreate(mockLifecycleOwner)
+        callback.get().onStart(mockLifecycleOwner)
         callback.get().onResume(mockLifecycleOwner)
         callback.get().onStop(mockLifecycleOwner)
 
@@ -1621,6 +1622,224 @@ open class AnalyticsTest {
                             return payload.event() == "Application Opened" &&
                                 payload.properties()
                                     .getBoolean("from_background", false)
+                        }
+                    })
+            )
+    }
+
+    @Test
+    @Throws(NameNotFoundException::class)
+    open fun trackApplicationLifecycleEventsApplicationOpenedOldFlow() {
+        Analytics.INSTANCES.clear()
+        // need to reset bcos we interact with mock in our setUp function (implicitly via analytics
+        // constructor)
+        Mockito.reset(lifecycle)
+        val callback = AtomicReference<ActivityLifecycleCallbacks>()
+        doNothing()
+            .whenever(application)
+            .registerActivityLifecycleCallbacks(
+                argThat(
+                    object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
+                        override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
+                            callback.set(item)
+                            return true
+                        }
+                    })
+            )
+        analytics = Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz",
+            listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            emptyList(),
+            emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false,
+            false
+        )
+
+        // Verify that new methods were not registered
+        verify(lifecycle, never()).addObserver(any(LifecycleObserver::class.java))
+        callback.get().onActivityCreated(null, null)
+        callback.get().onActivityResumed(null)
+        verify(integration)
+            .track(
+                argThat(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "Application Opened" &&
+                                payload.properties().getString("version") == "1.0.0" &&
+                                payload.properties().getString("build") == 100.toString() &&
+                                !payload.properties().getBoolean("from_background", true)
+                        }
+                    })
+            )
+    }
+
+    @Test
+    @Throws(NameNotFoundException::class)
+    open fun trackApplicationLifecycleEventsApplicationBackgroundedOldFlow() {
+        Analytics.INSTANCES.clear()
+        // need to reset bcos we interact with mock in our setUp function (implicitly via analytics
+        // constructor)
+        Mockito.reset(lifecycle)
+        val callback = AtomicReference<ActivityLifecycleCallbacks>()
+        doNothing()
+            .whenever(application)
+            .registerActivityLifecycleCallbacks(
+                argThat(
+                    object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
+                        override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
+                            callback.set(item)
+                            return true
+                        }
+                    })
+            )
+        analytics = Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz",
+            listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            emptyList(),
+            emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false,
+            false
+        )
+
+        // Verify that new methods were not registered
+        verify(lifecycle, never()).addObserver(any(LifecycleObserver::class.java))
+        val backgroundedActivity: Activity = Mockito.mock(Activity::class.java)
+        whenever(backgroundedActivity.isChangingConfigurations).thenReturn(false)
+        callback.get().onActivityCreated(null, null)
+        callback.get().onActivityResumed(null)
+        callback.get().onActivityStopped(backgroundedActivity)
+        verify(integration)
+            .track(
+                argThat(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "Application Backgrounded"
+                        }
+                    })
+            )
+    }
+
+    @Test
+    @Throws(NameNotFoundException::class)
+    open fun trackApplicationLifecycleEventsApplicationForegroundedOldFlow() {
+        Analytics.INSTANCES.clear()
+        // need to reset bcos we interact with mock in our setUp function (implicitly via analytics
+        // constructor)
+        Mockito.reset(lifecycle)
+        val callback = AtomicReference<ActivityLifecycleCallbacks>()
+        doNothing()
+            .whenever(application)
+            .registerActivityLifecycleCallbacks(
+                argThat<ActivityLifecycleCallbacks>(
+                    object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
+                        override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
+                            callback.set(item)
+                            return true
+                        }
+                    })
+            )
+        analytics = Analytics(
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz",
+            listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            optOut,
+            Crypto.none(),
+            emptyList(),
+            emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false,
+            false
+        )
+
+        // Verify that new methods were not registered
+        verify(lifecycle, never()).addObserver(any(LifecycleObserver::class.java))
+        val backgroundedActivity: Activity = Mockito.mock(Activity::class.java)
+        whenever(backgroundedActivity.isChangingConfigurations).thenReturn(false)
+        callback.get().onActivityCreated(null, null)
+        callback.get().onActivityResumed(null)
+        callback.get().onActivityStopped(backgroundedActivity)
+        callback.get().onActivityResumed(null)
+        verify(integration)
+            .track(
+                argThat(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "Application Backgrounded"
+                        }
+                    })
+            )
+        verify(integration)
+            .track(
+                argThat(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "Application Opened" &&
+                                payload.properties().getBoolean("from_background", false)
                         }
                     })
             )
