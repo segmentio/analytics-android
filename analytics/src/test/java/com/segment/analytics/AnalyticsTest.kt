@@ -200,7 +200,8 @@ open class AnalyticsTest {
             jsMiddleware,
             ValueMap(),
             lifecycle,
-            false
+            false,
+            true
         )
 
         // Used by singleton tests.
@@ -866,7 +867,8 @@ open class AnalyticsTest {
             jsMiddleware,
             ValueMap(),
             lifecycle,
-            false
+            false,
+            true
         )
 
         callback.get().onCreate(mockLifecycleOwner)
@@ -953,7 +955,8 @@ open class AnalyticsTest {
             jsMiddleware,
             ValueMap(),
             lifecycle,
-            false
+            false,
+            true
         )
 
         callback.get().onCreate(mockLifecycleOwner)
@@ -1021,7 +1024,8 @@ open class AnalyticsTest {
             jsMiddleware,
             ValueMap(),
             lifecycle,
-            false
+            false,
+            true
         )
 
         val activity = Mockito.mock(Activity::class.java)
@@ -1091,7 +1095,8 @@ open class AnalyticsTest {
             jsMiddleware,
             ValueMap(),
             lifecycle,
-            false
+            false,
+            true
         )
 
         val expectedURL = "app://track.com/open?utm_id=12345&gclid=abcd&nope="
@@ -1166,7 +1171,8 @@ open class AnalyticsTest {
             jsMiddleware,
             ValueMap(),
             lifecycle,
-            false
+            false,
+            true
         )
 
         val expectedURL = "app://track.com/open?utm_id=12345&gclid=abcd&nope="
@@ -1239,7 +1245,8 @@ open class AnalyticsTest {
             jsMiddleware,
             ValueMap(),
             lifecycle,
-            false
+            false,
+            true
         )
 
         val activity = Mockito.mock(Activity::class.java)
@@ -1303,7 +1310,8 @@ open class AnalyticsTest {
             jsMiddleware,
             ValueMap(),
             lifecycle,
-            false
+            false,
+            true
         )
 
         val activity = Mockito.mock(Activity::class.java)
@@ -1371,7 +1379,8 @@ open class AnalyticsTest {
             jsMiddleware,
             ValueMap(),
             lifecycle,
-            false
+            false,
+            true
         )
 
         val activity = Mockito.mock(Activity::class.java)
@@ -1448,7 +1457,8 @@ open class AnalyticsTest {
             jsMiddleware,
             ValueMap(),
             lifecycle,
-            false
+            false,
+            true
         )
 
         callback.get().onCreate(mockLifecycleOwner)
@@ -1515,7 +1525,8 @@ open class AnalyticsTest {
             jsMiddleware,
             ValueMap(),
             lifecycle,
-            false
+            false,
+            true
         )
 
         val backgroundedActivity = Mockito.mock(Activity::class.java)
@@ -1583,7 +1594,8 @@ open class AnalyticsTest {
             jsMiddleware,
             ValueMap(),
             lifecycle,
-            false
+            false,
+            true
         )
 
         callback.get().onCreate(mockLifecycleOwner)
@@ -1670,7 +1682,8 @@ open class AnalyticsTest {
             jsMiddleware,
             ValueMap(),
             lifecycle,
-            false
+            false,
+            true
         )
 
         assertThat(analytics.shutdown).isFalse()
@@ -1765,7 +1778,8 @@ open class AnalyticsTest {
             jsMiddleware,
             ValueMap(),
             lifecycle,
-            false
+            false,
+            true
         )
 
         assertThat(analytics.shutdown).isFalse()
@@ -1834,7 +1848,8 @@ open class AnalyticsTest {
             jsMiddleware,
             defaultProjectSettings,
             lifecycle,
-            false
+            false,
+            true
         )
 
         assertThat(analytics.projectSettings).hasSize(2)
@@ -1878,7 +1893,8 @@ open class AnalyticsTest {
             jsMiddleware,
             defaultProjectSettings,
             lifecycle,
-            false
+            false,
+            true
         )
 
         assertThat(analytics.projectSettings).hasSize(2)
@@ -1931,7 +1947,8 @@ open class AnalyticsTest {
             jsMiddleware,
             defaultProjectSettings,
             lifecycle,
-            false
+            false,
+            true
         )
 
         assertThat(analytics.projectSettings).hasSize(2)
@@ -1996,6 +2013,7 @@ open class AnalyticsTest {
             jsMiddleware,
             ValueMap(),
             lifecycle,
+            true,
             true
         )
 
@@ -2034,7 +2052,8 @@ open class AnalyticsTest {
             jsMiddleware,
             ValueMap(),
             lifecycle,
-            false
+            false,
+            true
         )
 
         analytics.track("event")
