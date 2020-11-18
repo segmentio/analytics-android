@@ -65,13 +65,13 @@ jobs:
                 exit 1
             } fi
             echo $SIGNING_PRIVATE_KEY_BASE64 | base64 -d > $SIGNING_SECRET_KEY_RING_FILE
-#      - run:
-#          name: Verify branch
-#          command: |
-#            if [ "$CIRCLE_BRANCH" != "master" ]; then {
-#                echo "==> ignoring non-master branch"
-#                exit 1
-#            } fi
+      - run:
+          name: Verify branch
+          command: |
+            if [ "$CIRCLE_BRANCH" != "master" ]; then {
+                echo "==> ignoring non-master branch"
+                exit 1
+            } fi
       - run:
           name: Publish SNAPSHOT
           command: ./gradlew uploadArchives
@@ -108,9 +108,9 @@ jobs:
       - run:
           name: Publish SNAPSHOT
           command: ./gradlew uploadArchives -Prelease
-      - run:
-          name: Mark release
-          command: ./gradlew closeAndReleaseRepository
+#      - run:
+#          name: Mark release
+#          command: ./gradlew closeAndReleaseRepository
 workflows:
   version: 2
   run:
@@ -122,7 +122,7 @@ workflows:
           requires: [ build ]
           filters:
             branches:
-              only: [/master/, /pray/new-publish/]
+              only: [/master/]
             tags:
               only: /.*/
       - publish:
