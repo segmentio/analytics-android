@@ -117,6 +117,9 @@ workflows:
     jobs:
       - build:
           context: snyk
+          filters:
+            tags:
+              only: /.*/
       - publish_snapshot:
           context: android-sonatype
           requires: [ build ]
