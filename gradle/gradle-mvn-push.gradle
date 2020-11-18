@@ -24,8 +24,8 @@ if (!hasProperty("signing.keyId")) {
     ext["signing.keyId"] = System.getenv('SIGNING_KEY_ID')
     ext["signing.password"] = System.getenv('SIGNING_KEY_PASSWORD')
     ext["signing.secretKeyRingFile"] = System.getenv('SIGNING_SECRET_KEY_RING_FILE')
-    ext["ossrhUsername"] = System.getenv('OSSRH_USERNAME')
-    ext["ossrhPassword"] = System.getenv('OSSRH_PASSWORD')
+    ext["NEXUS_USERNAME"] = System.getenv('NEXUS_USERNAME')
+    ext["NEXUS_PASSWORD"] = System.getenv('NEXUS_PASSWORD')
 }
 
 def isReleaseBuild() {
@@ -38,12 +38,12 @@ def getVersionName() { // If release build remove SNAPSHOT suffix
 
 def getReleaseRepositoryUrl() {
     return hasProperty('RELEASE_REPOSITORY_URL') ? RELEASE_REPOSITORY_URL
-            : "file:/tmp/maven/"
+            : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 }
 
 def getSnapshotRepositoryUrl() {
     return hasProperty('SNAPSHOT_REPOSITORY_URL') ? SNAPSHOT_REPOSITORY_URL
-            : "file:/tmp/maven/snapshots/"
+            : "https://oss.sonatype.org/content/repositories/snapshots/"
 }
 
 def getRepositoryUsername() {
