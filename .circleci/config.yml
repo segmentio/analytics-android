@@ -47,7 +47,7 @@ jobs:
     working_directory: ~/analytics-android
     docker:
       - image: circleci/android:api-28-alpha
-      environment:
+    environment:
         JVM_OPTS: -Xmx3200m
         CIRCLE_JDK_VERSION: oraclejdk8
     steps:
@@ -76,7 +76,7 @@ jobs:
     working_directory: ~/analytics-android
     docker:
       - image: circleci/android:api-28-alpha
-      environment:
+    environment:
         JVM_OPTS: -Xmx3200m
         CIRCLE_JDK_VERSION: oraclejdk8
     steps:
