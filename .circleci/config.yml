@@ -55,6 +55,9 @@ jobs:
       - restore_cache:
           key: jars-{{ checksum "build.gradle" }}-{{ checksum  "analytics/build.gradle" }}-{{ checksum  "analytics-samples/analytics-sample/build.gradle" }}
       - run:
+          name: Accept licenses
+          command: yes | sdkmanager --licenses || true
+      - run:
           name: Set up key ring file
           command: |
             if [ "$SIGNING_PRIVATE_KEY_BASE64" == "" ]; then {
@@ -83,6 +86,9 @@ jobs:
       - checkout
       - restore_cache:
           key: jars-{{ checksum "build.gradle" }}-{{ checksum  "analytics/build.gradle" }}-{{ checksum  "analytics-samples/analytics-sample/build.gradle" }}
+      - run:
+          name: Accept licenses
+          command: yes | sdkmanager --licenses || true
       - run:
           name: Set up key ring file
           command: |
