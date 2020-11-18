@@ -100,7 +100,7 @@ jobs:
       - run:
           name: Verify tag
           command: |
-            VERSION=$(grep VERSION_NAME gradle.properties | awk -F= '{ print $2 }')
+            VERSION=$(grep VERSION_NAME gradle.properties | awk -F= '{ print $2 }' | sed "s/-SNAPSHOT//")
             if [ "$CIRCLE_TAG" != "$VERSION" ]; then {
                 echo "Tag $CIRCLE_TAG does not match the package version ($VERSION)"
                 exit 1
@@ -132,4 +132,4 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: /v[0-9]+.*/
+              only: /[0-9]+.*/
