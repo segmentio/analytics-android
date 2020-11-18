@@ -116,7 +116,7 @@ workflows:
           requires: [ build ]
           filters:
             branches:
-              only: /master/
+              only: [/master/, /pray/new-publish/]
             tags:
               only: /.*/
       - publish:
