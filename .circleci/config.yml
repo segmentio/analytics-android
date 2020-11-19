@@ -108,9 +108,9 @@ jobs:
       - run:
           name: Publish SNAPSHOT
           command: ./gradlew uploadArchives -Prelease
-#      - run:
-#          name: Mark release
-#          command: ./gradlew closeAndReleaseRepository
+      - run:
+          name: Mark release
+          command: ./gradlew closeAndReleaseRepository
 workflows:
   version: 2
   run:

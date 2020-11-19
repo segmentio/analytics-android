@@ -77,4 +77,4 @@ def getVersionName() { // If release build remove SNAPSHOT suffix
   return isReleaseBuild() ? VERSION_NAME.replace('-SNAPSHOT', '') : VERSION_NAME
 }
 
-//apply from: rootProject.file('gradle/promote.gradle')
+apply from: rootProject.file('gradle/promote.gradle')

@@ -1,0 +1,8 @@
+apply plugin: 'io.codearte.nexus-staging'
+
+nexusStaging {
+    packageGroup = "com.segment.analytics.android"
+    stagingProfileId = hasProperty('SONATYPE_STAGING_PROFILE_ID') ? SONATYPE_STAGING_PROFILE_ID : ""
+    username = hasProperty('NEXUS_USERNAME') ? NEXUS_USERNAME : ""
+    password = hasProperty('NEXUS_PASSWORD') ? NEXUS_PASSWORD : ""
+}
