@@ -109,6 +109,9 @@ jobs:
           name: Publish SNAPSHOT
           command: ./gradlew uploadArchives -Prelease
       - run:
+          name: Sleep before releasing
+          command: sleep 200
+      - run:
           name: Mark release
           command: ./gradlew closeAndReleaseRepository
 workflows:
