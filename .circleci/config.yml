@@ -110,7 +110,7 @@ jobs:
           command: ./gradlew uploadArchives -Prelease
       - run:
           name: Mark release
-          command: ./gradlew closeRepository
+          command: ./gradlew closeAndReleaseRepository
 workflows:
   version: 2
   run:
