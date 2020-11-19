@@ -66,13 +66,6 @@ jobs:
             } fi
             echo $SIGNING_PRIVATE_KEY_BASE64 | base64 -d > $SIGNING_SECRET_KEY_RING_FILE
       - run:
-          name: Verify branch
-          command: |
-            if [ "$CIRCLE_BRANCH" != "master" ]; then {
-                echo "==> ignoring non-master branch"
-                exit 0
-            } fi
-      - run:
           name: Publish SNAPSHOT
           command: ./gradlew uploadArchives
   publish:
