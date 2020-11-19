@@ -70,7 +70,7 @@ jobs:
           command: |
             if [ "$CIRCLE_BRANCH" != "master" ]; then {
                 echo "==> ignoring non-master branch"
-                exit 1
+                exit 0
             } fi
       - run:
           name: Publish SNAPSHOT
