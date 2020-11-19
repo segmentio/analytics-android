@@ -106,14 +106,11 @@ jobs:
                 exit 1
             } fi
       - run:
-          name: Publish SNAPSHOT
+          name: Publish Release
           command: ./gradlew uploadArchives -Prelease
       - run:
-          name: Sleep before releasing
-          command: sleep 200
-      - run:
           name: Mark release
-          command: ./gradlew closeAndReleaseRepository
+          command: ./gradlew closeRepository
 workflows:
   version: 2
   run:
