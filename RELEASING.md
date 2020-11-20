@@ -25,4 +25,4 @@ Example (stable release)
  7. Change VERSION_NAME = 4.9.3 (next higher version)
  8. `git commit -am "Prepare snapshot 4.9.3-SNAPSHOT"`
  9. `git push && git push --tags`
- 10. Push to master will create a snapshot release 4.9.3-SNAPSHOT and tag push will create stable release 4.9.2
+ 10. Merging PR master will create a snapshot release 4.9.3-SNAPSHOT and tag push will create stable release 4.9.2
