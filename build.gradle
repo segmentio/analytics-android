@@ -1,3 +1,5 @@
+apply from: rootProject.file('gradle/versioning.gradle')
+
 buildscript {
     ext.kotlin_version = '1.4.0'
   repositories {
@@ -16,6 +18,7 @@ buildscript {
     classpath 'com.diffplug.spotless:spotless-plugin-gradle:3.29.0'
     classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:1.0.2'
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.22.0"
   }
 }
 
@@ -43,7 +46,7 @@ allprojects {
   }
 
   group = GROUP
-  version = VERSION_NAME
+  version = getVersionName()
 }
 
 def isCI = "true".equals(System.getenv("CIRCLECI"))
@@ -51,7 +54,7 @@ def preDexEnabled = "true".equals(System.getProperty("preDex", "true"))
 
 ext {
   versionCode = Integer.parseInt(VERSION_CODE)
-  versionName = VERSION_NAME
+  versionName = getVersionName()
 
   minSdkVersion = 14
   minSdkVersionWear = 23
@@ -67,3 +70,5 @@ ext {
 ext.deps = [
   supportAnnotations: 'androidx.annotation:annotation:1.1.0'
 ]
+
+apply from: rootProject.file('gradle/promote.gradle')

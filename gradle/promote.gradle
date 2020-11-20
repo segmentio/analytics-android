@@ -1,0 +1,14 @@
+apply plugin: 'io.codearte.nexus-staging'
+
+if (!hasProperty("SONATYPE_STAGING_PROFILE_ID")) {
+    ext["NEXUS_USERNAME"] = System.getenv('NEXUS_USERNAME')
+    ext["NEXUS_PASSWORD"] = System.getenv('NEXUS_PASSWORD')
+    ext["SONATYPE_STAGING_PROFILE_ID"] = System.getenv('SONATYPE_STAGING_PROFILE_ID')
+}
+
+nexusStaging {
+    packageGroup = "com.segment.analytics.android"
+    stagingProfileId = SONATYPE_STAGING_PROFILE_ID
+    username = NEXUS_USERNAME
+    password = NEXUS_PASSWORD
+}
