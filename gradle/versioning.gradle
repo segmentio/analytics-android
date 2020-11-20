@@ -1,0 +1,12 @@
+def isReleaseBuild() {
+    return hasProperty('release')
+}
+
+def getVersionName() { // If not release build add SNAPSHOT suffix
+    return isReleaseBuild() ? VERSION_NAME : VERSION_NAME+"-SNAPSHOT"
+}
+
+ext {
+    isReleaseBuild = this.&isReleaseBuild
+    getVersionName = this.&getVersionName
+}

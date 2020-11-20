@@ -1,3 +1,5 @@
+apply from: rootProject.file('gradle/versioning.gradle')
+
 buildscript {
     ext.kotlin_version = '1.4.0'
   repositories {
@@ -44,7 +46,7 @@ allprojects {
   }
 
   group = GROUP
-  version = VERSION_NAME
+  version = getVersionName()
 }
 
 def isCI = "true".equals(System.getenv("CIRCLECI"))
@@ -68,13 +70,5 @@ ext {
 ext.deps = [
   supportAnnotations: 'androidx.annotation:annotation:1.1.0'
 ]
-
-def isReleaseBuild() {
-  return hasProperty('release')
-}
-
-def getVersionName() { // If release build remove SNAPSHOT suffix
-  return isReleaseBuild() ? VERSION_NAME.replace('-SNAPSHOT', '') : VERSION_NAME
-}
 
 apply from: rootProject.file('gradle/promote.gradle')
