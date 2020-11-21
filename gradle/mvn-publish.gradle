@@ -4,12 +4,12 @@ apply from: rootProject.file('gradle/versioning.gradle')
 
 def getReleaseRepositoryUrl() {
     return hasProperty('RELEASE_REPOSITORY_URL') ? RELEASE_REPOSITORY_URL
-            : "file:/tmp/maven/"
+            : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 }
 
 def getSnapshotRepositoryUrl() {
     return hasProperty('SNAPSHOT_REPOSITORY_URL') ? SNAPSHOT_REPOSITORY_URL
-            : "file:/tmp/maven/snapshots/"
+            : "https://oss.sonatype.org/content/repositories/snapshots/"
 }
 
 if (!hasProperty("signing.keyId")) {
@@ -106,10 +106,10 @@ publishing {
             url = version.endsWith('SNAPSHOT') ? getSnapshotRepositoryUrl() : getReleaseRepositoryUrl()
 
             // The username and password we've fetched earlier
-//            credentials {
-//                username NEXUS_USERNAME
-//                password NEXUS_PASSWORD
-//            }
+            credentials {
+                username NEXUS_USERNAME
+                password NEXUS_PASSWORD
+            }
         }
     }
 }

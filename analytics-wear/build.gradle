@@ -10,7 +10,7 @@ dependencies {
 	api 'com.google.android.gms:play-services-wearable:10.2.6'
 }
 
-apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
+apply from: rootProject.file('gradle/mvn-publish.gradle')
 repositories {
 	mavenCentral()
 }
