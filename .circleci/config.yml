@@ -67,7 +67,7 @@ jobs:
             echo $SIGNING_PRIVATE_KEY_BASE64 | base64 -d > $SIGNING_SECRET_KEY_RING_FILE
       - run:
           name: Publish SNAPSHOT
-          command: ./gradlew uploadArchives
+          command: ./gradlew publish
   publish:
     working_directory: ~/analytics-android
     docker:
@@ -100,7 +100,7 @@ jobs:
             } fi
       - run:
           name: Publish Release
-          command: ./gradlew uploadArchives -Prelease
+          command: ./gradlew publish -Prelease
       - run:
           name: Mark release
           command: ./gradlew closeAndReleaseRepository
