@@ -397,8 +397,8 @@ public final class Utils {
      * mapper preserve their original keys. If a key in the mapper maps to null or a blank string,
      * that value is dropped.
      *
-     * <p>e.g. transform({a: 1, b: 2, c: 3}, {a: a, c: ""}) -> {$a: 1, b: 2} - transforms a to $a -
-     * keeps b - removes c
+     * <p>e.g. transform({a: 1, b: 2, c: 3}, {a: a, c: ""}) -&gt; {$a: 1, b: 2} - transforms a to $a
+     * - keeps b - removes c
      */
     public static <T> Map<String, T> transform(Map<String, T> in, Map<String, String> mapper) {
         Map<String, T> out = new LinkedHashMap<>(in.size());
