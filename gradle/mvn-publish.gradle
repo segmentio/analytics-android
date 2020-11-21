@@ -106,9 +106,11 @@ publishing {
             url = version.endsWith('SNAPSHOT') ? getSnapshotRepositoryUrl() : getReleaseRepositoryUrl()
 
             // The username and password we've fetched earlier
-            credentials {
-                username NEXUS_USERNAME
-                password NEXUS_PASSWORD
+            if (!getUrl().toString().startsWith("file:/")) {
+                credentials {
+                    username NEXUS_USERNAME
+                    password NEXUS_PASSWORD
+                }
             }
         }
     }
