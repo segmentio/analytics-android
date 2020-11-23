@@ -904,7 +904,7 @@ public class Analytics {
      *       Amplitude.enableLocationListening();
      *     }
      *   });
-     *   analytics.onIntegrationReady("Mixpanel", new Callback<>() {
+     *   analytics.onIntegrationReady("Mixpanel", new Callback&lt;&gt;() {
      *     {@literal @}Override public void onIntegrationReady(MixpanelAPI mixpanel) {
      *       mixpanel.clearSuperProperties();
      *     }

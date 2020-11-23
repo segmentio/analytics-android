@@ -236,7 +236,6 @@ public class Cartographer {
          * strict and only accepts JSON as specified by <a
          * href="http://www.ietf.org/rfc/rfc4627.txt">RFC 4627</a>. See {@link
          * JsonReader#setLenient(boolean)} for more details.
-         * </ul>
          */
         public Builder lenient(boolean isLenient) {
             this.isLenient = isLenient;

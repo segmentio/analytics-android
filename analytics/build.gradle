@@ -40,7 +40,7 @@ dependencies {
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
-apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
+apply from: rootProject.file('gradle/mvn-publish.gradle')
 
 repositories {
 	maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
