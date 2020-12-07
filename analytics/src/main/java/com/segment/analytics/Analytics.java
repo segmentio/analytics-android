@@ -111,15 +111,11 @@ public class Analytics {
     static volatile Analytics singleton = null;
 
     @Private static final Properties EMPTY_PROPERTIES = new Properties();
-    private static final String VERSION_KEY = "version";
-    private static final String BUILD_KEY = "build";
     private static final String TRAITS_KEY = "traits";
 
     private final Application application;
     final ExecutorService networkExecutor;
     final Stats stats;
-    private final @NonNull List<Middleware> sourceMiddleware;
-    private final @NonNull Map<String, List<Middleware>> destinationMiddleware;
     private JSMiddleware edgeFunctionMiddleware;
     @Private final Options defaultOptions;
     @Private final Traits.Cache traitsCache;
@@ -150,6 +146,8 @@ public class Analytics {
 
     @Private final boolean nanosecondTimestamps;
     @Private final boolean useNewLifecycleMethods;
+
+    @Private final EventRunner eventRunner;
 
     /**
      * Return a reference to the global default {@link Analytics} instance.
@@ -257,12 +255,11 @@ public class Analytics {
         this.factories = factories;
         this.analyticsExecutor = analyticsExecutor;
         this.crypto = crypto;
-        this.sourceMiddleware = sourceMiddleware;
-        this.destinationMiddleware = destinationMiddleware;
         this.edgeFunctionMiddleware = edgeFunctionMiddleware;
         this.lifecycle = lifecycle;
         this.nanosecondTimestamps = nanosecondTimestamps;
         this.useNewLifecycleMethods = useNewLifecycleMethods;
+        this.eventRunner = new EventRunner(logger, sourceMiddleware, destinationMiddleware, stats);
 
         namespaceSharedPreferences();
 
@@ -323,7 +320,8 @@ public class Analytics {
 
         activityLifecycleCallback =
                 new AnalyticsActivityLifecycleCallbacks.Builder()
-                        .analytics(this)
+                        .analytics(this, Utils.getSegmentSharedPreferences(application, tag))
+                        .logger(logger)
                         .analyticsExecutor(analyticsExecutor)
                         .shouldTrackApplicationLifecycleEvents(
                                 shouldTrackApplicationLifecycleEvents)
@@ -339,64 +337,12 @@ public class Analytics {
         }
     }
 
-    @Private
-    void trackApplicationLifecycleEvents() {
-        // Get the current version.
-        PackageInfo packageInfo = getPackageInfo(application);
-        String currentVersion = packageInfo.versionName;
-        int currentBuild = packageInfo.versionCode;
-
-        // Get the previous recorded version.
-        SharedPreferences sharedPreferences = getSegmentSharedPreferences(application, tag);
-        String previousVersion = sharedPreferences.getString(VERSION_KEY, null);
-        int previousBuild = sharedPreferences.getInt(BUILD_KEY, -1);
-
-        // Check and track Application Installed or Application Updated.
-        if (previousBuild == -1) {
-            track(
-                    "Application Installed",
-                    new Properties() //
-                            .putValue(VERSION_KEY, currentVersion)
-                            .putValue(BUILD_KEY, String.valueOf(currentBuild)));
-        } else if (currentBuild != previousBuild) {
-            track(
-                    "Application Updated",
-                    new Properties() //
-                            .putValue(VERSION_KEY, currentVersion)
-                            .putValue(BUILD_KEY, String.valueOf(currentBuild))
-                            .putValue("previous_" + VERSION_KEY, previousVersion)
-                            .putValue("previous_" + BUILD_KEY, String.valueOf(previousBuild)));
-        }
-
-        // Update the recorded version.
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(VERSION_KEY, currentVersion);
-        editor.putInt(BUILD_KEY, currentBuild);
-        editor.apply();
-    }
-
     static PackageInfo getPackageInfo(Context context) {
         PackageManager packageManager = context.getPackageManager();
         try {
             return packageManager.getPackageInfo(context.getPackageName(), 0);
         } catch (PackageManager.NameNotFoundException e) {
             throw new AssertionError("Package not found: " + context.getPackageName());
-        }
-    }
-
-    @Private
-    void recordScreenViews(Activity activity) {
-        PackageManager packageManager = activity.getPackageManager();
-        try {
-            ActivityInfo info =
-                    packageManager.getActivityInfo(
-                            activity.getComponentName(), PackageManager.GET_META_DATA);
-            CharSequence activityLabel = info.loadLabel(packageManager);
-            screen(activityLabel.toString());
-        } catch (PackageManager.NameNotFoundException e) {
-            throw new AssertionError("Activity Not Found: " + e.toString());
-        } catch (Exception e) {
-            logger.error(e, "Unable to track screen view for %s", activity.toString());
         }
     }
 
@@ -413,7 +359,7 @@ public class Analytics {
                                 new Runnable() {
                                     @Override
                                     public void run() {
-                                        performRun(operation);
+                                        eventRunner.runIntegrationOperation(operation, integrations, projectSettings);
                                     }
                                 });
                     }
@@ -747,39 +693,10 @@ public class Analytics {
             // userId is not set, retrieve from cached traits and set for payload
             builder.userId(cachedUserId);
         }
-        enqueue(builder.build());
-    }
-
-    void enqueue(BasePayload payload) {
         if (optOut.get()) {
             return;
         }
-        logger.verbose("Created payload %s.", payload);
-        Middleware.Chain chain =
-                new MiddlewareChainRunner(
-                        0,
-                        payload,
-                        sourceMiddleware,
-                        new Middleware.Callback() {
-                            @Override
-                            public void invoke(BasePayload payload) {
-                                run(payload);
-                            }
-                        });
-        chain.proceed(payload);
-    }
-
-    void run(BasePayload payload) {
-        logger.verbose("Running payload %s.", payload);
-        final IntegrationOperation operation =
-                IntegrationOperation.segmentEvent(payload, destinationMiddleware);
-        HANDLER.post(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        performRun(operation);
-                    }
-                });
+        eventRunner.runSourceMiddleware(builder.build(), integrations, projectSettings);
     }
 
     /**
@@ -1603,19 +1520,6 @@ public class Analytics {
             }
         }
         factories = null;
-    }
-
-    /** Runs the given operation on all integrations. */
-    void performRun(IntegrationOperation operation) {
-        for (Map.Entry<String, Integration<?>> entry : integrations.entrySet()) {
-            String key = entry.getKey();
-            long startTime = System.nanoTime();
-            operation.run(key, entry.getValue(), projectSettings);
-            long endTime = System.nanoTime();
-            long durationInMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-            stats.dispatchIntegrationOperation(key, durationInMillis);
-            logger.debug("Ran %s on integration %s in %d ns.", operation, key, endTime - startTime);
-        }
     }
 
     @Private

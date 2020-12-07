@@ -26,7 +26,10 @@ package com.segment.analytics;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -34,9 +37,15 @@ import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
+
+import com.segment.analytics.integrations.Logger;
+import com.segment.analytics.internal.Private;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.segment.analytics.internal.Utils.getSegmentSharedPreferences;
 
 class AnalyticsActivityLifecycleCallbacks
         implements Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
@@ -53,6 +62,12 @@ class AnalyticsActivityLifecycleCallbacks
 
     private AtomicBoolean isChangingActivityConfigurations;
     private Boolean useNewLifecycleMethods;
+
+    private SharedPreferences sharedPreferences;
+    private Logger logger;
+
+    private static final String VERSION_KEY = "version";
+    private static final String BUILD_KEY = "build";
 
     // This is just a stub LifecycleOwner which is used when we need to call some lifecycle
     // methods without going through the actual lifecycle callbacks
@@ -91,7 +106,9 @@ class AnalyticsActivityLifecycleCallbacks
             Boolean trackDeepLinks,
             Boolean shouldRecordScreenViews,
             PackageInfo packageInfo,
-            Boolean useNewLifecycleMethods) {
+            Boolean useNewLifecycleMethods,
+            SharedPreferences sharedPreferences,
+            Logger logger) {
         this.trackedApplicationLifecycleEvents = new AtomicBoolean(false);
         this.numberOfActivities = new AtomicInteger(1);
         this.firstLaunch = new AtomicBoolean(false);
@@ -103,6 +120,8 @@ class AnalyticsActivityLifecycleCallbacks
         this.packageInfo = packageInfo;
         this.useNewLifecycleMethods = useNewLifecycleMethods;
         this.isChangingActivityConfigurations = new AtomicBoolean(false);
+        this.sharedPreferences = sharedPreferences;
+        this.logger = logger;
     }
 
     @Override
@@ -139,7 +158,7 @@ class AnalyticsActivityLifecycleCallbacks
                 && shouldTrackApplicationLifecycleEvents) {
             numberOfActivities.set(0);
             firstLaunch.set(true);
-            analytics.trackApplicationLifecycleEvents();
+            trackApplicationLifecycleEvents();
         }
     }
 
@@ -165,29 +184,10 @@ class AnalyticsActivityLifecycleCallbacks
         }
     }
 
-    private void trackDeepLink(Activity activity) {
-        Intent intent = activity.getIntent();
-        if (intent == null || intent.getData() == null) {
-            return;
-        }
-
-        Properties properties = new Properties();
-        Uri uri = intent.getData();
-        for (String parameter : uri.getQueryParameterNames()) {
-            String value = uri.getQueryParameter(parameter);
-            if (value != null && !value.trim().isEmpty()) {
-                properties.put(parameter, value);
-            }
-        }
-
-        properties.put("url", uri.toString());
-        analytics.track("Deep Link Opened", properties);
-    }
-
     @Override
     public void onActivityStarted(Activity activity) {
         if (shouldRecordScreenViews) {
-            analytics.recordScreenViews(activity);
+            recordScreenViews(activity);
         }
         analytics.runOnMainThread(IntegrationOperation.onActivityStarted(activity));
     }
@@ -230,6 +230,77 @@ class AnalyticsActivityLifecycleCallbacks
         }
     }
 
+    private void trackDeepLink(Activity activity) {
+        Intent intent = activity.getIntent();
+        if (intent == null || intent.getData() == null) {
+            return;
+        }
+
+        Properties properties = new Properties();
+        Uri uri = intent.getData();
+        for (String parameter : uri.getQueryParameterNames()) {
+            String value = uri.getQueryParameter(parameter);
+            if (value != null && !value.trim().isEmpty()) {
+                properties.put(parameter, value);
+            }
+        }
+
+        properties.put("url", uri.toString());
+        analytics.track("Deep Link Opened", properties);
+    }
+
+    @Private
+    void trackApplicationLifecycleEvents() {
+        // Get the current version.
+        PackageInfo packageInfo = this.packageInfo;
+        String currentVersion = packageInfo.versionName;
+        int currentBuild = packageInfo.versionCode;
+
+        // Get the previous recorded version.
+        SharedPreferences sharedPreferences = this.sharedPreferences;
+        String previousVersion = sharedPreferences.getString(VERSION_KEY, null);
+        int previousBuild = sharedPreferences.getInt(BUILD_KEY, -1);
+
+        // Check and track Application Installed or Application Updated.
+        if (previousBuild == -1) {
+            analytics.track(
+                "Application Installed",
+                new Properties() //
+                    .putValue(VERSION_KEY, currentVersion)
+                    .putValue(BUILD_KEY, String.valueOf(currentBuild)));
+        } else if (currentBuild != previousBuild) {
+            analytics.track(
+                "Application Updated",
+                new Properties() //
+                    .putValue(VERSION_KEY, currentVersion)
+                    .putValue(BUILD_KEY, String.valueOf(currentBuild))
+                    .putValue("previous_" + VERSION_KEY, previousVersion)
+                    .putValue("previous_" + BUILD_KEY, String.valueOf(previousBuild)));
+        }
+
+        // Update the recorded version.
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(VERSION_KEY, currentVersion);
+        editor.putInt(BUILD_KEY, currentBuild);
+        editor.apply();
+    }
+
+    @Private
+    void recordScreenViews(Activity activity) {
+        PackageManager packageManager = activity.getPackageManager();
+        try {
+            ActivityInfo info =
+                packageManager.getActivityInfo(
+                    activity.getComponentName(), PackageManager.GET_META_DATA);
+            CharSequence activityLabel = info.loadLabel(packageManager);
+            analytics.screen(activityLabel.toString());
+        } catch (PackageManager.NameNotFoundException e) {
+            throw new AssertionError("Activity Not Found: " + e.toString());
+        } catch (Exception e) {
+            logger.error(e, "Unable to track screen view for %s", activity.toString());
+        }
+    }
+
     public static class Builder {
         private Analytics analytics;
         private ExecutorService analyticsExecutor;
@@ -238,11 +309,14 @@ class AnalyticsActivityLifecycleCallbacks
         private Boolean shouldRecordScreenViews;
         private PackageInfo packageInfo;
         private Boolean useNewLifecycleMethods;
+        private SharedPreferences sharedPreferences;
+        private Logger logger;
 
         public Builder() {}
 
-        public Builder analytics(Analytics analytics) {
+        public Builder analytics(Analytics analytics, SharedPreferences sharedPreferences) {
             this.analytics = analytics;
+            this.sharedPreferences = sharedPreferences;
             return this;
         }
 
@@ -277,6 +351,11 @@ class AnalyticsActivityLifecycleCallbacks
             return this;
         }
 
+        Builder logger(Logger logger) {
+            this.logger = logger;
+            return this;
+        }
+
         public AnalyticsActivityLifecycleCallbacks build() {
             return new AnalyticsActivityLifecycleCallbacks(
                     analytics,
@@ -285,7 +364,9 @@ class AnalyticsActivityLifecycleCallbacks
                     trackDeepLinks,
                     shouldRecordScreenViews,
                     packageInfo,
-                    useNewLifecycleMethods);
+                    useNewLifecycleMethods,
+                    sharedPreferences,
+                    logger);
         }
     }
 }
