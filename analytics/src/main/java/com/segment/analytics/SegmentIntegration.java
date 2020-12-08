@@ -82,7 +82,8 @@ class SegmentIntegration extends Integration<Void> {
                             analytics.flushIntervalInMillis,
                             analytics.flushQueueSize,
                             analytics.getLogger(),
-                            analytics.crypto);
+                            analytics.crypto,
+                            settings);
                 }
 
                 @Override
@@ -121,6 +122,7 @@ class SegmentIntegration extends Integration<Void> {
     private final Cartographer cartographer;
     private final ExecutorService networkExecutor;
     private final ScheduledExecutorService flushScheduler;
+    private final String apiHost;
     /**
      * We don't want to stop adding payloads to our disk queue when we're uploading payloads. So we
      * upload payloads on a network executor instead.
@@ -178,7 +180,8 @@ class SegmentIntegration extends Integration<Void> {
             long flushIntervalInMillis,
             int flushQueueSize,
             Logger logger,
-            Crypto crypto) {
+            Crypto crypto,
+            ValueMap settings) {
         PayloadQueue payloadQueue;
         try {
             File folder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
@@ -188,6 +191,7 @@ class SegmentIntegration extends Integration<Void> {
             logger.error(e, "Could not create disk queue. Falling back to memory queue.");
             payloadQueue = new PayloadQueue.MemoryQueue();
         }
+        String apiHost = settings.getString("apiHost");
         return new SegmentIntegration(
                 context,
                 client,
@@ -199,7 +203,8 @@ class SegmentIntegration extends Integration<Void> {
                 flushIntervalInMillis,
                 flushQueueSize,
                 logger,
-                crypto);
+                crypto,
+                apiHost);
     }
 
     SegmentIntegration(
@@ -213,7 +218,8 @@ class SegmentIntegration extends Integration<Void> {
             long flushIntervalInMillis,
             int flushQueueSize,
             Logger logger,
-            Crypto crypto) {
+            Crypto crypto,
+            String apiHost) {
         this.context = context;
         this.client = client;
         this.networkExecutor = networkExecutor;
@@ -225,6 +231,7 @@ class SegmentIntegration extends Integration<Void> {
         this.flushQueueSize = flushQueueSize;
         this.flushScheduler = Executors.newScheduledThreadPool(1, new AnalyticsThreadFactory());
         this.crypto = crypto;
+        this.apiHost = apiHost;
 
         segmentThread = new HandlerThread(SEGMENT_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
         segmentThread.start();
@@ -373,7 +380,7 @@ class SegmentIntegration extends Integration<Void> {
         Client.Connection connection = null;
         try {
             // Open a connection.
-            connection = client.upload();
+            connection = client.upload(apiHost);
 
             // Write the payloads into the OutputStream.
             BatchPayloadWriter writer =

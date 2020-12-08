@@ -97,8 +97,8 @@ class Client {
         this.connectionFactory = connectionFactory;
     }
 
-    Connection upload() throws IOException {
-        HttpURLConnection connection = connectionFactory.upload(writeKey);
+    Connection upload(String apiHost) throws IOException {
+        HttpURLConnection connection = connectionFactory.upload(apiHost, writeKey);
         return createPostConnection(connection);
     }
 

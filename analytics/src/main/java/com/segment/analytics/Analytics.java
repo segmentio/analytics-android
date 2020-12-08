@@ -237,7 +237,8 @@ public class Analytics {
             @NonNull final ValueMap defaultProjectSettings,
             @NonNull Lifecycle lifecycle,
             boolean nanosecondTimestamps,
-            boolean useNewLifecycleMethods) {
+            boolean useNewLifecycleMethods,
+            String defaultApiHost) {
         this.application = application;
         this.networkExecutor = networkExecutor;
         this.stats = stats;
@@ -280,7 +281,8 @@ public class Analytics {
                             //     ...defaultProjectSettings.integrations
                             //     Segment.io: {
                             //       ...defaultProjectSettings.integrations.Segment.io
-                            //       apiKey: "{writeKey}"
+                            //       apiKey: "{writeKey}",
+                            //       apiHost: "{defaultApiHost}"
                             //     }
                             //   }
                             // }
@@ -308,6 +310,18 @@ public class Analytics {
                         if (edgeFunctionMiddleware != null) {
                             edgeFunctionMiddleware.setEdgeFunctionData(
                                     projectSettings.edgeFunctions());
+                        }
+                        boolean apiHostSet =
+                                projectSettings
+                                        .getValueMap("integrations")
+                                        .getValueMap("Segment.io")
+                                        .containsKey("apiHost");
+                        if (!apiHostSet) {
+                            // Use default apiHost region
+                            projectSettings
+                                    .getValueMap("integrations")
+                                    .getValueMap("Segment.io")
+                                    .putValue("apiHost", defaultApiHost);
                         }
                         HANDLER.post(
                                 new Runnable() {
@@ -1068,6 +1082,7 @@ public class Analytics {
         private Crypto crypto;
         private ValueMap defaultProjectSettings = new ValueMap();
         private boolean useNewLifecycleMethods = true; // opt-out feature
+        private String defaultApiHost = Utils.DEFAULT_API_HOST;
 
         /** Start building a new {@link Analytics} instance. */
         public Builder(Context context, String writeKey) {
@@ -1378,6 +1393,15 @@ public class Analytics {
         }
 
         /**
+         * Set the apiHost name for the region to which Segment sends events to. Defaults to
+         * "api.segment.io/v1"
+         */
+        public Builder defaultApiHost(String apiHost) {
+            this.defaultApiHost = apiHost;
+            return this;
+        }
+
+        /**
          * The executor on which payloads are dispatched asynchronously. This is not exposed
          * publicly.
          */
@@ -1499,7 +1523,8 @@ public class Analytics {
                     defaultProjectSettings,
                     lifecycle,
                     nanosecondTimestamps,
-                    useNewLifecycleMethods);
+                    useNewLifecycleMethods,
+                    defaultApiHost);
         }
     }
 
