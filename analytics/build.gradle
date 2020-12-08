@@ -13,6 +13,7 @@ android {
 dependencies {
 	api rootProject.ext.deps.supportAnnotations
 
+	implementation fileTree(dir: 'libs', include: ['*.jar'])
 	testImplementation fileTree(dir: 'libs', include: ['*.jar'])
 	testImplementation files('libs/objenesis-2.6.jar')
 
