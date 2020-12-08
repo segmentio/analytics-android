@@ -53,7 +53,7 @@ class IntegrationOperationTest {
     fun setUp() { initMocks(this) }
 
     private fun track(payload: TrackPayload, name: String, settings: Map<String, Any>) {
-        IntegrationOperation.segmentEvent(payload, emptyMap())
+        segmentEvent(payload, emptyMap())
             .run(name, integration, ProjectSettings(settings))
     }
 
@@ -420,7 +420,7 @@ class IntegrationOperationTest {
     @Test
     fun identify() {
         val payload = IdentifyPayload.Builder().userId("userId").build()
-        IntegrationOperation.segmentEvent(payload, emptyMap())
+        segmentEvent(payload, emptyMap())
             .run("Mixpanel", integration, ProjectSettings(emptyMap()))
         verify(integration).identify(payload)
     }
@@ -429,7 +429,7 @@ class IntegrationOperationTest {
     fun alias() {
         val payload = AliasPayload.Builder()
             .previousId("foo").userId("userId").build()
-        IntegrationOperation.segmentEvent(payload, emptyMap())
+        segmentEvent(payload, emptyMap())
             .run("Mixpanel", integration, ProjectSettings(emptyMap()))
         verify(integration).alias(payload)
     }
@@ -438,7 +438,7 @@ class IntegrationOperationTest {
     fun group() {
         val payload = GroupPayload.Builder()
             .userId("userId").groupId("bar").build()
-        IntegrationOperation.segmentEvent(payload, emptyMap())
+        segmentEvent(payload, emptyMap())
             .run("Mixpanel", integration, ProjectSettings(emptyMap()))
         verify(integration).group(payload)
     }
@@ -447,7 +447,7 @@ class IntegrationOperationTest {
     fun track() {
         val payload = TrackPayload.Builder()
             .userId("userId").event("foo").build()
-        IntegrationOperation.segmentEvent(payload, emptyMap())
+        segmentEvent(payload, emptyMap())
             .run("Mixpanel", integration, ProjectSettings(emptyMap()))
         verify(integration).track(payload)
     }
@@ -456,7 +456,7 @@ class IntegrationOperationTest {
     fun screen() {
         val payload = ScreenPayload.Builder()
             .userId("userId").name("foobar").build()
-        IntegrationOperation.segmentEvent(payload, emptyMap())
+        segmentEvent(payload, emptyMap())
             .run("Mixpanel", integration, ProjectSettings(emptyMap()))
         verify(integration).screen(payload)
     }
