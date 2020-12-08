@@ -2202,7 +2202,7 @@ open class AnalyticsTest {
         assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
             .containsKey("apiKey")
         assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
-                .containsKey("apiHost")
+            .containsKey("apiHost")
         assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
             .containsKey("appToken")
         assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
