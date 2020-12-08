@@ -78,6 +78,10 @@ import org.robolectric.shadows.ShadowLog
 @Config(manifest = Config.NONE)
 class SegmentIntegrationTest {
 
+    companion object {
+        const val DEFAULT_API_HOST = "api.segment.io/v1"
+    }
+
     @Rule @JvmField
     val folder = TemporaryFolder()
     private lateinit var queueFile: QueueFile
@@ -205,7 +209,7 @@ class SegmentIntegrationTest {
         val payloadQueue = PersistentQueue(queueFile)
         val client = mock(Client::class.java)
         val connection = mockConnection()
-        whenever(client.upload()).thenReturn(connection)
+        whenever(client.upload(DEFAULT_API_HOST)).thenReturn(connection)
         val segmentIntegration =
             SegmentBuilder()
                 .client(client)
@@ -219,7 +223,7 @@ class SegmentIntegrationTest {
         // Only the last enqueue should trigger an upload.
         segmentIntegration.performEnqueue(TRACK_PAYLOAD)
 
-        verify(client).upload()
+        verify(client).upload(DEFAULT_API_HOST)
     }
 
     @Test
@@ -227,7 +231,7 @@ class SegmentIntegrationTest {
     fun flushRemovesItemsFromQueue() {
         val payloadQueue = PersistentQueue(queueFile)
         val client = mock(Client::class.java)
-        whenever(client.upload()).thenReturn(mockConnection())
+        whenever(client.upload(DEFAULT_API_HOST)).thenReturn(mockConnection())
         val segmentIntegration =
             SegmentBuilder()
                 .client(client)
@@ -292,7 +296,7 @@ class SegmentIntegrationTest {
 
         segmentIntegration.submitFlush()
 
-        verify(client, never()).upload()
+        verify(client, never()).upload(DEFAULT_API_HOST)
     }
 
     @Test
@@ -311,7 +315,7 @@ class SegmentIntegrationTest {
         segmentIntegration.submitFlush()
 
         verifyZeroInteractions(context)
-        verify(client, never()).upload()
+        verify(client, never()).upload(DEFAULT_API_HOST)
     }
 
     @Test
@@ -322,7 +326,7 @@ class SegmentIntegrationTest {
         queueFile.add(TRACK_PAYLOAD_JSON.toByteArray())
         val urlConnection = mock(HttpURLConnection::class.java)
         val connection = mockConnection(urlConnection)
-        whenever(client.upload()).thenReturn(connection)
+        whenever(client.upload(DEFAULT_API_HOST)).thenReturn(connection)
         val segmentIntegration =
             SegmentBuilder()
                 .client(client)
@@ -340,7 +344,7 @@ class SegmentIntegrationTest {
         // todo: rewrite using mockwebserver.
         val client = mock(Client::class.java)
         val payloadQueue = PersistentQueue(queueFile)
-        whenever(client.upload())
+        whenever(client.upload(DEFAULT_API_HOST))
             .thenReturn(
                 object : Client.Connection(
                     mock(HttpURLConnection::class.java), mock(InputStream::class.java), mock(OutputStream::class.java)
@@ -362,7 +366,7 @@ class SegmentIntegrationTest {
         segmentIntegration.submitFlush()
 
         assertThat(queueFile.size()).isEqualTo(0)
-        verify(client).upload()
+        verify(client).upload(DEFAULT_API_HOST)
     }
 
     @Test
@@ -371,7 +375,7 @@ class SegmentIntegrationTest {
         // todo: rewrite using mockwebserver.
         val payloadQueue: PayloadQueue = PersistentQueue(queueFile)
         val client = mock(Client::class.java)
-        whenever(client.upload())
+        whenever(client.upload(DEFAULT_API_HOST))
             .thenReturn(
                 object : Client.Connection(
                     mock(HttpURLConnection::class.java), mock(InputStream::class.java), mock(OutputStream::class.java)
@@ -392,7 +396,7 @@ class SegmentIntegrationTest {
         }
         segmentIntegration.submitFlush()
         assertThat(queueFile.size()).isEqualTo(4)
-        verify(client).upload()
+        verify(client).upload(DEFAULT_API_HOST)
     }
 
     @Test
@@ -401,7 +405,7 @@ class SegmentIntegrationTest {
         // todo: rewrite using mockwebserver.
         val payloadQueue: PayloadQueue = PersistentQueue(queueFile)
         val client = mock(Client::class.java)
-        whenever(client.upload())
+        whenever(client.upload(DEFAULT_API_HOST))
             .thenReturn(
                 object : Client.Connection(
                     mock(
@@ -426,7 +430,7 @@ class SegmentIntegrationTest {
 
         // Verify that messages were not removed from the queue when server returned a 429.
         assertThat(queueFile.size()).isEqualTo(4)
-        verify(client).upload()
+        verify(client).upload(DEFAULT_API_HOST)
     }
 
     @Test
@@ -650,7 +654,8 @@ class SegmentIntegrationTest {
                 flushInterval.toLong(),
                 flushSize,
                 logger,
-                Crypto.none()
+                Crypto.none(),
+                DEFAULT_API_HOST
             )
         }
     }

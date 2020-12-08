@@ -51,6 +51,11 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
 class ClientTest {
+
+    companion object {
+        const val DEFAULT_API_HOST = "api.segment.io/v1"
+    }
+
     @Rule @JvmField val server = MockWebServer()
     @Rule @JvmField val folder = TemporaryFolder()
     private lateinit var client: Client
@@ -89,7 +94,7 @@ class ClientTest {
     fun upload() {
         server.enqueue(MockResponse())
 
-        val connection = client.upload()
+        val connection = client.upload(DEFAULT_API_HOST)
         assertThat(connection.os).isNotNull()
         assertThat(connection.`is`).isNull()
         assertThat(connection.connection.responseCode).isEqualTo(200) // consume the response
@@ -108,7 +113,7 @@ class ClientTest {
         whenever(mockConnection.outputStream).thenReturn(os)
         whenever(mockConnection.responseCode).thenReturn(200)
 
-        val connection = mockClient.upload()
+        val connection = mockClient.upload(DEFAULT_API_HOST)
         verify(mockConnection).doOutput = true
         verify(mockConnection).setChunkedStreamingMode(0)
 
@@ -124,7 +129,7 @@ class ClientTest {
         whenever(mockConnection.outputStream).thenReturn(os)
         whenever(mockConnection.responseCode).thenReturn(202)
 
-        val connection = mockClient.upload()
+        val connection = mockClient.upload(DEFAULT_API_HOST)
         verify(mockConnection).doOutput = true
         verify(mockConnection).setChunkedStreamingMode(0)
 
@@ -143,7 +148,7 @@ class ClientTest {
         whenever(mockConnection.responseMessage).thenReturn("bar")
         whenever(mockConnection.inputStream).thenReturn(input)
 
-        val connection = mockClient.upload()
+        val connection = mockClient.upload(DEFAULT_API_HOST)
         verify(mockConnection).doOutput = true
         verify(mockConnection).setChunkedStreamingMode(0)
 
@@ -173,7 +178,7 @@ class ClientTest {
         whenever(mockConnection.inputStream).thenThrow(FileNotFoundException())
         whenever(mockConnection.errorStream).thenReturn(input)
 
-        val connection = mockClient.upload()
+        val connection = mockClient.upload(DEFAULT_API_HOST)
         verify(mockConnection).doOutput = true
         verify(mockConnection).setChunkedStreamingMode(0)
 

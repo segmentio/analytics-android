@@ -58,6 +58,7 @@ import com.segment.analytics.integrations.Logger
 import com.segment.analytics.integrations.ScreenPayload
 import com.segment.analytics.integrations.TrackPayload
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService
+import com.segment.analytics.internal.Utils.DEFAULT_API_HOST
 import com.segment.analytics.internal.Utils.DEFAULT_FLUSH_INTERVAL
 import com.segment.analytics.internal.Utils.DEFAULT_FLUSH_QUEUE_SIZE
 import com.segment.analytics.internal.Utils.isNullOrEmpty
@@ -97,6 +98,8 @@ open class AnalyticsTest {
             |  "integrations": {
             |    "test": { 
             |      "foo": "bar"
+            |    },
+            |    "Segment.io": {
             |    }
             |  },
             | "plan": {
@@ -201,7 +204,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         // Used by singleton tests.
@@ -868,7 +872,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         callback.get().onCreate(mockLifecycleOwner)
@@ -956,7 +961,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         callback.get().onCreate(mockLifecycleOwner)
@@ -1025,7 +1031,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         val activity = Mockito.mock(Activity::class.java)
@@ -1096,7 +1103,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         val expectedURL = "app://track.com/open?utm_id=12345&gclid=abcd&nope="
@@ -1172,7 +1180,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         val expectedURL = "app://track.com/open?utm_id=12345&gclid=abcd&nope="
@@ -1246,7 +1255,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         val activity = Mockito.mock(Activity::class.java)
@@ -1311,7 +1321,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         val activity = Mockito.mock(Activity::class.java)
@@ -1380,7 +1391,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         val activity = Mockito.mock(Activity::class.java)
@@ -1458,7 +1470,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         callback.get().onCreate(mockLifecycleOwner)
@@ -1526,7 +1539,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         val backgroundedActivity = Mockito.mock(Activity::class.java)
@@ -1596,7 +1610,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         callback.get().onCreate(mockLifecycleOwner)
@@ -1675,7 +1690,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            false
+            false,
+            DEFAULT_API_HOST
         )
 
         // Verify that new methods were not registered
@@ -1744,7 +1760,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            false
+            false,
+            DEFAULT_API_HOST
         )
 
         // Verify that new methods were not registered
@@ -1813,7 +1830,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            false
+            false,
+            DEFAULT_API_HOST
         )
 
         // Verify that new methods were not registered
@@ -1902,7 +1920,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         assertThat(analytics.shutdown).isFalse()
@@ -1998,7 +2017,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         assertThat(analytics.shutdown).isFalse()
@@ -2068,7 +2088,8 @@ open class AnalyticsTest {
             defaultProjectSettings,
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         assertThat(analytics.projectSettings).hasSize(2)
@@ -2113,7 +2134,8 @@ open class AnalyticsTest {
             defaultProjectSettings,
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         assertThat(analytics.projectSettings).hasSize(2)
@@ -2167,7 +2189,8 @@ open class AnalyticsTest {
             defaultProjectSettings,
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         assertThat(analytics.projectSettings).hasSize(2)
@@ -2175,9 +2198,11 @@ open class AnalyticsTest {
         assertThat(analytics.projectSettings.integrations()).containsKey("Segment.io")
         assertThat(analytics.projectSettings.integrations()).hasSize(1)
         assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
-            .hasSize(3)
+            .hasSize(4)
         assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
             .containsKey("apiKey")
+        assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
+                .containsKey("apiHost")
         assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
             .containsKey("appToken")
         assertThat(analytics.projectSettings.integrations().getValueMap("Segment.io"))
@@ -2233,7 +2258,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             true,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         analytics.track("event")
@@ -2254,7 +2280,8 @@ open class AnalyticsTest {
             analyticsContext,
             defaultOptions,
             Logger.with(Analytics.LogLevel.NONE),
-            "qaz", listOf(factory),
+            "qaz",
+            listOf(factory),
             client,
             Cartographer.INSTANCE,
             projectSettingsCache,
@@ -2272,7 +2299,8 @@ open class AnalyticsTest {
             ValueMap(),
             lifecycle,
             false,
-            true
+            true,
+            DEFAULT_API_HOST
         )
 
         analytics.track("event")
