@@ -61,6 +61,7 @@ import com.segment.analytics.internal.NanoDate;
 import com.segment.analytics.internal.Private;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
+import com.segment.analytics.platform.Timeline;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -148,6 +149,8 @@ public class Analytics {
     @Private final boolean useNewLifecycleMethods;
 
     @Private final EventRunner eventRunner;
+
+    public final Timeline timeline;
 
     /**
      * Return a reference to the global default {@link Analytics} instance.
@@ -259,6 +262,7 @@ public class Analytics {
         this.lifecycle = lifecycle;
         this.nanosecondTimestamps = nanosecondTimestamps;
         this.useNewLifecycleMethods = useNewLifecycleMethods;
+        this.timeline = new Timeline();
         this.eventRunner = new EventRunner(logger, sourceMiddleware, destinationMiddleware, stats);
 
         namespaceSharedPreferences();
