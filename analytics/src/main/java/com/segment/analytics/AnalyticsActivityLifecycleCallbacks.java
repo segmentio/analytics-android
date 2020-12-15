@@ -40,15 +40,24 @@ import androidx.lifecycle.LifecycleOwner;
 
 import com.segment.analytics.integrations.Logger;
 import com.segment.analytics.internal.Private;
+import com.segment.analytics.platform.AndroidLifecycle;
+import com.segment.analytics.platform.Extension;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
+
 import static com.segment.analytics.internal.Utils.getSegmentSharedPreferences;
 
+// TODO rewrite in kotlin
 class AnalyticsActivityLifecycleCallbacks
-        implements Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
+        implements Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver, Extension {
     private Analytics analytics;
     private ExecutorService analyticsExecutor;
     private Boolean shouldTrackApplicationLifecycleEvents;
@@ -173,60 +182,137 @@ class AnalyticsActivityLifecycleCallbacks
 
     @Override
     public void onActivityCreated(Activity activity, Bundle bundle) {
-        analytics.runOnMainThread(IntegrationOperation.onActivityCreated(activity, bundle));
+        if (!analytics.shutdown) {
+            analytics.timeline.applyClosure(new Function1<Extension, Unit>() {
+                @Override
+                public Unit invoke(Extension extension) {
+                    if (extension instanceof AndroidLifecycle) {
+                        ((AndroidLifecycle) extension).onActivityCreated(activity, bundle);
+                    }
+                    return Unit.INSTANCE;
+                }
+            });
+//        analytics.runOnMainThread(IntegrationOperation.onActivityCreated(activity, bundle));
 
-        if (!useNewLifecycleMethods) {
-            onCreate(stubOwner);
-        }
+            if (!useNewLifecycleMethods) {
+                onCreate(stubOwner);
+            }
 
-        if (trackDeepLinks) {
-            trackDeepLink(activity);
+            if (trackDeepLinks) {
+                trackDeepLink(activity);
+            }
         }
     }
 
     @Override
     public void onActivityStarted(Activity activity) {
-        if (shouldRecordScreenViews) {
-            recordScreenViews(activity);
+        if (!analytics.shutdown) {
+            if (shouldRecordScreenViews) {
+                recordScreenViews(activity);
+            }
+            analytics.timeline.applyClosure(new Function1<Extension, Unit>() {
+                @Override
+                public Unit invoke(Extension extension) {
+                    if (extension instanceof AndroidLifecycle) {
+                        ((AndroidLifecycle) extension).onActivityStarted(activity);
+                    }
+                    return Unit.INSTANCE;
+                }
+            });
         }
-        analytics.runOnMainThread(IntegrationOperation.onActivityStarted(activity));
+//        analytics.runOnMainThread(IntegrationOperation.onActivityStarted(activity));
     }
 
     @Override
     public void onActivityResumed(Activity activity) {
-        analytics.runOnMainThread(IntegrationOperation.onActivityResumed(activity));
-        if (!useNewLifecycleMethods) {
-            onStart(stubOwner);
+        if (!analytics.shutdown) {
+            analytics.timeline.applyClosure(new Function1<Extension, Unit>() {
+                @Override
+                public Unit invoke(Extension extension) {
+                    if (extension instanceof AndroidLifecycle) {
+                        ((AndroidLifecycle) extension).onActivityResumed(activity);
+                    }
+                    return Unit.INSTANCE;
+                }
+            });
+//        analytics.runOnMainThread(IntegrationOperation.onActivityResumed(activity));
+            if (!useNewLifecycleMethods) {
+                onStart(stubOwner);
+            }
         }
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
-        analytics.runOnMainThread(IntegrationOperation.onActivityPaused(activity));
-        if (!useNewLifecycleMethods) {
-            onPause(stubOwner);
+        if (!analytics.shutdown) {
+            analytics.timeline.applyClosure(new Function1<Extension, Unit>() {
+                @Override
+                public Unit invoke(Extension extension) {
+                    if (extension instanceof AndroidLifecycle) {
+                        ((AndroidLifecycle) extension).onActivityPaused(activity);
+                    }
+                    return Unit.INSTANCE;
+                }
+            });
+//        analytics.runOnMainThread(IntegrationOperation.onActivityPaused(activity));
+            if (!useNewLifecycleMethods) {
+                onPause(stubOwner);
+            }
         }
     }
 
     @Override
     public void onActivityStopped(Activity activity) {
-        analytics.runOnMainThread(IntegrationOperation.onActivityStopped(activity));
-        if (!useNewLifecycleMethods) {
-            onStop(stubOwner);
+        if (!analytics.shutdown) {
+            analytics.timeline.applyClosure(new Function1<Extension, Unit>() {
+                @Override
+                public Unit invoke(Extension extension) {
+                    if (extension instanceof AndroidLifecycle) {
+                        ((AndroidLifecycle) extension).onActivityStopped(activity);
+                    }
+                    return Unit.INSTANCE;
+                }
+            });
+//        analytics.runOnMainThread(IntegrationOperation.onActivityStopped(activity));
+            if (!useNewLifecycleMethods) {
+                onStop(stubOwner);
+            }
         }
     }
 
     @Override
     public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
-        analytics.runOnMainThread(
-                IntegrationOperation.onActivitySaveInstanceState(activity, bundle));
+        if (!analytics.shutdown) {
+            analytics.timeline.applyClosure(new Function1<Extension, Unit>() {
+                @Override
+                public Unit invoke(Extension extension) {
+                    if (extension instanceof AndroidLifecycle) {
+                        ((AndroidLifecycle) extension).onActivitySaveInstanceState(activity, bundle);
+                    }
+                    return Unit.INSTANCE;
+                }
+            });
+        }
+//        analytics.runOnMainThread(
+//                IntegrationOperation.onActivitySaveInstanceState(activity, bundle));
     }
 
     @Override
     public void onActivityDestroyed(Activity activity) {
-        analytics.runOnMainThread(IntegrationOperation.onActivityDestroyed(activity));
-        if (!useNewLifecycleMethods) {
-            onDestroy(stubOwner);
+        if (!analytics.shutdown) {
+            analytics.timeline.applyClosure(new Function1<Extension, Unit>() {
+                @Override
+                public Unit invoke(Extension extension) {
+                    if (extension instanceof AndroidLifecycle) {
+                        ((AndroidLifecycle) extension).onActivityDestroyed(activity);
+                    }
+                    return Unit.INSTANCE;
+                }
+            });
+//        analytics.runOnMainThread(IntegrationOperation.onActivityDestroyed(activity));
+            if (!useNewLifecycleMethods) {
+                onDestroy(stubOwner);
+            }
         }
     }
 
@@ -299,6 +385,34 @@ class AnalyticsActivityLifecycleCallbacks
         } catch (Exception e) {
             logger.error(e, "Unable to track screen view for %s", activity.toString());
         }
+    }
+
+    @NotNull
+    @Override
+    public Type getType() {
+        return Type.Before;
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+        return "AnalyticsActivityLifecycleCallbacksExtension";
+    }
+
+    @Nullable
+    @Override
+    public Analytics getAnalytics() {
+        return this.analytics;
+    }
+
+    @Override
+    public void setAnalytics(@Nullable Analytics analytics) {
+        this.analytics = analytics;
+    }
+
+    @Override
+    public void execute() {
+
     }
 
     public static class Builder {

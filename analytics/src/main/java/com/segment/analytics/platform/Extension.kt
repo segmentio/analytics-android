@@ -23,11 +23,25 @@ interface Extension {
 }
 
 interface EventExtension : Extension {
-    fun track(payload: TrackPayload): BasePayload?
-    fun identify(payload: IdentifyPayload): BasePayload?
-    fun screen(payload: ScreenPayload): BasePayload?
-    fun group(payload: GroupPayload): BasePayload?
-    fun alias(payload: AliasPayload): BasePayload?
+    fun track(payload: TrackPayload?): BasePayload? {
+        return payload
+    }
+
+    fun identify(payload: IdentifyPayload?): BasePayload? {
+        return payload
+    }
+
+    fun screen(payload: ScreenPayload?): BasePayload? {
+        return payload
+    }
+
+    fun group(payload: GroupPayload?): BasePayload? {
+        return payload
+    }
+
+    fun alias(payload: AliasPayload?): BasePayload? {
+        return payload
+    }
 }
 
 abstract class DestinationExtension : EventExtension {
@@ -42,11 +56,11 @@ abstract class DestinationExtension : EventExtension {
         timeline.remove(extensionName)
     }
 
-    fun process(event: BasePayload): BasePayload? {
+    fun process(event: BasePayload?): BasePayload? {
         val beforeResult = timeline.applyExtensions(Extension.Type.Before, event)
         val enrichmentResult = timeline.applyExtensions(Extension.Type.Enrichment, beforeResult)
 
-        val destinationResult: BasePayload? = enrichmentResult?.let {
+        enrichmentResult?.let {
             when (it) {
                 is IdentifyPayload -> {
                     identify(it)
@@ -69,13 +83,16 @@ abstract class DestinationExtension : EventExtension {
             }
         }
 
-        // note: confused about why we pass the not fully enriched event here
-        val afterResult = timeline.applyExtensions(Extension.Type.After, destinationResult)
+        val afterResult = timeline.applyExtensions(Extension.Type.After, enrichmentResult)
 
-        print("Destination: $name")
+        println("Destination: $name")
         if (afterResult == null) {
-            print("event dropped.")
+            println("event dropped.")
         }
         return afterResult
     }
+
+    open fun flush() {}
+
+    open fun reset() {}
 }

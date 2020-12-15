@@ -23,24 +23,24 @@ internal class Mediator(internal val extensions: MutableList<Extension>) {
         extensions.forEach { extension ->
             when (extension) {
                 is DestinationExtension -> {
-                    result = extension.process(event)
+                    extension.process(result)
                 }
                 is EventExtension -> {
-                    when (event) {
+                    when (result) {
                         is IdentifyPayload -> {
-                            result = extension.identify(event)
+                            result = extension.identify(result as IdentifyPayload)
                         }
                         is TrackPayload -> {
-                            result = extension.track(event)
+                            result = extension.track(result as TrackPayload)
                         }
                         is GroupPayload -> {
-                            result = extension.group(event)
+                            result = extension.group(result as GroupPayload)
                         }
                         is ScreenPayload -> {
-                            result = extension.screen(event)
+                            result = extension.screen(result as ScreenPayload)
                         }
                         is AliasPayload -> {
-                            result = extension.alias(event)
+                            result = extension.alias(result as AliasPayload)
                         }
                     }
                 }

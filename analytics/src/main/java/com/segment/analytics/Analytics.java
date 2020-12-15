@@ -34,11 +34,9 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -61,6 +59,10 @@ import com.segment.analytics.internal.NanoDate;
 import com.segment.analytics.internal.Private;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
+import com.segment.analytics.platform.AndroidLifecycle;
+import com.segment.analytics.platform.DestinationExtension;
+import com.segment.analytics.platform.Extension;
+import com.segment.analytics.platform.MiddlewareExtensionAdapter;
 import com.segment.analytics.platform.Timeline;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,6 +77,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 
 /**
  * The entry point into the Segment for Android SDK.
@@ -129,7 +134,7 @@ public class Analytics {
     final Crypto crypto;
     @Private final AnalyticsActivityLifecycleCallbacks activityLifecycleCallback;
     @Private final Lifecycle lifecycle;
-    ProjectSettings projectSettings; // todo: make final (non-final for testing).
+    public ProjectSettings projectSettings; // todo: make final (non-final for testing).
     @Private final String writeKey;
     final int flushQueueSize;
     final long flushIntervalInMillis;
@@ -142,15 +147,14 @@ public class Analytics {
     final Map<String, Boolean> bundledIntegrations = new ConcurrentHashMap<>();
     private List<Integration.Factory> factories;
     // todo: use lightweight map implementation.
-    private Map<String, Integration<?>> integrations;
+    private Map<String, Integration<?>> integrations; //todo remove
     volatile boolean shutdown;
 
     @Private final boolean nanosecondTimestamps;
     @Private final boolean useNewLifecycleMethods;
 
-    @Private final EventRunner eventRunner;
-
     public final Timeline timeline;
+    private final Map<String, List<Middleware>> destinationMiddleware;
 
     /**
      * Return a reference to the global default {@link Analytics} instance.
@@ -239,6 +243,8 @@ public class Analytics {
             @NonNull Lifecycle lifecycle,
             boolean nanosecondTimestamps,
             boolean useNewLifecycleMethods) {
+
+        // Options
         this.application = application;
         this.networkExecutor = networkExecutor;
         this.stats = stats;
@@ -255,15 +261,22 @@ public class Analytics {
         this.flushIntervalInMillis = flushIntervalInMillis;
         this.advertisingIdLatch = advertisingIdLatch;
         this.optOut = optOut;
-        this.factories = factories;
         this.analyticsExecutor = analyticsExecutor;
         this.crypto = crypto;
         this.edgeFunctionMiddleware = edgeFunctionMiddleware;
         this.lifecycle = lifecycle;
         this.nanosecondTimestamps = nanosecondTimestamps;
         this.useNewLifecycleMethods = useNewLifecycleMethods;
+
+        // Event Processor
         this.timeline = new Timeline();
-        this.eventRunner = new EventRunner(logger, sourceMiddleware, destinationMiddleware, stats);
+        for (Middleware middleware : sourceMiddleware) {
+            MiddlewareExtensionAdapter ext = new MiddlewareExtensionAdapter(middleware);
+            ext.setAnalytics(this);
+            timeline.add(ext);
+        }
+        this.factories = factories;
+        this.destinationMiddleware = destinationMiddleware;
 
         namespaceSharedPreferences();
 
@@ -334,7 +347,6 @@ public class Analytics {
                         .packageInfo(getPackageInfo(application))
                         .useNewLifecycleMethods(useNewLifecycleMethods)
                         .build();
-
         application.registerActivityLifecycleCallbacks(activityLifecycleCallback);
         if (useNewLifecycleMethods) {
             lifecycle.addObserver(activityLifecycleCallback);
@@ -363,7 +375,14 @@ public class Analytics {
                                 new Runnable() {
                                     @Override
                                     public void run() {
-                                        eventRunner.runIntegrationOperation(operation, integrations, projectSettings);
+                                        for (Map.Entry<String, Integration<?>> entry : integrations.entrySet()) {
+                                            long startTime = System.nanoTime();
+                                            operation.run(entry.getKey(), entry.getValue(), projectSettings);
+                                            long endTime = System.nanoTime();
+                                            long durationInMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+                                            stats.dispatchIntegrationOperation(entry.getKey(), durationInMillis);
+                                            logger.debug("Ran %s on integration %s in %d ns.", operation, entry.getKey(), endTime - startTime);
+                                        }
                                     }
                                 });
                     }
@@ -700,7 +719,8 @@ public class Analytics {
         if (optOut.get()) {
             return;
         }
-        eventRunner.runSourceMiddleware(builder.build(), integrations, projectSettings);
+//        eventRunner.runSourceMiddleware(builder.build(), integrations, projectSettings);
+        timeline.process(builder.build());
     }
 
     /**
@@ -711,7 +731,20 @@ public class Analytics {
         if (shutdown) {
             throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
         }
-        runOnMainThread(IntegrationOperation.FLUSH);
+        runOnMainThread(new IntegrationOperation() {
+            @Override
+            void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
+                timeline.applyClosure(new Function1<Extension, Unit>() {
+                    @Override
+                    public Unit invoke(Extension extension) {
+                        if (extension instanceof DestinationExtension) {
+                            ((DestinationExtension) extension).flush();
+                        }
+                        return Unit.INSTANCE;
+                    }
+                });
+            }
+        });
     }
 
     /** Get the underlying {@link JSMiddleware} associated with this analytics object */
@@ -794,7 +827,20 @@ public class Analytics {
         traitsCache.delete();
         traitsCache.set(Traits.create());
         analyticsContext.setTraits(traitsCache.get());
-        runOnMainThread(IntegrationOperation.RESET);
+        runOnMainThread(new IntegrationOperation() {
+            @Override
+            void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
+                timeline.applyClosure(new Function1<Extension, Unit>() {
+                    @Override
+                    public Unit invoke(Extension extension) {
+                        if (extension instanceof DestinationExtension) {
+                            ((DestinationExtension) extension).reset();
+                        }
+                        return Unit.INSTANCE;
+                    }
+                });
+            }
+        });
     }
 
     /**
@@ -918,6 +964,7 @@ public class Analytics {
         synchronized (INSTANCES) {
             INSTANCES.remove(tag);
         }
+        timeline.remove("AnalyticsActivityLifecycleCallbacksExtension");
     }
 
     private void assertNotShutdown() {
@@ -1203,7 +1250,6 @@ public class Analytics {
          * integrations
          */
         public Builder useSourceMiddleware(Middleware middleware) {
-
             if (this.edgeFunctionMiddleware != null) {
                 throw new IllegalStateException(
                         "Can not use native middleware and edge function middleware");
@@ -1519,7 +1565,17 @@ public class Analytics {
             if (integration == null) {
                 logger.info("Factory %s couldn't create integration.", factory);
             } else {
+                DestinationExtension ext = new DestinationExtensionAdapter(key, integration);
+                ext.setAnalytics(this);
+                timeline.add(ext);
+                List<Middleware> middlewareForIntegration = destinationMiddleware.get(factory.key());
+                if (middlewareForIntegration != null) {
+                    for (Middleware middleware : middlewareForIntegration) {
+                        ext.add(new MiddlewareExtensionAdapter(middleware));
+                    }
+                }
                 integrations.put(key, integration);
+                // marking integrations as device-mode, so that Segment does not send the event server-side
                 bundledIntegrations.put(key, false);
             }
         }

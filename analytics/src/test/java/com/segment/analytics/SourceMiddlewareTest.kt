@@ -98,7 +98,9 @@ class SourceMiddlewareTest {
     fun middlewareCanTransform() {
         val payloadRef = AtomicReference<BasePayload>()
         val analytics = builder
-            .useSourceMiddleware { chain -> chain.proceed(chain.payload().toBuilder().messageId("override").build()) }
+            .useSourceMiddleware { chain ->
+                chain.proceed(chain.payload().toBuilder().messageId("override").build())
+            }
             .useSourceMiddleware { chain ->
                 val payload = chain.payload()
                 payloadRef.set(payload)
