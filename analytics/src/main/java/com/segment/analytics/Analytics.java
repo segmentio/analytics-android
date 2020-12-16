@@ -79,6 +79,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
 
 /**
@@ -155,6 +156,10 @@ public class Analytics {
 
     public final Timeline timeline;
     private final Map<String, List<Middleware>> destinationMiddleware;
+
+    boolean isShutdown() {
+        return shutdown;
+    }
 
     /**
      * Return a reference to the global default {@link Analytics} instance.
@@ -268,6 +273,8 @@ public class Analytics {
         this.nanosecondTimestamps = nanosecondTimestamps;
         this.useNewLifecycleMethods = useNewLifecycleMethods;
 
+        namespaceSharedPreferences();
+
         // Event Processor
         this.timeline = new Timeline();
         for (Middleware middleware : sourceMiddleware) {
@@ -277,8 +284,6 @@ public class Analytics {
         }
         this.factories = factories;
         this.destinationMiddleware = destinationMiddleware;
-
-        namespaceSharedPreferences();
 
         analyticsExecutor.submit(
                 new Runnable() {
@@ -335,18 +340,19 @@ public class Analytics {
 
         logger.debug("Created analytics client for project with tag:%s.", tag);
 
-        activityLifecycleCallback =
-                new AnalyticsActivityLifecycleCallbacks.Builder()
-                        .analytics(this, Utils.getSegmentSharedPreferences(application, tag))
-                        .logger(logger)
-                        .analyticsExecutor(analyticsExecutor)
-                        .shouldTrackApplicationLifecycleEvents(
-                                shouldTrackApplicationLifecycleEvents)
-                        .trackDeepLinks(trackDeepLinks)
-                        .shouldRecordScreenViews(shouldRecordScreenViews)
-                        .packageInfo(getPackageInfo(application))
-                        .useNewLifecycleMethods(useNewLifecycleMethods)
-                        .build();
+        activityLifecycleCallback = new AnalyticsActivityLifecycleCallbacks(
+            this,
+            analyticsExecutor,
+            shouldTrackApplicationLifecycleEvents,
+            trackDeepLinks,
+            shouldRecordScreenViews,
+            getPackageInfo(application),
+            useNewLifecycleMethods,
+            Utils.getSegmentSharedPreferences(application, tag),
+            logger
+        );
+
+        //todo move this to the extension
         application.registerActivityLifecycleCallbacks(activityLifecycleCallback);
         if (useNewLifecycleMethods) {
             lifecycle.addObserver(activityLifecycleCallback);
@@ -363,30 +369,23 @@ public class Analytics {
     }
 
     @Private
-    void runOnMainThread(final IntegrationOperation operation) {
+    void runOnMainThread(Function0<Unit> block) {
         if (shutdown) {
             return;
         }
         analyticsExecutor.submit(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        HANDLER.post(
-                                new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        for (Map.Entry<String, Integration<?>> entry : integrations.entrySet()) {
-                                            long startTime = System.nanoTime();
-                                            operation.run(entry.getKey(), entry.getValue(), projectSettings);
-                                            long endTime = System.nanoTime();
-                                            long durationInMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-                                            stats.dispatchIntegrationOperation(entry.getKey(), durationInMillis);
-                                            logger.debug("Ran %s on integration %s in %d ns.", operation, entry.getKey(), endTime - startTime);
-                                        }
-                                    }
-                                });
-                    }
-                });
+            new Runnable() {
+                @Override
+                public void run() {
+                    HANDLER.post(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                block.invoke();
+                            }
+                        });
+                }
+            });
     }
 
     // Analytics API
@@ -731,9 +730,9 @@ public class Analytics {
         if (shutdown) {
             throw new IllegalStateException("Cannot enqueue messages after client is shutdown.");
         }
-        runOnMainThread(new IntegrationOperation() {
+        runOnMainThread(new Function0<Unit>() {
             @Override
-            void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
+            public Unit invoke() {
                 timeline.applyClosure(new Function1<Extension, Unit>() {
                     @Override
                     public Unit invoke(Extension extension) {
@@ -743,6 +742,7 @@ public class Analytics {
                         return Unit.INSTANCE;
                     }
                 });
+                return Unit.INSTANCE;
             }
         });
     }
@@ -827,9 +827,9 @@ public class Analytics {
         traitsCache.delete();
         traitsCache.set(Traits.create());
         analyticsContext.setTraits(traitsCache.get());
-        runOnMainThread(new IntegrationOperation() {
+        runOnMainThread(new Function0<Unit>() {
             @Override
-            void run(String key, Integration<?> integration, ProjectSettings projectSettings) {
+            public Unit invoke() {
                 timeline.applyClosure(new Function1<Extension, Unit>() {
                     @Override
                     public Unit invoke(Extension extension) {
@@ -839,6 +839,7 @@ public class Analytics {
                         return Unit.INSTANCE;
                     }
                 });
+                return Unit.INSTANCE;
             }
         });
     }
