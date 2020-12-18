@@ -45,7 +45,9 @@ interface EventExtension : Extension {
 }
 
 abstract class DestinationExtension : EventExtension {
+    override val type: Extension.Type = Extension.Type.Destination
     private val timeline: Timeline = Timeline()
+    override var analytics: Analytics? = null
 
     fun add(extension: Extension) {
         extension.analytics = this.analytics
