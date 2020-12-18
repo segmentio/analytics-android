@@ -36,6 +36,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.JsonWriter;
+import android.util.Log;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
 import com.segment.analytics.integrations.GroupPayload;
@@ -182,22 +183,36 @@ class SegmentIntegration extends Integration<Void> {
             Logger logger,
             Crypto crypto,
             ValueMap settings) {
-        PayloadQueue payloadQueue;
+        final PayloadQueue[] payloadQueue = new PayloadQueue[1];
+        Thread execThread =
+                new Thread(
+                        () -> {
+                            try {
+                                File folder =
+                                        context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
+                                QueueFile queueFile = createQueueFile(folder, tag);
+                                payloadQueue[0] = new PayloadQueue.PersistentQueue(queueFile);
+                            } catch (IOException e) {
+                                logger.error(
+                                        e,
+                                        "Could not create disk queue. Falling back to memory queue.");
+                                payloadQueue[0] = new PayloadQueue.MemoryQueue();
+                            }
+                        });
+        execThread.start();
         try {
-            File folder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
-            QueueFile queueFile = createQueueFile(folder, tag);
-            payloadQueue = new PayloadQueue.PersistentQueue(queueFile);
-        } catch (IOException e) {
-            logger.error(e, "Could not create disk queue. Falling back to memory queue.");
-            payloadQueue = new PayloadQueue.MemoryQueue();
+            execThread.join();
+        } catch (InterruptedException e) {
+            Log.e("execThread", "InterruptedException", e);
         }
+
         String apiHost = settings.getString("apiHost");
         return new SegmentIntegration(
                 context,
                 client,
                 cartographer,
                 networkExecutor,
-                payloadQueue,
+                payloadQueue[0],
                 stats,
                 bundledIntegrations,
                 flushIntervalInMillis,
