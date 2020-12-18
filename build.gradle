@@ -1,7 +1,7 @@
 apply from: rootProject.file('gradle/versioning.gradle')
 
 buildscript {
-    ext.kotlin_version = '1.4.0'
+  ext.kotlin_version = '1.4.0'
   repositories {
   mavenCentral()
   google()
@@ -19,6 +19,7 @@ buildscript {
     classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:1.0.2'
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.22.0"
+    classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
   }
 }
 
