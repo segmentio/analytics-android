@@ -45,6 +45,7 @@ import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
@@ -323,13 +324,14 @@ public class Analytics {
                                     .getValueMap("Segment.io")
                                     .putValue("apiHost", defaultApiHost);
                         }
-                        HANDLER.post(
-                                new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        performInitializeIntegrations(projectSettings);
-                                    }
-                                });
+                        Thread handler =
+                                new Thread(() -> performInitializeIntegrations(projectSettings));
+                        handler.start();
+                        try {
+                            handler.join();
+                        } catch (InterruptedException e) {
+                            Log.e("handlerThread", "InterruptedException", e);
+                        }
                     }
                 });
 
