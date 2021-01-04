@@ -308,7 +308,8 @@ public final class Utils {
 
     /** Returns a shared preferences for storing any library preferences. */
     public static SharedPreferences getSegmentSharedPreferences(Context context, String tag) {
-        return context.getSharedPreferences("analytics-android-" + tag, MODE_PRIVATE);
+        return obtainDeviceProtectedStorageContext(context)
+                .getSharedPreferences("analytics-android-" + tag, MODE_PRIVATE);
     }
 
     /** Get the string resource for the given key. Returns null if not found. */
@@ -530,6 +531,16 @@ public final class Utils {
             }
         }
         editor.apply();
+    }
+
+    private static Context obtainDeviceProtectedStorageContext(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            // All N devices have split storage areas, but we may need to recreate the preferences in the new device
+            // protected storage area, which is where the data lives from now on.
+            return context.createDeviceProtectedStorageContext();
+        } else {
+            return context;
+        }
     }
 
     private Utils() {
