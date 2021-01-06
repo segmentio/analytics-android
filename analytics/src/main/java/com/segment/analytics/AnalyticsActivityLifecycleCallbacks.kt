@@ -18,6 +18,8 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
+// TODO does this need to be an extension?
+// Android specific class that mediates lifecycle extension callbacks
 internal class AnalyticsActivityLifecycleCallbacks(
         private val analyticsObj: Analytics,
         private val analyticsExecutor: ExecutorService,
@@ -27,30 +29,26 @@ internal class AnalyticsActivityLifecycleCallbacks(
         private val packageInfo: PackageInfo,
         private val useNewLifecycleMethods: Boolean,
         private val sharedPreferences: SharedPreferences,
-        private val logger: Logger
-) : Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver, Extension {
+        private val logger: Logger,
+        private val application: Application,
+        private val lifecycle: Lifecycle
+) : Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
 
-    override val type = Extension.Type.Before
-    override val name = "AnalyticsActivityLifecycleCallbacksExtension"
-    override var analytics: Analytics? = analyticsObj
     private val trackedApplicationLifecycleEvents = AtomicBoolean(false)
     private val numberOfActivities = AtomicInteger(1)
     private val firstLaunch = AtomicBoolean(false)
     private val isChangingActivityConfigurations = AtomicBoolean(false)
 
-//    private val application: Application
-//    private val lifecycle: Lifecycle
-//
-//    init {
-//        setupListeners()
-//    }
-//
-//    private fun setupListeners() {
-//        application.registerActivityLifecycleCallbacks(this)
-//        if (useNewLifecycleMethods) {
-//            lifecycle.addObserver(this)
-//        }
-//    }
+    init {
+        setupListeners()
+    }
+
+    private fun setupListeners() {
+        application.registerActivityLifecycleCallbacks(this)
+        if (useNewLifecycleMethods) {
+            lifecycle.addObserver(this)
+        }
+    }
 
     private fun runOnAnalyticsThread(block: () -> Unit) {
         if (!analyticsObj.isShutdown) {
@@ -256,6 +254,14 @@ internal class AnalyticsActivityLifecycleCallbacks(
             throw AssertionError("Activity Not Found: $e")
         } catch (e: Exception) {
             logger.error(e, "Unable to track screen view for %s", activity.toString())
+        }
+    }
+
+    fun unregisterListeners() {
+        application.unregisterActivityLifecycleCallbacks(this)
+        if (useNewLifecycleMethods) {
+            // only unregister if feature is enabled
+            lifecycle.removeObserver(this)
         }
     }
 

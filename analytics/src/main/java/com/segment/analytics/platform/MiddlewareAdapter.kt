@@ -11,6 +11,7 @@ import com.segment.analytics.integrations.IdentifyPayload
 import com.segment.analytics.integrations.ScreenPayload
 import com.segment.analytics.integrations.TrackPayload
 
+// A wrapper class to transform existing middleware into extensions
 class MiddlewareExtensionAdapter: EventExtension {
 
     companion object {

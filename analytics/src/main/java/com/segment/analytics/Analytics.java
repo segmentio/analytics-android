@@ -349,14 +349,10 @@ public class Analytics {
             getPackageInfo(application),
             useNewLifecycleMethods,
             Utils.getSegmentSharedPreferences(application, tag),
-            logger
+            logger,
+            application,
+            lifecycle
         );
-
-        //todo move this to the extension
-        application.registerActivityLifecycleCallbacks(activityLifecycleCallback);
-        if (useNewLifecycleMethods) {
-            lifecycle.addObserver(activityLifecycleCallback);
-        }
     }
 
     static PackageInfo getPackageInfo(Context context) {
@@ -948,11 +944,7 @@ public class Analytics {
         if (shutdown) {
             return;
         }
-        application.unregisterActivityLifecycleCallbacks(activityLifecycleCallback);
-        if (useNewLifecycleMethods) {
-            // only unregister if feature is enabled
-            lifecycle.removeObserver(activityLifecycleCallback);
-        }
+        activityLifecycleCallback.unregisterListeners();
         // Only supplied by us for testing, so it's ok to shut it down. If we were to make this
         // public,
         // we'll have to add a check similar to that of AnalyticsNetworkExecutorService below.

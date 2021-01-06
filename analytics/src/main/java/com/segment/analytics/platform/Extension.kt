@@ -8,9 +8,13 @@ import com.segment.analytics.integrations.IdentifyPayload
 import com.segment.analytics.integrations.ScreenPayload
 import com.segment.analytics.integrations.TrackPayload
 
+// Most simple interface for an extension
 interface Extension {
     enum class Type {
-        Before, Enrichment, Destination, After
+        Before, // Executed before event processing begins.
+        Enrichment, // Executed as the first level of event processing.
+        Destination, // Executed as events begin to pass off to destinations.
+        After // Executed after all event processing is completed.  This can be used to perform cleanup operations, etc.
     }
 
     val type: Type
@@ -22,6 +26,7 @@ interface Extension {
     }
 }
 
+// Advanced extension that can act on specific event payloads
 interface EventExtension : Extension {
     fun track(payload: TrackPayload?): BasePayload? {
         return payload
@@ -44,6 +49,7 @@ interface EventExtension : Extension {
     }
 }
 
+// Basic interface for device-mode destinations. Allows overriding track, identify, screen, group, alias, flush and reset
 abstract class DestinationExtension : EventExtension {
     override val type: Extension.Type = Extension.Type.Destination
     private val timeline: Timeline = Timeline()
@@ -58,6 +64,7 @@ abstract class DestinationExtension : EventExtension {
         timeline.remove(extensionName)
     }
 
+    // Special function for DestinationExtension that manages its own timeline execution
     fun process(event: BasePayload?): BasePayload? {
         val beforeResult = timeline.applyExtensions(Extension.Type.Before, event)
         val enrichmentResult = timeline.applyExtensions(Extension.Type.Enrichment, beforeResult)

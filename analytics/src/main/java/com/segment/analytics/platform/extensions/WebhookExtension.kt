@@ -18,6 +18,7 @@ import java.net.MalformedURLException
 import java.net.URL
 import java.util.concurrent.ExecutorService
 
+// Webhook Destination configured as an extension. Can be used for viewing payloads and debugging.
 class WebhookExtension(private val webhookUrl: String, private val networkExecutor: ExecutorService): DestinationExtension() {
     override val name: String = "WebhookDestination-$webhookUrl"
 

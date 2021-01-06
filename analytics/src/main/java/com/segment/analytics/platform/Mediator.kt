@@ -7,6 +7,7 @@ import com.segment.analytics.integrations.IdentifyPayload
 import com.segment.analytics.integrations.ScreenPayload
 import com.segment.analytics.integrations.TrackPayload
 
+// Platform abstraction for managing extensions' execution (of a specific type)
 internal class Mediator(internal val extensions: MutableList<Extension>) {
 
     fun add(extension: Extension) {

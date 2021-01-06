@@ -2,6 +2,9 @@ package com.segment.analytics.platform
 
 import com.segment.analytics.integrations.BasePayload
 
+// Platform abstraction for managing all extensions and their execution
+// Currently the execution follows
+//      Before -> Enrichment -> Destination -> After
 internal class Timeline {
     private val plugins: Map<Extension.Type, Mediator> = mapOf(
             Extension.Type.Before to Mediator(mutableListOf()),
