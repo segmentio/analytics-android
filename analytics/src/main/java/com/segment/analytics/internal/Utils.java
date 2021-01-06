@@ -45,6 +45,10 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.segment.analytics.Analytics;
+import com.segment.analytics.integrations.Logger;
+
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
@@ -81,6 +85,7 @@ public final class Utils {
     public static final int DEFAULT_FLUSH_QUEUE_SIZE = 20;
     public static final boolean DEFAULT_COLLECT_DEVICE_ID = true;
     public static final String DEFAULT_API_HOST = "api.segment.io/v1";
+    private static final Logger logger = Logger.with(Analytics.LogLevel.DEBUG);
 
     /** Creates a mutable HashSet instance containing the given elements in unspecified order */
     public static <T> Set<T> newSet(T... values) {
@@ -308,8 +313,21 @@ public final class Utils {
 
     /** Returns a shared preferences for storing any library preferences. */
     public static SharedPreferences getSegmentSharedPreferences(Context context, String tag) {
-        return obtainDeviceProtectedStorageContext(context)
-                .getSharedPreferences("analytics-android-" + tag, MODE_PRIVATE);
+        Context storageContext;
+        String prefsName = "analytics-android-" + tag;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            // All N devices have split storage areas, but we may need to recreate the preferences in the new device
+            // protected storage area, which is where the data lives from now on.
+            final Context deviceContext = context.createDeviceProtectedStorageContext();
+            if (!deviceContext.moveSharedPreferencesFrom(context,
+                    prefsName)) {
+                logger.debug("Failed to migrate shared preferences.");
+            }
+            storageContext = deviceContext;
+        } else {
+            storageContext = context;
+        }
+        return storageContext.getSharedPreferences(prefsName, MODE_PRIVATE);
     }
 
     /** Get the string resource for the given key. Returns null if not found. */
@@ -531,16 +549,6 @@ public final class Utils {
             }
         }
         editor.apply();
-    }
-
-    private static Context obtainDeviceProtectedStorageContext(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            // All N devices have split storage areas, but we may need to recreate the preferences in the new device
-            // protected storage area, which is where the data lives from now on.
-            return context.createDeviceProtectedStorageContext();
-        } else {
-            return context;
-        }
     }
 
     private Utils() {
