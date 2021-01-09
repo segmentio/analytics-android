@@ -81,13 +81,6 @@ public final class Utils {
     public static final int DEFAULT_FLUSH_QUEUE_SIZE = 20;
     public static final boolean DEFAULT_COLLECT_DEVICE_ID = true;
 
-    /** Creates a mutable HashSet instance containing the given elements in unspecified order */
-    public static <T> Set<T> newSet(T... values) {
-        Set<T> set = new HashSet<>(values.length);
-        Collections.addAll(set, values);
-        return set;
-    }
-
     /** @deprecated Use {@link #toISO8601String(Date)}. */
     public static String toISO8601Date(Date date) {
         return toISO8601String(date);

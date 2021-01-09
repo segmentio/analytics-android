@@ -51,6 +51,7 @@ import com.segment.analytics.TestUtils.NoDescriptionMatcher
 import com.segment.analytics.TestUtils.grantPermission
 import com.segment.analytics.TestUtils.mockApplication
 import com.segment.analytics.integrations.AliasPayload
+import com.segment.analytics.integrations.BasePayload
 import com.segment.analytics.integrations.GroupPayload
 import com.segment.analytics.integrations.IdentifyPayload
 import com.segment.analytics.integrations.Integration
@@ -61,6 +62,13 @@ import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService
 import com.segment.analytics.internal.Utils.DEFAULT_FLUSH_INTERVAL
 import com.segment.analytics.internal.Utils.DEFAULT_FLUSH_QUEUE_SIZE
 import com.segment.analytics.internal.Utils.isNullOrEmpty
+import com.segment.analytics.platform.EventExtension
+import com.segment.analytics.platform.Extension
+import com.segment.analytics.platform.extensions.LogType
+import com.segment.analytics.platform.extensions.Metric
+import com.segment.analytics.platform.extensions.MetricType
+import com.segment.analytics.platform.extensions.addMetric
+import com.segment.analytics.platform.extensions.log
 import java.io.IOException
 import java.lang.Boolean.TRUE
 import java.util.concurrent.CountDownLatch
@@ -73,6 +81,7 @@ import org.assertj.core.data.MapEntry
 import org.hamcrest.Description
 import org.hamcrest.TypeSafeMatcher
 import org.junit.After
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -87,6 +96,8 @@ import org.mockito.hamcrest.MockitoHamcrest.argThat
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import java.util.Date
+import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
@@ -2281,4 +2292,59 @@ open class AnalyticsTest {
         val timestamp = payload.value["timestamp"] as String
         assertThat(timestamp).matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z")
     }
+
+    /*
+     * ==================================
+     * PLATFORM TESTS
+     * ==================================
+     */
+
+    @Test
+    fun loggerExtension() {
+        val latch = CountDownLatch(1)
+
+        val mockExtension = object : com.segment.analytics.platform.extensions.Logger("mock") {
+            override var filterType: LogType = LogType.ERROR
+
+            override fun log(type: LogType, message: String, event: BasePayload?) {
+                assertThat(message).isEqualTo("Something Other than Awesome")
+                assertThat(type).isEqualTo(LogType.ERROR)
+                latch.countDown()
+            }
+
+            override fun flush() {}
+        }
+
+        analytics.timeline.add(mockExtension)
+        analytics.log("Something Other than Awesome")
+        latch.await(1000L, TimeUnit.MILLISECONDS)
+        assertThat(latch.count).isEqualTo(0)
+    }
+
+    @Test
+    fun metricsExtension() {
+        var testPayload: BasePayload? = null
+        val mockExtension = object : EventExtension {
+            override val type: Extension.Type = Extension.Type.Before
+            override val name: String = "MockExtension"
+            override var analytics: Analytics?
+                get() = this.analytics
+                set(value) { this.analytics = value }
+
+            override fun track(payload: TrackPayload?): BasePayload? {
+                payload?.addMetric(MetricType.Counter, "foo", 1.2, listOf("bar", "barfoo"), Date(0))
+                testPayload = payload
+                return payload
+            }
+        }
+
+        analytics.timeline.add(mockExtension)
+        analytics.track("FooBar")
+        assertThat(testPayload).isNotNull
+        assertThat(testPayload).containsKey("metrics")
+        val metrics = testPayload!!["metrics"] as? MutableList<Metric> ?: mutableListOf()
+        assertThat(metrics).isNotEmpty
+        assertThat(metrics).contains(Metric(eventName = "track", metricName = "foo", value = 1.2, tags = listOf("bar", "barfoo"), type = MetricType.Counter, timestamp = Date(0)))
+    }
+
 }

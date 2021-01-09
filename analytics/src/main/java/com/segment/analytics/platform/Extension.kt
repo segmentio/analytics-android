@@ -14,7 +14,8 @@ interface Extension {
         Before, // Executed before event processing begins.
         Enrichment, // Executed as the first level of event processing.
         Destination, // Executed as events begin to pass off to destinations.
-        After // Executed after all event processing is completed.  This can be used to perform cleanup operations, etc.
+        After, // Executed after all event processing is completed.  This can be used to perform cleanup operations, etc.
+        Utility // Executed only when called manually, such as Logging.
     }
 
     val type: Type

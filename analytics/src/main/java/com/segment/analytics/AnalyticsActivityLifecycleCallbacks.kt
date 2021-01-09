@@ -18,7 +18,6 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-// TODO does this need to be an extension?
 // Android specific class that mediates lifecycle extension callbacks
 internal class AnalyticsActivityLifecycleCallbacks(
         private val analyticsObj: Analytics,
@@ -61,7 +60,7 @@ internal class AnalyticsActivityLifecycleCallbacks(
         runOnAnalyticsThread {
             analyticsObj.timeline?.applyClosure { extension: Extension? ->
                 if (extension is AndroidLifecycle) {
-                    (extension as AndroidLifecycle).onActivityCreated(activity, bundle)
+                    extension.onActivityCreated(activity, bundle)
                 }
             }
         }
@@ -80,7 +79,7 @@ internal class AnalyticsActivityLifecycleCallbacks(
         runOnAnalyticsThread {
             analyticsObj.timeline.applyClosure { extension: Extension? ->
                 if (extension is AndroidLifecycle) {
-                    (extension as AndroidLifecycle).onActivityStarted(activity)
+                    extension.onActivityStarted(activity)
                 }
             }
         }
@@ -90,7 +89,7 @@ internal class AnalyticsActivityLifecycleCallbacks(
         runOnAnalyticsThread {
             analyticsObj.timeline.applyClosure { extension: Extension? ->
                 if (extension is AndroidLifecycle) {
-                    (extension as AndroidLifecycle).onActivityResumed(activity)
+                    extension.onActivityResumed(activity)
                 }
             }
         }
@@ -103,7 +102,7 @@ internal class AnalyticsActivityLifecycleCallbacks(
         runOnAnalyticsThread {
             analyticsObj.timeline.applyClosure { extension: Extension? ->
                 if (extension is AndroidLifecycle) {
-                    (extension as AndroidLifecycle).onActivityPaused(activity)
+                    extension.onActivityPaused(activity)
                 }
             }
         }
@@ -116,7 +115,7 @@ internal class AnalyticsActivityLifecycleCallbacks(
         runOnAnalyticsThread {
             analyticsObj.timeline.applyClosure { extension: Extension? ->
                 if (extension is AndroidLifecycle) {
-                    (extension as AndroidLifecycle).onActivityStopped(activity)
+                    extension.onActivityStopped(activity)
                 }
             }
         }
@@ -129,7 +128,7 @@ internal class AnalyticsActivityLifecycleCallbacks(
         runOnAnalyticsThread {
             analyticsObj.timeline.applyClosure { extension: Extension? ->
                 if (extension is AndroidLifecycle) {
-                    (extension as AndroidLifecycle).onActivitySaveInstanceState(activity, bundle)
+                    extension.onActivitySaveInstanceState(activity, bundle)
                 }
             }
         }
@@ -139,7 +138,7 @@ internal class AnalyticsActivityLifecycleCallbacks(
         runOnAnalyticsThread {
             analyticsObj.timeline.applyClosure { extension: Extension? ->
                 if (extension is AndroidLifecycle) {
-                    (extension as AndroidLifecycle).onActivityDestroyed(activity)
+                    extension.onActivityDestroyed(activity)
                 }
             }
         }

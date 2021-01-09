@@ -38,7 +38,6 @@ import com.segment.analytics.internal.Utils.hasFeature
 import com.segment.analytics.internal.Utils.hasPermission
 import com.segment.analytics.internal.Utils.isConnected
 import com.segment.analytics.internal.Utils.isNullOrEmpty
-import com.segment.analytics.internal.Utils.newSet
 import com.segment.analytics.internal.Utils.readFully
 import com.segment.analytics.internal.Utils.transform
 import java.io.IOException
@@ -171,11 +170,6 @@ class UtilsTest {
             .contains("aFloat", 3.14f)
             .contains("aLong", 12345678910L)
             .contains("aStringSet", HashSet(listOf("foo", "bar")))
-    }
-
-    @Test
-    fun newSet() {
-        assertThat(newSet("foo", "bar")).containsOnly("foo", "bar")
     }
 
     @Test

@@ -10,7 +10,8 @@ internal class Timeline {
             Extension.Type.Before to Mediator(mutableListOf()),
             Extension.Type.Enrichment to Mediator(mutableListOf()),
             Extension.Type.Destination to Mediator(mutableListOf()),
-            Extension.Type.After to Mediator(mutableListOf())
+            Extension.Type.After to Mediator(mutableListOf()),
+            Extension.Type.Utility to Mediator(mutableListOf())
     )
 
     // initiate the event's lifecycle
