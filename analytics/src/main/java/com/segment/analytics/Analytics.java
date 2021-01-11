@@ -714,7 +714,6 @@ public class Analytics {
         if (optOut.get()) {
             return;
         }
-//        eventRunner.runSourceMiddleware(builder.build(), integrations, projectSettings);
         timeline.process(builder.build());
     }
 
