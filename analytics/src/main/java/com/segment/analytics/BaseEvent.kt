@@ -1,24 +1,22 @@
 package com.segment.analytics
 
-import com.segment.analytics.internal.NanoDate
 import com.segment.analytics.internal.Utils
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.JsonObject
+import java.util.Date
 
-class DateSerializer : KSerializer<NanoDate> {
-    override val descriptor = PrimitiveSerialDescriptor("NanoDate", PrimitiveKind.STRING)
+class DateSerializer : KSerializer<Date> {
+    override val descriptor = PrimitiveSerialDescriptor("Date", PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): NanoDate {
+    override fun deserialize(decoder: Decoder): Date {
         val timestamp = decoder.decodeString()
-        return Utils.parseISO8601DateWithNanos(timestamp)
+        return Utils.parseISO8601Date(timestamp)
     }
 
-    override fun serialize(encoder: Encoder, value: NanoDate) {
+    override fun serialize(encoder: Encoder, value: Date) {
         val timestamp = Utils.toISO8601String(value)
         encoder.encodeString(timestamp)
     }
