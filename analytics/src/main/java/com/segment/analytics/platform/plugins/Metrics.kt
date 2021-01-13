@@ -1,4 +1,4 @@
-package com.segment.analytics.platform.extensions
+package com.segment.analytics.platform.plugins
 
 import com.segment.analytics.DateSerializer
 import com.segment.analytics.integrations.BasePayload
@@ -38,7 +38,7 @@ data class Metric(
 }
 
 fun BasePayload.addMetric(type: MetricType, name: String, value: Double, tags: List<String>, timestamp: Date) {
-    val metric = Metric(eventName = type().toString(), metricName = name, value = value, tags = tags, type = type, timestamp = timestamp) // todo extension-name doesnt make much sense here...
+    val metric = Metric(eventName = type().toString(), metricName = name, value = value, tags = tags, type = type, timestamp = timestamp)
     var metrics = mutableListOf<Map<String, Any>>()
     if (containsKey("metrics")) {
         metrics = get("metrics") as? MutableList<Map<String, Any>> ?: mutableListOf()

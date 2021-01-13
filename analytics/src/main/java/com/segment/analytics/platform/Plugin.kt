@@ -8,8 +8,8 @@ import com.segment.analytics.integrations.IdentifyPayload
 import com.segment.analytics.integrations.ScreenPayload
 import com.segment.analytics.integrations.TrackPayload
 
-// Most simple interface for an extension
-interface Extension {
+// Most simple interface for an plugin
+interface Plugin {
     enum class Type {
         Before, // Executed before event processing begins.
         Enrichment, // Executed as the first level of event processing.
@@ -27,8 +27,8 @@ interface Extension {
     }
 }
 
-// Advanced extension that can act on specific event payloads
-interface EventExtension : Extension {
+// Advanced plugin that can act on specific event payloads
+interface EventPlugin : Plugin {
     fun track(payload: TrackPayload?): BasePayload? {
         return payload
     }
@@ -51,24 +51,24 @@ interface EventExtension : Extension {
 }
 
 // Basic interface for device-mode destinations. Allows overriding track, identify, screen, group, alias, flush and reset
-abstract class DestinationExtension : EventExtension {
-    override val type: Extension.Type = Extension.Type.Destination
+abstract class DestinationPlugin : EventPlugin {
+    override val type: Plugin.Type = Plugin.Type.Destination
     private val timeline: Timeline = Timeline()
     override var analytics: Analytics? = null
 
-    fun add(extension: Extension) {
-        extension.analytics = this.analytics
-        timeline.add(extension)
+    fun add(plugin: Plugin) {
+        plugin.analytics = this.analytics
+        timeline.add(plugin)
     }
 
-    fun remove(extensionName: String) {
-        timeline.remove(extensionName)
+    fun remove(pluginName: String) {
+        timeline.remove(pluginName)
     }
 
-    // Special function for DestinationExtension that manages its own timeline execution
+    // Special function for DestinationPlugin that manages its own timeline execution
     fun process(event: BasePayload?): BasePayload? {
-        val beforeResult = timeline.applyExtensions(Extension.Type.Before, event)
-        val enrichmentResult = timeline.applyExtensions(Extension.Type.Enrichment, beforeResult)
+        val beforeResult = timeline.applyPlugins(Plugin.Type.Before, event)
+        val enrichmentResult = timeline.applyPlugins(Plugin.Type.Enrichment, beforeResult)
 
         enrichmentResult?.let {
             when (it) {
@@ -93,7 +93,7 @@ abstract class DestinationExtension : EventExtension {
             }
         }
 
-        val afterResult = timeline.applyExtensions(Extension.Type.After, enrichmentResult)
+        val afterResult = timeline.applyPlugins(Plugin.Type.After, enrichmentResult)
 
         println("Destination: $name")
         if (afterResult == null) {

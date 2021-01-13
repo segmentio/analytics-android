@@ -7,46 +7,46 @@ import com.segment.analytics.integrations.IdentifyPayload
 import com.segment.analytics.integrations.ScreenPayload
 import com.segment.analytics.integrations.TrackPayload
 
-// Platform abstraction for managing extensions' execution (of a specific type)
-internal class Mediator(internal val extensions: MutableList<Extension>) {
+// Platform abstraction for managing plugins' execution (of a specific type)
+internal class Mediator(internal val plugins: MutableList<Plugin>) {
 
-    fun add(extension: Extension) {
-        extensions.add(extension)
+    fun add(plugin: Plugin) {
+        plugins.add(plugin)
     }
 
-    fun remove(extensionName: String) {
-        extensions.removeAll { it.name == extensionName }
+    fun remove(pluginName: String) {
+        plugins.removeAll { it.name == pluginName }
     }
 
     fun execute(event: BasePayload): BasePayload? {
         var result: BasePayload? = event
 
-        extensions.forEach { extension ->
-            when (extension) {
-                is DestinationExtension -> {
-                    extension.process(result)
+        plugins.forEach { plugin ->
+            when (plugin) {
+                is DestinationPlugin -> {
+                    plugin.process(result)
                 }
-                is EventExtension -> {
+                is EventPlugin -> {
                     when (result) {
                         is IdentifyPayload -> {
-                            result = extension.identify(result as IdentifyPayload)
+                            result = plugin.identify(result as IdentifyPayload)
                         }
                         is TrackPayload -> {
-                            result = extension.track(result as TrackPayload)
+                            result = plugin.track(result as TrackPayload)
                         }
                         is GroupPayload -> {
-                            result = extension.group(result as GroupPayload)
+                            result = plugin.group(result as GroupPayload)
                         }
                         is ScreenPayload -> {
-                            result = extension.screen(result as ScreenPayload)
+                            result = plugin.screen(result as ScreenPayload)
                         }
                         is AliasPayload -> {
-                            result = extension.alias(result as AliasPayload)
+                            result = plugin.alias(result as AliasPayload)
                         }
                     }
                 }
                 else -> {
-                    extension.execute()
+                    plugin.execute()
                 }
             }
         }

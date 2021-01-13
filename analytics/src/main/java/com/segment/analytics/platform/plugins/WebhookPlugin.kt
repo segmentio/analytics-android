@@ -1,7 +1,6 @@
-package com.segment.analytics.platform.extensions
+package com.segment.analytics.platform.plugins
 
 import android.util.Log
-import com.segment.analytics.ValueMap
 import com.segment.analytics.integrations.AliasPayload
 import com.segment.analytics.integrations.BasePayload
 import com.segment.analytics.integrations.GroupPayload
@@ -9,7 +8,7 @@ import com.segment.analytics.integrations.IdentifyPayload
 import com.segment.analytics.integrations.ScreenPayload
 import com.segment.analytics.integrations.TrackPayload
 import com.segment.analytics.internal.Utils
-import com.segment.analytics.platform.DestinationExtension
+import com.segment.analytics.platform.DestinationPlugin
 import java.io.DataOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -18,8 +17,8 @@ import java.net.MalformedURLException
 import java.net.URL
 import java.util.concurrent.ExecutorService
 
-// Webhook Destination configured as an extension. Can be used for viewing payloads and debugging.
-class WebhookExtension(private val webhookUrl: String, private val networkExecutor: ExecutorService): DestinationExtension() {
+// Webhook Destination configured as an plugin. Can be used for viewing payloads and debugging.
+class WebhookPlugin(private val webhookUrl: String, private val networkExecutor: ExecutorService): DestinationPlugin() {
     override val name: String = "WebhookDestination-$webhookUrl"
 
     /**

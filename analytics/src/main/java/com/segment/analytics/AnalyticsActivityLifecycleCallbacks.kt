@@ -13,12 +13,12 @@ import androidx.lifecycle.LifecycleOwner
 import com.segment.analytics.integrations.Logger
 import com.segment.analytics.internal.Private
 import com.segment.analytics.platform.AndroidLifecycle
-import com.segment.analytics.platform.Extension
+import com.segment.analytics.platform.Plugin
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-// Android specific class that mediates lifecycle extension callbacks
+// Android specific class that mediates lifecycle plugin callbacks
 internal class AnalyticsActivityLifecycleCallbacks(
         private val analyticsObj: Analytics,
         private val analyticsExecutor: ExecutorService,
@@ -58,9 +58,9 @@ internal class AnalyticsActivityLifecycleCallbacks(
     /* OLD LIFECYCLE HOOKS */
     override fun onActivityCreated(activity: Activity?, bundle: Bundle?) {
         runOnAnalyticsThread {
-            analyticsObj.timeline?.applyClosure { extension: Extension? ->
-                if (extension is AndroidLifecycle) {
-                    extension.onActivityCreated(activity, bundle)
+            analyticsObj.timeline?.applyClosure { plugin: Plugin? ->
+                if (plugin is AndroidLifecycle) {
+                    plugin.onActivityCreated(activity, bundle)
                 }
             }
         }
@@ -77,9 +77,9 @@ internal class AnalyticsActivityLifecycleCallbacks(
             recordScreenViews(activity)
         }
         runOnAnalyticsThread {
-            analyticsObj.timeline.applyClosure { extension: Extension? ->
-                if (extension is AndroidLifecycle) {
-                    extension.onActivityStarted(activity)
+            analyticsObj.timeline.applyClosure { plugin: Plugin? ->
+                if (plugin is AndroidLifecycle) {
+                    plugin.onActivityStarted(activity)
                 }
             }
         }
@@ -87,9 +87,9 @@ internal class AnalyticsActivityLifecycleCallbacks(
 
     override fun onActivityResumed(activity: Activity?) {
         runOnAnalyticsThread {
-            analyticsObj.timeline.applyClosure { extension: Extension? ->
-                if (extension is AndroidLifecycle) {
-                    extension.onActivityResumed(activity)
+            analyticsObj.timeline.applyClosure { plugin: Plugin? ->
+                if (plugin is AndroidLifecycle) {
+                    plugin.onActivityResumed(activity)
                 }
             }
         }
@@ -100,9 +100,9 @@ internal class AnalyticsActivityLifecycleCallbacks(
 
     override fun onActivityPaused(activity: Activity?) {
         runOnAnalyticsThread {
-            analyticsObj.timeline.applyClosure { extension: Extension? ->
-                if (extension is AndroidLifecycle) {
-                    extension.onActivityPaused(activity)
+            analyticsObj.timeline.applyClosure { plugin: Plugin? ->
+                if (plugin is AndroidLifecycle) {
+                    plugin.onActivityPaused(activity)
                 }
             }
         }
@@ -113,9 +113,9 @@ internal class AnalyticsActivityLifecycleCallbacks(
 
     override fun onActivityStopped(activity: Activity?) {
         runOnAnalyticsThread {
-            analyticsObj.timeline.applyClosure { extension: Extension? ->
-                if (extension is AndroidLifecycle) {
-                    extension.onActivityStopped(activity)
+            analyticsObj.timeline.applyClosure { plugin: Plugin? ->
+                if (plugin is AndroidLifecycle) {
+                    plugin.onActivityStopped(activity)
                 }
             }
         }
@@ -126,9 +126,9 @@ internal class AnalyticsActivityLifecycleCallbacks(
 
     override fun onActivitySaveInstanceState(activity: Activity?, bundle: Bundle?) {
         runOnAnalyticsThread {
-            analyticsObj.timeline.applyClosure { extension: Extension? ->
-                if (extension is AndroidLifecycle) {
-                    extension.onActivitySaveInstanceState(activity, bundle)
+            analyticsObj.timeline.applyClosure { plugin: Plugin? ->
+                if (plugin is AndroidLifecycle) {
+                    plugin.onActivitySaveInstanceState(activity, bundle)
                 }
             }
         }
@@ -136,9 +136,9 @@ internal class AnalyticsActivityLifecycleCallbacks(
 
     override fun onActivityDestroyed(activity: Activity?) {
         runOnAnalyticsThread {
-            analyticsObj.timeline.applyClosure { extension: Extension? ->
-                if (extension is AndroidLifecycle) {
-                    extension.onActivityDestroyed(activity)
+            analyticsObj.timeline.applyClosure { plugin: Plugin? ->
+                if (plugin is AndroidLifecycle) {
+                    plugin.onActivityDestroyed(activity)
                 }
             }
         }

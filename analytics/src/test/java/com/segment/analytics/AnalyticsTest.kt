@@ -62,13 +62,13 @@ import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService
 import com.segment.analytics.internal.Utils.DEFAULT_FLUSH_INTERVAL
 import com.segment.analytics.internal.Utils.DEFAULT_FLUSH_QUEUE_SIZE
 import com.segment.analytics.internal.Utils.isNullOrEmpty
-import com.segment.analytics.platform.EventExtension
-import com.segment.analytics.platform.Extension
-import com.segment.analytics.platform.extensions.LogType
-import com.segment.analytics.platform.extensions.Metric
-import com.segment.analytics.platform.extensions.MetricType
-import com.segment.analytics.platform.extensions.addMetric
-import com.segment.analytics.platform.extensions.log
+import com.segment.analytics.platform.EventPlugin
+import com.segment.analytics.platform.Plugin
+import com.segment.analytics.platform.plugins.LogType
+import com.segment.analytics.platform.plugins.Metric
+import com.segment.analytics.platform.plugins.MetricType
+import com.segment.analytics.platform.plugins.addMetric
+import com.segment.analytics.platform.plugins.log
 import java.io.IOException
 import java.lang.Boolean.TRUE
 import java.util.concurrent.CountDownLatch
@@ -81,7 +81,6 @@ import org.assertj.core.data.MapEntry
 import org.hamcrest.Description
 import org.hamcrest.TypeSafeMatcher
 import org.junit.After
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -2303,7 +2302,7 @@ open class AnalyticsTest {
     fun loggerExtension() {
         val latch = CountDownLatch(1)
 
-        val mockExtension = object : com.segment.analytics.platform.extensions.Logger("mock") {
+        val mockExtension = object : com.segment.analytics.platform.plugins.Logger("mock") {
             override var filterType: LogType = LogType.ERROR
 
             override fun log(type: LogType, message: String, event: BasePayload?) {
@@ -2324,8 +2323,8 @@ open class AnalyticsTest {
     @Test
     fun metricsExtension() {
         var testPayload: BasePayload? = null
-        val mockExtension = object : EventExtension {
-            override val type: Extension.Type = Extension.Type.Before
+        val mockExtension = object : EventPlugin {
+            val TYPE: Plugin.Type = Plugin.Type.Before
             override val name: String = "MockExtension"
             override var analytics: Analytics?
                 get() = this.analytics

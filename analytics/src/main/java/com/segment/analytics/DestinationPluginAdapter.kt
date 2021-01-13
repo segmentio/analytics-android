@@ -11,8 +11,8 @@ import com.segment.analytics.integrations.ScreenPayload
 import com.segment.analytics.integrations.TrackPayload
 import com.segment.analytics.internal.Private
 import com.segment.analytics.platform.AndroidLifecycle
-import com.segment.analytics.platform.DestinationExtension
-import com.segment.analytics.platform.Extension
+import com.segment.analytics.platform.DestinationPlugin
+import com.segment.analytics.platform.Plugin
 
 /**
  * Integration Operation for a Segment Event (track | identify | alias | group | screen)
@@ -38,9 +38,9 @@ internal fun segmentEvent(payload: BasePayload): IntegrationOperation {
     }
 }
 
-open class DestinationExtensionAdapter(private val key: String, private val integration: Integration<*>) : DestinationExtension(), AndroidLifecycle {
+open class DestinationPluginAdapter(private val key: String, private val integration: Integration<*>) : DestinationPlugin(), AndroidLifecycle {
 
-    override val type: Extension.Type = Extension.Type.Destination
+    override val type: Plugin.Type = Plugin.Type.Destination
     override val name: String = "destination-$key"
     override var analytics: Analytics? = null
 

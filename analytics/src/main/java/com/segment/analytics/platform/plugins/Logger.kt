@@ -1,9 +1,9 @@
-package com.segment.analytics.platform.extensions
+package com.segment.analytics.platform.plugins
 
 import com.segment.analytics.Analytics
 import com.segment.analytics.integrations.BasePayload
-import com.segment.analytics.platform.EventExtension
-import com.segment.analytics.platform.Extension
+import com.segment.analytics.platform.EventPlugin
+import com.segment.analytics.platform.Plugin
 
 enum class LogType(val level: Int) {
     ERROR(0),       // Not Verbose
@@ -17,10 +17,10 @@ data class LogMessage(
         val event: BasePayload?
 )
 
-// Simple logger extension
-open class Logger(override val name: String) : EventExtension {
+// Simple logger plugin
+open class Logger(override val name: String) : EventPlugin {
 
-    override val type: Extension.Type = Extension.Type.Utility
+    override val type: Plugin.Type = Plugin.Type.Utility
     override var analytics: Analytics? = null
 
     open var filterType: LogType = LogType.INFO
@@ -45,17 +45,17 @@ open class Logger(override val name: String) : EventExtension {
 }
 
 fun Analytics.log(message: String, event: BasePayload? = null, type: LogType? = null) {
-    this.timeline.applyClosure { extension: Extension ->
-        if (extension is Logger) {
-            extension.log(type ?: extension.filterType, message, event)
+    this.timeline.applyClosure { plugin: Plugin ->
+        if (plugin is Logger) {
+            plugin.log(type ?: plugin.filterType, message, event)
         }
     }
 }
 
 fun Analytics.logFlush() {
-    this.timeline.applyClosure { extension: Extension ->
-        if (extension is Logger) {
-            extension.flush()
+    this.timeline.applyClosure { plugin: Plugin ->
+        if (plugin is Logger) {
+            plugin.flush()
         }
     }
 }

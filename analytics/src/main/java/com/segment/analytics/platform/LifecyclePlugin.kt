@@ -3,7 +3,7 @@ package com.segment.analytics.platform
 import android.app.Activity
 import android.os.Bundle
 
-// Basic interface for an extension to consume lifecycle callbacks
+// Basic interface for an plugin to consume lifecycle callbacks
 interface AndroidLifecycle {
     fun onActivityCreated(activity: Activity?, savedInstanceState: Bundle?) {}
     fun onActivityStarted(activity: Activity?) {}

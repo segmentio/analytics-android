@@ -59,10 +59,9 @@ import com.segment.analytics.internal.NanoDate;
 import com.segment.analytics.internal.Private;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
-import com.segment.analytics.platform.AndroidLifecycle;
-import com.segment.analytics.platform.DestinationExtension;
-import com.segment.analytics.platform.Extension;
-import com.segment.analytics.platform.MiddlewareExtensionAdapter;
+import com.segment.analytics.platform.DestinationPlugin;
+import com.segment.analytics.platform.Plugin;
+import com.segment.analytics.platform.MiddlewarePluginAdapter;
 import com.segment.analytics.platform.Timeline;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -278,7 +277,7 @@ public class Analytics {
         // Event Processor
         this.timeline = new Timeline();
         for (Middleware middleware : sourceMiddleware) {
-            MiddlewareExtensionAdapter ext = new MiddlewareExtensionAdapter(middleware);
+            MiddlewarePluginAdapter ext = new MiddlewarePluginAdapter(middleware);
             ext.setAnalytics(this);
             timeline.add(ext);
         }
@@ -728,11 +727,11 @@ public class Analytics {
         runOnMainThread(new Function0<Unit>() {
             @Override
             public Unit invoke() {
-                timeline.applyClosure(new Function1<Extension, Unit>() {
+                timeline.applyClosure(new Function1<Plugin, Unit>() {
                     @Override
-                    public Unit invoke(Extension extension) {
-                        if (extension instanceof DestinationExtension) {
-                            ((DestinationExtension) extension).flush();
+                    public Unit invoke(Plugin plugin) {
+                        if (plugin instanceof DestinationPlugin) {
+                            ((DestinationPlugin) plugin).flush();
                         }
                         return Unit.INSTANCE;
                     }
@@ -825,11 +824,11 @@ public class Analytics {
         runOnMainThread(new Function0<Unit>() {
             @Override
             public Unit invoke() {
-                timeline.applyClosure(new Function1<Extension, Unit>() {
+                timeline.applyClosure(new Function1<Plugin, Unit>() {
                     @Override
-                    public Unit invoke(Extension extension) {
-                        if (extension instanceof DestinationExtension) {
-                            ((DestinationExtension) extension).reset();
+                    public Unit invoke(Plugin plugin) {
+                        if (plugin instanceof DestinationPlugin) {
+                            ((DestinationPlugin) plugin).reset();
                         }
                         return Unit.INSTANCE;
                     }
@@ -956,7 +955,7 @@ public class Analytics {
         synchronized (INSTANCES) {
             INSTANCES.remove(tag);
         }
-        timeline.remove("AnalyticsActivityLifecycleCallbacksExtension");
+        timeline.remove("AnalyticsActivityLifecycleCallbacksPlugin");
     }
 
     private void assertNotShutdown() {
@@ -1556,13 +1555,13 @@ public class Analytics {
             if (integration == null) {
                 logger.info("Factory %s couldn't create integration.", factory);
             } else {
-                DestinationExtension ext = new DestinationExtensionAdapter(key, integration);
+                DestinationPlugin ext = new DestinationPluginAdapter(key, integration);
                 ext.setAnalytics(this);
                 timeline.add(ext);
                 List<Middleware> middlewareForIntegration = destinationMiddleware.get(factory.key());
                 if (middlewareForIntegration != null) {
                     for (Middleware middleware : middlewareForIntegration) {
-                        ext.add(new MiddlewareExtensionAdapter(middleware));
+                        ext.add(new MiddlewarePluginAdapter(middleware));
                     }
                 }
                 integrations.put(key, integration);

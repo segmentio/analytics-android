@@ -11,8 +11,8 @@ import com.segment.analytics.integrations.IdentifyPayload
 import com.segment.analytics.integrations.ScreenPayload
 import com.segment.analytics.integrations.TrackPayload
 
-// A wrapper class to transform existing middleware into extensions
-class MiddlewareExtensionAdapter: EventExtension {
+// A wrapper class to transform existing middleware into plugins
+class MiddlewarePluginAdapter: EventPlugin {
 
     companion object {
         private var nextId = 1
@@ -21,7 +21,7 @@ class MiddlewareExtensionAdapter: EventExtension {
         }
     }
 
-    override val type: Extension.Type = Extension.Type.Enrichment
+    override val type: Plugin.Type = Plugin.Type.Enrichment
     override val name: String = "middleware-${nextId()}"
     override var analytics: Analytics? = null
     private val underlying: NewMiddleware
