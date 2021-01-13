@@ -205,7 +205,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         // Used by singleton tests.
@@ -873,7 +874,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         callback.get().onCreate(mockLifecycleOwner)
@@ -962,7 +964,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         callback.get().onCreate(mockLifecycleOwner)
@@ -1032,7 +1035,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         val activity = Mockito.mock(Activity::class.java)
@@ -1104,7 +1108,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         val expectedURL = "app://track.com/open?utm_id=12345&gclid=abcd&nope="
@@ -1181,7 +1186,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         val expectedURL = "app://track.com/open?utm_id=12345&gclid=abcd&nope="
@@ -1256,7 +1262,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         val activity = Mockito.mock(Activity::class.java)
@@ -1322,7 +1329,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         val activity = Mockito.mock(Activity::class.java)
@@ -1392,7 +1400,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         val activity = Mockito.mock(Activity::class.java)
@@ -1471,7 +1480,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         callback.get().onCreate(mockLifecycleOwner)
@@ -1540,7 +1550,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         val backgroundedActivity = Mockito.mock(Activity::class.java)
@@ -1611,7 +1622,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         callback.get().onCreate(mockLifecycleOwner)
@@ -1691,7 +1703,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             false,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         // Verify that new methods were not registered
@@ -1761,7 +1774,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             false,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         // Verify that new methods were not registered
@@ -1831,7 +1845,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             false,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         // Verify that new methods were not registered
@@ -1921,7 +1936,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         assertThat(analytics.shutdown).isFalse()
@@ -2018,7 +2034,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         assertThat(analytics.shutdown).isFalse()
@@ -2089,7 +2106,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         assertThat(analytics.projectSettings).hasSize(2)
@@ -2135,7 +2153,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         assertThat(analytics.projectSettings).hasSize(2)
@@ -2190,7 +2209,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         assertThat(analytics.projectSettings).hasSize(2)
@@ -2259,7 +2279,8 @@ open class AnalyticsTest {
             lifecycle,
             true,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         analytics.track("event")
@@ -2300,7 +2321,8 @@ open class AnalyticsTest {
             lifecycle,
             false,
             true,
-            DEFAULT_API_HOST
+            DEFAULT_API_HOST,
+            null
         )
 
         analytics.track("event")
