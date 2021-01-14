@@ -36,6 +36,7 @@ import android.content.pm.PackageManager.NameNotFoundException
 import android.net.Uri
 import android.os.Bundle
 import androidx.annotation.Nullable
+import androidx.core.util.Supplier
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
@@ -67,7 +68,6 @@ import java.lang.Boolean.TRUE
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.jvm.Throws
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.assertj.core.data.MapEntry
@@ -2330,5 +2330,49 @@ open class AnalyticsTest {
         verify(integration).track(payload.capture())
         val timestamp = payload.value["timestamp"] as String
         assertThat(timestamp).matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z")
+    }
+
+    @Test
+    fun customAnonymousIdClosureCreation() {
+        Analytics.INSTANCES.clear()
+        val cache = Traits.Cache(application, Cartographer.INSTANCE, "")
+        analytics = Analytics(
+            application,
+            networkExecutor,
+            stats,
+            cache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz",
+            listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            false,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false,
+            true,
+            DEFAULT_API_HOST,
+            Supplier { "testId" }
+        )
+        analytics.reset()
+
+        analytics.track("event")
+        val payload = ArgumentCaptor.forClass(TrackPayload::class.java)
+        verify(integration).track(payload.capture())
+        val anonymousId = payload.value["anonymousId"] as String
+        assertThat(anonymousId).isEqualTo("testId")
     }
 }
