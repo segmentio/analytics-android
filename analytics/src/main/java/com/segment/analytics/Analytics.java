@@ -276,6 +276,7 @@ public class Analytics {
 
         // Event Processor
         this.timeline = new Timeline();
+        this.timeline.setAnalytics(this);
         for (Middleware middleware : sourceMiddleware) {
             MiddlewarePluginAdapter ext = new MiddlewarePluginAdapter(middleware);
             ext.setAnalytics(this);

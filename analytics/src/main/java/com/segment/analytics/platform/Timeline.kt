@@ -1,5 +1,6 @@
 package com.segment.analytics.platform
 
+import com.segment.analytics.Analytics
 import com.segment.analytics.integrations.BasePayload
 
 // Platform abstraction for managing all plugins and their execution
@@ -13,6 +14,7 @@ internal class Timeline {
             Plugin.Type.After to Mediator(mutableListOf()),
             Plugin.Type.Utility to Mediator(mutableListOf())
     )
+    lateinit var analytics: Analytics
 
     // initiate the event's lifecycle
     fun process(incomingEvent: BasePayload): BasePayload? {
@@ -63,6 +65,7 @@ internal class Timeline {
     // Register a new plugin
     fun add(plugin: Plugin) {
         plugins[plugin.type]?.add(plugin)
+        plugin.setup(analytics)
     }
 
     // Remove a registered plugin

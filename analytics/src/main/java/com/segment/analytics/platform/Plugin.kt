@@ -22,6 +22,12 @@ interface Plugin {
     val name: String
     var analytics: Analytics?
 
+    // A simple setup function thats executed when plugin is attached to analytics
+    // If overriden, ensure that super.setup() is invoked
+    fun setup(analytics: Analytics) {
+        this.analytics = analytics
+    }
+
     fun execute() {
         // empty body default
     }
@@ -55,6 +61,11 @@ abstract class DestinationPlugin : EventPlugin {
     override val type: Plugin.Type = Plugin.Type.Destination
     private val timeline: Timeline = Timeline()
     override var analytics: Analytics? = null
+
+    override fun setup(analytics: Analytics) {
+        super.setup(analytics)
+        timeline.analytics = analytics
+    }
 
     fun add(plugin: Plugin) {
         plugin.analytics = this.analytics
