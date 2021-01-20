@@ -1604,4 +1604,22 @@ public class Analytics {
             namespaceSharedPreferences.set(false);
         }
     }
+
+    /* Platform Specific APIs */
+
+    // Register a new plugin
+    public void addPlugin(Plugin plugin) {
+        this.timeline.add(plugin);
+    }
+
+    // Unregister a plugin
+    public void removePlugin(String pluginName) {
+        this.timeline.remove(pluginName);
+    }
+
+    // Run a closure on every plugin, useful for interacting with plugins outside of the event lifecycle
+    public void applyClosure(Function1<Plugin, Unit> closure) {
+        this.timeline.applyClosure(closure);
+    }
+
 }

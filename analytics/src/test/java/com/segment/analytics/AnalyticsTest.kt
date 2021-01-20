@@ -2324,7 +2324,7 @@ open class AnalyticsTest {
     fun metricsExtension() {
         var testPayload: BasePayload? = null
         val mockExtension = object : EventPlugin {
-            val TYPE: Plugin.Type = Plugin.Type.Before
+            override val type = Plugin.Type.Before
             override val name: String = "MockExtension"
             override var analytics: Analytics?
                 get() = this.analytics

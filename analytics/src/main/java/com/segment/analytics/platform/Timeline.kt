@@ -30,7 +30,7 @@ internal class Timeline {
 
         print("System: ")
         if (afterResult == null) {
-            print("event dropped.")
+            print("event dropped.") // note: this doesnt make much sense, events should be in destination.
         }
         print(afterResult)
         return afterResult
