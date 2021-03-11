@@ -181,7 +181,7 @@ public final class Utils {
      * @param str the string to be examined
      * @return true if str is null or zero length
      */
-    private static boolean isEmpty(@Nullable CharSequence str) {
+    public static boolean isEmpty(@Nullable CharSequence str) {
         return str == null || str.length() == 0;
     }
 
