@@ -30,6 +30,7 @@ import static com.segment.analytics.internal.Utils.getResourceString;
 import static com.segment.analytics.internal.Utils.getSegmentSharedPreferences;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.immutableCopyOf;
+import static com.segment.analytics.internal.Utils.isEmpty;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 import android.Manifest;
@@ -61,6 +62,9 @@ import com.segment.analytics.internal.NanoDate;
 import com.segment.analytics.internal.Private;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1084,21 +1088,20 @@ public class Analytics {
         private boolean useNewLifecycleMethods = true; // opt-out feature
         private String defaultApiHost = Utils.DEFAULT_API_HOST;
 
-        /** Start building a new {@link Analytics} instance. */
-        public Builder(Context context, String writeKey) {
-            if (context == null) {
-                throw new IllegalArgumentException("Context must not be null.");
-            }
+        /**
+         * Start building a new {@link Analytics} instance.
+         *
+         * Throws {@link IllegalArgumentException} in following cases:
+         * - no INTERNET permission granted
+         * - writeKey is empty
+         */
+        public Builder(@NotNull Context context, @NotNull String writeKey) {
             if (!hasPermission(context, Manifest.permission.INTERNET)) {
                 throw new IllegalArgumentException("INTERNET permission is required.");
             }
             application = (Application) context.getApplicationContext();
-            if (application == null) {
-                throw new IllegalArgumentException("Application context must not be null.");
-            }
-
-            if (isNullOrEmpty(writeKey)) {
-                throw new IllegalArgumentException("writeKey must not be null or empty.");
+            if (isEmpty(writeKey)) {
+                throw new IllegalArgumentException("writeKey must not be empty.");
             }
             this.writeKey = writeKey;
         }
