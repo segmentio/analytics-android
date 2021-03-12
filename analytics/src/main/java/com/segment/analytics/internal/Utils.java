@@ -45,6 +45,10 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.segment.analytics.Analytics;
+import com.segment.analytics.integrations.Logger;
+
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
@@ -81,6 +85,9 @@ public final class Utils {
     public static final int DEFAULT_FLUSH_QUEUE_SIZE = 20;
     public static final boolean DEFAULT_COLLECT_DEVICE_ID = true;
     public static final String DEFAULT_API_HOST = "api.segment.io/v1";
+
+    private final static int PERMISSION_CHECK_REPEAT_MAX_COUNT = 2;
+    private static final Logger logger = Logger.with(Analytics.LogLevel.DEBUG);
 
     /** Creates a mutable HashSet instance containing the given elements in unspecified order */
     public static <T> Set<T> newSet(T... values) {
@@ -154,7 +161,18 @@ public final class Utils {
 
     /** Returns true if the application has the given permission. */
     public static boolean hasPermission(Context context, String permission) {
-        return context.checkCallingOrSelfPermission(permission) == PERMISSION_GRANTED;
+        return hasPermission(context, permission, 0);
+    }
+
+    private static boolean hasPermission(Context context, String permission, int repeatCount) {
+        try {
+            return context.checkCallingOrSelfPermission(permission) == PERMISSION_GRANTED;
+        } catch (Exception e) {
+            // exception during permission check means we need to assume it is not granted
+            logger.error(e, "Exception during permission check");
+            return repeatCount < PERMISSION_CHECK_REPEAT_MAX_COUNT
+                    && hasPermission(context.getApplicationContext(), permission, repeatCount + 1);
+        }
     }
 
     /** Returns true if the application has the given feature. */
