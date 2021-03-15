@@ -74,6 +74,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -201,6 +203,16 @@ public final class Utils {
      */
     public static boolean isEmpty(@Nullable CharSequence str) {
         return str == null || str.length() == 0;
+    }
+
+    /**
+     * Returns true if the string is empty (once trimmed).
+     *
+     * @param str the string to be examined
+     * @return true if the string is empty (once trimmed) or 0-length
+     */
+    public static boolean isEmptyOrBlank(@NotNull CharSequence str) {
+        return str.length() == 0 || getTrimmedLength(str) == 0;
     }
 
     /**

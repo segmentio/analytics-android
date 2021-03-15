@@ -39,6 +39,7 @@ import org.assertj.core.api.Assertions.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
@@ -62,13 +63,6 @@ class AnalyticsBuilderTest {
     @Test
     @Throws(Exception::class)
     fun invalidContextThrowsException() {
-        try {
-            Builder(null, null)
-            fail("Null context should throw exception.")
-        } catch (expected: IllegalArgumentException) {
-            assertThat(expected).hasMessage("Context must not be null.")
-        }
-
         whenever(context.checkCallingOrSelfPermission(INTERNET)).thenReturn(PERMISSION_DENIED)
         try {
             Builder(context, "foo")
@@ -147,44 +141,29 @@ class AnalyticsBuilderTest {
     @Throws(Exception::class)
     fun invalidWriteKeyThrowsException() {
         try {
-            Builder(context, null)
-            fail("Null writeKey should throw exception.")
-        } catch (expected: IllegalArgumentException) {
-            assertThat(expected).hasMessage("writeKey must not be null or empty.")
-        }
-
-        try {
             Builder(context, "")
             fail("Blank writeKey should throw exception.")
         } catch (expected: IllegalArgumentException) {
-            assertThat(expected).hasMessage("writeKey must not be null or empty.")
+            assertThat(expected).hasMessage("writeKey must not be empty.")
         }
 
         try {
             Builder(context, "    ")
             fail("Blank writeKey should throw exception.")
         } catch (expected: IllegalArgumentException) {
-            assertThat(expected).hasMessage("writeKey must not be null or empty.")
+            assertThat(expected).hasMessage("writeKey must not be empty.")
         }
     }
 
     @Test
     @Throws(Exception::class)
     fun invalidWriteKeyFromResourcesThrowsException() {
-        mockWriteKeyInResources(context, null)
-        try {
-            Analytics.with(context)
-            fail("Null writeKey should throw exception.")
-        } catch (expected: IllegalArgumentException) {
-            assertThat(expected).hasMessage("writeKey must not be null or empty.")
-        }
-
         mockWriteKeyInResources(context, "")
         try {
             Analytics.with(context)
             fail("Empty writeKey should throw exception.")
         } catch (expected: java.lang.IllegalArgumentException) {
-            assertThat(expected).hasMessage("writeKey must not be null or empty.")
+            assertThat(expected).hasMessage("writeKey must not be empty.")
         }
 
         mockWriteKeyInResources(context, "    ")
@@ -192,7 +171,7 @@ class AnalyticsBuilderTest {
             Analytics.with(context)
             fail("Blank writeKey should throw exception.")
         } catch (expected: java.lang.IllegalArgumentException) {
-            assertThat(expected).hasMessage("writeKey must not be null or empty.")
+            assertThat(expected).hasMessage("writeKey must not be empty.")
         }
     }
 
@@ -286,10 +265,10 @@ class AnalyticsBuilderTest {
         }
     }
 
-    private fun mockWriteKeyInResources(context: Context, writeKey: String?) {
+    private fun mockWriteKeyInResources(context: Context, writeKey: String) {
         val resources = Mockito.mock(Resources::class.java)
         whenever(context.resources).thenReturn(resources)
-        whenever(resources.getIdentifier(eq(WRITE_KEY_RESOURCE_IDENTIFIER), eq("string"), eq("string")))
+        whenever(resources.getIdentifier(eq(WRITE_KEY_RESOURCE_IDENTIFIER), eq("string"), any()))
             .thenReturn(1)
         whenever(resources.getString(1)).thenReturn(writeKey)
     }

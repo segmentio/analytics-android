@@ -30,7 +30,7 @@ import static com.segment.analytics.internal.Utils.getResourceString;
 import static com.segment.analytics.internal.Utils.getSegmentSharedPreferences;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.immutableCopyOf;
-import static com.segment.analytics.internal.Utils.isEmpty;
+import static com.segment.analytics.internal.Utils.isEmptyOrBlank;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 import android.Manifest;
@@ -1100,7 +1100,7 @@ public class Analytics {
                 throw new IllegalArgumentException("INTERNET permission is required.");
             }
             application = (Application) context.getApplicationContext();
-            if (isEmpty(writeKey)) {
+            if (isEmptyOrBlank(writeKey)) {
                 throw new IllegalArgumentException("writeKey must not be empty.");
             }
             this.writeKey = writeKey;
