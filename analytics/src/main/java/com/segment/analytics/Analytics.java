@@ -62,9 +62,6 @@ import com.segment.analytics.internal.NanoDate;
 import com.segment.analytics.internal.Private;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
-
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -78,6 +75,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The entry point into the Segment for Android SDK.
@@ -1091,9 +1089,8 @@ public class Analytics {
         /**
          * Start building a new {@link Analytics} instance.
          *
-         * Throws {@link IllegalArgumentException} in following cases:
-         * - no INTERNET permission granted
-         * - writeKey is empty
+         * <p>Throws {@link IllegalArgumentException} in following cases: - no INTERNET permission
+         * granted - writeKey is empty
          */
         public Builder(@NotNull Context context, @NotNull String writeKey) {
             if (!hasPermission(context, Manifest.permission.INTERNET)) {

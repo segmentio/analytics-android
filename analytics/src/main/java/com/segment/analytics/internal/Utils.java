@@ -45,10 +45,8 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.segment.analytics.Analytics;
 import com.segment.analytics.integrations.Logger;
-
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
@@ -74,7 +72,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -88,7 +85,7 @@ public final class Utils {
     public static final boolean DEFAULT_COLLECT_DEVICE_ID = true;
     public static final String DEFAULT_API_HOST = "api.segment.io/v1";
 
-    private final static int PERMISSION_CHECK_REPEAT_MAX_COUNT = 2;
+    private static final int PERMISSION_CHECK_REPEAT_MAX_COUNT = 2;
     private static final Logger logger = Logger.with(Analytics.LogLevel.DEBUG);
 
     /** Creates a mutable HashSet instance containing the given elements in unspecified order */
