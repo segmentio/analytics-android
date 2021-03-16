@@ -302,7 +302,8 @@ class CartographerTest {
     @Throws(IOException::class)
     fun encodesInfiniteAndNanDoubles() {
         val map = ImmutableMap.builder<String, Any>()
-            .put("nan", Double.NaN).put("positive_infinity", Double.POSITIVE_INFINITY)
+            .put("nan", Double.NaN)
+            .put("positive_infinity", Double.POSITIVE_INFINITY)
             .put("negative_infinity", Double.NEGATIVE_INFINITY)
             .build()
 
