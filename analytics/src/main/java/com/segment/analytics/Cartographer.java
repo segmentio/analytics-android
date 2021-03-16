@@ -212,6 +212,9 @@ public class Cartographer {
         if (value == null) {
             writer.nullValue();
         } else if (value instanceof Number) {
+            if (value instanceof Double && (Double.isNaN((Double) value) || Double.isInfinite((Double) value))) {
+                value = 0;
+            }
             writer.value((Number) value);
         } else if (value instanceof Boolean) {
             writer.value((Boolean) value);
