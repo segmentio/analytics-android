@@ -262,7 +262,7 @@ class CartographerTest {
     @Throws(IOException::class)
     fun decodesArraysWithList() {
         val json =
-                """
+            """
                 |{
                 |  "a": [
                 |    "b",
@@ -273,7 +273,7 @@ class CartographerTest {
                 """.trimMargin()
 
         val expected =
-                ImmutableMap.builder<String, Any>().put("a", listOf("b", "c", "d")).build()
+            ImmutableMap.builder<String, Any>().put("a", listOf("b", "c", "d")).build()
 
         assertThat(cartographer.fromJson(json)).isEqualTo(expected)
     }
