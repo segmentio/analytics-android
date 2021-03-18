@@ -311,9 +311,9 @@ class CartographerTest {
             .isEqualTo(
                 """
                         |{
-                        |  "nan": 0,
-                        |  "positive_infinity": 0,
-                        |  "negative_infinity": 0
+                        |  "nan": 0.0,
+                        |  "positive_infinity": 0.0,
+                        |  "negative_infinity": 0.0
                         |}
                         """.trimMargin()
             )
