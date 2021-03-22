@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 4.9.2 (Mar 22, 2021)
+============================
+* [New](https://github.com/segmentio/analytics-android/pull/734): Make new lifecycle methods opt-out
+* [New](https://github.com/segmentio/analytics-android/pull/731): Kotlin Demo App
+* [New](https://github.com/segmentio/analytics-android/pull/739): Custom apiHost for Segment.IO and support multi-regional Segment
+* [Fix](https://github.com/segmentio/analytics-android/pull/750): Add NonNull annotations to params for analytics constructor
+* [Fix](https://github.com/segmentio/analytics-android/pull/749): Retry hasPermission in case of failure due to package manager being inactive
+* [Fix](https://github.com/segmentio/analytics-android/pull/752): Marshal NaN and other special numbers to 0.0 and not produce malformed JSON
+
 Version 4.9.0 (Oct 15, 2020)
 ============================
 * [New](https://github.com/segmentio/analytics-android/pull/707): Remove the ability to natively report attribution information via Segment integrations
