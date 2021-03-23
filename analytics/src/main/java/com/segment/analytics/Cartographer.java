@@ -216,6 +216,10 @@ public class Cartographer {
                     && (Double.isNaN((Double) value) || Double.isInfinite((Double) value))) {
                 value = 0.0;
             }
+            if (value instanceof Float
+                    && (Float.isNaN((Float) value) || Float.isInfinite((Float) value))) {
+                value = 0.0;
+            }
             writer.value((Number) value);
         } else if (value instanceof Boolean) {
             writer.value((Boolean) value);

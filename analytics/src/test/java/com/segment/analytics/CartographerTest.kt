@@ -321,6 +321,27 @@ class CartographerTest {
 
     @Test
     @Throws(IOException::class)
+    fun encodesInfiniteAndNanFloats() {
+        val map = ImmutableMap.builder<String, Any>()
+            .put("nan", Float.NaN)
+            .put("positive_infinity", Float.POSITIVE_INFINITY)
+            .put("negative_infinity", Float.NEGATIVE_INFINITY)
+            .build()
+
+        assertThat(cartographer.toJson(map))
+            .isEqualTo(
+                """
+                        |{
+                        |  "nan": 0.0,
+                        |  "positive_infinity": 0.0,
+                        |  "negative_infinity": 0.0
+                        |}
+                        """.trimMargin()
+            )
+    }
+
+    @Test
+    @Throws(IOException::class)
     fun encodesPrimitiveArrays() {
         // Exercise a bug where primitive arrays would throw an IOException.
         // https://github.com/segmentio/analytics-android/issues/507
