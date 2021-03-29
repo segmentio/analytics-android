@@ -27,6 +27,7 @@ import static com.segment.analytics.internal.Utils.assertNotNull;
 import static com.segment.analytics.internal.Utils.assertNotNullOrEmpty;
 import static com.segment.analytics.internal.Utils.immutableCopyOf;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
+import static com.segment.analytics.internal.Utils.parseISO8601Date;
 import static com.segment.analytics.internal.Utils.parseISO8601DateWithNanos;
 import static com.segment.analytics.internal.Utils.toISO8601NanoFormattedString;
 import static com.segment.analytics.internal.Utils.toISO8601String;
@@ -131,7 +132,11 @@ public abstract class BasePayload extends ValueMap {
         if (isNullOrEmpty(timestamp)) {
             return null;
         }
-        return parseISO8601DateWithNanos(timestamp);
+        if (timestamp.length() == "yyyy-MM-ddThh:mm:ss.fffZ".length()) {
+            return parseISO8601Date(timestamp);
+        } else {
+            return parseISO8601DateWithNanos(timestamp);
+        }
     }
 
     /**
