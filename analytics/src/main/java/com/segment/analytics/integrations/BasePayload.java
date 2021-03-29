@@ -370,7 +370,11 @@ public abstract class BasePayload extends ValueMap {
             }
 
             if (timestamp == null) {
-                timestamp = new NanoDate(); // captures higher resolution timestamps
+                if (this.nanosecondTimestamps) {
+                    timestamp = new NanoDate(); // captures higher resolution timestamps
+                } else {
+                    timestamp = new Date();
+                }
             }
 
             if (isNullOrEmpty(context)) {

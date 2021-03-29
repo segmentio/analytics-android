@@ -64,6 +64,7 @@ import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -474,7 +475,7 @@ public class Analytics {
         if (isNullOrEmpty(userId) && isNullOrEmpty(newTraits)) {
             throw new IllegalArgumentException("Either userId or some traits must be provided.");
         }
-        NanoDate timestamp = new NanoDate();
+        Date timestamp = this.nanosecondTimestamps ? new NanoDate() : new Date();
         analyticsExecutor.submit(
                 new Runnable() {
                     @Override
@@ -531,7 +532,7 @@ public class Analytics {
         if (isNullOrEmpty(groupId)) {
             throw new IllegalArgumentException("groupId must not be null or empty.");
         }
-        NanoDate timestamp = new NanoDate();
+        Date timestamp = this.nanosecondTimestamps ? new NanoDate() : new Date();
         analyticsExecutor.submit(
                 new Runnable() {
                     @Override
@@ -583,7 +584,7 @@ public class Analytics {
         if (isNullOrEmpty(event)) {
             throw new IllegalArgumentException("event must not be null or empty.");
         }
-        NanoDate timestamp = new NanoDate();
+        Date timestamp = this.nanosecondTimestamps ? new NanoDate() : new Date();
         analyticsExecutor.submit(
                 new Runnable() {
                     @Override
@@ -653,7 +654,7 @@ public class Analytics {
         if (isNullOrEmpty(category) && isNullOrEmpty(name)) {
             throw new IllegalArgumentException("either category or name must be provided.");
         }
-        NanoDate timestamp = new NanoDate();
+        Date timestamp = this.nanosecondTimestamps ? new NanoDate() : new Date();
         analyticsExecutor.submit(
                 new Runnable() {
                     @Override
@@ -708,7 +709,7 @@ public class Analytics {
             throw new IllegalArgumentException("newId must not be null or empty.");
         }
 
-        NanoDate timestamp = new NanoDate();
+        Date timestamp = this.nanosecondTimestamps ? new NanoDate() : new Date();
         analyticsExecutor.submit(
                 new Runnable() {
                     @Override
