@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 4.9.3 (Mar 29, 2021)
+============================
+* [Fix](https://github.com/segmentio/analytics-android/pull/755): Check Float NaN and Infinity
+* [Fix](https://github.com/segmentio/analytics-android/pull/758): Fix Incorrect Timestamps
+
 Version 4.9.2 (Mar 22, 2021)
 ============================
 * [New](https://github.com/segmentio/analytics-android/pull/734): Make new lifecycle methods opt-out
