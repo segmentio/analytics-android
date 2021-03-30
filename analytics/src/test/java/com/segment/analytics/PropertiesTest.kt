@@ -197,5 +197,9 @@ class PropertiesTest {
         assertThat(product.name()).isNull()
         product.putName("name")
         assertThat(product.name()).isEqualTo("name")
+
+        product.remove("id")
+        product.putValue("product_id", "id")
+        assertThat(product.id()).isEqualTo("id")
     }
 }

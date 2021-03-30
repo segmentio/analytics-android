@@ -389,6 +389,7 @@ public class Properties extends ValueMap {
     public static class Product extends ValueMap {
 
         private static final String ID_KEY = "id";
+        private static final String PRODUCT_ID_KEY = "product_id";
         private static final String SKU_KEY = "sku";
         private static final String NAME_KEY = "name";
         private static final String PRICE_KEY = "price";
@@ -422,7 +423,7 @@ public class Properties extends ValueMap {
         }
 
         public String id() {
-            return getString(ID_KEY);
+            return getString(ID_KEY) != null ? getString(ID_KEY) : getString(PRODUCT_ID_KEY);
         }
 
         public String sku() {
