@@ -1,0 +1,113 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/analytics-android
+    docker:
+      - image: circleci/android:api-28-alpha
+    environment:
+      JVM_OPTS: -Xmx6400m
+      CIRCLE_JDK_VERSION: oraclejdk8
+    steps:
+      - checkout
+      - restore_cache:
+          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "analytics/build.gradle" }}-{{ checksum  "analytics-samples/analytics-sample/build.gradle" }}
+      - run:
+          name: Accept licenses
+          command: yes | sdkmanager --licenses || true
+      - run:
+          name: Build
+          command: ./gradlew check build assembleAndroidTest
+      - run:
+          name: Snyk
+          command: curl -sL https://raw.githubusercontent.com/segmentio/snyk_helpers/master/initialization/snyk.sh | sh
+          environment:
+            SNYK_FAIL_ON: upgradable
+            SNYK_SEVERITY_THRESHOLD: high
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "analytics/build.gradle" }}-{{ checksum  "analytics-samples/analytics-sample/build.gradle" }}
+  publish_snapshot:
+    working_directory: ~/analytics-android
+    docker:
+      - image: circleci/android:api-28-alpha
+    environment:
+      JVM_OPTS: -Xmx3200m
+      CIRCLE_JDK_VERSION: oraclejdk8
+    steps:
+      - checkout
+      - restore_cache:
+          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "analytics/build.gradle" }}-{{ checksum  "analytics-samples/analytics-sample/build.gradle" }}
+      - run:
+          name: Accept licenses
+          command: yes | sdkmanager --licenses || true
+      - run:
+          name: Set up key ring file
+          command: |
+            if [ "$SIGNING_PRIVATE_KEY_BASE64" == "" ]; then {
+                echo "Invalid signature configuration"
+                exit 1
+            } fi
+            echo $SIGNING_PRIVATE_KEY_BASE64 | base64 -d > $SIGNING_SECRET_KEY_RING_FILE
+      - run:
+          name: Publish SNAPSHOT
+          command: ./gradlew publish
+  publish:
+    working_directory: ~/analytics-android
+    docker:
+      - image: circleci/android:api-28-alpha
+    environment:
+      JVM_OPTS: -Xmx3200m
+      CIRCLE_JDK_VERSION: oraclejdk8
+    steps:
+      - checkout
+      - restore_cache:
+          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "analytics/build.gradle" }}-{{ checksum  "analytics-samples/analytics-sample/build.gradle" }}
+      - run:
+          name: Accept licenses
+          command: yes | sdkmanager --licenses || true
+      - run:
+          name: Set up key ring file
+          command: |
+            if [ "$SIGNING_PRIVATE_KEY_BASE64" == "" ]; then {
+                echo "Invalid signature configuration"
+                exit 1
+            } fi
+            echo $SIGNING_PRIVATE_KEY_BASE64 | base64 -d > $SIGNING_SECRET_KEY_RING_FILE
+      - run:
+          name: Verify tag
+          command: |
+            VERSION=$(grep VERSION_NAME gradle.properties | awk -F= '{ print $2 }' | sed "s/-SNAPSHOT//")
+            if [ "$CIRCLE_TAG" != "$VERSION" ]; then {
+                echo "Tag $CIRCLE_TAG does not match the package version ($VERSION)"
+                exit 1
+            } fi
+      - run:
+          name: Publish Release
+          command: ./gradlew publish -Prelease
+      - run:
+          name: Mark release
+          command: ./gradlew closeAndReleaseRepository
+workflows:
+  version: 2
+  run:
+    jobs:
+      - build:
+          context: snyk
+          filters:
+            tags:
+              only: /.*/
+      - publish_snapshot:
+          context: android-sonatype
+          requires: [ build ]
+          filters:
+            branches:
+              only: [/master/]
+      - publish:
+          context: android-sonatype
+          requires: [ build ]
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /[0-9]+.*/
