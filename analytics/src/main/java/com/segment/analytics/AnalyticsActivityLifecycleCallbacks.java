@@ -181,7 +181,9 @@ class AnalyticsActivityLifecycleCallbacks
                 }
             }
         } catch (Exception e) {
-            analytics.logger("LifecycleCallbacks").error(e, "failed to get uri params for %s", uri.toString());
+            analytics
+                    .logger("LifecycleCallbacks")
+                    .error(e, "failed to get uri params for %s", uri.toString());
         }
 
         properties.put("url", uri.toString());
