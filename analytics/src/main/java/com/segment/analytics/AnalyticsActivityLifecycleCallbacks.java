@@ -173,11 +173,15 @@ class AnalyticsActivityLifecycleCallbacks
 
         Properties properties = new Properties();
         Uri uri = intent.getData();
-        for (String parameter : uri.getQueryParameterNames()) {
-            String value = uri.getQueryParameter(parameter);
-            if (value != null && !value.trim().isEmpty()) {
-                properties.put(parameter, value);
+        try {
+            for (String parameter : uri.getQueryParameterNames()) {
+                String value = uri.getQueryParameter(parameter);
+                if (value != null && !value.trim().isEmpty()) {
+                    properties.put(parameter, value);
+                }
             }
+        } catch (Exception e) {
+            analytics.logger("LifecycleCallbacks").error(e, "failed to get uri params for %s", uri.toString());
         }
 
         properties.put("url", uri.toString());
