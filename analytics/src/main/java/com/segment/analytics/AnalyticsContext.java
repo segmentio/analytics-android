@@ -325,10 +325,7 @@ public class AnalyticsContext extends ValueMap {
      */
     void putScreen(Context context) {
         Map<String, Object> screen = createMap();
-        WindowManager manager = getSystemService(context, Context.WINDOW_SERVICE);
-        Display display = manager.getDefaultDisplay();
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        display.getMetrics(displayMetrics);
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
         screen.put(SCREEN_DENSITY_KEY, displayMetrics.density);
         screen.put(SCREEN_HEIGHT_KEY, displayMetrics.heightPixels);
         screen.put(SCREEN_WIDTH_KEY, displayMetrics.widthPixels);

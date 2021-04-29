@@ -95,7 +95,7 @@ class AnalyticsContextTest {
             .containsEntry("version", "4.1.2_r1")
 
         assertThat(context.getValueMap("screen"))
-            .containsEntry("density", 1.5f)
+            .containsEntry("density", 1.0f)
         assertThat(context.getValueMap("screen"))
             .containsEntry("width", 480)
         assertThat(context.getValueMap("screen"))
