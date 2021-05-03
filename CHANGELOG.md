@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 4.9.4 (May 3, 2021)
+============================
+* [Fix](https://github.com/segmentio/analytics-android/pull/761): Map product_id for a Product
+* [Fix](https://github.com/segmentio/analytics-android/pull/767): Safely handle bad URIs when tracking deep links
+
 Version 4.9.3 (Mar 29, 2021)
 ============================
 * [Fix](https://github.com/segmentio/analytics-android/pull/755): Check Float NaN and Infinity
