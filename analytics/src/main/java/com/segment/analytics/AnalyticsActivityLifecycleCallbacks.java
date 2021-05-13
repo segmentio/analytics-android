@@ -27,13 +27,18 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
+import android.net.ParseException;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
+
+import com.segment.analytics.internal.Utils;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -172,6 +177,12 @@ class AnalyticsActivityLifecycleCallbacks
         }
 
         Properties properties = new Properties();
+
+        Uri referrer = Utils.getReferrer(activity);
+        if (referrer != null) {
+            properties.putReferrer(referrer.toString());
+        }
+
         Uri uri = intent.getData();
         try {
             for (String parameter : uri.getQueryParameterNames()) {
