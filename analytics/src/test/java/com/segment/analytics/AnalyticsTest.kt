@@ -1059,7 +1059,7 @@ open class AnalyticsTest {
             )
     }
 
-    @Config(sdk=[22])
+    @Config(sdk = [22])
     @Test
     fun trackDeepLinks() {
         Analytics.INSTANCES.clear()
@@ -1137,53 +1137,53 @@ open class AnalyticsTest {
             )
     }
 
-    @Config(sdk=[18])
+    @Config(sdk = [18])
     @Test
     fun trackDeepLinks_api18() {
         Analytics.INSTANCES.clear()
 
         val callback =
-                AtomicReference<ActivityLifecycleCallbacks>()
+            AtomicReference<ActivityLifecycleCallbacks>()
         doNothing()
-                .whenever(application)
-                .registerActivityLifecycleCallbacks(
-                        argThat<ActivityLifecycleCallbacks>(
-                                object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
-                                    override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
-                                        callback.set(item)
-                                        return true
-                                    }
-                                })
-                )
+            .whenever(application)
+            .registerActivityLifecycleCallbacks(
+                argThat<ActivityLifecycleCallbacks>(
+                    object : NoDescriptionMatcher<ActivityLifecycleCallbacks>() {
+                        override fun matchesSafely(item: ActivityLifecycleCallbacks): Boolean {
+                            callback.set(item)
+                            return true
+                        }
+                    })
+            )
 
         analytics = Analytics(
-                application,
-                networkExecutor,
-                stats,
-                traitsCache,
-                analyticsContext,
-                defaultOptions,
-                Logger.with(Analytics.LogLevel.NONE),
-                "qaz", listOf(factory),
-                client,
-                Cartographer.INSTANCE,
-                projectSettingsCache,
-                "foo",
-                DEFAULT_FLUSH_QUEUE_SIZE,
-                DEFAULT_FLUSH_INTERVAL.toLong(),
-                analyticsExecutor,
-                true,
-                CountDownLatch(0),
-                false,
-                true,
-                optOut,
-                Crypto.none(), emptyList(), emptyMap(),
-                jsMiddleware,
-                ValueMap(),
-                lifecycle,
-                false,
-                true,
-                DEFAULT_API_HOST
+            application,
+            networkExecutor,
+            stats,
+            traitsCache,
+            analyticsContext,
+            defaultOptions,
+            Logger.with(Analytics.LogLevel.NONE),
+            "qaz", listOf(factory),
+            client,
+            Cartographer.INSTANCE,
+            projectSettingsCache,
+            "foo",
+            DEFAULT_FLUSH_QUEUE_SIZE,
+            DEFAULT_FLUSH_INTERVAL.toLong(),
+            analyticsExecutor,
+            true,
+            CountDownLatch(0),
+            false,
+            true,
+            optOut,
+            Crypto.none(), emptyList(), emptyMap(),
+            jsMiddleware,
+            ValueMap(),
+            lifecycle,
+            false,
+            true,
+            DEFAULT_API_HOST
         )
 
         val expectedURL = "app://track.com/open?utm_id=12345&gclid=abcd&nope="
@@ -1201,18 +1201,18 @@ open class AnalyticsTest {
         callback.get().onActivityCreated(activity, Bundle())
 
         verify(integration)
-                .track(
-                        argThat<TrackPayload>(
-                                object : NoDescriptionMatcher<TrackPayload>() {
-                                    override fun matchesSafely(payload: TrackPayload): Boolean {
-                                        return payload.event() == "Deep Link Opened" &&
-                                                payload.properties().getString("url") == expectedURL &&
-                                                payload.properties().getString("gclid") == "abcd" &&
-                                                payload.properties().getString("utm_id") == "12345" &&
-                                                payload.properties().getString("referrer") == referrerUrl
-                                    }
-                                })
-                )
+            .track(
+                argThat<TrackPayload>(
+                    object : NoDescriptionMatcher<TrackPayload>() {
+                        override fun matchesSafely(payload: TrackPayload): Boolean {
+                            return payload.event() == "Deep Link Opened" &&
+                                payload.properties().getString("url") == expectedURL &&
+                                payload.properties().getString("gclid") == "abcd" &&
+                                payload.properties().getString("utm_id") == "12345" &&
+                                payload.properties().getString("referrer") == referrerUrl
+                        }
+                    })
+            )
     }
 
     @Test
