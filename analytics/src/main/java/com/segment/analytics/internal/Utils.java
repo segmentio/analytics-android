@@ -35,10 +35,13 @@ import static android.provider.Settings.Secure.ANDROID_ID;
 import static android.provider.Settings.Secure.getString;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Process;
 import android.telephony.TelephonyManager;
@@ -557,6 +560,36 @@ public final class Utils {
             }
         }
         editor.apply();
+    }
+
+    /** Returns the referrer who started the Activity. */
+    public static Uri getReferrer(Activity activity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            return activity.getReferrer();
+        }
+        return getReferrerCompatible(activity);
+    }
+
+    /** Returns the referrer on devices running SDK versions lower than 22. */
+    private static Uri getReferrerCompatible(Activity activity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            Intent intent = activity.getIntent();
+            Uri referrerUri = intent.getParcelableExtra(Intent.EXTRA_REFERRER);
+            if (referrerUri != null) {
+                return referrerUri;
+            }
+            // Intent.EXTRA_REFERRER_NAME
+            String referrer = intent.getStringExtra("android.intent.extra.REFERRER_NAME");
+            if (referrer != null) {
+                // Try parsing the referrer URL; if it's invalid, return null
+                try {
+                    return Uri.parse(referrer);
+                } catch (android.net.ParseException e) {
+                    return null;
+                }
+            }
+        }
+        return null;
     }
 
     private Utils() {
