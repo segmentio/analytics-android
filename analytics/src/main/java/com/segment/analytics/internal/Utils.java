@@ -578,7 +578,8 @@ public final class Utils {
             if (referrerUri != null) {
                 return referrerUri;
             }
-            String referrer = intent.getStringExtra("android.intent.extra.REFERRER_NAME"); // Intent.EXTRA_REFERRER_NAME
+            // Intent.EXTRA_REFERRER_NAME
+            String referrer = intent.getStringExtra("android.intent.extra.REFERRER_NAME");
             if (referrer != null) {
                 // Try parsing the referrer URL; if it's invalid, return null
                 try {
@@ -590,7 +591,6 @@ public final class Utils {
         }
         return null;
     }
-
 
     private Utils() {
         throw new AssertionError("No instances");
