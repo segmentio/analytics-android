@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Version 4.10.0 (July 8, 2021)
+============================
+* [New](https://github.com/segmentio/analytics-android/pull/769): Add referrer property when tracking Deep Link Opened
+
 Version 4.9.4 (May 3, 2021)
 ============================
 * [Fix](https://github.com/segmentio/analytics-android/pull/761): Map product_id for a Product
