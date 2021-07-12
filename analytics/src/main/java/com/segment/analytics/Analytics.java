@@ -48,6 +48,7 @@ import android.os.Looper;
 import android.os.Message;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.util.Supplier;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ProcessLifecycleOwner;
 import com.segment.analytics.integrations.AliasPayload;
@@ -154,6 +155,9 @@ public class Analytics {
     @Private final boolean nanosecondTimestamps;
     @Private final boolean useNewLifecycleMethods;
 
+    // User provided closure that generates anonymousIds, only called on creation and reset()
+    @Private final Supplier<String> anonymousIdSupplier;
+
     /**
      * Return a reference to the global default {@link Analytics} instance.
      *
@@ -241,7 +245,8 @@ public class Analytics {
             @NonNull Lifecycle lifecycle,
             boolean nanosecondTimestamps,
             boolean useNewLifecycleMethods,
-            String defaultApiHost) {
+            String defaultApiHost,
+            Supplier<String> anonymousIdSupplier) {
         this.application = application;
         this.networkExecutor = networkExecutor;
         this.stats = stats;
@@ -267,6 +272,7 @@ public class Analytics {
         this.lifecycle = lifecycle;
         this.nanosecondTimestamps = nanosecondTimestamps;
         this.useNewLifecycleMethods = useNewLifecycleMethods;
+        this.anonymousIdSupplier = anonymousIdSupplier;
 
         namespaceSharedPreferences();
 
@@ -888,7 +894,12 @@ public class Analytics {
         editor.apply();
 
         traitsCache.delete();
-        traitsCache.set(Traits.create());
+        Traits resetTraits = Traits.create();
+        if (anonymousIdSupplier != null) {
+            resetTraits.putAnonymousId(anonymousIdSupplier.get());
+        }
+        traitsCache.set(resetTraits);
+
         analyticsContext.setTraits(traitsCache.get());
         runOnMainThread(IntegrationOperation.RESET);
     }
@@ -1086,6 +1097,7 @@ public class Analytics {
         private ValueMap defaultProjectSettings = new ValueMap();
         private boolean useNewLifecycleMethods = true; // opt-out feature
         private String defaultApiHost = Utils.DEFAULT_API_HOST;
+        private Supplier<String> anonymousIdSupplier = null;
 
         /**
          * Start building a new {@link Analytics} instance.
@@ -1411,6 +1423,14 @@ public class Analytics {
             return this;
         }
 
+        /**
+         * User provided closure that generates anonymousIds, only called on creation and reset()
+         */
+        public Builder anonymousIdSupplier(Supplier<String> anonymousIdSupplier) {
+            this.anonymousIdSupplier = anonymousIdSupplier;
+            return this;
+        }
+
         /** Create a {@link Analytics} client. */
         public Analytics build() {
             if (isNullOrEmpty(tag)) {
@@ -1459,6 +1479,9 @@ public class Analytics {
             Traits.Cache traitsCache = new Traits.Cache(application, cartographer, tag);
             if (!traitsCache.isSet() || traitsCache.get() == null) {
                 Traits traits = Traits.create();
+                if (anonymousIdSupplier != null) {
+                    traits.putAnonymousId(anonymousIdSupplier.get());
+                }
                 traitsCache.set(traits);
             }
 
@@ -1525,7 +1548,8 @@ public class Analytics {
                     lifecycle,
                     nanosecondTimestamps,
                     useNewLifecycleMethods,
-                    defaultApiHost);
+                    defaultApiHost,
+                    anonymousIdSupplier);
         }
     }
 
