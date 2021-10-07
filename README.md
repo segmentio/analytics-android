@@ -1,8 +1,8 @@
-## Developer Feedback Requested: Analytics-Kotlin Pilot
+## Developer Feedback Requested: Analytics-Kotlin Beta
 
-**A pilot release of the new Analytics-Kotlin library is available at the [Analytics-Kotlin repository](https://github.com/segmentio/analytics-kotlin). This library is governed by [Segment’s First-Access and Beta terms](https://segment.com/legal/first-access-beta-preview/), and should not be used in production scenarios.**
+**A beta release of the new Analytics-Kotlin library is available at the [Analytics-Kotlin repository](https://github.com/segmentio/analytics-kotlin). This library is governed by [Segment’s First-Access and Beta terms](https://segment.com/legal/first-access-beta-preview/), and should not be used in production scenarios.**
 
-During the pilot phase, Segment wants your feedback, contributions, and ideas. If you have requirements or ideas for features for Analytics-Kotlin and Segment's integration with the Android platform, let us know.
+During the beta phase, Segment wants your feedback, contributions, and ideas. If you have requirements or ideas for features for Analytics-Kotlin and Segment's integration with the Android platform, let us know.
 
 
 analytics-android
