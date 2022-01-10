@@ -24,15 +24,10 @@
 package com.segment.analytics.internal;
 
 import static android.Manifest.permission.ACCESS_NETWORK_STATE;
-import static android.Manifest.permission.READ_PHONE_STATE;
 import static android.content.Context.CONNECTIVITY_SERVICE;
 import static android.content.Context.MODE_PRIVATE;
-import static android.content.Context.TELEPHONY_SERVICE;
-import static android.content.pm.PackageManager.FEATURE_TELEPHONY;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
-import static android.provider.Settings.Secure.ANDROID_ID;
-import static android.provider.Settings.Secure.getString;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -45,7 +40,6 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Process;
-import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -62,7 +56,6 @@ import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -305,9 +298,7 @@ public final class Utils {
         return Collections.unmodifiableList(new ArrayList<>(list));
     }
 
-    /**
-     * Creates a unique device id.
-     */
+    /** Creates a unique device id. */
     public static String getDeviceId() {
         // unique id generated from DRM API
         String uniqueID = getUniqueID();
@@ -321,13 +312,12 @@ public final class Utils {
     }
 
     /**
-     * Workaround for not able to get device id on Android 10 or above using DRM API
-     * {@see https://stackoverflow.com/questions/58103580/android-10-imei-no-longer-available-on-api-29-looking-for-alternatives}
+     * Workaround for not able to get device id on Android 10 or above using DRM API {@see
+     * https://stackoverflow.com/questions/58103580/android-10-imei-no-longer-available-on-api-29-looking-for-alternatives}
      * {@see https://developer.android.com/training/articles/user-data-ids}
      */
     private static String getUniqueID() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2)
-            return null;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) return null;
 
         UUID wideVineUuid = new UUID(-0x121074568629b532L, -0x5c37d8232ae2de13L);
         MediaDrm wvDrm = null;
