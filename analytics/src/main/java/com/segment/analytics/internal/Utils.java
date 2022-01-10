@@ -306,28 +306,13 @@ public final class Utils {
     }
 
     /**
-     * Creates a unique device id. Suppresses `HardwareIds` lint warnings as we don't use this ID
-     * for identifying specific users. This is also what is required by the Segment spec.
+     * Creates a unique device id.
      */
-    @SuppressLint("HardwareIds")
-    public static String getDeviceId(Context context) {
-        String androidId = getString(context.getContentResolver(), ANDROID_ID);
-        if (!isNullOrEmpty(androidId)
-                && !"9774d56d682e549c".equals(androidId)
-                && !"unknown".equals(androidId)
-                && !"000000000000000".equals(androidId)) {
-            return androidId;
-        }
-
-        // Serial number, guaranteed to be on all non phones in 2.3+.
-        if (!isNullOrEmpty(Build.SERIAL)) {
-            return Build.SERIAL;
-        }
-
+    public static String getDeviceId() {
         // unique id generated from DRM API
-        String telephonyId = getUniqueID();
-        if (!isNullOrEmpty(telephonyId)) {
-            return telephonyId;
+        String uniqueID = getUniqueID();
+        if (!isNullOrEmpty(uniqueID)) {
+            return uniqueID;
         }
 
         // If this still fails, generate random identifier that does not persist across
