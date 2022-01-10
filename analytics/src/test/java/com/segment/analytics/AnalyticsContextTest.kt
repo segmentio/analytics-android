@@ -70,8 +70,10 @@ class AnalyticsContextTest {
         assertThat(context.getValueMap("app"))
             .containsEntry("build", "0")
 
+        // only check esistence of device id, since we don't know the value
+        // and we can't mock static method in mockito 2
         assertThat(context.getValueMap("device"))
-            .containsEntry("id", "unknown")
+            .containsKey("id")
         assertThat(context.getValueMap("device"))
             .containsEntry("manufacturer", "unknown")
         assertThat(context.getValueMap("device"))
