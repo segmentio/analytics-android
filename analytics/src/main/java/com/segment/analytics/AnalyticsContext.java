@@ -236,7 +236,7 @@ public class AnalyticsContext extends ValueMap {
     /** Fill this instance with device info from the provided {@link Context}. */
     void putDevice(Context context, boolean collectDeviceID) {
         Device device = new Device();
-        String identifier = collectDeviceID ? getDeviceId(context) : traits().anonymousId();
+        String identifier = collectDeviceID ? getDeviceId() : traits().anonymousId();
         device.put(Device.DEVICE_ID_KEY, identifier);
         device.put(Device.DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);
         device.put(Device.DEVICE_MODEL_KEY, Build.MODEL);
