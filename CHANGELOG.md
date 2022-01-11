@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 4.10.1 (Jan 11, 2022)
+============================
+* [New](https://github.com/segmentio/analytics-android/pull/781): Address violation of retrieving unsettable device
+* [New](https://github.com/segmentio/analytics-android/pull/774): update kotlin docs to beta
+
 Version 4.10.0 (July 8, 2021)
 ============================
 * [New](https://github.com/segmentio/analytics-android/pull/769): Add referrer property when tracking Deep Link Opened
