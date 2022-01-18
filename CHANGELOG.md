@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Version 4.10.2 (Jan 18, 2022)
+============================
+* [New](https://github.com/segmentio/analytics-android/pull/784): fix get unique id NPE
+
 Version 4.10.1 (Jan 11, 2022)
 ============================
 * [New](https://github.com/segmentio/analytics-android/pull/781): Address violation of retrieving unsettable device
