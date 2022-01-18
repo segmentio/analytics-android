@@ -331,7 +331,7 @@ public final class Utils {
             // Inspect exception
             return null;
         } finally {
-            if (wvDrm == null) {
+            if (wvDrm != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                     wvDrm.close();
                 } else {
