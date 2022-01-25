@@ -43,6 +43,5 @@ dependencies {
 apply from: rootProject.file('gradle/mvn-publish.gradle')
 
 repositories {
-	maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
 	mavenCentral()
 }
