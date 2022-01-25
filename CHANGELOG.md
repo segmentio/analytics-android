@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Version 4.10.3 (Jan 25, 2022)
+============================
+* [New](https://github.com/segmentio/analytics-android/pull/786): deprecate jcenter and bintray
+
 Version 4.10.2 (Jan 18, 2022)
 ============================
 * [New](https://github.com/segmentio/analytics-android/pull/784): fix get unique id NPE
