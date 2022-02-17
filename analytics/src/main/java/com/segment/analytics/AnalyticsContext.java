@@ -95,7 +95,7 @@ public class AnalyticsContext extends ValueMap {
     // Campaign
     private static final String CAMPAIGN_KEY = "campaign";
     // Device
-    private static final String DEVICE_KEY = "device";
+    static final String DEVICE_KEY = "device";
     // Library
     private static final String LIBRARY_KEY = "library";
     private static final String LIBRARY_NAME_KEY = "name";
@@ -131,7 +131,7 @@ public class AnalyticsContext extends ValueMap {
                 new AnalyticsContext(new NullableConcurrentHashMap<String, Object>());
         analyticsContext.putApp(context);
         analyticsContext.setTraits(traits);
-        analyticsContext.putDevice(context, collectDeviceId);
+        analyticsContext.putDevice(collectDeviceId);
         analyticsContext.putLibrary();
         analyticsContext.put(
                 LOCALE_KEY,
@@ -234,15 +234,18 @@ public class AnalyticsContext extends ValueMap {
     }
 
     /** Fill this instance with device info from the provided {@link Context}. */
-    void putDevice(Context context, boolean collectDeviceID) {
-        Device device = new Device();
+    void putDevice(boolean collectDeviceID) {
+        if (!containsKey(AnalyticsContext.DEVICE_KEY)) {
+            put(AnalyticsContext.DEVICE_KEY, new AnalyticsContext.Device());
+        }
+
+        Device device = (Device) get(AnalyticsContext.DEVICE_KEY);
         String identifier = collectDeviceID ? getDeviceId() : traits().anonymousId();
         device.put(Device.DEVICE_ID_KEY, identifier);
         device.put(Device.DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);
         device.put(Device.DEVICE_MODEL_KEY, Build.MODEL);
         device.put(Device.DEVICE_NAME_KEY, Build.DEVICE);
         device.put(Device.DEVICE_TYPE_KEY, "android");
-        put(DEVICE_KEY, device);
     }
 
     public Device device() {

@@ -336,6 +336,8 @@ public class Analytics {
                     }
                 });
 
+        new GetDeviceIdTask(analyticsContext, getSegmentSharedPreferences(application, tag)).start();
+
         logger.debug("Created analytics client for project with tag:%s.", tag);
 
         activityLifecycleCallback =
