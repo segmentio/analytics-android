@@ -1467,6 +1467,7 @@ public class Analytics {
                     AnalyticsContext.create(application, traitsCache.get(), collectDeviceID);
             CountDownLatch advertisingIdLatch = new CountDownLatch(1);
             analyticsContext.attachAdvertisingId(application, advertisingIdLatch, logger);
+            analyticsContext.attachDeviceId(getSegmentSharedPreferences(application, tag));
 
             List<Integration.Factory> factories = new ArrayList<>(1 + this.factories.size());
             factories.add(SegmentIntegration.FACTORY);

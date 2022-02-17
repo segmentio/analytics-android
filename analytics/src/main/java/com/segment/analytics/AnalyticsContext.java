@@ -31,7 +31,6 @@ import static android.net.ConnectivityManager.TYPE_MOBILE;
 import static android.net.ConnectivityManager.TYPE_WIFI;
 import static com.segment.analytics.internal.Utils.NullableConcurrentHashMap;
 import static com.segment.analytics.internal.Utils.createMap;
-import static com.segment.analytics.internal.Utils.getDeviceId;
 import static com.segment.analytics.internal.Utils.getSystemService;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
@@ -40,6 +39,7 @@ import static java.util.Collections.unmodifiableMap;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
@@ -95,7 +95,7 @@ public class AnalyticsContext extends ValueMap {
     // Campaign
     private static final String CAMPAIGN_KEY = "campaign";
     // Device
-    private static final String DEVICE_KEY = "device";
+    static final String DEVICE_KEY = "device";
     // Library
     private static final String LIBRARY_KEY = "library";
     private static final String LIBRARY_NAME_KEY = "name";
@@ -131,7 +131,7 @@ public class AnalyticsContext extends ValueMap {
                 new AnalyticsContext(new NullableConcurrentHashMap<String, Object>());
         analyticsContext.putApp(context);
         analyticsContext.setTraits(traits);
-        analyticsContext.putDevice(context, collectDeviceId);
+        analyticsContext.putDevice(collectDeviceId);
         analyticsContext.putLibrary();
         analyticsContext.put(
                 LOCALE_KEY,
@@ -170,6 +170,10 @@ public class AnalyticsContext extends ValueMap {
                             + "was not found on the classpath.");
             latch.countDown();
         }
+    }
+
+    void attachDeviceId(SharedPreferences segmentSharedPreference) {
+        new GetDeviceIdTask(this, segmentSharedPreference, new CountDownLatch(1)).execute();
     }
 
     @Override
@@ -234,9 +238,12 @@ public class AnalyticsContext extends ValueMap {
     }
 
     /** Fill this instance with device info from the provided {@link Context}. */
-    void putDevice(Context context, boolean collectDeviceID) {
+    void putDevice(boolean collectDeviceID) {
         Device device = new Device();
-        String identifier = collectDeviceID ? getDeviceId() : traits().anonymousId();
+
+        // use empty string to indicate device id is not yet ready.
+        // the device id will be populated async (see `attachDeviceId`)
+        String identifier = collectDeviceID ? "" : traits().anonymousId();
         device.put(Device.DEVICE_ID_KEY, identifier);
         device.put(Device.DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);
         device.put(Device.DEVICE_MODEL_KEY, Build.MODEL);

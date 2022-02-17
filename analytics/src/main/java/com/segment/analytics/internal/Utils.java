@@ -34,7 +34,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.MediaDrm;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -53,7 +52,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
-import java.security.MessageDigest;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -64,7 +62,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -296,58 +293,6 @@ public final class Utils {
             return Collections.emptyList();
         }
         return Collections.unmodifiableList(new ArrayList<>(list));
-    }
-
-    /** Creates a unique device id. */
-    public static String getDeviceId() {
-        // unique id generated from DRM API
-        String uniqueID = getUniqueID();
-        if (!isNullOrEmpty(uniqueID)) {
-            return uniqueID;
-        }
-
-        // If this still fails, generate random identifier that does not persist across
-        // installations
-        return UUID.randomUUID().toString();
-    }
-
-    /**
-     * Workaround for not able to get device id on Android 10 or above using DRM API {@see
-     * https://stackoverflow.com/questions/58103580/android-10-imei-no-longer-available-on-api-29-looking-for-alternatives}
-     * {@see https://developer.android.com/training/articles/user-data-ids}
-     */
-    private static String getUniqueID() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) return null;
-
-        UUID wideVineUuid = new UUID(-0x121074568629b532L, -0x5c37d8232ae2de13L);
-        MediaDrm wvDrm = null;
-        try {
-            wvDrm = new MediaDrm(wideVineUuid);
-            byte[] wideVineId = wvDrm.getPropertyByteArray(MediaDrm.PROPERTY_DEVICE_UNIQUE_ID);
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(wideVineId);
-            return byteArrayToHexString(md.digest());
-        } catch (Exception e) {
-            // Inspect exception
-            return null;
-        } finally {
-            if (wvDrm != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    wvDrm.close();
-                } else {
-                    wvDrm.release();
-                }
-            }
-        }
-    }
-
-    private static String byteArrayToHexString(byte[] bytes) {
-        StringBuilder buffer = new StringBuilder();
-        for (byte element : bytes) {
-            buffer.append(String.format("%02x", element));
-        }
-
-        return buffer.toString();
     }
 
     /** Returns a shared preferences for storing any library preferences. */

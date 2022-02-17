@@ -27,9 +27,11 @@ import android.content.Context
 import android.content.Context.CONNECTIVITY_SERVICE
 import android.net.ConnectivityManager
 import com.google.common.collect.ImmutableMap
+import com.nhaarman.mockitokotlin2.doAnswer
 import com.nhaarman.mockitokotlin2.whenever
 import com.segment.analytics.Utils.createContext
 import com.segment.analytics.core.BuildConfig
+import java.util.concurrent.CountDownLatch
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.assertj.core.data.MapEntry
@@ -37,6 +39,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
@@ -242,5 +245,49 @@ class AnalyticsContextTest {
                     .put("cellular", false)
                     .build()
             )
+    }
+
+    @Test
+    fun deviceIdFetchedIn2Seconds() {
+        val sharedPreferences = RuntimeEnvironment.application
+            .getSharedPreferences("analytics-test-qaz", Context.MODE_PRIVATE)
+        context = AnalyticsContext.create(RuntimeEnvironment.application, traits, true)
+        val latch = CountDownLatch(1)
+        val task = spy(GetDeviceIdTask(context, sharedPreferences, latch))
+
+        doAnswer {
+            "randomUUID"
+        }.`when`(task).deviceId
+
+        task.execute()
+        latch.await()
+
+        assertThat(context.getValueMap("device"))
+            .containsKey("id")
+        assertThat(context.getValueMap("device"))
+            .containsEntry("id", "randomUUID")
+    }
+
+    @Test
+    fun randomUUIDGeneratedAsDeviceIdAfter2Seconds() {
+        val sharedPreferences = RuntimeEnvironment.application
+            .getSharedPreferences("analytics-test-qaz", Context.MODE_PRIVATE)
+        context = AnalyticsContext.create(RuntimeEnvironment.application, traits, true)
+        val latch = CountDownLatch(1)
+        val task = spy(GetDeviceIdTask(context, sharedPreferences, latch))
+
+        doAnswer {
+            Thread.sleep(3000)
+            "randomUUID"
+        }.`when`(task).deviceId
+
+        task.execute()
+        latch.await()
+
+        assertThat(context.getValueMap("device"))
+            .containsKey("id")
+        // a random uuid should be generated to override the default empty value
+        assertThat(context.getValueMap("device"))
+            .doesNotContainEntry("id", "")
     }
 }
