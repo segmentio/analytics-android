@@ -241,7 +241,8 @@ public class AnalyticsContext extends ValueMap {
     void putDevice(boolean collectDeviceID) {
         Device device = new Device();
 
-        // use empty string to indicate device id is not yet ready
+        // use empty string to indicate device id is not yet ready.
+        // the device id will be populated async (see `attachDeviceId`)
         String identifier = collectDeviceID ? "" : traits().anonymousId();
         device.put(Device.DEVICE_ID_KEY, identifier);
         device.put(Device.DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);

@@ -23,10 +23,13 @@
  */
 package com.segment.analytics;
 
-import static com.segment.analytics.internal.Utils.getUniqueID;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 import android.content.SharedPreferences;
+import android.media.MediaDrm;
+import android.os.Build;
+
+import java.security.MessageDigest;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -144,4 +147,45 @@ public class GetDeviceIdTask {
         editor.putString(DEVICE_ID_CACHE_KEY, deviceId);
         editor.apply();
     }
+
+
+    /**
+     * Workaround for not able to get device id on Android 10 or above using DRM API {@see
+     * https://stackoverflow.com/questions/58103580/android-10-imei-no-longer-available-on-api-29-looking-for-alternatives}
+     * {@see https://developer.android.com/training/articles/user-data-ids}
+     */
+    private String getUniqueID() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) return null;
+
+        UUID wideVineUuid = new UUID(-0x121074568629b532L, -0x5c37d8232ae2de13L);
+        MediaDrm wvDrm = null;
+        try {
+            wvDrm = new MediaDrm(wideVineUuid);
+            byte[] wideVineId = wvDrm.getPropertyByteArray(MediaDrm.PROPERTY_DEVICE_UNIQUE_ID);
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(wideVineId);
+            return byteArrayToHexString(md.digest());
+        } catch (Exception e) {
+            // Inspect exception
+            return null;
+        } finally {
+            if (wvDrm != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    wvDrm.close();
+                } else {
+                    wvDrm.release();
+                }
+            }
+        }
+    }
+
+    private String byteArrayToHexString(byte[] bytes) {
+        StringBuilder buffer = new StringBuilder();
+        for (byte element : bytes) {
+            buffer.append(String.format("%02x", element));
+        }
+
+        return buffer.toString();
+    }
+
 }
