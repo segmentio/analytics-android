@@ -31,7 +31,6 @@ import static android.net.ConnectivityManager.TYPE_MOBILE;
 import static android.net.ConnectivityManager.TYPE_WIFI;
 import static com.segment.analytics.internal.Utils.NullableConcurrentHashMap;
 import static com.segment.analytics.internal.Utils.createMap;
-import static com.segment.analytics.internal.Utils.getDeviceId;
 import static com.segment.analytics.internal.Utils.getSystemService;
 import static com.segment.analytics.internal.Utils.hasPermission;
 import static com.segment.analytics.internal.Utils.isNullOrEmpty;
@@ -40,6 +39,7 @@ import static java.util.Collections.unmodifiableMap;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
@@ -170,6 +170,10 @@ public class AnalyticsContext extends ValueMap {
                             + "was not found on the classpath.");
             latch.countDown();
         }
+    }
+
+    void attachDeviceId(SharedPreferences segmentSharedPreference) {
+        new GetDeviceIdTask(this, segmentSharedPreference, new CountDownLatch(1)).execute();
     }
 
     @Override

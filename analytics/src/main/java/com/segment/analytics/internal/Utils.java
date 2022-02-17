@@ -298,25 +298,12 @@ public final class Utils {
         return Collections.unmodifiableList(new ArrayList<>(list));
     }
 
-    /** Creates a unique device id. */
-    public static String getDeviceId() {
-        // unique id generated from DRM API
-        String uniqueID = getUniqueID();
-        if (!isNullOrEmpty(uniqueID)) {
-            return uniqueID;
-        }
-
-        // If this still fails, generate random identifier that does not persist across
-        // installations
-        return UUID.randomUUID().toString();
-    }
-
     /**
      * Workaround for not able to get device id on Android 10 or above using DRM API {@see
      * https://stackoverflow.com/questions/58103580/android-10-imei-no-longer-available-on-api-29-looking-for-alternatives}
      * {@see https://developer.android.com/training/articles/user-data-ids}
      */
-    private static String getUniqueID() {
+    public static String getUniqueID() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) return null;
 
         UUID wideVineUuid = new UUID(-0x121074568629b532L, -0x5c37d8232ae2de13L);
