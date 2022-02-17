@@ -28,7 +28,6 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 import android.content.SharedPreferences;
 import android.media.MediaDrm;
 import android.os.Build;
-
 import java.security.MessageDigest;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -148,7 +147,6 @@ public class GetDeviceIdTask {
         editor.apply();
     }
 
-
     /**
      * Workaround for not able to get device id on Android 10 or above using DRM API {@see
      * https://stackoverflow.com/questions/58103580/android-10-imei-no-longer-available-on-api-29-looking-for-alternatives}
@@ -187,5 +185,4 @@ public class GetDeviceIdTask {
 
         return buffer.toString();
     }
-
 }
