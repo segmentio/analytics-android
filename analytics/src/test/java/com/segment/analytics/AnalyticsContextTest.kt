@@ -286,6 +286,7 @@ class AnalyticsContextTest {
 
         assertThat(context.getValueMap("device"))
             .containsKey("id")
+        // a random uuid should be generated to override the default empty value
         assertThat(context.getValueMap("device"))
             .doesNotContainEntry("id", "")
     }

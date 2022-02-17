@@ -248,7 +248,7 @@ public class AnalyticsContext extends ValueMap {
         device.put(Device.DEVICE_MODEL_KEY, Build.MODEL);
         device.put(Device.DEVICE_NAME_KEY, Build.DEVICE);
         device.put(Device.DEVICE_TYPE_KEY, "android");
-        put(AnalyticsContext.DEVICE_KEY, device);
+        put(DEVICE_KEY, device);
     }
 
     public Device device() {
