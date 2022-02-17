@@ -257,7 +257,7 @@ class AnalyticsContextTest {
 
         doAnswer {
             "randomUUID"
-        }.`when`(task.deviceId)
+        }.`when`(task).deviceId
 
         task.execute()
         latch.await()
@@ -279,7 +279,7 @@ class AnalyticsContextTest {
         doAnswer {
             Thread.sleep(3000)
             "randomUUID"
-        }.`when`(task.deviceId)
+        }.`when`(task).deviceId
 
         task.execute()
         latch.await()
