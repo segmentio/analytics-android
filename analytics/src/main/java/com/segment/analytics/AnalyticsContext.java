@@ -235,17 +235,16 @@ public class AnalyticsContext extends ValueMap {
 
     /** Fill this instance with device info from the provided {@link Context}. */
     void putDevice(boolean collectDeviceID) {
-        if (!containsKey(AnalyticsContext.DEVICE_KEY)) {
-            put(AnalyticsContext.DEVICE_KEY, new AnalyticsContext.Device());
-        }
+        Device device = new Device();
 
-        Device device = (Device) get(AnalyticsContext.DEVICE_KEY);
-        String identifier = collectDeviceID ? getDeviceId() : traits().anonymousId();
+        // use empty string to indicate device id is not yet ready
+        String identifier = collectDeviceID ? "" : traits().anonymousId();
         device.put(Device.DEVICE_ID_KEY, identifier);
         device.put(Device.DEVICE_MANUFACTURER_KEY, Build.MANUFACTURER);
         device.put(Device.DEVICE_MODEL_KEY, Build.MODEL);
         device.put(Device.DEVICE_NAME_KEY, Build.DEVICE);
         device.put(Device.DEVICE_TYPE_KEY, "android");
+        put(AnalyticsContext.DEVICE_KEY, device);
     }
 
     public Device device() {

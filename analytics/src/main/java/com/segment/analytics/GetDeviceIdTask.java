@@ -72,16 +72,19 @@ public class GetDeviceIdTask {
     }
 
     private void updateDeviceId(String deviceId) {
-        if (!analyticsContext.containsKey(AnalyticsContext.DEVICE_KEY)) {
-            analyticsContext.put(AnalyticsContext.DEVICE_KEY, new AnalyticsContext.Device());
-        }
+        synchronized (analyticsContext) {
+            if (!analyticsContext.containsKey(AnalyticsContext.DEVICE_KEY)) {
+                analyticsContext.put(AnalyticsContext.DEVICE_KEY, new AnalyticsContext.Device());
+            }
 
-        AnalyticsContext.Device device = (AnalyticsContext.Device) analyticsContext.get(AnalyticsContext.DEVICE_KEY);
-        device.put(AnalyticsContext.Device.DEVICE_ID_KEY, deviceId);
+            AnalyticsContext.Device device = (AnalyticsContext.Device) analyticsContext.get(AnalyticsContext.DEVICE_KEY);
+            device.put(AnalyticsContext.Device.DEVICE_ID_KEY, deviceId);
+        }
     }
 
     private void updateCache(String deviceId) {
         SharedPreferences.Editor editor = segmentSharedPreference.edit();
         editor.putString(DEVICE_ID_CACHE_KEY, deviceId);
+        editor.apply();
     }
 }
