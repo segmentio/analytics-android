@@ -60,6 +60,9 @@ public class GetDeviceIdTask {
             return;
         }
 
+        // since getDeviceId causes ANR (i.e. the function hangs forever),
+        // we need it in a separate task
+        // here we use Future, because it has built-in cancel mechanism
         final Future<?> future =
                 executor.submit(
                         new Runnable() {
@@ -67,6 +70,9 @@ public class GetDeviceIdTask {
                             public void run() {
                                 String deviceId = getDeviceId();
 
+                                // the function may come back after a long time,
+                                // (since thread can't guaranteed to be cancelled),
+                                // we need to check if an interrupt signal has been raised
                                 if (!Thread.currentThread().isInterrupted()) {
                                     updateDeviceId(deviceId);
                                     updateCache(deviceId);
@@ -74,6 +80,8 @@ public class GetDeviceIdTask {
                             }
                         });
 
+        // since Future.get is a blocking call,
+        // we need to run it on a different thread.
         executor.execute(
                 new Runnable() {
                     @Override
@@ -81,12 +89,15 @@ public class GetDeviceIdTask {
                         try {
                             future.get(2, TimeUnit.SECONDS);
                         } catch (Exception e) {
+                            // if any exception happens (timeout, interrupt, etc),
+                            // cancel the task (raise an interrupt signal)
                             future.cancel(true);
                             String fallbackDeviceId = UUID.randomUUID().toString();
                             updateDeviceId(fallbackDeviceId);
                             updateCache(fallbackDeviceId);
                         }
 
+                        // too bad we have to have a latch here just for unit tests
                         latch.countDown();
                         executor.shutdownNow();
                     }
