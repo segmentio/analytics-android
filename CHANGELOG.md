@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Version 4.10.4 (Feb 17, 2022)
+============================
+* [Fix](https://github.com/segmentio/analytics-android/pull/791): fix ANR issue caused by MediaDRM api
+
 Version 4.10.3 (Jan 25, 2022)
 ============================
 * [New](https://github.com/segmentio/analytics-android/pull/786): deprecate jcenter and bintray
