@@ -99,13 +99,13 @@ class SegmentIntegration extends Integration<Void> {
      */
     static final int MAX_QUEUE_SIZE = 1000;
     /** Our servers only accept payloads < 32KB. */
-    static final int MAX_PAYLOAD_SIZE = 32000; // 32KB.
+    static final int MAX_PAYLOAD_SIZE = 32 * 1024; // 32KB.
     /**
      * Our servers only accept batches < 500KB. This limit is 475KB to account for extra data that
      * is not present in payloads themselves, but is added later, such as {@code sentAt}, {@code
      * integrations} and other json tokens.
      */
-    @Private static final int MAX_BATCH_SIZE = 475000; // 475KB.
+    @Private static final int MAX_BATCH_SIZE = 475 * 1024; // 475KB.
 
     @Private static final Charset UTF_8 = Charset.forName("UTF-8");
     private static final String SEGMENT_THREAD_NAME = THREAD_PREFIX + "SegmentDispatcher";
