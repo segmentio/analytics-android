@@ -80,6 +80,7 @@ public final class Utils {
     public static final int DEFAULT_FLUSH_QUEUE_SIZE = 20;
     public static final boolean DEFAULT_COLLECT_DEVICE_ID = true;
     public static final String DEFAULT_API_HOST = "api.segment.io/v1";
+    public static final int DEFAULT_CACHE_EXPIRY = 1000 * 60 * 60 * 24;
 
     private static final int PERMISSION_CHECK_REPEAT_MAX_COUNT = 2;
     private static final Logger logger = Logger.with(Analytics.LogLevel.DEBUG);

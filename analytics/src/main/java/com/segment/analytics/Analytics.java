@@ -138,6 +138,7 @@ public class Analytics {
     ProjectSettings projectSettings; // todo: make final (non-final for testing).
     @Private final String writeKey;
     final int flushQueueSize;
+    final int cacheExpiry;
     final long flushIntervalInMillis;
     // Retrieving the advertising ID is asynchronous. This latch helps us wait to ensure the
     // advertising ID is ready.
@@ -226,6 +227,7 @@ public class Analytics {
             ProjectSettings.Cache projectSettingsCache,
             String writeKey,
             int flushQueueSize,
+            int cacheExpiry,
             long flushIntervalInMillis,
             final ExecutorService analyticsExecutor,
             final boolean shouldTrackApplicationLifecycleEvents,
@@ -255,6 +257,7 @@ public class Analytics {
         this.projectSettingsCache = projectSettingsCache;
         this.writeKey = writeKey;
         this.flushQueueSize = flushQueueSize;
+        this.cacheExpiry = cacheExpiry;
         this.flushIntervalInMillis = flushIntervalInMillis;
         this.advertisingIdLatch = advertisingIdLatch;
         this.optOut = optOut;
@@ -1067,6 +1070,7 @@ public class Analytics {
         private String writeKey;
         private boolean collectDeviceID = Utils.DEFAULT_COLLECT_DEVICE_ID;
         private int flushQueueSize = Utils.DEFAULT_FLUSH_QUEUE_SIZE;
+        private int cacheExpiry = Utils.DEFAULT_CACHE_EXPIRY;
         private long flushIntervalInMillis = Utils.DEFAULT_FLUSH_INTERVAL;
         private Options defaultOptions;
         private String tag;
@@ -1141,6 +1145,22 @@ public class Analytics {
                 throw new IllegalArgumentException("flushInterval must be greater than zero.");
             }
             this.flushIntervalInMillis = timeUnit.toMillis(flushInterval);
+            return this;
+        }
+
+        /**
+         * Set the cache Expiry time in milliseconds. Default time is
+         * one day {@code cacheExpiry}.
+         *
+         * @throws IllegalArgumentException if the cacheExpiry is less than or equal to 30 minutes.
+         */
+        public Builder cacheExpiry(int cacheExpiry) {
+            if (cacheExpiry <= 30 * 60 * 1000) {
+                throw new IllegalArgumentException(
+                        "mimimum cahce is 30 minutes to preserve battery.");
+            }
+
+            this.cacheExpiry = cacheExpiry;
             return this;
         }
 
@@ -1511,6 +1531,7 @@ public class Analytics {
                     projectSettingsCache,
                     writeKey,
                     flushQueueSize,
+                    cacheExpiry,
                     flushIntervalInMillis,
                     executor,
                     trackApplicationLifecycleEvents,
@@ -1531,7 +1552,6 @@ public class Analytics {
     }
 
     // Handler Logic.
-    private static final long SETTINGS_REFRESH_INTERVAL = 1000 * 60 * 60 * 24; // 24 hours
     private static final long SETTINGS_RETRY_INTERVAL = 1000 * 60; // 1 minute
 
     private ProjectSettings downloadSettings() {
@@ -1591,7 +1611,7 @@ public class Analytics {
     }
 
     private long getSettingsRefreshInterval() {
-        long returnInterval = SETTINGS_REFRESH_INTERVAL;
+        long returnInterval = this.cacheExpiry;
         if (logger.logLevel == LogLevel.DEBUG) {
             returnInterval = 60 * 1000; // 1 minute
         }
