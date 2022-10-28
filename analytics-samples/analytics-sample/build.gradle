@@ -41,8 +41,7 @@ dependencies {
 	androidTestImplementation 'com.squareup.retrofit2:converter-moshi:2.8.1'
 
 	androidTestImplementation rootProject.ext.deps.supportAnnotations
-	androidTestImplementation 'androidx.test:runner:1.2.0'
-	androidTestImplementation 'androidx.test:rules:1.2.0'
+	androidTestImplementation 'androidx.test:core:1.4.0'
 	androidTestImplementation 'com.segment.backo:backo:1.0.0'
 
 	androidTestImplementation 'org.assertj:assertj-core:3.16.1'

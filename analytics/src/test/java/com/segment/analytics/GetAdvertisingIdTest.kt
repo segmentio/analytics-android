@@ -30,6 +30,7 @@ import com.segment.analytics.integrations.Logger
 import java.util.concurrent.CountDownLatch
 import kotlin.jvm.Throws
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -38,6 +39,7 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
+@Ignore("causes deadlock")
 class GetAdvertisingIdTest {
 
     @Test

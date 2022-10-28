@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'com.getkeepsafe.dexcount'
 
 apply from: rootProject.file('gradle/android.gradle')
 
 android {
 	defaultConfig {
 		consumerProguardFiles 'proguard-rules-lib.txt'
+		buildConfigField 'String', 'VERSION_NAME', "\"$VERSION_NAME\""
 	}
 }
 
@@ -19,8 +19,8 @@ dependencies {
 	implementation 'androidx.lifecycle:lifecycle-process:2.2.0'
 	implementation 'androidx.lifecycle:lifecycle-common-java8:2.2.0'
 
-	testImplementation 'junit:junit:4.12'
-	testImplementation('org.robolectric:robolectric:3.5') {
+	testImplementation 'junit:junit:4.13.2'
+	testImplementation('org.robolectric:robolectric:4.7.3') {
 		exclude group: 'commons-logging', module: 'commons-logging'
 		exclude group: 'org.apache.httpcomponents', module: 'httpclient'
 	}
