@@ -1,4 +1,3 @@
-apply plugin: 'com.diffplug.gradle.spotless'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -40,37 +39,4 @@ android {
             systemProperty 'robolectric.dependency.repo.url', 'https://repo1.maven.org/maven2'
         }
     }
-}
-
-spotless {
-    java {
-        target '**/*.java'
-        googleJavaFormat().aosp()
-        licenseHeader getLicenseText()
-    }
-    kotlin {
-        target '**/*.kt'
-        ktlint('0.37.2').userData([
-                'android'        : 'true',
-                'max_line_length': '120',
-        ])
-        licenseHeader getLicenseText()
-    }
-    groovyGradle {
-        target '*.gradle'
-        greclipse()
-    }
-}
-
-def getLicenseText() {
-    def rawTextLines = rootProject.file('LICENSE.md').text.split('\n')
-    def text = ""
-    for (def line : rawTextLines) {
-        if (line.trim().length() == 0) {
-            text = text + '\n *' + line
-        } else {
-            text = text + '\n * ' + line
-        }
-    }
-    return '/**' + text + '\n */'
 }

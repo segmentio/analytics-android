@@ -11,20 +11,13 @@ buildscript {
 }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:4.0.2'
-    classpath 'com.vanniktech:gradle-android-junit-jacoco-plugin:0.16.0'
-    classpath 'com.diffplug.spotless:spotless-plugin-gradle:3.29.0'
-    classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:1.0.2'
+    classpath 'com.android.tools.build:gradle:7.2.2'
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.22.0"
   }
 }
 
-apply plugin: 'com.vanniktech.android.junit.jacoco'
 
-junitJacoco {
-  includeNoLocationClasses = true // Used to generate coverage for robolectric tests
-}
 
 allprojects {
   buildscript {
@@ -54,8 +47,8 @@ ext {
 
   minSdkVersion = 14
   minSdkVersionWear = 23
-  targetSdkVersion = 29
-  compileSdkVersion = 29
+  targetSdkVersion = 32
+  compileSdkVersion = 32
 
   sourceCompatibilityVersion = JavaVersion.VERSION_1_8
   targetCompatibilityVersion = JavaVersion.VERSION_1_8
