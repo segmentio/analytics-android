@@ -54,9 +54,15 @@ public class ConnectionFactory {
      * Return a {@link HttpURLConnection} that writes batched payloads to {@code
      * https://api.segment.io/v1/import}.
      */
-    public HttpURLConnection upload(String apiHost, String writeKey) throws IOException {
+    public HttpURLConnection upload(String apiHost, String key, boolean useSigning) throws IOException {
         HttpURLConnection connection = openConnection(String.format("https://%s/import", apiHost));
-        connection.setRequestProperty("Authorization", authorizationHeader(writeKey));
+        if (useSigning) {
+            connection.setRequestProperty("Authorization", "SEGMENT-HMAC-SHA1");
+            connection.setRequestProperty("Signature", key);
+        }
+        else {
+            connection.setRequestProperty("Authorization", authorizationHeader(key));
+        }
         connection.setRequestProperty("Content-Encoding", "gzip");
         connection.setDoOutput(true);
         connection.setChunkedStreamingMode(0);

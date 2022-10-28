@@ -31,29 +31,12 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import com.nhaarman.mockitokotlin2.whenever
 import com.segment.analytics.PayloadQueue.PersistentQueue
-import com.segment.analytics.SegmentIntegration.BatchPayloadWriter
-import com.segment.analytics.SegmentIntegration.MAX_PAYLOAD_SIZE
-import com.segment.analytics.SegmentIntegration.MAX_QUEUE_SIZE
-import com.segment.analytics.SegmentIntegration.PayloadWriter
-import com.segment.analytics.SegmentIntegration.UTF_8
-import com.segment.analytics.TestUtils.SynchronousExecutor
-import com.segment.analytics.TestUtils.TRACK_PAYLOAD
-import com.segment.analytics.TestUtils.TRACK_PAYLOAD_JSON
-import com.segment.analytics.TestUtils.mockApplication
+import com.segment.analytics.SegmentIntegration.*
+import com.segment.analytics.TestUtils.*
 import com.segment.analytics.integrations.Logger
 import com.segment.analytics.integrations.Logger.with
 import com.segment.analytics.integrations.TrackPayload.Builder
-import com.segment.analytics.internal.Utils.DEFAULT_FLUSH_INTERVAL
-import com.segment.analytics.internal.Utils.DEFAULT_FLUSH_QUEUE_SIZE
-import com.segment.analytics.internal.Utils.parseISO8601Date
-import java.io.File
-import java.io.IOError
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
-import java.net.HttpURLConnection
-import java.util.concurrent.ExecutorService
-import kotlin.jvm.Throws
+import com.segment.analytics.internal.Utils.*
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.After
@@ -64,15 +47,14 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor.forClass
 import org.mockito.Matchers.any
-import org.mockito.Mockito.doThrow
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.never
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.times
+import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations.initMocks
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLog
+import java.io.*
+import java.net.HttpURLConnection
+import java.util.concurrent.ExecutorService
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
@@ -547,6 +529,45 @@ class SegmentIntegrationTest {
 
         // Verify only (331 * 1432) = 473992 < 475KB bytes are read
         assertThat(payloadWriter.payloadCount).isEqualTo(331)
+    }
+
+
+    @Test
+    @Throws(IOException::class)
+    fun signingSignsTheRightContent() {
+        val payloadQueue = PersistentQueue(queueFile)
+        val client = mock(Client::class.java)
+        whenever(client.upload(DEFAULT_API_HOST)).thenReturn(mockConnection())
+        val segmentIntegration =
+            SegmentBuilder()
+                .client(client)
+                .payloadQueue(payloadQueue)
+                .build()
+        val bytes = TRACK_PAYLOAD_JSON.toByteArray()
+        for (i in 0 until 4) {
+            queueFile.add(bytes)
+        }
+
+        val underwriterContent = mutableListOf<ByteArray>()
+        val streamContent = mutableListOf<ByteArray>()
+        val underwriterStream = object : UnderwriterOutputStream(Underwriter("segment")) {
+            override fun flush() {
+                underwriterContent.add(toByteArray())
+            }
+        }
+        val stream = object : ByteArrayOutputStream() {
+            override fun flush() {
+                streamContent.add(toByteArray())
+            }
+        }
+        segmentIntegration.writeBatchToStream(underwriterStream)
+        segmentIntegration.writeBatchToStream(stream)
+
+        assertThat(underwriterContent.size).isEqualTo(streamContent.size)
+        for (i in underwriterContent.indices) {
+            assertThat(underwriterContent[i].contentToString()).isEqualTo(TRACK_PAYLOAD_JSON)
+            assertThat(underwriterContent[i]).isEqualTo(streamContent[i])
+        }
     }
 
     internal class SegmentBuilder() {

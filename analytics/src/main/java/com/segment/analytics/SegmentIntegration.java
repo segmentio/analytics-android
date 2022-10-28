@@ -148,6 +148,8 @@ class SegmentIntegration extends Integration<Void> {
 
     private final Crypto crypto;
 
+    private final Underwriter underwriter;
+
     /**
      * Create a {@link QueueFile} in the given folder with the given name. If the underlying file is
      * somehow corrupted, we'll delete it, and try to recreate the file. This method will throw an
@@ -232,6 +234,7 @@ class SegmentIntegration extends Integration<Void> {
         this.flushScheduler = Executors.newScheduledThreadPool(1, new AnalyticsThreadFactory());
         this.crypto = crypto;
         this.apiHost = apiHost;
+        this.underwriter = new Underwriter(client.writeKey);
 
         segmentThread = new HandlerThread(SEGMENT_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
         segmentThread.start();
@@ -379,19 +382,12 @@ class SegmentIntegration extends Integration<Void> {
         int payloadsUploaded = 0;
         Client.Connection connection = null;
         try {
-            // Open a connection.
-            connection = client.upload(apiHost);
+            // signing the batch
+            String signature = signing();
 
-            // Write the payloads into the OutputStream.
-            BatchPayloadWriter writer =
-                    new BatchPayloadWriter(connection.os) //
-                            .beginObject() //
-                            .beginBatchArray();
-            PayloadWriter payloadWriter = new PayloadWriter(writer, crypto);
-            payloadQueue.forEach(payloadWriter);
-            writer.endBatchArray().endObject().close();
-            // Don't use the result of QueueFiles#forEach, since we may not upload the last element.
-            payloadsUploaded = payloadWriter.payloadCount;
+            // Open a connection.
+            connection = client.upload(apiHost, signature, true);
+            payloadsUploaded = writeBatchToStream(connection.os);
 
             // Upload the payloads.
             connection.close();
@@ -433,10 +429,49 @@ class SegmentIntegration extends Integration<Void> {
         }
     }
 
+    private String signing() throws IOException {
+        OutputStream os = new UnderwriterOutputStream(underwriter);
+        writeBatchToStream(os);
+
+        String signature = underwriter.sign();
+        underwriter.reset();
+
+        return signature;
+    }
+
+    int writeBatchToStream(OutputStream os) throws IOException {
+        // Write the payloads into the OutputStream.
+        BatchPayloadWriter writer =
+                new BatchPayloadWriter(os) //
+                        .beginObject() //
+                        .beginBatchArray();
+        PayloadWriter payloadWriter = new PayloadWriter(writer, crypto);
+        payloadQueue.forEach(payloadWriter);
+        writer.endBatchArray().endObject().close();
+        // Don't use the result of QueueFiles#forEach, since we may not upload the last element.
+        return payloadWriter.payloadCount;
+    }
+
     void shutdown() {
         flushScheduler.shutdownNow();
         segmentThread.quit();
         closeQuietly(payloadQueue);
+    }
+
+    static class UnderwriterOutputStream extends ByteArrayOutputStream {
+
+        private final Underwriter underwriter;
+
+        public UnderwriterOutputStream(Underwriter underwriter) {
+            this.underwriter = underwriter;
+        }
+
+        @Override
+        public void flush() throws IOException {
+            underwriter.update(toByteArray());
+            super.flush();
+        }
+
     }
 
     static class PayloadWriter implements PayloadQueue.ElementVisitor {
