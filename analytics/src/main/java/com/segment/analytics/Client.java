@@ -97,8 +97,8 @@ class Client {
         this.connectionFactory = connectionFactory;
     }
 
-    Connection upload(String apiHost, String key, boolean useSigning) throws IOException {
-        HttpURLConnection connection = connectionFactory.upload(apiHost, key, useSigning);
+    Connection upload(String apiHost, String signature) throws IOException {
+        HttpURLConnection connection = connectionFactory.upload(apiHost, signature, true);
         return createPostConnection(connection);
     }
 

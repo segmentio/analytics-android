@@ -139,6 +139,8 @@ public class Analytics {
     @Private final String writeKey;
     final int flushQueueSize;
     final long flushIntervalInMillis;
+    final boolean useSigning;
+
     // Retrieving the advertising ID is asynchronous. This latch helps us wait to ensure the
     // advertising ID is ready.
     private final CountDownLatch advertisingIdLatch;
@@ -227,6 +229,7 @@ public class Analytics {
             String writeKey,
             int flushQueueSize,
             long flushIntervalInMillis,
+            boolean useSigning,
             final ExecutorService analyticsExecutor,
             final boolean shouldTrackApplicationLifecycleEvents,
             CountDownLatch advertisingIdLatch,
@@ -256,6 +259,7 @@ public class Analytics {
         this.writeKey = writeKey;
         this.flushQueueSize = flushQueueSize;
         this.flushIntervalInMillis = flushIntervalInMillis;
+        this.useSigning = useSigning;
         this.advertisingIdLatch = advertisingIdLatch;
         this.optOut = optOut;
         this.factories = factories;
@@ -1068,6 +1072,7 @@ public class Analytics {
         private boolean collectDeviceID = Utils.DEFAULT_COLLECT_DEVICE_ID;
         private int flushQueueSize = Utils.DEFAULT_FLUSH_QUEUE_SIZE;
         private long flushIntervalInMillis = Utils.DEFAULT_FLUSH_INTERVAL;
+        private boolean useSigning;
         private Options defaultOptions;
         private String tag;
         private LogLevel logLevel;
@@ -1141,6 +1146,16 @@ public class Analytics {
                 throw new IllegalArgumentException("flushInterval must be greater than zero.");
             }
             this.flushIntervalInMillis = timeUnit.toMillis(flushInterval);
+            return this;
+        }
+
+        /**
+         * Enable signing on the payload for uploading. This option internally enables HMAC + SHA1
+         * on your payload, which adds an additional security to your data, preventing network
+         * requests being smuggled.
+         */
+        public Builder useSigning(boolean useSigning) {
+            this.useSigning = useSigning;
             return this;
         }
 
@@ -1512,6 +1527,7 @@ public class Analytics {
                     writeKey,
                     flushQueueSize,
                     flushIntervalInMillis,
+                    useSigning,
                     executor,
                     trackApplicationLifecycleEvents,
                     advertisingIdLatch,

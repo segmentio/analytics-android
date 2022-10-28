@@ -83,7 +83,8 @@ class SegmentIntegration extends Integration<Void> {
                             analytics.flushQueueSize,
                             analytics.getLogger(),
                             analytics.crypto,
-                            settings);
+                            settings,
+                            analytics.useSigning);
                 }
 
                 @Override
@@ -123,6 +124,7 @@ class SegmentIntegration extends Integration<Void> {
     private final ExecutorService networkExecutor;
     private final ScheduledExecutorService flushScheduler;
     private final String apiHost;
+    private final boolean useSigning;
     /**
      * We don't want to stop adding payloads to our disk queue when we're uploading payloads. So we
      * upload payloads on a network executor instead.
@@ -183,7 +185,8 @@ class SegmentIntegration extends Integration<Void> {
             int flushQueueSize,
             Logger logger,
             Crypto crypto,
-            ValueMap settings) {
+            ValueMap settings,
+            boolean useSigning) {
         PayloadQueue payloadQueue;
         try {
             File folder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
@@ -206,7 +209,8 @@ class SegmentIntegration extends Integration<Void> {
                 flushQueueSize,
                 logger,
                 crypto,
-                apiHost);
+                apiHost,
+                useSigning);
     }
 
     SegmentIntegration(
@@ -221,7 +225,8 @@ class SegmentIntegration extends Integration<Void> {
             int flushQueueSize,
             Logger logger,
             Crypto crypto,
-            String apiHost) {
+            String apiHost,
+            boolean useSigning) {
         this.context = context;
         this.client = client;
         this.networkExecutor = networkExecutor;
@@ -234,7 +239,8 @@ class SegmentIntegration extends Integration<Void> {
         this.flushScheduler = Executors.newScheduledThreadPool(1, new AnalyticsThreadFactory());
         this.crypto = crypto;
         this.apiHost = apiHost;
-        this.underwriter = new Underwriter(client.writeKey);
+        this.useSigning = useSigning;
+        this.underwriter = useSigning ? new Underwriter(client.writeKey) : null;
 
         segmentThread = new HandlerThread(SEGMENT_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
         segmentThread.start();
@@ -382,11 +388,16 @@ class SegmentIntegration extends Integration<Void> {
         int payloadsUploaded = 0;
         Client.Connection connection = null;
         try {
-            // signing the batch
-            String signature = signing();
+            if (useSigning) {
+                // signing the batch
+                String signature = signing();
+                connection = client.upload(apiHost, signature);
+            }
+            else {
+                connection = client.upload(apiHost);
+            }
 
             // Open a connection.
-            connection = client.upload(apiHost, signature, true);
             payloadsUploaded = writeBatchToStream(connection.os);
 
             // Upload the payloads.

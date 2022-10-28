@@ -542,6 +542,7 @@ class SegmentIntegrationTest {
             SegmentBuilder()
                 .client(client)
                 .payloadQueue(payloadQueue)
+                .useSigning(true)
                 .build()
         val bytes = TRACK_PAYLOAD_JSON.toByteArray()
         for (i in 0 until 4) {
@@ -581,6 +582,7 @@ class SegmentIntegrationTest {
         var flushSize = DEFAULT_FLUSH_QUEUE_SIZE
         var logger = with(Analytics.LogLevel.NONE)
         var networkExecutor: ExecutorService? = null
+        var useSigning = false
 
         fun SegmentBuilder() {
             initMocks(this)
@@ -640,6 +642,11 @@ class SegmentIntegrationTest {
             return this
         }
 
+        fun useSigning(useSigning : Boolean): SegmentBuilder {
+            this.useSigning = useSigning
+            return this
+        }
+
         fun build(): SegmentIntegration {
             if (context == null) {
                 context = mockApplication()
@@ -676,7 +683,8 @@ class SegmentIntegrationTest {
                 flushSize,
                 logger,
                 Crypto.none(),
-                DEFAULT_API_HOST
+                DEFAULT_API_HOST,
+                useSigning
             )
         }
     }
