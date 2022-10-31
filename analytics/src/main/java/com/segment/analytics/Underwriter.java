@@ -9,21 +9,17 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 public class Underwriter {
-    private Mac mac;
+    private final Mac mac;
 
-    public Underwriter(String key) {
-        if (key == null) {
-            key = "segment";
+    public Underwriter(String key) throws NoSuchAlgorithmException, InvalidKeyException {
+        if (key == null || key.isEmpty()) {
+            throw new InvalidKeyException("Key to the Underwriter cannot be null or empty");
         }
 
-        try {
-            String type = "HmacSHA1";
-            mac = Mac.getInstance(type);
-            SecretKeySpec secret = new SecretKeySpec(key.getBytes(), type);
-            mac.init(secret);
-        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            e.printStackTrace();
-        }
+        String type = "HmacSHA1";
+        mac = Mac.getInstance(type);
+        SecretKeySpec secret = new SecretKeySpec(key.getBytes(), type);
+        mac.init(secret);
     }
 
     public void update(byte[] bytes) {

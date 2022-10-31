@@ -124,7 +124,7 @@ class SegmentIntegration extends Integration<Void> {
     private final ExecutorService networkExecutor;
     private final ScheduledExecutorService flushScheduler;
     private final String apiHost;
-    private final boolean useSigning;
+    private boolean useSigning;
     /**
      * We don't want to stop adding payloads to our disk queue when we're uploading payloads. So we
      * upload payloads on a network executor instead.
@@ -150,7 +150,7 @@ class SegmentIntegration extends Integration<Void> {
 
     private final Crypto crypto;
 
-    private final Underwriter underwriter;
+    private Underwriter underwriter;
 
     /**
      * Create a {@link QueueFile} in the given folder with the given name. If the underlying file is
@@ -240,7 +240,13 @@ class SegmentIntegration extends Integration<Void> {
         this.crypto = crypto;
         this.apiHost = apiHost;
         this.useSigning = useSigning;
-        this.underwriter = useSigning ? new Underwriter(client.writeKey) : null;
+
+        try {
+            this.underwriter = useSigning ? new Underwriter(client.writeKey) : null;
+        } catch (Exception e) {
+            logger.error(e, "Failed to initialize underwriter, fallback to not use signing on payload");
+            this.useSigning = false;
+        }
 
         segmentThread = new HandlerThread(SEGMENT_THREAD_NAME, THREAD_PRIORITY_BACKGROUND);
         segmentThread.start();
