@@ -98,12 +98,12 @@ class Client {
     }
 
     Connection upload(String apiHost, String signature) throws IOException {
-        HttpURLConnection connection = connectionFactory.upload(apiHost, signature, true);
+        HttpURLConnection connection = connectionFactory.upload(apiHost, writeKey, signature);
         return createPostConnection(connection);
     }
 
     Connection upload(String apiHost) throws IOException {
-        HttpURLConnection connection = connectionFactory.upload(apiHost, writeKey, false);
+        HttpURLConnection connection = connectionFactory.upload(apiHost, writeKey, null);
         return createPostConnection(connection);
     }
 
