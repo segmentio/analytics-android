@@ -394,9 +394,10 @@ class SegmentIntegration extends Integration<Void> {
         int payloadsUploaded = 0;
         Client.Connection connection = null;
         try {
+            String sendAt = toISO8601Date(new Date());
             if (useSigning) {
                 // signing the batch
-                String signature = signing();
+                String signature = signing(sendAt);
                 connection = client.upload(apiHost, signature);
             }
             else {
@@ -404,7 +405,7 @@ class SegmentIntegration extends Integration<Void> {
             }
 
             // Open a connection.
-            payloadsUploaded = writeBatchToStream(connection.os);
+            payloadsUploaded = writeBatchToStream(connection.os, sendAt);
 
             // Upload the payloads.
             connection.close();
@@ -446,9 +447,9 @@ class SegmentIntegration extends Integration<Void> {
         }
     }
 
-    private String signing() throws IOException {
+    private String signing(String date) throws IOException {
         OutputStream os = new UnderwriterOutputStream(underwriter);
-        writeBatchToStream(os);
+        writeBatchToStream(os, date);
 
         String signature = underwriter.sign();
         underwriter.reset();
@@ -456,7 +457,7 @@ class SegmentIntegration extends Integration<Void> {
         return signature;
     }
 
-    int writeBatchToStream(OutputStream os) throws IOException {
+    int writeBatchToStream(OutputStream os, String date) throws IOException {
         // Write the payloads into the OutputStream.
         BatchPayloadWriter writer =
                 new BatchPayloadWriter(os) //
@@ -464,7 +465,7 @@ class SegmentIntegration extends Integration<Void> {
                         .beginBatchArray();
         PayloadWriter payloadWriter = new PayloadWriter(writer, crypto);
         payloadQueue.forEach(payloadWriter);
-        writer.endBatchArray().endObject().close();
+        writer.endBatchArray().endObject(date).close();
         // Don't use the result of QueueFiles#forEach, since we may not upload the last element.
         return payloadWriter.payloadCount;
     }
@@ -489,6 +490,12 @@ class SegmentIntegration extends Integration<Void> {
             super.flush();
         }
 
+        @Override
+        public void close() throws IOException {
+            underwriter.update(toByteArray());
+            // since closing ByteArrayOutputStream has no effect,
+            // we don't have to call super.close() here
+        }
     }
 
     static class PayloadWriter implements PayloadQueue.ElementVisitor {
@@ -566,7 +573,7 @@ class SegmentIntegration extends Integration<Void> {
             return this;
         }
 
-        BatchPayloadWriter endObject() throws IOException {
+        BatchPayloadWriter endObject(String date) throws IOException {
             /**
              * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can
              * be used to correct the original timestamp in situations where the local clock cannot
@@ -574,7 +581,7 @@ class SegmentIntegration extends Integration<Void> {
              * will be assumed to have occurred at the same time, and therefore the difference is
              * the local clock skew.
              */
-            jsonWriter.name("sentAt").value(toISO8601Date(new Date())).endObject();
+            jsonWriter.name("sentAt").value(date).endObject();
             return this;
         }
 
