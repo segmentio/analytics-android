@@ -585,6 +585,10 @@ class SegmentIntegration extends Integration<Void> {
             return this;
         }
 
+        BatchPayloadWriter endObject() throws IOException {
+            return endObject(toISO8601Date(new Date()));
+        }
+
         @Override
         public void close() throws IOException {
             jsonWriter.close();

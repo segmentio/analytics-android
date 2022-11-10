@@ -54,7 +54,9 @@ import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLog
 import java.io.*
 import java.net.HttpURLConnection
+import java.util.*
 import java.util.concurrent.ExecutorService
+import kotlin.collections.LinkedHashMap
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
@@ -561,8 +563,9 @@ class SegmentIntegrationTest {
                 streamContent.add(toByteArray())
             }
         }
-        segmentIntegration.writeBatchToStream(underwriterStream)
-        segmentIntegration.writeBatchToStream(stream)
+        val date = toISO8601Date(Date())
+        segmentIntegration.writeBatchToStream(underwriterStream, date)
+        segmentIntegration.writeBatchToStream(stream, date)
 
         assertThat(underwriterContent.size).isEqualTo(streamContent.size)
         for (i in underwriterContent.indices) {
