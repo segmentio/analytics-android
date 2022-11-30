@@ -23,7 +23,6 @@
  */
 package com.segment.analytics;
 
-import android.util.Base64;
 import com.segment.analytics.core.BuildConfig;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -40,10 +39,6 @@ public class ConnectionFactory {
     private static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 15 * 1000; // 15s
     static final String USER_AGENT = "analytics-android/" + BuildConfig.VERSION_NAME;
 
-    private String authorizationHeader(String writeKey) {
-        return "Basic " + Base64.encodeToString((writeKey + ":").getBytes(), Base64.NO_WRAP);
-    }
-
     /** Return a {@link HttpURLConnection} that reads JSON formatted project settings. */
     public HttpURLConnection projectSettings(String writeKey) throws IOException {
         return openConnection(
@@ -54,9 +49,8 @@ public class ConnectionFactory {
      * Return a {@link HttpURLConnection} that writes batched payloads to {@code
      * https://api.segment.io/v1/import}.
      */
-    public HttpURLConnection upload(String apiHost, String writeKey) throws IOException {
+    public HttpURLConnection upload(String apiHost) throws IOException {
         HttpURLConnection connection = openConnection(String.format("https://%s/import", apiHost));
-        connection.setRequestProperty("Authorization", authorizationHeader(writeKey));
         connection.setRequestProperty("Content-Encoding", "gzip");
         connection.setDoOutput(true);
         connection.setChunkedStreamingMode(0);
@@ -64,7 +58,7 @@ public class ConnectionFactory {
     }
 
     /**
-     * Configures defaults for connections opened with {@link #upload(String, String)}, and {@link
+     * Configures defaults for connections opened with {@link #upload(String)}, and {@link
      * #projectSettings(String)}.
      */
     protected HttpURLConnection openConnection(String url) throws IOException {

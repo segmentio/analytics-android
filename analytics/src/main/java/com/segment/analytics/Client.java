@@ -98,7 +98,7 @@ class Client {
     }
 
     Connection upload(String apiHost) throws IOException {
-        HttpURLConnection connection = connectionFactory.upload(apiHost, writeKey);
+        HttpURLConnection connection = connectionFactory.upload(apiHost);
         return createPostConnection(connection);
     }
 

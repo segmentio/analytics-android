@@ -389,7 +389,7 @@ class SegmentIntegration extends Integration<Void> {
                             .beginBatchArray();
             PayloadWriter payloadWriter = new PayloadWriter(writer, crypto);
             payloadQueue.forEach(payloadWriter);
-            writer.endBatchArray().endObject().close();
+            writer.endBatchArray().endObject(client.writeKey).close();
             // Don't use the result of QueueFiles#forEach, since we may not upload the last element.
             payloadsUploaded = payloadWriter.payloadCount;
 
@@ -514,7 +514,7 @@ class SegmentIntegration extends Integration<Void> {
             return this;
         }
 
-        BatchPayloadWriter endObject() throws IOException {
+        BatchPayloadWriter endObject(String writeKey) throws IOException {
             /**
              * The sent timestamp is an ISO-8601-formatted string that, if present on a message, can
              * be used to correct the original timestamp in situations where the local clock cannot
@@ -522,7 +522,9 @@ class SegmentIntegration extends Integration<Void> {
              * will be assumed to have occurred at the same time, and therefore the difference is
              * the local clock skew.
              */
-            jsonWriter.name("sentAt").value(toISO8601Date(new Date())).endObject();
+            jsonWriter.name("sentAt").value(toISO8601Date(new Date()))
+                    .name("writeKey").value(writeKey)
+                    .endObject();
             return this;
         }
 
