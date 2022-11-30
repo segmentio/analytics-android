@@ -107,6 +107,8 @@ class AnalyticsContextTest {
             .containsEntry("width", 480)
         assertThat(context.getValueMap("screen"))
             .containsEntry("height", 800)
+
+        assertThat(context.containsKey("instanceId"))
     }
 
     @Test
