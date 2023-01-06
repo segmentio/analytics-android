@@ -56,6 +56,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -119,6 +120,8 @@ public class AnalyticsContext extends ValueMap {
     private static final String SCREEN_DENSITY_KEY = "density";
     private static final String SCREEN_HEIGHT_KEY = "height";
     private static final String SCREEN_WIDTH_KEY = "width";
+    // Telemetry
+    private static final String INSTANCE_ID_KEY = "instanceId";
 
     /**
      * Create a new {@link AnalyticsContext} instance filled in with information from the given
@@ -139,6 +142,7 @@ public class AnalyticsContext extends ValueMap {
         analyticsContext.putNetwork(context);
         analyticsContext.putOs();
         analyticsContext.putScreen(context);
+        analyticsContext.putTelemetry();
         putUndefinedIfNull(analyticsContext, USER_AGENT_KEY, System.getProperty("http.agent"));
         putUndefinedIfNull(analyticsContext, TIMEZONE_KEY, TimeZone.getDefault().getID());
         return analyticsContext;
@@ -268,6 +272,10 @@ public class AnalyticsContext extends ValueMap {
         library.put(LIBRARY_NAME_KEY, "analytics-android");
         library.put(LIBRARY_VERSION_KEY, BuildConfig.VERSION_NAME);
         put(LIBRARY_KEY, library);
+    }
+
+    void putTelemetry() {
+        put(INSTANCE_ID_KEY, UUID.randomUUID().toString());
     }
 
     /** Set location information about the device. */

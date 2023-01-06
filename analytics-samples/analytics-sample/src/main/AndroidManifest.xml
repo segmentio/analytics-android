@@ -48,7 +48,8 @@
     <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
-        android:windowSoftInputMode="stateHidden">
+        android:windowSoftInputMode="stateHidden"
+        android:exported="true">
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>
         <category android:name="android.intent.category.LAUNCHER"/>
@@ -57,7 +58,8 @@
     </activity>
 
     <service
-        android:name="com.segment.analytics.PhoneAnalyticsListenerService">
+        android:name="com.segment.analytics.PhoneAnalyticsListenerService"
+        android:exported="true">
       <intent-filter>
         <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
         <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />

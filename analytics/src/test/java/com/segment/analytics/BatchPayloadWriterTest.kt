@@ -49,12 +49,14 @@ class BatchPayloadWriterTest {
             .emitPayloadObject("{}")
             .emitPayloadObject("2")
             .endBatchArray()
-            .endObject()
+            .endObject("test")
             .close()
 
         // todo: inject a fake clock. for now we'll compare a lower precision.
-        assertThat(byteArrayOutputStream.toString())
+        val json = byteArrayOutputStream.toString()
+        assertThat(json)
             .contains("{\"batch\":[foobarbazqux,{},2],\"sentAt\":\"")
+        assertThat(json).contains("\"writeKey\":\"test\"")
     }
 
     @Test
@@ -67,12 +69,14 @@ class BatchPayloadWriterTest {
             .beginBatchArray()
             .emitPayloadObject("qaz")
             .endBatchArray()
-            .endObject()
+            .endObject("test")
             .close()
 
         // todo: inject a fake clock. for now we'll compare a lower precision.
-        assertThat(byteArrayOutputStream.toString())
+        val json = byteArrayOutputStream.toString()
+        assertThat(json)
             .contains("{\"batch\":[qaz],\"sentAt\":\"")
+        assertThat(json).contains("\"writeKey\":\"test\"")
     }
 
     @Test
@@ -82,7 +86,7 @@ class BatchPayloadWriterTest {
         val batchPayloadWriter = BatchPayloadWriter(byteArrayOutputStream)
 
         try {
-            batchPayloadWriter.beginObject().beginBatchArray().endBatchArray().endObject().close()
+            batchPayloadWriter.beginObject().beginBatchArray().endBatchArray().endObject("test").close()
         } catch (exception: IOException) {
             assertThat(exception).hasMessage("At least one payload must be provided.")
         }

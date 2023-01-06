@@ -47,7 +47,6 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(constants = BuildConfig::class, sdk = [18], manifest = Config.NONE)
 class AnalyticsBuilderTest {
 
     lateinit var context: Application

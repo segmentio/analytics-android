@@ -103,7 +103,6 @@ class ClientTest {
             .containsHeader("User-Agent", ConnectionFactory.USER_AGENT)
             .containsHeader("Content-Type", "application/json")
             .containsHeader("Content-Encoding", "gzip")
-            .containsHeader("Authorization", "Basic Zm9vOg==")
     }
 
     @Test
