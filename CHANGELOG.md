@@ -3,7 +3,7 @@ Changelog
 
 Version 4.11.0 (Jan 6, 2023)
 ============================
-* [Fix](https://github.com/segmentio/analytics-android/pull/817): move writeKey from http request header to payload body
+* [New](https://github.com/segmentio/analytics-android/pull/817): move writeKey from http request header to payload body
 
 Version 4.10.4 (Feb 17, 2022)
 ============================
