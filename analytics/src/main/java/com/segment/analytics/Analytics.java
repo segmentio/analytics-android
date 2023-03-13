@@ -353,7 +353,7 @@ public class Analytics {
         application.registerActivityLifecycleCallbacks(activityLifecycleCallback);
         if (useNewLifecycleMethods) {
             // NOTE: addObserver is required to run on UI thread,
-            // though we made it compatible to run rom background thread,
+            // though we made it compatible to run from background thread,
             // there is a chance that lifecycle events get lost if init
             // analytics from background (i.e. analytics is init, but
             // lifecycle hook is yet to be registered.
