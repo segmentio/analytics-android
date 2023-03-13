@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Version 4.11.1 (Mar 13, 2023)
+============================
+* [Fix](https://github.com/segmentio/analytics-android/pull/824): fix androidx lifecycle causes analytics init in background crash
+
 Version 4.11.0 (Jan 6, 2023)
 ============================
 * [New](https://github.com/segmentio/analytics-android/pull/817): move writeKey from http request header to payload body
