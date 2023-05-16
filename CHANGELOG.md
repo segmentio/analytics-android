@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Version 4.11.2 (May 16, 2023)
+============================
+* [Fix](https://github.com/segmentio/analytics-android/pull/832): fix WindowManager crash on android 11+
+
 Version 4.11.1 (Mar 13, 2023)
 ============================
 * [Fix](https://github.com/segmentio/analytics-android/pull/824): fix androidx lifecycle causes analytics init in background crash
