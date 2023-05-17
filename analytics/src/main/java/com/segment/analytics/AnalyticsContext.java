@@ -340,16 +340,7 @@ public class AnalyticsContext extends ValueMap {
      */
     void putScreen(Context context) {
         Map<String, Object> screen = createMap();
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            context.getDisplay().getRealMetrics(displayMetrics);
-        }
-        else {
-            WindowManager manager = getSystemService(context, Context.WINDOW_SERVICE);
-            Display display = manager.getDefaultDisplay();
-            display.getMetrics(displayMetrics);
-        }
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
 
         screen.put(SCREEN_DENSITY_KEY, displayMetrics.density);
         screen.put(SCREEN_HEIGHT_KEY, displayMetrics.heightPixels);
