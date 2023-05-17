@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Version 4.11.3 (May 16, 2023)
+============================
+* [Fix](https://github.com/segmentio/analytics-android/pull/836): fix DisplayMetrics crash on android 11+
+
 Version 4.11.2 (May 16, 2023)
 ============================
 * [Fix](https://github.com/segmentio/analytics-android/pull/832): fix WindowManager crash on android 11+
