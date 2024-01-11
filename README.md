@@ -1,5 +1,7 @@
 
-**The new [Analytics-Kotlin](https://github.com/segmentio/analytics-kotlin) library is now available!**
+⚠️ **WARNING** ⚠️
+
+Segment will continue to accept incoming traffic from Analytics-Android. However, we have launched our new flagship library, [Analytics-Kotlin](https://github.com/segmentio/analytics-kotlin), with [significantly improved performance](https://segment.com/blog/sdk-performance-improvements/) as well as new business-tier functionality such as [Destination Filters](https://segment.com/docs/connections/sources/catalog/libraries/mobile/kotlin-android/kotlin-android-destination-filters/), Live Plugins, and Flush Policies, with more to come. 
 
 analytics-android
 =================
