@@ -1,8 +1,8 @@
 
-### ⚠️ Maintenance ⚠️
-This library is in maintenance mode. It will send data as intended, but receive no new feature support and only critical maintenance updates from Segment.
+## ⚠️ End-of-Support Announcement for Analytics-Android - March 2026 ⚠️
+The end-of-support (EoS) for the Analytics-Android SDK is scheduled for March 2026. 
 
-We highly recommend using our upgraded [Analytics-Kotlin](https://github.com/segmentio/analytics-kotlin) to benefit from feature enhancements and ongoing support.
+Segment's future development efforts concentrate on the new [Analytics-Kotlin](/docs/connections/sources/catalog/libraries/mobile/kotlin-android/) SDK. If you'd like to upgrade to Analytics-Kotlin, see the [migration guide](/docs/connections/sources/catalog/libraries/mobile/kotlin-android/migration/). 
 
 
 analytics-android
