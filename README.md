@@ -2,7 +2,7 @@
 ## ⚠️ End-of-Support Announcement for Analytics-Android - March 2026 ⚠️
 The end-of-support (EoS) for the Analytics-Android SDK is scheduled for March 2026. 
 
-Segment's future development efforts concentrate on the new [Analytics-Kotlin](/docs/connections/sources/catalog/libraries/mobile/kotlin-android/) SDK. If you'd like to upgrade to Analytics-Kotlin, see the [migration guide](/docs/connections/sources/catalog/libraries/mobile/kotlin-android/migration/). 
+Segment's future development efforts concentrate on the new [Analytics-Kotlin](https://segment.com/docs/connections/sources/catalog/libraries/mobile/kotlin-android/) SDK. If you'd like to upgrade to Analytics-Kotlin, see the [migration guide](https://segment.com/docs/connections/sources/catalog/libraries/mobile/kotlin-android/migration/). 
 
 
 analytics-android
